@@ -1,12 +1,15 @@
 // lib/screens/register_screen.dart
 // Self-registration with posting location, identity photos, and PIN setup.
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/api_config.dart';
 import '../data/india_states.dart';
 import '../data/maharashtra_police_stations_repository.dart';
 import '../data/police_stations_repository.dart';
@@ -74,13 +77,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
+  List<String> _onboardedStates = ['Maharashtra', 'Gujarat'];
+
   Future<void> _bootstrapLocationData() async {
     try {
       final map = await IndiaDistrictsRepository.load();
       await MaharashtraPoliceStationsRepository.initialize();
+
+      // Dynamically fetch active onboarded state registries from PostgreSQL backend API
+      List<String> activeStates = [];
+      try {
+        final response = await http.get(Uri.parse(ApiConfig.masterStates));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          final list = (data is Map && data.containsKey('results')) ? data['results'] as List : (data as List);
+          for (final item in list) {
+            if (item['is_active'] == true && item['state_name'] != null) {
+              final sName = item['state_name'].toString().trim();
+              if (!activeStates.contains(sName)) {
+                activeStates.add(sName);
+              }
+            }
+          }
+        }
+      } catch (_) {}
+
+      if (activeStates.isEmpty) {
+        activeStates = ['Gujarat', 'Maharashtra'];
+      }
+
       if (!mounted) return;
       setState(() {
         _districtsByState = map;
+        _onboardedStates = activeStates;
+        if (!activeStates.contains(_selectedState) && activeStates.isNotEmpty) {
+          _selectedState = activeStates.first;
+        }
         _locationDataReady = true;
       });
     } catch (_) {
@@ -104,7 +136,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return districts.toList()
         ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     }
-    return List<String>.from(_districtsByState[_selectedState] ?? const []);
+
+    final rawList = _districtsByState[_selectedState] ??
+        _districtsByState[_selectedState.toLowerCase()] ??
+        _districtsByState[_selectedState.toUpperCase()];
+
+    if (rawList == null) {
+      return const [];
+    }
+    return (rawList ?? []).map((e) => e.toString()).toList();
   }
 
   List<String> _stationsForSelection() {
@@ -119,11 +159,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         unitType: _selectedUnitType!,
       );
     }
-    return PoliceStationsRepository.forSelection(
+    final list = PoliceStationsRepository.forSelection(
       unitType: _selectedUnitType!,
       state: _selectedState,
       district: _selectedDistrict!,
     );
+    return (list ?? []).map((e) => e.toString()).toList();
   }
 
   String _buildStationAddress() {
@@ -146,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _clearLocationSelection();
       }
       if (_designation != null) {
-        final allowed = PoliceDesignations.forRegistration(unitType)
+        final allowed = (PoliceDesignations.forRegistration(unitType) ?? [])
             .map((e) => e.abbreviation)
             .toSet();
         if (!allowed.contains(_designation)) {
@@ -394,7 +435,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Verify your contact details, then complete posting and profile information.',
+                                'Complete officer identity details, contact verification, and police posting jurisdiction.',
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   color: AppColors.lightSubText,
@@ -403,7 +444,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               const SizedBox(height: AppSpacing.lg),
                               Text(
-                                'Contact verification',
+                                'Officer details',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.navyDark,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              _TextField(
+                                controller: _fullNameCtrl,
+                                label: l10n.fullName,
+                                hint: l10n.fullName,
+                                icon: Icons.person_rounded,
+                                validator: AppValidators.fullName,
+                              ),
+                              _DesignationDropdown(
+                                key: ValueKey(
+                                    'designation-$_selectedUnitType'),
+                                value: _designation,
+                                unitType: _selectedUnitType,
+                                onChanged: _onDesignationChanged,
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              Text(
+                                'Contact & verification',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -456,7 +521,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 const SizedBox(height: AppSpacing.lg),
                               ],
                               Text(
-                                'Posting & profile',
+                                'Posting & jurisdiction',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -480,20 +545,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 )
                               else ...[
                                 SearchablePickerField(
-                                  label: 'State',
-                                  hintText: 'Select state',
-                                  leadingIcon: Icons.map_rounded,
-                                  items: IndiaStates.all,
-                                  value: _selectedState,
-                                  onChanged: (v) => setState(() {
-                                    _selectedState = v;
-                                    _selectedDistrict = null;
-                                    _selectedStation = null;
-                                  }),
-                                  validator: (v) => v == null || v.trim().isEmpty
-                                      ? 'State is required'
-                                      : null,
-                                ),
+                                   label: 'State Jurisdiction',
+                                   hintText: 'Select active state jurisdiction',
+                                   leadingIcon: Icons.map_rounded,
+                                   items: _onboardedStates,
+                                   value: _selectedState,
+                                   onChanged: (v) => setState(() {
+                                     _selectedState = v;
+                                     _selectedDistrict = null;
+                                     _selectedStation = null;
+                                   }),
+                                   validator: (v) => v == null || v.trim().isEmpty
+                                       ? 'State is required'
+                                       : null,
+                                 ),
+                                 Padding(
+                                   padding: const EdgeInsets.only(bottom: 12.0),
+                                   child: Row(
+                                     children: [
+                                       const Icon(Icons.check_circle_outline, size: 14, color: AppColors.navyMid),
+                                       const SizedBox(width: 6),
+                                       Text(
+                                         'Showing active onboarded state jurisdictions in PMS platform.',
+                                         style: GoogleFonts.poppins(
+                                           fontSize: 11,
+                                           color: AppColors.lightSubText,
+                                           fontWeight: FontWeight.w500,
+                                         ),
+                                       ),
+                                     ],
+                                   ),
+                                 ),
                                 _RegisterUnitTypeSelector(
                                   value: _selectedUnitType,
                                   locked: _unitTypeLockedByDesignation,
@@ -551,20 +633,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ],
                                 const SizedBox(height: AppSpacing.sm),
                               ],
-                              _TextField(
-                                controller: _fullNameCtrl,
-                                label: l10n.fullName,
-                                hint: l10n.fullName,
-                                icon: Icons.person_rounded,
-                                validator: AppValidators.fullName,
-                              ),
-                              _DesignationDropdown(
-                                key: ValueKey(
-                                    'designation-$_selectedUnitType'),
-                                value: _designation,
-                                unitType: _selectedUnitType,
-                                onChanged: _onDesignationChanged,
-                              ),
                               const SizedBox(height: AppSpacing.md),
                               Text(
                                 'Identity photos (optional)',
@@ -766,7 +834,7 @@ class _DesignationDropdown extends StatelessWidget {
         initialValue: safeValue,
         isExpanded: true,
         menuMaxHeight: 360,
-        items: items
+        items: (items ?? [])
             .map(
               (d) => DropdownMenuItem<String>(
                 value: d.abbreviation,

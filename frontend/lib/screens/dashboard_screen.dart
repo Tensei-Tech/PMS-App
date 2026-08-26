@@ -38,6 +38,9 @@ import 'case_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
 import '../utils/pdf_helper.dart';
 import 'case_detail_screen.dart';
+import '../utils/police_hierarchy_helper.dart';
+import '../widgets/create_sub_admin_dialog.dart';
+import '../widgets/send_broadcast_alert_dialog.dart';
 import 'ad_record_detail_screen.dart';
 import 'module_record_detail_screen.dart';
 import 'module_hub_screen.dart';
@@ -1940,6 +1943,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 physics: const BouncingScrollPhysics(),
                 children: [
+                  // ── ROLE-BASED COMMAND CONTROLS (State Super Admin / District Admin) ──
+                  if (PoliceHierarchyHelper.canCreateDistrictAdmin(auth.designation, auth.roleId) ||
+                      PoliceHierarchyHelper.canCreateDivisionAdmin(auth.designation, auth.roleId)) ...[
+                    _drawerItem(
+                      Icons.person_add_alt_1_rounded,
+                      PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId)
+                          ? 'Create Sub-Admin (District/Div/Station)'
+                          : 'Create Division / Station Head',
+                      () => CreateSubAdminDialog.show(context),
+                    ),
+                  ],
+                  if (PoliceHierarchyHelper.canSendAlerts(auth.designation, auth.roleId) ||
+                      PoliceHierarchyHelper.canSendReminders(auth.designation, auth.roleId)) ...[
+                    _drawerItem(
+                      Icons.campaign_rounded,
+                      PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId)
+                          ? 'Send State Alert & Reminders'
+                          : (PoliceHierarchyHelper.isDistrictAdmin(auth.designation, auth.roleId)
+                              ? 'Send District Alert & Reminders'
+                              : 'Send Reminder to IO'),
+                      () => SendBroadcastAlertDialog.show(context),
+                    ),
+                    const Divider(height: 1),
+                  ],
                   // ── Switch Policestation (senior officers only) ──
                   if (SeniorOfficerRoles.canSwitchLocation(
                       auth.designation)) ...[

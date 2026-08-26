@@ -28,6 +28,7 @@ class UserModel {
   final String photoUrl;
   final String? idCardUrl;
   final String role; // 'officer' | 'supervisor' | 'admin' — set by admin only
+  final String stateCode; // 'MH', 'GJ', 'KA', etc.
   final List<String> additionalStations; // Extra stations added by CP-level officers
   /// `active` (default) | `archived` | `pending_approval` | `rejected`
   final String accountStatus;
@@ -55,6 +56,7 @@ class UserModel {
     this.photoUrl = '',
     this.idCardUrl,
     this.role = 'officer', // Default: least-privilege on registration
+    this.stateCode = 'MH',
     this.additionalStations = const [],
     this.accountStatus = UserAccountStatus.active,
     this.status = '',
@@ -80,6 +82,7 @@ class UserModel {
       if (idCardUrl != null && idCardUrl!.trim().isNotEmpty)
         'idCardUrl': idCardUrl,
       'role': role,
+      'stateCode': stateCode,
       'additionalStations': additionalStations,
       'district': district ?? '',
       if ((zone ?? district ?? '').trim().isNotEmpty)
@@ -95,32 +98,33 @@ class UserModel {
 
   factory UserModel.fromMap(Map<String, dynamic> map, [String? docId]) {
     return UserModel(
-      uid: docId ?? map['uid'] ?? '',
-      name: map['name'] ?? '',
-      badgeNumber: map['badgeNumber'] ?? '',
+      uid: docId ?? map['uid'] ?? map['id'] ?? '',
+      name: map['name'] ?? map['full_name'] ?? '',
+      badgeNumber: map['badgeNumber'] ?? map['badge_number'] ?? '',
       designation: map['designation'] ?? '',
       email: map['email'] ?? '',
       phone: map['phone'] ?? '',
-      stationName: map['stationName'] ?? '',
-      stationAddress: map['stationAddress'] ?? '',
-      stationLandline: map['stationLandline'] ?? '',
-      govtId: map['govtId'] ?? '',
-      photoUrl: map['photoUrl'] as String? ?? '',
-      idCardUrl: map['idCardUrl'] as String?,
-      // Default to 'officer' if field is missing (backward compatibility)
-      role: map['role'] ?? 'officer',
+      stationName: map['stationName'] ?? map['station_name'] ?? '',
+      stationAddress: map['stationAddress'] ?? map['station_address'] ?? '',
+      stationLandline: map['stationLandline'] ?? map['station_landline'] ?? '',
+      govtId: map['govtId'] ?? map['govt_id'] ?? '',
+      photoUrl: (map['photoUrl'] ?? map['photo_url']) as String? ?? '',
+      idCardUrl: (map['idCardUrl'] ?? map['id_card_url']) as String?,
+      role: map['role'] ?? map['role_id'] ?? 'officer',
+      stateCode: map['stateCode'] ?? map['state_code'] ?? 'MH',
       additionalStations: (map['additionalStations'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
       accountStatus: map['accountStatus'] as String? ??
+          map['account_status'] as String? ??
           map['status'] as String? ??
           UserAccountStatus.active,
       status: map['status'] as String? ?? '',
       district: map['district'] as String?,
       zone: map['zone'] as String? ?? map['district'] as String?,
-      stationCaseViewGranted: map['stationCaseViewGranted'] == true,
-      createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
+      stationCaseViewGranted: map['stationCaseViewGranted'] == true || map['station_case_view_granted'] == true,
+      createdAt: DateTime.tryParse(map['createdAt'] ?? map['created_at'] ?? '') ?? DateTime.now(),
     );
   }
 
