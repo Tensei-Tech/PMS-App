@@ -1,0 +1,47 @@
+# ============================================================
+# PMS Project .gitignore
+# Tracks: backend/ & frontend/ only
+# ============================================================
+
+# Python / Django Backend
+backend/venv/
+backend/.venv/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+backend/.env
+backend/*.sqlite3
+backend/staticfiles/
+backend/media/
+
+# Secret keys & service account files
+**/*service-account*.json
+**/*serviceAccount*.json
+backend/config/firebase_credentials.json
+
+# Flutter / Dart generated
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+frontend/**/*.iml
+frontend/.idea/
+
+# Flutter build output (ALL platforms)
+frontend/build/
+frontend/android/build/
+frontend/android/app/build/
+frontend/ios/Pods/
+frontend/ios/build/
+frontend/.gradle/
+frontend/linux/build/
+frontend/macos/build/
+frontend/windows/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dotenv
+.env
+.env.*

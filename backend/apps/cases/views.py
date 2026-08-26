@@ -1,0 +1,98 @@
+from rest_framework import viewsets, permissions, status, exceptions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from apps.cases.models import CaseRecord
+from apps.cases.serializers import CaseRecordSerializer
+from apps.core.permissions import check_dynamic_permission
+from apps.repositories import CaseRepository
+
+
+class CaseRecordViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for viewing, creating, updating, and filtering case records.
+    Uses CaseRepository from feature repositories to encapsulate ORM access and 4-tier access checks.
+    """
+    queryset = CaseRecord.objects.all()
+    serializer_class = CaseRecordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.case_repo = CaseRepository()
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user or not user.is_authenticated:
+            return CaseRecord.objects.none()
+
+        role_id = getattr(user, 'role_id', 'officer')
+
+        # Tier 4 & 5 -> Full City/District visibility
+        if role_id in ['district_admin', 'master_admin', 'state_super_admin']:
+            queryset = self.case_repo.get_all()
+        # Tier 1, 2, 3 -> Station / Division stations visibility
+        else:
+            stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+            queryset = self.case_repo.get_cases_for_stations(stations)
+
+        # Apply query parameter filters
+        module_key = self.request.query_params.get('module_key')
+        if module_key:
+            queryset = queryset.filter(module_key=module_key)
+
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            queryset = queryset.filter(status__iexact=status_param)
+
+        assigned_uid = self.request.query_params.get('assigned_officer_uid')
+        if assigned_uid:
+            queryset = queryset.filter(assigned_officer_uid=assigned_uid)
+
+        station_param = self.request.query_params.get('station_name')
+        if station_param:
+            queryset = queryset.filter(station_name=station_param)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not check_dynamic_permission(user, 'case:create'):
+            raise exceptions.PermissionDenied("You do not have permission to create case records.")
+
+        created_by = getattr(user, 'uid', getattr(user, 'id', ''))
+        station_name = getattr(user, 'station_name', '')
+
+        serializer.save(
+            created_by=serializer.validated_data.get('created_by') or str(created_by),
+            station_name=serializer.validated_data.get('station_name') or station_name
+        )
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        instance = self.get_object()
+
+        # Enforce case edit scope using Repository logic
+        if not self.case_repo.can_officer_edit_case(user, instance):
+            raise exceptions.PermissionDenied("You do not have permission to edit this case record.")
+
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        if not check_dynamic_permission(user, 'case:delete'):
+            raise exceptions.PermissionDenied("Only Top Leadership and Master Admins can delete case records.")
+        self.case_repo.delete(instance)
+
+    @action(detail=False, methods=['get'], url_path='assigned-to-me')
+    def assigned_to_me(self, request):
+        """Get cases assigned to the authenticated officer."""
+        user = request.user
+        user_uid = str(getattr(user, 'uid', getattr(user, 'id', '')))
+        if not user_uid:
+            return Response([])
+        
+        active_only = request.query_params.get('active_only', 'true').lower() == 'true'
+        queryset = self.case_repo.get_assigned_cases_for_officer(user_uid, active_only=active_only)
+            
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
