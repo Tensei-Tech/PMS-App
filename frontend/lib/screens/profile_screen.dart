@@ -322,6 +322,12 @@ class ProfileScreen extends StatelessWidget {
               ),
               _buildDivider(),
               _buildTileItem(
+                icon: Icons.military_tech_outlined,
+                label: 'DESIGNATION',
+                value: auth.designation,
+              ),
+              _buildDivider(),
+              _buildTileItem(
                 icon: Icons.phone_android_rounded,
                 label: 'PHONE NO.',
                 value: auth.phone,
@@ -329,14 +335,14 @@ class ProfileScreen extends StatelessWidget {
               _buildDivider(),
               _buildTileItem(
                 icon: Icons.mail_outline_rounded,
-                label: 'GOV GMAIL',
+                label: 'GOV EMAIL',
                 value: auth.email,
               ),
               _buildDivider(),
               _buildTileItem(
                 icon: Icons.account_circle_outlined,
-                label: 'USER NAME',
-                value: auth.username,
+                label: 'USERNAME',
+                value: auth.username.isNotEmpty ? auth.username : (auth.email.contains('@') ? auth.email.split('@')[0] : auth.fullName),
               ),
             ],
           ),
@@ -349,7 +355,7 @@ class ProfileScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Station Information', Icons.shield_outlined),
+        _buildSectionTitle('Office Information', Icons.business_rounded),
         const SizedBox(height: AppSpacing.sm),
         Container(
           decoration: _cardDecoration(),
@@ -357,26 +363,20 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             children: [
               _buildTileItem(
-                icon: Icons.verified_user_outlined,
-                label: 'DESIGNATION',
-                value: auth.designation,
-              ),
-              _buildDivider(),
-              _buildTileItem(
                 icon: Icons.business_outlined,
-                label: 'STATION NAME',
+                label: 'OFFICE NAME',
                 value: auth.stationName,
               ),
               _buildDivider(),
               _buildTileItem(
-                icon: Icons.map_outlined,
-                label: 'STATION ADDRESS',
+                icon: Icons.location_on_outlined,
+                label: 'ADDRESS',
                 value: auth.stationAddress,
               ),
               _buildDivider(),
               _buildTileItem(
                 icon: Icons.phone_in_talk_outlined,
-                label: 'STATION LANDLINE',
+                label: 'LANDLINE',
                 value: auth.stationLandline,
               ),
             ],

@@ -4226,7 +4226,7 @@ class _WantedTab extends StatelessWidget {
             delegate: SliverChildBuilderDelegate(
               (context, i) {
                 final p = _wantedPersons[i];
-                final dangerous = p['dangerous'] as bool;
+                final dangerous = (p['dangerous'] as bool?) ?? false;
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(AppSpacing.md),

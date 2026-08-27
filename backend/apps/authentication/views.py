@@ -180,8 +180,9 @@ class RegisterView(views.APIView):
         import uuid
         uid = str(uuid.uuid4())
 
-        # Determine account status: Self-registered officers require hierarchical approval
-        initial_status = 'pending_approval' if role_id not in ['master_admin', 'state_super_admin'] else 'active'
+        # Determine account status: Admin provisioned accounts (Super Admin, District Admin, Division Admin, Station Head) are active immediately
+        admin_roles = ['master_admin', 'state_super_admin', 'super_admin', 'district_admin', 'division_admin', 'station_head']
+        initial_status = 'active' if (role_id in admin_roles or data.get('account_status') == 'active') else 'pending_approval'
 
         officer = OfficerProfile(
             uid=uid,
@@ -199,6 +200,27 @@ class RegisterView(views.APIView):
         )
         officer.set_password(password)
         officer.save()
+
+        # If district admin, register in District & DistrictAdmin models
+        if role_id == 'district_admin' and district_name:
+            try:
+                dist_obj, _ = District.objects.get_or_create(
+                    name=district_name,
+                    defaults={'district_id': f"DST-{district_name[:4].upper()}", 'status': 'approved'}
+                )
+                DistrictAdmin.objects.update_or_create(
+                    uid=uid,
+                    defaults={
+                        'district': dist_obj,
+                        'name': full_name,
+                        'email': email,
+                        'phone': phone,
+                        'badge_number': badge_number,
+                        'status': 'active'
+                    }
+                )
+            except Exception as e:
+                logger.warning(f"Failed to sync DistrictAdmin record: {e}")
 
         # Mirror officer profile in public schema for Master Admin global visibility
         try:

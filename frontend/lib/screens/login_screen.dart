@@ -17,6 +17,7 @@ import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
 import '../utils/validators.dart';
 import 'dashboard_screen.dart';
+import 'forgot_password_screen.dart';
 import '../widgets/app_logo.dart';
 import '../services/biometric_service.dart';
 
@@ -48,6 +49,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _biometricAutoTriggered =
       false; // Flag to prevent multiple auto-triggers
   bool _showPinInput = false;
+  bool _obscurePassword = true;
 
   /// When true, a late [_loadStoredEmail] completion must not restore returning-user UI.
   bool _idSwitchRequested = false;
@@ -332,30 +334,13 @@ class _LoginScreenState extends State<LoginScreen>
       data: AppTheme.lightTheme(),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFFFFFF),
-                Color(0xFFF0F4FF),
-                Color(0xFFE3E9F9),
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 768;
-                return isWide
-                    ? _buildWideLayout()
-                    : _buildNarrowLayout(constraints);
-              },
-            ),
-          ),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 768;
+            return isWide
+                ? _buildWideLayout()
+                : _buildNarrowLayout(constraints);
+          },
         ),
       ),
     );
@@ -364,27 +349,36 @@ class _LoginScreenState extends State<LoginScreen>
   // ── Wide (tablet/desktop) layout ──────────────────────────────────────────
   Widget _buildWideLayout() {
     final l10n = AppLocalizations.of(context)!;
-    const isTablet = true;
     const isCompact = false;
-    return Scaffold(
-      backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: true,
-      body: Row(
-        children: [
-          // Sidebar (Tablet/Web only)
-          if (isTablet) _buildLoginSidebar(l10n),
+    return Row(
+      children: [
+        // Sidebar (Tablet/Web only)
+        _buildLoginSidebar(l10n),
 
-          // Main Login Content
-          Expanded(
+        // Main Login Content
+        Expanded(
+          child: Container(
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFFFFFFF),
+                  Color(0xFFF0F4FF),
+                  Color(0xFFE3E9F9),
+                ],
+              ),
+            ),
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                child: _buildLoginForm(isCompact, l10n),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+                child: _buildFormCard(isCompact, l10n),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -773,13 +767,24 @@ class _LoginScreenState extends State<LoginScreen>
               ] else ...[
                 TextFormField(
                   controller: _pinCtrl,
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   style: GoogleFonts.poppins(
                       color: AppColors.navyDark, fontSize: 14),
                   decoration: InputDecoration(
                     labelText: 'Password / PIN',
                     hintText: '••••••••',
                     prefixIcon: const Icon(Icons.lock_rounded),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: AppColors.navyMid,
+                        size: 20,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFF),
                     border: OutlineInputBorder(
@@ -799,15 +804,35 @@ class _LoginScreenState extends State<LoginScreen>
                     }
                     return null;
                   },
-                  onChanged: (value) {
-                    // Trigger login if length is 6, or just let them type and press Login
-                    if (value.length >= 6) {
-                      // We can't automatically log in for mixed passwords as easily,
-                      // so they will just press the Login button.
-                    }
-                  },
                 ),
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        AppTheme.fadeSlideRoute(
+                            page: const ForgotPasswordScreen()),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 2, horizontal: 2),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'Forgot password?',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
                 // Login button
                 SizedBox(
                   width: double.infinity,
@@ -854,13 +879,24 @@ class _LoginScreenState extends State<LoginScreen>
               // New user flow: Standard Govt ID and PIN input
               TextFormField(
                 controller: _pinCtrl,
-                obscureText: true,
+                obscureText: _obscurePassword,
                 style: GoogleFonts.poppins(
                     color: AppColors.lightText, fontSize: 14),
                 decoration: InputDecoration(
                   labelText: 'Password / PIN',
                   hintText: '••••••••',
                   prefixIcon: const Icon(Icons.lock_rounded),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: AppColors.navyMid,
+                      size: 20,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFF),
                   border: OutlineInputBorder(
@@ -880,6 +916,33 @@ class _LoginScreenState extends State<LoginScreen>
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                          page: const ForgotPasswordScreen()),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Forgot password?',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyMid,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: AppSpacing.lg),
               // Login button
