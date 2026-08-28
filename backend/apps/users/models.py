@@ -68,3 +68,32 @@ class OfficerProfile(models.Model):
     def role(self):
         """Backward compatibility for legacy role attribute access."""
         return self.role_id
+
+
+class NotificationRecord(models.Model):
+    """
+    Scoped Notifications for RBAC + ABAC Hierarchical Approvals & Alerts.
+    Ensures notifications for station-level registrations route strictly to THAT station head,
+    that district admin, state super admin, and master admin.
+    """
+    id = models.AutoField(primary_key=True)
+    target_role_id = models.CharField(max_length=64, blank=True, help_text="e.g. station_head, district_admin, state_super_admin, master_admin")
+    target_station_name = models.CharField(max_length=255, blank=True, null=True, help_text="Strict ABAC filter: ONLY notify head of THIS station")
+    target_district = models.CharField(max_length=128, blank=True, null=True, help_text="Strict ABAC filter: ONLY notify admin of THIS district")
+    target_state_code = models.CharField(max_length=10, blank=True, null=True, help_text="Filter to state admin")
+    target_user_uid = models.CharField(max_length=128, blank=True, null=True)
+
+    title = models.CharField(max_length=255)
+    body = models.TextField()
+    category = models.CharField(max_length=64, default='approval_request')  # 'approval_request', 'alert', 'reminder'
+    registration_uid = models.CharField(max_length=128, blank=True, null=True)
+    status = models.CharField(max_length=32, default='pending')  # 'pending', 'approved', 'rejected'
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'users_notificationrecord'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.category}] {self.title} -> Station: {self.target_station_name}, District: {self.target_district}"

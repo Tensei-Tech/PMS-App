@@ -18,7 +18,11 @@ class StateRegistryViewSet(viewsets.ModelViewSet):
     """
     queryset = StateRegistry.objects.all()
     serializer_class = StateRegistrySerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

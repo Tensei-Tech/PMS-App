@@ -27,13 +27,13 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
 
         role_id = getattr(user, 'role_id', 'officer')
 
-        # Tier 4 & 5 -> Full City/District visibility
-        if role_id in ['district_admin', 'master_admin', 'state_super_admin']:
+        # Dynamic DB Permission Check: District/State visibility vs Station visibility
+        if check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all'):
             queryset = self.case_repo.get_all()
-        # Tier 1, 2, 3 -> Station / Division stations visibility
         else:
             stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
             queryset = self.case_repo.get_cases_for_stations(stations)
+
 
         # Apply query parameter filters
         module_key = self.request.query_params.get('module_key')

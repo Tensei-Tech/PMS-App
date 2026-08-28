@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:async';
+import '../services/api_config.dart';
 import '../utils/app_constants.dart';
 import '../utils/pin_crypto.dart';
 import '../services/firestore_service.dart';
@@ -13,6 +16,8 @@ import '../models/user_model.dart';
 import '../models/account_access.dart';
 import '../utils/station_address_parser.dart';
 import 'package:image_picker/image_picker.dart';
+import '../services/permission_service.dart';
+
 
 void _secureLog(String message) {
   if (kDebugMode) debugPrint('[AuthProvider] $message');
@@ -101,6 +106,7 @@ class AuthProvider extends ChangeNotifier {
   String _govtId = '';
   String _profilePhoto = '';
   String _role = 'officer';
+  String _stateCode = 'MH';
   List<String> _additionalStations = [];
   String? _district;
   String? _zone;
@@ -130,6 +136,8 @@ class AuthProvider extends ChangeNotifier {
   String get govtId => _govtId;
   String get profilePhoto => _profilePhoto;
   String get role => _role;
+  String get roleId => _role;
+  String get stateCode => _stateCode;
   List<String> get additionalStations => List.unmodifiable(_additionalStations);
   String get district => _district ?? '';
   String get zone => _zone ?? _district ?? '';
@@ -142,10 +150,55 @@ class AuthProvider extends ChangeNotifier {
   bool get isAccountPendingApproval =>
       _accountStatus == UserAccountStatus.pendingApproval;
 
-  bool get isAdmin => _role == 'admin';
-  bool get isSupervisor => _role == 'supervisor' || _role == 'admin';
+  bool get isAdmin => _role == 'admin' || _role == 'master_admin';
+  bool get isSupervisor => _role == 'supervisor' || _role == 'division_admin' || _role == 'district_admin' || _role == 'admin' || _role == 'master_admin';
   bool get isViewingOtherStation =>
       _overrideStationName != null && _overrideStationName != _stationName;
+
+  DynamicPermissionsModel? _dynamicPermissions;
+  DynamicPermissionsModel? get dynamicPermissions => _dynamicPermissions;
+
+  /// Evaluate dynamic DB permission flag
+  bool hasPermission(String permissionCode) {
+    if (isAdmin || _role == 'master_admin') return true;
+    if (_dynamicPermissions != null) {
+      return _dynamicPermissions!.hasPermission(permissionCode);
+    }
+    // Fallback based on 6-tier Police RBAC Specification Matrix
+    final normRole = _role.toLowerCase().trim();
+    switch (permissionCode) {
+      case 'alert:send':
+      case 'reminder:send':
+        return ['master_admin', 'state_super_admin', 'district_admin'].contains(normRole);
+      case 'reminder:to_io':
+        return ['master_admin', 'state_super_admin', 'district_admin', 'supervisor', 'division_admin', 'station_admin'].contains(normRole);
+      case 'district:view_data':
+        return ['master_admin', 'state_super_admin', 'district_admin', 'supervisor', 'division_admin'].contains(normRole);
+      case 'station:view_data':
+        return true;
+      case 'station:select_multiple':
+      case 'station:switch':
+        return ['master_admin', 'state_super_admin', 'district_admin', 'supervisor', 'division_admin'].contains(normRole);
+      case 'case:edit_station':
+        return ['master_admin', 'state_super_admin', 'district_admin', 'supervisor', 'division_admin', 'station_admin'].contains(normRole);
+      case 'case:edit_own':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /// Sync live DB dynamic permissions from backend API
+  Future<void> fetchDynamicPermissions() async {
+    try {
+      final perms = await PermissionService().fetchUserPermissions();
+      if (perms != null) {
+        _dynamicPermissions = perms;
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
 
   /// Switch the active station (for senior officers viewing another station).
   void switchStation(String stationName) {
@@ -272,7 +325,8 @@ class AuthProvider extends ChangeNotifier {
     _stationLandline = profile.stationLandline;
     _govtId = profile.govtId;
     _profilePhoto = profile.photoUrl;
-    _role = profile.email.toLowerCase().startsWith('admin') ? 'admin' : profile.role;
+    _role = profile.role.isNotEmpty ? profile.role : (profile.email.toLowerCase().startsWith('admin') ? 'admin' : 'officer');
+    _stateCode = profile.stateCode.isNotEmpty ? profile.stateCode : 'MH';
     _additionalStations = List<String>.from(profile.additionalStations);
     _district = profile.district;
     _zone = profile.effectiveZone.isNotEmpty ? profile.effectiveZone : null;
@@ -367,7 +421,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Checks if an account with the given email or phone number already exists in Firestore.
+  /// Checks if an account with the given email or phone number already exists in PostgreSQL backend.
   Future<bool> checkContactExists({
     required String email,
     required String phone,
@@ -376,34 +430,23 @@ class AuthProvider extends ChangeNotifier {
     final sanitizedPhone = phone.replaceAll(RegExp(r'\D'), '');
 
     try {
-      final futures = <Future<QuerySnapshot>>[
-        FirebaseFirestore.instance
-            .collection('users')
-            .where('email', isEqualTo: sanitizedEmail)
-            .limit(1)
-            .get(),
-      ];
+      final response = await http.post(
+        Uri.parse(ApiConfig.authCheckExists),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': sanitizedEmail,
+          'phone': sanitizedPhone,
+        }),
+      );
 
-      if (sanitizedPhone.isNotEmpty) {
-        futures.add(
-          FirebaseFirestore.instance
-              .collection('users')
-              .where('phone', isEqualTo: sanitizedPhone)
-              .limit(1)
-              .get(),
-        );
-      }
-
-      final results = await Future.wait(futures);
-      for (final snap in results) {
-        if (snap.docs.isNotEmpty) {
-          return true;
-        }
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['exists'] == true;
       }
       return false;
     } catch (e) {
       _secureLog('checkContactExists error: $e');
-      rethrow;
+      return false;
     }
   }
 
@@ -606,58 +649,7 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String pin,
   }) async {
-    final lockoutStatus = await _lockout.checkStatus();
-    if (lockoutStatus.isLocked) {
-      return 'Account locked. Try again in ${lockoutStatus.remainingLabel}.';
-    }
-
-    try {
-      final sanitizedEmail = email.trim().toLowerCase();
-      final res = await _auth.signInWithEmailAndPassword(
-        email: sanitizedEmail,
-        password: pin.trim(),
-      );
-
-      if (res.user == null) {
-        return 'Login failed. Please try again.';
-      }
-
-      final profile = await _firestore.getUser(res.user!.uid);
-      if (profile == null) {
-        await _auth.signOut();
-        return 'User profile not found in database.';
-      }
-
-      final access = AccountAccess.evaluate(profile);
-      if (!access.allowed) {
-        await _auth.signOut();
-        return access.blockMessage;
-      }
-
-      final salt = PinCrypto.generateSalt();
-      final pinHash = await PinCrypto.hashPinAsync(pin.trim(), salt);
-      await _secure.write(key: StorageKeys.email, value: sanitizedEmail);
-      await _secure.write(key: StorageKeys.pinHash, value: pinHash);
-      await _secure.write(key: StorageKeys.pinSalt, value: salt);
-
-      await _lockout.recordSuccess();
-      await _applyProfileAndBackfill(profile);
-      _isRegistered = true;
-      _isSessionActive = true;
-      notifyListeners();
-
-      await _audit.log(AuditEvent.loginSuccess, uid: res.user!.uid);
-      return null;
-    } catch (e) {
-      _secureLog('loginWithPin: authentication failed');
-      final status = await _lockout.recordFailedAttempt();
-      await _audit.log(AuditEvent.loginFailed);
-      if (status.isLocked) {
-        await _audit.log(AuditEvent.lockoutTriggered);
-        return 'Too many failed attempts. Try again in ${status.remainingLabel}.';
-      }
-      return 'Invalid PIN. Please try again.';
-    }
+    return loginByEmailAndPin(email: email, pin: pin);
   }
 
   Future<String?> loginWithBiometrics(String email) async {
@@ -694,61 +686,49 @@ class AuthProvider extends ChangeNotifier {
       final sanitizedEmail = email.trim().toLowerCase();
       final sanitizedPin = pin.trim();
 
-      await _auth.signInWithEmailAndPassword(
-        email: sanitizedEmail,
-        password: sanitizedPin,
+      final response = await http.post(
+        Uri.parse(ApiConfig.authLogin),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': sanitizedEmail,
+          'password': sanitizedPin,
+        }),
       );
 
-      final user = await _firestore.getUser(_auth.currentUser!.uid);
-      if (user == null) {
-        await _auth.signOut();
-        return 'User profile not found in database.';
-      }
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final userJson = data['user'] as Map<String, dynamic>;
+        final user = UserModel.fromMap(userJson);
 
-      final access = AccountAccess.evaluate(user);
-      if (!access.allowed) {
-        await _auth.signOut();
-        return access.blockMessage;
-      }
+        final salt = PinCrypto.generateSalt();
+        final pinHash = await PinCrypto.hashPinAsync(sanitizedPin, salt);
+        await _secure.write(key: StorageKeys.email, value: sanitizedEmail);
+        await _secure.write(key: StorageKeys.pinHash, value: pinHash);
+        await _secure.write(key: StorageKeys.pinSalt, value: salt);
 
-      final salt = PinCrypto.generateSalt();
-      final pinHash = await PinCrypto.hashPinAsync(sanitizedPin, salt);
-      await _secure.write(key: StorageKeys.email, value: sanitizedEmail);
-      await _secure.write(key: StorageKeys.pinHash, value: pinHash);
-      await _secure.write(key: StorageKeys.pinSalt, value: salt);
+        await _lockout.recordSuccess();
 
-      await _lockout.recordSuccess();
+        _isRegistered = true;
+        _isSessionActive = true;
+        _applyProfile(user);
 
-      _isRegistered = true;
-      _isSessionActive = true;
-      await _applyProfileAndBackfill(user);
-
-      notifyListeners();
-
-      await _audit.log(AuditEvent.loginSuccess, uid: _auth.currentUser!.uid);
-      return null;
-
-    } on fb.FirebaseAuthException catch (e) {
-      _secureLog('loginByEmailAndPin: ${e.code}');
-      final status = await _lockout.recordFailedAttempt();
-      await _audit.log(AuditEvent.loginFailed);
-      if (status.isLocked) {
-        await _audit.log(AuditEvent.lockoutTriggered);
-        return 'Too many failed attempts. Try again in ${status.remainingLabel}.';
-      }
-      switch (e.code) {
-        case 'user-not-found': return 'Account not found for this email.';
-        case 'wrong-password':
-        case 'invalid-credential': return 'Incorrect PIN. Please try again.';
-        case 'invalid-email': return 'Invalid email format.';
-        case 'user-disabled': return 'This account has been disabled.';
-        case 'network-request-failed': return 'Network error. Please check your connection.';
-        case 'too-many-requests': return 'Too many attempts. Please try again later.';
-        default: return 'Login failed. Please try again.';
+        notifyListeners();
+        return null;
+      } else {
+        final status = await _lockout.recordFailedAttempt();
+        if (status.isLocked) {
+          return 'Too many failed attempts. Try again in ${status.remainingLabel}.';
+        }
+        try {
+          final data = json.decode(response.body);
+          return data['error'] ?? 'Invalid email or password.';
+        } catch (_) {
+          return 'Invalid email or password.';
+        }
       }
     } catch (e) {
-      _secureLog('loginByEmailAndPin: unexpected error');
-      return 'Unexpected error. Please try again.';
+      _secureLog('loginByEmailAndPin error: $e');
+      return 'Could not connect to authentication server. Ensure backend is running.';
     }
   }
 

@@ -2,6 +2,7 @@ from typing import List, Optional
 from django.db import models
 from apps.repositories.base import BaseRepository
 from apps.cases.models import CaseRecord
+from apps.core.permissions import check_dynamic_permission
 
 
 class CaseRepository(BaseRepository[CaseRecord]):
@@ -25,21 +26,26 @@ class CaseRepository(BaseRepository[CaseRecord]):
 
     def can_officer_edit_case(self, user, case_record: CaseRecord) -> bool:
         """
-        Enforces 4-tier Maharashtra Police Case Edit Scope:
-        - Tier 4 & 5 (District Leadership & Master Admin) -> Full edit authority across all stations.
-        - Tier 2 & 3 (Station In-Charge & Division Head) -> Edit any case in their station.
-        - Tier 1 (Regular Officer) -> ONLY Own Cases (createdBy == uid OR assignedOfficerUid == uid).
+        Dynamically evaluates case edit authority using PostgreSQL DB permission grants:
+        - `case:edit_district` or `master_admin` -> Full edit authority across all stations.
+        - `case:edit_station` -> Edit any case in user's station(s).
+        - `case:edit_own` -> Edit ONLY own created/assigned cases.
         """
-        role_id = getattr(user, 'role_id', 'officer')
         user_uid = str(getattr(user, 'uid', getattr(user, 'id', '')))
 
-        if role_id in ['district_admin', 'master_admin', 'state_super_admin']:
+        # 1. District or State/Master wide edit permission
+        if check_dynamic_permission(user, 'case:edit_district') or getattr(user, 'role_id', '') == 'master_admin':
             return True
 
-        if role_id in ['station_admin', 'supervisor']:
-            return case_record.station_name == getattr(user, 'station_name', '')
+        # 2. Station-wide edit permission
+        if check_dynamic_permission(user, 'case:edit_station'):
+            user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+            return case_record.station_name in user_stations
 
-        # Regular Officer (Tier 1)
-        is_creator = case_record.created_by == user_uid
-        is_assigned = case_record.assigned_officer_uid == user_uid
-        return is_creator or is_assigned
+        # 3. Own-case edit permission
+        if check_dynamic_permission(user, 'case:edit_own'):
+            is_creator = str(case_record.created_by) == user_uid
+            is_assigned = str(case_record.assigned_officer_uid) == user_uid
+            return is_creator or is_assigned
+
+        return False

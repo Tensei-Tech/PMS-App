@@ -7,16 +7,46 @@ class Command(BaseCommand):
     help = "Seeds initial global Roles, Permissions, Role-Permission mappings, Maharashtra State schema, and Master Admin user."
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS("Starting Master RBAC & State Schema Seeding..."))
+        self.stdout.write(self.style.SUCCESS("Starting Master Dynamic RBAC Seeding..."))
 
-        # 1. Seed Global Roles matching 4-tier Maharashtra Police Hierarchy
+        # 1. Seed 6 Global Roles matching Police Hierarchy Specification Matrix
         roles_data = [
-            ('master_admin', 'Master Admin', 'global', 'Full platform access across all states and settings'),
-            ('state_super_admin', 'State Super Admin', 'state', 'State-level admin managing districts and state operations'),
-            ('district_admin', 'Top Leadership (CP / DCP / SP)', 'district', 'District/City leadership (DCP to CP) with full city/district oversight'),
-            ('supervisor', 'Division Head (ACP / Dy. SP)', 'station', 'Division head (ACP / Dy. SP) overseeing multi-station sub-divisions'),
-            ('station_admin', 'Station In-Charge (Sr. PI / SHO)', 'station', 'Station in-charge (Sr. PI) with full edit authority over all station cases'),
-            ('officer', 'Regular Officer (PC to PI)', 'station', 'Field/Station officer with station view and edit access limited to own cases'),
+            (
+                'master_admin',
+                'Master Admin (Company)',
+                'global',
+                'Company-level account with 100% authority across all state schemas and system settings.'
+            ),
+            (
+                'state_super_admin',
+                'Super Admin (State)',
+                'state',
+                'State-level leadership (PI, SDPO, Add.SP, SI, DIG, IG, ADG, DG) with full state oversight, alerts, and reminders.'
+            ),
+            (
+                'district_admin',
+                'District Admin',
+                'district',
+                'District/City leadership (CP, DCP, Add.CP, Ut.CP) managing district data, divisions, and station heads.'
+            ),
+            (
+                'division_admin',
+                'Division Admin (City)',
+                'station',
+                'Division head (DySP, ACP, SDPO, ASP) with multi-station selection, station switching, and district visibility.'
+            ),
+            (
+                'station_admin',
+                'Station Head',
+                'station',
+                'Station in-charge (PSI, API, PI, ASP) managing station data, station case editing, and IO reminders.'
+            ),
+            (
+                'officer',
+                'Officer',
+                'station',
+                'Field/Station officer (all ranks excluding DG) with access to edit own cases and view station cases.'
+            ),
         ]
 
         for r_id, name, level, desc in roles_data:
@@ -27,46 +57,51 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f"  [+] Created Role: {role.name}")
 
-        # 2. Seed Granular Permissions for 4-Tier Matrix
+        # Also support legacy 'supervisor' role alias pointing to division_admin capabilities
+        Role.objects.update_or_create(
+            id='supervisor',
+            defaults={
+                'name': 'Division Head (Legacy Supervisor)',
+                'level': 'station',
+                'description': 'Legacy alias for Division Admin (ACP / Dy. SP).'
+            }
+        )
+
+        # 2. Seed Granular Permissions for Dynamic RBAC Matrix
         permissions_data = [
-            # State Management
-            ('state:create', 'states', 'Create new state tenant schemas'),
-            ('state:manage', 'states', 'Manage state settings and status'),
-            ('state:view', 'states', 'View state registries'),
+            # State Level
+            ('state:view_all', 'states', 'View all state-wide data'),
+            ('state:manage', 'states', 'Manage state settings and schemas'),
 
-            # District & Division Management
-            ('district:create', 'districts', 'Create districts'),
-            ('district:approve', 'districts', 'Approve/Reject proposed districts'),
-            ('district:view', 'districts', 'View district lists'),
+            # Admin Management
+            ('district:create_admin', 'districts', 'Create District Admin accounts'),
+            ('division:create_admin', 'districts', 'Create Division / Station Head accounts'),
+            ('station:create_head', 'stations', 'Create Station Head accounts'),
 
-            # Station Directory & Multi-Station Switching
-            ('station:create', 'stations', 'Create police stations'),
-            ('station:manage', 'stations', 'Edit/Manage police station details'),
-            ('station:view', 'stations', 'View police station directory'),
-            ('station:switch_multi', 'stations', 'Switch and view data across multiple police stations'),
+            # Communication & Directives
+            ('alert:send', 'alerts', 'Send state or district emergency alerts'),
+            ('reminder:send', 'reminders', 'Send supervisory reminders to officers/stations'),
+            ('reminder:to_io', 'reminders', 'Send directives and reminders to Investigating Officers (IO)'),
 
-            # User & Account Approvals
-            ('user:create', 'users', 'Register new users'),
-            ('user:view_profile', 'users', 'View officer profiles'),
-            ('user:approve_station', 'users', 'Approve pending officer accounts in caller station'),
-            ('user:approve_district', 'users', 'Approve pending officer accounts in caller district/zone'),
-            ('user:assign_role', 'users', 'Modify dynamic role assignments'),
+            # Data Scope Oversight
+            ('district:view_data', 'districts', 'View district-wide data and cases'),
+            ('station:view_data', 'stations', 'View station data'),
+            ('station:select_multiple', 'stations', 'Select and view data across multiple police stations'),
+            ('station:switch', 'stations', 'Switch active station within district'),
+            ('station:multi_handle', 'stations', 'Handle multiple police stations concurrently'),
 
-            # Case Management Scopes
+            # Case Editing & Viewing
             ('case:create', 'cases', 'Log new crime/case records'),
             ('case:view_station', 'cases', 'View cases registered in assigned station'),
-            ('case:view_division', 'cases', 'View cases across multi-station division'),
-            ('case:view_district', 'cases', 'View cases across full city/district'),
             ('case:edit_own', 'cases', 'Edit ONLY cases created by or assigned to self as IO'),
             ('case:edit_station', 'cases', 'Edit ALL cases registered in caller station'),
+            ('case:edit_district', 'cases', 'Edit cases registered across district'),
             ('case:delete', 'cases', 'Delete case records'),
 
-            # Directives & Reminders
-            ('reminder:send', 'reminders', 'Send case reminders and supervisory directives to IOs'),
-            ('reminder:view', 'reminders', 'View case reminders and directives'),
-
-            # Analytics & Performance
-            ('analytics:view', 'analytics', 'View city/district-wide analytics and performance dashboards'),
+            # User & Role Governance
+            ('user:create', 'users', 'Register new users'),
+            ('user:view_profile', 'users', 'View officer profiles'),
+            ('user:assign_role', 'users', 'Modify dynamic role assignments'),
             ('report:generate', 'reports', 'Generate and print official PDF reports'),
         ]
 
@@ -78,40 +113,56 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f"  [+] Created Permission: {perm.id}")
 
-        # 3. Seed 4-Tier Role-Permission Matrix
+        # 3. Seed Role-Permission Mapping Matrix matching Specification Table
+        all_perm_ids = [p[0] for p in permissions_data]
+
         role_perm_matrix = {
-            'master_admin': [p[0] for p in permissions_data],
-            'state_super_admin': [p[0] for p in permissions_data],
+            # Master Admin: 100% authority across all modules
+            'master_admin': all_perm_ids,
 
-            # Tier 4: Top Leadership (DCP to CP)
+            # Super Admin (State): State oversight, create admins, send alerts, send reminders
+            'state_super_admin': [
+                'state:view_all', 'state:manage',
+                'district:create_admin', 'division:create_admin', 'station:create_head',
+                'alert:send', 'reminder:send', 'reminder:to_io',
+                'district:view_data', 'station:view_data', 'station:select_multiple',
+                'case:create', 'case:view_station', 'case:edit_station', 'case:edit_district', 'case:delete',
+                'user:create', 'user:view_profile', 'user:assign_role', 'report:generate'
+            ],
+
+            # District Admin: Create division/station head, view district data, send alerts & reminders
             'district_admin': [
-                'district:view', 'station:view', 'station:switch_multi', 'station:manage',
-                'user:create', 'user:view_profile', 'user:approve_district', 'user:assign_role',
-                'case:create', 'case:view_station', 'case:view_division', 'case:view_district',
-                'case:edit_station', 'case:delete', 'reminder:send', 'reminder:view',
-                'analytics:view', 'report:generate'
+                'division:create_admin', 'station:create_head',
+                'district:view_data', 'station:view_data', 'station:select_multiple', 'station:switch',
+                'alert:send', 'reminder:send', 'reminder:to_io',
+                'case:create', 'case:view_station', 'case:edit_station', 'case:edit_district',
+                'user:create', 'user:view_profile', 'user:assign_role', 'report:generate'
             ],
 
-            # Tier 3: Division Heads (ACP / Dy. SP)
+            # Division Admin (City / DySP / ACP / SDPO / ASP):
+            # District & station data view, select multiple stations, own case edit, switch station, handle multi-stations
+            'division_admin': [
+                'district:view_data', 'station:view_data', 'station:select_multiple', 'station:switch', 'station:multi_handle',
+                'case:create', 'case:view_station', 'case:edit_own', 'case:edit_station',
+                'reminder:send', 'reminder:to_io', 'report:generate'
+            ],
             'supervisor': [
-                'station:view', 'station:switch_multi', 'user:view_profile',
-                'case:create', 'case:view_station', 'case:view_division', 'case:edit_station',
-                'reminder:send', 'reminder:view', 'report:generate'
+                'district:view_data', 'station:view_data', 'station:select_multiple', 'station:switch', 'station:multi_handle',
+                'case:create', 'case:view_station', 'case:edit_own', 'case:edit_station',
+                'reminder:send', 'reminder:to_io', 'report:generate'
             ],
 
-            # Tier 2: Station In-charge (Sr. PI / SHO)
+            # Station Head (PSI, API, PI, ASP): Edit station cases, view station data, reminder to IO
             'station_admin': [
-                'station:view', 'user:create', 'user:view_profile', 'user:approve_station',
-                'case:create', 'case:view_station', 'case:edit_station',
-                'reminder:send', 'reminder:view', 'report:generate'
+                'station:view_data', 'case:create', 'case:view_station', 'case:edit_station',
+                'reminder:to_io', 'reminder:send', 'user:create', 'user:view_profile', 'report:generate'
             ],
 
-            # Tier 1: Regular Officers (PC to PI)
+            # Officer (Regular Ranks): Edit own case, view station's cases
             'officer': [
-                'station:view', 'user:view_profile',
-                'case:create', 'case:view_station', 'case:edit_own',
-                'reminder:view', 'report:generate'
-            ]
+                'station:view_data', 'case:create', 'case:view_station', 'case:edit_own',
+                'user:view_profile', 'report:generate'
+            ],
         }
 
         for r_id, p_list in role_perm_matrix.items():
@@ -124,7 +175,7 @@ class Command(BaseCommand):
                     defaults={'is_granted': True}
                 )
 
-        self.stdout.write(self.style.SUCCESS("  [+] 4-Tier Police Access Matrix Configured!"))
+        self.stdout.write(self.style.SUCCESS("  [+] Dynamic RBAC Matrix Configured for 6 Police Roles!"))
 
         # 4. Seed Default Master Admin User
         master_email = 'admin@pms.gov.in'
@@ -149,4 +200,4 @@ class Command(BaseCommand):
         provision_state_schema('maharashtra')
         self.stdout.write(self.style.SUCCESS("  [+] Provisioned State: Maharashtra (MH) [schema: maharashtra]"))
 
-        self.stdout.write(self.style.SUCCESS("\n[SUCCESS] Master RBAC & State Schema Seeding Completed Successfully!"))
+        self.stdout.write(self.style.SUCCESS("\n[SUCCESS] Master Dynamic RBAC Seeding Completed Successfully!"))
