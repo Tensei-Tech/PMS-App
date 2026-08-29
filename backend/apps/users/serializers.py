@@ -34,3 +34,12 @@ class OfficerStatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = OfficerProfile
         fields = ['account_status', 'role', 'station_case_view_granted']
+
+
+class TransferRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        from apps.users.models import TransferRequest
+        model = TransferRequest
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+

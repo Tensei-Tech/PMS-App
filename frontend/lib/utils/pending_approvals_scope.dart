@@ -1,8 +1,6 @@
-// lib/utils/pending_approvals_scope.dart
-// Role-based scope for pending officer registration approvals.
-
 import '../providers/auth_provider.dart';
 import 'app_constants.dart';
+import 'police_hierarchy_helper.dart';
 
 class PendingApprovalsScope {
   PendingApprovalsScope._();
@@ -11,12 +9,15 @@ class PendingApprovalsScope {
     final role = auth.role.trim().toLowerCase();
     return role == 'admin' ||
         role == 'super_admin' ||
-        role == 'super admin';
+        role == 'super admin' ||
+        role == 'master_admin' ||
+        role == 'state_super_admin';
   }
 
   /// Officers who may review pending registration requests.
   static bool canReviewRegistrations(AuthProvider auth) {
     if (isSuperAdmin(auth)) return true;
+    if (PoliceHierarchyHelper.hasAdminAuthority(auth.designation, auth.roleId)) return true;
     if (SeniorOfficerRoles.canSwitchLocation(auth.designation)) return true;
     if (TransferRequestRoles.isPiOrApi(auth.designation)) return true;
     return false;

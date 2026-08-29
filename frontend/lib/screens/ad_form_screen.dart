@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -2270,23 +2269,6 @@ class _ADFormScreenState extends State<ADFormScreen> {
         'sections': (e.value.value['sections'] as Set<String>).toList(),
       };
     }).toList();
-    try {
-      final ref =
-          FirebaseFirestore.instance.collection('case_itov').doc(adNo);
-      await FirebaseFirestore.instance.runTransaction((tx) async {
-        final snap = await tx.get(ref);
-        final data = <String, dynamic>{
-          'charges': payload,
-          'updatedAt': FieldValue.serverTimestamp(),
-        };
-        if (!snap.exists) {
-          data['createdAt'] = FieldValue.serverTimestamp();
-        }
-        tx.set(ref, data, SetOptions(merge: true));
-      });
-    } catch (e) {
-      debugPrint('Sync error: $e');
-    }
   }
 
   Future<void> saveDraft() async {
@@ -2297,11 +2279,6 @@ class _ADFormScreenState extends State<ADFormScreen> {
       return;
     }
     try {
-      final base = buildAdDocumentMap(status: 'draft', caseListDocId: _caseListDocId);
-      await FirebaseFirestore.instance.collection('ad_drafts').doc(adNo).set({
-        ...base,
-        'savedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
       if (!mounted) return;
       setState(() =>
           saveBarText = 'Draft saved at ${TimeOfDay.now().format(context)}');
@@ -2326,23 +2303,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
           widget.existingRecord?.id ??
           const Uuid().v4();
 
-      final payload = buildAdDocumentMap(
-        status: 'submitted',
-        caseListDocId: _caseListDocId,
-      );
-      await FirebaseFirestore.instance.collection('ad_forms').doc(adNo).set({
-        ...payload,
-        'submittedAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      await FirebaseFirestore.instance
-          .collection('ad_drafts')
-          .doc(adNo)
-          .delete();
-
+      // Primary Save to PostgreSQL backend
       await _caseFirestore.saveCase(_moduleRecordForCaseList());
-      await syncChargesToCaseItoV();
 
       if (!mounted) return;
       setState(() => saveBarText = 'Submitted successfully!');

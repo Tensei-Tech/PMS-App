@@ -1,18 +1,13 @@
 // lib/services/transfer_request_service.dart
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/transfer_request_model.dart';
-import '../utils/app_constants.dart';
+import 'api_config.dart';
+import 'api_service.dart';
 
 class TransferRequestService {
-  FirebaseFirestore get _db => FirebaseFirestore.instance;
-
-  static const String colTransferRequests = 'transfer_requests';
-  static const String colUsers = 'users';
-
-  CollectionReference<Map<String, dynamic>> get _collection =>
-      _db.collection(colTransferRequests);
+  final ApiService _api = ApiService();
 
   /// Registration-style station address for a transfer target posting.
   static String buildTargetStationAddress(TransferRequest request) {
@@ -23,60 +18,33 @@ class TransferRequestService {
   Future<TransferRequest?> getActiveRequestForUser(String uid) async {
     if (uid.isEmpty) return null;
     try {
-      final snap = await _collection
-          .where('requestedByUid', isEqualTo: uid)
-          .orderBy('createdAt', descending: true)
-          .limit(10)
-          .get();
-      for (final doc in snap.docs) {
-        final request = TransferRequest.fromMap(doc.data(), doc.id);
-        if (request.isActive) return request;
+      final res = await _api.get('${ApiConfig.transfers}?uid=$uid&status=pending');
+      if (res.statusCode == 200 && res.data is List && (res.data as List).isNotEmpty) {
+        return TransferRequest.fromMap((res.data as List).first, (res.data as List).first['id']);
       }
-      return null;
     } catch (e) {
-      debugPrint('TransferRequestService.getActiveRequestForUser failed: $e');
-      rethrow;
+      if (kDebugMode) debugPrint('TransferRequestService.getActiveRequestForUser: $e');
     }
+    return null;
   }
 
-  Stream<TransferRequest?> watchActiveRequestForUser(String uid) {
-    if (uid.isEmpty) return Stream.value(null);
-    return _collection
-        .where('requestedByUid', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
-        .limit(10)
-        .snapshots()
-        .map((snap) {
-      for (final doc in snap.docs) {
-        final request = TransferRequest.fromMap(doc.data(), doc.id);
-        if (request.isActive) return request;
-      }
-      return null;
-    });
+  Stream<TransferRequest?> watchActiveRequestForUser(String uid) async* {
+    final req = await getActiveRequestForUser(uid);
+    yield req;
   }
 
   /// Most recent non-terminal request for status UI (pending / approved / rejected).
   Future<TransferRequest?> getLatestStatusRequestForUser(String uid) async {
     if (uid.isEmpty) return null;
     try {
-      final snap = await _collection
-          .where('requestedByUid', isEqualTo: uid)
-          .orderBy('createdAt', descending: true)
-          .limit(10)
-          .get();
-      for (final doc in snap.docs) {
-        final request = TransferRequest.fromMap(doc.data(), doc.id);
-        if (request.status == TransferRequestStatus.cancelled ||
-            request.status == TransferRequestStatus.completed) {
-          continue;
-        }
-        return request;
+      final res = await _api.get('${ApiConfig.transfers}?uid=$uid');
+      if (res.statusCode == 200 && res.data is List && (res.data as List).isNotEmpty) {
+        return TransferRequest.fromMap((res.data as List).first, (res.data as List).first['id']);
       }
-      return null;
     } catch (e) {
-      debugPrint('TransferRequestService.getLatestStatusRequestForUser failed: $e');
-      rethrow;
+      if (kDebugMode) debugPrint('TransferRequestService.getLatestStatusRequestForUser: $e');
     }
+    return null;
   }
 
   /// Pending requests for destination approvers (PI/API or SP/CP).
@@ -85,124 +53,69 @@ class TransferRequestService {
     required String district,
     String? approverDesignation,
   }) async {
-    final byId = <String, TransferRequest>{};
-
-    Future<void> mergeQuery(Query<Map<String, dynamic>> query) async {
-      final snap = await query.get();
-      for (final doc in snap.docs) {
-        byId[doc.id] = TransferRequest.fromMap(doc.data(), doc.id);
-      }
-    }
-
     try {
-      if (homeStationName.trim().isNotEmpty) {
-        await mergeQuery(
-          _collection
-              .where('status', isEqualTo: TransferRequestStatus.pending)
-              .where('toStationName', isEqualTo: homeStationName.trim()),
-        );
-      }
-      if (district.trim().isNotEmpty) {
-        await mergeQuery(
-          _collection
-              .where('status', isEqualTo: TransferRequestStatus.pending)
-              .where('toDistrict', isEqualTo: district.trim()),
-        );
+      final url = '${ApiConfig.transfers}?status=pending&to_station_name=${Uri.encodeComponent(homeStationName)}&to_district=${Uri.encodeComponent(district)}';
+      final res = await _api.get(url);
+      if (res.statusCode == 200 && res.data is List) {
+        return (res.data as List)
+            .map((item) => TransferRequest.fromMap(item, item['id']))
+            .toList();
       }
     } catch (e) {
-      debugPrint('TransferRequestService.getPendingForApprover failed: $e');
-      rethrow;
+      if (kDebugMode) debugPrint('TransferRequestService.getPendingForApprover: $e');
     }
-
-    final list = byId.values
-        .where((r) =>
-            r.toStationName.trim().isNotEmpty || r.toDistrict.trim().isNotEmpty)
-        .where((r) => approverDesignation == null ||
-            approverDesignation.trim().isEmpty ||
-            TransferRequestRoles.isApproverForTransfer(
-              approverDesignation: approverDesignation,
-              fromDesignation: r.fromDesignation,
-            ))
-        .toList()
-      ..sort((a, b) {
-        final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        return bTime.compareTo(aTime);
-      });
-    return list;
+    return [];
   }
 
   Future<String> createRequest(TransferRequest request) async {
-    final now = DateTime.now().toUtc();
-    final data = {
-      ...request.toMap(),
-      'createdAt': now.toIso8601String(),
-      'updatedAt': now.toIso8601String(),
+    final id = request.id.isNotEmpty ? request.id : '${DateTime.now().millisecondsSinceEpoch}';
+    final payload = {
+      'id': id,
+      'requested_by_uid': request.requestedByUid,
+      'officer_name': request.requestedByName,
+      'from_designation': request.fromDesignation,
+      'to_designation': request.toDesignation,
+      'from_station_name': request.fromStationName,
+      'to_station_name': request.toStationName,
+      'from_district': request.fromDistrict,
+      'to_district': request.toDistrict,
+      'from_state': request.fromState,
+      'to_state': request.toState,
+      'from_unit_type': request.fromUnitType,
+      'to_unit_type': request.toUnitType,
+      'reason': request.requesterNote,
+      'status': 'pending',
     };
-    final doc = await _collection.add(data);
-    return doc.id;
+
+    final res = await _api.post(ApiConfig.transfers, body: payload);
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      return id;
+    }
+    throw Exception('Failed to create transfer request: ${res.data}');
   }
 
   Future<void> cancelRequest(String requestId) async {
-    await _collection.doc(requestId).update({
-      'status': TransferRequestStatus.cancelled,
-      'updatedAt': DateTime.now().toUtc().toIso8601String(),
-    });
+    await _api.post('${ApiConfig.transfers}$requestId/cancel/');
   }
 
-  /// Rules-only cross-user approve: transfer doc + in-place posting update.
-  ///
-  /// TODO: migrate to Cloud Function (Admin SDK) for stronger security/auditability
-  /// once Blaze is actively adopted — see firestore.rules `canPiApproveTransferRequest`.
   Future<void> approveTransfer({
     required TransferRequest request,
     required String approverUid,
   }) async {
-    if (request.toStationName.trim().isEmpty ||
-        request.toDistrict.trim().isEmpty) {
-      throw StateError(
-        'Transfer request is missing destination fields required for approval.',
-      );
-    }
-
-    final now = DateTime.now().toUtc().toIso8601String();
-    final batch = _db.batch();
-
-    batch.update(_collection.doc(request.id), {
-      'status': TransferRequestStatus.approved,
-      'approvedByUid': approverUid,
-      'approvedAt': now,
-      'updatedAt': now,
+    await _api.post('${ApiConfig.transfers}${request.id}/approve/', body: {
+      'approved_by_uid': approverUid,
     });
-
-    batch.update(_db.collection(colUsers).doc(request.requestedByUid), {
-      'designation': request.toDesignation,
-      'stationName': request.toStationName,
-      'stationAddress': buildTargetStationAddress(request),
-      'district': request.toDistrict,
-      'additionalStations': <String>[],
-      'transferRequestId': request.id,
-    });
-
-    await batch.commit();
   }
 
-  /// Rules-only reject — transfer doc only; requester profile unchanged.
-  ///
-  /// TODO: migrate to Cloud Function — see firestore.rules `canPiRejectTransferRequest`.
   Future<void> rejectTransfer({
     required String requestId,
     required String approverUid,
     String? rejectionReason,
   }) async {
-    final now = DateTime.now().toUtc().toIso8601String();
-    await _collection.doc(requestId).update({
-      'status': TransferRequestStatus.rejected,
-      'rejectedByUid': approverUid,
-      if (rejectionReason != null && rejectionReason.trim().isNotEmpty)
-        'rejectionReason': rejectionReason.trim(),
-      'rejectedAt': now,
-      'updatedAt': now,
+    await _api.post('${ApiConfig.transfers}$requestId/reject/', body: {
+      'rejected_by_uid': approverUid,
+      'rejection_reason': rejectionReason ?? '',
     });
   }
 }
+

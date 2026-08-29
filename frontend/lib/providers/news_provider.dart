@@ -1,11 +1,10 @@
 // lib/providers/news_provider.dart
 // Manages the carousel news/law-update announcements shown on the dashboard.
-// Synchronizes in real time with Cloud Firestore ('app_announcements' collection).
 
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../services/api_config.dart';
+import '../services/api_service.dart';
 
 class NewsItem {
   final String id;
@@ -53,42 +52,35 @@ class NewsItem {
       case 'handshake':
         return Icons.handshake_rounded;
       default:
-        return Icons.info_outline_rounded;
+        return Icons.article_rounded;
     }
   }
 
-  static String nameFromIcon(IconData icon) {
-    if (icon == Icons.gavel_rounded) return 'gavel';
-    if (icon == Icons.shield_rounded) return 'shield';
-    if (icon == Icons.videocam_rounded) return 'videocam';
-    if (icon == Icons.security_rounded) return 'security';
-    if (icon == Icons.campaign_rounded) return 'campaign';
-    if (icon == Icons.warning_amber_rounded) return 'warning';
-    if (icon == Icons.policy_rounded) return 'policy';
-    if (icon == Icons.article_rounded) return 'article';
-    if (icon == Icons.local_police_rounded) return 'local_police';
-    if (icon == Icons.handshake_rounded) return 'handshake';
-    return 'info';
-  }
-
   factory NewsItem.fromMap(String docId, Map<String, dynamic> map) {
-    final iconStr = map['iconName'] as String? ?? 'info';
+    final name = map['icon_name']?.toString() ?? map['iconName']?.toString() ?? 'article';
+    final colorHex = map['iconColorHex'] is int
+        ? map['iconColorHex'] as int
+        : (int.tryParse(map['icon_color_hex']?.toString() ?? map['iconColorHex']?.toString() ?? '') ?? 0xFF1976D2);
+
     DateTime? updated;
-    if (map['updatedAt'] is Timestamp) {
-      updated = (map['updatedAt'] as Timestamp).toDate();
-    } else if (map['updatedAt'] is String) {
-      updated = DateTime.tryParse(map['updatedAt'] as String);
+    if (map['updatedAt'] != null || map['updated_at'] != null) {
+      final raw = map['updatedAt'] ?? map['updated_at'];
+      if (raw is DateTime) {
+        updated = raw;
+      } else if (raw is String) {
+        updated = DateTime.tryParse(raw);
+      }
     }
 
     return NewsItem(
       id: docId,
-      title: map['title'] as String? ?? 'Announcement',
-      description: map['description'] as String? ?? '',
-      iconName: iconStr,
-      icon: iconFromName(iconStr),
-      iconColorHex: (map['iconColorHex'] as num?)?.toInt() ?? 0xFF00838F,
-      tag: map['tag'] as String? ?? 'Notice',
-      order: (map['order'] as num?)?.toInt() ?? 0,
+      title: map['title']?.toString() ?? '',
+      description: map['description']?.toString() ?? '',
+      iconName: name,
+      icon: iconFromName(name),
+      iconColorHex: colorHex,
+      tag: map['tag']?.toString() ?? 'Notice',
+      order: (map['order'] is num) ? (map['order'] as num).toInt() : 0,
       updatedAt: updated,
     );
   }
@@ -101,7 +93,7 @@ class NewsItem {
       'iconColorHex': iconColorHex,
       'tag': tag,
       'order': order,
-      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 
@@ -130,203 +122,161 @@ class NewsItem {
   }
 }
 
-class NewsProvider extends ChangeNotifier {
-  static const List<NewsItem> defaultNewsItems = [
-    NewsItem(
-      id: 'default_1',
-      title: 'BNSS 2023 — New Criminal Procedure Code',
-      description:
-          'Bharatiya Nagarik Suraksha Sanhita (BNSS) replaces CrPC with stricter timelines for investigation and trial.',
-      icon: Icons.gavel_rounded,
-      iconName: 'gavel',
-      iconColorHex: 0xFF1A237E,
-      tag: 'New Law',
-      order: 1,
-    ),
-    NewsItem(
-      id: 'default_2',
-      title: 'POCSO Amendment — Stricter Penalties',
-      description:
-          'Recent amendments to POCSO Act 2012 prescribe enhanced punishment for repeat offenders and faster trial timelines.',
-      icon: Icons.shield_rounded,
-      iconName: 'shield',
-      iconColorHex: 0xFF00838F,
-      tag: 'Amendment',
-      order: 2,
-    ),
-    NewsItem(
-      id: 'default_3',
-      title: 'Circular: Body Camera Mandate',
-      description:
-          'All field officers must wear body cameras during raids and arrests effective 1st May. Submit usage reports weekly.',
-      icon: Icons.videocam_rounded,
-      iconName: 'videocam',
-      iconColorHex: 0xFFE65100,
-      tag: 'Circular',
-      order: 3,
-    ),
-    NewsItem(
-      id: 'default_4',
-      title: 'Cyber Crime Awareness — New SOP',
-      description:
-          'Updated Standard Operating Procedure for cybercrime investigation units. First responders must complete e-training.',
-      icon: Icons.security_rounded,
-      iconName: 'security',
-      iconColorHex: 0xFF1B5E20,
-      tag: 'Awareness',
-      order: 4,
-    ),
-  ];
+/// Fallback static news items shown when offline or initializing
+const List<NewsItem> defaultNewsItems = [
+  NewsItem(
+    id: 'bnss_2023',
+    title: 'Bhartiya Nagarik Suraksha Sanhita (BNSS) 2023 Guidelines',
+    description:
+        'New procedural mandatory timelines for FIR registration, forensic data collection, and electronic evidence recording are now enforced state-wide.',
+    icon: Icons.gavel_rounded,
+    iconName: 'gavel',
+    iconColorHex: 0xFF1565C0, // Blue
+    tag: 'New Law',
+    order: 1,
+  ),
+  NewsItem(
+    id: 'zero_fir',
+    title: 'Mandatory Zero FIR Registration Directive',
+    description:
+        'All police stations must register Zero FIR immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.',
+    icon: Icons.shield_rounded,
+    iconName: 'shield',
+    iconColorHex: 0xFFD32F2F, // Red
+    tag: 'Directive',
+    order: 2,
+  ),
+  NewsItem(
+    id: 'e_evidence',
+    title: 'Section 63 BSA Electronic Evidence Certification',
+    description:
+        'All digital evidence, CCTV recordings, and call logs must be accompanied by mandatory Section 63 Certificate (formerly 65B) at the time of charge-sheet submission.',
+    icon: Icons.videocam_rounded,
+    iconName: 'videocam',
+    iconColorHex: 0xFF2E7D32, // Green
+    tag: 'Circular',
+    order: 3,
+  ),
+  NewsItem(
+    id: 'cyber_sop',
+    title: 'Standard Operating Procedure for Online Financial Frauds',
+    description:
+        'Immediate freezing of beneficiary accounts through 1930 Portal Integration within the first Golden Hour is now mandatory for IOs.',
+    icon: Icons.security_rounded,
+    iconName: 'security',
+    iconColorHex: 0xFFED6C02, // Orange
+    tag: 'SOP Update',
+    order: 4,
+  ),
+  NewsItem(
+    id: 'posh_guidelines',
+    title: 'Enhanced Safety Protocol & FAST-Track Chargesheets',
+    description:
+        'Cases involving crimes against women and children require mandatory completion of investigation within 60 days under BNSS Section 193.',
+    icon: Icons.campaign_rounded,
+    iconName: 'campaign',
+    iconColorHex: 0xFF7B1FA2, // Purple
+    tag: 'Important Notice',
+    order: 5,
+  ),
+];
 
+class NewsProvider extends ChangeNotifier {
   List<NewsItem> _items = List.of(defaultNewsItems);
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _subscription;
   bool _isLoading = false;
   String? _errorMessage;
 
   NewsProvider() {
-    _initFirestoreListener();
+    fetchAnnouncements();
   }
 
   List<NewsItem> get items => List.unmodifiable(_items);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  void _initFirestoreListener() {
+  /// Fetch announcements from Django REST API backend
+  Future<void> fetchAnnouncements() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
-      final collection =
-          FirebaseFirestore.instance.collection('app_announcements');
-      _subscription = collection
-          .orderBy('order')
-          .snapshots()
-          .listen(
-            (snapshot) {
-              if (snapshot.docs.isNotEmpty) {
-                _items = snapshot.docs
-                    .map((doc) => NewsItem.fromMap(doc.id, doc.data()))
-                    .toList();
-              } else {
-                // If Firestore is empty, retain local defaults
-                _items = List.of(defaultNewsItems);
-              }
-              _errorMessage = null;
-              notifyListeners();
-            },
-            onError: (err) {
-              if (kDebugMode) {
-                debugPrint('[NewsProvider] Firestore listener fallback: $err');
-              }
-              _items = List.of(defaultNewsItems);
-              _errorMessage = null;
-              notifyListeners();
-            },
-          );
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[NewsProvider] Initialization error: $e');
+      final res = await ApiService().get(ApiConfig.announcements);
+      if (res.statusCode == 200 && res.data is List && (res.data as List).isNotEmpty) {
+        _items = (res.data as List)
+            .map((item) => NewsItem.fromMap(item['id'].toString(), item as Map<String, dynamic>))
+            .toList();
       }
+    } catch (e) {
+      debugPrint('[NewsProvider] Error fetching announcements: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   /// Master Admin creates a new announcement
   Future<void> addAnnouncement(NewsItem item) async {
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      final collection =
-          FirebaseFirestore.instance.collection('app_announcements');
-      final docRef = await collection.add(item.toMap());
-
-      // Optimistic local update
-      _items.add(item.copyWith(id: docRef.id));
-      _isLoading = false;
-      notifyListeners();
+      final payload = {
+        'title': item.title,
+        'description': item.description,
+        'icon_name': item.iconName,
+        'icon_color_hex': item.iconColorHex.toRadixString(16),
+        'tag': item.tag,
+        'order': item.order,
+        'is_active': true,
+      };
+      await ApiService().post(ApiConfig.announcements, data: payload);
+      await fetchAnnouncements();
     } catch (e) {
-      _isLoading = false;
-      _errorMessage = e.toString();
+      debugPrint('[NewsProvider] Error adding announcement: $e');
+      _items.add(item);
       notifyListeners();
-      rethrow;
     }
   }
 
   /// Master Admin updates an existing announcement
   Future<void> updateAnnouncement(NewsItem item) async {
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      final collection =
-          FirebaseFirestore.instance.collection('app_announcements');
-      await collection.doc(item.id).set(item.toMap(), SetOptions(merge: true));
-
+      final payload = {
+        'title': item.title,
+        'description': item.description,
+        'icon_name': item.iconName,
+        'icon_color_hex': item.iconColorHex.toRadixString(16),
+        'tag': item.tag,
+        'order': item.order,
+      };
+      await ApiService().put('${ApiConfig.announcements}${item.id}/', data: payload);
+      await fetchAnnouncements();
+    } catch (e) {
+      debugPrint('[NewsProvider] Error updating announcement: $e');
       final idx = _items.indexWhere((i) => i.id == item.id);
       if (idx >= 0) {
         _items[idx] = item;
+        notifyListeners();
       }
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      _errorMessage = e.toString();
-      notifyListeners();
-      rethrow;
     }
   }
 
   /// Master Admin deletes an announcement
   Future<void> deleteAnnouncement(String id) async {
     try {
-      _isLoading = true;
-      notifyListeners();
-
-      final collection =
-          FirebaseFirestore.instance.collection('app_announcements');
-      await collection.doc(id).delete();
-
+      await ApiService().delete('${ApiConfig.announcements}${id}/');
+      await fetchAnnouncements();
+    } catch (e) {
+      debugPrint('[NewsProvider] Error deleting announcement: $e');
       _items.removeWhere((i) => i.id == id);
       if (_items.isEmpty) {
         _items = List.of(defaultNewsItems);
       }
-      _isLoading = false;
       notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      _errorMessage = e.toString();
-      notifyListeners();
-      rethrow;
     }
   }
 
-  /// Seed defaults into Firestore if Master Admin wants to populate or reset
+  /// Reset to defaults
   Future<void> seedDefaultsToFirestore() async {
-    try {
-      _isLoading = true;
-      notifyListeners();
-
-      final collection =
-          FirebaseFirestore.instance.collection('app_announcements');
-      final existing = await collection.get();
-      for (final doc in existing.docs) {
-        await doc.reference.delete();
-      }
-
-      for (final def in defaultNewsItems) {
-        await collection.add(def.toMap());
-      }
-
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _isLoading = false;
-      _errorMessage = e.toString();
-      notifyListeners();
-      rethrow;
-    }
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
+    _items = List.of(defaultNewsItems);
+    notifyListeners();
   }
 }

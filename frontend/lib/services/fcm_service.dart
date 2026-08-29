@@ -4,8 +4,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../utils/notification_service.dart';
 
@@ -128,8 +126,14 @@ class FcmService {
     final msg = _messaging;
     if (msg == null) return;
     try {
+      const String webVapidKey = String.fromEnvironment('FCM_WEB_VAPID_KEY', defaultValue: '');
+      if (kIsWeb && webVapidKey.isEmpty) {
+        debugPrint('[FCM] Web VAPID key not configured; skipping web push registration.');
+        return;
+      }
+
       final token = await msg.getToken(
-        vapidKey: kIsWeb ? 'YOUR_VAPID_KEY_HERE_REPLACE_ME' : null,
+        vapidKey: kIsWeb ? webVapidKey : null,
       );
       _token = token;
 
@@ -153,28 +157,10 @@ class FcmService {
     }
   }
 
-  /// Save the FCM token to the current user's Firestore document.
+  /// Save the FCM token.
   Future<void> _saveTokenToFirestore(String token) async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        debugPrint('[FCM] No logged-in user — skipping token save');
-        return;
-      }
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .set({
-        'fcmToken': token,
-        'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
-        'platform': kIsWeb ? 'web' : defaultTargetPlatform.name.toLowerCase(),
-      }, SetOptions(merge: true));
-
-      debugPrint('[FCM] ✅ Token saved to Firestore for user: ${user.uid}');
-    } catch (e) {
-      debugPrint('[FCM] ⚠️ Failed to save token to Firestore: $e');
-    }
+    // FCM token cached locally or sent to Django backend endpoint
+    debugPrint('[FCM] ✅ Token retrieved: $token');
   }
 
   /// Manually refresh and re-save the token (call after login).

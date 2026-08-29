@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
 import 'firestore_service.dart';
@@ -15,12 +14,12 @@ class FeedbackService {
     required String email,
     required String message,
     String category = 'General',
+    String uid = '',
   }) async {
     final trimmedName = name.trim();
     final trimmedEmail = email.trim();
     final trimmedMessage = message.trim();
     final clientTs = DateTime.now().toIso8601String();
-    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     // 1. Submit to Firestore (/feedback collection for Master Admin Dashboard)
     try {

@@ -1,11 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// lib/screens/pending_approvals_screen.dart
+// PostgreSQL-powered officer registration approval screen for superiors in hierarchy.
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
-import '../services/firestore_service.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/pending_approvals_scope.dart';
 
@@ -18,54 +19,96 @@ class PendingApprovalsScreen extends StatefulWidget {
 }
 
 class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
-  final _firestore = FirestoreService();
+  final ApiService _apiService = ApiService();
   final Set<String> _processingUids = {};
+  List<Map<String, dynamic>> _pendingRequests = [];
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  Stream<List<UserModel>> _requestsStream(AuthProvider auth) {
-    return _firestore.watchPendingRegistrationRequests(
-      isSuperAdmin: PendingApprovalsScope.isSuperAdmin(auth),
-      canReview: PendingApprovalsScope.canReviewRegistrations(auth),
-      approverDesignation: auth.designation,
-      approverZone: PendingApprovalsScope.approverZone(auth),
-      approverStation: auth.stationName,
-    );
+  @override
+  void initState() {
+    super.initState();
+    _fetchRequests();
   }
 
-  Future<void> _approve(UserModel user) async {
-    if (_processingUids.contains(user.uid)) return;
-    setState(() => _processingUids.add(user.uid));
+  Future<void> _fetchRequests() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      await _firestore.approveUserRegistration(user.uid);
+      final response = await _apiService.getPendingOfficerApprovals();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${user.name} approved.',
-            style: GoogleFonts.poppins(),
+
+      if (response.isSuccess && response.data is List) {
+        setState(() {
+          _pendingRequests = (response.data as List).cast<Map<String, dynamic>>();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = response.errorMessage ?? 'Failed to load requests';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _approve(String uid, String name) async {
+    if (_processingUids.contains(uid)) return;
+    setState(() => _processingUids.add(uid));
+
+    try {
+      final response = await _apiService.approveOrRejectOfficer(uid, action: 'approve');
+      if (!mounted) return;
+
+      if (response.isSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '$name approved successfully.',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: AppColors.successGreen,
           ),
-          backgroundColor: AppColors.successGreen,
-        ),
-      );
-    } on FirebaseException catch (e) {
+        );
+        _fetchRequests();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response.errorMessage ?? 'Approval failed',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: AppColors.dangerRed,
+          ),
+        );
+      }
+    } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e.code == 'permission-denied'
-                ? 'Permission denied. You may not approve this request.'
-                : 'Approval failed: ${e.message ?? e.code}',
+            'Approval error: $e',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.dangerRed,
         ),
       );
     } finally {
-      if (mounted) setState(() => _processingUids.remove(user.uid));
+      if (mounted) setState(() => _processingUids.remove(uid));
     }
   }
 
-  Future<void> _reject(UserModel user) async {
-    if (_processingUids.contains(user.uid)) return;
+  Future<void> _reject(String uid, String name) async {
+    if (_processingUids.contains(uid)) return;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -75,7 +118,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
           style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'Reject ${user.name}\'s access request?',
+          'Reject $name\'s access request?',
           style: GoogleFonts.poppins(),
         ),
         actions: [
@@ -95,34 +138,46 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
     );
     if (confirmed != true) return;
 
-    setState(() => _processingUids.add(user.uid));
+    setState(() => _processingUids.add(uid));
     try {
-      await _firestore.rejectUserRegistration(user.uid);
+      final response = await _apiService.approveOrRejectOfficer(uid, action: 'reject');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${user.name} rejected.',
-            style: GoogleFonts.poppins(),
+
+      if (response.isSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '$name rejected.',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: AppColors.warningOrange,
           ),
-          backgroundColor: AppColors.warningOrange,
-        ),
-      );
-    } on FirebaseException catch (e) {
+        );
+        _fetchRequests();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response.errorMessage ?? 'Rejection failed',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: AppColors.dangerRed,
+          ),
+        );
+      }
+    } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e.code == 'permission-denied'
-                ? 'Permission denied. You may not reject this request.'
-                : 'Rejection failed: ${e.message ?? e.code}',
+            'Rejection error: $e',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.dangerRed,
         ),
       );
     } finally {
-      if (mounted) setState(() => _processingUids.remove(user.uid));
+      if (mounted) setState(() => _processingUids.remove(uid));
     }
   }
 
@@ -137,7 +192,13 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.of(context).pushReplacementNamed('/dashboard');
+            }
+          },
           icon: Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.navyDark, size: 20),
         ),
@@ -164,206 +225,175 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
       ),
       body: !canReview
           ? _AccessDeniedState(designation: auth.designation)
-          : StreamBuilder<List<UserModel>>(
-              stream: _requestsStream(auth),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+          : RefreshIndicator(
+              onRefresh: _fetchRequests,
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorMessage != null
+                      ? _EmptyState(
+                          icon: _errorMessage!.contains('Authentication')
+                              ? Icons.lock_outline_rounded
+                              : Icons.error_outline_rounded,
+                          title: _errorMessage!.contains('Authentication')
+                              ? 'Sign In Required'
+                              : 'Could not load requests',
+                          subtitle: _errorMessage!.contains('Authentication')
+                              ? 'Please sign in with your officer credentials to view pending registration approvals.'
+                              : _errorMessage!,
+                        )
+                      : _pendingRequests.isEmpty
+                          ? const _EmptyState(
+                              icon: Icons.check_circle_outline_rounded,
+                              title: 'No pending approvals',
+                              subtitle:
+                                  'Registration requests in your jurisdiction will appear here.',
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(AppSpacing.lg),
+                              itemCount: _pendingRequests.length,
+                              itemBuilder: (context, index) {
+                                final req = _pendingRequests[index];
+                                final uid = req['registration_uid']?.toString() ?? '';
+                                final title = req['title']?.toString() ?? 'Registration Request';
+                                final body = req['body']?.toString() ?? '';
+                                final station = req['target_station']?.toString() ?? '';
+                                final district = req['target_district']?.toString() ?? '';
+                                final busy = _processingUids.contains(uid);
 
-                if (snapshot.hasError) {
-                  return _EmptyState(
-                    icon: Icons.error_outline_rounded,
-                    title: 'Could not load requests',
-                    subtitle: 'Please try again.',
-                  );
-                }
-
-                final requests = snapshot.data ?? const [];
-                if (requests.isEmpty) {
-                  return _EmptyState(
-                    icon: Icons.check_circle_outline_rounded,
-                    title: 'No pending approvals',
-                    subtitle: 'Registration requests in your jurisdiction will appear here.',
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  itemCount: requests.length,
-                  itemBuilder: (context, index) {
-                    final user = requests[index];
-                    final busy = _processingUids.contains(user.uid);
-                    return _PendingApprovalCard(
-                      user: user,
-                      busy: busy,
-                      onApprove: () => _approve(user),
-                      onReject: () => _reject(user),
-                    );
-                  },
-                );
-              },
-            ),
-    );
-  }
-}
-
-class _PendingApprovalCard extends StatelessWidget {
-  const _PendingApprovalCard({
-    required this.user,
-    required this.busy,
-    required this.onApprove,
-    required this.onReject,
-  });
-
-  final UserModel user;
-  final bool busy;
-  final VoidCallback onApprove;
-  final VoidCallback onReject;
-
-  @override
-  Widget build(BuildContext context) {
-    final zoneLabel = user.effectiveZone.isNotEmpty
-        ? user.effectiveZone
-        : 'Zone not specified';
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: const BorderSide(color: AppColors.lightBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: AppColors.warningOrange.withValues(alpha: 0.15),
-                  child: Icon(Icons.person_rounded,
-                      color: AppColors.warningOrange, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user.name.trim().isNotEmpty ? user.name : 'Unnamed applicant',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navyDark,
-                        ),
-                      ),
-                      Text(
-                        user.designation.trim().isNotEmpty
-                            ? user.designation
-                            : 'Designation pending',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.infoBlue,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.warningOrange.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'Pending',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.warningOrange,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _InfoRow(
-              icon: Icons.location_city_rounded,
-              label: 'Station',
-              value: user.stationName.trim().isNotEmpty
-                  ? user.stationName
-                  : 'Not assigned',
-            ),
-            const SizedBox(height: 6),
-            _InfoRow(
-              icon: Icons.map_rounded,
-              label: 'Zone',
-              value: zoneLabel,
-            ),
-            if (user.email.trim().isNotEmpty) ...[
-              const SizedBox(height: 6),
-              _InfoRow(
-                icon: Icons.email_outlined,
-                label: 'Email',
-                value: user.email,
-              ),
-            ],
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: busy ? null : onReject,
-                    icon: const Icon(Icons.close_rounded, size: 18),
-                    label: Text(
-                      'Reject',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.dangerRed,
-                      side: BorderSide(
-                        color: AppColors.dangerRed.withValues(alpha: 0.5),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: busy ? null : onApprove,
-                    icon: busy
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  elevation: 0,
+                                  color: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                                    side: const BorderSide(color: AppColors.lightBorder),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 22,
+                                              backgroundColor: AppColors.warningOrange.withValues(alpha: 0.15),
+                                              child: Icon(Icons.person_rounded,
+                                                  color: AppColors.warningOrange, size: 24),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    title,
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 15,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: AppColors.navyDark,
+                                                    ),
+                                                  ),
+                                                  if (body.isNotEmpty)
+                                                    Text(
+                                                      body,
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: AppColors.infoBlue,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.warningOrange.withValues(alpha: 0.12),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                'Pending',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppColors.warningOrange,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        if (station.isNotEmpty) ...[
+                                          _InfoRow(
+                                            icon: Icons.location_city_rounded,
+                                            label: 'Station',
+                                            value: station,
+                                          ),
+                                          const SizedBox(height: 6),
+                                        ],
+                                        if (district.isNotEmpty) ...[
+                                          _InfoRow(
+                                            icon: Icons.map_rounded,
+                                            label: 'District',
+                                            value: district,
+                                          ),
+                                          const SizedBox(height: 6),
+                                        ],
+                                        const SizedBox(height: 16),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: OutlinedButton.icon(
+                                                onPressed: busy ? null : () => _reject(uid, title),
+                                                icon: const Icon(Icons.close_rounded, size: 18),
+                                                label: Text(
+                                                  'Reject',
+                                                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                                                ),
+                                                style: OutlinedButton.styleFrom(
+                                                  foregroundColor: AppColors.dangerRed,
+                                                  side: BorderSide(
+                                                    color: AppColors.dangerRed.withValues(alpha: 0.5),
+                                                  ),
+                                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: FilledButton.icon(
+                                                onPressed: busy ? null : () => _approve(uid, title),
+                                                icon: busy
+                                                    ? const SizedBox(
+                                                        width: 16,
+                                                        height: 16,
+                                                        child: CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          color: Colors.white,
+                                                        ),
+                                                      )
+                                                    : const Icon(Icons.check_rounded, size: 18),
+                                                label: Text(
+                                                  'Approve',
+                                                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                                                ),
+                                                style: FilledButton.styleFrom(
+                                                  backgroundColor: AppColors.successGreen,
+                                                  foregroundColor: Colors.white,
+                                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                          )
-                        : const Icon(Icons.check_rounded, size: 18),
-                    label: Text(
-                      'Approve',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                    ),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.successGreen,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
             ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -427,7 +457,8 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

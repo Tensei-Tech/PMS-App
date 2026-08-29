@@ -1,10 +1,10 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
-import '../services/firestore_service.dart';
+import '../services/api_config.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
 import '../utils/case_visibility.dart';
@@ -20,7 +20,6 @@ class StationAccessGrantsScreen extends StatefulWidget {
 
 class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
   final _searchCtrl = TextEditingController();
-  final _firestore = FirestoreService();
   String _query = '';
   List<UserModel> _officers = [];
   bool _loading = true;
@@ -57,15 +56,27 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
       _loadError = null;
     });
 
-    final users = await _firestore.getUsersAtStation(station);
-    if (!mounted) return;
-
-    setState(() {
-      _officers = users;
-      _loading = false;
-      if (users.isEmpty) {
-        _loadError = null;
+    try {
+      final res = await ApiService().get('${ApiConfig.users}station-officers/?station_name=${Uri.encodeComponent(station)}');
+      if (!mounted) return;
+      if (res.statusCode == 200 && res.data is List) {
+        final users = (res.data as List)
+            .map((item) => UserModel.fromMap(item as Map<String, dynamic>, item['uid'] ?? ''))
+            .toList();
+        setState(() {
+          _officers = users;
+          _loading = false;
+        });
+        return;
       }
+    } catch (e) {
+      debugPrint('[StationAccessGrantsScreen] Load officers error: $e');
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _officers = [];
+      _loading = false;
     });
   }
 
@@ -96,11 +107,9 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
     setState(() => _savingUids.add(user.uid));
 
     try {
-      await _firestore.updateUserField(
-        user.uid,
-        'stationCaseViewGranted',
-        value,
-      );
+      await ApiService().patch('${ApiConfig.users}${user.uid}/grant-station-access/', data: {
+        'station_case_view_granted': value,
+      });
       if (!mounted) return;
       setState(() {
         _officers = _officers.map((o) {
@@ -136,18 +145,6 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
           ),
           backgroundColor: AppColors.successGreen,
           duration: const Duration(seconds: 2),
-        ),
-      );
-    } on FirebaseException catch (e) {
-      if (!mounted) return;
-      final message = e.code == 'permission-denied'
-          ? 'Permission denied. Deploy updated Firestore rules (Phase 2) if this persists.'
-          : 'Could not save: ${e.message ?? e.code}';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message, style: GoogleFonts.poppins()),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 4),
         ),
       );
     } catch (e) {

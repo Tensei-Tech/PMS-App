@@ -8,6 +8,10 @@ from rest_framework.response import Response
 from apps.stations.models import PoliceStation, District
 
 
+from apps.core.cache_decorators import cache_response
+from apps.core.cache import upstash_cache
+
+
 class PoliceStationViewSet(viewsets.ModelViewSet):
     """
     API endpoint for viewing and managing police stations directory dynamically from PostgreSQL DB.
@@ -16,6 +20,25 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
     serializer_class = PoliceStationSerializer
     permission_classes = [permissions.AllowAny]
 
+    @cache_response(ttl=14400, key_prefix="stations:list")
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        res = super().create(request, *args, **kwargs)
+        upstash_cache.delete_pattern("pms:cache:*:stations:*")
+        return res
+
+    def update(self, request, *args, **kwargs):
+        res = super().update(request, *args, **kwargs)
+        upstash_cache.delete_pattern("pms:cache:*:stations:*")
+        return res
+
+    def destroy(self, request, *args, **kwargs):
+        res = super().destroy(request, *args, **kwargs)
+        upstash_cache.delete_pattern("pms:cache:*:stations:*")
+        return res
+
     def get_queryset(self):
         qs = PoliceStation.objects.all()
         district = self.request.query_params.get('district')
@@ -23,10 +46,10 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
             qs = qs.filter(district_name__iexact=district.strip())
         return qs
 
+    @cache_response(ttl=14400, key_prefix="stations:districts")
     @action(detail=False, methods=['get'], url_path='districts')
     def list_districts(self, request):
         """Dynamic DB query for all Districts in current state schema."""
-        # Query District model and fallback to unique station district_names
         dist_names = list(District.objects.values_list('name', flat=True))
         if not dist_names:
             dist_names = list(PoliceStation.objects.values_list('district_name', flat=True).distinct())
@@ -37,6 +60,7 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
         clean_list = sorted(list(set([d.strip() for d in dist_names if d and d.strip()])))
         return Response(clean_list)
 
+    @cache_response(ttl=14400, key_prefix="stations:divisions")
     @action(detail=False, methods=['get'], url_path='divisions')
     def list_divisions(self, request):
         """Dynamic DB query for Divisions/Zones within a district."""

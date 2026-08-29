@@ -3,13 +3,13 @@ import 'package:collection/collection.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:async';
 import '../models/base_record.dart';
-import '../../../services/firestore_service.dart';
+import '../../../services/case_service.dart';
 import '../../../utils/case_visibility.dart';
 
 class BaseModuleProvider extends ChangeNotifier {
   final String moduleKey;
-  final FirestoreService _firestore = FirestoreService();
-  StreamSubscription? _sub;
+  CaseService get _caseService => CaseService();
+  Timer? _pollTimer;
   List<ModuleRecord> _records = [];
   String _stationId = '';
   String _uid = '';
@@ -17,42 +17,64 @@ class BaseModuleProvider extends ChangeNotifier {
 
   BaseModuleProvider(this.moduleKey);
 
+  void clearStationContext({bool clearRecords = false}) {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+    _stationId = '';
+    _uid = '';
+    if (clearRecords) {
+      _records = [];
+    }
+    notifyListeners();
+  }
+
   void setStationContext({
     required String stationId,
     required String uid,
     required CaseVisibilityMode visibilityMode,
   }) {
+    if (stationId.isEmpty || uid.isEmpty) {
+      clearStationContext();
+      return;
+    }
+
     if (_stationId == stationId &&
         _uid == uid &&
         _visibilityMode == visibilityMode &&
-        _sub != null) {
+        _pollTimer != null) {
       return;
     }
     _stationId = stationId;
     _uid = uid;
     _visibilityMode = visibilityMode;
-    _sub?.cancel();
+    _pollTimer?.cancel();
 
-    if (stationId.isEmpty) {
-      _records = [];
-      notifyListeners();
-      return;
-    }
-
-    _sub = _firestore.getCasesStream(moduleKey, stationId).listen(
-      (records) {
-        _records = CaseVisibility.filterRecords(
-          records,
-          uid: _uid,
-          mode: _visibilityMode,
-        );
-        notifyListeners();
-      },
-      onError: (e) {
-        debugPrint('[$moduleKey] Firestore stream error: $e');
-      },
-    );
+    _fetchCases();
+    // 30-second periodic background poll for live synchronization with Django backend
+    _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _fetchCases();
+    });
   }
+
+  Future<void> _fetchCases() async {
+    if (_stationId.isEmpty) return;
+    try {
+      final fetched = await _caseService.fetchCases(
+        moduleKey: moduleKey,
+        stationId: _stationId,
+      );
+      _records = CaseVisibility.filterRecords(
+        fetched,
+        uid: _uid,
+        mode: _visibilityMode,
+      );
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[$moduleKey] CaseService fetch error: $e');
+    }
+  }
+
+  Future<void> refresh() => _fetchCases();
 
   void seedDemoRecords(List<ModuleRecord> demoRecords) {
     if (_records.isEmpty) {
@@ -72,7 +94,7 @@ class BaseModuleProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _sub?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -131,7 +153,8 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
-    await _firestore.saveCase(enriched, isCreate: true);
+    await _caseService.saveCase(enriched, isCreate: true);
+    await _fetchCases();
   }
 
   Future<void> updateRecord(ModuleRecord record) async {
@@ -145,11 +168,13 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
-    await _firestore.saveCase(enriched, isCreate: false);
+    await _caseService.saveCase(enriched, isCreate: false);
+    await _fetchCases();
   }
 
   Future<void> deleteRecord(String id) async {
-    await _firestore.deleteCase(id, moduleKey: moduleKey);
+    await _caseService.deleteCase(id);
+    await _fetchCases();
   }
 
   ModuleRecord createRecord({

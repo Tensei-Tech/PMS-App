@@ -242,7 +242,9 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
                                 offset: const Offset(0, 3)),
                           ],
                         ),
-                        child: ListTile(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: ListTile(
                           contentPadding:
                               const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.md,
@@ -291,7 +293,8 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
                             // Navigate to case detail in production
                           },
                         ),
-                      );
+                      ),
+                    );
                     },
                   ),
           ),

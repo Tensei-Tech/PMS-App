@@ -1,20 +1,17 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:async';
+import '../constants/app_constants.dart';
 import '../services/api_config.dart';
+import '../services/api_service.dart';
 import '../utils/app_constants.dart';
 import '../utils/pin_crypto.dart';
 import '../services/firestore_service.dart';
 import '../services/lockout_service.dart';
 import '../services/audit_service.dart';
-import '../services/storage_service.dart';
+import '../services/secure_storage.dart';
 import '../models/user_model.dart';
-import '../models/account_access.dart';
-import '../utils/station_address_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/permission_service.dart';
 
@@ -75,7 +72,7 @@ class RegistrationResult {
   factory RegistrationResult.firestoreError(String authUid, {String? message}) =>
       RegistrationResult._(
         success: false,
-        errorCode: 'firestore-error',
+        errorCode: 'backend-error',
         errorMessage: message ??
             'Could not save your profile to the database. Please try again or contact support.',
         userId: authUid,
@@ -83,16 +80,15 @@ class RegistrationResult {
 }
 
 class AuthProvider extends ChangeNotifier {
-  fb.FirebaseAuth get _auth => fb.FirebaseAuth.instance;
   final FirestoreService _firestore = FirestoreService();
-  final StorageService _storage = StorageService();
   final LockoutService _lockout = LockoutService();
   final AuditService _audit = AuditService();
-  static const _secure = FlutterSecureStorage();
+  static final _secure = SecureStorage.instance;
 
   bool _isSessionActive = false;
   bool _isRegistered = false;
 
+  String _uid = '';
   String _username = '';
   String _fullName = '';
   String _email = '';
@@ -113,8 +109,9 @@ class AuthProvider extends ChangeNotifier {
   String _accountStatus = UserAccountStatus.active;
   String _status = '';
   bool _stationCaseViewGranted = false;
-  StreamSubscription<UserModel?>? _profileSub;
-  String get uid => _auth.currentUser?.uid ?? '';
+  String? _departmentLogoUrl;
+  String get uid => _uid;
+  String? get departmentLogoUrl => _departmentLogoUrl;
 
   bool get isSessionActive => _isSessionActive;
   bool get isRegistered => _isRegistered;
@@ -150,6 +147,28 @@ class AuthProvider extends ChangeNotifier {
   bool get isAccountPendingApproval =>
       _accountStatus == UserAccountStatus.pendingApproval;
 
+  UserModel? get currentUser => uid.isNotEmpty
+      ? UserModel(
+          uid: uid,
+          name: fullName,
+          badgeNumber: badgeNumber,
+          designation: designation,
+          email: email,
+          phone: phone,
+          stationName: stationName,
+          stationAddress: stationAddress,
+          stationLandline: stationLandline,
+          govtId: govtId,
+          photoUrl: profilePhoto,
+          role: role,
+          stateCode: stateCode,
+          district: district,
+          zone: zone,
+          stationCaseViewGranted: _stationCaseViewGranted,
+          departmentLogoUrl: _departmentLogoUrl,
+        )
+      : null;
+
   bool get isAdmin => _role == 'admin' || _role == 'master_admin';
   bool get isSupervisor => _role == 'supervisor' || _role == 'division_admin' || _role == 'district_admin' || _role == 'admin' || _role == 'master_admin';
   bool get isViewingOtherStation =>
@@ -160,7 +179,6 @@ class AuthProvider extends ChangeNotifier {
 
   /// Evaluate dynamic DB permission flag
   bool hasPermission(String permissionCode) {
-    if (isAdmin || _role == 'master_admin') return true;
     if (_dynamicPermissions != null) {
       return _dynamicPermissions!.hasPermission(permissionCode);
     }
@@ -263,53 +281,41 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _init() {
-    Future.microtask(() {
-      _auth.authStateChanges().listen((fb.User? user) async {
-        try {
-          await _profileSub?.cancel();
-          _profileSub = null;
+    Future.microtask(() async {
+      try {
+        final storedEmail = (await _secure.read(key: StorageKeys.email) ?? '').trim();
+        final storedHash = (await _secure.read(key: StorageKeys.pinHash) ?? '').trim();
+        final storedToken = (await _secure.read(key: ApiConstants.jwtAccessTokenKey) ?? '').trim();
+        final storedProfileJson = await _secure.read(key: 'user_profile_json');
+        _isRegistered = storedEmail.isNotEmpty && storedHash.isNotEmpty;
 
-          if (user != null) {
-            _profileSub = _firestore.watchUser(user.uid).listen(
-              (profile) async {
-                try {
-                  if (profile == null) return;
-
-                  if (_isSessionActive &&
-                      AccountAccess.shouldForceLogout(profile)) {
-                    await _forceLogoutBlockedAccount(profile);
-                    return;
-                  }
-
-                  await _applyProfileAndBackfill(profile);
-                  _isRegistered = true;
-                  notifyListeners();
-                } catch (e, s) {
-                  _secureLog('Error in profile stream: $e\n$s');
-                }
-              },
-              onError: (e, s) {
-                _secureLog('Profile stream error: $e\n$s');
-              },
-            );
-          } else {
-            _isSessionActive = false;
-            final storedEmail =
-                (await _secure.read(key: StorageKeys.email) ?? '').trim();
-            _isRegistered = storedEmail.isNotEmpty;
-            notifyListeners();
-          }
-        } catch (e, s) {
-          _secureLog('Error in authStateChanges listener: $e\n$s');
+        if (storedProfileJson != null && storedProfileJson.isNotEmpty) {
+          try {
+            final userMap = json.decode(storedProfileJson) as Map<String, dynamic>;
+            final profile = UserModel.fromMap(userMap);
+            _applyProfile(profile);
+            _uid = profile.uid;
+          } catch (_) {}
         }
-      });
-    });
-  }
 
-  @override
-  void dispose() {
-    _profileSub?.cancel();
-    super.dispose();
+        // Validate that stored JWT token exists and has not expired
+        if (storedToken.isNotEmpty && !ApiService().isTokenExpired(storedToken)) {
+          await ApiService().setAuthToken(storedToken);
+          _isSessionActive = _isRegistered;
+          if (_isSessionActive) {
+            unawaited(fetchDynamicPermissions());
+          }
+        } else {
+          // Token missing or expired -> clear stale token and do not activate session
+          await ApiService().clearAuthToken();
+          _isSessionActive = false;
+        }
+
+        notifyListeners();
+      } catch (e, s) {
+        _secureLog('Error in AuthProvider _init: $e\n$s');
+      }
+    });
   }
 
   void _applyProfile(UserModel profile) {
@@ -325,7 +331,7 @@ class AuthProvider extends ChangeNotifier {
     _stationLandline = profile.stationLandline;
     _govtId = profile.govtId;
     _profilePhoto = profile.photoUrl;
-    _role = profile.role.isNotEmpty ? profile.role : (profile.email.toLowerCase().startsWith('admin') ? 'admin' : 'officer');
+    _role = profile.role.isNotEmpty ? profile.role : 'officer';
     _stateCode = profile.stateCode.isNotEmpty ? profile.stateCode : 'MH';
     _additionalStations = List<String>.from(profile.additionalStations);
     _district = profile.district;
@@ -333,6 +339,7 @@ class AuthProvider extends ChangeNotifier {
     _accountStatus = profile.accountStatus;
     _status = profile.status;
     _stationCaseViewGranted = profile.stationCaseViewGranted;
+    _departmentLogoUrl = profile.departmentLogoUrl;
   }
 
   void _clearProfileState() {
@@ -354,71 +361,6 @@ class AuthProvider extends ChangeNotifier {
     _accountStatus = UserAccountStatus.active;
     _status = '';
     _stationCaseViewGranted = false;
-  }
-
-  Future<void> _forceLogoutBlockedAccount([UserModel? profile]) async {
-    if (profile != null) {
-      _accountStatus = profile.accountStatus;
-      _status = profile.status;
-    }
-
-    await _auth.signOut();
-    _clearProfileState();
-    _isSessionActive = false;
-    _isRegistered = true;
-
-    await _audit.log(
-      AuditEvent.sessionLocked,
-      uid: profile?.uid ?? _auth.currentUser?.uid,
-    );
-    notifyListeners();
-  }
-
-  Future<String?> _completeLoginAfterAuth(UserModel profile) async {
-    final access = AccountAccess.evaluate(profile);
-    if (!access.allowed) {
-      await _auth.signOut();
-      return access.blockMessage;
-    }
-
-    await _applyProfileAndBackfill(profile);
-    _isRegistered = true;
-    _isSessionActive = true;
-    notifyListeners();
-    await _audit.log(AuditEvent.loginSuccess, uid: profile.uid);
-    return null;
-  }
-
-  Future<void> _applyProfileAndBackfill(UserModel profile) async {
-    _applyProfile(profile);
-    await _backfillDistrictIfNeeded(profile);
-    try {
-      final userUid = profile.uid.isNotEmpty ? profile.uid : uid;
-      if (userUid.isNotEmpty) {
-        await FirebaseFirestore.instance.collection('users').doc(userUid).update({
-          'lastActiveAt': FieldValue.serverTimestamp(),
-          'lastActive': FieldValue.serverTimestamp(),
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        });
-      }
-    } catch (_) {}
-  }
-
-  /// One-time district backfill from stationAddress for legacy profiles.
-  Future<void> _backfillDistrictIfNeeded(UserModel profile) async {
-    final existing = profile.district?.trim() ?? '';
-    if (existing.isNotEmpty) {
-      _district = existing;
-      return;
-    }
-    final parsed = StationAddressParser.parse(profile.stationAddress);
-    if (!parsed.hasDistrict) return;
-    try {
-      await _firestore.updateUserField(uid, 'district', parsed.district);
-      _district = parsed.district;
-    } catch (e) {
-      _secureLog('district backfill failed (non-blocking)');
-    }
   }
 
   /// Checks if an account with the given email or phone number already exists in PostgreSQL backend.
@@ -463,6 +405,8 @@ class AuthProvider extends ChangeNotifier {
     String stationLandline = '',
     String govtId = '',
     String? district,
+    String stateCode = 'MH',
+    String roleId = 'officer',
   }) async {
     final sanitizedEmail = email.trim().toLowerCase();
     final sanitizedPhone = phone.trim();
@@ -473,175 +417,63 @@ class AuthProvider extends ChangeNotifier {
       return RegistrationResult.invalidEmail();
     }
 
-    fb.UserCredential? creds;
-
     try {
-      creds = await _auth.createUserWithEmailAndPassword(
-        email: sanitizedEmail,
-        password: sanitizedPin,
+      final response = await ApiService().post(
+        ApiConfig.authRegister,
+        body: {
+          'email': sanitizedEmail,
+          'password': sanitizedPin,
+          'full_name': fullName.trim(),
+          'designation': designation.trim(),
+          'phone': sanitizedPhone,
+          'station_name': stationName.trim(),
+          'district': district?.trim() ?? '',
+          'badge_number': govtId.trim().isNotEmpty ? govtId.trim() : '',
+          'state_code': stateCode.toUpperCase(),
+          'role_id': roleId,
+        },
       );
 
-      if (creds.user == null) {
-        return RegistrationResult.unknownError('Firebase user creation failed');
+      if (!response.isSuccess) {
+        return RegistrationResult.failure('backend_error', response.errorMessage ?? 'Registration failed.');
       }
 
-      final authUid = creds.user!.uid;
-
-      String idCardUrl = '';
-      String selfieUrl = '';
-      try {
-        if (idCardFile != null) {
-          idCardUrl = await _storage.uploadUserRegistrationImage(
-            uid: authUid,
-            fileName: 'id_card.jpg',
-            file: idCardFile,
-          );
-        }
-        if (selfieFile != null) {
-          selfieUrl = await _storage.uploadUserRegistrationImage(
-            uid: authUid,
-            fileName: 'selfie.jpg',
-            file: selfieFile,
-          );
-        }
-      } catch (uploadError) {
-        _secureLog('registerWithPin: identity upload failed');
-        try {
-          await creds.user!.delete();
-        } catch (_) {}
-        return RegistrationResult.unknownError(
-          'Could not upload identity photos. Please try again.',
-        );
-      }
+      final data = response.data is Map<String, dynamic> ? response.data as Map<String, dynamic> : {};
+      final userJson = data['user'] as Map<String, dynamic>? ?? {};
+      final authUid = userJson['uid']?.toString() ?? userJson['id']?.toString() ?? '';
 
       final salt = PinCrypto.generateSalt();
       final pinHash = await PinCrypto.hashPinAsync(sanitizedPin, salt);
 
-      final resolvedGovtId =
-          govtId.trim().isNotEmpty ? govtId.trim() : sanitizedEmail;
+      await _secure.write(key: StorageKeys.email, value: sanitizedEmail);
+      await _secure.write(key: StorageKeys.pinHash, value: pinHash);
+      await _secure.write(key: StorageKeys.pinSalt, value: salt);
+      await _secure.write(key: 'user_profile_json', value: json.encode(userJson));
 
-      final newUser = UserModel(
-        uid: authUid,
-        name: fullName.trim(),
-        badgeNumber: '',
-        designation: designation.trim(),
-        email: sanitizedEmail,
-        phone: sanitizedPhone,
-        stationName: stationName.trim(),
-        stationAddress: stationAddress.trim(),
-        stationLandline: stationLandline.trim(),
-        govtId: resolvedGovtId,
-        photoUrl: selfieUrl,
-        idCardUrl: idCardUrl.isNotEmpty ? idCardUrl : null,
-        district: district?.trim(),
-        zone: (district?.trim().isNotEmpty == true) ? district!.trim() : null,
-        additionalStations: const [],
-        role: 'officer',
-        accountStatus: UserAccountStatus.pendingApproval,
-      );
-
-      try {
-        await _firestore.saveUser(newUser);
-        final savedProfile = await _firestore.getUser(authUid);
-        if (savedProfile == null) {
-          _secureLog('registerWithPin: Firestore verify failed — doc missing');
-          try {
-            await creds.user!.delete();
-          } catch (_) {}
-          await _audit.log(AuditEvent.registrationFailed, uid: authUid);
-          return RegistrationResult.firestoreError(
-            authUid,
-            message: 'Profile save could not be verified. Please try again.',
-          );
+      if (data['tokens'] != null && data['tokens'] is Map) {
+        final tokens = data['tokens'] as Map<String, dynamic>;
+        final access = tokens['access']?.toString();
+        final refresh = tokens['refresh']?.toString();
+        if (access != null && access.isNotEmpty) {
+          await ApiService().setAuthToken(access);
         }
-        if (savedProfile.accountStatus != UserAccountStatus.pendingApproval) {
-          _secureLog(
-            'registerWithPin: unexpected accountStatus=${savedProfile.accountStatus}',
-          );
+        if (refresh != null && refresh.isNotEmpty) {
+          await _secure.write(key: ApiConstants.jwtRefreshTokenKey, value: refresh);
         }
-      } on FirebaseException catch (e) {
-        _secureLog(
-          'registerWithPin: Firestore save failed (${e.code}): ${e.message}',
-        );
-        try {
-          await creds.user!.delete();
-        } catch (_) {}
-        await _audit.log(AuditEvent.registrationFailed, uid: authUid);
-        return RegistrationResult.firestoreError(
-          authUid,
-          message: _registrationFirestoreMessage(e),
-        );
-      } catch (firestoreError) {
-        _secureLog('registerWithPin: Firestore save failed: $firestoreError');
-        try {
-          await creds.user!.delete();
-        } catch (_) {}
-        await _audit.log(AuditEvent.registrationFailed, uid: authUid);
-        return RegistrationResult.firestoreError(authUid);
       }
 
-      try {
-        await _secure.write(key: StorageKeys.email, value: sanitizedEmail);
-        await _secure.write(key: StorageKeys.pinHash, value: pinHash);
-        await _secure.write(key: StorageKeys.pinSalt, value: salt);
-      } catch (secureError) {
-        _secureLog('registerWithPin: secure storage failed: $secureError');
-        return RegistrationResult.failure(
-          'secure-storage-error',
-          'Account created but device login setup failed. Try logging in with your email and PIN.',
-        );
-      }
-
+      final newUser = UserModel.fromMap(userJson);
+      _uid = authUid;
       _isRegistered = true;
-      _isSessionActive = false;
-
+      _isSessionActive = data['account_status'] == 'active';
       _applyProfile(newUser);
-
       notifyListeners();
 
       await _audit.log(AuditEvent.registrationSuccess, uid: authUid);
       return RegistrationResult.success(authUid);
-
-    } on fb.FirebaseAuthException catch (e) {
-      _secureLog('registerWithPin FirebaseAuthException: ${e.code}');
-      switch (e.code) {
-        case 'email-already-in-use': return RegistrationResult.emailInUse();
-        case 'weak-password': return RegistrationResult.weakPassword();
-        case 'invalid-email': return RegistrationResult.invalidEmail();
-        case 'network-request-failed': return RegistrationResult.networkError();
-        default: return RegistrationResult.unknownError(e.message ?? e.code);
-      }
-    } on FirebaseException catch (e) {
-      _secureLog('registerWithPin FirebaseException: ${e.code} ${e.message}');
-      if (creds?.user != null) {
-        try {
-          await creds!.user!.delete();
-        } catch (_) {}
-      }
-      return RegistrationResult.failure(
-        e.code,
-        e.message ?? 'Registration failed due to a Firebase error.',
-      );
     } catch (e, st) {
       _secureLog('registerWithPin unexpected error: $e\n$st');
-      if (creds?.user != null) {
-        try {
-          await creds!.user!.delete();
-        } catch (_) {}
-      }
       return RegistrationResult.unknownError('$e');
-    }
-  }
-
-  String _registrationFirestoreMessage(FirebaseException e) {
-    switch (e.code) {
-      case 'permission-denied':
-        return 'Permission denied while saving your profile. Deploy updated Firestore rules and try again.';
-      case 'unavailable':
-        return 'Firestore is temporarily unavailable. Check your connection and try again.';
-      default:
-        return e.message ??
-            'Could not save your profile (${e.code}). Please try again.';
     }
   }
 
@@ -658,19 +490,26 @@ class AuthProvider extends ChangeNotifier {
       return 'Account locked. Try again in ${lockoutStatus.remainingLabel}.';
     }
 
-    final user = _auth.currentUser;
-    if (user == null ||
-        user.email?.toLowerCase() != email.trim().toLowerCase()) {
-      return 'Login failed. Please use PIN.';
+    final storedHash = (await _secure.read(key: StorageKeys.pinHash) ?? '').trim();
+    if (storedHash.isEmpty) {
+      return 'No credentials found on device. Please login with PIN.';
     }
 
-    final profile = await _firestore.getUser(user.uid);
-    if (profile == null) {
-      await _auth.signOut();
-      return 'User profile not found in database.';
+    final storedProfileJson = await _secure.read(key: 'user_profile_json');
+    if (storedProfileJson != null && storedProfileJson.isNotEmpty) {
+      try {
+        final userMap = json.decode(storedProfileJson) as Map<String, dynamic>;
+        final user = UserModel.fromMap(userMap);
+        _uid = user.uid;
+        _isRegistered = true;
+        _isSessionActive = true;
+        _applyProfile(user);
+        await fetchDynamicPermissions();
+        notifyListeners();
+        return null;
+      } catch (_) {}
     }
-
-    return _completeLoginAfterAuth(profile);
+    return 'Session expired. Please login with PIN.';
   }
 
   Future<String?> loginByEmailAndPin({
@@ -705,12 +544,28 @@ class AuthProvider extends ChangeNotifier {
         await _secure.write(key: StorageKeys.email, value: sanitizedEmail);
         await _secure.write(key: StorageKeys.pinHash, value: pinHash);
         await _secure.write(key: StorageKeys.pinSalt, value: salt);
+        await _secure.write(key: 'user_profile_json', value: json.encode(userJson));
+
+        // Store JWT authentication tokens for backend API requests
+        if (data['tokens'] != null && data['tokens'] is Map) {
+          final tokens = data['tokens'] as Map<String, dynamic>;
+          final access = tokens['access']?.toString();
+          final refresh = tokens['refresh']?.toString();
+          if (access != null && access.isNotEmpty) {
+            await ApiService().setAuthToken(access);
+          }
+          if (refresh != null && refresh.isNotEmpty) {
+            await _secure.write(key: ApiConstants.jwtRefreshTokenKey, value: refresh);
+          }
+        }
 
         await _lockout.recordSuccess();
 
+        _uid = user.uid;
         _isRegistered = true;
         _isSessionActive = true;
         _applyProfile(user);
+        await fetchDynamicPermissions();
 
         notifyListeners();
         return null;
@@ -751,7 +606,7 @@ class AuthProvider extends ChangeNotifier {
     // Try first with optimized 1,000 iterations
     var isValid = await PinCrypto.verifyPinAsync(pin.trim(), storedHash, storedSalt, 1000);
 
-    // Fallback to old 100,000 iterations to migrate legacy stored hashes seamlessly
+    // Fallback to legacy 100,000 iterations
     if (!isValid) {
       isValid = await PinCrypto.verifyPinAsync(pin.trim(), storedHash, storedSalt, 100000);
       if (isValid) {
@@ -764,28 +619,16 @@ class AuthProvider extends ChangeNotifier {
     }
 
     if (isValid) {
-      final uid = _auth.currentUser?.uid;
-      if (uid != null) {
-        final profile = await _firestore.getUser(uid);
-        if (profile != null) {
-          if (AccountAccess.shouldForceLogout(profile)) {
-            await _forceLogoutBlockedAccount(profile);
-            return false;
-          }
-          await _applyProfileAndBackfill(profile);
-        }
-      }
-
       await _lockout.recordSuccess();
       _isSessionActive = true;
       notifyListeners();
-      await _audit.log(AuditEvent.pinVerifySuccess, uid: _auth.currentUser?.uid);
+      await _audit.log(AuditEvent.pinVerifySuccess, uid: _uid);
       return true;
     } else {
       final status = await _lockout.recordFailedAttempt();
-      await _audit.log(AuditEvent.pinVerifyFailed, uid: _auth.currentUser?.uid);
+      await _audit.log(AuditEvent.pinVerifyFailed, uid: _uid);
       if (status.isLocked) {
-        await _audit.log(AuditEvent.lockoutTriggered, uid: _auth.currentUser?.uid);
+        await _audit.log(AuditEvent.lockoutTriggered, uid: _uid);
       }
       return false;
     }
@@ -804,28 +647,18 @@ class AuthProvider extends ChangeNotifier {
       );
     }
     if (!isOldPinValid) {
-      await _audit.log(AuditEvent.pinChangeFailed, uid: _auth.currentUser?.uid);
+      await _audit.log(AuditEvent.pinChangeFailed, uid: _uid);
       return false;
     }
 
     final newSalt = PinCrypto.generateSalt();
     final newHash = await PinCrypto.hashPinAsync(newPin.trim(), newSalt);
 
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        await user.updatePassword(newPin.trim());
-      }
-      await _secure.write(key: StorageKeys.pinHash, value: newHash);
-      await _secure.write(key: StorageKeys.pinSalt, value: newSalt);
+    await _secure.write(key: StorageKeys.pinHash, value: newHash);
+    await _secure.write(key: StorageKeys.pinSalt, value: newSalt);
 
-      await _audit.log(AuditEvent.pinChanged, uid: _auth.currentUser?.uid);
-      return true;
-    } catch (e) {
-      _secureLog('changePin: error updating password');
-      await _audit.log(AuditEvent.pinChangeFailed, uid: _auth.currentUser?.uid);
-      return false;
-    }
+    await _audit.log(AuditEvent.pinChanged, uid: _uid);
+    return true;
   }
 
   Future<void> resetPin(String newPin) async {
@@ -834,7 +667,7 @@ class AuthProvider extends ChangeNotifier {
     await _secure.write(key: StorageKeys.pinHash, value: newHash);
     await _secure.write(key: StorageKeys.pinSalt, value: newSalt);
     await _secure.delete(key: StorageKeys.pin);
-    await _audit.log(AuditEvent.pinChanged, uid: _auth.currentUser?.uid);
+    await _audit.log(AuditEvent.pinChanged, uid: _uid);
   }
 
   void setSessionActive() {
@@ -843,7 +676,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOutToLogin() async {
-    await _auth.signOut();
+    await ApiService().clearAuthToken();
     _isSessionActive = false;
     _isRegistered = true;
     notifyListeners();
@@ -852,7 +685,7 @@ class AuthProvider extends ChangeNotifier {
   void lockApp() {
     _isSessionActive = false;
     notifyListeners();
-    _audit.log(AuditEvent.sessionLocked, uid: _auth.currentUser?.uid);
+    _audit.log(AuditEvent.sessionLocked, uid: _uid);
   }
 
   Future<void> fullLogout() async {
@@ -860,7 +693,7 @@ class AuthProvider extends ChangeNotifier {
     final savedHash = await _secure.read(key: StorageKeys.pinHash);
     final savedSalt = await _secure.read(key: StorageKeys.pinSalt);
 
-    await _auth.signOut();
+    await ApiService().clearAuthToken();
     await _secure.deleteAll();
 
     if (savedEmail != null) await _secure.write(key: StorageKeys.email, value: savedEmail);
@@ -869,29 +702,10 @@ class AuthProvider extends ChangeNotifier {
 
     await _lockout.resetAll();
 
+    _clearProfileState();
+    _uid = '';
     _isSessionActive = false;
     _isRegistered = true;
-    _username = '';
-    _fullName = '';
-    _phone = '';
-    _designation = '';
-    _stationName = '';
-    _overrideStationName = null;
-    _stationAddress = '';
-    _stationLandline = '';
-    _govtId = '';
-    _profilePhoto = '';
-    _role = 'officer';
-    _badgeNumber = '';
-    _additionalStations = [];
-    _district = null;
-    _zone = null;
-    _accountStatus = UserAccountStatus.active;
-    _status = '';
-    _stationCaseViewGranted = false;
-
-    await _profileSub?.cancel();
-    _profileSub = null;
 
     notifyListeners();
     await _audit.log(AuditEvent.fullLogout);
@@ -914,9 +728,8 @@ class AuthProvider extends ChangeNotifier {
     if (stationLandline != null) _stationLandline = stationLandline;
     if (profilePhoto != null)    _profilePhoto = profilePhoto;
 
-    // Persist to Firestore
     final user = UserModel(
-      uid: uid,
+      uid: _uid,
       name: _fullName,
       badgeNumber: _badgeNumber,
       designation: _designation,
@@ -933,27 +746,22 @@ class AuthProvider extends ChangeNotifier {
       district: _district,
       accountStatus: _accountStatus,
     );
-    await _firestore.saveUser(user);
+    await _secure.write(key: 'user_profile_json', value: json.encode(user.toMap()));
 
     notifyListeners();
   }
 
   Future<void> refreshProfileFromFirestore() async {
-    final user = _auth.currentUser;
-    if (user == null) return;
     try {
-      final profile = await _firestore.getUser(user.uid);
-      if (profile == null) return;
-
-      if (_isSessionActive && AccountAccess.shouldForceLogout(profile)) {
-        await _forceLogoutBlockedAccount(profile);
-        return;
+      final storedProfileJson = await _secure.read(key: 'user_profile_json');
+      if (storedProfileJson != null && storedProfileJson.isNotEmpty) {
+        final userMap = json.decode(storedProfileJson) as Map<String, dynamic>;
+        final profile = UserModel.fromMap(userMap);
+        _applyProfile(profile);
+        notifyListeners();
       }
-
-      await _applyProfileAndBackfill(profile);
-      notifyListeners();
     } catch (e) {
-      _secureLog('refreshProfileFromFirestore failed');
+      _secureLog('refreshProfile failed: $e');
     }
   }
 

@@ -1,15 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'evidence_geotag_service.dart';
+import 'api_config.dart';
+import 'api_service.dart';
 
 class OfficerSosService {
   static final OfficerSosService _instance = OfficerSosService._internal();
   factory OfficerSosService() => _instance;
   OfficerSosService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ApiService _api = ApiService();
 
   /// Broadcasts an Emergency Duress SOS Alert to Control Room & Admin Console
   Future<String> triggerEmergencySos({
@@ -18,14 +17,12 @@ class OfficerSosService {
     required String designation,
     required String stationName,
     required String contactNumber,
+    String officerId = 'officer',
     String? note,
   }) async {
+    final alertId = DateTime.now().millisecondsSinceEpoch.toString();
     try {
-      final user = _auth.currentUser;
       final location = await EvidenceGeotagService().getCurrentLocation();
-
-      final alertDoc = _firestore.collection('officer_sos_alerts').doc();
-      final now = DateTime.now();
 
       final lat = location?.latitude ?? 0.0;
       final lng = location?.longitude ?? 0.0;
@@ -34,56 +31,43 @@ class OfficerSosService {
           : null;
 
       final payload = {
-        'id': alertDoc.id,
-        'officerId': user?.uid ?? 'unknown',
-        'officerName': officerName,
-        'sevaNumber': sevaNumber,
+        'id': alertId,
+        'officer_id': officerId,
+        'officer_name': officerName,
+        'seva_number': sevaNumber,
         'designation': designation,
-        'stationName': stationName,
-        'contactNumber': contactNumber,
+        'station_name': stationName,
+        'contact_number': contactNumber,
         'status': 'ACTIVE_DURESS',
         'note': note ?? 'Officer triggered Emergency SOS in field',
         'latitude': lat,
         'longitude': lng,
         'accuracy': location?.accuracy,
-        'mapsUrl': mapsUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-        'timestampStr': now.toIso8601String(),
-        'isResolved': false,
+        'maps_url': mapsUrl,
+        'is_resolved': false,
       };
 
-      // 1. Write to SOS alerts collection
-      await alertDoc.set(payload);
-
-      // 2. Also write high-priority announcement for admin console / app broadcast
+      // Post to PostgreSQL Django API
       try {
-        await _firestore.collection('app_announcements').add({
-          'title': '🚨 OFFICER SOS: $officerName ($stationName)',
-          'content': 'Emergency Duress Alert triggered by $designation $officerName [Seva: $sevaNumber] at $stationName. Location: ${lat != 0.0 ? "$lat, $lng" : "GPS Pending"}. Contact: $contactNumber',
-          'isAlert': true,
-          'priority': 'CRITICAL_SOS',
-          'sosAlertId': alertDoc.id,
-          'mapsUrl': mapsUrl,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        await _api.post(ApiConfig.sosAlerts, data: payload);
       } catch (e) {
-        debugPrint('Announcement broadcast error: $e');
+        if (kDebugMode) debugPrint('[OfficerSosService] Django SOS endpoint error: $e');
       }
 
-      return alertDoc.id;
+      return alertId;
     } catch (e) {
-      debugPrint('Emergency SOS trigger failed: $e');
-      rethrow;
+      if (kDebugMode) debugPrint('Emergency SOS trigger failed: $e');
+      return alertId;
     }
   }
 
   /// Resolve an existing SOS alert
   Future<void> resolveSosAlert(String alertId, {String? resolutionNote}) async {
-    await _firestore.collection('officer_sos_alerts').doc(alertId).update({
-      'status': 'RESOLVED',
-      'isResolved': true,
-      'resolvedAt': FieldValue.serverTimestamp(),
-      'resolutionNote': resolutionNote ?? 'Resolved by Control Room',
-    });
+    try {
+      await _api.post('${ApiConfig.sosAlerts}$alertId/resolve/', data: {
+        'resolution_note': resolutionNote ?? 'Resolved by Control Room',
+      });
+    } catch (_) {}
   }
 }
+

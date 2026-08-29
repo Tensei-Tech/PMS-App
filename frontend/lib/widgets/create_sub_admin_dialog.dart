@@ -175,14 +175,17 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
   }
 
   List<String> _getDesignationOptionsForRole(String? role) {
-    if (role == 'District Admin') {
-      return ['CP', 'JT. CP', 'Addl. CP', 'DCP', 'SP', 'Addl. SP'];
+    AdminLevel level = AdminLevel.stationAdmin;
+    if (role == 'State Admin' || role == 'State Super Admin') {
+      level = AdminLevel.stateAdmin;
+    } else if (role == 'District Admin') {
+      level = AdminLevel.districtAdmin;
     } else if (role == 'Division Admin') {
-      return ['DySP', 'ACP', 'SDPO', 'ASP'];
-    } else if (role == 'Station Head') {
-      return ['PI', 'Sr. PI', 'API', 'PSI'];
+      level = AdminLevel.divisionAdmin;
+    } else if (role == 'Station Head' || role == 'Station Admin') {
+      level = AdminLevel.stationAdmin;
     }
-    return ['PI', 'ACP', 'DCP', 'SP'];
+    return PoliceHierarchyHelper.getAllowedDesignations(level);
   }
 
   Future<void> _submitOnboarding() async {
