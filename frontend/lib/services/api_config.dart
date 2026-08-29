@@ -6,8 +6,8 @@ class ApiConfig {
   /// Base URL configurable via --dart-define=API_BASE_URL=https://...
   static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
 
-  /// Environment flag to toggle Render Cloud Backend: --dart-define=USE_RENDER=true
-  static bool useRenderBackend = const bool.fromEnvironment('USE_RENDER', defaultValue: false);
+  /// Environment toggle flag: --dart-define=USE_RENDER=true (or false)
+  static const bool _envUseRender = bool.fromEnvironment('USE_RENDER', defaultValue: false);
 
   /// Production Render Cloud Backend URL
   static const String renderBackendUrl = 'https://pms-app-backend.onrender.com/api';
@@ -23,11 +23,6 @@ class ApiConfig {
     _customBaseUrl = url;
   }
 
-  /// Easily switch between Local Dev server and Render Cloud server at runtime
-  static void setUseRenderBackend(bool enable) {
-    useRenderBackend = enable;
-  }
-
   /// Get local development base URL based on active platform
   static String get localDevUrl {
     if (kIsWeb) {
@@ -41,14 +36,18 @@ class ApiConfig {
     }
   }
 
-  /// Base API URL dynamically determined by environment, platform & toggle settings
+  /// Base API URL dynamically determined:
+  /// 1. Explicit --dart-define=API_BASE_URL=...
+  /// 2. Runtime override via setCustomBaseUrl(...)
+  /// 3. Environment toggle --dart-define=USE_RENDER=true or Release APK build -> Render Cloud
+  /// 4. Default -> Local Dev Server
   static String get baseUrl {
     String url;
     if (_envBaseUrl.isNotEmpty) {
       url = _envBaseUrl;
     } else if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
       url = _customBaseUrl!;
-    } else if (useRenderBackend) {
+    } else if (_envUseRender || kReleaseMode) {
       url = renderBackendUrl;
     } else {
       url = localDevUrl;
