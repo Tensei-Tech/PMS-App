@@ -32,34 +32,35 @@ class SecureStorage {
     try {
       if (!kIsWeb) {
         await _storage.write(key: key, value: value);
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('sec_$key', value);
       }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('sec_$key', value);
+      await prefs.setString(key, value);
     } catch (e) {
       if (kDebugMode) debugPrint('[SecureStorage] write error for $key: $e');
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('sec_$key', value);
+        await prefs.setString(key, value);
       } catch (_) {}
     }
   }
 
   Future<String?> read({required String key}) async {
-    if (_memoryCache.containsKey(key)) {
+    if (_memoryCache.containsKey(key) && _memoryCache[key] != null && _memoryCache[key]!.isNotEmpty) {
       return _memoryCache[key];
     }
     try {
       if (!kIsWeb) {
         final val = await _storage.read(key: key);
-        if (val != null) {
+        if (val != null && val.isNotEmpty) {
           _memoryCache[key] = val;
           return val;
         }
       }
       final prefs = await SharedPreferences.getInstance();
-      final val = prefs.getString('sec_$key');
-      if (val != null) {
+      final val = prefs.getString('sec_$key') ?? prefs.getString(key);
+      if (val != null && val.isNotEmpty) {
         _memoryCache[key] = val;
       }
       return val;
@@ -67,8 +68,8 @@ class SecureStorage {
       if (kDebugMode) debugPrint('[SecureStorage] read error for $key: $e');
       try {
         final prefs = await SharedPreferences.getInstance();
-        final val = prefs.getString('sec_$key');
-        if (val != null) _memoryCache[key] = val;
+        final val = prefs.getString('sec_$key') ?? prefs.getString(key);
+        if (val != null && val.isNotEmpty) _memoryCache[key] = val;
         return val;
       } catch (_) {
         return null;

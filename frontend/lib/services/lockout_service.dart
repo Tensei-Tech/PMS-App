@@ -62,57 +62,22 @@ class LockoutService {
   // After this many total lifetime failures, require full Firebase re-auth
   static const int fullReauthThreshold = 20;
 
-  /// Check current lockout status. Call before allowing any PIN attempt.
+  /// Check current lockout status. Always returns allowed (Lockout timer disabled).
   Future<LockoutStatus> checkStatus() async {
-    final totalStr = await _storage.read(key: _keyTotalFailures) ?? '0';
-    final total = int.tryParse(totalStr) ?? 0;
-
-    final lockoutUntilStr = await _storage.read(key: _keyLockoutUntil);
-    if (lockoutUntilStr != null) {
-      final lockoutUntilMs = int.tryParse(lockoutUntilStr) ?? 0;
-      final lockoutUntil = DateTime.fromMillisecondsSinceEpoch(lockoutUntilMs);
-      final now = DateTime.now();
-      if (now.isBefore(lockoutUntil)) {
-        return LockoutStatus.locked(lockoutUntil.difference(now), total);
-      }
-      // Lockout expired — clear it but keep total failures
+    try {
       await _storage.delete(key: _keyLockoutUntil);
       await _storage.delete(key: _keyFailedAttempts);
-    }
-
-    return LockoutStatus.allowed(total);
+    } catch (_) {}
+    return LockoutStatus.allowed(0);
   }
 
-  /// Record a failed attempt. Returns updated [LockoutStatus].
+  /// Record a failed attempt. Always returns allowed (Lockout timer disabled).
   Future<LockoutStatus> recordFailedAttempt() async {
-    // Increment consecutive failures
-    final failedStr = await _storage.read(key: _keyFailedAttempts) ?? '0';
-    final failed = (int.tryParse(failedStr) ?? 0) + 1;
-    await _storage.write(key: _keyFailedAttempts, value: failed.toString());
-
-    // Increment total lifetime failures
-    final totalStr = await _storage.read(key: _keyTotalFailures) ?? '0';
-    final total = (int.tryParse(totalStr) ?? 0) + 1;
-    await _storage.write(key: _keyTotalFailures, value: total.toString());
-
-    // Check if we hit a lockout tier
-    int? lockoutMinutes;
-    for (final tier in _tiers.entries) {
-      if (failed >= tier.key) {
-        lockoutMinutes = tier.value;
-      }
-    }
-
-    if (lockoutMinutes != null) {
-      final lockoutUntil = DateTime.now().add(Duration(minutes: lockoutMinutes));
-      await _storage.write(
-        key: _keyLockoutUntil,
-        value: lockoutUntil.millisecondsSinceEpoch.toString(),
-      );
-      return LockoutStatus.locked(Duration(minutes: lockoutMinutes), total);
-    }
-
-    return LockoutStatus.allowed(total);
+    try {
+      await _storage.delete(key: _keyLockoutUntil);
+      await _storage.delete(key: _keyFailedAttempts);
+    } catch (_) {}
+    return LockoutStatus.allowed(0);
   }
 
   /// Call on successful authentication — resets consecutive attempt counter.

@@ -59,3 +59,25 @@ def provision_state_schema(schema_name: str):
     with connection.cursor() as cursor:
         cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{clean_schema}";')
         logger.info(f"[Tenancy] Provisioned PostgreSQL schema: {clean_schema}")
+
+
+def get_active_tenant_schema(request=None) -> str:
+    """
+    Dynamically determines active tenant schema name from request headers, state_schema attribute,
+    or active StateRegistry in DB. Never relies on hardcoded schema names.
+    """
+    if request:
+        schema = getattr(request, 'state_schema', None)
+        if not schema and hasattr(request, 'META'):
+            schema = request.META.get('HTTP_X_TENANT_SCHEMA') or request.META.get('HTTP_X_STATE_SCHEMA')
+        if schema and schema != 'public':
+            return schema
+    try:
+        from apps.public_master.models import StateRegistry
+        state = StateRegistry.objects.filter(is_active=True).first()
+        if state and state.schema_name:
+            return state.schema_name
+    except Exception:
+        pass
+    return 'public'
+

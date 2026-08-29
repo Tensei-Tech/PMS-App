@@ -1,24 +1,21 @@
 // lib/screens/login_screen.dart
-// Secure login with Government ID email + 6-digit PIN.
-// Domain 2: Brute-force lockout UI with live countdown.
+// Clean Email + Password Login Screen for Officer Portal.
 
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../providers/settings_provider.dart';
 import '../l10n/app_localizations.dart';
 
+import '../services/biometric_service.dart';
 import '../services/lockout_service.dart';
-import '../services/secure_storage.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
 import '../utils/validators.dart';
 import 'dashboard_screen.dart';
 import 'forgot_password_screen.dart';
 import '../widgets/app_logo.dart';
-import '../services/biometric_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,39 +26,23 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
+  final BiometricService _biometricService = BiometricService();
   final _formKey = GlobalKey<FormState>();
   final _govtEmailCtrl = TextEditingController();
-  final _pinCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
   bool _isLoading = false;
-  bool _isReturningUser = false;
+  bool _obscurePassword = true;
+
+  // Brute-force lockout state
+  final LockoutService _lockoutService = LockoutService();
+  bool _isLockedOut = false;
+  String _lockoutCountdown = '';
+  Timer? _lockoutTimer;
+
   late AnimationController _fadeCtrl;
   late AnimationController _slideCtrl;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
-
-  // ── Domain 2: Brute-force lockout state ──────────────────────────────────
-  final LockoutService _lockoutService = LockoutService();
-  bool _isLockedOut = false;
-  String _lockoutCountdown = '';
-  final BiometricService _biometricService = BiometricService();
-  bool _isBiometricSupported = false;
-  bool _biometricAutoTriggered =
-      false; // Flag to prevent multiple auto-triggers
-  bool _showPinInput = false;
-  bool _obscurePassword = true;
-
-  /// When true, a late [_loadStoredEmail] completion must not restore returning-user UI.
-  bool _idSwitchRequested = false;
-
-  // Manual PIN input state
-  final List<TextEditingController> _pinFields =
-      List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _pinFocusNodes = List.generate(6, (_) => FocusNode());
-  // Stable focus nodes for the per-cell KeyboardListener wrappers — created
-  // once instead of on every build (avoids rebuild-time leaks/jank).
-  final List<FocusNode> _pinKbListenerNodes =
-      List.generate(6, (_) => FocusNode(skipTraversal: true));
-  Timer? _lockoutTimer;
 
   @override
   void initState() {
@@ -78,101 +59,10 @@ class _LoginScreenState extends State<LoginScreen>
     _slideCtrl.forward();
     WidgetsBinding.instance.addObserver(this);
 
-    // Unified initialization to avoid race conditions
-    _initAsync();
+    _checkLockout();
+    _loadStoredEmail();
   }
 
-  Future<void> _initAsync() async {
-    // Run independent async checks in parallel for faster first-paint.
-    try {
-      await Future.wait([
-        _checkLockout()
-            .catchError((e, s) => debugPrint('Error checking lockout: $e\n$s')),
-        _loadStoredEmail().catchError(
-            (e, s) => debugPrint('Error loading stored email: $e\n$s')),
-        _checkBiometricSupport().catchError(
-            (e, s) => debugPrint('Error checking biometric support: $e\n$s')),
-      ]);
-    } catch (e, s) {
-      debugPrint('Error in _initAsync: $e\n$s');
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Auto-biometric trigger removed on resume.
-  }
-
-  Future<void> _checkBiometricSupport() async {
-    final isAvailable = await _biometricService.isBiometricAvailable();
-    if (mounted) {
-      setState(() {
-        _isBiometricSupported = isAvailable;
-      });
-    }
-  }
-
-  Future<void> _handleBiometricLogin({bool isAuto = false}) async {
-    final settings = context.read<SettingsProvider>();
-    if (!settings.isBiometricEnabled && !isAuto) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Biometric login is disabled in settings.')),
-      );
-      return;
-    }
-
-    if (isAuto && _biometricAutoTriggered) return;
-
-    try {
-      if (isAuto) {
-        _biometricAutoTriggered = true;
-      }
-
-      final authenticated = await _biometricService.authenticate(
-        localizedReason: 'Please authenticate to login',
-      );
-
-      if (!mounted) return;
-
-      if (authenticated) {
-        // Biometric success - perform silent login with stored credentials
-        final auth = context.read<AuthProvider>();
-        setState(() => _isLoading = true);
-
-        final email = _govtEmailCtrl.text.trim();
-        final loginError = await auth.loginWithBiometrics(email);
-
-        if (!mounted) return;
-
-        if (loginError == null) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/dashboard',
-            (_) => false,
-          );
-        } else {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(loginError)),
-          );
-        }
-      } else {
-        // If authentication failed or was cancelled by user
-        if (!isAuto && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Authentication failed.')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  /// Polls lockout status and starts a 1-second ticker to update countdown.
   Future<void> _checkLockout() async {
     final status = await _lockoutService.checkStatus();
     if (!mounted) return;
@@ -200,55 +90,14 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  /// Load stored Government Email and mark as returning user
   Future<void> _loadStoredEmail() async {
-    if (_idSwitchRequested) return;
     final auth = context.read<AuthProvider>();
     final storedEmail = await auth.getStoredGovtEmail();
-    if (_idSwitchRequested || !mounted) return;
-    if (storedEmail.isNotEmpty) {
+    if (mounted && storedEmail.isNotEmpty) {
       setState(() {
         _govtEmailCtrl.text = storedEmail;
-        _isReturningUser = true;
       });
     }
-  }
-
-  /// Clears the saved Government ID so a different account can be entered.
-  Future<void> _switchGovernmentId() async {
-    _idSwitchRequested = true;
-
-    try {
-      final secure = SecureStorage.instance;
-      await secure.delete(key: StorageKeys.email);
-    } catch (e, s) {
-      debugPrint('Switch ID: secure storage delete failed: $e\n$s');
-    }
-
-    if (!mounted) return;
-    setState(() {
-      _govtEmailCtrl.clear();
-      _pinCtrl.clear();
-      _isReturningUser = false;
-      _showPinInput = false;
-      _biometricAutoTriggered = false;
-    });
-  }
-
-  Widget _buildSwitchIdLink() {
-    return Center(
-      child: TextButton(
-        onPressed: _isLoading ? null : _switchGovernmentId,
-        child: Text(
-          'Switch ID / Use a different account',
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.navyMid,
-          ),
-        ),
-      ),
-    );
   }
 
   @override
@@ -256,23 +105,13 @@ class _LoginScreenState extends State<LoginScreen>
     _fadeCtrl.dispose();
     _slideCtrl.dispose();
     _govtEmailCtrl.dispose();
-    _pinCtrl.dispose();
+    _passwordCtrl.dispose();
     _lockoutTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
-    for (var ctrl in _pinFields) {
-      ctrl.dispose();
-    }
-    for (var node in _pinFocusNodes) {
-      node.dispose();
-    }
-    for (var node in _pinKbListenerNodes) {
-      node.dispose();
-    }
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
-    // Domain 2: Block login attempts during lockout
     if (_isLockedOut) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -289,17 +128,10 @@ class _LoginScreenState extends State<LoginScreen>
 
     final auth = context.read<AuthProvider>();
     final email = _govtEmailCtrl.text.trim();
-    final pin = _pinCtrl.text.trim();
+    final password = _passwordCtrl.text.trim();
 
-    String? loginError;
-
-    if (_isReturningUser) {
-      loginError = await auth.loginWithPin(email: email, pin: pin);
-      if (loginError != null) await _checkLockout();
-    } else {
-      loginError = await auth.loginByEmailAndPin(email: email, pin: pin);
-      if (loginError != null) await _checkLockout();
-    }
+    final loginError = await auth.loginByEmailAndPin(email: email, pin: password);
+    if (loginError != null) await _checkLockout();
 
     if (!mounted) return;
 
@@ -311,7 +143,6 @@ class _LoginScreenState extends State<LoginScreen>
         (_) => false,
       );
     } else {
-      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loginError, style: GoogleFonts.poppins()),
@@ -319,6 +150,100 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       );
     }
+  }
+
+  Future<void> _handleBiometricLogin() async {
+    final email = _govtEmailCtrl.text.trim();
+
+    if (email.isEmpty) {
+      _showBiometricAlertDialog(
+        title: 'Email / Government ID Required',
+        message: 'Please enter your Government Email or ID in the input box first before using biometric sign-in.',
+      );
+      return;
+    }
+
+    final bool isConfigured = await _biometricService.isBiometricConfiguredForUser(email);
+    if (!isConfigured) {
+      _showBiometricAlertDialog(
+        title: 'Biometric Not Configured for Profile',
+        message: 'Biometric login has not been set up for "$email" yet.\n\nPlease log in using your Password first, then navigate to Sidebar > Login Security Settings to setup your Fingerprint.',
+      );
+      return;
+    }
+
+    final bool isAvailable = await _biometricService.isBiometricAvailable();
+    if (!isAvailable) {
+      _showBiometricAlertDialog(
+        title: 'Biometric Sensor Unavailable',
+        message: 'No biometric hardware sensor detected or no fingerprints are enrolled on this device.',
+      );
+      return;
+    }
+
+    final bool authenticated = await _biometricService.authenticate(
+      localizedReason: 'Scan fingerprint to sign in as $email',
+    );
+
+    if (authenticated) {
+      if (_passwordCtrl.text.trim().isNotEmpty) {
+        _handleLogin();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Biometric verified for $email! Enter your Password to complete sign-in.', style: GoogleFonts.poppins()),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Biometric authentication failed or cancelled.', style: GoogleFonts.poppins()),
+          backgroundColor: AppColors.dangerRed,
+        ),
+      );
+    }
+  }
+
+  void _showBiometricAlertDialog({required String title, required String message}) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: Colors.orange.shade50, shape: BoxShape.circle),
+              child: Icon(Icons.fingerprint_rounded, color: Colors.orange.shade800, size: 24),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.navyDark),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade800, height: 1.35),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.navyDark,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('Understood', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -329,218 +254,70 @@ class _LoginScreenState extends State<LoginScreen>
         resizeToAvoidBottomInset: true,
         body: LayoutBuilder(
           builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 768;
-            return isWide
-                ? _buildWideLayout()
-                : _buildNarrowLayout(constraints);
+            final isCompact = constraints.maxWidth < 768;
+            final l10n = AppLocalizations.of(context);
+
+            return Stack(
+              children: [
+                // Background design
+                Container(
+                  color: AppColors.lightBg,
+                ),
+                Positioned(
+                  top: -120,
+                  right: -100,
+                  child: Container(
+                    width: 320,
+                    height: 320,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.navyMid.withValues(alpha: 0.05),
+                    ),
+                  ),
+                ),
+
+                // Main content layout
+                Center(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCompact ? AppSpacing.lg : AppSpacing.xl * 2,
+                      vertical: AppSpacing.xl,
+                    ),
+                    child: FadeTransition(
+                      opacity: _fadeAnim,
+                      child: SlideTransition(
+                        position: _slideAnim,
+                        child: Card(
+                          elevation: isCompact ? 0 : 4,
+                          shadowColor: Colors.black.withValues(alpha: 0.08),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.xl),
+                            side: isCompact
+                                ? BorderSide.none
+                                : BorderSide(
+                                    color: AppColors.lightBorder, width: 1),
+                          ),
+                          color: Colors.white,
+                          child: Padding(
+                            padding: EdgeInsets.all(
+                              isCompact ? AppSpacing.lg : AppSpacing.xl,
+                            ),
+                            child: _buildLoginForm(isCompact, l10n),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
           },
         ),
       ),
     );
   }
 
-  // ── Wide (tablet/desktop) layout ──────────────────────────────────────────
-  Widget _buildWideLayout() {
-    final l10n = AppLocalizations.of(context)!;
-    const isCompact = false;
-    return Row(
-      children: [
-        // Sidebar (Tablet/Web only)
-        _buildLoginSidebar(l10n),
-
-        // Main Login Content
-        Expanded(
-          child: Container(
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFFFFFFF),
-                  Color(0xFFF0F4FF),
-                  Color(0xFFE3E9F9),
-                ],
-              ),
-            ),
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
-                child: _buildFormCard(isCompact, l10n),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoginSidebar(AppLocalizations l10n) {
-    return Container(
-      width: 320,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.navyDark, AppColors.navyMid],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -50,
-            right: -50,
-            child: CircleAvatar(
-              radius: 100,
-              backgroundColor: Colors.white.withValues(alpha: 0.05),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.shield_rounded,
-                    color: AppColors.goldPrimary, size: 64),
-                const SizedBox(height: AppSpacing.xl),
-                Text(l10n.khakhiDiary,
-                    style: GoogleFonts.poppins(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: 1.2)),
-                const SizedBox(height: 12),
-                Text(l10n.safeSwiftSecure,
-                    style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontWeight: FontWeight.w500)),
-                const SizedBox(height: 40),
-                _sidebarBullet(Icons.lock_rounded, 'End-to-End Encryption'),
-                _sidebarBullet(Icons.history_rounded, 'Real-time Sync'),
-                _sidebarBullet(Icons.devices_rounded, 'Cross-platform Support'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sidebarBullet(IconData icon, String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: AppColors.goldPrimary, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.9),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Narrow (mobile) layout ────────────────────────────────────────────────
-  Widget _buildNarrowLayout(BoxConstraints constraints) {
-    final l10n = AppLocalizations.of(context)!;
-    final availableHeight = constraints.maxHeight;
-    final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
-    final bool isSmallScreen = availableHeight < 700;
-
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: isKeyboardOpen ? 20 : 0,
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: availableHeight),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (!isKeyboardOpen) const SizedBox(height: 40),
-            if (!isKeyboardOpen)
-              FadeTransition(
-                opacity: _fadeAnim,
-                child: SlideTransition(
-                  position: _slideAnim,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AppLogo(size: isSmallScreen ? 60 : 90),
-                      const SizedBox(height: AppSpacing.md),
-                      Text('KHAKHI DIARY',
-                          style: GoogleFonts.poppins(
-                              fontSize: isSmallScreen ? 18 : 22,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.navyDark,
-                              letterSpacing: 2)),
-                      Text('Management System',
-                          style: GoogleFonts.poppins(
-                              fontSize: isSmallScreen ? 9 : 11,
-                              color: AppColors.navyMid.withValues(alpha: 0.7),
-                              letterSpacing: 1.2)),
-                    ],
-                  ),
-                ),
-              ),
-            SizedBox(
-                height: isKeyboardOpen
-                    ? 20
-                    : isSmallScreen
-                        ? 30
-                        : 50),
-            FadeTransition(
-              opacity: _fadeAnim,
-              child: SlideTransition(
-                position: _slideAnim,
-                child: _buildFormCard(isSmallScreen || isKeyboardOpen, l10n),
-              ),
-            ),
-            if (!isKeyboardOpen) const SizedBox(height: 40),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFormCard(bool isCompact, AppLocalizations l10n) {
-    return Container(
-      padding: EdgeInsets.all(isCompact ? AppSpacing.md : AppSpacing.lg + 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.98),
-        borderRadius:
-            BorderRadius.circular(isCompact ? AppRadius.xl : AppRadius.xxl),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
-      child: _buildLoginForm(isCompact, l10n),
-    );
-  }
-
-  Widget _buildLoginForm(bool isCompact, AppLocalizations l10n) {
+  Widget _buildLoginForm(bool isCompact, AppLocalizations? l10n) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       child: Form(
@@ -553,9 +330,10 @@ class _LoginScreenState extends State<LoginScreen>
             Center(
               child: Column(
                 children: [
+                  const AppLogo(size: 64),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    _isReturningUser ? l10n.welcomeBack : l10n.unlockApp,
+                    'Sign In',
                     style: GoogleFonts.poppins(
                       fontSize: isCompact ? 20 : 24,
                       fontWeight: FontWeight.w800,
@@ -565,9 +343,7 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _isReturningUser
-                        ? l10n.enterPinToContinue
-                        : l10n.signInWithGovtId,
+                    'Enter your Government Email and Password',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: AppColors.lightSubText,
@@ -579,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             SizedBox(height: isCompact ? AppSpacing.md : AppSpacing.lg),
 
-            // ── Domain 2: Lockout Warning Banner ──────────────────────────────
+            // Lockout Warning Banner
             if (_isLockedOut) ...[
               Container(
                 width: double.infinity,
@@ -626,343 +402,155 @@ class _LoginScreenState extends State<LoginScreen>
               const SizedBox(height: AppSpacing.md),
             ],
 
-            // Field 1: Government ID (email) - Read-only for returning users
-            if (_isReturningUser) ...[
-              // Returning user: show locked email with account indicator
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFF),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(
-                    color: AppColors.lightBorder,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.badge_rounded,
-                      color: AppColors.navyMid,
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Government ID',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: AppColors.lightSubText,
-                            ),
-                          ),
-                          Text(
-                            _govtEmailCtrl.text,
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.lightText,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.successGreen.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                      child: const Icon(
-                        Icons.verified_user_rounded,
-                        size: 14,
-                        color: AppColors.successGreen,
-                      ),
-                    ),
-                  ],
-                ),
+            // Email field
+            TextFormField(
+              controller: _govtEmailCtrl,
+              textInputAction: TextInputAction.next,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              style: GoogleFonts.poppins(
+                  color: AppColors.lightText, fontSize: 14),
+              decoration: InputDecoration(
+                labelText: 'Government Email / ID',
+                hintText: 'name@department.gov.in',
+                prefixIcon: const Icon(Icons.badge_rounded),
+                filled: true,
+                fillColor: const Color(0xFFF8FAFF),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md)),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide: BorderSide(color: AppColors.lightBorder)),
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide:
+                        const BorderSide(color: AppColors.navyMid, width: 2)),
               ),
-            ] else ...[
-              // New user: editable email field
-              TextFormField(
-                controller: _govtEmailCtrl,
-                textInputAction: TextInputAction.next,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                style: GoogleFonts.poppins(
-                    color: AppColors.lightText, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Government ID',
-                  hintText: 'name@department.gov.in',
-                  prefixIcon: const Icon(Icons.badge_rounded),
-                  filled: true,
-                  fillColor: const Color(0xFFF8FAFF),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      borderSide: BorderSide(color: AppColors.lightBorder)),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      borderSide:
-                          BorderSide(color: AppColors.navyMid, width: 2)),
-                ),
-                validator: AppValidators.govtEmail,
-              ),
-            ],
+              validator: AppValidators.govtEmail,
+            ),
             const SizedBox(height: AppSpacing.md),
 
-            // ── LOGIN OPTIONS (Biometric or PIN) ─────────────────────────────
-            if (_isReturningUser) ...[
-              if (!_showPinInput && _isBiometricSupported) ...[
-                // Option A: Biometric Login Button
-                SizedBox(
-                  width: double.infinity,
-                  height: isCompact ? 48 : 54,
-                  child: OutlinedButton.icon(
-                    onPressed: (_isLoading || _isLockedOut)
-                        ? null
-                        : () => _handleBiometricLogin(isAuto: false),
-                    icon: const Icon(Icons.fingerprint_rounded, size: 22),
-                    label: const Text('Login with Biometrics'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.navyMid,
-                      side: BorderSide(
-                          color: AppColors.navyMid.withValues(alpha: 0.5)),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md)),
-                      textStyle: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
+            // Password Field
+            TextFormField(
+              controller: _passwordCtrl,
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _handleLogin(),
+              style: GoogleFonts.poppins(
+                  color: AppColors.navyDark, fontSize: 14),
+              decoration: InputDecoration(
+                labelText: 'Password',
+                hintText: '••••••••',
+                prefixIcon: const Icon(Icons.lock_rounded),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: AppColors.navyMid,
+                    size: 20,
                   ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                Center(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _showPinInput = true),
-                    child: Text(
-                      'ENTER PIN',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors
-                            .navyMid, // Made it more visible as it's clickable
-                        letterSpacing: 1.5,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                _buildSwitchIdLink(),
-              ] else ...[
-                TextFormField(
-                  controller: _pinCtrl,
-                  obscureText: _obscurePassword,
-                  style: GoogleFonts.poppins(
-                      color: AppColors.navyDark, fontSize: 14),
-                  decoration: InputDecoration(
-                    labelText: 'Password / PIN',
-                    hintText: '••••••••',
-                    prefixIcon: const Icon(Icons.lock_rounded),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: AppColors.navyMid,
-                        size: 20,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xFFF8FAFF),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md)),
-                    enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide(color: AppColors.lightBorder)),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: const BorderSide(
-                            color: AppColors.navyMid, width: 2)),
-                  ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password is required';
-                    if (v.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 6),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                            page: const ForgotPasswordScreen()),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 2, horizontal: 2),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      'Forgot password?',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                // Login button
-                SizedBox(
-                  width: double.infinity,
-                  height: isCompact ? 48 : 54,
-                  child: ElevatedButton(
-                    onPressed:
-                        (_isLoading || _isLockedOut) ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor:
-                          AppColors.navyMid.withValues(alpha: 0.5),
-                      disabledForegroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                    ),
-                    child: Text(l10n.login),
-                  ),
-                ),
-                if (_isLoading) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  const Center(
-                      child:
-                          CircularProgressIndicator(color: AppColors.navyMid)),
-                ],
-                const SizedBox(height: AppSpacing.sm),
-                Center(
-                  child: TextButton(
-                    onPressed: () => setState(() => _showPinInput = false),
-                    child: Text(
-                      'Back to Biometrics',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: AppColors.lightSubText,
-                      ),
-                    ),
-                  ),
-                ),
-                _buildSwitchIdLink(),
-              ],
-            ] else ...[
-              // New user flow: Standard Govt ID and PIN input
-              TextFormField(
-                controller: _pinCtrl,
-                obscureText: _obscurePassword,
-                style: GoogleFonts.poppins(
-                    color: AppColors.lightText, fontSize: 14),
-                decoration: InputDecoration(
-                  labelText: 'Password / PIN',
-                  hintText: '••••••••',
-                  prefixIcon: const Icon(Icons.lock_rounded),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: AppColors.navyMid,
-                      size: 20,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFFF8FAFF),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      borderSide: BorderSide(color: AppColors.lightBorder)),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      borderSide:
-                          const BorderSide(color: AppColors.navyMid, width: 2)),
-                ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Password is required';
-                  if (v.length < 6) {
-                    return 'Password must be at least 6 characters';
-                  }
-                  return null;
+                filled: true,
+                fillColor: const Color(0xFFF8FAFF),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md)),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide: BorderSide(color: AppColors.lightBorder)),
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide:
+                        const BorderSide(color: AppColors.navyMid, width: 2)),
+              ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Password is required';
+                if (v.length < 6) {
+                  return 'Password must be at least 6 characters';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 6),
+
+            // Forgot Password Link
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                        page: const ForgotPasswordScreen()),
+                  );
                 },
-              ),
-              const SizedBox(height: 6),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      AppTheme.fadeSlideRoute(
-                          page: const ForgotPasswordScreen()),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    'Forgot password?',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.navyMid,
-                    ),
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'Forgot password?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyMid,
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              // Login button
-              SizedBox(
-                width: double.infinity,
-                height: isCompact ? 48 : 54,
-                child: ElevatedButton(
-                  onPressed: (_isLoading || _isLockedOut) ? null : _handleLogin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor:
-                        AppColors.navyMid.withValues(alpha: 0.5),
-                    disabledForegroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Login Button
+            SizedBox(
+              width: double.infinity,
+              height: isCompact ? 48 : 54,
+              child: ElevatedButton(
+                onPressed: (_isLoading || _isLockedOut) ? null : _handleLogin,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navyMid,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor:
+                      AppColors.navyMid.withValues(alpha: 0.5),
+                  disabledForegroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
-                  child: Text(l10n.login),
+                ),
+                child: Text(
+                  'Sign In',
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600, fontSize: 16),
                 ),
               ),
-              if (_isLoading) ...[
-                const SizedBox(height: AppSpacing.md),
-                const Center(
-                    child: CircularProgressIndicator(color: AppColors.navyMid)),
-              ],
+            ),
+            const SizedBox(height: 10),
+
+            // Biometric Sign-In Button
+            SizedBox(
+              width: double.infinity,
+              height: isCompact ? 44 : 48,
+              child: OutlinedButton.icon(
+                onPressed: (_isLoading || _isLockedOut) ? null : _handleBiometricLogin,
+                icon: const Icon(Icons.fingerprint_rounded, color: AppColors.navyDark, size: 20),
+                label: Text(
+                  'Sign In with Biometrics',
+                  style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.navyDark),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.navyDark, width: 1.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                ),
+              ),
+            ),
+
+            if (_isLoading) ...[
+              const SizedBox(height: AppSpacing.md),
+              const Center(
+                  child: CircularProgressIndicator(color: AppColors.navyMid)),
             ],
 
             const SizedBox(height: AppSpacing.lg),
@@ -973,7 +561,7 @@ class _LoginScreenState extends State<LoginScreen>
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
-                    l10n.dontHaveAccount,
+                    l10n?.dontHaveAccount ?? "Don't have an account?",
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: AppColors.lightSubText,
@@ -986,7 +574,7 @@ class _LoginScreenState extends State<LoginScreen>
                       (_) => false,
                     ),
                     child: Text(
-                      l10n.register,
+                      l10n?.register ?? 'Register',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: AppColors.navyMid,

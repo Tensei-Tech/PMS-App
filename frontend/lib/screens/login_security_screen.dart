@@ -5,6 +5,8 @@ import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/settings_provider.dart';
 
+import '../services/biometric_service.dart';
+
 class LoginSecurityScreen extends StatefulWidget {
   const LoginSecurityScreen({super.key});
 
@@ -13,33 +15,82 @@ class LoginSecurityScreen extends StatefulWidget {
 }
 
 class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
-  final _oldPinCtrl = TextEditingController();
-  final _newPinCtrl = TextEditingController();
+  final BiometricService _biometricService = BiometricService();
+  final _oldPasswordCtrl = TextEditingController();
+  final _newPasswordCtrl = TextEditingController();
+  final _confirmPasswordCtrl = TextEditingController();
 
-  bool _showOldPin = false;
-  bool _showNewPin = false;
-  bool _isChangingPin = false;
+  bool _showOldPassword = false;
+  bool _showNewPassword = false;
+  bool _showConfirmPassword = false;
+
+  bool _isChangingPassword = false;
   bool _isProcessingBiometric = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _oldPasswordCtrl.clear();
+        _newPasswordCtrl.clear();
+        _confirmPasswordCtrl.clear();
+      }
+    });
+  }
+
+  @override
   void dispose() {
-    _oldPinCtrl.dispose();
-    _newPinCtrl.dispose();
+    _oldPasswordCtrl.dispose();
+    _newPasswordCtrl.dispose();
+    _confirmPasswordCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _toggleBiometric(bool val, SettingsProvider settings) async {
     if (_isProcessingBiometric) return;
 
+    final auth = context.read<AuthProvider>();
+    final userEmail = auth.email;
+
     if (mounted) setState(() => _isProcessingBiometric = true);
 
     try {
-      await settings.setBiometricEnabled(val);
-      if (mounted) {
-        _snack(
-          val ? 'Biometric login enabled' : 'Biometric login disabled',
-          AppColors.successGreen,
+      if (val) {
+        // Enforce live hardware sensor check before enabling
+        final bool isAvailable = await _biometricService.isBiometricAvailable();
+        if (!isAvailable) {
+          if (mounted) {
+            _snack(
+              'Biometric hardware sensor is unavailable or no fingerprints are enrolled on this device.',
+              AppColors.dangerRed,
+            );
+          }
+          return;
+        }
+
+        final bool authenticated = await _biometricService.authenticate(
+          localizedReason: 'Scan fingerprint to verify biometric setup for your account ($userEmail)',
         );
+
+        if (!authenticated) {
+          if (mounted) {
+            _snack('Biometric verification cancelled or failed. Setup aborted.', AppColors.warningOrange);
+          }
+          return;
+        }
+
+        await _biometricService.setBiometricConfiguredForUser(userEmail, true);
+        await settings.setBiometricEnabled(true);
+        if (mounted) {
+          _snack('Biometric authentication verified and enabled for your profile.', AppColors.successGreen);
+        }
+      } else {
+        await _biometricService.setBiometricConfiguredForUser(userEmail, false);
+        await settings.setBiometricEnabled(false);
+        if (mounted) {
+          _snack('Biometric login disabled for your profile.', AppColors.navyDark);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -50,29 +101,42 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
     }
   }
 
-  void _changePin(AuthProvider auth) async {
-    if (_oldPinCtrl.text.isEmpty) {
-      _snack('Please enter your current PIN.', AppColors.warningOrange);
+  void _changePassword(AuthProvider auth) async {
+    final oldPassword = _oldPasswordCtrl.text.trim();
+    final newPassword = _newPasswordCtrl.text.trim();
+    final confirmPassword = _confirmPasswordCtrl.text.trim();
+
+    if (oldPassword.isEmpty) {
+      _snack('Please enter your current password.', AppColors.warningOrange);
       return;
     }
-    if (_newPinCtrl.text.length != 6) {
-      _snack('New PIN must be exactly 6 digits.', AppColors.warningOrange);
+    if (newPassword.length < 6) {
+      _snack('New password must be at least 6 characters.', AppColors.warningOrange);
+      return;
+    }
+    if (oldPassword == newPassword) {
+      _snack('New password cannot be the same as current password.', AppColors.warningOrange);
+      return;
+    }
+    if (newPassword != confirmPassword) {
+      _snack('New password and confirm password do not match.', AppColors.warningOrange);
       return;
     }
 
-    setState(() => _isChangingPin = true);
+    setState(() => _isChangingPassword = true);
     try {
-      final ok = await auth.changePin(_oldPinCtrl.text, _newPinCtrl.text);
+      final ok = await auth.changePassword(oldPassword, newPassword);
       if (!mounted) return;
       if (ok) {
-        _oldPinCtrl.clear();
-        _newPinCtrl.clear();
-        _snack('Security PIN updated successfully!', AppColors.successGreen);
+        _oldPasswordCtrl.clear();
+        _newPasswordCtrl.clear();
+        _confirmPasswordCtrl.clear();
+        _snack('Password updated successfully!', AppColors.successGreen);
       } else {
-        _snack('Current PIN is incorrect.', AppColors.dangerRed);
+        _snack('Current password is incorrect.', AppColors.dangerRed);
       }
     } finally {
-      if (mounted) setState(() => _isChangingPin = false);
+      if (mounted) setState(() => _isChangingPassword = false);
     }
   }
 
@@ -124,7 +188,7 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildChangePinSection(auth),
+                        _buildChangePasswordSection(auth),
                         const SizedBox(height: AppSpacing.lg),
                         _buildBiometricSection(),
                         const SizedBox(height: AppSpacing.lg),
@@ -211,7 +275,7 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Manage your 6-digit security PIN and biometric authentication settings',
+                  'Manage your password and biometric authentication settings',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 11.5,
@@ -226,11 +290,11 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
     );
   }
 
-  Widget _buildChangePinSection(AuthProvider auth) {
+  Widget _buildChangePasswordSection(AuthProvider auth) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Change Security PIN', Icons.lock_reset_rounded),
+        _buildSectionTitle('Change Password', Icons.lock_reset_rounded),
         const SizedBox(height: AppSpacing.sm),
         Container(
           decoration: _cardDecoration(),
@@ -238,27 +302,39 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildPinInputField(
-                label: 'CURRENT PIN',
-                controller: _oldPinCtrl,
-                isObscured: !_showOldPin,
+              _buildPasswordInputField(
+                label: 'CURRENT PASSWORD',
+                hintText: 'Enter current password',
+                controller: _oldPasswordCtrl,
+                isObscured: !_showOldPassword,
                 onToggleVisibility: () =>
-                    setState(() => _showOldPin = !_showOldPin),
+                    setState(() => _showOldPassword = !_showOldPassword),
+                disableAutofill: true,
               ),
               const SizedBox(height: AppSpacing.md),
-              _buildPinInputField(
-                label: 'NEW 6-DIGIT PIN',
-                controller: _newPinCtrl,
-                isObscured: !_showNewPin,
+              _buildPasswordInputField(
+                label: 'NEW PASSWORD',
+                hintText: 'Minimum 6 characters',
+                controller: _newPasswordCtrl,
+                isObscured: !_showNewPassword,
                 onToggleVisibility: () =>
-                    setState(() => _showNewPin = !_showNewPin),
+                    setState(() => _showNewPassword = !_showNewPassword),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _buildPasswordInputField(
+                label: 'CONFIRM NEW PASSWORD',
+                hintText: 'Re-enter new password',
+                controller: _confirmPasswordCtrl,
+                isObscured: !_showConfirmPassword,
+                onToggleVisibility: () =>
+                    setState(() => _showConfirmPassword = !_showConfirmPassword),
               ),
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _isChangingPin ? null : () => _changePin(auth),
-                  icon: _isChangingPin
+                  onPressed: _isChangingPassword ? null : () => _changePassword(auth),
+                  icon: _isChangingPassword
                       ? const SizedBox(
                           width: 18,
                           height: 18,
@@ -269,7 +345,7 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
                         )
                       : const Icon(Icons.check_circle_outline_rounded, size: 20),
                   label: Text(
-                    _isChangingPin ? 'Updating PIN...' : 'Update PIN',
+                    _isChangingPassword ? 'Updating Password...' : 'Update Password',
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
@@ -293,11 +369,13 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
     );
   }
 
-  Widget _buildPinInputField({
+  Widget _buildPasswordInputField({
     required String label,
+    required String hintText,
     required TextEditingController controller,
     required bool isObscured,
     required VoidCallback onToggleVisibility,
+    bool disableAutofill = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,23 +393,23 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
         TextField(
           controller: controller,
           obscureText: isObscured,
-          keyboardType: TextInputType.number,
-          maxLength: 6,
+          enableSuggestions: !disableAutofill,
+          autocorrect: false,
+          enableInteractiveSelection: true,
+          autofillHints: disableAutofill ? null : const [AutofillHints.newPassword],
           style: GoogleFonts.poppins(
             color: AppColors.navyDark,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 2,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
-            counterText: '',
-            hintText: '● ● ● ● ● ●',
+            hintText: hintText,
             hintStyle: GoogleFonts.poppins(
               color: Colors.grey.shade400,
-              letterSpacing: 2,
+              fontSize: 13,
             ),
             prefixIcon: const Icon(
-              Icons.pin_rounded,
+              Icons.lock_outline_rounded,
               color: AppColors.navyMid,
               size: 20,
             ),
@@ -475,7 +553,7 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
-              'Security Notice: Keep your 6-digit PIN confidential. Your credentials are securely encrypted using PBKDF2 cryptography.',
+              'Security Notice: Keep your password confidential. Your credentials are protected with industry-standard encryption.',
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 color: AppColors.navyDark.withValues(alpha: 0.8),
@@ -531,4 +609,3 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
     );
   }
 }
-

@@ -31,12 +31,15 @@ class OfficerProfile(models.Model):
     role_id = models.CharField(max_length=64, default='officer', help_text="Dynamic Role ID referencing public.roles")
     additional_stations = models.JSONField(default=list, blank=True)
     account_status = models.CharField(max_length=32, choices=ACCOUNT_STATUS_CHOICES, default='active')
+    division_name = models.CharField(max_length=128, blank=True, null=True)
+    division_id = models.CharField(max_length=64, blank=True, null=True)
     district = models.CharField(max_length=128, blank=True, null=True)
     district_id = models.CharField(max_length=64, blank=True, null=True)
     zone = models.CharField(max_length=128, blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)
     gender = models.CharField(max_length=20, blank=True, null=True)
     station_case_view_granted = models.BooleanField(default=False)
+    is_biometric_enabled = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -48,6 +51,17 @@ class OfficerProfile(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.badge_number}) - {self.station_name}"
+
+    @property
+    def master_division_record(self):
+        """Fetch corresponding MasterDivision record from public.master_divisions if available."""
+        if not self.division_name:
+            return None
+        try:
+            from apps.public_master.models import MasterDivision
+            return MasterDivision.objects.filter(name__iexact=self.division_name).first()
+        except Exception:
+            return None
 
     def set_password(self, raw_password):
         self.password = make_password(raw_password)

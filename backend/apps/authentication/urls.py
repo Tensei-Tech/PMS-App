@@ -2,12 +2,13 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from apps.authentication.views import (
     RegisterView, LoginView, UserPermissionsView, CheckContactExistsView, SendOTPView,
-    PendingApprovalsNotificationListView, ApproveRejectOfficerRegistrationView
+    PendingApprovalsNotificationListView, ApproveRejectOfficerRegistrationView, ChangePasswordView, CustomTokenRefreshView
 )
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
+    path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('check-exists/', CheckContactExistsView.as_view(), name='check-exists'),
     path('send-otp/', SendOTPView.as_view(), name='send-otp'),
     path('notifications/pending-approvals/', PendingApprovalsNotificationListView.as_view(), name='pending-approvals'),
@@ -15,6 +16,6 @@ urlpatterns = [
     # Aliases for backwards compatibility & frontend route flexibility
     path('officers/notifications/', PendingApprovalsNotificationListView.as_view(), name='officers-notifications-alias'),
     path('officers/approvals/<str:uid>/', ApproveRejectOfficerRegistrationView.as_view(), name='officers-approvals-alias'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
+    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token-refresh'),
     path('me/permissions/', UserPermissionsView.as_view(), name='me-permissions'),
 ]
