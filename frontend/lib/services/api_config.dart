@@ -3,8 +3,15 @@ import 'dart:io' show Platform;
 
 /// Configuration class for Django REST API endpoints and base URL.
 class ApiConfig {
-  /// Base URL configurable via --dart-define=API_BASE_URL=https://api.pms.gov.in/api
+  /// Base URL override via --dart-define=API_BASE_URL=https://...
   static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+
+  /// Environment flag: --dart-define=IS_DEV=true (Switches to Local Dev Server).
+  /// Default is false (Render Cloud Backend).
+  static const bool isDev = bool.fromEnvironment('IS_DEV', defaultValue: false);
+
+  /// Default Render Cloud Backend URL (Hardcoded Default)
+  static const String renderBackendUrl = 'https://pms-app-backend.onrender.com/api';
 
   /// Default local development port
   static const int defaultPort = 8000;
@@ -17,25 +24,38 @@ class ApiConfig {
     _customBaseUrl = url;
   }
 
-  /// Base API URL dynamically determined by environment, platform & override settings
+  /// Get local development base URL based on active platform
+  static String get localDevUrl {
+    if (kIsWeb) {
+      return 'http://127.0.0.1:$defaultPort/api';
+    } else if (!kIsWeb && Platform.isAndroid) {
+      // 10.0.2.2 maps to host machine's localhost inside Android Emulator
+      return 'http://10.0.2.2:$defaultPort/api';
+    } else {
+      // iOS, Windows, macOS, Linux
+      return 'http://127.0.0.1:$defaultPort/api';
+    }
+  }
+
+  /// Base API URL:
+  /// - If API_BASE_URL env var is provided, use it
+  /// - If _customBaseUrl runtime override is set, use it
+  /// - If IS_DEV=true, use Local Dev Server
+  /// - Default -> Render Cloud Backend (https://pms-app-backend.onrender.com/api)
   static String get baseUrl {
     String url;
     if (_envBaseUrl.isNotEmpty) {
       url = _envBaseUrl;
     } else if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
       url = _customBaseUrl!;
-    } else if (kIsWeb) {
-      url = 'http://127.0.0.1:$defaultPort/api';
-    } else if (!kIsWeb && Platform.isAndroid) {
-      // 10.0.2.2 maps to host machine's localhost inside Android Emulator
-      url = 'http://10.0.2.2:$defaultPort/api';
+    } else if (isDev) {
+      url = localDevUrl;
     } else {
-      // iOS, Windows, macOS, Linux
-      url = 'http://127.0.0.1:$defaultPort/api';
+      url = renderBackendUrl;
     }
 
-    // In release/production or when non-localhost URL is provided, enforce HTTPS scheme
-    if (kReleaseMode && url.startsWith('http://') && !url.contains('127.0.0.1') && !url.contains('localhost') && !url.contains('10.0.2.2')) {
+    // Enforce HTTPS scheme for non-localhost endpoints
+    if (url.startsWith('http://') && !url.contains('127.0.0.1') && !url.contains('localhost') && !url.contains('10.0.2.2')) {
       url = url.replaceFirst('http://', 'https://');
     }
     return url;
