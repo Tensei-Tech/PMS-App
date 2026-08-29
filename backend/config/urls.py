@@ -1,7 +1,18 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({
+        'status': 'healthy',
+        'service': 'PMS App Backend',
+        'api_version': '1.0.0'
+    })
 
 urlpatterns = [
+    # Root Health Check for Render & Load Balancers
+    path('', health_check, name='root-health-check'),
+
     # Enterprise Django Admin Console
     path('admin/', admin.site.urls),
 
