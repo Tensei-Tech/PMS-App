@@ -3,11 +3,12 @@ import 'dart:io' show Platform;
 
 /// Configuration class for Django REST API endpoints and base URL.
 class ApiConfig {
-  /// Base URL configurable via --dart-define=API_BASE_URL=https://...
+  /// Base URL override via --dart-define=API_BASE_URL=https://...
   static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
 
-  /// Environment toggle flag: --dart-define=USE_RENDER=true (or false)
-  static const bool _envUseRender = bool.fromEnvironment('USE_RENDER', defaultValue: false);
+  /// Environment flag: --dart-define=IS_DEV=true (Local Dev) or --dart-define=IS_DEV=false (Render Cloud)
+  /// Defaults to true in Debug mode, false in Release mode.
+  static const bool isDev = bool.fromEnvironment('IS_DEV', defaultValue: !kReleaseMode);
 
   /// Production Render Cloud Backend URL
   static const String renderBackendUrl = 'https://pms-app-backend.onrender.com/api';
@@ -36,21 +37,21 @@ class ApiConfig {
     }
   }
 
-  /// Base API URL dynamically determined:
-  /// 1. Explicit --dart-define=API_BASE_URL=...
-  /// 2. Runtime override via setCustomBaseUrl(...)
-  /// 3. Environment toggle --dart-define=USE_RENDER=true or Release APK build -> Render Cloud
-  /// 4. Default -> Local Dev Server
+  /// Base API URL:
+  /// - If API_BASE_URL env var is provided, use it
+  /// - If _customBaseUrl runtime override is set, use it
+  /// - If IS_DEV=true, use Local Dev Server
+  /// - If IS_DEV=false, use Render Cloud Backend
   static String get baseUrl {
     String url;
     if (_envBaseUrl.isNotEmpty) {
       url = _envBaseUrl;
     } else if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
       url = _customBaseUrl!;
-    } else if (_envUseRender || kReleaseMode) {
-      url = renderBackendUrl;
-    } else {
+    } else if (isDev) {
       url = localDevUrl;
+    } else {
+      url = renderBackendUrl;
     }
 
     // Enforce HTTPS scheme for non-localhost endpoints
