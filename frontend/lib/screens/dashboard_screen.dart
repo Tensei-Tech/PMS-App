@@ -32,6 +32,7 @@ import 'help_support_screen.dart';
 import 'about_app_screen.dart';
 import 'add_members_screen.dart';
 import 'pending_transfers_screen.dart';
+import 'pending_approvals_screen.dart';
 import 'station_access_grants_screen.dart';
 import '../utils/case_visibility_ui.dart';
 import 'case_form_screen.dart';
@@ -57,6 +58,8 @@ import 'common_form_screen.dart';
 import '../utils/common_form_module.dart';
 import '../utils/universal_search.dart';
 import '../widgets/voice_search_dialog.dart';
+import '../utils/state_branding_helper.dart';
+import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/dashboard_stats_widget.dart';
@@ -1410,32 +1413,119 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: Icon(Icons.menu_rounded, color: AppColors.navyDark),
               ),
             ),
-          AppLogo(size: isSmallPhone ? 32 : 38),
-          SizedBox(width: isSmallPhone ? 4 : 8),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text('KHAKHI DIARY',
-                      maxLines: 1,
-                      style: GoogleFonts.poppins(
-                          fontSize: isSmallPhone ? 13 : 15,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.3,
-                          color: AppColors.navyDark)),
-                ),
-                Text('Safe • Swift • Secure',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                        fontSize: isSmallPhone ? 8.5 : 9.5,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.navyMid)),
-              ],
+            child: Builder(
+              builder: (ctx) {
+                final stateCode = auth.currentUser?.stateCode ?? auth.stateCode;
+                final stateBranding = StateBrandingHelper.getBranding(stateCode);
+                final screenWidth = MediaQuery.of(ctx).size.width;
+                final isVeryNarrow = screenWidth < 380;
+                final forceTitleText = isVeryNarrow
+                    ? stateBranding.shortForceTitle
+                    : stateBranding.policeForceTitle;
+
+                return InkWell(
+                  onTap: () => StatePoliceBannerDialog.show(ctx, auth),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AppLogo(
+                            size: isSmallPhone ? 32 : 38,
+                            logoUrl: auth.currentUser?.departmentLogoUrl,
+                          ),
+                          SizedBox(width: isSmallPhone ? 4 : 6),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'KHAKHI DIARY',
+                                style: GoogleFonts.poppins(
+                                  fontSize: isSmallPhone ? 11.5 : 13,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
+                                  color: AppColors.navyDark,
+                                ),
+                              ),
+                              Text(
+                                'Safe • Swift • Secure',
+                                style: GoogleFonts.poppins(
+                                  fontSize: isSmallPhone ? 7.5 : 8.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.navyMid,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 6),
+                          // Dynamic State Police Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  stateBranding.primaryColor.withValues(alpha: 0.08),
+                                  stateBranding.accentColor.withValues(alpha: 0.18),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: stateBranding.accentColor.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (stateBranding.logoAssetPath != null)
+                                  ClipOval(
+                                    child: Image.asset(
+                                      stateBranding.logoAssetPath!,
+                                      width: isSmallPhone ? 20 : 24,
+                                      height: isSmallPhone ? 20 : 24,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Icon(
+                                        stateBranding.emblemIcon,
+                                        size: isSmallPhone ? 16 : 18,
+                                        color: stateBranding.primaryColor,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Icon(
+                                    stateBranding.emblemIcon,
+                                    size: isSmallPhone ? 16 : 18,
+                                    color: stateBranding.primaryColor,
+                                  ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  forceTitleText,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isSmallPhone ? 10 : 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: stateBranding.primaryColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 14,
+                                  color: stateBranding.primaryColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           SizedBox(width: isSmallPhone ? 4 : 6),
@@ -1461,12 +1551,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(width: 10),
           ],
           const BellIconWidget(),
-          SizedBox(width: isSmallPhone ? 2 : 4),
-          _appBarBtn(
-            icon: Icons.language_rounded,
-            iconColor: AppColors.infoBlue,
-            onTap: () => _showLanguageSheet(),
-          ),
         ],
       ),
     );
@@ -1943,7 +2027,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  // ── ROLE-BASED COMMAND CONTROLS (State Super Admin / District Admin) ──
+                  // ── ROLE-BASED COMMAND CONTROLS (State / Division / District / Station Admin) ──
+                  if (PoliceHierarchyHelper.hasAdminAuthority(auth.designation, auth.roleId)) ...[
+                    _drawerItem(
+                      Icons.how_to_reg_rounded,
+                      'Officer Approvals (Pending)',
+                      () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const PendingApprovalsScreen()),
+                        );
+                      },
+                    ),
+                  ],
                   if (PoliceHierarchyHelper.canCreateDistrictAdmin(auth.designation, auth.roleId) ||
                       PoliceHierarchyHelper.canCreateDivisionAdmin(auth.designation, auth.roleId)) ...[
                     _drawerItem(
@@ -2111,6 +2208,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       context,
                       AppTheme.fadeSlideRoute(page: const AppSettingsScreen()),
                     ),
+                  ),
+                  _drawerItem(
+                    Icons.language_rounded,
+                    'Language / भाषा',
+                    () => _showLanguageSheet(),
                   ),
                   const Divider(height: 1),
                   _drawerItem(

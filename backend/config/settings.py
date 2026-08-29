@@ -45,17 +45,31 @@ INSTALLED_APPS = [
     'apps.cases',
 ]
 
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Top of middleware for CORS
     'apps.core.middleware.TenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
+]
+
+try:
+    import whitenoise
+    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
+except ImportError:
+    pass
+
+MIDDLEWARE.extend([
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+])
 
 ROOT_URLCONF = 'config.urls'
 
@@ -77,27 +91,86 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database Configuration - Authoritative PostgreSQL (Supabase)
-# Fallback to local SQLite if DB_NAME is not set
+# Database Configuration - Primary (Write) + Read Replicas for High Availability
+DATABASES = {}
 
-if os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWORD') != 'YOUR_SUPABASE_DB_PASSWORD':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'postgres'),
-            'USER': os.getenv('DB_USER', 'postgres'),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
-        }
+# 1. Primary Database (Writes & Critical Operations)
+if os.getenv('DATABASE_URL') and dj_database_url:
+    DATABASES['default'] = dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True,
+    )
+elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWORD') != 'YOUR_SUPABASE_DB_PASSWORD':
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'postgres'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+        'CONN_MAX_AGE': 600,
+        'CONN_HEALTH_CHECKS': True,
+        'OPTIONS': {
+            'sslmode': os.getenv('DB_SSLMODE', 'require'),
+        },
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
+
+# 2. Read Replica 1 (Optional - High Load Read Offloading)
+if os.getenv('DATABASE_REPLICA_1_URL') and dj_database_url:
+    DATABASES['replica_1'] = dj_database_url.config(
+        default=os.getenv('DATABASE_REPLICA_1_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True,
+    )
+elif os.getenv('DB_REPLICA_1_HOST'):
+    DATABASES['replica_1'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_REPLICA_1_NAME', os.getenv('DB_NAME', 'postgres')),
+        'USER': os.getenv('DB_REPLICA_1_USER', os.getenv('DB_USER', 'postgres')),
+        'PASSWORD': os.getenv('DB_REPLICA_1_PASSWORD', os.getenv('DB_PASSWORD', '')),
+        'HOST': os.getenv('DB_REPLICA_1_HOST'),
+        'PORT': os.getenv('DB_REPLICA_1_PORT', '5432'),
+        'CONN_MAX_AGE': 600,
+        'CONN_HEALTH_CHECKS': True,
+        'OPTIONS': {
+            'sslmode': os.getenv('DB_SSLMODE', 'require'),
+        },
+    }
+
+# 3. Read Replica 2 (Optional - High Load Read Offloading)
+if os.getenv('DATABASE_REPLICA_2_URL') and dj_database_url:
+    DATABASES['replica_2'] = dj_database_url.config(
+        default=os.getenv('DATABASE_REPLICA_2_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True,
+    )
+elif os.getenv('DB_REPLICA_2_HOST'):
+    DATABASES['replica_2'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_REPLICA_2_NAME', os.getenv('DB_NAME', 'postgres')),
+        'USER': os.getenv('DB_REPLICA_2_USER', os.getenv('DB_USER', 'postgres')),
+        'PASSWORD': os.getenv('DB_REPLICA_2_PASSWORD', os.getenv('DB_PASSWORD', '')),
+        'HOST': os.getenv('DB_REPLICA_2_HOST'),
+        'PORT': os.getenv('DB_REPLICA_2_PORT', '5432'),
+        'CONN_MAX_AGE': 600,
+        'CONN_HEALTH_CHECKS': True,
+        'OPTIONS': {
+            'sslmode': os.getenv('DB_SSLMODE', 'require'),
+        },
+    }
+
+# High-Availability Database Router (Primary Writes, Replica Reads)
+DATABASE_ROUTERS = ['apps.core.db_router.PrimaryReplicaRouter']
+DB_NATIVE_REPLICATION = os.getenv('DB_NATIVE_REPLICATION', 'False').lower() == 'true'
 
 
 # Password validation
@@ -126,6 +199,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Default primary key field type
@@ -143,7 +218,6 @@ from datetime import timedelta
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'apps.authentication.authentication.PrimaryJWTAuthentication',
-        'apps.authentication.authentication.FirebaseAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -162,4 +236,32 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# ------------------------------------------------------------------------------
+# SECURITY & TLS IN TRANSIT CONFIGURATION
+# ------------------------------------------------------------------------------
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# ------------------------------------------------------------------------------
+# UPSTASH REDIS CACHE LAYER CONFIGURATION
+# ------------------------------------------------------------------------------
+UPSTASH_REDIS_REST_URL = os.getenv('UPSTASH_REDIS_REST_URL', 'https://mature-eel-202638.upstash.io')
+UPSTASH_REDIS_REST_TOKEN = os.getenv('UPSTASH_REDIS_REST_TOKEN', 'ggAAAAAAAxeOAAIgcDHNa0zn2Xyy2gpsLIRRDdqRI68u7SlPuCjzaUUXePSvkA')
+REDIS_URL = os.getenv('REDIS_URL', 'rediss://default:ggAAAAAAAxeOAAIgcDHNa0zn2Xyy2gpsLIRRDdqRI68u7SlPuCjzaUUXePSvkA@mature-eel-202638.upstash.io:6379')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'pms-app-cache-layer',
+        'TIMEOUT': 300,  # Default 5 min TTL
+    }
+}
+
+
 

@@ -42,3 +42,45 @@ class UserRoleMappingSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRoleMapping
         fields = ['uid', 'email', 'role', 'role_name', 'state', 'district_id', 'station_id', 'created_at']
+
+
+import json
+from apps.public_master.models import Designation
+
+class DesignationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Designation
+        fields = [
+            'code', 'title', 'display_name', 'rank_level', 'role_type',
+            'allowed_categories', 'allowed_admin_roles',
+            'required_hierarchy_level', 'approving_authority',
+            'implied_unit_type', 'is_active',
+            'can_approve_transfers', 'can_manage_all_cases',
+            'is_state_admin_allowed', 'is_district_admin_allowed',
+            'is_division_admin_allowed', 'is_station_admin_allowed'
+        ]
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        for field in ['allowed_categories', 'allowed_admin_roles']:
+            val = ret.get(field)
+            if isinstance(val, str):
+                try:
+                    val = json.loads(val)
+                except Exception:
+                    val = []
+            if not isinstance(val, list):
+                val = [val] if val else []
+            ret[field] = val
+        return ret
+
+
+class AppAnnouncementSerializer(serializers.ModelSerializer):
+    class Meta:
+        from apps.public_master.models import AppAnnouncement
+        model = AppAnnouncement
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+
+
+

@@ -50,11 +50,17 @@ ChangeNotifierProxyProvider<AuthProvider, T> _wired<T extends BaseModuleProvider
   return ChangeNotifierProxyProvider<AuthProvider, T>(
     create: (_) => create(),
     update: (_, auth, provider) {
-      provider!.setStationContext(
-        stationId: auth.activeStation,
-        uid: auth.uid,
-        visibilityMode: CaseVisibility.resolveFor(auth),
-      );
+      if (auth.isSessionActive &&
+          auth.activeStation.isNotEmpty &&
+          auth.uid.isNotEmpty) {
+        provider!.setStationContext(
+          stationId: auth.activeStation,
+          uid: auth.uid,
+          visibilityMode: CaseVisibility.resolveFor(auth),
+        );
+      } else {
+        provider!.clearStationContext();
+      }
       return provider;
     },
   );

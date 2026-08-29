@@ -70,28 +70,61 @@ class ModuleRecord {
     };
   }
 
+  Map<String, dynamic> toDjangoMap() {
+    return {
+      'id': id,
+      'module_key': moduleKey,
+      'title': title,
+      'case_number': caseNumber,
+      'description': description,
+      'complainant': complainant,
+      'accused': accused,
+      'location': location,
+      'incident_date': incidentDate.toIso8601String(),
+      'priority': priority,
+      'status': status,
+      'assigned_officer': assignedOfficer,
+      'sub_category': subCategory,
+      'extra_fields': extraFields,
+      'created_by': createdBy,
+      if (assignedOfficerUid != null && assignedOfficerUid!.trim().isNotEmpty)
+        'assigned_officer_uid': assignedOfficerUid,
+      'station_name': stationName,
+    };
+  }
+
   factory ModuleRecord.fromMap(Map<String, dynamic> map, [String? docId]) {
+    final rawIncident = map['incidentDate'] ?? map['incident_date'];
+    final rawCreated = map['createdAt'] ?? map['created_at'];
+
     return ModuleRecord(
       id: docId ?? map['id'] ?? '',
-      moduleKey: map['moduleKey'] ?? '',
+      moduleKey: map['moduleKey'] ?? map['module_key'] ?? '',
       title: map['title'] ?? '',
-      caseNumber: map['caseNumber'] ?? '',
+      caseNumber: map['caseNumber'] ?? map['case_number'] ?? '',
       description: map['description'] ?? '',
       complainant: map['complainant'] ?? '',
       accused: map['accused'] ?? '',
       location: map['location'] ?? '',
-      incidentDate: DateTime.parse(map['incidentDate'] ?? DateTime.now().toIso8601String()),
+      incidentDate: rawIncident != null
+          ? (DateTime.tryParse(rawIncident.toString()) ?? DateTime.now())
+          : DateTime.now(),
       priority: map['priority'] ?? 'Low',
       status: map['status'] ?? 'Open',
-      assignedOfficer: map['assignedOfficer'] ?? '',
-      subCategory: map['subCategory'],
-      createdAt: DateTime.parse(map['createdAt'] ?? DateTime.now().toIso8601String()),
-      extraFields: map['extraFields'] != null 
-          ? Map<String, dynamic>.from(map['extraFields']) 
-          : {},
-      createdBy: map['createdBy'] ?? '',
-      assignedOfficerUid: map['assignedOfficerUid'] as String?,
-      stationName: map['stationName'] ?? map['stationId'] ?? '',
+      assignedOfficer: map['assignedOfficer'] ?? map['assigned_officer'] ?? '',
+      subCategory: map['subCategory'] ?? map['sub_category'],
+      createdAt: rawCreated != null
+          ? (DateTime.tryParse(rawCreated.toString()) ?? DateTime.now())
+          : DateTime.now(),
+      extraFields: map['extraFields'] != null
+          ? Map<String, dynamic>.from(map['extraFields'])
+          : (map['extra_fields'] != null
+              ? Map<String, dynamic>.from(map['extra_fields'])
+              : {}),
+      createdBy: map['createdBy'] ?? map['created_by'] ?? '',
+      assignedOfficerUid:
+          (map['assignedOfficerUid'] ?? map['assigned_officer_uid']) as String?,
+      stationName: map['stationName'] ?? map['station_name'] ?? map['stationId'] ?? '',
     );
   }
 

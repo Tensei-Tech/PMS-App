@@ -42,6 +42,11 @@ class PermissionService {
 
   /// Fetch live dynamic permissions for the current user from PostgreSQL `public.role_permissions`
   Future<DynamicPermissionsModel?> fetchUserPermissions() async {
+    final token = await _api.getAuthToken();
+    if (token == null || token.isEmpty || _api.isTokenExpired(token)) {
+      return null;
+    }
+
     try {
       final response = await _api.get(ApiConfig.authPermissions);
       if (response.isSuccess && response.data is Map<String, dynamic>) {

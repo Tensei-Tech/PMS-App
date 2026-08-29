@@ -7,10 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
 import '../screens/my_cases_screen.dart';
-import '../services/firestore_service.dart';
+import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
 
@@ -25,11 +24,8 @@ class DashboardStatsWidget extends StatefulWidget {
 }
 
 class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
-  final FirestoreService _firestore = FirestoreService();
-
-  StreamSubscription<List<ModuleRecord>>? _casesSub;
-  StreamSubscription<List<ModuleRecord>>? _pendingCasesSub;
-  StreamSubscription<List<ModuleRecord>>? _disposalSub;
+  CaseService get _caseService => CaseService();
+  Timer? _pollTimer;
 
   int _totalActive = 0;
   int _pendingAction = 0;
@@ -42,29 +38,25 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
   @override
   void didUpdateWidget(covariant DashboardStatsWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _ensureSubscriptions();
+    _ensureSync();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _ensureSubscriptions();
+    _ensureSync();
   }
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _ensureSubscriptions());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ensureSync());
   }
 
-  void _ensureSubscriptions() {
+  void _ensureSync() {
     if (!widget.auth.isSessionActive) {
-      _casesSub?.cancel();
-      _pendingCasesSub?.cancel();
-      _disposalSub?.cancel();
-      _casesSub = null;
-      _pendingCasesSub = null;
-      _disposalSub = null;
+      _pollTimer?.cancel();
+      _pollTimer = null;
       _subscribedKey = null;
       return;
     }
@@ -73,16 +65,14 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
     final mode = CaseVisibility.resolveFor(widget.auth);
     final key =
         '$station|${mode.name}|${widget.auth.uid}|${widget.auth.designation}|${widget.auth.zone}';
-    if (_subscribedKey == key && _casesSub != null) return;
+    if (_subscribedKey == key && _pollTimer != null) return;
     _subscribedKey = key;
-    _subscribeAll(station);
+    _fetchStats(station);
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _fetchStats(station));
   }
 
-  void _subscribeAll(String station) {
-    _casesSub?.cancel();
-    _pendingCasesSub?.cancel();
-    _disposalSub?.cancel();
-
+  Future<void> _fetchStats(String station) async {
     if (station.isEmpty) {
       if (mounted) {
         setState(() {
@@ -97,106 +87,40 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
       return;
     }
 
-    if (mounted) {
-      setState(() {
-        _casesLoaded = false;
-        _pendingLoaded = false;
-        _disposalLoaded = false;
-      });
-    }
-
     final mode = CaseVisibility.resolveFor(widget.auth);
     final uid = widget.auth.uid;
 
-    final pendingIds = <String>{};
-    final disposalIds = <String>{};
-    final casesIds = <String>{};
+    try {
+      final fetched = await _caseService.fetchStationCases(station);
+      final filtered = CaseVisibility.filterRecords(fetched, uid: uid, mode: mode);
 
-    void recomputeTotal() {
+      final total = filtered.where((r) => r.status.toLowerCase() != 'closed' && r.status.toLowerCase() != 'resolved').length;
+      final pending = filtered.where((r) => r.status.toLowerCase() == 'pending' || r.status.toLowerCase() == 'open').length;
+      final disposed = filtered.where((r) => r.status.toLowerCase() == 'disposal' || r.status.toLowerCase() == 'closed' || r.status.toLowerCase() == 'resolved').length;
+
       if (!mounted) return;
-      final allIds = <String>{...casesIds, ...pendingIds, ...disposalIds};
       setState(() {
-        _totalActive = allIds.length;
+        _totalActive = total;
+        _pendingAction = pending;
+        _disposed = disposed;
+        _casesLoaded = true;
+        _pendingLoaded = true;
+        _disposalLoaded = true;
       });
-    }
-
-    _casesSub = _firestore.getStationCasesStream(station).listen(
-      (records) {
-        final filtered = CaseVisibility.filterRecords(
-          records,
-          uid: uid,
-          mode: mode,
-        );
-        casesIds.clear();
-        for (final r in filtered) {
-          casesIds.add(r.id);
-        }
-        if (!mounted) return;
+    } catch (_) {
+      if (mounted) {
         setState(() {
           _casesLoaded = true;
-        });
-        recomputeTotal();
-      },
-      onError: (_) {
-        if (!mounted) return;
-        setState(() => _casesLoaded = true);
-      },
-    );
-
-    _pendingCasesSub = _firestore.getPendingCasesStream(station).listen(
-      (records) {
-        final filtered = CaseVisibility.filterRecords(
-          records,
-          uid: uid,
-          mode: mode,
-        );
-        pendingIds.clear();
-        for (final r in filtered) {
-          pendingIds.add(r.id);
-        }
-        if (!mounted) return;
-        setState(() {
-          _pendingAction = filtered.length;
           _pendingLoaded = true;
-        });
-        recomputeTotal();
-      },
-      onError: (_) {
-        if (!mounted) return;
-        setState(() => _pendingLoaded = true);
-      },
-    );
-
-    _disposalSub = _firestore.getDisposalCasesStream(station).listen(
-      (records) {
-        final filtered = CaseVisibility.filterRecords(
-          records,
-          uid: uid,
-          mode: mode,
-        );
-        disposalIds.clear();
-        for (final r in filtered) {
-          disposalIds.add(r.id);
-        }
-        if (!mounted) return;
-        setState(() {
-          _disposed = filtered.length;
           _disposalLoaded = true;
         });
-        recomputeTotal();
-      },
-      onError: (_) {
-        if (!mounted) return;
-        setState(() => _disposalLoaded = true);
-      },
-    );
+      }
+    }
   }
 
   @override
   void dispose() {
-    _casesSub?.cancel();
-    _pendingCasesSub?.cancel();
-    _disposalSub?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 

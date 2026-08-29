@@ -3,9 +3,7 @@
 // Domain 2: Brute-force lockout UI with live countdown.
 
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -13,6 +11,7 @@ import '../providers/settings_provider.dart';
 import '../l10n/app_localizations.dart';
 
 import '../services/lockout_service.dart';
+import '../services/secure_storage.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
 import '../utils/validators.dart';
@@ -220,13 +219,7 @@ class _LoginScreenState extends State<LoginScreen>
     _idSwitchRequested = true;
 
     try {
-      await FirebaseAuth.instance.signOut();
-    } catch (e, s) {
-      debugPrint('Switch ID: Firebase signOut failed: $e\n$s');
-    }
-
-    try {
-      const secure = FlutterSecureStorage();
+      final secure = SecureStorage.instance;
       await secure.delete(key: StorageKeys.email);
     } catch (e, s) {
       debugPrint('Switch ID: secure storage delete failed: $e\n$s');

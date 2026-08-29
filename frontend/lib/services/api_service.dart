@@ -2,10 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
 import 'api_config.dart';
+import 'secure_storage.dart';
 
 /// Response wrapper for API calls
 class ApiResponse {
@@ -38,29 +37,68 @@ class ApiResponse {
   }
 }
 
-/// Service class for interacting with the Django REST API backend
+/// Core API Service handling HTTP operations for Django REST framework.
 class ApiService {
   static final ApiService _instance = ApiService._internal();
+
   factory ApiService() => _instance;
+
   ApiService._internal();
 
-  final _secureStorage = const FlutterSecureStorage();
+  final _secureStorage = SecureStorage.instance;
+  static String? _cachedAuthToken;
 
-  /// Retrieve active Auth token (Firebase ID token or backend JWT token)
-  Future<String?> _getAuthToken() async {
+  /// Explicitly set the active JWT token in-memory and in secure storage
+  Future<void> setAuthToken(String token) async {
+    _cachedAuthToken = token;
+    await _secureStorage.write(key: ApiConstants.jwtAccessTokenKey, value: token);
+  }
+
+  /// Explicitly clear the active JWT token
+  Future<void> clearAuthToken() async {
+    _cachedAuthToken = null;
+    await _secureStorage.delete(key: ApiConstants.jwtAccessTokenKey);
+  }
+
+  /// Retrieve active Auth token (backend JWT token)
+  Future<String?> getAuthToken() async {
+    return _getAuthToken();
+  }
+
+  /// Check if a JWT token is expired based on its 'exp' claim
+  bool isTokenExpired(String token) {
     try {
-      // 1. Try Firebase Auth current user ID token
-      final fbUser = fb.FirebaseAuth.instance.currentUser;
-      if (fbUser != null) {
-        final token = await fbUser.getIdToken();
-        if (token != null && token.isNotEmpty) {
-          return token;
-        }
+      final parts = token.split('.');
+      if (parts.length != 3) return false;
+      String payload = parts[1];
+      switch (payload.length % 4) {
+        case 2:
+          payload += '==';
+          break;
+        case 3:
+          payload += '=';
+          break;
       }
+      final decoded = utf8.decode(base64Url.decode(payload));
+      final data = json.decode(decoded) as Map<String, dynamic>;
+      if (!data.containsKey('exp')) return false;
+      final exp = data['exp'] as num;
+      final nowSec = DateTime.now().millisecondsSinceEpoch / 1000;
+      return nowSec >= exp;
+    } catch (_) {
+      return false;
+    }
+  }
 
-      // 2. Fallback to stored Django JWT access token
+  /// Retrieve active Auth token (backend JWT token)
+  Future<String?> _getAuthToken() async {
+    if (_cachedAuthToken != null && _cachedAuthToken!.isNotEmpty) {
+      return _cachedAuthToken;
+    }
+    try {
       final jwtToken = await _secureStorage.read(key: ApiConstants.jwtAccessTokenKey);
       if (jwtToken != null && jwtToken.isNotEmpty) {
+        _cachedAuthToken = jwtToken;
         return jwtToken;
       }
     } catch (e) {
@@ -118,11 +156,13 @@ class ApiService {
     String url, {
     Map<String, String>? headers,
     dynamic body,
+    dynamic data,
   }) async {
     try {
       final uri = Uri.parse(url);
       final requestHeaders = await _buildHeaders(customHeaders: headers);
-      final encodedBody = body != null ? jsonEncode(body) : null;
+      final rawBody = data ?? body;
+      final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
 
       final response = await http
           .post(uri, headers: requestHeaders, body: encodedBody)
@@ -141,11 +181,13 @@ class ApiService {
     String url, {
     Map<String, String>? headers,
     dynamic body,
+    dynamic data,
   }) async {
     try {
       final uri = Uri.parse(url);
       final requestHeaders = await _buildHeaders(customHeaders: headers);
-      final encodedBody = body != null ? jsonEncode(body) : null;
+      final rawBody = data ?? body;
+      final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
 
       final response = await http
           .put(uri, headers: requestHeaders, body: encodedBody)
@@ -164,11 +206,13 @@ class ApiService {
     String url, {
     Map<String, String>? headers,
     dynamic body,
+    dynamic data,
   }) async {
     try {
       final uri = Uri.parse(url);
       final requestHeaders = await _buildHeaders(customHeaders: headers);
-      final encodedBody = body != null ? jsonEncode(body) : null;
+      final rawBody = data ?? body;
+      final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
 
       final response = await http
           .patch(uri, headers: requestHeaders, body: encodedBody)
@@ -201,6 +245,24 @@ class ApiService {
     }
   }
 
+  /// Fetch pending officer registration approval requests from PostgreSQL backend
+  Future<ApiResponse> getPendingOfficerApprovals() async {
+    return await get(ApiConfig.authPendingApprovals);
+  }
+
+  /// Approve or Reject an officer's registration in PostgreSQL backend
+  Future<ApiResponse> approveOrRejectOfficer(String uid, {required String action}) async {
+    return await post(
+      ApiConfig.authApproveRegistration(uid),
+      body: {'action': action},
+    );
+  }
+
+  /// Fetch dynamic Police Rank and Capability configurations from PostgreSQL
+  Future<ApiResponse> getMasterRankConfigs() async {
+    return await get('${ApiConfig.baseUrl}/master/hierarchy/rank-configs/');
+  }
+
   /// Check connectivity and health of Django backend API
   Future<bool> checkHealth() async {
     try {
@@ -231,8 +293,15 @@ class ApiService {
         message = bodyData['detail'].toString();
       } else if (bodyData is Map && bodyData.containsKey('error')) {
         message = bodyData['error'].toString();
-      } else if (bodyData is String) {
-        message = bodyData;
+      } else if (bodyData is Map && bodyData.containsKey('message')) {
+        message = bodyData['message'].toString();
+      } else if (bodyData is String && bodyData.isNotEmpty) {
+        final trimmed = bodyData.trim();
+        if (trimmed.startsWith('<') || trimmed.length > 250) {
+          message = 'Server Error (${response.statusCode}): Unexpected response';
+        } else {
+          message = trimmed;
+        }
       }
       return ApiResponse.error(message, statusCode: response.statusCode);
     }

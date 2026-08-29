@@ -19,23 +19,26 @@ class ApiConfig {
 
   /// Base API URL dynamically determined by environment, platform & override settings
   static String get baseUrl {
+    String url;
     if (_envBaseUrl.isNotEmpty) {
-      return _envBaseUrl;
-    }
-
-    if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
-      return _customBaseUrl!;
-    }
-
-    if (kIsWeb) {
-      return 'http://127.0.0.1:$defaultPort/api';
+      url = _envBaseUrl;
+    } else if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
+      url = _customBaseUrl!;
+    } else if (kIsWeb) {
+      url = 'http://127.0.0.1:$defaultPort/api';
     } else if (!kIsWeb && Platform.isAndroid) {
       // 10.0.2.2 maps to host machine's localhost inside Android Emulator
-      return 'http://10.0.2.2:$defaultPort/api';
+      url = 'http://10.0.2.2:$defaultPort/api';
     } else {
       // iOS, Windows, macOS, Linux
-      return 'http://127.0.0.1:$defaultPort/api';
+      url = 'http://127.0.0.1:$defaultPort/api';
     }
+
+    // In release/production or when non-localhost URL is provided, enforce HTTPS scheme
+    if (kReleaseMode && url.startsWith('http://') && !url.contains('127.0.0.1') && !url.contains('localhost') && !url.contains('10.0.2.2')) {
+      url = url.replaceFirst('http://', 'https://');
+    }
+    return url;
   }
 
   // Authentication Endpoints
@@ -44,6 +47,8 @@ class ApiConfig {
   static String get authCheckExists => '$baseUrl/auth/check-exists/';
   static String get authTokenRefresh => '$baseUrl/auth/token/refresh/';
   static String get authPermissions => '$baseUrl/auth/me/permissions/';
+  static String get authPendingApprovals => '$baseUrl/auth/notifications/pending-approvals/';
+  static String authApproveRegistration(String uid) => '$baseUrl/auth/users/$uid/approve-registration/';
 
   // Resource Endpoints
   static String get users => '$baseUrl/users/';
@@ -51,4 +56,8 @@ class ApiConfig {
   static String get cases => '$baseUrl/cases/';
   static String get master => '$baseUrl/master/';
   static String get masterStates => '$baseUrl/master/states/';
+  static String get transfers => '$baseUrl/users/transfers/';
+  static String get auditLogs => '$baseUrl/core/audit-logs/';
+  static String get sosAlerts => '$baseUrl/core/sos-alerts/';
+  static String get announcements => '$baseUrl/master/announcements/';
 }

@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../services/secure_storage.dart';
 import '../theme/app_theme.dart';
 import '../utils/pin_crypto.dart';
 import 'dashboard_screen.dart';
@@ -23,7 +24,7 @@ class PostRegisterPinSetupScreen extends StatefulWidget {
 
 class _PostRegisterPinSetupScreenState
     extends State<PostRegisterPinSetupScreen> {
-  static const _secure = FlutterSecureStorage();
+  static final _secure = SecureStorage.instance;
 
   final _formKey = GlobalKey<FormState>();
   final _pinCtrl = TextEditingController();

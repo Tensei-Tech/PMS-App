@@ -34,19 +34,14 @@ class RolePermissionRepository(BaseRepository[RolePermission]):
         super().__init__(RolePermission)
 
     def get_granted_permission_codes(self, role_id: str) -> List[str]:
-        """Fetch granted permission string codes for a specific role."""
-        if role_id == 'master_admin':
-            return list(Permission.objects.values_list('id', flat=True))
-
+        """Fetch granted permission string codes dynamically from public.role_permissions."""
         return list(
             self.model.objects.filter(role_id=role_id, is_granted=True)
             .values_list('permission_id', flat=True)
         )
 
     def has_permission(self, role_id: str, permission_code: str) -> bool:
-        """Check if role_id has a specific granted permission code."""
-        if role_id == 'master_admin':
-            return True
+        """Check if role_id has a specific granted permission code in DB."""
         return self.model.objects.filter(
             role_id=role_id,
             permission_id=permission_code,

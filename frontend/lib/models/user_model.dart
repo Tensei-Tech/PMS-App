@@ -40,6 +40,9 @@ class UserModel {
   final String? zone;
   /// When true, junior ranks may view full station case dashboard (PI/API grant).
   final bool stationCaseViewGranted;
+  final int? age;
+  final String? gender;
+  final String? departmentLogoUrl;
   final DateTime createdAt;
 
   UserModel({
@@ -63,6 +66,9 @@ class UserModel {
     this.district,
     this.zone,
     this.stationCaseViewGranted = false,
+    this.age,
+    this.gender,
+    this.departmentLogoUrl,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -90,6 +96,9 @@ class UserModel {
       if (accountStatus != UserAccountStatus.active)
         'accountStatus': accountStatus,
       if (stationCaseViewGranted) 'stationCaseViewGranted': true,
+      if (age != null) 'age': age,
+      if (gender != null) 'gender': gender,
+      if (departmentLogoUrl != null) 'departmentLogoUrl': departmentLogoUrl,
       // NOTE: PIN hash/salt are NEVER written to Firestore via this model.
       // They are managed exclusively in flutter_secure_storage by AuthProvider.
       'createdAt': createdAt.toIso8601String(),
@@ -124,6 +133,9 @@ class UserModel {
       district: map['district'] as String?,
       zone: map['zone'] as String? ?? map['district'] as String?,
       stationCaseViewGranted: map['stationCaseViewGranted'] == true || map['station_case_view_granted'] == true,
+      age: map['age'] is int ? map['age'] as int : int.tryParse(map['age']?.toString() ?? ''),
+      gender: map['gender'] as String?,
+      departmentLogoUrl: (map['departmentLogoUrl'] ?? map['department_logo_url'] ?? map['state_logo_url']) as String?,
       createdAt: DateTime.tryParse(map['createdAt'] ?? map['created_at'] ?? '') ?? DateTime.now(),
     );
   }

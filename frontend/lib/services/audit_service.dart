@@ -1,10 +1,10 @@
 // lib/services/audit_service.dart
 // Append-only audit log for all security-critical events.
-// Writes to Firestore `audit_logs` — no client can read/update/delete entries.
 
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'api_config.dart';
+import 'api_service.dart';
 
 /// All auditable event types in the system.
 enum AuditEvent {
@@ -60,29 +60,24 @@ class AuditService {
   factory AuditService() => _instance;
   AuditService._internal();
 
-  FirebaseFirestore get _db => FirebaseFirestore.instance;
-  static const String _colAuditLogs = 'audit_logs';
-
   /// Log a security event. Fails silently in production to avoid crashing the app.
   Future<void> log(
     AuditEvent event, {
     String? uid,
     Map<String, dynamic>? metadata,
   }) async {
-    // No audit logging in debug mode (avoids polluting the dev database)
-    if (kDebugMode) return;
-
     try {
-      final entry = <String, dynamic>{
+      if (kDebugMode) {
+        debugPrint('[AuditLog] Event: ${event.name} | UID: ${uid ?? "anonymous"} | Platform: ${_getPlatform()}');
+      }
+      await ApiService().post(ApiConfig.auditLogs, data: {
         'event': event.name,
         'uid': uid ?? 'anonymous',
-        'timestamp': FieldValue.serverTimestamp(),
         'platform': _getPlatform(),
-        if (metadata != null) ...metadata,
-      };
-      await _db.collection(_colAuditLogs).add(entry);
+        if (metadata != null) 'metadata': metadata,
+      });
     } catch (_) {
-      // Intentionally silent — audit log failure must never block the main flow
+      // Intentionally silent — audit log failure must never block main flow
     }
   }
 
@@ -95,3 +90,4 @@ class AuditService {
     return 'unknown';
   }
 }
+

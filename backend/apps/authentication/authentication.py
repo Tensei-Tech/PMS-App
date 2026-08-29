@@ -2,8 +2,6 @@ import logging
 import jwt
 from django.conf import settings
 from rest_framework import authentication, exceptions
-from firebase_admin import auth as firebase_auth
-from config.firebase import firebase_app
 
 from apps.public_master.models import MasterUser, UserRoleMapping
 from apps.users.models import OfficerProfile
@@ -38,8 +36,7 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
         except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed('Backend JWT token has expired.')
         except jwt.InvalidTokenError:
-            # Token might be a Firebase ID token, pass to next authentication class
-            return None
+            raise exceptions.AuthenticationFailed('Invalid authentication token.')
 
         user_type = payload.get('user_type', 'officer')
         uid = payload.get('uid') or payload.get('user_id')
@@ -71,7 +68,7 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
                         station_id=mapping.station_id
                     )
 
-            if profile and profile.account_status != 'active':
+            if profile and profile.account_status not in ['active', 'approved']:
                 raise exceptions.AuthenticationFailed(f'Account status is {profile.account_status}. Contact Admin.')
 
             return (profile, payload)
@@ -79,44 +76,3 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
             logger.error(f"[PrimaryJWTAuth] Error fetching officer profile: {e}")
             raise exceptions.AuthenticationFailed(f'Authentication failed: {str(e)}')
 
-
-class FirebaseAuthentication(authentication.BaseAuthentication):
-    """
-    Fallback DRF authentication backend validating Firebase ID Tokens.
-    """
-
-    def authenticate(self, request):
-        auth_header = request.META.get('HTTP_AUTHORIZATION')
-        if not auth_header:
-            return None
-
-        parts = auth_header.split()
-        if len(parts) != 2 or parts[0].lower() != 'bearer':
-            return None
-
-        id_token = parts[1]
-
-        if not firebase_app:
-            return None
-
-        try:
-            decoded_token = firebase_auth.verify_id_token(id_token)
-        except Exception:
-            return None  # Let next handler process
-
-        uid = decoded_token.get('uid')
-        if not uid:
-            return None
-
-        email = decoded_token.get('email', '')
-        name = decoded_token.get('name', decoded_token.get('email', f'User_{uid[:6]}'))
-
-        profile, created = OfficerProfile.objects.get_or_create(
-            uid=uid,
-            defaults={
-                'email': email,
-                'name': name,
-            }
-        )
-
-        return (profile, decoded_token)

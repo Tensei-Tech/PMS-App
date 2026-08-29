@@ -14,7 +14,7 @@ class OfficerProfile(models.Model):
         ('rejected', 'Rejected'),
     )
 
-    uid = models.CharField(max_length=128, primary_key=True, help_text="Unique Officer Identifier / Firebase UID")
+    uid = models.CharField(max_length=128, primary_key=True, help_text="Unique Officer Identifier")
     name = models.CharField(max_length=255, blank=True)
     password = models.CharField(max_length=128, blank=True, null=True, help_text="Hashed password for primary backend login")
     badge_number = models.CharField(max_length=64, blank=True)
@@ -34,6 +34,8 @@ class OfficerProfile(models.Model):
     district = models.CharField(max_length=128, blank=True, null=True)
     district_id = models.CharField(max_length=64, blank=True, null=True)
     zone = models.CharField(max_length=128, blank=True, null=True)
+    age = models.IntegerField(blank=True, null=True)
+    gender = models.CharField(max_length=20, blank=True, null=True)
     station_case_view_granted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -97,3 +99,47 @@ class NotificationRecord(models.Model):
 
     def __str__(self):
         return f"[{self.category}] {self.title} -> Station: {self.target_station_name}, District: {self.target_district}"
+
+
+class TransferRequest(models.Model):
+    """
+    Transfer Request model for station & district posting transfers.
+    """
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('cancelled', 'Cancelled'),
+        ('completed', 'Completed'),
+    )
+
+    id = models.CharField(max_length=128, primary_key=True)
+    requested_by_uid = models.CharField(max_length=128, db_index=True)
+    officer_name = models.CharField(max_length=255, blank=True)
+    from_designation = models.CharField(max_length=128, blank=True)
+    to_designation = models.CharField(max_length=128, blank=True)
+    from_station_name = models.CharField(max_length=255, blank=True)
+    to_station_name = models.CharField(max_length=255, blank=True, db_index=True)
+    from_district = models.CharField(max_length=128, blank=True)
+    to_district = models.CharField(max_length=128, blank=True, db_index=True)
+    from_state = models.CharField(max_length=128, blank=True)
+    to_state = models.CharField(max_length=128, blank=True)
+    from_unit_type = models.CharField(max_length=128, blank=True)
+    to_unit_type = models.CharField(max_length=128, blank=True)
+    reason = models.TextField(blank=True)
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default='pending', db_index=True)
+    approved_by_uid = models.CharField(max_length=128, blank=True, null=True)
+    rejected_by_uid = models.CharField(max_length=128, blank=True, null=True)
+    rejection_reason = models.TextField(blank=True, null=True)
+    approved_at = models.DateTimeField(blank=True, null=True)
+    rejected_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'users_transferrequest'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Transfer [{self.status}] {self.officer_name}: {self.from_station_name} -> {self.to_station_name}"
+
