@@ -6,11 +6,11 @@ class ApiConfig {
   /// Base URL override via --dart-define=API_BASE_URL=https://...
   static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
 
-  /// Environment flag: --dart-define=IS_DEV=true (Local Dev) or --dart-define=IS_DEV=false (Render Cloud)
-  /// Defaults to true in Debug mode, false in Release mode.
-  static const bool isDev = bool.fromEnvironment('IS_DEV', defaultValue: !kReleaseMode);
+  /// Environment flag: --dart-define=IS_DEV=true (Switches to Local Dev Server).
+  /// Default is false (Render Cloud Backend).
+  static const bool isDev = bool.fromEnvironment('IS_DEV', defaultValue: false);
 
-  /// Production Render Cloud Backend URL
+  /// Default Render Cloud Backend URL (Hardcoded Default)
   static const String renderBackendUrl = 'https://pms-app-backend.onrender.com/api';
 
   /// Default local development port
@@ -41,7 +41,7 @@ class ApiConfig {
   /// - If API_BASE_URL env var is provided, use it
   /// - If _customBaseUrl runtime override is set, use it
   /// - If IS_DEV=true, use Local Dev Server
-  /// - If IS_DEV=false, use Render Cloud Backend
+  /// - Default -> Render Cloud Backend (https://pms-app-backend.onrender.com/api)
   static String get baseUrl {
     String url;
     if (_envBaseUrl.isNotEmpty) {
