@@ -87,6 +87,7 @@ class AuthProvider extends ChangeNotifier {
 
   bool _isSessionActive = false;
   bool _isRegistered = false;
+  bool _isInitialized = false;
 
   String _uid = '';
   String _username = '';
@@ -105,6 +106,7 @@ class AuthProvider extends ChangeNotifier {
   String _stateCode = 'MH';
   List<String> _additionalStations = [];
   String? _district;
+  String? _divisionName;
   String? _zone;
   String _accountStatus = UserAccountStatus.active;
   String _status = '';
@@ -116,6 +118,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isSessionActive => _isSessionActive;
   bool get isRegistered => _isRegistered;
   bool get isLoggedIn => _isSessionActive;
+  bool get isInitialized => _isInitialized;
   String get username => _username;
   String get fullName => _fullName;
   String get email => _email;
@@ -137,6 +140,7 @@ class AuthProvider extends ChangeNotifier {
   String get stateCode => _stateCode;
   List<String> get additionalStations => List.unmodifiable(_additionalStations);
   String get district => _district ?? '';
+  String get divisionName => _divisionName ?? '';
   String get zone => _zone ?? _district ?? '';
   String get accountStatus => _accountStatus;
   String get status => _status;
@@ -284,10 +288,8 @@ class AuthProvider extends ChangeNotifier {
     Future.microtask(() async {
       try {
         final storedEmail = (await _secure.read(key: StorageKeys.email) ?? '').trim();
-        final storedHash = (await _secure.read(key: StorageKeys.pinHash) ?? '').trim();
         final storedToken = (await _secure.read(key: ApiConstants.jwtAccessTokenKey) ?? '').trim();
         final storedProfileJson = await _secure.read(key: 'user_profile_json');
-        _isRegistered = storedEmail.isNotEmpty && storedHash.isNotEmpty;
 
         if (storedProfileJson != null && storedProfileJson.isNotEmpty) {
           try {
@@ -298,22 +300,31 @@ class AuthProvider extends ChangeNotifier {
           } catch (_) {}
         }
 
-        // Validate that stored JWT token exists and has not expired
+        bool isTokenValid = false;
         if (storedToken.isNotEmpty && !ApiService().isTokenExpired(storedToken)) {
           await ApiService().setAuthToken(storedToken);
-          _isSessionActive = _isRegistered;
-          if (_isSessionActive) {
-            unawaited(fetchDynamicPermissions());
-          }
+          isTokenValid = true;
         } else {
-          // Token missing or expired -> clear stale token and do not activate session
+          // Attempt silent refresh via Refresh Token
+          final refreshed = await ApiService().refreshAccessToken();
+          if (refreshed) {
+            isTokenValid = true;
+          }
+        }
+
+        if (isTokenValid) {
+          _isRegistered = true;
+          _isSessionActive = true;
+          unawaited(fetchDynamicPermissions());
+        } else {
           await ApiService().clearAuthToken();
           _isSessionActive = false;
         }
-
-        notifyListeners();
       } catch (e, s) {
         _secureLog('Error in AuthProvider _init: $e\n$s');
+      } finally {
+        _isInitialized = true;
+        notifyListeners();
       }
     });
   }
@@ -335,6 +346,7 @@ class AuthProvider extends ChangeNotifier {
     _stateCode = profile.stateCode.isNotEmpty ? profile.stateCode : 'MH';
     _additionalStations = List<String>.from(profile.additionalStations);
     _district = profile.district;
+    _divisionName = profile.divisionName;
     _zone = profile.effectiveZone.isNotEmpty ? profile.effectiveZone : null;
     _accountStatus = profile.accountStatus;
     _status = profile.status;
@@ -357,6 +369,7 @@ class AuthProvider extends ChangeNotifier {
     _badgeNumber = '';
     _additionalStations = [];
     _district = null;
+    _divisionName = null;
     _zone = null;
     _accountStatus = UserAccountStatus.active;
     _status = '';
@@ -450,22 +463,28 @@ class AuthProvider extends ChangeNotifier {
       await _secure.write(key: StorageKeys.pinSalt, value: salt);
       await _secure.write(key: 'user_profile_json', value: json.encode(userJson));
 
-      if (data['tokens'] != null && data['tokens'] is Map) {
+      final accountStatus = data['account_status']?.toString() ?? 'pending_approval';
+      if (accountStatus == 'active' && data['tokens'] != null && data['tokens'] is Map) {
         final tokens = data['tokens'] as Map<String, dynamic>;
-        final access = tokens['access']?.toString();
-        final refresh = tokens['refresh']?.toString();
+        final access = (tokens['access_token'] ?? tokens['access'])?.toString();
+        final refresh = (tokens['refresh_token'] ?? tokens['refresh'])?.toString();
         if (access != null && access.isNotEmpty) {
           await ApiService().setAuthToken(access);
         }
         if (refresh != null && refresh.isNotEmpty) {
           await _secure.write(key: ApiConstants.jwtRefreshTokenKey, value: refresh);
         }
+        _isSessionActive = true;
+      } else {
+        // Pending approval: Do NOT set tokens or activate session
+        await ApiService().setAuthToken('');
+        await _secure.delete(key: ApiConstants.jwtRefreshTokenKey);
+        _isSessionActive = false;
       }
 
       final newUser = UserModel.fromMap(userJson);
       _uid = authUid;
       _isRegistered = true;
-      _isSessionActive = data['account_status'] == 'active';
       _applyProfile(newUser);
       notifyListeners();
 
@@ -512,6 +531,13 @@ class AuthProvider extends ChangeNotifier {
     return 'Session expired. Please login with PIN.';
   }
 
+  Future<String?> loginByEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    return loginByEmailAndPin(email: email, pin: password);
+  }
+
   Future<String?> loginByEmailAndPin({
     required String email,
     required String pin,
@@ -549,8 +575,8 @@ class AuthProvider extends ChangeNotifier {
         // Store JWT authentication tokens for backend API requests
         if (data['tokens'] != null && data['tokens'] is Map) {
           final tokens = data['tokens'] as Map<String, dynamic>;
-          final access = tokens['access']?.toString();
-          final refresh = tokens['refresh']?.toString();
+          final access = (tokens['access_token'] ?? tokens['access'])?.toString();
+          final refresh = (tokens['refresh_token'] ?? tokens['refresh'])?.toString();
           if (access != null && access.isNotEmpty) {
             await ApiService().setAuthToken(access);
           }
@@ -632,6 +658,24 @@ class AuthProvider extends ChangeNotifier {
       }
       return false;
     }
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    final response = await ApiService().changePassword(
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+    );
+
+    if (response.isSuccess) {
+      final newSalt = PinCrypto.generateSalt();
+      final newHash = await PinCrypto.hashPinAsync(newPassword.trim(), newSalt);
+      await _secure.write(key: StorageKeys.pinHash, value: newHash);
+      await _secure.write(key: StorageKeys.pinSalt, value: newSalt);
+      await _audit.log(AuditEvent.pinChanged, uid: _uid);
+      return true;
+    }
+
+    return false;
   }
 
   Future<bool> changePin(String oldPin, String newPin) async {
@@ -772,10 +816,13 @@ class AuthProvider extends ChangeNotifier {
 
   Future<LockoutStatus> getLockoutStatus() => _lockout.checkStatus();
 
-  Future<void> logout() async => lockApp();
-
-  Future<bool> changePassword(String oldPin, String newPin) async {
-    return changePin(oldPin, newPin);
+  Future<void> logout() async {
+    _isSessionActive = false;
+    await ApiService().clearAuthToken();
+    await _secure.delete(key: ApiConstants.jwtAccessTokenKey);
+    await _secure.delete(key: ApiConstants.jwtRefreshTokenKey);
+    _clearProfileState();
+    notifyListeners();
   }
 
   void onUserInteraction() {

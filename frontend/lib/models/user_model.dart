@@ -36,6 +36,8 @@ class UserModel {
   final String status;
   /// District / commissionerate name (structured; backfilled from stationAddress).
   final String? district;
+  /// Division name (e.g. Amravati Division)
+  final String? divisionName;
   /// Jurisdiction zone for hierarchy-scoped approvals (defaults to [district]).
   final String? zone;
   /// When true, junior ranks may view full station case dashboard (PI/API grant).
@@ -64,6 +66,7 @@ class UserModel {
     this.accountStatus = UserAccountStatus.active,
     this.status = '',
     this.district,
+    this.divisionName,
     this.zone,
     this.stationCaseViewGranted = false,
     this.age,
@@ -91,6 +94,7 @@ class UserModel {
       'stateCode': stateCode,
       'additionalStations': additionalStations,
       'district': district ?? '',
+      'divisionName': divisionName ?? '',
       if ((zone ?? district ?? '').trim().isNotEmpty)
         'zone': (zone ?? district ?? '').trim(),
       if (accountStatus != UserAccountStatus.active)
@@ -131,6 +135,7 @@ class UserModel {
           UserAccountStatus.active,
       status: map['status'] as String? ?? '',
       district: map['district'] as String?,
+      divisionName: map['divisionName'] as String? ?? map['division_name'] as String?,
       zone: map['zone'] as String? ?? map['district'] as String?,
       stationCaseViewGranted: map['stationCaseViewGranted'] == true || map['station_case_view_granted'] == true,
       age: map['age'] is int ? map['age'] as int : int.tryParse(map['age']?.toString() ?? ''),

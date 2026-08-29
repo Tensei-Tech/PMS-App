@@ -606,8 +606,11 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                     const SizedBox(height: 14),
 
                     // Actions Footer Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                    Wrap(
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 12,
+                      runSpacing: 10,
                       children: [
                         OutlinedButton(
                           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
@@ -619,7 +622,6 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                           ),
                           child: Text('Cancel', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
                         ),
-                        const SizedBox(width: 12),
                         ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.navyDark,

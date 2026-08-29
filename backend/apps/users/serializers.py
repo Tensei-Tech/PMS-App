@@ -21,9 +21,11 @@ class OfficerProfileSerializer(serializers.ModelSerializer):
             'role',
             'additional_stations',
             'account_status',
+            'division_name',
             'district',
             'zone',
             'station_case_view_granted',
+            'is_biometric_enabled',
             'created_at',
             'updated_at',
         ]

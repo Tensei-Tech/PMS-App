@@ -11,8 +11,17 @@ class AuditLog(models.Model):
     """
     id = models.BigAutoField(primary_key=True)
     event = models.CharField(max_length=128, db_index=True)
+    category = models.CharField(max_length=64, default='general', db_index=True, help_text="auth, case, admin, security, system")
     uid = models.CharField(max_length=128, default='anonymous', db_index=True)
-    platform = models.CharField(max_length=32, default='unknown')
+    user_name = models.CharField(max_length=255, blank=True)
+    user_email = models.CharField(max_length=255, blank=True)
+    user_role = models.CharField(max_length=64, blank=True)
+    division_name = models.CharField(max_length=128, blank=True, null=True, db_index=True)
+    district_name = models.CharField(max_length=128, blank=True, null=True, db_index=True)
+    station_name = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    platform = models.CharField(max_length=32, default='web')
+    ip_address = models.CharField(max_length=64, blank=True)
+    action_details = models.TextField(blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
@@ -21,7 +30,7 @@ class AuditLog(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"[{self.event}] user={self.uid} platform={self.platform} at {self.created_at}"
+        return f"[{self.event}] {self.user_name} ({self.user_role}) - {self.station_name or self.district_name or self.division_name or 'State'} at {self.created_at}"
 
 
 class SosAlert(models.Model):

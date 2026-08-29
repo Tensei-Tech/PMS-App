@@ -64,6 +64,7 @@ class ApiConfig {
   // Authentication Endpoints
   static String get authLogin => '$baseUrl/auth/login/';
   static String get authRegister => '$baseUrl/auth/register/';
+  static String get authChangePassword => '$baseUrl/auth/change-password/';
   static String get authCheckExists => '$baseUrl/auth/check-exists/';
   static String get authTokenRefresh => '$baseUrl/auth/token/refresh/';
   static String get authPermissions => '$baseUrl/auth/me/permissions/';
@@ -72,6 +73,7 @@ class ApiConfig {
 
   // Resource Endpoints
   static String get users => '$baseUrl/users/';
+  static String get hierarchyDirectory => '$baseUrl/users/hierarchy-directory/';
   static String get stations => '$baseUrl/stations/';
   static String get cases => '$baseUrl/cases/';
   static String get master => '$baseUrl/master/';

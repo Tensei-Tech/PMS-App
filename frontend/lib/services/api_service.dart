@@ -90,19 +90,64 @@ class ApiService {
     }
   }
 
-  /// Retrieve active Auth token (backend JWT token)
-  Future<String?> _getAuthToken() async {
-    if (_cachedAuthToken != null && _cachedAuthToken!.isNotEmpty) {
-      return _cachedAuthToken;
-    }
+  /// Refresh access token using stored refresh token
+  Future<bool> refreshAccessToken() async {
     try {
-      final jwtToken = await _secureStorage.read(key: ApiConstants.jwtAccessTokenKey);
-      if (jwtToken != null && jwtToken.isNotEmpty) {
-        _cachedAuthToken = jwtToken;
-        return jwtToken;
+      final refreshToken = await _secureStorage.read(key: ApiConstants.jwtRefreshTokenKey);
+      if (refreshToken == null || refreshToken.isEmpty) {
+        return false;
+      }
+
+      final response = await http.post(
+        Uri.parse(ApiConfig.authTokenRefresh),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'refresh': refreshToken}),
+      ).timeout(ApiConstants.receiveTimeout);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final newAccessToken = data['access']?.toString();
+        if (newAccessToken != null && newAccessToken.isNotEmpty) {
+          await setAuthToken(newAccessToken);
+          if (kDebugMode) debugPrint('[ApiService] JWT Access Token refreshed successfully.');
+          return true;
+        }
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('[ApiService] Error retrieving auth token: $e');
+      if (kDebugMode) debugPrint('[ApiService] Token refresh error: $e');
+    }
+    await clearAuthToken();
+    return false;
+  }
+
+  /// Retrieve active Auth token (backend JWT token), refreshing if expired
+  Future<String?> _getAuthToken() async {
+    String? token = _cachedAuthToken;
+    if (token == null || token.isEmpty) {
+      try {
+        token = await _secureStorage.read(key: ApiConstants.jwtAccessTokenKey);
+        if (token != null && token.isNotEmpty) {
+          _cachedAuthToken = token;
+        }
+      } catch (e) {
+        if (kDebugMode) debugPrint('[ApiService] Error retrieving auth token: $e');
+      }
+    }
+
+    if (token != null && token.isNotEmpty) {
+      if (isTokenExpired(token)) {
+        if (kDebugMode) debugPrint('[ApiService] Access token expired, attempting refresh...');
+        final refreshed = await refreshAccessToken();
+        if (refreshed) {
+          return _cachedAuthToken;
+        } else {
+          return null;
+        }
+      }
+      return token;
     }
     return null;
   }
@@ -131,6 +176,7 @@ class ApiService {
     String url, {
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
+    bool isRetry = false,
   }) async {
     try {
       Uri uri = Uri.parse(url);
@@ -141,7 +187,14 @@ class ApiService {
       final requestHeaders = await _buildHeaders(customHeaders: headers);
       final response = await http.get(uri, headers: requestHeaders).timeout(ApiConstants.receiveTimeout);
 
-      return _processResponse(response);
+      final apiRes = _processResponse(response);
+      if ((apiRes.statusCode == 401 || apiRes.statusCode == 403) && !isRetry) {
+        final refreshed = await refreshAccessToken();
+        if (refreshed) {
+          return await get(url, headers: headers, queryParameters: queryParameters, isRetry: true);
+        }
+      }
+      return apiRes;
     } on SocketException {
       return ApiResponse.error('No Internet connection or server unavailable.', statusCode: 503);
     } on http.ClientException catch (e) {
@@ -157,6 +210,7 @@ class ApiService {
     Map<String, String>? headers,
     dynamic body,
     dynamic data,
+    bool isRetry = false,
   }) async {
     try {
       final uri = Uri.parse(url);
@@ -168,7 +222,14 @@ class ApiService {
           .post(uri, headers: requestHeaders, body: encodedBody)
           .timeout(ApiConstants.receiveTimeout);
 
-      return _processResponse(response);
+      final apiRes = _processResponse(response);
+      if ((apiRes.statusCode == 401 || apiRes.statusCode == 403) && !isRetry) {
+        final refreshed = await refreshAccessToken();
+        if (refreshed) {
+          return await post(url, headers: headers, body: body, data: data, isRetry: true);
+        }
+      }
+      return apiRes;
     } on SocketException {
       return ApiResponse.error('No Internet connection or server unavailable.', statusCode: 503);
     } catch (e) {
@@ -255,6 +316,17 @@ class ApiService {
     return await post(
       ApiConfig.authApproveRegistration(uid),
       body: {'action': action},
+    );
+  }
+
+  /// Change officer password in PostgreSQL backend database
+  Future<ApiResponse> changePassword({required String oldPassword, required String newPassword}) async {
+    return await post(
+      ApiConfig.authChangePassword,
+      body: {
+        'old_password': oldPassword,
+        'new_password': newPassword,
+      },
     );
   }
 

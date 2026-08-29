@@ -33,6 +33,8 @@ import 'about_app_screen.dart';
 import 'add_members_screen.dart';
 import 'pending_transfers_screen.dart';
 import 'pending_approvals_screen.dart';
+import 'state_admin_hierarchy_screen.dart';
+import 'admin_panel_screen.dart';
 import 'station_access_grants_screen.dart';
 import '../utils/case_visibility_ui.dart';
 import 'case_form_screen.dart';
@@ -2027,28 +2029,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  // ── ROLE-BASED COMMAND CONTROLS (State / Division / District / Station Admin) ──
+                  // ── ROLE-BASED UNIFIED ADMIN PANEL ──
                   if (PoliceHierarchyHelper.hasAdminAuthority(auth.designation, auth.roleId)) ...[
                     _drawerItem(
-                      Icons.how_to_reg_rounded,
-                      'Officer Approvals (Pending)',
+                      Icons.admin_panel_settings_rounded,
+                      'Admin Panel',
                       () {
                         Navigator.pop(context);
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const PendingApprovalsScreen()),
+                          MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
                         );
                       },
-                    ),
-                  ],
-                  if (PoliceHierarchyHelper.canCreateDistrictAdmin(auth.designation, auth.roleId) ||
-                      PoliceHierarchyHelper.canCreateDivisionAdmin(auth.designation, auth.roleId)) ...[
-                    _drawerItem(
-                      Icons.person_add_alt_1_rounded,
-                      PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId)
-                          ? 'Create Sub-Admin (District/Div/Station)'
-                          : 'Create Division / Station Head',
-                      () => CreateSubAdminDialog.show(context),
                     ),
                   ],
                   if (PoliceHierarchyHelper.canSendAlerts(auth.designation, auth.roleId) ||
@@ -2806,7 +2798,9 @@ class _HomeTabState extends State<_HomeTab> {
     _searchCtrl.dispose();
     _searchFocusNode.dispose();
     _debounce?.cancel();
-    _carouselCtrl.stopAutoPlay();
+    try {
+      _carouselCtrl.stopAutoPlay();
+    } catch (_) {}
     super.dispose();
   }
 

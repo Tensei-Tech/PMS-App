@@ -12,15 +12,29 @@ class CaseService {
   CaseService._internal();
 
   final ApiService _api = ApiService();
+  final Map<String, List<ModuleRecord>> _casesCache = {};
+  final Map<String, DateTime> _casesCacheTime = {};
 
   /// Fetch cases for a specific module and station from Django PostgreSQL backend
   Future<List<ModuleRecord>> fetchCases({
     required String moduleKey,
     required String stationId,
+    bool forceRefresh = false,
   }) async {
+    final cacheKey = '$moduleKey:$stationId';
+    final cachedRecords = _casesCache[cacheKey];
+    final cachedTime = _casesCacheTime[cacheKey];
+
+    if (!forceRefresh && cachedRecords != null && cachedTime != null) {
+      final cacheAge = DateTime.now().difference(cachedTime);
+      if (cacheAge < const Duration(seconds: 10)) {
+        return cachedRecords;
+      }
+    }
+
     final token = await _api.getAuthToken();
     if (token == null || token.isEmpty || _api.isTokenExpired(token)) {
-      return [];
+      return _casesCache[cacheKey] ?? [];
     }
 
     try {
@@ -41,12 +55,15 @@ class CaseService {
           list = data['results'] as List;
         }
 
-        return list
+        final records = list
             .map((item) => ModuleRecord.fromMap(
                   Map<String, dynamic>.from(item as Map),
                   item['id']?.toString(),
                 ))
             .toList();
+        _casesCache[cacheKey] = records;
+        _casesCacheTime[cacheKey] = DateTime.now();
+        return records;
       } else {
         if (kDebugMode && response.statusCode != 401) {
           debugPrint('[$moduleKey] CaseService.fetchCases failed: ${response.errorMessage}');

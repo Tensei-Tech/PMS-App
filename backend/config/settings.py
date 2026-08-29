@@ -207,9 +207,20 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+from corsheaders.defaults import default_headers
+
 # CORS Settings (Allow mobile app and web frontend)
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'authorization',
+    'x-state-schema',
+    'x-tenant-schema',
+]
+CORS_EXPOSE_HEADERS = [
+    'authorization',
+    'x-state-schema',
+]
 
 
 from datetime import timedelta
@@ -218,7 +229,6 @@ from datetime import timedelta
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'apps.authentication.authentication.PrimaryJWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',

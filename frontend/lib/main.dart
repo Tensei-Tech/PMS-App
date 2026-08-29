@@ -379,19 +379,18 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
   }
 
   Widget _buildHome(AuthProvider auth) {
-    // CRITICAL: Check if registered but locked FIRST
-    // This ensures Login screen is shown in "unlock" mode for returning users
-    if (auth.isRegistered && !auth.isSessionActive) {
-      // Device recognised but locked → Login screen to unlock
-      return const LoginScreen();
+    if (!auth.isInitialized) {
+      return const Scaffold(
+        backgroundColor: AppColors.lightBg,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid),
+        ),
+      );
     }
+
     if (auth.isSessionActive && auth.isAccountActive) {
       return const DashboardScreen();
     }
-    if (auth.isSessionActive && !auth.isAccountActive) {
-      return const LoginScreen();
-    }
-    // Fresh install → full login/register flow
     return const LoginScreen();
   }
 }
@@ -417,6 +416,10 @@ class _AppLockNavigatorState extends State<_AppLockNavigator> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
+    if (!auth.isInitialized) {
+      return widget.child ?? const SizedBox.shrink();
+    }
+
     // Handle navigation when app becomes locked
     if (!auth.isSessionActive && auth.isRegistered) {
       if (!_wasLocked) {
@@ -424,7 +427,7 @@ class _AppLockNavigatorState extends State<_AppLockNavigator> {
         // Use navigatorKey instead of Navigator.of(context) to avoid context issues
         // Schedule navigation after build completes
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && !auth.isSessionActive && auth.isRegistered) {
+          if (mounted && auth.isInitialized && !auth.isSessionActive && auth.isRegistered) {
             final nav = widget.navigatorKey.currentState;
             if (nav != null) {
               nav.pushNamedAndRemoveUntil(
