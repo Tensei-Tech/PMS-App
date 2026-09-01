@@ -11,6 +11,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../utils/state_language_helper.dart';
 import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -1793,6 +1795,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           });
           _fetchDynamicDivisions(match['code']!);
           _fetchDynamicDistricts(match['code']!);
+
+          // Automatically set/update the app's default language/locale based on the selected state
+          final langCode = StateLanguageHelper.getLanguageCodeForState(v);
+          context.read<SettingsProvider>().setLanguage(langCode);
         }
       },
     );

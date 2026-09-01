@@ -20,6 +20,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../modules/core/models/base_record.dart';
 import '../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../utils/app_constants.dart';
+import '../../utils/translation_helper.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const Color _kDark = Color(0xFF0f172a);
@@ -931,7 +932,7 @@ class CommonFormState extends State<CommonForm> {
 
   // ─── shared decorations ────────────────────────────────────────────────────
   InputDecoration _d(String label) => InputDecoration(
-        labelText: label,
+        labelText: TranslationHelper.translate(context, label),
         labelStyle: _tsLabel,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
@@ -978,7 +979,7 @@ class CommonFormState extends State<CommonForm> {
         childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
         initiallyExpanded: startOpen,
         leading: leadingBadge,
-        title: Text(title, style: _tsSection),
+        title: Text(TranslationHelper.translate(context, title), style: _tsSection),
         children: [
           body,
           if (trailing != null) ...trailing,
@@ -996,7 +997,7 @@ class CommonFormState extends State<CommonForm> {
               children: [
                 leadingBadge,
                 const SizedBox(width: 12),
-                Expanded(child: Text(title, style: _tsSection)),
+                Expanded(child: Text(TranslationHelper.translate(context, title), style: _tsSection)),
               ],
             ),
           ),
@@ -1041,7 +1042,7 @@ class CommonFormState extends State<CommonForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: _tsLabel),
+        Text(TranslationHelper.translate(context, label), style: _tsLabel),
         const SizedBox(height: 4),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -1067,7 +1068,7 @@ class CommonFormState extends State<CommonForm> {
                       ),
                     ),
                     child: Text(
-                      item,
+                      TranslationHelper.translate(context, item),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: active ? FontWeight.w700 : FontWeight.w500,
@@ -1089,7 +1090,7 @@ class CommonFormState extends State<CommonForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: _tsLabel),
+        Text(TranslationHelper.translate(context, label), style: _tsLabel),
         const SizedBox(height: 4),
         Row(
           children: [
@@ -1116,7 +1117,7 @@ class CommonFormState extends State<CommonForm> {
               color: active ? color : _kBorder, width: active ? 1.5 : 1),
         ),
         child: Text(
-          label,
+          TranslationHelper.translate(context, label),
           style: TextStyle(
             fontSize: 11,
             fontWeight: active ? FontWeight.w700 : FontWeight.w500,
@@ -1350,7 +1351,7 @@ class CommonFormState extends State<CommonForm> {
         child: TextButton.icon(
           onPressed: onTap,
           icon: const Icon(Icons.add, size: 14),
-          label: Text(label, style: const TextStyle(fontSize: 11)),
+          label: Text(TranslationHelper.translate(context, label), style: const TextStyle(fontSize: 11)),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             foregroundColor: _kTeal,
@@ -1369,7 +1370,7 @@ class CommonFormState extends State<CommonForm> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: _kBorder, style: BorderStyle.solid),
         ),
-        child: Text(t, textAlign: TextAlign.center, style: _tsMuted),
+        child: Text(TranslationHelper.translate(context, t), textAlign: TextAlign.center, style: _tsMuted),
       );
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1399,7 +1400,14 @@ class CommonFormState extends State<CommonForm> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               child: Row(
                 children: [
-                  Expanded(child: Text(saveBarText, style: _tsMuted)),
+                  Expanded(
+                    child: Text(
+                      saveBarText.startsWith('Draft saved')
+                          ? '${TranslationHelper.translate(context, 'Draft saved')} ${saveBarText.replaceFirst('Draft saved', '').trim()}'
+                          : TranslationHelper.translate(context, saveBarText),
+                      style: _tsMuted,
+                    ),
+                  ),
                   _barBtn('Clear', Icons.refresh_outlined, clearForm, _kRed),
                   const SizedBox(width: 6),
                   _barBtn('Save Draft', Icons.save_outlined, saveDraft, _kTeal),
@@ -1469,7 +1477,7 @@ class CommonFormState extends State<CommonForm> {
           children: [
             Icon(icon, size: 13, color: color),
             const SizedBox(width: 4),
-            Text(label,
+            Text(TranslationHelper.translate(context, label),
                 style: TextStyle(
                     fontSize: 11, fontWeight: FontWeight.w600, color: color)),
           ],
@@ -1507,8 +1515,8 @@ class CommonFormState extends State<CommonForm> {
                   Expanded(
                       child: Text(
                     _firPath == null
-                        ? 'Upload FIR Copy (tap to select)'
-                        : 'FIR: $_firPath',
+                        ? TranslationHelper.translate(context, 'Upload FIR Copy (tap to select)')
+                        : '${TranslationHelper.translate(context, 'FIR')}: $_firPath',
                     style: _tsBody.copyWith(
                         color: _firPath == null ? _kSec : _kDark),
                     overflow: TextOverflow.ellipsis,

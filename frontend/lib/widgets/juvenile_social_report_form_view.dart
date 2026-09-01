@@ -106,7 +106,7 @@ class JuvenileSocialReportFormViewState extends State<JuvenileSocialReportFormVi
           child: Column(
             children: [
               Text('JUVENILE SOCIAL BACKGROUND REPORT', style: serif.copyWith(fontSize: 15, fontWeight: FontWeight.bold)),
-              Text('बालगुन्हेगार सामाजिक पार्श्वभूमी अहवाल', style: marathi.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+              Text('विधी संघर्षित बालक सामाजिक पार्श्वभूमी अहवाल', style: marathi.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -124,7 +124,7 @@ class JuvenileSocialReportFormViewState extends State<JuvenileSocialReportFormVi
             BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
           ],
         ),
-        BilingualWideField(label: 'Juvenile name & address', marathiLabel: 'बालगुन्हेगाराचे नाव व पत्ता', controller: _fields['juvenileName']!, serifStyle: serif, marathiLabelStyle: marathi),
+        BilingualWideField(label: 'Juvenile name & address', marathiLabel: 'विधी संघर्षित बालकाचे नाव व पत्ता', controller: _fields['juvenileName']!, serifStyle: serif, marathiLabelStyle: marathi),
         BilingualFieldRow(
           fields: [
             BilingualField(label: 'Age', marathiLabel: 'वय', controller: _fields['juvenileAge']!, serifStyle: serif, marathiLabelStyle: marathi),

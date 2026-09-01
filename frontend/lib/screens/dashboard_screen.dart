@@ -20,6 +20,7 @@ import '../providers/theme_provider.dart';
 import '../providers/news_provider.dart';
 import '../services/firestore_service.dart';
 import 'package:khakhi_diary/providers/settings_provider.dart';
+import '../utils/state_language_helper.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
 
@@ -48,6 +49,7 @@ import 'ad_record_detail_screen.dart';
 import 'module_record_detail_screen.dart';
 import 'module_hub_screen.dart';
 import '../modules/core/models/base_record.dart';
+import '../utils/translation_helper.dart';
 import '../utils/module_pdf_helper.dart';
 import '../utils/pdf_auth_gate.dart';
 import 'report_case_list_screen.dart';
@@ -1304,6 +1306,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     const bool isDark = false;
     final auth = context.watch<AuthProvider>();
+    final settings = context.watch<SettingsProvider>();
     final l10n = AppLocalizations.of(context)!;
 
     // ✅ Station injection removed from here — handled in main.dart globally
@@ -1447,7 +1450,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'KHAKHI DIARY',
+                                l10n.khakhiDiary.toUpperCase(),
                                 style: GoogleFonts.poppins(
                                   fontSize: isSmallPhone ? 11.5 : 13,
                                   fontWeight: FontWeight.w800,
@@ -1456,7 +1459,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               ),
                               Text(
-                                'Safe • Swift • Secure',
+                                l10n.safeSwiftSecure,
                                 style: GoogleFonts.poppins(
                                   fontSize: isSmallPhone ? 7.5 : 8.5,
                                   fontWeight: FontWeight.w500,
@@ -1858,21 +1861,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showLanguageSheet() {
-    const langs = [
-      ('🇬🇧 English', 'en'),
-      ('🇮🇳 हिंदी', 'hi'),
-      ('🇮🇳 मराठी', 'mr'),
-      ('🇮🇳 ਪੰਜਾਬੀ', 'pa'),
-      ('🇮🇳 தமிழ்', 'ta'),
-      ('🇮🇳 తెలుగు', 'te'),
+    final activeLang = context.read<SettingsProvider>().locale.languageCode;
+    final langs = [
+      ('🇬🇧', 'English', 'Nagaland, Arunachal Pradesh, Meghalaya', 'en'),
+      ('🇮🇳', 'Hindi (हिंदी)', 'Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Haryana, Himachal, Jharkhand, Chhattisgarh, Uttarakhand', 'hi'),
+      ('🇮🇳', 'Marathi (मराठी)', 'Maharashtra', 'mr'),
+      ('🇮🇳', 'Gujarati (ગુજરાતી)', 'Gujarat', 'gu'),
+      ('🇮🇳', 'Bengali (বাংলা)', 'West Bengal, Tripura', 'bn'),
+      ('🇮🇳', 'Telugu (తెలుగు)', 'Andhra Pradesh, Telangana', 'te'),
+      ('🇮🇳', 'Tamil (தமிழ்)', 'Tamil Nadu, Puducherry', 'ta'),
+      ('🇮🇳', 'Kannada (ಕನ್ನಡ)', 'Karnataka', 'kn'),
+      ('🇮🇳', 'Malayalam (മലയാളം)', 'Kerala, Lakshadweep', 'ml'),
+      ('🇮🇳', 'Punjabi (ਪੰਜਾਬੀ)', 'Punjab', 'pa'),
     ];
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
-        decoration: BoxDecoration(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1896,38 +1909,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       color: AppColors.infoBlue, size: 20),
                 ),
                 const SizedBox(width: 12),
-                Text('Select Language',
-                    style: GoogleFonts.poppins(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark)),
+                Text(
+                  TranslationHelper.translate(context, 'Select Language'),
+                  style: GoogleFonts.poppins(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark),
+                ),
               ]),
             ),
             const Divider(height: 1),
-            ...langs.map((l) => ListTile(
-                  leading: Text(l.$1.split(' ').first,
-                      style: const TextStyle(fontSize: 20)),
-                  title: Text(l.$1.substring(l.$1.indexOf(' ') + 1),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: 16),
+                itemCount: langs.length,
+                itemBuilder: (ctx, i) {
+                  final l = langs[i];
+                  final isSelected = activeLang == l.$4;
+                  return ListTile(
+                    leading: Text(l.$1, style: const TextStyle(fontSize: 20)),
+                    title: Text(
+                      l.$2,
                       style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.lightText)),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                      size: 14, color: AppColors.goldPrimary),
-                  onTap: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                          'Language set to ${l.$1.substring(l.$1.indexOf(' ') + 1)}',
-                          style: GoogleFonts.poppins(color: Colors.white)),
-                      backgroundColor: AppColors.infoBlue,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md)),
-                    ));
-                  },
-                )),
-            const SizedBox(height: 16),
+                        fontSize: 15,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? AppColors.infoBlue : AppColors.navyDark,
+                      ),
+                    ),
+                    subtitle: Text(
+                      l.$3,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle_rounded,
+                            color: AppColors.infoBlue, size: 22)
+                        : const Icon(Icons.chevron_right_rounded,
+                            color: AppColors.goldPrimary, size: 22),
+                    onTap: () {
+                      context.read<SettingsProvider>().setLanguage(l.$4);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(
+                          'Language set to ${l.$2}',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        backgroundColor: AppColors.infoBlue,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                      ));
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -2018,6 +2057,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // RESPONSIVE FIX: use LayoutBuilder to adapt to available space
     return LayoutBuilder(
       builder: (context, constraints) {
+        final settings = context.watch<SettingsProvider>();
+        final lang = settings.locale.languageCode;
         final availableHeight = constraints.maxHeight;
         // Scale header: use ~28% of space but clamp between 130-180
         final headerHeight = (availableHeight * 0.28).clamp(130.0, 180.0);
@@ -2033,7 +2074,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (PoliceHierarchyHelper.hasAdminAuthority(auth.designation, auth.roleId)) ...[
                     _drawerItem(
                       Icons.admin_panel_settings_rounded,
-                      'Admin Panel',
+                      MenuLocalizations.get(lang, 'adminPanel'),
                       () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -2048,10 +2089,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _drawerItem(
                       Icons.campaign_rounded,
                       PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId)
-                          ? 'Send State Alert & Reminders'
+                          ? MenuLocalizations.get(lang, 'sendAlertsState')
                           : (PoliceHierarchyHelper.isDistrictAdmin(auth.designation, auth.roleId)
-                              ? 'Send District Alert & Reminders'
-                              : 'Send Reminder to IO'),
+                              ? MenuLocalizations.get(lang, 'sendAlertsDistrict')
+                              : MenuLocalizations.get(lang, 'sendReminderIO')),
                       () => SendBroadcastAlertDialog.show(context),
                     ),
                     const Divider(height: 1),
@@ -2070,7 +2111,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             : AppColors.lightText,
                       ),
                       title: Text(
-                        'Switch Policestation',
+                        MenuLocalizations.get(lang, 'switchStation'),
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -2107,7 +2148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       BorderRadius.circular(AppRadius.sm),
                                 ),
                                 child: Text(
-                                  'Reset',
+                                  MenuLocalizations.get(lang, 'reset'),
                                   style: GoogleFonts.poppins(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
@@ -2126,7 +2167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       auth.isAdmin) ...[
                     _drawerItem(
                       Icons.analytics_rounded,
-                      'Crime Analytics & Performance',
+                      MenuLocalizations.get(lang, 'crimeAnalytics'),
                       () => Navigator.push(
                         context,
                         AppTheme.fadeSlideRoute(
@@ -2140,8 +2181,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _drawerItem(
                       Icons.pending_actions_rounded,
                       TransferRequestRoles.isPiOrApi(auth.designation)
-                          ? 'Pending Transfers'
-                          : 'Pending PI Transfers',
+                          ? MenuLocalizations.get(lang, 'pendingTransfers')
+                          : MenuLocalizations.get(lang, 'pendingPiTransfers'),
                       () => Navigator.push(
                         context,
                         AppTheme.fadeSlideRoute(
@@ -2153,7 +2194,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (TransferRequestRoles.isPiOrApi(auth.designation)) ...[
                     _drawerItem(
                       Icons.dashboard_customize_rounded,
-                      'Dashboard access grants',
+                      MenuLocalizations.get(lang, 'accessGrants'),
                       () => Navigator.push(
                         context,
                         AppTheme.fadeSlideRoute(
@@ -2166,7 +2207,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (TransferRequestRoles.canAssignOfficers(auth.designation))
                     _drawerItem(
                       Icons.person_add_rounded,
-                      'Assign Officer',
+                      MenuLocalizations.get(lang, 'assignOfficer'),
                       () => Navigator.push(
                         context,
                         AppTheme.fadeSlideRoute(
@@ -2177,7 +2218,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const Divider(height: 1),
                   _drawerItem(
                     Icons.folder_shared_outlined,
-                    'My Cases',
+                    MenuLocalizations.get(lang, 'myCases'),
                     () => Navigator.push(
                       context,
                       AppTheme.fadeSlideRoute(page: const MyCasesScreen()),
@@ -2569,7 +2610,7 @@ class _HomeTabState extends State<_HomeTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Case visibility',
+                        MenuLocalizations.get(context.read<SettingsProvider>().locale.languageCode, 'caseVisibility'),
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -3881,7 +3922,7 @@ class _HomeTabState extends State<_HomeTab> {
           ),
           const SizedBox(height: 5),
           Text(
-            item.name,
+            TranslationHelper.translate(context, item.name),
             textAlign: TextAlign.center,
             maxLines: 2,
             style: GoogleFonts.poppins(
@@ -9170,7 +9211,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
           ),
           const SizedBox(height: 8),
           Text(
-            item.name,
+            TranslationHelper.translate(context, item.name),
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 9.5,

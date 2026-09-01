@@ -24,14 +24,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get shouldSkipNextBiometricAutoTrigger => _shouldSkipNextBiometricAutoTrigger;
 
   String get language {
-    switch (_locale.languageCode) {
-      case 'mr':
-        return 'Marathi';
-      case 'hi':
-        return 'Hindi';
-      default:
-        return 'English';
-    }
+    return supportedLanguages[_locale.languageCode] ?? 'English';
   }
 
   double get fontScale {

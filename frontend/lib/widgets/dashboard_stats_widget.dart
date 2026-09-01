@@ -8,6 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../utils/state_language_helper.dart';
+import 'package:provider/provider.dart';
 import '../screens/my_cases_screen.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
@@ -157,9 +160,12 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
       return const SizedBox.shrink();
     }
 
+    final settings = context.watch<SettingsProvider>();
+    final lang = settings.locale.languageCode;
+
     final cards = [
       _StatCardData(
-        label: 'Total Cases',
+        label: MenuLocalizations.get(lang, 'totalCases'),
         value: _totalActive,
         icon: Icons.folder_rounded,
         accent: AppColors.infoBlue,
@@ -167,7 +173,7 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
         onTap: _openActiveCases,
       ),
       _StatCardData(
-        label: 'Pending Cases',
+        label: MenuLocalizations.get(lang, 'pendingCases'),
         value: _pendingAction,
         icon: Icons.schedule_rounded,
         accent: AppColors.warningOrange,
@@ -175,7 +181,7 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
         onTap: _openPendingCases,
       ),
       _StatCardData(
-        label: 'Disposal Cases',
+        label: MenuLocalizations.get(lang, 'disposalCases'),
         value: _disposed,
         icon: Icons.check_circle_rounded,
         accent: AppColors.successGreen,

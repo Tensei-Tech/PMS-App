@@ -11,7 +11,7 @@ Future<void> previewJuvenileSocialReportPdf(
       doc,
       filePrefix: 'Juvenile_Social_Report',
       titleEn: 'Juvenile Social Background Report',
-      titleMr: 'बालगुन्हेगार सामाजिक अहवाल',
+      titleMr: 'विधी संघर्षित बालक सामाजिक अहवाल',
       sections: const [
         BnssPdfSection(id: 'Juvenile Social Part I', headingEn: 'Part I — Personal', headingMr: 'भाग १'),
         BnssPdfSection(id: 'Juvenile Social Part II', headingEn: 'Part II — Family', headingMr: 'भाग २'),

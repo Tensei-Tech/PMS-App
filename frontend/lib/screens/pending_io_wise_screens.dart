@@ -40,6 +40,7 @@ import '../modules/coin/providers/coin_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/pending_io_wise_logic.dart';
 import '../widgets/read_only_module_record_hub_card.dart';
+import '../utils/translation_helper.dart';
 
 /// Same consolidated module list shape as ModuleHubScreen pending aggregation.
 List<ModuleRecord> _watchConsolidatedRecords(BuildContext context) {
@@ -101,7 +102,7 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
 
     final names = buckets.keys.toList()..sort((a, b) => a.compareTo(b));
 
-    final title = 'IO Wise Pending - $category';
+    final title = '${TranslationHelper.translate(context, 'IO Wise Pending')} - ${TranslationHelper.translate(context, category)}';
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -147,7 +148,7 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
               child: names.isEmpty
                   ? Center(
                       child: Text(
-                        'No IO Wise pending cases in this category',
+                        TranslationHelper.translate(context, 'No IO Wise pending cases in this category'),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
@@ -192,7 +193,7 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        'IO Name: $io',
+                                        '${TranslationHelper.translate(context, 'IO Name')}: $io',
                                         style: GoogleFonts.poppins(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
@@ -201,7 +202,7 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
                                       ),
                                     ),
                                     Text(
-                                      'Cases: $count',
+                                      '${TranslationHelper.translate(context, 'Cases')}: $count',
                                       style: GoogleFonts.poppins(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,

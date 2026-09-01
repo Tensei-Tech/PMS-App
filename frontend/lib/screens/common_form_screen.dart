@@ -47,6 +47,7 @@ import '../modules/undetected/providers/undetected_provider.dart';
 import '../modules/victim/providers/victim_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/translation_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/common_form_pdf.dart';
 import '../utils/crime_detail_pdf.dart';
@@ -1337,10 +1338,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         ),
         title: Text(
           widget.readOnly == true
-              ? 'View ${widget.moduleLabel}'
+              ? '${TranslationHelper.translate(context, 'View')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
               : (_isEdit
-                  ? 'Edit ${widget.moduleLabel}'
-                  : 'New ${widget.moduleLabel} Entry'),
+                  ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
+                  : '${TranslationHelper.translate(context, 'New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'Entry')}'),
           style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -1496,7 +1497,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                       ),
                     ),
                     child: Text(
-                      'Done',
+                      TranslationHelper.translate(context, 'Done'),
                       style: GoogleFonts.poppins(
                           fontSize: 14, fontWeight: FontWeight.w700),
                     ),
@@ -1524,7 +1525,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                           color: AppColors.navyMid, size: 16),
                       const SizedBox(width: 4),
                       Text(
-                        widget.readOnly == true ? 'Download PDF' : 'PDF',
+                        TranslationHelper.translate(context, widget.readOnly == true ? 'Download PDF' : 'PDF'),
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.visible,
@@ -1570,7 +1571,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                             color: AppColors.navyMid, size: 16),
                         const SizedBox(width: 4),
                         Text(
-                          'History',
+                          TranslationHelper.translate(context, 'History'),
                           maxLines: 1,
                           softWrap: false,
                           overflow: TextOverflow.visible,
