@@ -881,7 +881,14 @@ class CommonFormDocumentView extends StatelessWidget {
                     color: AppColors.lightSubText))
           else ...[
             ..._pairedSimpleFields(context, [
-              (label: 'Name', value: _v(comp['name']), fullWidth: false),
+              (
+                label: 'Name',
+                value: (commonMap['isSexualOffence'] == true ||
+                        (comp['name']?.toString().contains('Protected') ?? false))
+                    ? '⚠️ [Victim Identity Protected - Confidential]'
+                    : _v(comp['name']),
+                fullWidth: false
+              ),
               (label: 'Age', value: _v(comp['age']), fullWidth: false),
               (label: 'Gender', value: _v(comp['gender']), fullWidth: false),
               (label: 'Occupation', value: _v(comp['occ']), fullWidth: false),

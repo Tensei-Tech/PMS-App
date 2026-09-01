@@ -1109,7 +1109,11 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                     : doc['m1AccusedName']?.toString().trim() ?? '')
                                             : _isBnssDedicatedForm
                                                 ? BnssDedicatedForms.complainantFromDoc(doc)
-                                            : (doc['complainant'] is Map ? doc['complainant']['name']?.toString().trim() ?? '' : '');
+                                             : (doc['complainant'] is Map
+                                                  ? ((doc['isSexualOffence'] == true || (doc['complainant']['name']?.toString().contains('Protected') ?? false))
+                                                      ? '[Victim Identity Protected]'
+                                                      : (doc['complainant']['name']?.toString().trim() ?? ''))
+                                                  : '');
 
     final String caseNum;
     if (_isCrimeDetailForm || _isPropertySeizureForm) {
@@ -1472,6 +1476,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                               )
                                                 : CommonForm(
                       key: _formKey,
+                      moduleKey: widget.moduleKey,
+                      moduleLabel: widget.moduleLabel,
+                      subCategory: widget.subCategory,
                       middleSlot: _hasKidnappingExtras
                           ? KidnappingExtraFields(key: _kidnappingKey)
                           : null,
