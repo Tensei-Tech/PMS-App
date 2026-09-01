@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/translation_helper.dart';
 
 /// One indented sub-section under a parent form (page range from reference assets).
 class FormsSubSection {
@@ -21,6 +22,11 @@ class FormsSubSection {
 
   String get displayLabel =>
       pageRange.isEmpty ? label : '$label ($pageRange)';
+
+  String getTranslatedDisplayLabel(BuildContext context) {
+    final transLabel = TranslationHelper.translate(context, label);
+    return pageRange.isEmpty ? transLabel : '$transLabel ($pageRange)';
+  }
 }
 
 /// One police/medical form — standalone or with nested sub-sections.
@@ -495,7 +501,7 @@ class _StandaloneFormRow extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  title,
+                  TranslationHelper.translate(context, title),
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -563,7 +569,7 @@ class _ParentFormRow extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          entry.title,
+                          TranslationHelper.translate(context, entry.title),
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -572,7 +578,7 @@ class _ParentFormRow extends StatelessWidget {
                         ),
                         if (!expanded && sectionCount > 0)
                           Text(
-                            '$sectionCount sub-sections — tap to expand',
+                            '$sectionCount ${TranslationHelper.translate(context, 'sub-sections — tap to expand')}',
                             style: GoogleFonts.poppins(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
@@ -653,7 +659,7 @@ class _ParentFormRow extends StatelessWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Complete form (all sections)',
+                                TranslationHelper.translate(context, 'Complete form (all sections)'),
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -705,7 +711,7 @@ class _ParentFormRow extends StatelessWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                entry.subSections[i].displayLabel,
+                                entry.subSections[i].getTranslatedDisplayLabel(context),
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,

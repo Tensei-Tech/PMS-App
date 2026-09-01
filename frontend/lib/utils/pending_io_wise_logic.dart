@@ -62,6 +62,9 @@ String? pendingIoWiseIoDisplayName(ModuleRecord r) {
   final spaced = nz(ef['IO Name']);
   if (spaced != null) return spaced;
 
+  final assigned = nz(r.assignedOfficer);
+  if (assigned != null) return assigned;
+
   return null;
 }
 

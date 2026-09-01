@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/translation_helper.dart';
 
 /// Shared white-card report hub layout (matches Monthly module hub pattern).
 class ModuleHubReportCard extends StatelessWidget {
@@ -53,7 +54,7 @@ class ModuleHubReportCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      TranslationHelper.translate(context, title),
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -61,7 +62,7 @@ class ModuleHubReportCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      subtitle,
+                      TranslationHelper.translate(context, subtitle),
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -77,7 +78,7 @@ class ModuleHubReportCard extends StatelessWidget {
                     icon: const Icon(Icons.download_rounded,
                         size: 16, color: Colors.white),
                     label: Text(
-                      'Summary',
+                      TranslationHelper.translate(context, 'Summary'),
                       style: GoogleFonts.poppins(
                           fontSize: 11, color: Colors.white),
                     ),
@@ -150,7 +151,7 @@ class ModuleHubCategoryButton extends StatelessWidget {
           ),
         ),
         child: Text(
-          label,
+          TranslationHelper.translate(context, label),
           textAlign: TextAlign.center,
           maxLines: 2,
           softWrap: true,

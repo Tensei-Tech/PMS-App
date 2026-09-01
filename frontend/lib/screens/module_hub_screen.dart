@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../utils/translation_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -115,19 +116,24 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   String? _pendingCategory;
   String? _pendingTimeRange;
+  String? _pendingViewMode;
 
   static const List<String> _pendingHubCategories = [
     ...kPendingDashboardCategoriesForIoWise,
-    'IO Wise',
   ];
 
   static const List<String> _pendingHubTimeRanges = [
+    'Select time range',
     'More than 1 year',
     '6 to 12 months',
     '3 to 6 months',
     'More than 3 months',
     'Within 3 months',
     '1 month',
+  ];
+
+  static const List<String> _pendingHubViewModes = [
+    'Case Wise',
     'IO Wise',
   ];
 
@@ -535,7 +541,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               shape: const StadiumBorder(),
               icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
               label: Text(
-                'Add Case',
+                TranslationHelper.translate(context, 'Add Case'),
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -548,10 +554,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, int total) {
+    final transTitle = TranslationHelper.translate(context, widget.moduleLabel);
+    final recordWord = total == 1 ? 'record' : 'records';
+    final transRecord = TranslationHelper.translate(context, recordWord);
+    final transReg = TranslationHelper.translate(context, 'registered');
     return ModuleHubScreenAppBar(
-      title: widget.moduleLabel,
-      subtitle: '$total record${total == 1 ? '' : 's'} registered',
-      badgeLabel: widget.moduleLabel.toUpperCase(),
+      title: transTitle,
+      subtitle: '$total $transRecord $transReg',
+      badgeLabel: transTitle.toUpperCase(),
       onAddPressed: widget.readOnly ? null : () => _openNewEntryForm(context),
       backgroundColor: (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected' || widget.moduleKey == 'disposal') ? AppColors.navyDark : null,
     );
@@ -586,7 +596,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             border: Border.all(color: active ? color : (AppColors.lightBorder)),
           ),
           child: Center(
-            child: Text(label,
+            child: Text(TranslationHelper.translate(context, label),
                 style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: active ? FontWeight.w700 : FontWeight.w500,
@@ -708,12 +718,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  String _pendingHubSubtitle() {
-    if (_pendingCategory == null) return 'Select a category';
+  String _pendingHubSubtitle(BuildContext context) {
+    if (_pendingCategory == null) return TranslationHelper.translate(context, 'Select a category');
+    final transCategory = TranslationHelper.translate(context, _pendingCategory!);
     if (_pendingTimeRange == null) {
-      return '$_pendingCategory — Select time range';
+      final transSelectTime = TranslationHelper.translate(context, 'Select time range');
+      return '$transCategory — $transSelectTime';
     }
-    return '$_pendingCategory — $_pendingTimeRange';
+    final transTimeRange = TranslationHelper.translate(context, _pendingTimeRange!);
+    return '$transCategory — $transTimeRange';
   }
 
   void _onPendingCategorySelected(String label) {
@@ -759,12 +772,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   Widget _buildPendingModuleReportOnly(BuildContext context) {
     final auth = context.read<AuthProvider>();
-    final categoryValue = _pendingCategory ?? '';
-    final timeRangeValue = _pendingTimeRange ?? '';
+    final categoryValue = _pendingCategory ?? _pendingHubCategories.first;
+    final timeRangeValue = _pendingTimeRange ?? 'Select time range';
+    final viewModeValue = _pendingViewMode ?? 'Case Wise';
 
     return ModuleHubReportCard(
-      title: 'Pending Reports',
-      subtitle: _pendingHubSubtitle(),
+      title: TranslationHelper.translate(context, 'Pending Reports'),
+      subtitle: _pendingHubSubtitle(context),
+      showFilterRow: false,
+      filterRow: const SizedBox.shrink(),
       onSummaryTap: () {
         Navigator.push(
           context,
@@ -773,84 +789,134 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
       },
-      filterRow: Row(
-        children: [
-          ModuleHubFilterDropdown<String>(
-            expanded: true,
-            value: categoryValue.isEmpty ? _pendingHubCategories.first : categoryValue,
-            items: _pendingHubCategories
-                .map(
-                  (c) => DropdownMenuItem(
-                    value: c,
-                    child: Text(
-                      c,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+      categoryButtons: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: ModuleHubFilterDropdown<String>(
+                expanded: true,
+                value: categoryValue,
+                items: _pendingHubCategories
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c,
+                        child: Text(
+                          TranslationHelper.translate(context, c),
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (val) {
+                  if (val == null) return;
+                  setState(() {
+                    _pendingCategory = val;
+                  });
+                  // If currently selected view mode is IO Wise, re-navigate to the category's IO Wise screen
+                  if (viewModeValue == 'IO Wise') {
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page: PendingIoWiseByCategoryScreen(category: val),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ModuleHubFilterDropdown<String>(
+                expanded: true,
+                value: timeRangeValue,
+                items: _pendingHubTimeRanges
+                    .map(
+                      (t) => DropdownMenuItem(
+                        value: t,
+                        child: Text(
+                          TranslationHelper.translate(context, t),
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (val) {
+                  if (val == null) return;
+                  if (val == 'Select time range') {
+                    setState(() {
+                      _pendingTimeRange = null;
+                    });
+                    return;
+                  }
+                  setState(() {
+                    _pendingTimeRange = val;
+                  });
+                  // Navigate to pending case list for this category and time range
+                  final cat = _pendingCategory ?? _pendingHubCategories.first;
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: PendingDemoTableScreen(
+                        stationName: auth.stationName,
+                        category: cat,
+                        timeRange: val,
                       ),
                     ),
-                  ),
-                )
-                .toList(),
-            onChanged: (val) {
-              if (val == null) return;
-              if (val == categoryValue) return;
-              _onPendingCategorySelected(val);
-            },
-          ),
-          const SizedBox(width: 10),
-          ModuleHubFilterDropdown<String>(
-            value: timeRangeValue.isEmpty
-                ? _pendingHubTimeRanges.first
-                : timeRangeValue,
-            items: _pendingHubTimeRanges
-                .map(
-                  (t) => DropdownMenuItem(
-                    value: t,
-                    child: Text(
-                      t,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ModuleHubFilterDropdown<String>(
+                expanded: true,
+                value: viewModeValue,
+                items: _pendingHubViewModes
+                    .map(
+                      (m) => DropdownMenuItem(
+                        value: m,
+                        child: Text(
+                          TranslationHelper.translate(context, m),
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: _pendingCategory == null || _pendingCategory == 'IO Wise'
-                ? null
-                : (val) {
-                    if (val == null) return;
-                    setState(() => _pendingTimeRange = val);
-                    _onPendingTimeRangeSelected(val);
-                  },
-          ),
-        ],
+                    )
+                    .toList(),
+                onChanged: (val) {
+                  if (val == null) return;
+                  if (val == 'IO Wise') {
+                    final cat = _pendingCategory ?? _pendingHubCategories.first;
+                    setState(() {
+                      _pendingViewMode = 'Case Wise'; // Reset back on back button
+                    });
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page: PendingIoWiseByCategoryScreen(category: cat),
+                      ),
+                    );
+                  } else {
+                    setState(() {
+                      _pendingViewMode = val;
+                    });
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
-      categoryButtons: ModuleHubCategoryButtonGrid(
-        labels: _pendingHubCategories,
-        onLabelTap: _onPendingCategorySelected,
-      ),
-      child: _pendingCategory != null && _pendingCategory != 'IO Wise'
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Select time range',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyDark,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ModuleHubCategoryButtonGrid(
-                  labels: _pendingHubTimeRanges,
-                  onLabelTap: _onPendingTimeRangeSelected,
-                ),
-              ],
-            )
-          : null,
+      child: null,
     );
   }
 
@@ -884,8 +950,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     return ModuleHubReportCard(
-      title: 'Forms Categories',
-      subtitle: '${kFormsHierarchyMock.length} form types',
+      title: TranslationHelper.translate(context, 'Forms Categories'),
+      subtitle: '${kFormsHierarchyMock.length} ${TranslationHelper.translate(context, 'form types')}',
       showSummaryButton: false,
       showFilterRow: false,
       filterRow: const SizedBox.shrink(),
@@ -913,7 +979,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'December',
     ];
 
-    final monthYearLabel = '${months[_reportMonth - 1]} $_reportYear';
+    final transMonth = TranslationHelper.translate(context, months[_reportMonth - 1]);
+    final monthYearLabel = '$transMonth $_reportYear';
 
     // Reuse the Calendar monthly table builder from dashboard (static helper).
     // We call into the same logic by generating a table locally and using the same PDF helper.
@@ -944,7 +1011,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Monthly Reports',
+                      TranslationHelper.translate(context, 'Monthly Reports'),
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -1011,7 +1078,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           (i) => DropdownMenuItem(
                             value: i + 1,
                             child: Text(
-                              months[i],
+                              TranslationHelper.translate(context, months[i]),
                               style: GoogleFonts.poppins(
                                   fontSize: 13, fontWeight: FontWeight.w600),
                             ),
@@ -3203,7 +3270,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           elevation: 0,
         ),
         child: Text(
-          label,
+          TranslationHelper.translate(context, label),
           style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700),
         ),
       ),
@@ -3236,7 +3303,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             Expanded(
               child: Row(
                 children: [
-                  Text(category,
+                  Text(TranslationHelper.translate(context, category),
                       style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -3257,7 +3324,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 color: AppColors.goldPrimary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text('$count Case${count == 1 ? '' : 's'}',
+              child: Text('$count ${TranslationHelper.translate(context, count == 1 ? 'Case' : 'Cases')}',
                   style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -3457,7 +3524,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     const SizedBox(width: 3),
                   ],
                   Text(
-                    label,
+                    TranslationHelper.translate(context, label),
                     style: GoogleFonts.poppins(
                       fontSize: 10,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
@@ -3509,7 +3576,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'No ${widget.moduleLabel} records yet',
+              '${TranslationHelper.translate(context, 'No')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'records yet')}',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 15,
@@ -3519,7 +3586,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'No registered entries found in this category.',
+              TranslationHelper.translate(context, 'No registered entries found in this category.'),
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
