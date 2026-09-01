@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../theme/app_theme.dart';
 import 'base_form_styles.dart';
+import '../../utils/translation_helper.dart';
 
 /// Centers and width-limits scrollable form sections.
 class BaseFormContent extends StatelessWidget {
@@ -133,7 +134,7 @@ class BaseFormLayout extends StatelessWidget {
         ),
         title: subtitle == null
             ? Text(
-                title,
+                TranslationHelper.translate(context, title),
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -144,7 +145,7 @@ class BaseFormLayout extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    TranslationHelper.translate(context, title),
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -152,7 +153,7 @@ class BaseFormLayout extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    subtitle!,
+                    TranslationHelper.translate(context, subtitle!),
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -192,7 +193,7 @@ class BaseFormLayout extends StatelessWidget {
               ),
             ),
             child: Text(
-              submitLabel,
+              TranslationHelper.translate(context, submitLabel),
               style: GoogleFonts.poppins(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
