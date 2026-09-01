@@ -154,6 +154,7 @@ class CommonForm extends StatefulWidget {
     this.moduleLabel,
     this.subCategory,
     this.middleSlot,
+    this.showInjuredKyc = false,
     this.trailingSlotsBySection,
     this.onDraftSaved,
     this.onCleared,
@@ -165,6 +166,7 @@ class CommonForm extends StatefulWidget {
   final String? moduleLabel;
   final String? subCategory;
   final Widget? middleSlot;
+  final bool showInjuredKyc;
   final Map<int, List<Widget>>? trailingSlotsBySection;
   final ValueChanged<Map<String, dynamic>>? onDraftSaved;
   final VoidCallback? onCleared;
@@ -239,6 +241,20 @@ class CommonFormState extends State<CommonForm> {
   final _compReligion = TextEditingController();
   final _compCaste = TextEditingController();
   final _compPan = TextEditingController();
+
+  // ── §4b Injured Person KYC ────────────────────────────────────────────────
+  final _injName = TextEditingController();
+  final _injAge = TextEditingController();
+  String _injGender = 'Male';
+  final _injOcc = TextEditingController();
+  final _injMobile = TextEditingController();
+  final _injAadhaar = TextEditingController();
+  final _injReligion = TextEditingController();
+  final _injCaste = TextEditingController();
+  final _injPan = TextEditingController();
+  bool _injIsDied = false;
+  final _injDeathDate = TextEditingController();
+  final _injDeathTime = TextEditingController();
 
   // ── §5 Accused ────────────────────────────────────────────────────────────
   bool _isUnknown = false;
@@ -347,6 +363,16 @@ class CommonFormState extends State<CommonForm> {
       _compReligion,
       _compCaste,
       _compPan,
+      _injName,
+      _injAge,
+      _injOcc,
+      _injMobile,
+      _injAadhaar,
+      _injReligion,
+      _injCaste,
+      _injPan,
+      _injDeathDate,
+      _injDeathTime,
       _unidAge,
       _unidSkin,
       _unidHeight,
@@ -645,6 +671,16 @@ class CommonFormState extends State<CommonForm> {
       _compReligion,
       _compCaste,
       _compPan,
+      _injName,
+      _injAge,
+      _injOcc,
+      _injMobile,
+      _injAadhaar,
+      _injReligion,
+      _injCaste,
+      _injPan,
+      _injDeathDate,
+      _injDeathTime,
       _unidAge,
       _unidSkin,
       _unidHeight,
@@ -684,6 +720,8 @@ class CommonFormState extends State<CommonForm> {
     _firPath = null;
     _isUnknown = false;
     _compGender = 'Male';
+    _injGender = 'Male';
+    _injIsDied = false;
     _unidGender = 'Male';
     _ioDesig = 'PSI';
     _regDesig = 'HC';
@@ -741,6 +779,20 @@ class CommonFormState extends State<CommonForm> {
         'religion': _compReligion.text,
         'caste': _compCaste.text,
         'pan': _compPan.text,
+      },
+      'injured': {
+        'name': _injName.text,
+        'age': _injAge.text,
+        'gender': _injGender,
+        'occ': _injOcc.text,
+        'mobile': _injMobile.text,
+        'aadhaar': _injAadhaar.text,
+        'religion': _injReligion.text,
+        'caste': _injCaste.text,
+        'pan': _injPan.text,
+        'isDied': _injIsDied,
+        'deathDate': _injDeathDate.text,
+        'deathTime': _injDeathTime.text,
       },
       'isUnknownUntraced': _isUnknown,
       'accused': pplRows(_accused),
@@ -866,6 +918,23 @@ class CommonFormState extends State<CommonForm> {
       _compReligion.text = _s(comp['religion']);
       _compCaste.text = _s(comp['caste']);
       _compPan.text = _s(comp['pan']);
+    }
+
+    final inj = m['injured'] as Map?;
+    if (inj != null) {
+      _injName.text = _s(inj['name']);
+      _injAge.text = _s(inj['age']);
+      final g = inj['gender']?.toString();
+      if (g != null && _kGenders.contains(g)) _injGender = g;
+      _injOcc.text = _s(inj['occ']);
+      _injMobile.text = _s(inj['mobile']);
+      _injAadhaar.text = _s(inj['aadhaar']);
+      _injReligion.text = _s(inj['religion']);
+      _injCaste.text = _s(inj['caste']);
+      _injPan.text = _s(inj['pan']);
+      _injIsDied = inj['isDied'] == true;
+      _injDeathDate.text = _s(inj['deathDate']);
+      _injDeathTime.text = _s(inj['deathTime']);
     }
 
     _isUnknown = m['isUnknownUntraced'] == true;
@@ -1084,7 +1153,7 @@ class CommonFormState extends State<CommonForm> {
     final themed = Theme.of(context).copyWith(dividerColor: Colors.transparent);
 
     Widget inner;
-    if (idx == 4) {
+    if (title.contains('KYC')) {
       inner = ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
         childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
@@ -1340,6 +1409,47 @@ class CommonFormState extends State<CommonForm> {
     );
   }
 
+  Future<void> _pickTimeOnly(
+    TextEditingController ctrl, {
+    void Function(String)? onChanged,
+  }) async {
+    final now = TimeOfDay.now();
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: now,
+    );
+    if (!mounted || picked == null) return;
+    setState(() {
+      final hh = picked.hour.toString().padLeft(2, '0');
+      final mm = picked.minute.toString().padLeft(2, '0');
+      ctrl.text = '$hh:$mm';
+      onChanged?.call(ctrl.text);
+    });
+  }
+
+  Widget _timeField(
+    String label,
+    TextEditingController ctrl, {
+    void Function(String)? onChanged,
+  }) {
+    return TextFormField(
+      controller: ctrl,
+      readOnly: true,
+      style: _tsBody,
+      decoration: _d(label).copyWith(
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.access_time_rounded,
+              size: 18, color: _kTeal),
+          tooltip: 'Pick time',
+          onPressed: () => _pickTimeOnly(ctrl, onChanged: onChanged),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minHeight: 32, minWidth: 36),
+        ),
+      ),
+      onTap: () => _pickTimeOnly(ctrl, onChanged: onChanged),
+    );
+  }
+
   String _formatDateTimeDdMmYyyyHhMm(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} '
       '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
@@ -1545,20 +1655,22 @@ class CommonFormState extends State<CommonForm> {
                           _card(3, 'Crime Spot', _s3()),
                           if (widget.middleSlot != null) widget.middleSlot!,
                           _card(4, 'Complainant KYC', _s4()),
-                          _card(5, 'Accused Details', _s5()),
-                          _card(6, 'Suspected Accused', _s6()),
+                          if (widget.showInjuredKyc)
+                            _card(5, 'Injured Person KYC', _sInjured()),
+                          _card(widget.showInjuredKyc ? 6 : 5, 'Accused Details', _s5()),
+                          _card(widget.showInjuredKyc ? 7 : 6, 'Suspected Accused', _s6()),
                           if (_isUnknown)
-                            _card(7, 'Unidentified Criminal Description', _s7()),
-                          _card(8, 'Case Responsibility', _s8()),
-                          _card(9, 'Arrest & Release Status', _s9()),
-                          _card(10, 'Procedural Details', _s10()),
-                          _card(11, 'Seizure Records', _s11()),
-                          _card(12, 'Technical & Custody', _s12()),
-                          _card(13, 'Preventive & Bonds', _s13()),
-                          _card(14, 'Discharge Status', _s14()),
-                          _card(15, 'Court Filing', _s15()),
-                          _card(16, 'Final Verdict', _s16()),
-                          _card(17, 'Case Scrutiny Pipeline', _s17()),
+                            _card(widget.showInjuredKyc ? 8 : 7, 'Unidentified Criminal Description', _s7()),
+                          _card(widget.showInjuredKyc ? 9 : 8, 'Case Responsibility', _s8()),
+                          _card(widget.showInjuredKyc ? 10 : 9, 'Arrest & Release Status', _s9()),
+                          _card(widget.showInjuredKyc ? 11 : 10, 'Procedural Details', _s10()),
+                          _card(widget.showInjuredKyc ? 12 : 11, 'Seizure Records', _s11()),
+                          _card(widget.showInjuredKyc ? 13 : 12, 'Technical & Custody', _s12()),
+                          _card(widget.showInjuredKyc ? 14 : 13, 'Preventive & Bonds', _s13()),
+                          _card(widget.showInjuredKyc ? 15 : 14, 'Discharge Status', _s14()),
+                          _card(widget.showInjuredKyc ? 16 : 15, 'Court Filing', _s15()),
+                          _card(widget.showInjuredKyc ? 17 : 16, 'Final Verdict', _s16()),
+                          _card(widget.showInjuredKyc ? 18 : 17, 'Case Scrutiny Pipeline', _s17()),
                           const SizedBox(height: 80),
                         ],
                       ),
@@ -1894,6 +2006,82 @@ class CommonFormState extends State<CommonForm> {
       ],
     );
   }
+
+  // ── §4b Injured Person KYC ────────────────────────────────────────────────
+  Widget _sInjured() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _row([
+            _tf('Name', _injName),
+            _tf('Age', _injAge, keyboardType: TextInputType.number)
+          ]),
+          _row([
+            _chipSelector(
+                label: 'Gender',
+                items: _kGenders,
+                selected: _injGender,
+                onSelect: (v) => setState(() => _injGender = v)),
+          ]),
+          const SizedBox(height: 4),
+          _row([
+            _tf('Occupation', _injOcc),
+            _tf('Mobile Number', _injMobile, keyboardType: TextInputType.phone)
+          ]),
+          _row([
+            _tf('Aadhaar Number', _injAadhaar),
+            _tf('PAN Number', _injPan)
+          ]),
+          _row([_tf('Religion', _injReligion), _tf('Caste', _injCaste)]),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: (_injIsDied == true)
+                  ? _kRed.withValues(alpha: 0.06)
+                  : _kInputBg,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: (_injIsDied == true)
+                    ? _kRed.withValues(alpha: 0.35)
+                    : _kBorder,
+              ),
+            ),
+            child: Row(
+              children: [
+                Checkbox(
+                  value: _injIsDied == true,
+                  activeColor: _kRed,
+                  onChanged: (v) => setState(() {
+                    _injIsDied = v == true;
+                    if (!_injIsDied) {
+                      _injDeathDate.clear();
+                      _injDeathTime.clear();
+                    }
+                  }),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    'Person Died / Deceased (मयत / मृत्यू झाला आहे)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: (_injIsDied == true) ? _kRed : _kDark,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_injIsDied == true) ...[
+            const SizedBox(height: 8),
+            _row([
+              _dateField('Date of Death (dd/mm/yyyy)', _injDeathDate),
+              _timeField('Time of Death (hh:mm)', _injDeathTime),
+            ]),
+          ],
+        ],
+      );
 
   // ── §5 Accused Details ────────────────────────────────────────────────────
   Widget _s5() => Column(

@@ -22,7 +22,6 @@ class Migration(migrations.Migration):
                 ('full_name', models.CharField(max_length=255)),
                 ('phone', models.CharField(blank=True, max_length=32)),
                 ('is_active', models.BooleanField(default=True)),
-                ('firebase_uid', models.CharField(blank=True, max_length=128, null=True, unique=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],

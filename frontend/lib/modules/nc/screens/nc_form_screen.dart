@@ -123,10 +123,19 @@ class _NcFormScreenState extends State<NcFormScreen> {
     return parts.join(', ');
   }
 
-  String _personName(Map<String, dynamic> doc, String key) {
+  String _personName(Map<String, dynamic> doc, String key, {String? pluralKey}) {
+    final list = pluralKey != null ? doc[pluralKey] : doc['${key}s'];
+    if (list is List && list.isNotEmpty) {
+      final names = list
+          .whereType<Map>()
+          .map((m) => m['name']?.toString().trim() ?? '')
+          .where((n) => n.isNotEmpty)
+          .toList();
+      if (names.isNotEmpty) return names.join(', ');
+    }
     final m = doc[key];
-    if (m is! Map) return '';
-    return m['name']?.toString().trim() ?? '';
+    if (m is Map) return m['name']?.toString().trim() ?? '';
+    return '';
   }
 
   Future<void> _exportPdf() async {
@@ -147,8 +156,8 @@ class _NcFormScreenState extends State<NcFormScreen> {
       title: _titleFromDoc(doc),
       caseNumber: doc['ncNumber']?.toString().trim() ?? '',
       description: doc['firstInformationContent']?.toString().trim() ?? '',
-      complainant: _personName(doc, 'complainant'),
-      accused: _personName(doc, 'personComplainedAgainst'),
+      complainant: _personName(doc, 'complainant', pluralKey: 'complainants'),
+      accused: _personName(doc, 'personComplainedAgainst', pluralKey: 'nonApplicants'),
       location: _locationLine(doc),
       incidentDate: _parseIncidentDate(
           doc['registrationDateTime']?.toString() ?? ''),
@@ -208,8 +217,8 @@ class _NcFormScreenState extends State<NcFormScreen> {
     extra[kNcFormExtraFieldsKey] = doc;
     extra['moduleDisplayName'] = widget.moduleLabel;
 
-    final complainantName = _personName(doc, 'complainant');
-    final accusedName = _personName(doc, 'personComplainedAgainst');
+    final complainantName = _personName(doc, 'complainant', pluralKey: 'complainants');
+    final accusedName = _personName(doc, 'personComplainedAgainst', pluralKey: 'nonApplicants');
 
     final record = ModuleRecord(
       id: _isEdit

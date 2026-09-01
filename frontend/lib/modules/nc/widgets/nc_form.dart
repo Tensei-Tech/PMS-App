@@ -1,5 +1,6 @@
 // lib/modules/nc/widgets/nc_form.dart
-// Standalone NC registration form — patterns duplicated from common_form.dart (unchanged source).
+// Standalone NC registration form — English only, single '+' add icon,
+// and forms display only after clicking 'Add'.
 
 import 'package:flutter/material.dart';
 
@@ -8,7 +9,7 @@ import '../../../utils/app_constants.dart';
 import '../../../widgets/base_form/base_form.dart';
 import '../../../widgets/voice_dictation_button.dart';
 
-// ── Palette (matches common_form.dart) ───────────────────────────────────────
+// ── Palette ──────────────────────────────────────────────────────────────────
 const Color _kDark = Color(0xFF0f172a);
 const Color _kMid = Color(0xFF1e293b);
 const Color _kTeal = Color(0xFF0ea5e9);
@@ -38,7 +39,15 @@ const _tsMuted = TextStyle(fontSize: 11, color: _kMuted);
 const _tsBody = TextStyle(fontSize: 12, color: _kDark);
 
 const _kGenders = ['Male', 'Female', 'Other'];
-const _kPreventiveItems = ['107 CrPC', '110 CrPC', 'MPDA', 'MCOCA'];
+const _kPreventiveActs = [
+  '107 CrPC / BNSS',
+  '110 CrPC / BNSS',
+  '149 CrPC / BNSS',
+  '126 BNSS',
+  'MPDA',
+  'MCOCA',
+  'Other Act'
+];
 
 class NcForm extends StatefulWidget {
   const NcForm({super.key});
@@ -48,58 +57,63 @@ class NcForm extends StatefulWidget {
 }
 
 class NcFormState extends State<NcForm> {
-  late final ScrollController _scroll =
-      ScrollController(); // mirrors CommonForm default scroll
+  late final ScrollController _scroll = ScrollController();
   final ValueNotifier<double> scrollProgress = ValueNotifier(0);
   String saveBarText = 'All changes unsaved';
 
+  // 1. NC Number
   final _ncNumber = TextEditingController();
 
+  // 2. Acts & Sections
   int _chargeSeq = 0;
   final Map<String, Map<String, dynamic>> _chargeData = {};
 
+  // 3. Registered Date
   final _regDateTime = TextEditingController();
 
+  // 4. Crime Spot
   final _spotVillage = TextEditingController();
   final _spotArea = TextEditingController();
   final _spotAddress = TextEditingController();
 
-  final _compName = TextEditingController();
-  final _compAge = TextEditingController();
-  String _compGender = 'Male';
-  final _compOcc = TextEditingController();
-  final _compMobile = TextEditingController();
-  final _compAadhaar = TextEditingController();
-  final _compPan = TextEditingController();
-  final _compReligion = TextEditingController();
-  final _compCaste = TextEditingController();
+  // 5. Complainants (Dynamic list)
+  final List<_NcPersonRow> _complainants = [];
 
-  final _againstName = TextEditingController();
-  final _againstAge = TextEditingController();
-  String _againstGender = 'Male';
-  final _againstOcc = TextEditingController();
-  final _againstMobile = TextEditingController();
-  final _againstAadhaar = TextEditingController();
-  final _againstPan = TextEditingController();
-  final _againstReligion = TextEditingController();
-  final _againstCaste = TextEditingController();
+  // 6. Non-applicants / Person complained against (Dynamic list)
+  final List<_NcPersonRow> _nonApplicants = [];
 
+  // 7. Investigation Officer
   String _ioDesig = 'PSI';
   final _ioName = TextEditingController();
+  final _ioMobile = TextEditingController();
 
+  // 8. Registered by
   String _regDesig = 'HC';
   final _registrarName = TextEditingController();
+  final _registrarMobile = TextEditingController();
 
+  // 9. First Information Content
+  final _fic = TextEditingController();
+  int _ficCharCount = 0;
+
+  // 10. Preventive Action
   final List<_NcPreventiveRow> _preventives = [];
 
+  // 11. Case Outward
   final _caseOutwardNum = TextEditingController();
   final _caseOutwardDate = TextEditingController();
 
-  final _fic = TextEditingController();
-  int _ficWordCount = 0;
-
+  // 12. Crime Registered after NC
   String? _chargesAddedOnNc;
   final _crNumberIfCharges = TextEditingController();
+  final _crActIfCharges = TextEditingController();
+  final _crSectionIfCharges = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initially empty so only "Add" buttons show until clicked
+  }
 
   @override
   void dispose() {
@@ -110,24 +124,19 @@ class NcFormState extends State<NcForm> {
     _spotVillage.dispose();
     _spotArea.dispose();
     _spotAddress.dispose();
-    _compName.dispose();
-    _compAge.dispose();
-    _compOcc.dispose();
-    _compMobile.dispose();
-    _compAadhaar.dispose();
-    _compPan.dispose();
-    _compReligion.dispose();
-    _compCaste.dispose();
-    _againstName.dispose();
-    _againstAge.dispose();
-    _againstOcc.dispose();
-    _againstMobile.dispose();
-    _againstAadhaar.dispose();
-    _againstPan.dispose();
-    _againstReligion.dispose();
-    _againstCaste.dispose();
+
+    for (final c in _complainants) {
+      c.dispose();
+    }
+    for (final na in _nonApplicants) {
+      na.dispose();
+    }
+
     _ioName.dispose();
+    _ioMobile.dispose();
     _registrarName.dispose();
+    _registrarMobile.dispose();
+
     for (final p in _preventives) {
       p.dispose();
     }
@@ -135,6 +144,8 @@ class NcFormState extends State<NcForm> {
     _caseOutwardDate.dispose();
     _fic.dispose();
     _crNumberIfCharges.dispose();
+    _crActIfCharges.dispose();
+    _crSectionIfCharges.dispose();
     super.dispose();
   }
 
@@ -162,28 +173,24 @@ class NcFormState extends State<NcForm> {
     _spotVillage.clear();
     _spotArea.clear();
     _spotAddress.clear();
-    _compName.clear();
-    _compAge.clear();
-    _compGender = 'Male';
-    _compOcc.clear();
-    _compMobile.clear();
-    _compAadhaar.clear();
-    _compPan.clear();
-    _compReligion.clear();
-    _compCaste.clear();
-    _againstName.clear();
-    _againstAge.clear();
-    _againstGender = 'Male';
-    _againstOcc.clear();
-    _againstMobile.clear();
-    _againstAadhaar.clear();
-    _againstPan.clear();
-    _againstReligion.clear();
-    _againstCaste.clear();
+
+    for (final c in _complainants) {
+      c.dispose();
+    }
+    _complainants.clear();
+
+    for (final na in _nonApplicants) {
+      na.dispose();
+    }
+    _nonApplicants.clear();
+
     _ioDesig = 'PSI';
     _ioName.clear();
+    _ioMobile.clear();
     _regDesig = 'HC';
     _registrarName.clear();
+    _registrarMobile.clear();
+
     for (final p in _preventives) {
       p.dispose();
     }
@@ -191,9 +198,11 @@ class NcFormState extends State<NcForm> {
     _caseOutwardNum.clear();
     _caseOutwardDate.clear();
     _fic.clear();
-    _ficWordCount = 0;
+    _ficCharCount = 0;
     _chargesAddedOnNc = null;
     _crNumberIfCharges.clear();
+    _crActIfCharges.clear();
+    _crSectionIfCharges.clear();
     saveBarText = 'All changes unsaved';
     setState(() {});
   }
@@ -217,14 +226,14 @@ class NcFormState extends State<NcForm> {
       if (d == null || m == null || y == null) return parsedFallback ?? now;
       final dt = DateTime(y, m, d);
       if (dt.year != y || dt.month != m || dt.day != d) return parsedFallback ?? now;
-      if (dt.isBefore(DateTime(2000)) || dt.isAfter(now)) return parsedFallback ?? now;
+      if (dt.isBefore(DateTime(2000)) || dt.isAfter(now.add(const Duration(days: 365)))) return parsedFallback ?? now;
       return dt;
     }
 
     final picked = await showDatePicker(
       context: context,
       firstDate: DateTime(2000),
-      lastDate: now,
+      lastDate: now.add(const Duration(days: 365)),
       initialDate: initialDate(),
     );
     if (!mounted || picked == null) return;
@@ -336,6 +345,26 @@ class NcFormState extends State<NcForm> {
     setState(() {});
   }
 
+  void addComplainantRow() {
+    setState(() => _complainants.add(_NcPersonRow()));
+  }
+
+  void _removeComplainant(int index) {
+    final r = _complainants.removeAt(index);
+    r.dispose();
+    setState(() {});
+  }
+
+  void addNonApplicantRow() {
+    setState(() => _nonApplicants.add(_NcPersonRow()));
+  }
+
+  void _removeNonApplicant(int index) {
+    final r = _nonApplicants.removeAt(index);
+    r.dispose();
+    setState(() {});
+  }
+
   void addPreventiveRow() {
     setState(() => _preventives.add(_NcPreventiveRow()));
   }
@@ -344,54 +373,6 @@ class NcFormState extends State<NcForm> {
     final r = _preventives.removeAt(i);
     r.dispose();
     setState(() {});
-  }
-
-  Map<String, dynamic> _personMap({
-    required TextEditingController name,
-    required TextEditingController age,
-    required String gender,
-    required TextEditingController occ,
-    required TextEditingController mobile,
-    required TextEditingController aadhaar,
-    required TextEditingController pan,
-    required TextEditingController religion,
-    required TextEditingController caste,
-  }) {
-    return {
-      'name': name.text.trim(),
-      'age': age.text.trim(),
-      'gender': gender,
-      'occ': occ.text.trim(),
-      'mobile': mobile.text.trim(),
-      'aadhaar': aadhaar.text.trim(),
-      'pan': pan.text.trim(),
-      'religion': religion.text.trim(),
-      'caste': caste.text.trim(),
-    };
-  }
-
-  void _applyPersonMap(
-    Map<String, dynamic> m, {
-    required TextEditingController name,
-    required TextEditingController age,
-    required void Function(String) setGender,
-    required TextEditingController occ,
-    required TextEditingController mobile,
-    required TextEditingController aadhaar,
-    required TextEditingController pan,
-    required TextEditingController religion,
-    required TextEditingController caste,
-  }) {
-    name.text = _s(m['name']);
-    age.text = _s(m['age']);
-    final g = m['gender']?.toString();
-    if (g != null && _kGenders.contains(g)) setGender(g);
-    occ.text = _s(m['occ']);
-    mobile.text = _s(m['mobile']);
-    aadhaar.text = _s(m['aadhaar']);
-    pan.text = _s(m['pan']);
-    religion.text = _s(m['religion']);
-    caste.text = _s(m['caste']);
   }
 
   String _s(dynamic v) {
@@ -419,94 +400,107 @@ class NcFormState extends State<NcForm> {
         };
       }
     }
-    _regDateTime.text = _s(m['registrationDateTime']);
+    _regDateTime.text = _s(m['registrationDateTime'] ?? m['registeredDate']);
     final spot = m['crimeSpot'];
     if (spot is Map) {
       _spotVillage.text = _s(spot['village']);
       _spotArea.text = _s(spot['area']);
       _spotAddress.text = _s(spot['address']);
     }
-    final comp = m['complainant'];
-    if (comp is Map) {
-      _applyPersonMap(
-        Map<String, dynamic>.from(comp),
-        name: _compName,
-        age: _compAge,
-        setGender: (g) => _compGender = g,
-        occ: _compOcc,
-        mobile: _compMobile,
-        aadhaar: _compAadhaar,
-        pan: _compPan,
-        religion: _compReligion,
-        caste: _compCaste,
-      );
+
+    // Hydrate Complainants
+    final comps = m['complainants'] ?? m['complainant'];
+    if (comps is List && comps.isNotEmpty) {
+      for (final c in _complainants) {
+        c.dispose();
+      }
+      _complainants.clear();
+      for (final raw in comps) {
+        if (raw is Map) {
+          final row = _NcPersonRow();
+          row.fromMap(Map<String, dynamic>.from(raw));
+          _complainants.add(row);
+        }
+      }
+    } else if (comps is Map && comps.isNotEmpty) {
+      final row = _NcPersonRow();
+      row.fromMap(Map<String, dynamic>.from(comps));
+      _complainants.add(row);
     }
-    final against = m['personComplainedAgainst'];
-    if (against is Map) {
-      _applyPersonMap(
-        Map<String, dynamic>.from(against),
-        name: _againstName,
-        age: _againstAge,
-        setGender: (g) => _againstGender = g,
-        occ: _againstOcc,
-        mobile: _againstMobile,
-        aadhaar: _againstAadhaar,
-        pan: _againstPan,
-        religion: _againstReligion,
-        caste: _againstCaste,
-      );
+
+    // Hydrate Non-applicants
+    final against = m['nonApplicants'] ?? m['personComplainedAgainst'] ?? m['nonApplicant'];
+    if (against is List && against.isNotEmpty) {
+      for (final na in _nonApplicants) {
+        na.dispose();
+      }
+      _nonApplicants.clear();
+      for (final raw in against) {
+        if (raw is Map) {
+          final row = _NcPersonRow();
+          row.fromMap(Map<String, dynamic>.from(raw));
+          _nonApplicants.add(row);
+        }
+      }
+    } else if (against is Map && against.isNotEmpty) {
+      final row = _NcPersonRow();
+      row.fromMap(Map<String, dynamic>.from(against));
+      _nonApplicants.add(row);
     }
+
     final io = m['investigationOfficer'];
     if (io is Map) {
       final d = _s(io['designation']);
       if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) _ioDesig = d;
       _ioName.text = _s(io['name']);
+      _ioMobile.text = _s(io['mobileNumber'] ?? io['mobile']);
     }
+
     final rb = m['registeredBy'];
     if (rb is Map) {
       final d = _s(rb['designation']);
       if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) _regDesig = d;
       _registrarName.text = _s(rb['name']);
+      _registrarMobile.text = _s(rb['mobileNumber'] ?? rb['mobile']);
     }
+
     final prev = m['preventives'];
     if (prev is List) {
       for (final raw in prev) {
         if (raw is! Map) continue;
         final row = _NcPreventiveRow();
-        final act = raw['action']?.toString();
-        if (act != null && _kPreventiveItems.contains(act)) {
-          row.action = act;
-        }
-        row.outwardNum.text = _s(raw['outwardNumber']);
-        row.outwardDate.text = _s(raw['outwardDate']);
-        row.bondDate.text = _s(raw['bondDate']);
-        row.bondCancel.text = _s(raw['bondCancellation']);
+        row.fromMap(Map<String, dynamic>.from(raw));
         _preventives.add(row);
       }
     }
+
     final ow = m['caseOutward'];
     if (ow is Map) {
       _caseOutwardNum.text = _s(ow['number']);
       _caseOutwardDate.text = _s(ow['date']);
     }
+
     _fic.text = _s(m['firstInformationContent']);
-    _recountFicWords();
-    final ca = m['chargesAddedOnNc']?.toString();
+    _ficCharCount = _fic.text.trim().length;
+
+    final ca = m['crimeRegisteredAfterNc']?.toString() ?? m['chargesAddedOnNc']?.toString();
     if (ca == 'yes' || ca == 'no') _chargesAddedOnNc = ca;
-    _crNumberIfCharges.text = _s(m['crNumberIfChargesAdded']);
+    final postCr = m['postNcCrime'];
+    if (postCr is Map) {
+      _crNumberIfCharges.text = _s(postCr['crimeNumber'] ?? postCr['crNumber']);
+      _crActIfCharges.text = _s(postCr['act']);
+      _crSectionIfCharges.text = _s(postCr['section']);
+    } else {
+      _crNumberIfCharges.text = _s(m['crNumberIfChargesAdded']);
+    }
+
     saveBarText = 'Loaded from record';
     setState(() {});
   }
 
   Map<String, dynamic> buildDocumentMap() {
     List<Map<String, dynamic>> preventiveMaps() => _preventives
-        .map((p) => {
-              'action': p.action,
-              'outwardNumber': p.outwardNum.text.trim(),
-              'outwardDate': p.outwardDate.text.trim(),
-              'bondDate': p.bondDate.text.trim(),
-              'bondCancellation': p.bondCancel.text.trim(),
-            })
+        .map((p) => p.toMap())
         .toList();
 
     return {
@@ -516,40 +510,25 @@ class NcFormState extends State<NcForm> {
             'sections': (v['sections'] as Set<String>).toList(),
           })),
       'registrationDateTime': _regDateTime.text.trim(),
+      'registeredDate': _regDateTime.text.trim(),
       'crimeSpot': {
         'village': _spotVillage.text.trim(),
         'area': _spotArea.text.trim(),
         'address': _spotAddress.text.trim(),
       },
-      'complainant': _personMap(
-        name: _compName,
-        age: _compAge,
-        gender: _compGender,
-        occ: _compOcc,
-        mobile: _compMobile,
-        aadhaar: _compAadhaar,
-        pan: _compPan,
-        religion: _compReligion,
-        caste: _compCaste,
-      ),
-      'personComplainedAgainst': _personMap(
-        name: _againstName,
-        age: _againstAge,
-        gender: _againstGender,
-        occ: _againstOcc,
-        mobile: _againstMobile,
-        aadhaar: _againstAadhaar,
-        pan: _againstPan,
-        religion: _againstReligion,
-        caste: _againstCaste,
-      ),
+      'complainants': _complainants.map((c) => c.toMap()).toList(),
+      'complainant': _complainants.isNotEmpty ? _complainants.first.toMap() : {},
+      'nonApplicants': _nonApplicants.map((na) => na.toMap()).toList(),
+      'personComplainedAgainst': _nonApplicants.isNotEmpty ? _nonApplicants.first.toMap() : {},
       'investigationOfficer': {
-        'designation': _ioDesig,
         'name': _ioName.text.trim(),
+        'designation': _ioDesig,
+        'mobileNumber': _ioMobile.text.trim(),
       },
       'registeredBy': {
-        'designation': _regDesig,
         'name': _registrarName.text.trim(),
+        'designation': _regDesig,
+        'mobileNumber': _registrarMobile.text.trim(),
       },
       'preventives': preventiveMaps(),
       'caseOutward': {
@@ -557,38 +536,19 @@ class NcFormState extends State<NcForm> {
         'date': _caseOutwardDate.text.trim(),
       },
       'firstInformationContent': _fic.text.trim(),
+      'crimeRegisteredAfterNc': _chargesAddedOnNc,
       'chargesAddedOnNc': _chargesAddedOnNc,
-      'crNumberIfChargesAdded': _chargesAddedOnNc == 'yes'
-          ? _crNumberIfCharges.text.trim()
-          : '',
+      'postNcCrime': {
+        'crimeNumber': _chargesAddedOnNc == 'yes' ? _crNumberIfCharges.text.trim() : '',
+        'act': _chargesAddedOnNc == 'yes' ? _crActIfCharges.text.trim() : '',
+        'section': _chargesAddedOnNc == 'yes' ? _crSectionIfCharges.text.trim() : '',
+      },
+      'crNumberIfChargesAdded': _chargesAddedOnNc == 'yes' ? _crNumberIfCharges.text.trim() : '',
     };
   }
 
   void _onFicChanged(String v) {
-    final words = v
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (words.length > 25) {
-      final allowed = words.take(25).join(' ');
-      _fic.value = TextEditingValue(
-        text: allowed,
-        selection: TextSelection.collapsed(offset: allowed.length),
-      );
-      setState(() => _ficWordCount = 25);
-      return;
-    }
-    setState(() => _ficWordCount = words.length);
-  }
-
-  void _recountFicWords() {
-    final words = _fic.text
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
-    _ficWordCount = words.length > 25 ? 25 : words.length;
+    setState(() => _ficCharCount = v.trim().length);
   }
 
   InputDecoration _d(String label) => InputDecoration(
@@ -622,6 +582,7 @@ class NcFormState extends State<NcForm> {
     int? maxLines,
     TextInputType keyboardType = TextInputType.text,
     void Function(String)? onChanged,
+    String? hintText,
   }) {
     return StandardTextField(
       label: label,
@@ -629,6 +590,7 @@ class NcFormState extends State<NcForm> {
       maxLines: maxLines ?? 1,
       keyboardType: keyboardType,
       onChanged: onChanged,
+      hint: hintText,
     );
   }
 
@@ -731,8 +693,8 @@ class NcFormState extends State<NcForm> {
         alignment: Alignment.centerRight,
         child: TextButton.icon(
           onPressed: onTap,
-          icon: const Icon(Icons.add, size: 14),
-          label: Text(label, style: const TextStyle(fontSize: 11)),
+          icon: const Icon(Icons.add, size: 16),
+          label: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             foregroundColor: _kTeal,
@@ -779,31 +741,31 @@ class NcFormState extends State<NcForm> {
 
   Widget _card(int idx, String title, Widget body, {bool startOpen = false}) {
     final leadingBadge = Container(
-      width: 22,
-      height: 22,
+      width: 26,
+      height: 26,
       decoration: BoxDecoration(
         color: _kMid,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(7),
       ),
       child: Center(
         child: Text('$idx',
             style: const TextStyle(
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: FontWeight.w800,
                 color: Colors.white)),
       ),
     );
     final themed = Theme.of(context).copyWith(dividerColor: Colors.transparent);
 
-    final useExpansion = idx == 5 || idx == 6;
+    final useExpansion = idx == 5 || idx == 6 || idx == 10;
     Widget inner;
     if (useExpansion) {
       inner = ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-        childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+        tilePadding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
         initiallyExpanded: startOpen,
         leading: leadingBadge,
-        title: Text(title, style: _tsSection),
+        title: Text(title, style: _tsSection.copyWith(fontSize: 13)),
         children: [body],
       );
     } else {
@@ -812,18 +774,18 @@ class NcFormState extends State<NcForm> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 leadingBadge,
                 const SizedBox(width: 12),
-                Expanded(child: Text(title, style: _tsSection)),
+                Expanded(child: Text(title, style: _tsSection.copyWith(fontSize: 13))),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
@@ -835,7 +797,7 @@ class NcFormState extends State<NcForm> {
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 14),
       color: _kCardBg,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -867,7 +829,7 @@ class NcFormState extends State<NcForm> {
           Row(
             children: [
               Expanded(
-                  child: Text('Charge #$num',
+                  child: Text('Act & Section #$num',
                       style: _tsSection.copyWith(fontSize: 11))),
               GestureDetector(
                 onTap: () => _removeCharge(id),
@@ -877,7 +839,7 @@ class NcFormState extends State<NcForm> {
           ),
           const SizedBox(height: 8),
           _chipSelector(
-            label: 'Act / Law',
+            label: 'Act - Name',
             items:
                 ACT_DATA.keys.map((k) => ACT_DATA[k]!['label'] as String).toList(),
             selected: hasAct ? (ACT_DATA[actKey]!['label'] as String) : null,
@@ -896,7 +858,7 @@ class NcFormState extends State<NcForm> {
                   fontSize: 10, color: _kAmber, fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 8),
-            Text('Section(s) — tap to add', style: _tsLabel),
+            Text('Section(s) — Click or Search to Add', style: _tsLabel),
             const SizedBox(height: 4),
             _NcSectionSearchPicker(
               actKey: actKey,
@@ -913,9 +875,9 @@ class NcFormState extends State<NcForm> {
   Widget _sCharges() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _addBtn('+ Add Charge', addChargeRow),
+          _addBtn('Add Act & Section', addChargeRow),
           if (_chargeData.isEmpty)
-            _emptyBox('No charges. Tap + Add Charge to begin.')
+            _emptyBox('No acts added. Tap Add Act & Section to begin.')
           else ...[
             ..._chargeData.entries.toList().asMap().entries.map((e) {
               final id = e.value.key;
@@ -934,7 +896,7 @@ class NcFormState extends State<NcForm> {
               controller: _regDateTime,
               readOnly: true,
               style: _tsBody,
-              decoration: _d('Registration Date & Time (dd/MM/yyyy HH:mm)')
+              decoration: _d('Date & Time (dd/MM/yyyy HH:mm)')
                   .copyWith(
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.calendar_today_rounded,
@@ -955,71 +917,125 @@ class NcFormState extends State<NcForm> {
   Widget _sSpot() => Column(
         children: [
           _row([
-            _tf('Village/Town', _spotVillage),
+            _tf('Village / Town', _spotVillage),
             _tf('Area Name', _spotArea),
           ]),
-          _row([_tf('Full Address', _spotAddress, maxLines: 3)]),
+          _row([_tf('Full Address / Landmark', _spotAddress, maxLines: 2)]),
         ],
       );
 
-  Widget _sComplainant() => Column(
+  Widget _personCard({
+    required int index,
+    required String titlePrefix,
+    required _NcPersonRow person,
+    required VoidCallback onRemove,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _kInputBg.withValues(alpha: 0.5),
+        border: Border.all(color: _kBorder),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _kMid,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '$titlePrefix #${index + 1}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 18, color: _kRed),
+                tooltip: 'Remove',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                onPressed: onRemove,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           _row([
-            _tf('Name', _compName),
-            _tf('Age', _compAge, keyboardType: TextInputType.number),
+            _tf('Name', person.name),
+            _tf('Age', person.age, keyboardType: TextInputType.number),
           ]),
           _row([
             _chipSelector(
               label: 'Gender',
               items: _kGenders,
-              selected: _compGender,
-              onSelect: (v) => setState(() => _compGender = v),
+              selected: person.gender,
+              onSelect: (v) => setState(() => person.gender = v),
             ),
+            _tf('Caste', person.caste),
           ]),
           const SizedBox(height: 4),
           _row([
-            _tf('Occupation', _compOcc),
-            _tf('Mobile Number', _compMobile,
-                keyboardType: TextInputType.phone),
+            _tf('Profession', person.profession),
+            _tf('Mobile Number', person.mobile, keyboardType: TextInputType.phone),
           ]),
           _row([
-            _tf('Aadhaar Number', _compAadhaar),
-            _tf('PAN Number', _compPan),
+            _tf('Address', person.address, maxLines: 2),
           ]),
-          _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
+          _row([
+            _tf('Aadhaar Card Number (Optional)', person.aadhaar,
+                keyboardType: TextInputType.number),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _sComplainant() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _addBtn('Add Complainant', addComplainantRow),
+          if (_complainants.isEmpty)
+            _emptyBox('No complainants added. Tap Add Complainant to begin.')
+          else ...[
+            const SizedBox(height: 4),
+            ..._complainants.asMap().entries.map((e) {
+              return _personCard(
+                index: e.key,
+                titlePrefix: 'Complainant',
+                person: e.value,
+                onRemove: () => _removeComplainant(e.key),
+              );
+            }),
+          ],
         ],
       );
 
   Widget _sAgainst() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _row([
-            _tf('Name', _againstName),
-            _tf('Age', _againstAge, keyboardType: TextInputType.number),
-          ]),
-          _row([
-            _chipSelector(
-              label: 'Gender',
-              items: _kGenders,
-              selected: _againstGender,
-              onSelect: (v) => setState(() => _againstGender = v),
-            ),
-          ]),
-          const SizedBox(height: 4),
-          _row([
-            _tf('Occupation', _againstOcc),
-            _tf('Mobile Number', _againstMobile,
-                keyboardType: TextInputType.phone),
-          ]),
-          _row([
-            _tf('Aadhaar Number', _againstAadhaar),
-            _tf('PAN Number', _againstPan),
-          ]),
-          _row([
-            _tf('Religion', _againstReligion),
-            _tf('Caste', _againstCaste),
-          ]),
+          _addBtn('Add Non-Applicant', addNonApplicantRow),
+          if (_nonApplicants.isEmpty)
+            _emptyBox('No non-applicants added. Tap Add Non-Applicant to begin.')
+          else ...[
+            const SizedBox(height: 4),
+            ..._nonApplicants.asMap().entries.map((e) {
+              return _personCard(
+                index: e.key,
+                titlePrefix: 'Non-Applicant',
+                person: e.value,
+                onRemove: () => _removeNonApplicant(e.key),
+              );
+            }),
+          ],
         ],
       );
 
@@ -1033,7 +1049,10 @@ class NcFormState extends State<NcForm> {
             onSelect: (v) => setState(() => _ioDesig = v),
           ),
           const SizedBox(height: 8),
-          _row([_tf('IO Name', _ioName)]),
+          _row([
+            _tf('IO Name', _ioName),
+            _tf('IO Mobile Number', _ioMobile, keyboardType: TextInputType.phone),
+          ]),
         ],
       );
 
@@ -1047,16 +1066,19 @@ class NcFormState extends State<NcForm> {
             onSelect: (v) => setState(() => _regDesig = v),
           ),
           const SizedBox(height: 8),
-          _row([_tf('Registrar Name', _registrarName)]),
+          _row([
+            _tf('Registrar Name', _registrarName),
+            _tf('Registrar Mobile Number', _registrarMobile, keyboardType: TextInputType.phone),
+          ]),
         ],
       );
 
   Widget _sPreventives() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _addBtn('+ Add Preventive', addPreventiveRow),
+          _addBtn('Add Preventive', addPreventiveRow),
           if (_preventives.isEmpty)
-            _emptyBox('No preventive blocks. Tap + Add Preventive.')
+            _emptyBox('No preventive action added. Tap Add Preventive.')
           else
             ..._preventives.asMap().entries.map((e) {
               final i = e.key;
@@ -1074,7 +1096,7 @@ class NcFormState extends State<NcForm> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text('Preventive #${i + 1}',
+                          child: Text('Preventive Action #${i + 1}',
                               style: _tsSection.copyWith(fontSize: 11)),
                         ),
                         GestureDetector(
@@ -1086,26 +1108,38 @@ class NcFormState extends State<NcForm> {
                     ),
                     const SizedBox(height: 8),
                     _chipSelector(
-                      label: 'Preventive Action',
-                      items: _kPreventiveItems,
+                      label: 'Act - Name (Selection)',
+                      items: _kPreventiveActs,
                       selected: p.action,
-                      onSelect: (v) => setState(() => p.action = v),
+                      onSelect: (v) {
+                        setState(() {
+                          p.action = v;
+                          if (v != 'Other Act') {
+                            p.actName.text = v;
+                          }
+                        });
+                      },
                     ),
                     const SizedBox(height: 8),
-                    _row([_tf('Outward Number', p.outwardNum)]),
+                    _row([
+                      _tf('Act - Name (Custom / Type)', p.actName, hintText: 'e.g. 107 CrPC / BNSS'),
+                      _tf('Section', p.section, hintText: 'e.g. 107 / 110'),
+                    ]),
+                    _row([
+                      _tf('Preventive Number', p.istegashaNum, hintText: 'e.g. PREV-2026/01'),
+                      _tf('Outward Number', p.outwardNum),
+                    ]),
                     _row([
                       TextFormField(
                         controller: p.outwardDate,
                         readOnly: true,
                         style: _tsBody,
-                        decoration:
-                            _d('Outward Date (dd/MM/yyyy)').copyWith(
+                        decoration: _d('Outward Date (dd/MM/yyyy)').copyWith(
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.calendar_today_rounded,
                                 size: 18, color: _kTeal),
                             tooltip: 'Pick date',
-                            onPressed: () =>
-                                _pickDateFor(p.outwardDate),
+                            onPressed: () => _pickDateFor(p.outwardDate),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
                                 minHeight: 32, minWidth: 36),
@@ -1113,38 +1147,17 @@ class NcFormState extends State<NcForm> {
                         ),
                         onTap: () => _pickDateFor(p.outwardDate),
                       ),
-                    ]),
-                    _row([
-                      TextFormField(
-                        controller: p.bondDate,
-                        readOnly: true,
-                        style: _tsBody,
-                        decoration: _d('Bond Date (dd/MM/yyyy)').copyWith(
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.calendar_today_rounded,
-                                size: 18, color: _kTeal),
-                            tooltip: 'Pick date',
-                            onPressed: () => _pickDateFor(p.bondDate),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                                minHeight: 32, minWidth: 36),
-                          ),
-                        ),
-                        onTap: () => _pickDateFor(p.bondDate),
-                      ),
                       TextFormField(
                         controller: p.bondCancel,
                         readOnly: true,
                         style: _tsBody,
-                        decoration:
-                            _d('Bond Cancellation Date (dd/MM/yyyy)')
-                                .copyWith(
+                        decoration: _d('Bond Cancellation Date (dd/MM/yyyy)')
+                            .copyWith(
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.calendar_today_rounded,
                                 size: 18, color: _kTeal),
                             tooltip: 'Pick date',
-                            onPressed: () =>
-                                _pickDateFor(p.bondCancel),
+                            onPressed: () => _pickDateFor(p.bondCancel),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
                                 minHeight: 32, minWidth: 36),
@@ -1191,10 +1204,10 @@ class NcFormState extends State<NcForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('First Information Content / हकीकत', style: _tsLabel),
+              Text('First Information Content', style: _tsLabel),
               VoiceDictationButton(
                 controller: _fic,
-                label: 'बोलून लिहा (Voice)',
+                label: 'Voice Dictation',
                 onSpeechCompleted: () => _onFicChanged(_fic.text),
               ),
             ],
@@ -1205,12 +1218,27 @@ class NcFormState extends State<NcForm> {
             _fic,
             maxLines: 5,
             onChanged: _onFicChanged,
+            hintText: 'Enter incident details...',
           ),
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              '$_ficWordCount / 25 words',
-              style: _tsMuted,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Characters: $_ficCharCount (Recommended: 50+ characters)',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: _ficCharCount >= 50 ? _kGreen : _kSec,
+                    fontWeight: _ficCharCount >= 50 ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+                if (_ficCharCount < 50 && _ficCharCount > 0)
+                  const Text(
+                    'Short summary',
+                    style: TextStyle(fontSize: 10, color: _kAmber),
+                  ),
+              ],
             ),
           ),
         ],
@@ -1219,11 +1247,37 @@ class NcFormState extends State<NcForm> {
   Widget _sChargesAdded() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _yesNo('Charges Added on NC', _chargesAddedOnNc,
-              (v) => setState(() => _chargesAddedOnNc = v)),
+          _yesNo('Crime Registered After NC',
+              _chargesAddedOnNc, (v) => setState(() => _chargesAddedOnNc = v)),
           if (_chargesAddedOnNc == 'yes') ...[
-            const SizedBox(height: 8),
-            _row([_tf('CR Number', _crNumberIfCharges)]),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: _kTeal.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: _kTeal.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Registered Crime Details',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: _kDark,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  _row([_tf('Crime Number', _crNumberIfCharges)]),
+                  _row([
+                    _tf('Act', _crActIfCharges, hintText: 'e.g. BNS / IPC'),
+                    _tf('Section', _crSectionIfCharges, hintText: 'e.g. 324, 504, 506'),
+                  ]),
+                ],
+              ),
+            ),
           ],
         ],
       );
@@ -1267,21 +1321,21 @@ class NcFormState extends State<NcForm> {
                 children: [
                   BaseFormContent.scrollSections(
                     children: [
-                  _card(1, 'NC Number', _row([_tf('NC Number', _ncNumber)]),
-                      startOpen: true),
-                  _card(2, 'Acts & Sections', _sCharges(), startOpen: true),
-                  _card(3, 'Registration Date & Time', _sRegDt(),
-                      startOpen: true),
-                  _card(4, 'Crime Spot', _sSpot()),
-                  _card(5, 'Complainant KYC', _sComplainant()),
-                  _card(6, 'Person Complained Against KYC', _sAgainst()),
-                  _card(7, 'Investigation Officer', _sIo()),
-                  _card(8, 'Registered By', _sRegBy()),
-                  _card(9, 'Preventives', _sPreventives()),
-                  _card(10, 'Outward Number & Date', _sCaseOutward()),
-                  _card(11, 'First Information Content', _sFic()),
-                  _card(12, 'Charges Added on NC', _sChargesAdded()),
-                  const SizedBox(height: 80),
+                      _card(1, 'NC Number', _row([_tf('NC Number', _ncNumber)]),
+                          startOpen: true),
+                      _card(2, 'Acts & Sections', _sCharges(), startOpen: true),
+                      _card(3, 'Registration Date & Time', _sRegDt(),
+                          startOpen: true),
+                      _card(4, 'Crime Spot', _sSpot()),
+                      _card(5, 'Complainant Details', _sComplainant(), startOpen: true),
+                      _card(6, 'Non-Applicant Details', _sAgainst(), startOpen: true),
+                      _card(7, 'Investigation Officer', _sIo()),
+                      _card(8, 'Registered By', _sRegBy()),
+                      _card(9, 'First Information Content', _sFic()),
+                      _card(10, 'Preventive Actions', _sPreventives()),
+                      _card(11, 'Outward Details', _sCaseOutward()),
+                      _card(12, 'Crime Registered After NC', _sChargesAdded()),
+                      const SizedBox(height: 80),
                     ],
                   ),
                 ],
@@ -1294,22 +1348,122 @@ class NcFormState extends State<NcForm> {
   }
 }
 
+class _NcPersonRow {
+  final name = TextEditingController();
+  final age = TextEditingController();
+  String gender = 'Male';
+  final caste = TextEditingController();
+  final profession = TextEditingController();
+  final mobile = TextEditingController();
+  final address = TextEditingController();
+  final aadhaar = TextEditingController();
+  final pan = TextEditingController();
+  final religion = TextEditingController();
+
+  void dispose() {
+    name.dispose();
+    age.dispose();
+    caste.dispose();
+    profession.dispose();
+    mobile.dispose();
+    address.dispose();
+    aadhaar.dispose();
+    pan.dispose();
+    religion.dispose();
+  }
+
+  void clear() {
+    name.clear();
+    age.clear();
+    gender = 'Male';
+    caste.clear();
+    profession.clear();
+    mobile.clear();
+    address.clear();
+    aadhaar.clear();
+    pan.clear();
+    religion.clear();
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name.text.trim(),
+      'age': age.text.trim(),
+      'gender': gender,
+      'caste': caste.text.trim(),
+      'profession': profession.text.trim(),
+      'occ': profession.text.trim(),
+      'mobileNumber': mobile.text.trim(),
+      'mobile': mobile.text.trim(),
+      'address': address.text.trim(),
+      'aadhaar': aadhaar.text.trim(),
+      'pan': pan.text.trim(),
+      'religion': religion.text.trim(),
+    };
+  }
+
+  void fromMap(Map<String, dynamic> m) {
+    name.text = m['name']?.toString() ?? '';
+    age.text = m['age']?.toString() ?? '';
+    final g = m['gender']?.toString();
+    if (g != null && _kGenders.contains(g)) gender = g;
+    caste.text = (m['caste'] ?? m['cast'])?.toString() ?? '';
+    profession.text = (m['profession'] ?? m['occ'])?.toString() ?? '';
+    mobile.text = (m['mobileNumber'] ?? m['mobile'])?.toString() ?? '';
+    address.text = m['address']?.toString() ?? '';
+    aadhaar.text = m['aadhaar']?.toString() ?? '';
+    pan.text = m['pan']?.toString() ?? '';
+    religion.text = m['religion']?.toString() ?? '';
+  }
+}
+
 class _NcPreventiveRow {
   String? action;
+  final actName = TextEditingController();
+  final section = TextEditingController();
+  final istegashaNum = TextEditingController();
   final outwardNum = TextEditingController();
   final outwardDate = TextEditingController();
   final bondDate = TextEditingController();
   final bondCancel = TextEditingController();
 
   void dispose() {
+    actName.dispose();
+    section.dispose();
+    istegashaNum.dispose();
     outwardNum.dispose();
     outwardDate.dispose();
     bondDate.dispose();
     bondCancel.dispose();
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'action': action ?? actName.text.trim(),
+      'actName': actName.text.trim(),
+      'section': section.text.trim(),
+      'istegashaNumber': istegashaNum.text.trim(),
+      'preventiveNumber': istegashaNum.text.trim(),
+      'outwardNumber': outwardNum.text.trim(),
+      'outwardDate': outwardDate.text.trim(),
+      'bondDate': bondDate.text.trim(),
+      'bondCancellation': bondCancel.text.trim(),
+    };
+  }
+
+  void fromMap(Map<String, dynamic> m) {
+    action = m['action']?.toString();
+    actName.text = m['actName']?.toString() ?? (m['action']?.toString() ?? '');
+    section.text = m['section']?.toString() ?? '';
+    istegashaNum.text = (m['istegashaNumber'] ?? m['preventiveNumber'])?.toString() ?? '';
+    outwardNum.text = m['outwardNumber']?.toString() ?? '';
+    outwardDate.text = m['outwardDate']?.toString() ?? '';
+    bondDate.text = m['bondDate']?.toString() ?? '';
+    bondCancel.text = m['bondCancellation']?.toString() ?? '';
+  }
 }
 
-/// Duplicated from common_form.dart `_SectionSearchPicker` (same behaviour).
+/// Section search & multi-select chip picker
 class _NcSectionSearchPicker extends StatefulWidget {
   const _NcSectionSearchPicker({
     required this.actKey,
@@ -1386,7 +1540,7 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
           controller: _ctrl,
           style: const TextStyle(fontSize: 12),
           decoration: InputDecoration(
-            hintText: 'Search sections…',
+            hintText: 'Search or type sections…',
             hintStyle: _tsMuted,
             isDense: true,
             contentPadding:
@@ -1409,6 +1563,17 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
             _open = v.isNotEmpty;
           }),
           onTap: () => setState(() => _open = true),
+          onFieldSubmitted: (v) {
+            final trimmed = v.trim();
+            if (trimmed.isNotEmpty) {
+              widget.onAdd(trimmed);
+              _ctrl.clear();
+              setState(() {
+                _query = '';
+                _open = false;
+              });
+            }
+          },
         ),
         if (_open && filtered.isNotEmpty)
           Container(

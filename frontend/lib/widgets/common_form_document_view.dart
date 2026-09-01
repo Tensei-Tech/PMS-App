@@ -802,6 +802,7 @@ class CommonFormDocumentView extends StatelessWidget {
     final isUnknown = m['isUnknownUntraced'] == true;
     final charges = m['charges'] as Map? ?? {};
     final comp = m['complainant'] as Map? ?? {};
+    final inj = m['injured'] as Map? ?? {};
     final u = m['unidentified'] as Map? ?? {};
     final cr8 = m['caseResponsibility'] as Map? ?? {};
     final procChecks = m['proceduralChecks'] as Map? ?? {};
@@ -821,6 +822,12 @@ class CommonFormDocumentView extends StatelessWidget {
     final arrests = (m['arrestRelease'] as List?) ?? [];
 
     final accent = AppColors.infoBlue;
+
+    final hasInj = inj.isNotEmpty &&
+        (inj['name']?.toString().trim().isNotEmpty == true ||
+            inj['mobile']?.toString().trim().isNotEmpty == true ||
+            inj['aadhaar']?.toString().trim().isNotEmpty == true ||
+            inj['age']?.toString().trim().isNotEmpty == true);
 
     final children = <Widget>[
       _sectionTitle(
@@ -901,8 +908,44 @@ class CommonFormDocumentView extends StatelessWidget {
           ],
         ],
       ),
+      if (hasInj)
+        _sectionShell(
+          5,
+          'INJURED PERSON KYC',
+          accent,
+          [
+            ..._pairedSimpleFields(context, [
+              (label: 'Name', value: _v(inj['name']), fullWidth: false),
+              (label: 'Age', value: _v(inj['age']), fullWidth: false),
+              (label: 'Gender', value: _v(inj['gender']), fullWidth: false),
+              (label: 'Occupation', value: _v(inj['occ']), fullWidth: false),
+              (label: 'Mobile', value: _v(inj['mobile']), fullWidth: false),
+              (label: 'Aadhaar', value: _v(inj['aadhaar']), fullWidth: false),
+              (label: 'Religion', value: _v(inj['religion']), fullWidth: false),
+              (label: 'Caste', value: _v(inj['caste']), fullWidth: false),
+              (label: 'PAN Number', value: _v(inj['pan']), fullWidth: false),
+              (
+                label: 'Person Died / Deceased',
+                value: inj['isDied'] == true ? 'Yes (Died / मयत)' : 'No (Alive)',
+                fullWidth: false
+              ),
+              if (inj['isDied'] == true) ...[
+                (
+                  label: 'Date of Death',
+                  value: _v(inj['deathDate']),
+                  fullWidth: false
+                ),
+                (
+                  label: 'Time of Death',
+                  value: _v(inj['deathTime']),
+                  fullWidth: false
+                ),
+              ],
+            ]),
+          ],
+        ),
       _sectionShell(
-        5,
+        hasInj ? 6 : 5,
         'ACCUSED DETAILS',
         accent,
         [
@@ -926,7 +969,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ],
       ),
       _sectionShell(
-        6,
+        hasInj ? 7 : 6,
         'SUSPECTED ACCUSED',
         accent,
         [
@@ -950,7 +993,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ],
       ),
       _sectionShell(
-        7,
+        hasInj ? 8 : 7,
         'UNIDENTIFIED CRIMINAL DESCRIPTION',
         Colors.orange,
         [
@@ -971,7 +1014,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ],
       ),
       _sectionShell(
-        8,
+        hasInj ? 9 : 8,
         'CASE RESPONSIBILITY',
         accent,
         _pairedSimpleFields(context, [
@@ -984,7 +1027,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ]),
       ),
       _sectionShell(
-        9,
+        hasInj ? 10 : 9,
         'ARREST & RELEASE STATUS',
         accent,
         [
@@ -1017,7 +1060,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ],
       ),
       _sectionShell(
-        10,
+        hasInj ? 11 : 10,
         'PROCEDURAL DETAILS',
         accent,
         [
@@ -1070,7 +1113,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ],
       ),
       _sectionShell(
-        11,
+        hasInj ? 12 : 11,
         'SEIZURE RECORDS',
         accent,
         [
@@ -1106,7 +1149,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ],
       ),
       _sectionShell(
-        12,
+        hasInj ? 13 : 12,
         'TECHNICAL & CUSTODY',
         accent,
         _pairedSimpleFields(context, [
@@ -1117,7 +1160,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ]),
       ),
       _sectionShell(
-        13,
+        hasInj ? 14 : 13,
         'PREVENTIVE & BONDS',
         accent,
         _pairedSimpleFields(context, [
@@ -1128,7 +1171,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ]),
       ),
       _sectionShell(
-        14,
+        hasInj ? 15 : 14,
         'DISCHARGE STATUS',
         accent,
         [
@@ -1167,7 +1210,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ],
       ),
       _sectionShell(
-        15,
+        hasInj ? 16 : 15,
         'COURT FILING',
         accent,
         _pairedSimpleFields(context, [
@@ -1178,7 +1221,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ]),
       ),
       _sectionShell(
-        16,
+        hasInj ? 17 : 16,
         'FINAL VERDICT',
         accent,
         [
@@ -1194,7 +1237,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ],
       ),
       _sectionShell(
-        17,
+        hasInj ? 18 : 17,
         'CASE SCRUTINY PIPELINE',
         accent,
         [

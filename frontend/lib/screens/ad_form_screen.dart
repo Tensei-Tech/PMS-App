@@ -1171,63 +1171,108 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _fullWidth(Widget child) =>
       SizedBox(width: double.infinity, child: child);
 
+  Widget _addBtn(String label, VoidCallback onTap) => TextButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.add, size: 16),
+        label: Text(label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          foregroundColor: accentTeal,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      );
+
+  Widget _emptyBox(String text) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(top: 4),
+        decoration: BoxDecoration(
+          color: inputBg,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: inputBorder),
+        ),
+        child: Text(text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11, color: textMuted)),
+      );
+
   Widget _sectionCard(
       {required String title, Widget? action, required Widget content}) {
+    final match = RegExp(r'^(\d+)\.\s*(.*)$').firstMatch(title);
+    final badgeText = match != null ? match.group(1)! : '';
+    final displayTitle = match != null ? match.group(2)! : title;
+
+    final leadingBadge = Container(
+      width: 26,
+      height: 26,
+      decoration: BoxDecoration(
+        color: primaryMid,
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Center(
+        child: badgeText.isNotEmpty
+            ? Text(
+                badgeText,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              )
+            : const Icon(Icons.description_outlined,
+                size: 14, color: Colors.white),
+      ),
+    );
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 1,
+      margin: const EdgeInsets.only(bottom: 14),
+      elevation: 0,
       color: cardBg,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: inputBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                leadingBadge,
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: accentTeal,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: primaryDark,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    displayTitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: primaryDark,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
                 if (action != null) ...[
                   const SizedBox(width: 8),
-                  Flexible(
-                    fit: FlexFit.loose,
-                    child: action,
-                  ),
+                  action,
                 ],
               ],
             ),
-            const Divider(height: 24, color: Color(0xFFf1f5f9)),
-            content,
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [content],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1242,63 +1287,48 @@ class _ADFormScreenState extends State<ADFormScreen> {
     return Container(
       key: key,
       margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(12),
+        color: inputBg.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: inputBorder),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 4,
-            constraints: const BoxConstraints(minHeight: 80),
-            decoration: BoxDecoration(
-              color: borderColor,
-              borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12)),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: primaryDark,
-                          ),
-                        ),
-                      ),
-                      TextButton.icon(
-                        onPressed: onRemove,
-                        icon:
-                            const Icon(Icons.close, size: 14, color: accentRed),
-                        label: const Text('Remove',
-                            style: TextStyle(fontSize: 12, color: accentRed)),
-                        style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8)),
-                      ),
-                    ],
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryMid,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 12),
-                  content,
-                ],
+                ),
               ),
-            ),
+              const Spacer(),
+              IconButton(
+                onPressed: onRemove,
+                icon: const Icon(Icons.delete_outline,
+                    size: 18, color: accentRed),
+                tooltip: 'Remove',
+                padding: EdgeInsets.zero,
+                constraints:
+                    const BoxConstraints(minWidth: 28, minHeight: 28),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
+          content,
         ],
       ),
     );
@@ -1581,44 +1611,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _section2Charges() {
     return _sectionCard(
       title: '2. ACTS & SECTIONS FILED',
-      action: ElevatedButton.icon(
-        onPressed: addChargeRow,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryDark,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        icon: const Icon(Icons.add, size: 18),
-        label: const Text('Add Charge',
-            style: TextStyle(fontWeight: FontWeight.w700)),
-      ),
+      action: _addBtn('Add Charge', addChargeRow),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (chargeData.isEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                color: inputBg,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: textMuted.withValues(alpha: 0.45)),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.gavel_outlined,
-                      size: 40, color: textMuted.withValues(alpha: 0.6)),
-                  const SizedBox(height: 12),
-                  Text(
-                    'No charges added. Tap Add Charge to begin',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 13,
-                        color: textSecondary.withValues(alpha: 0.9)),
-                  ),
-                ],
-              ),
-            )
+            _emptyBox('No charges added. Tap Add Charge to begin')
           else
             ...chargeData.entries.toList().asMap().entries.map(
                   (indexed) => _buildChargeRow(
@@ -2042,27 +2040,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
     return RepaintBoundary(
       child: _sectionCard(
         title: '11. SEIZURE RECORDS',
-        action: ElevatedButton.icon(
-          onPressed: addSeizure,
-          style: ElevatedButton.styleFrom(backgroundColor: primaryDark),
-          icon: const Icon(Icons.add),
-          label: const Text('Add Property'),
-        ),
+        action: _addBtn('Add Property', addSeizure),
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (seizureList.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: inputBg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: inputBorder),
-                ),
-                child: const Text('No seized property added',
-                    style: TextStyle(fontSize: 13, color: textSecondary)),
-              )
+              _emptyBox('No seized property added. Tap Add Property to begin')
             else
               ...seizureList.asMap().entries.map((indexed) {
                 final i = indexed.key;
@@ -2526,78 +2509,78 @@ class _ADFormScreenState extends State<ADFormScreen> {
     return RepaintBoundary(
       child: _sectionCard(
         title: '5. DECEASED KYC DETAILS',
-        action: ElevatedButton.icon(
-          onPressed: addDeceased,
-          style: ElevatedButton.styleFrom(backgroundColor: primaryDark),
-          icon: const Icon(Icons.add),
-          label: const Text('Add Person'),
-        ),
+        action: _addBtn('Add Person', addDeceased),
         content: Column(
-          children: deceasedList.asMap().entries.map((indexed) {
-            final i = indexed.key;
-            final p = indexed.value;
-            return _dynamicRowCard(
-              key: ValueKey('deceased_$i'),
-              title: 'Deceased Person #${i + 1}',
-              borderColor: accentTeal,
-              onRemove: () {
-                (p['name'] as TextEditingController).dispose();
-                (p['age'] as TextEditingController).dispose();
-                (p['occ'] as TextEditingController).dispose();
-                (p['mobile'] as TextEditingController).dispose();
-                (p['aadhaar'] as TextEditingController).dispose();
-                (p['religion'] as TextEditingController).dispose();
-                (p['caste'] as TextEditingController).dispose();
-                (p['pan'] as TextEditingController).dispose();
-                deceasedList.removeAt(i);
-                syncAllNames();
-              },
-              content: _responsiveGrid(context, [
-                TextFormField(
-                  controller: p['name'] as TextEditingController,
-                  decoration: _fieldDecor('Name'),
-                  onChanged: (_) => syncAllNames(),
-                ),
-                TextFormField(
-                  controller: p['age'] as TextEditingController,
-                  keyboardType: TextInputType.number,
-                  decoration: _fieldDecor('Age'),
-                ),
-                DropdownButtonFormField<String>(
-                  key: ValueKey('deceased_gender_${i}_${p['gender']}'),
-                  isExpanded: true,
-                  decoration: _fieldDecor('Gender'),
-                  initialValue: p['gender'] as String,
-                  items: deceasedGenderItems,
-                  onChanged: (v) {
-                    if (v != null) setState(() => p['gender'] = v);
+          children: [
+            if (deceasedList.isEmpty)
+              _emptyBox('No deceased persons added. Tap Add Person to begin')
+            else
+              ...deceasedList.asMap().entries.map((indexed) {
+                final i = indexed.key;
+                final p = indexed.value;
+                return _dynamicRowCard(
+                  key: ValueKey('deceased_$i'),
+                  title: 'Deceased Person #${i + 1}',
+                  borderColor: accentTeal,
+                  onRemove: () {
+                    (p['name'] as TextEditingController).dispose();
+                    (p['age'] as TextEditingController).dispose();
+                    (p['occ'] as TextEditingController).dispose();
+                    (p['mobile'] as TextEditingController).dispose();
+                    (p['aadhaar'] as TextEditingController).dispose();
+                    (p['religion'] as TextEditingController).dispose();
+                    (p['caste'] as TextEditingController).dispose();
+                    (p['pan'] as TextEditingController).dispose();
+                    deceasedList.removeAt(i);
+                    syncAllNames();
                   },
-                ),
-                TextFormField(
-                    controller: p['occ'] as TextEditingController,
-                    decoration: _fieldDecor('Occupation')),
-                TextFormField(
-                  controller: p['mobile'] as TextEditingController,
-                  keyboardType: TextInputType.phone,
-                  decoration: _fieldDecor('Mobile Number'),
-                ),
-                TextFormField(
-                  controller: p['aadhaar'] as TextEditingController,
-                  decoration: _fieldDecor('Aadhaar Number'),
-                ),
-                TextFormField(
-                  controller: p['religion'] as TextEditingController,
-                  decoration: _fieldDecor('Religion'),
-                ),
-                TextFormField(
-                    controller: p['caste'] as TextEditingController,
-                    decoration: _fieldDecor('Caste')),
-                TextFormField(
-                    controller: p['pan'] as TextEditingController,
-                    decoration: _fieldDecor('PAN Number')),
-              ]),
-            );
-          }).toList(),
+                  content: _responsiveGrid(context, [
+                    TextFormField(
+                      controller: p['name'] as TextEditingController,
+                      decoration: _fieldDecor('Name'),
+                      onChanged: (_) => syncAllNames(),
+                    ),
+                    TextFormField(
+                      controller: p['age'] as TextEditingController,
+                      keyboardType: TextInputType.number,
+                      decoration: _fieldDecor('Age'),
+                    ),
+                    DropdownButtonFormField<String>(
+                      key: ValueKey('deceased_gender_${i}_${p['gender']}'),
+                      isExpanded: true,
+                      decoration: _fieldDecor('Gender'),
+                      initialValue: p['gender'] as String,
+                      items: deceasedGenderItems,
+                      onChanged: (v) {
+                        if (v != null) setState(() => p['gender'] = v);
+                      },
+                    ),
+                    TextFormField(
+                        controller: p['occ'] as TextEditingController,
+                        decoration: _fieldDecor('Occupation')),
+                    TextFormField(
+                      controller: p['mobile'] as TextEditingController,
+                      keyboardType: TextInputType.phone,
+                      decoration: _fieldDecor('Mobile Number'),
+                    ),
+                    TextFormField(
+                      controller: p['aadhaar'] as TextEditingController,
+                      decoration: _fieldDecor('Aadhaar Number'),
+                    ),
+                    TextFormField(
+                      controller: p['religion'] as TextEditingController,
+                      decoration: _fieldDecor('Religion'),
+                    ),
+                    TextFormField(
+                        controller: p['caste'] as TextEditingController,
+                        decoration: _fieldDecor('Caste')),
+                    TextFormField(
+                        controller: p['pan'] as TextEditingController,
+                        decoration: _fieldDecor('PAN Number')),
+                  ]),
+                );
+              }),
+          ],
         ),
       ),
     );
@@ -2607,28 +2590,15 @@ class _ADFormScreenState extends State<ADFormScreen> {
     return RepaintBoundary(
       child: _sectionCard(
         title: '6. CAUSE OF DEATH',
-        action: Row(
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Unknown',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: textSecondary)),
-            Switch.adaptive(
-              value: isUnknownDeath,
-              activeThumbColor: accentTeal,
-              activeTrackColor: accentTeal.withValues(alpha: 0.42),
-              onChanged: (v) => setState(() => isUnknownDeath = v),
-            ),
+            _buildStandardCause(),
+            const SizedBox(height: 16),
+            const Divider(height: 24, color: inputBorder),
+            const SizedBox(height: 6),
+            _buildUnknownCause(),
           ],
-        ),
-        content: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: KeyedSubtree(
-            key: ValueKey<bool>(isUnknownDeath),
-            child:
-                isUnknownDeath ? _buildUnknownCause() : _buildStandardCause(),
-          ),
         ),
       ),
     );

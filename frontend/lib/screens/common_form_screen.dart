@@ -173,6 +173,15 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         sub.contains('kidnap') ||
         label.contains('kidnap');
   }
+  bool get _hasHurtExtras {
+    final key = widget.moduleKey.trim().toLowerCase();
+    final sub = (widget.subCategory ?? '').trim().toLowerCase();
+    final label = widget.moduleLabel.trim().toLowerCase();
+    return key == 'hurt' ||
+        key.contains('hurt') ||
+        sub.contains('hurt') ||
+        label.contains('hurt');
+  }
 
   @override
   void initState() {
@@ -1479,6 +1488,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                       moduleKey: widget.moduleKey,
                       moduleLabel: widget.moduleLabel,
                       subCategory: widget.subCategory,
+                      showInjuredKyc: _hasHurtExtras,
                       middleSlot: _hasKidnappingExtras
                           ? KidnappingExtraFields(key: _kidnappingKey)
                           : null,

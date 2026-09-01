@@ -286,11 +286,45 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     ),
   );
 
+  // ── §4b Injured Person KYC ────────────────────────────────────────────────
+  final inj = m['injured'] as Map? ?? {};
+  final hasInj = inj.isNotEmpty &&
+      (inj['name']?.toString().trim().isNotEmpty == true ||
+          inj['mobile']?.toString().trim().isNotEmpty == true ||
+          inj['aadhaar']?.toString().trim().isNotEmpty == true ||
+          inj['age']?.toString().trim().isNotEmpty == true);
+  if (hasInj) {
+    final isDied = inj['isDied'] == true;
+    sections.add(
+      _card(
+        5,
+        'INJURED PERSON KYC',
+        _teal,
+        _grid2([
+          _f('Name', _v(inj['name'])),
+          _f('Age', _v(inj['age'])),
+          _f('Gender', _v(inj['gender'])),
+          _f('Occupation', _v(inj['occ'])),
+          _f('Mobile', _v(inj['mobile'])),
+          _f('Aadhaar', _v(inj['aadhaar'])),
+          _f('Religion', _v(inj['religion'])),
+          _f('Caste', _v(inj['caste'])),
+          _f('PAN Number', _v(inj['pan'])),
+          _f('Person Status', isDied ? 'Died / Deceased (मयत)' : 'Alive'),
+          if (isDied) ...[
+            _f('Date of Death', _v(inj['deathDate'])),
+            _f('Time of Death', _v(inj['deathTime'])),
+          ],
+        ]),
+      ),
+    );
+  }
+
   // ── §5 Accused Details ────────────────────────────────────────────────────
   final accusedList = (m['accused'] as List?) ?? [];
   sections.add(
     _card(
-      5,
+      hasInj ? 6 : 5,
       'ACCUSED DETAILS',
       _teal,
       pw.Column(
@@ -321,7 +355,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final suspectedList = (m['suspectedAccused'] as List?) ?? [];
   sections.add(
     _card(
-      6,
+      hasInj ? 7 : 6,
       'SUSPECTED ACCUSED',
       _teal,
       isUnknown
@@ -347,7 +381,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final u = m['unidentified'] as Map? ?? {};
   sections.add(
     _card(
-      7,
+      hasInj ? 8 : 7,
       'UNIDENTIFIED CRIMINAL DESCRIPTION',
       _amber,
       pw.Column(
@@ -391,7 +425,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final cr8 = m['caseResponsibility'] as Map? ?? {};
   sections.add(
     _card(
-      8,
+      hasInj ? 9 : 8,
       'CASE RESPONSIBILITY',
       _teal,
       _grid2([
@@ -409,7 +443,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final arrests = (m['arrestRelease'] as List?) ?? [];
   sections.add(
     _card(
-      9,
+      hasInj ? 10 : 9,
       'ARREST & RELEASE STATUS',
       _teal,
       arrests.isEmpty
@@ -445,7 +479,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   };
   sections.add(
     _card(
-      10,
+      hasInj ? 11 : 10,
       'PROCEDURAL DETAILS',
       _teal,
       pw.Column(
@@ -498,7 +532,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final seizures = (m['seizures'] as List?) ?? [];
   sections.add(
     _card(
-      11,
+      hasInj ? 12 : 11,
       'SEIZURE RECORDS',
       _teal,
       seizures.isEmpty
@@ -521,7 +555,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   // ── §12 Technical & Custody ────────────────────────────────────────────────
   sections.add(
     _card(
-      12,
+      hasInj ? 13 : 12,
       'TECHNICAL & CUSTODY',
       _teal,
       _grid2([
@@ -537,7 +571,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final prev = m['preventive'] as Map? ?? {};
   sections.add(
     _card(
-      13,
+      hasInj ? 14 : 13,
       'PREVENTIVE & BONDS',
       _teal,
       _grid2([
@@ -553,7 +587,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final discharge = (m['dischargeByAccused'] as Map?) ?? {};
   sections.add(
     _card(
-      14,
+      hasInj ? 15 : 14,
       'DISCHARGE STATUS',
       _teal,
       discharge.isEmpty
@@ -586,7 +620,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final court = m['court'] as Map? ?? {};
   sections.add(
     _card(
-      15,
+      hasInj ? 16 : 15,
       'COURT FILING',
       _teal,
       _grid2([
@@ -606,7 +640,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       (verdict['convicted'] as List?)?.map((x) => x.toString()).toList() ?? [];
   sections.add(
     _card(
-      16,
+      hasInj ? 17 : 16,
       'FINAL VERDICT',
       _teal,
       pw.Row(
@@ -628,7 +662,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final sc = m['scrutiny'] as Map? ?? {};
   sections.add(
     _card(
-      17,
+      hasInj ? 18 : 17,
       'CASE SCRUTINY PIPELINE',
       _teal,
       pw.Column(
