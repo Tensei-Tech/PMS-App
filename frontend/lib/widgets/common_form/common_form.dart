@@ -53,6 +53,77 @@ const _tsBody = TextStyle(fontSize: 12, color: _kDark);
 // ── Constants ─────────────────────────────────────────────────────────────────
 const _kGenders = ['Male', 'Female', 'Other'];
 
+// ── Warning Triangle Icon (Image 3) ─────────────────────────────────────────
+class WarningTrianglePainter extends CustomPainter {
+  const WarningTrianglePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Outer bright yellow triangle
+    final outerPath = Path()
+      ..moveTo(w * 0.50, h * 0.06)
+      ..lineTo(w * 0.95, h * 0.88)
+      ..arcToPoint(Offset(w * 0.88, h * 0.95), radius: const Radius.circular(3))
+      ..lineTo(w * 0.12, h * 0.95)
+      ..arcToPoint(Offset(w * 0.05, h * 0.88), radius: const Radius.circular(3))
+      ..close();
+
+    final outerPaint = Paint()
+      ..color = const Color(0xFFFFD54F) // Bright yellow border
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(outerPath, outerPaint);
+
+    // Inner warm golden amber triangle
+    final innerPath = Path()
+      ..moveTo(w * 0.50, h * 0.22)
+      ..lineTo(w * 0.84, h * 0.84)
+      ..lineTo(w * 0.16, h * 0.84)
+      ..close();
+
+    final innerPaint = Paint()
+      ..color = const Color(0xFFF59E0B) // Warm golden amber
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(innerPath, innerPaint);
+
+    // Dark charcoal exclamation mark
+    final exPaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.fill;
+
+    // Top vertical bar (rounded)
+    final barRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.45, h * 0.38, w * 0.10, h * 0.26),
+      const Radius.circular(2),
+    );
+    canvas.drawRRect(barRect, exPaint);
+
+    // Bottom dot
+    canvas.drawCircle(Offset(w * 0.50, h * 0.74), w * 0.055, exPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class WarningTriangleIcon extends StatelessWidget {
+  final double size;
+  const WarningTriangleIcon({super.key, this.size = 20});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: const CustomPaint(
+        painter: WarningTrianglePainter(),
+      ),
+    );
+  }
+}
+
 const _kProceduralKeys = {
   'chkMemo': 'Memorandum Panchanama',
   'chkPanchSpot': 'Panchanama Spot',
@@ -79,6 +150,9 @@ const _kReleaseTypes = ['Anticipatory', 'Regular'];
 class CommonForm extends StatefulWidget {
   const CommonForm({
     super.key,
+    this.moduleKey,
+    this.moduleLabel,
+    this.subCategory,
     this.middleSlot,
     this.trailingSlotsBySection,
     this.onDraftSaved,
@@ -87,6 +161,9 @@ class CommonForm extends StatefulWidget {
     this.padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
   });
 
+  final String? moduleKey;
+  final String? moduleLabel;
+  final String? subCategory;
   final Widget? middleSlot;
   final Map<int, List<Widget>>? trailingSlotsBySection;
   final ValueChanged<Map<String, dynamic>>? onDraftSaved;
@@ -106,6 +183,37 @@ class CommonFormState extends State<CommonForm> {
   bool _ownsScroll = false;
 
   String saveBarText = 'All changes unsaved';
+
+  // ── Crime / Sexual Offence Sensitivity ─────────────────────────────────────
+  bool get _hasSexualOffenceAct {
+    const sexualSections = {
+      // BNS, 2023 - Rape & sexual offences
+      '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '74', '75', '76', '77', '78', '79',
+      // IPC, 1860 - Rape & sexual offences
+      '376', '376A', '376AB', '376B', '376C', '376D', '376DA', '376DB', '376E', '354', '354A', '354B', '354C', '354D', '509',
+      // POCSO Act
+      '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
+    };
+    for (final ch in _chargeData.values) {
+      final act = (ch['act'] ?? '').toString().toUpperCase();
+      final secs = (ch['sections'] as Set<String>?) ?? {};
+      if (act == 'POCSO' && secs.isNotEmpty) return true;
+      for (final s in secs) {
+        final clean = s.trim().toUpperCase();
+        if (sexualSections.contains(clean)) return true;
+        final lower = clean.toLowerCase();
+        if (lower.contains('rape') ||
+            lower.contains('sexual') ||
+            lower.contains('modesty') ||
+            lower.contains('pocso') ||
+            lower.contains('stalk') ||
+            lower.contains('voyeur')) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   // ── §1 Crime Registration ─────────────────────────────────────────────────
   final _crNo = TextEditingController();
@@ -621,8 +729,10 @@ class CommonFormState extends State<CommonForm> {
       'spotVillage': _spotVillage.text,
       'spotArea': _spotArea.text,
       'spotAddress': _spotAddress.text,
+      'isSexualOffence': _hasSexualOffenceAct,
       'complainant': {
-        'name': _compName.text,
+        'name':
+            _hasSexualOffenceAct ? '[Victim Identity Protected]' : _compName.text,
         'age': _compAge.text,
         'gender': _compGender,
         'occ': _compOcc.text,
@@ -745,7 +855,8 @@ class CommonFormState extends State<CommonForm> {
 
     final comp = m['complainant'] as Map?;
     if (comp != null) {
-      _compName.text = _s(comp['name']);
+      final n = _s(comp['name']);
+      _compName.text = n.contains('Protected') ? '' : n;
       _compAge.text = _s(comp['age']);
       final g = comp['gender']?.toString();
       if (g != null && _kGenders.contains(g)) _compGender = g;
@@ -1687,33 +1798,102 @@ class CommonFormState extends State<CommonForm> {
         ],
       );
 
-  // ── §4 Complainant KYC ────────────────────────────────────────────────────
-  Widget _s4() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _row([
-            _tf('Name', _compName),
-            _tf('Age', _compAge, keyboardType: TextInputType.number)
-          ]),
-          _row([
-            _chipSelector(
-                label: 'Gender',
-                items: _kGenders,
-                selected: _compGender,
-                onSelect: (v) => setState(() => _compGender = v)),
-          ]),
-          const SizedBox(height: 4),
-          _row([
-            _tf('Occupation', _compOcc),
-            _tf('Mobile Number', _compMobile, keyboardType: TextInputType.phone)
-          ]),
-          _row([
-            _tf('Aadhaar Number', _compAadhaar),
-            _tf('PAN Number', _compPan)
-          ]),
-          _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
+  Widget _protectedVictimNameField() {
+    final fieldLabel = TranslationHelper.translate(
+        context, 'You cannot enter victim name');
+    final tooltipMsg = TranslationHelper.translate(
+        context, 'You cannot enter victim details in sexual offence against female');
+    return Tooltip(
+      message: tooltipMsg,
+      preferBelow: true,
+      verticalOffset: 22,
+      waitDuration: Duration.zero,
+      showDuration: const Duration(seconds: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      textStyle: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(6),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
         ],
-      );
+      ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.forbidden,
+        child: Container(
+          height: 38,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFBEB),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.7),
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            children: [
+              const WarningTriangleIcon(size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  fieldLabel,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFB45309),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── §4 Complainant KYC ────────────────────────────────────────────────────
+  Widget _s4() {
+    final bool isProtectedVictim = _hasSexualOffenceAct;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _row([
+          if (isProtectedVictim)
+            _protectedVictimNameField()
+          else
+            _tf('Name', _compName),
+          _tf('Age', _compAge, keyboardType: TextInputType.number),
+        ]),
+        _row([
+          _chipSelector(
+              label: 'Gender',
+              items: _kGenders,
+              selected: _compGender,
+              onSelect: (v) => setState(() => _compGender = v)),
+        ]),
+        const SizedBox(height: 4),
+        _row([
+          _tf('Occupation', _compOcc),
+          _tf('Mobile Number', _compMobile, keyboardType: TextInputType.phone),
+        ]),
+        _row([
+          _tf('Aadhaar Number', _compAadhaar),
+          _tf('PAN Number', _compPan),
+        ]),
+        _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
+      ],
+    );
+  }
 
   // ── §5 Accused Details ────────────────────────────────────────────────────
   Widget _s5() => Column(
