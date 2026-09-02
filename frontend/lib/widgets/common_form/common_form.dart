@@ -166,8 +166,6 @@ class CommonForm extends StatefulWidget {
     this.onCleared,
     this.scrollController,
     this.padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-    this.subCategory,
-    this.moduleKey,
     this.isMurder,
   });
 
@@ -180,8 +178,6 @@ class CommonForm extends StatefulWidget {
   final VoidCallback? onCleared;
   final ScrollController? scrollController;
   final EdgeInsets padding;
-  final String? subCategory;
-  final String? moduleKey;
   final bool? isMurder;
 
   @override
@@ -2365,7 +2361,6 @@ class CommonFormState extends State<CommonForm> {
         ],
       );
 
-<<<<<<< HEAD
   Widget _victimIdentityProtectionWarning(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -2458,104 +2453,8 @@ class CommonFormState extends State<CommonForm> {
             _tf('Religion', _compReligion),
             _tf('Caste', _compCaste),
           ]),
-=======
-  Widget _protectedVictimNameField() {
-    final fieldLabel = TranslationHelper.translate(
-        context, 'You cannot enter victim name');
-    final tooltipMsg = TranslationHelper.translate(
-        context, 'You cannot enter victim details in sexual offence against female');
-    return Tooltip(
-      message: tooltipMsg,
-      preferBelow: true,
-      verticalOffset: 22,
-      waitDuration: Duration.zero,
-      showDuration: const Duration(seconds: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      textStyle: const TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
-        color: Colors.white,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(6),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
->>>>>>> 4ef732084369035710a90fad74264fc39d77d13e
         ],
-      ),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.forbidden,
-        child: Container(
-          height: 38,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFFBEB),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: const Color(0xFFF59E0B).withValues(alpha: 0.7),
-              width: 1.2,
-            ),
-          ),
-          child: Row(
-            children: [
-              const WarningTriangleIcon(size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  fieldLabel,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFB45309),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── §4 Complainant KYC ────────────────────────────────────────────────────
-  Widget _s4() {
-    final bool isProtectedVictim = _hasSexualOffenceAct;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _row([
-          if (isProtectedVictim)
-            _protectedVictimNameField()
-          else
-            _tf('Name', _compName),
-          _tf('Age', _compAge, keyboardType: TextInputType.number),
-        ]),
-        _row([
-          _chipSelector(
-              label: 'Gender',
-              items: _kGenders,
-              selected: _compGender,
-              onSelect: (v) => setState(() => _compGender = v)),
-        ]),
-        const SizedBox(height: 4),
-        _row([
-          _tf('Occupation', _compOcc),
-          _tf('Mobile Number', _compMobile, keyboardType: TextInputType.phone),
-        ]),
-        _row([
-          _tf('Aadhaar Number', _compAadhaar),
-          _tf('PAN Number', _compPan),
-        ]),
-        _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
-      ],
-    );
-  }
+      );
 
   void _copyComplainantToVictim() {
     setState(() {
