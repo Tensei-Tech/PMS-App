@@ -2737,7 +2737,22 @@ class _HomeTabState extends State<_HomeTab> {
         rec<TwoFourWheelerProvider>((p) => p.records),
       ),
       ('Arrested', 'arrested', rec<ArrestedProvider>((p) => p.records)),
-      ('Absconded', 'absconded', rec<AbscondedProvider>((p) => p.records)),
+      (
+        'Absconded',
+        'absconded',
+        () {
+          final absRecs = rec<AbscondedProvider>((p) => p.records);
+          final formIVRecs = rec<FormIVProvider>((p) => p.records);
+          final combined = <String, ModuleRecord>{};
+          for (final r in formIVRecs) {
+            combined[r.id] = r;
+          }
+          for (final r in absRecs) {
+            combined[r.id] = r;
+          }
+          return combined.values.toList();
+        }(),
+      ),
       (
         'Crime against Women',
         'crime_women',

@@ -56,12 +56,13 @@ class BaseModuleProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> _fetchCases() async {
+  Future<void> _fetchCases({bool forceRefresh = false}) async {
     if (_stationId.isEmpty) return;
     try {
       final fetched = await _caseService.fetchCases(
         moduleKey: moduleKey,
         stationId: _stationId,
+        forceRefresh: forceRefresh,
       );
       _records = CaseVisibility.filterRecords(
         fetched,
@@ -74,7 +75,7 @@ class BaseModuleProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> refresh() => _fetchCases();
+  Future<void> refresh() => _fetchCases(forceRefresh: true);
 
   void seedDemoRecords(List<ModuleRecord> demoRecords) {
     if (_records.isEmpty) {
@@ -153,8 +154,13 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
+    // Optimistic insert to ensure UI immediately reflects the new case
+    _records.removeWhere((r) => r.id == enriched.id);
+    _records.insert(0, enriched);
+    notifyListeners();
+
     await _caseService.saveCase(enriched, isCreate: true);
-    await _fetchCases();
+    await _fetchCases(forceRefresh: true);
   }
 
   Future<void> updateRecord(ModuleRecord record) async {
@@ -168,13 +174,24 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
+    final idx = _records.indexWhere((r) => r.id == enriched.id);
+    if (idx != -1) {
+      _records[idx] = enriched;
+    } else {
+      _records.insert(0, enriched);
+    }
+    notifyListeners();
+
     await _caseService.saveCase(enriched, isCreate: false);
-    await _fetchCases();
+    await _fetchCases(forceRefresh: true);
   }
 
   Future<void> deleteRecord(String id) async {
+    _records.removeWhere((r) => r.id == id);
+    notifyListeners();
+
     await _caseService.deleteCase(id);
-    await _fetchCases();
+    await _fetchCases(forceRefresh: true);
   }
 
   ModuleRecord createRecord({

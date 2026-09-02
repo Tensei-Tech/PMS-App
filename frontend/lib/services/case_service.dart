@@ -157,9 +157,22 @@ class CaseService {
     return [];
   }
 
+  /// Invalidate cases cache
+  void invalidateCache([String? moduleKey, String? stationId]) {
+    if (moduleKey != null && stationId != null) {
+      final key = '$moduleKey:$stationId';
+      _casesCache.remove(key);
+      _casesCacheTime.remove(key);
+    } else {
+      _casesCache.clear();
+      _casesCacheTime.clear();
+    }
+  }
+
   /// Create a new case record in PostgreSQL backend
   Future<bool> saveCase(ModuleRecord record, {bool isCreate = true}) async {
     try {
+      invalidateCache(record.moduleKey, record.stationName);
       final payload = record.toDjangoMap();
       ApiResponse response;
       if (isCreate) {
@@ -168,6 +181,7 @@ class CaseService {
         final url = '${ApiConfig.cases}${record.id}/';
         response = await _api.put(url, body: payload);
       }
+      invalidateCache();
       return response.isSuccess;
     } catch (e) {
       if (kDebugMode) {
@@ -180,8 +194,10 @@ class CaseService {
   /// Delete a case record in PostgreSQL backend
   Future<bool> deleteCase(String id) async {
     try {
+      invalidateCache();
       final url = '${ApiConfig.cases}$id/';
       final response = await _api.delete(url);
+      invalidateCache();
       return response.isSuccess;
     } catch (e) {
       if (kDebugMode) {

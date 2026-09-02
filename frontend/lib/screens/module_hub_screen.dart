@@ -447,6 +447,33 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       activeCount = allRecords.where((r) => r.status == 'Active').length;
       resolvedCount = allRecords.where((r) => r.status == 'Resolved').length;
       closedCount = allRecords.where((r) => r.status == 'Closed').length;
+    } else if (widget.moduleKey == 'absconded') {
+      final abscondedRecords = context.watch<AbscondedProvider>().records;
+      final formIVRecords = context.watch<FormIVProvider>().records;
+
+      final combined = <String, ModuleRecord>{};
+      for (final r in formIVRecords) {
+        combined[r.id] = r;
+      }
+      for (final r in abscondedRecords) {
+        combined[r.id] = r;
+      }
+
+      final recordsList = combined.values.toList();
+      if (widget.subCategory != null && widget.subCategory!.isNotEmpty) {
+        allRecords = recordsList
+            .where((r) => r.subCategory == widget.subCategory)
+            .toList();
+      } else {
+        allRecords = recordsList;
+      }
+      allRecords.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      totalCount = allRecords.length;
+      openCount = allRecords.where((r) => r.status == 'Open').length;
+      activeCount = allRecords.where((r) => r.status == 'Active').length;
+      resolvedCount = allRecords.where((r) => r.status == 'Resolved').length;
+      closedCount = allRecords.where((r) => r.status == 'Closed').length;
     } else {
       final provider = _watchProvider(context);
       allRecords = provider.getFilteredRecords(widget.subCategory);
@@ -457,8 +484,23 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       closedCount = provider.getFilteredClosedCount(widget.subCategory);
     }
 
+    final int abscondedPendingCount = widget.moduleKey == 'absconded'
+        ? allRecords.where((r) => !isAbscondedDisposal(r)).length
+        : 0;
+    final int abscondedDisposalCount = widget.moduleKey == 'absconded'
+        ? allRecords.where((r) => isAbscondedDisposal(r)).length
+        : 0;
+
     final List<ModuleRecord> filtered;
-    if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
+    if (widget.moduleKey == 'absconded') {
+      if (_filter == 'Disposal' || _filter == 'Closed' || _filter == 'Resolved') {
+        filtered = allRecords.where((r) => isAbscondedDisposal(r)).toList();
+      } else if (_filter == 'Pending' || _filter == 'Open' || _filter == 'Active') {
+        filtered = allRecords.where((r) => !isAbscondedDisposal(r)).toList();
+      } else {
+        filtered = allRecords;
+      }
+    } else if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
       if (_filter == 'Disposal' || _filter == 'Closed' || _filter == 'Resolved') {
         filtered = allRecords
             .where((r) =>
@@ -505,7 +547,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               SliverToBoxAdapter(
                   child: _buildMonthlyReport(context, allRecords))
             else ...[
-              if (widget.moduleKey != 'form_1_5' && widget.moduleKey != 'disposal') ...[
+              if (widget.moduleKey == 'absconded') ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
+                    child: _buildAbscondedStatsRow(
+                      totalCount,
+                      abscondedPendingCount,
+                      abscondedDisposalCount,
+                    ),
+                  ),
+                ),
+              ] else if (widget.moduleKey != 'form_1_5' && widget.moduleKey != 'disposal') ...[
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(
@@ -3400,6 +3454,53 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
+  Widget _buildAbscondedStatsRow(int total, int pending, int disposal) {
+    return Column(
+      children: [
+        if (!widget.readOnly) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _openNewEntryForm(context),
+                    icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                    label: Text(
+                      '+ Add New ${widget.moduleLabel} Case',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.navyDark,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: const StadiumBorder(),
+                      elevation: 3,
+                      shadowColor: AppColors.navyDark.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        Row(
+          children: [
+            _statCard('Total', total, AppColors.infoBlue, 'All'),
+            const SizedBox(width: 8),
+            _statCard('Pending', pending, AppColors.warningOrange, 'Pending'),
+            const SizedBox(width: 8),
+            _statCard('Disposal', disposal, AppColors.successGreen, 'Disposal'),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatsRow(
       int open, int active, int resolved, int closed, int total) {
     if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
@@ -3981,7 +4082,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               try {
-                await _readProvider(ctx).deleteRecord(record.id);
+                final provider = record.moduleKey == 'form_1_5'
+                    ? ctx.read<FormIVProvider>()
+                    : _readProvider(ctx);
+                await provider.deleteRecord(record.id);
                 if (!ctx.mounted) return;
                 ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
                   content: Text('Record deleted', style: GoogleFonts.poppins()),

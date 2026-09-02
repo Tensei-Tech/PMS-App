@@ -26,109 +26,108 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
   final loraRegular = await PdfGoogleFonts.loraRegular();
   final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
 
-  final body = pw.TextStyle(font: loraRegular, fontSize: 10);
-  final bold = pw.TextStyle(font: loraBold, fontSize: 12, fontWeight: pw.FontWeight.bold);
-  final mr = pw.TextStyle(font: devanagari, fontSize: 9);
+  final bodyStyle = pw.TextStyle(font: loraRegular, fontSize: 11, lineSpacing: 3);
+  final boldStyle = pw.TextStyle(font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
+  final titleStyle = pw.TextStyle(font: loraBold, fontSize: 12, fontWeight: pw.FontWeight.bold);
 
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
-  pw.Widget row(String label, String value) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 4),
-      child: pw.Row(
+  final outwardNo = v('outwardNo');
+  final outwardYear = v('outwardYear').isNotEmpty ? v('outwardYear') : '2021';
+  final psName = v('psName').isNotEmpty ? v('psName') : 'Wakad Police Station,';
+  final psCity = v('psCity').isNotEmpty ? v('psCity') : 'Pimpri Chichwad.';
+  final date = v('date').isNotEmpty ? v('date') : '${v('dateDay')} ${v('dateMonthYear')}'.trim();
+
+  final courtLine1 = v('courtLine1');
+  final courtLine2 = v('courtLine2');
+
+  final officerName = v('officerName').isNotEmpty ? v('officerName') : 'Jitendra S. Girnar';
+  final officerRank = v('officerRank').isNotEmpty ? v('officerRank') : 'Police Sub Inpector';
+  final officerPs = v('officerPs').isNotEmpty ? v('officerPs') : 'Wakad Police Station, Pimpri Chichwad.';
+  final subjectHours = v('subjectHours').isNotEmpty ? v('subjectHours') : '72';
+
+  final bodyText = v('body').isNotEmpty
+      ? v('body')
+      : '    Regarding the above mentioned subject, most humbly request that a complaint has been registered at Wakad Police Station, Pimpri Chinchwad with FIR No. 912/2021 u/s 377,498(A), 347,504,34 of IPC by complainant Mrs. Sushama Chalamalasetti, Age 31 years, Profession house wife, residing at B901, Titanium Park, Park Street, Wakad Pune. The name of the accused being 1) Mahesh Babu Gunukula, Age 36 ears profession Service, residing at D No. 4, 153, Gudlavaleru, Gudlavaleru MDL 521356, Crishna District Andhra Pradesh and 2) Shiva Prasad Gunukula, Age 63 years (relation father in law). Against he complainant the accused conspired to get the property of complainant at Mumbai which is joint name with her mother and the property in USA. On decline to transfer the property in accused husbands name they harassed her confired her in a room further mentally and physically harassed her. The accused no. 1 also had unnatural sexual offence against the wish of the complainant. The same has been registered under the above mention complainant and I am Investigating the same.\n\n'
+          '    During Investigation I had arrest accuse no. 1) Mahesh Babu Gunukula, Age 36 ears profession Service, residing at D No. 4, 153, Gudlavaleru, Gudlavaleru MDL 521356, Crishna District Andhra Pradesh in --------- Police station at --------am/pm on dt.   /11/2021 wide station diary no. ----/21.\n\n'
+          '    To produce accused before Hon. JMFC., No.09, Shivajinagar, Pune I want transit remand of accused for 2 hrs. so please give me transit remand of accused.';
+
+  final signOffName = v('signOffName');
+
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 48),
+      build: (_) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.SizedBox(width: 160, child: pw.Text(label, style: bold)),
-          pw.Expanded(child: pw.Text(value.isEmpty ? '—' : value, style: body)),
+          // Header block left-aligned
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('Outward No.  $outwardNo /$outwardYear', style: boldStyle),
+              pw.SizedBox(height: 2),
+              pw.Text(psName, style: boldStyle),
+              pw.SizedBox(height: 2),
+              pw.Text(psCity, style: boldStyle),
+              pw.SizedBox(height: 2),
+              pw.Text('Date -  $date', style: boldStyle),
+            ],
+          ),
+          pw.SizedBox(height: 20),
+
+          // To
+          pw.Text('To,', style: titleStyle),
+          pw.SizedBox(height: 6),
+          pw.Text('Hon.- ${courtLine1.isEmpty ? '----------------------------------------' : courtLine1}', style: boldStyle),
+          if (courtLine2.isNotEmpty) ...[
+            pw.SizedBox(height: 4),
+            pw.Text(courtLine2, style: boldStyle),
+          ],
+          pw.SizedBox(height: 18),
+
+          // Report
+          pw.Text('Report- $officerName, $officerRank', style: boldStyle),
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(left: 45),
+            child: pw.Text(officerPs, style: boldStyle),
+          ),
+          pw.SizedBox(height: 18),
+
+          // Sub
+          pw.Text('Sub- To get Transit Remand for $subjectHours hrs.', style: boldStyle),
+          pw.SizedBox(height: 16),
+
+          // ---000---
+          pw.Text('---000---', style: boldStyle),
+          pw.SizedBox(height: 14),
+
+          // Respected Sir
+          pw.Text('Respected Sir,', style: boldStyle),
+          pw.SizedBox(height: 8),
+
+          // Body
+          pw.Text(
+            bodyText,
+            style: bodyStyle,
+            textAlign: pw.TextAlign.left,
+          ),
+          pw.SizedBox(height: 36),
+
+          // Your Faithfully
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('Your Faithfully', style: boldStyle),
+              pw.SizedBox(height: 24),
+              if (signOffName.isNotEmpty) pw.Text(signOffName, style: boldStyle),
+            ],
+          ),
         ],
       ),
-    );
-  }
-
-  final isEnglish = v('variant') == 'english' ||
-      v('formSection').toLowerCase().contains('english');
-
-  if (isEnglish) {
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(36),
-        build: (_) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text('Requisition to Transit Remand', style: bold),
-            pw.Text('ट्रान्झिट रिमांड अर्ज', style: mr),
-            pw.SizedBox(height: 10),
-            row('Outward / Date', '${v('eOutwardNo')} / ${v('eDate')}'),
-            row('Police Station', v('ePsName')),
-            row('To Court', '${v('eCourtToLine1')} ${v('eCourtToLine2')}'),
-            row('Report by', '${v('eReportByName')} (${v('eReportByRank')})'),
-            row('FIR / Sections', '${v('eFirNo')} ${v('eIpcSections')}'),
-            row('Complainant', '${v('eComplainantName')}, ${v('eComplainantAge')}'),
-            row('Accused 1', '${v('eAccused1Name')} ${v('eAccused1Details')}'),
-            row('Arrested', v('eArrestedName')),
-            row('Arrest PS / SD', '${v('eArrestPs')} ${v('eSdNo')}'),
-            row('Court / Hours', '${v('eCourtName')} — ${v('eRemandHours')} hrs'),
-            row('Summary', v('eIncidentSummary')),
-          ],
-        ),
-      ),
-    );
-  } else {
-    final section = v('formSection').toLowerCase();
-    final showP1 = section.isEmpty ||
-        (!section.contains('page 2') && !section.contains('police assist'));
-    final showP2 = section.isEmpty ||
-        section.contains('page 2') ||
-        section.contains('police assist');
-
-    if (showP1) {
-      pdf.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(36),
-          build: (_) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('Requisition to Transit Remand', style: bold),
-              pw.SizedBox(height: 10),
-              row('Court', '${v('m1CourtName')} ${v('m1CourtCity')} ${v('m1CourtState')}'),
-              row('PS', '${v('m1PsName')} ${v('m1PsCity')}'),
-              row('CR No.', '${v('m1CrNo')} ${v('m1CrSections')}'),
-              row('Accused', '${v('m1AccusedName')} (${v('m1AccusedAge')})'),
-              row('Address', v('m1AccusedAddress')),
-              row('Arrest', '${v('m1ArrestDateTime')} at ${v('m1ArrestPlace')}'),
-              row('Remand', '${v('m1RemandFrom')} for ${v('m1RemandDays')} days'),
-              row('Produce at', v('m1ProduceCourt')),
-              row('Officer', '${v('m1OfficerName')} ${v('m1OfficerRank')}'),
-            ],
-          ),
-        ),
-      );
-    }
-    if (showP2) {
-      pdf.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(36),
-          build: (_) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('Police Assistance Request', style: bold),
-              pw.SizedBox(height: 10),
-              row('To PS', v('m2RecipientPs')),
-              row('Ref CR', '${v('m2RefCrNo')} ${v('m2RefSections')}'),
-              row('Wanted accused', '${v('m2AccusedName')} (${v('m2AccusedAge')})'),
-              row('Address', v('m2AccusedAddress')),
-              row('Officer', '${v('m2OfficerName')} ${v('m2OfficerPs')}'),
-            ],
-          ),
-        ),
-      );
-    }
-  }
+    ),
+  );
 
   return pdf.save();
 }
