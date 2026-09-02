@@ -1430,6 +1430,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                 : _isAbForm
                                                     ? AbFormView(
                                                         key: _abFormKey,
+                                                        existingRecord: widget.existingRecord?.extraFields[kCommonFormExtraFieldsKey],
                                                         readOnly: widget.readOnly == true,
                                                         formSection: widget.formSection,
                                                         pageRange: widget.pageRange,

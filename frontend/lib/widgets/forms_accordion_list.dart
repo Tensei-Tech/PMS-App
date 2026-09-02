@@ -266,8 +266,8 @@ final List<FormsListEntry> kFormsHierarchyMock = [
     title: 'AB Form',
     subCategory: 'AB Form',
     subSections: [
-      _sub('AB Form for Medical — Main', 'Page 1'),
-      _sub('AB Form for Medical — Continuation', 'Page 2'),
+      _sub('Form A — Certificate by Medical Practitioner', 'Page 1', sectionId: 'Form A'),
+      _sub('Form B — Requisition to Testing Officer', 'Page 2', sectionId: 'Form B'),
     ],
   ),
 

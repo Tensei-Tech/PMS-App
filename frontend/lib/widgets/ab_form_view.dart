@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
-import 'responsive_field_row.dart';
 
 class AbFormView extends StatefulWidget {
+  final dynamic existingRecord;
   final bool readOnly;
   final String? formSection;
   final String? pageRange;
 
   const AbFormView({
     super.key,
+    this.existingRecord,
     this.readOnly = false,
     this.formSection,
     this.pageRange,
@@ -24,17 +24,16 @@ class AbFormView extends StatefulWidget {
 }
 
 class AbFormViewState extends State<AbFormView> {
-  // ── Form A ──
+  // ── Form A Controllers ──
   final _serialNoCtrl = TextEditingController();
   final _dispensaryCtrl = TextEditingController();
   final _personNameCtrl = TextEditingController();
   final _broughtByCtrl = TextEditingController();
+  final _officerNameDesigCtrl = TextEditingController();
   final _broughtDateCtrl = TextEditingController();
   final _broughtTimeCtrl = TextEditingController();
-  final _broughtAmPmCtrl = TextEditingController();
   final _examinedDateCtrl = TextEditingController();
   final _examinedTimeCtrl = TextEditingController();
-  final _examinedAmPmCtrl = TextEditingController();
   final _ageCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
   final _breathCtrl = TextEditingController();
@@ -53,17 +52,17 @@ class AbFormViewState extends State<AbFormView> {
   final _examinedSigCtrl = TextEditingController();
   final _idMarksCtrl = TextEditingController();
 
-  // ── Form B ──
+  // ── Form B Controllers ──
   final _formBNoCtrl = TextEditingController();
   final _fromPractitionerCtrl = TextEditingController();
   final _toTestingOfficerCtrl = TextEditingController();
   final _formBDateCtrl = TextEditingController();
   final _messengerNameCtrl = TextEditingController();
+  final _policeStationNameCtrl = TextEditingController();
   final _phialSerialCtrl = TextEditingController();
   final _bloodAmountCtrl = TextEditingController();
   final _collectionDateCtrl = TextEditingController();
   final _collectionTimeCtrl = TextEditingController();
-  final _collectionAmPmCtrl = TextEditingController();
   final _subjectNameCtrl = TextEditingController();
   final _subjectAddressCtrl = TextEditingController();
   final _producedByCtrl = TextEditingController();
@@ -73,13 +72,28 @@ class AbFormViewState extends State<AbFormView> {
   bool get _showFormA {
     final s = widget.formSection?.toLowerCase() ?? '';
     if (s.isEmpty) return true;
-    return s.contains('main') || s.contains('form a');
+    return s.contains('main') ||
+        s.contains('form a') ||
+        s.contains('page 1') ||
+        s.contains('certificate');
   }
 
   bool get _showFormB {
     final s = widget.formSection?.toLowerCase() ?? '';
     if (s.isEmpty) return true;
-    return s.contains('continuation') || s.contains('form b');
+    return s.contains('continuation') ||
+        s.contains('form b') ||
+        s.contains('page 2') ||
+        s.contains('testing') ||
+        s.contains('requisition');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingRecord != null && widget.existingRecord is Map) {
+      hydrateFrom(Map<String, dynamic>.from(widget.existingRecord as Map));
+    }
   }
 
   @override
@@ -89,12 +103,11 @@ class AbFormViewState extends State<AbFormView> {
       _dispensaryCtrl,
       _personNameCtrl,
       _broughtByCtrl,
+      _officerNameDesigCtrl,
       _broughtDateCtrl,
       _broughtTimeCtrl,
-      _broughtAmPmCtrl,
       _examinedDateCtrl,
       _examinedTimeCtrl,
-      _examinedAmPmCtrl,
       _ageCtrl,
       _weightCtrl,
       _breathCtrl,
@@ -117,11 +130,11 @@ class AbFormViewState extends State<AbFormView> {
       _toTestingOfficerCtrl,
       _formBDateCtrl,
       _messengerNameCtrl,
+      _policeStationNameCtrl,
       _phialSerialCtrl,
       _bloodAmountCtrl,
       _collectionDateCtrl,
       _collectionTimeCtrl,
-      _collectionAmPmCtrl,
       _subjectNameCtrl,
       _subjectAddressCtrl,
       _producedByCtrl,
@@ -137,16 +150,16 @@ class AbFormViewState extends State<AbFormView> {
     return {
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
+      // Form A
       'serialNo': _serialNoCtrl.text.trim(),
       'dispensary': _dispensaryCtrl.text.trim(),
       'personName': _personNameCtrl.text.trim(),
       'broughtBy': _broughtByCtrl.text.trim(),
+      'officerNameDesig': _officerNameDesigCtrl.text.trim(),
       'broughtDate': _broughtDateCtrl.text.trim(),
       'broughtTime': _broughtTimeCtrl.text.trim(),
-      'broughtAmPm': _broughtAmPmCtrl.text.trim(),
       'examinedDate': _examinedDateCtrl.text.trim(),
       'examinedTime': _examinedTimeCtrl.text.trim(),
-      'examinedAmPm': _examinedAmPmCtrl.text.trim(),
       'age': _ageCtrl.text.trim(),
       'weight': _weightCtrl.text.trim(),
       'breath': _breathCtrl.text.trim(),
@@ -164,16 +177,17 @@ class AbFormViewState extends State<AbFormView> {
       'moDesignation': _moDesignationCtrl.text.trim(),
       'examinedSignature': _examinedSigCtrl.text.trim(),
       'identificationMarks': _idMarksCtrl.text.trim(),
+      // Form B
       'formBNo': _formBNoCtrl.text.trim(),
       'fromPractitioner': _fromPractitionerCtrl.text.trim(),
       'toTestingOfficer': _toTestingOfficerCtrl.text.trim(),
       'formBDate': _formBDateCtrl.text.trim(),
       'messengerName': _messengerNameCtrl.text.trim(),
+      'policeStationName': _policeStationNameCtrl.text.trim(),
       'phialSerial': _phialSerialCtrl.text.trim(),
       'bloodAmountCc': _bloodAmountCtrl.text.trim(),
       'collectionDate': _collectionDateCtrl.text.trim(),
       'collectionTime': _collectionTimeCtrl.text.trim(),
-      'collectionAmPm': _collectionAmPmCtrl.text.trim(),
       'subjectName': _subjectNameCtrl.text.trim(),
       'subjectAddress': _subjectAddressCtrl.text.trim(),
       'producedBy': _producedByCtrl.text.trim(),
@@ -184,16 +198,16 @@ class AbFormViewState extends State<AbFormView> {
 
   void hydrateFrom(Map<String, dynamic> data) {
     setState(() {
+      // Form A
       _serialNoCtrl.text = data['serialNo']?.toString() ?? '';
       _dispensaryCtrl.text = data['dispensary']?.toString() ?? '';
       _personNameCtrl.text = data['personName']?.toString() ?? '';
       _broughtByCtrl.text = data['broughtBy']?.toString() ?? '';
+      _officerNameDesigCtrl.text = data['officerNameDesig']?.toString() ?? '';
       _broughtDateCtrl.text = data['broughtDate']?.toString() ?? '';
       _broughtTimeCtrl.text = data['broughtTime']?.toString() ?? '';
-      _broughtAmPmCtrl.text = data['broughtAmPm']?.toString() ?? '';
       _examinedDateCtrl.text = data['examinedDate']?.toString() ?? '';
       _examinedTimeCtrl.text = data['examinedTime']?.toString() ?? '';
-      _examinedAmPmCtrl.text = data['examinedAmPm']?.toString() ?? '';
       _ageCtrl.text = data['age']?.toString() ?? '';
       _weightCtrl.text = data['weight']?.toString() ?? '';
       _breathCtrl.text = data['breath']?.toString() ?? '';
@@ -211,16 +225,17 @@ class AbFormViewState extends State<AbFormView> {
       _moDesignationCtrl.text = data['moDesignation']?.toString() ?? '';
       _examinedSigCtrl.text = data['examinedSignature']?.toString() ?? '';
       _idMarksCtrl.text = data['identificationMarks']?.toString() ?? '';
+      // Form B
       _formBNoCtrl.text = data['formBNo']?.toString() ?? '';
       _fromPractitionerCtrl.text = data['fromPractitioner']?.toString() ?? '';
       _toTestingOfficerCtrl.text = data['toTestingOfficer']?.toString() ?? '';
       _formBDateCtrl.text = data['formBDate']?.toString() ?? '';
       _messengerNameCtrl.text = data['messengerName']?.toString() ?? '';
+      _policeStationNameCtrl.text = data['policeStationName']?.toString() ?? '';
       _phialSerialCtrl.text = data['phialSerial']?.toString() ?? '';
       _bloodAmountCtrl.text = data['bloodAmountCc']?.toString() ?? '';
       _collectionDateCtrl.text = data['collectionDate']?.toString() ?? '';
       _collectionTimeCtrl.text = data['collectionTime']?.toString() ?? '';
-      _collectionAmPmCtrl.text = data['collectionAmPm']?.toString() ?? '';
       _subjectNameCtrl.text = data['subjectName']?.toString() ?? '';
       _subjectAddressCtrl.text = data['subjectAddress']?.toString() ?? '';
       _producedByCtrl.text = data['producedBy']?.toString() ?? '';
@@ -229,94 +244,117 @@ class AbFormViewState extends State<AbFormView> {
     });
   }
 
-  Widget _marathiCaption(String text, TextStyle marathi) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 2, bottom: 6),
-      child: SizedBox(
-        width: double.infinity,
-        child: Text(text, style: marathi.copyWith(fontSize: 10)),
-      ),
-    );
-  }
+  // ── Helper Widgets for Clean Paper Form (No Placeholders) ──
 
-  Widget _bilingualCaption(String en, String mr, TextStyle serif, TextStyle marathi) {
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(en, style: serif.copyWith(fontSize: 11)),
-          _marathiCaption(mr, marathi),
-        ],
-      ),
-    );
-  }
-
-  Widget _inlineField({
-    required TextStyle style,
+  Widget _inlineBlank({
     required TextEditingController controller,
-    double width = 120,
+    required TextStyle style,
+    double? width,
+    bool readOnly = false,
   }) {
     return SizedBox(
       width: width,
-      child: BilingualSimpleUnderlineInput(
+      child: TextFormField(
         controller: controller,
-        serifStyle: style,
-      ),
-    );
-  }
-
-  Widget _examRow(
-    String labelEn,
-    String labelMr,
-    TextEditingController ctrl,
-    TextStyle serif,
-    TextStyle marathi, {
-    String suffixEn = '',
-    String suffixMr = '',
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(labelEn, style: serif),
-                  Text(labelMr, style: marathi.copyWith(fontSize: 9)),
-                ],
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 140,
-                child: BilingualSimpleUnderlineInput(
-                  controller: ctrl,
-                  serifStyle: serif,
-                ),
-              ),
-              if (suffixEn.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(suffixEn, style: serif.copyWith(fontSize: 10)),
-                ),
-              ],
-            ],
+        readOnly: widget.readOnly || readOnly,
+        style: style.copyWith(
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF0D47A1),
+        ),
+        decoration: const InputDecoration(
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+          border: UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF333333), width: 1.2),
           ),
-          if (suffixMr.isNotEmpty) _marathiCaption(suffixMr, marathi),
-        ],
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+          ),
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.8),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _formAPage(TextStyle serifStyle, TextStyle marathiStyle) {
+  Widget _multilineBlankBox({
+    required TextEditingController controller,
+    required TextStyle style,
+    int minLines = 2,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: widget.readOnly,
+      minLines: minLines,
+      maxLines: null,
+      style: style.copyWith(
+        fontWeight: FontWeight.w500,
+        color: const Color(0xFF0D47A1),
+      ),
+      decoration: const InputDecoration(
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        border: UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+        ),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.8),
+        ),
+      ),
+    );
+  }
+
+  Widget _quickOptionChip(
+    String text,
+    TextEditingController controller, {
+    String? valueToSet,
+  }) {
+    if (widget.readOnly) return const SizedBox.shrink();
+    final isSelected = controller.text.trim() == (valueToSet ?? text);
+    return Padding(
+      padding: const EdgeInsets.only(right: 4, bottom: 4),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            controller.text = valueToSet ?? text;
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFFE3F2FD) : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF1976D2) : Colors.grey.shade300,
+              width: 0.8,
+            ),
+          ),
+          child: Text(
+            text,
+            style: GoogleFonts.lora(
+              fontSize: 10,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+              color: isSelected ? const Color(0xFF0D47A1) : Colors.grey.shade700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // FORM A PAGE (Rule 3) — Exactly matching Image 1
+  // ══════════════════════════════════════════════════════════════════════════
+  Widget _buildFormAPage(TextStyle serifStyle) {
     return FormPaperPage(
-      formLabel: 'Form A / नमुना अ',
+      formLabel: 'Form A (Rule 3)',
       children: [
+        // ── Form A Centered Header ──
         Center(
           child: Column(
             children: [
@@ -328,272 +366,491 @@ class AbFormViewState extends State<AbFormView> {
                   decoration: TextDecoration.underline,
                 ),
               ),
-              Text(
-                'नमुना "अ"',
-                style: GoogleFonts.notoSansDevanagari(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
               const SizedBox(height: 4),
-              Text('(See Rule No 3)', style: serifStyle.copyWith(fontSize: 11)),
               Text(
-                '(नियम क्र. ३ पहा)',
-                style: marathiStyle.copyWith(fontSize: 10),
+                '(See Rule No 3)',
+                style: serifStyle.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Certificate by registered medical practitioner showing where\n'
-                'person examined by him has or has not consumed an intoxicant.',
+                'Certificate by registered medical practioner aboving where person examined by him has  or\nhas not consumed an intoxicant.',
                 textAlign: TextAlign.center,
-                style: serifStyle.copyWith(fontSize: 11, height: 1.35),
-              ),
-              Text(
-                'नोंदणीकृत वैद्यकीय अधिकारी यांचे प्रमाणपत्र — त्याने तपासलेल्या\n'
-                'व्यक्तीने मद्य / नशा सेवन केले आहे की नाही.',
-                textAlign: TextAlign.center,
-                style: marathiStyle.copyWith(fontSize: 10, height: 1.35),
+                style: serifStyle.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  height: 1.3,
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        BilingualField(
-          label: 'Serial No :',
-          marathiLabel: 'अ.क्र.',
-          controller: _serialNoCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiStyle,
-        ),
-        const SizedBox(height: 12),
-        _bilingualCaption(
-          '(Name and location of the Dispensary of Hospital)',
-          '(दवाखाना / औषधालयाचे नाव व ठिकाण)',
-          serifStyle,
-          marathiStyle,
-        ),
-        BilingualSimpleUnderlineInput(
-          controller: _dispensaryCtrl,
-          serifStyle: serifStyle,
-        ),
-        const SizedBox(height: 16),
-        _bilingualCaption(
-          'Certified that Shri/Smt/Kumari',
-          'प्रमाणित करतो की श्री / श्रीमती / कुमारी',
-          serifStyle,
-          marathiStyle,
-        ),
-        BilingualSimpleUnderlineInput(controller: _personNameCtrl, serifStyle: serifStyle),
-        _bilingualCaption(
-          'was brought to this hospital / dispensary by',
-          'या रुग्णालय / औषधालयात आणण्यात आले',
-          serifStyle,
-          marathiStyle,
-        ),
-        BilingualSimpleUnderlineInput(controller: _broughtByCtrl, serifStyle: serifStyle),
-        _bilingualCaption(
-          '(here state name and designation of the officer)',
-          '(अधिकाऱ्याचे नाव व पदनाम)',
-          serifStyle,
-          marathiStyle,
-        ),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.end,
-          spacing: 4,
-          runSpacing: 8,
+        const SizedBox(height: 14),
+
+        // ── Serial No (Right/Center-Right) ──
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text('on', style: serifStyle),
-            Text('दिनांक', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _broughtDateCtrl, width: 90),
-            Text('at', style: serifStyle),
-            Text('वेळ', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _broughtTimeCtrl, width: 70),
-            _inlineField(style: serifStyle, controller: _broughtAmPmCtrl, width: 50),
-            Text('(a.m./p.m.)', style: serifStyle.copyWith(fontSize: 10)),
-            Text('and was examined by MO on', style: serifStyle),
-            Text('वै.अ. ने तपासणी', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _examinedDateCtrl, width: 90),
-            Text('at', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _examinedTimeCtrl, width: 70),
-            _inlineField(style: serifStyle, controller: _examinedAmPmCtrl, width: 50),
-            Text('a.m./p.m.', style: serifStyle),
-          ],
-        ),
-        const SizedBox(height: 20),
-        BilingualSectionHeader(
-          label: 'A clinical examination of the above named person disclosed the following :-',
-          marathiLabel: 'वर नमूद व्यक्तीच्या वैद्यकीय तपासणीत खालील गोष्टी आढळल्या :-',
-          serifStyle: serifStyle.copyWith(fontWeight: FontWeight.w600),
-          marathiLabelStyle: marathiStyle,
-        ),
-        const SizedBox(height: 12),
-        _examRow('Age', 'वय', _ageCtrl, serifStyle, marathiStyle),
-        _examRow('Weight', 'वजन', _weightCtrl, serifStyle, marathiStyle),
-        _examRow(
-          'Breath',
-          'श्वास',
-          _breathCtrl,
-          serifStyle,
-          marathiStyle,
-          suffixEn: ' smelling / Not smelling of Alcohol / Opium / Charas / Ganja / Bhang',
-          suffixMr: ' दुर्गंध / दुर्गंध नाही — मद्य / अफीम / चरस / गांजा / भांग',
-        ),
-        _examRow(
-          'Speech',
-          'बोलणे',
-          _speechCtrl,
-          serifStyle,
-          marathiStyle,
-          suffixEn: ' Incoherent / Normal',
-          suffixMr: ' अस्पष्ट / सामान्य',
-        ),
-        _examRow(
-          'Gait',
-          'चाल',
-          _gaitCtrl,
-          serifStyle,
-          marathiStyle,
-          suffixEn: ' unsteady / Steady',
-          suffixMr: ' अस्थिर / स्थिर',
-        ),
-        _examRow(
-          'Pupils',
-          'डोळ्यांची बाभळ',
-          _pupilsCtrl,
-          serifStyle,
-          marathiStyle,
-          suffixEn: ' Dilated / Normal',
-          suffixMr: ' विस्तार / सामान्य',
-        ),
-        const SizedBox(height: 8),
-        BilingualMultilineField(
-          label: 'Additional remarks any',
-          marathiLabel: 'अतिरिक्त शेरा (असल्यास)',
-          controller: _additionalRemarksCtrl,
-          minLines: 2,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiStyle,
-        ),
-        const SizedBox(height: 12),
-        _bilingualCaption(
-          'I find that the above named person has consumed / has not consumed',
-          'वर नमूद व्यक्तीने सेवन केले / केले नाही',
-          serifStyle,
-          marathiStyle,
-        ),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.end,
-          spacing: 4,
-          runSpacing: 8,
-          children: [
-            _inlineField(style: serifStyle, controller: _consumedCtrl, width: 130),
-            _inlineField(style: serifStyle, controller: _intoxicantTypeCtrl, width: 160),
-            Text('Alcohol / Opium / Charas / Ganja / Bhang / any toxicant.', style: serifStyle),
-          ],
-        ),
-        _marathiCaption('मद्य / अफीम / चरस / गांजा / भांग / इतर विषारी पदार्थ', marathiStyle),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.end,
-          spacing: 4,
-          children: [
-            Text('I also find that he is / is not under the Influence of alcohol.', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _underInfluenceCtrl, width: 60),
-          ],
-        ),
-        _marathiCaption('मद्याच्या प्रभावाखाली आहे / नाही', marathiStyle),
-        const SizedBox(height: 12),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.end,
-          spacing: 4,
-          children: [
-            Text('(N.B.', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _bloodCollectedCtrl, width: 80),
             Text(
-              'Blood from the body of the above named was / was not collected by MO for Chemical examination )',
+              'Serial No : ',
+              style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+            _inlineBlank(
+              controller: _serialNoCtrl,
               style: serifStyle,
+              width: 140,
             ),
           ],
         ),
-        _marathiCaption(
-          'सूचना — वर नमूद व्यक्तीचे रक्त वै.अ. ने रासायनिक तपासणीसाठी गोळा केले / केले नाही',
-          marathiStyle,
+        const SizedBox(height: 16),
+
+        // ── Hospital / Dispensary Block ──
+        Text(
+          '(Name and location of the Dispensary of Hospital)',
+          style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+        ),
+        const SizedBox(height: 4),
+        _inlineBlank(
+          controller: _dispensaryCtrl,
+          style: serifStyle,
+          width: double.infinity,
+        ),
+        const SizedBox(height: 16),
+
+        // ── Certified that Shri/Smt/Kumari Body Paragraph ──
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 8,
+          children: [
+            Text('•', style: serifStyle.copyWith(fontSize: 16)),
+            Text('Certified that Shri/Smt/Kumari', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _personNameCtrl,
+              style: serifStyle,
+              width: 320,
+            ),
+            Text('was brought to this hospital /dispensary by', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _broughtByCtrl,
+              style: serifStyle,
+              width: 260,
+            ),
+            Text('(here state name and designation of the officer)', style: serifStyle.copyWith(fontSize: 11, fontStyle: FontStyle.italic)),
+            Text('on', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _broughtDateCtrl,
+              style: serifStyle,
+              width: 110,
+            ),
+            Text('at', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _broughtTimeCtrl,
+              style: serifStyle,
+              width: 100,
+            ),
+            Text('(a.m./p.m. and was examined by MO )', style: serifStyle.copyWith(fontSize: 12)),
+            Text('on', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _examinedDateCtrl,
+              style: serifStyle,
+              width: 110,
+            ),
+            Text('at', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _examinedTimeCtrl,
+              style: serifStyle,
+              width: 100,
+            ),
+            Text('a.m./p.m.', style: serifStyle.copyWith(fontSize: 12)),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        // ── A clinical examination section ──
+        Text(
+          'A clinical examination of the above named person disclosed the following :-',
+          style: serifStyle.copyWith(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Age
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              SizedBox(
+                width: 90,
+                child: Text('Age :', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+              ),
+              Expanded(
+                child: _inlineBlank(
+                  controller: _ageCtrl,
+                  style: serifStyle,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Weight
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              SizedBox(
+                width: 90,
+                child: Text('Weight:', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+              ),
+              Expanded(
+                child: _inlineBlank(
+                  controller: _weightCtrl,
+                  style: serifStyle,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Breath
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 90,
+                    child: Text('Breath :', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
+                  Expanded(
+                    child: _inlineBlank(
+                      controller: _breathCtrl,
+                      style: serifStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                children: [
+                  _quickOptionChip('Smelling of Alcohol', _breathCtrl),
+                  _quickOptionChip('Not smelling of Alcohol', _breathCtrl),
+                  _quickOptionChip('Smelling of Ganja', _breathCtrl),
+                  _quickOptionChip('Not smelling of any intoxicant', _breathCtrl),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Speech
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 90,
+                    child: Text('Speech :', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
+                  Expanded(
+                    child: _inlineBlank(
+                      controller: _speechCtrl,
+                      style: serifStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                children: [
+                  _quickOptionChip('Normal', _speechCtrl),
+                  _quickOptionChip('Incoherent', _speechCtrl),
+                  _quickOptionChip('Slurred', _speechCtrl),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Gait
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 90,
+                    child: Text('Gait :', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
+                  Expanded(
+                    child: _inlineBlank(
+                      controller: _gaitCtrl,
+                      style: serifStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                children: [
+                  _quickOptionChip('Steady', _gaitCtrl),
+                  _quickOptionChip('Unsteady', _gaitCtrl),
+                  _quickOptionChip('Staggering', _gaitCtrl),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Pupils
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 90,
+                    child: Text('Pupiles. :', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
+                  Expanded(
+                    child: _inlineBlank(
+                      controller: _pupilsCtrl,
+                      style: serifStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                children: [
+                  _quickOptionChip('Normal', _pupilsCtrl),
+                  _quickOptionChip('Dilated', _pupilsCtrl),
+                  _quickOptionChip('Constricted', _pupilsCtrl),
+                  _quickOptionChip('Reacting to light', _pupilsCtrl),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Additional remarks any
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Additional remarks any : ',
+                style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              Expanded(
+                child: _inlineBlank(
+                  controller: _additionalRemarksCtrl,
+                  style: serifStyle,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // ── Finding Paragraph ──
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 8,
+          children: [
+            Text('I find that the above named person', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _consumedCtrl,
+              style: serifStyle,
+              width: 170,
+            ),
+            _inlineBlank(
+              controller: _intoxicantTypeCtrl,
+              style: serifStyle,
+              width: 190,
+            ),
+            Text('I also find that he', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _underInfluenceCtrl,
+              style: serifStyle,
+              width: 90,
+            ),
+            Text('under the Influence of alcohol', style: serifStyle.copyWith(fontSize: 13)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          children: [
+            _quickOptionChip('has consumed', _consumedCtrl),
+            _quickOptionChip('has not consumed', _consumedCtrl),
+            _quickOptionChip('Alcohol', _intoxicantTypeCtrl),
+            _quickOptionChip('Opium', _intoxicantTypeCtrl),
+            _quickOptionChip('Charas', _intoxicantTypeCtrl),
+            _quickOptionChip('Ganja', _intoxicantTypeCtrl),
+            _quickOptionChip('Bhang', _intoxicantTypeCtrl),
+            _quickOptionChip('is', _underInfluenceCtrl),
+            _quickOptionChip('is not', _underInfluenceCtrl),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // ── (N.B. ... Blood note) ──
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            Text('(N.B.', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+            _inlineBlank(
+              controller: _bloodCollectedCtrl,
+              style: serifStyle,
+              width: 90,
+            ),
+            Text(
+              'Blood from the body of the above named was/was not collected by MO for',
+              style: serifStyle.copyWith(fontSize: 12.5),
+            ),
+            Text('Chemical examination )', style: serifStyle.copyWith(fontSize: 12.5)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          children: [
+            _quickOptionChip('was', _bloodCollectedCtrl),
+            _quickOptionChip('was not', _bloodCollectedCtrl),
+          ],
         ),
         const SizedBox(height: 24),
-        ResponsiveFieldRow(
+
+        // ── Dated / Time / Signature / Designation Row (2 columns) ──
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BilingualField(
-                    label: 'Dated',
-                    marathiLabel: 'दिनांक',
-                    controller: _formADatedCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiStyle,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('Dated : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Expanded(
+                        child: _inlineBlank(
+                          controller: _formADatedCtrl,
+                          style: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  BilingualField(
-                    label: 'Signature',
-                    marathiLabel: 'सही',
-                    controller: _moSignatureCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiStyle,
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('Time : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Expanded(
+                        child: _inlineBlank(
+                          controller: _formATimeCtrl,
+                          style: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 24),
+            const SizedBox(width: 40),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BilingualField(
-                    label: 'Time',
-                    marathiLabel: 'वेळ',
-                    controller: _formATimeCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiStyle,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('Signature : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Expanded(
+                        child: _inlineBlank(
+                          controller: _moSignatureCtrl,
+                          style: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  BilingualField(
-                    label: 'Designation',
-                    marathiLabel: 'पदनाम',
-                    controller: _moDesignationCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiStyle,
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('Designation : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Expanded(
+                        child: _inlineBlank(
+                          controller: _moDesignationCtrl,
+                          style: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
-        BilingualMultilineField(
-          label: 'Signature / Thumb impression of the person examined',
-          marathiLabel: 'तपासण्यात आलेल्या व्यक्तीची सही / अंगठ्याचा ठसा',
-          controller: _examinedSigCtrl,
-          minLines: 2,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiStyle,
+        const SizedBox(height: 24),
+
+        // ── Person Examined Signature / Thumb Impression ──
+        Text(
+          'Signature/Thumb impression of the person examined',
+          style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12.5),
         ),
-        BilingualMultilineField(
-          label:
-              'Marks of Identification of the person examined in case he refuses to give his signature / Thumb impression',
-          marathiLabel:
-              'सही / अंगठ्याचा ठसा देण्यास नकार दिल्यास ओळखीच्या खुणा',
+        _inlineBlank(
+          controller: _examinedSigCtrl,
+          style: serifStyle,
+          width: double.infinity,
+        ),
+        const SizedBox(height: 16),
+
+        // ── Marks of Identification in case refuses ──
+        Text(
+          'Marks of Identification of the person examined in case he refuses to given his signature /Thumb impression',
+          style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+        ),
+        _multilineBlankBox(
           controller: _idMarksCtrl,
+          style: serifStyle,
           minLines: 2,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiStyle,
         ),
       ],
     );
   }
 
-  Widget _formBPage(TextStyle serifStyle, TextStyle marathiStyle) {
+  // ══════════════════════════════════════════════════════════════════════════
+  // FORM B PAGE (Rule 4(2)) — Exactly matching Image 2
+  // ══════════════════════════════════════════════════════════════════════════
+  Widget _buildFormBPage(TextStyle serifStyle) {
     return FormPaperPage(
-      formLabel: 'Form B / नमुना ब',
+      formLabel: 'FORM "B" (Rule 4(2))',
       children: [
+        // ── Form B Header ──
         Center(
           child: Column(
             children: [
@@ -602,195 +859,220 @@ class AbFormViewState extends State<AbFormView> {
                 style: serifStyle.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
                 ),
               ),
+              const SizedBox(height: 4),
               Text(
-                'नमुना "ब"',
-                style: GoogleFonts.notoSansDevanagari(
-                  fontSize: 16,
+                '(See rule 4 (2))',
+                style: serifStyle.copyWith(
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   decoration: TextDecoration.underline,
                 ),
               ),
-              Text('(See rule 4 (2))', style: serifStyle.copyWith(fontSize: 11, decoration: TextDecoration.underline)),
-              Text(
-                '(नियम ४ (२) पहा)',
-                style: marathiStyle.copyWith(fontSize: 10, decoration: TextDecoration.underline),
-              ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        // Reference layout: "From," header row with No. top-right; address block full width below.
+        const SizedBox(height: 12),
+
+        // ── No. ......................... (Right aligned) ──
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Expanded(
-              child: BilingualSectionHeader(
-                label: 'From,',
-                marathiLabel: 'पाठवणार,',
-                serifStyle: serifStyle.copyWith(fontWeight: FontWeight.w600),
-                marathiLabelStyle: marathiStyle,
-              ),
-            ),
-            const SizedBox(width: 16),
-            SizedBox(
-              width: 150,
-              child: BilingualField(
-                label: 'No.',
-                marathiLabel: 'क्र.',
-                controller: _formBNoCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiStyle,
-              ),
+            Text('No. ', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+            _inlineBlank(
+              controller: _formBNoCtrl,
+              style: serifStyle,
+              width: 180,
             ),
           ],
         ),
-        _bilingualCaption(
-          '(Name, Designation and address of the registered medical practitioner)',
-          '(नोंदणीकृत वैद्यकीय अधिकारी यांचे नाव, पदनाम व पत्ता)',
-          serifStyle,
-          marathiStyle,
+        const SizedBox(height: 12),
+
+        // ── From, Address Block ──
+        Text('From,', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
+          '(Name, Designation and address of the registred medical practioner)',
+          style: serifStyle.copyWith(fontSize: 11, fontStyle: FontStyle.italic),
         ),
-        BilingualDynamicLinedTextField(
+        _multilineBlankBox(
           controller: _fromPractitionerCtrl,
-          minLines: 3,
-          serifStyle: serifStyle,
+          style: serifStyle,
+          minLines: 2,
         ),
-        const SizedBox(height: 16),
-        BilingualSectionHeader(
-          label: 'To,',
-          marathiLabel: 'प्रति,',
-          serifStyle: serifStyle.copyWith(fontWeight: FontWeight.w600),
-          marathiLabelStyle: marathiStyle,
-        ),
-        _bilingualCaption(
+        const SizedBox(height: 14),
+
+        // ── To, Address Block ──
+        Text('To,', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
           '(Name and address of the Testing Officer)',
-          '(तपासणी अधिकाऱ्याचे नाव व पत्ता)',
-          serifStyle,
-          marathiStyle,
+          style: serifStyle.copyWith(fontSize: 11, fontStyle: FontStyle.italic),
         ),
-        BilingualDynamicLinedTextField(
+        _multilineBlankBox(
           controller: _toTestingOfficerCtrl,
-          minLines: 3,
-          serifStyle: serifStyle,
+          style: serifStyle,
+          minLines: 2,
         ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: SizedBox(
-            width: 220,
-            child: BilingualField(
-              label: 'Date :-',
-              marathiLabel: 'दिनांक',
+        const SizedBox(height: 10),
+
+        // ── Date :- (Right aligned) ──
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text('Date :- ', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+            _inlineBlank(
               controller: _formBDateCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiStyle,
+              style: serifStyle,
+              width: 160,
             ),
-          ),
+          ],
         ),
-        const SizedBox(height: 16),
-        BilingualSectionHeader(
-          label: 'Sir,',
-          marathiLabel: 'महोदय,',
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiStyle,
-        ),
+        const SizedBox(height: 14),
+
+        // ── Sir, ──
+        Text('Sir,', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 8),
-        _bilingualCaption(
-          'I forward herewith by post / with Shri.',
-          'यासोबत पोस्ट / श्री.',
-          serifStyle,
-          marathiStyle,
-        ),
+
+        // ── Body Paragraph with Inlines matching Image 2 ──
         Wrap(
-          crossAxisAlignment: WrapCrossAlignment.end,
-          spacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
           runSpacing: 10,
           children: [
-            _inlineField(style: serifStyle, controller: _messengerNameCtrl, width: 140),
-            Text('of Police station a phial bearing serial No.', style: serifStyle),
-            Text('पोलीस ठाणे — शीशी अ.क्र.', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _phialSerialCtrl, width: 90),
-            Text('containing', style: serifStyle),
-            Text('यात', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _bloodAmountCtrl, width: 60),
-            Text('c.c. of venous blood collected by me on', style: serifStyle),
-            Text('स.स. रक्त गोळा केले', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _collectionDateCtrl, width: 90),
-            Text('at', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _collectionTimeCtrl, width: 70),
-            _inlineField(style: serifStyle, controller: _collectionAmPmCtrl, width: 50),
-            Text('a.m./p.m. from the body of Shri/Smt/Kumari', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _subjectNameCtrl, width: 140),
-            Text('of', style: serifStyle),
-            Text('यांचे', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _subjectAddressCtrl, width: 180),
-            Text(
-              'who was produced before me for medical examination and / or collection of blood from his / her body by',
+            Text('I forward here with by post / with Shri.', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _messengerNameCtrl,
               style: serifStyle,
+              width: 180,
             ),
-            _inlineField(style: serifStyle, controller: _producedByCtrl, width: 180),
-            Text(
-              'and request you to test the blood and issue a certificate ( in duplicates ) regarding the result of the test.',
+            Text('of', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _policeStationNameCtrl,
               style: serifStyle,
+              width: 160,
             ),
+            Text('Police station a phial bearing serial No.', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _phialSerialCtrl,
+              style: serifStyle,
+              width: 140,
+            ),
+            Text('containing', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _bloodAmountCtrl,
+              style: serifStyle,
+              width: 60,
+            ),
+            Text('c.c. of venues blood collected by me on', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _collectionDateCtrl,
+              style: serifStyle,
+              width: 110,
+            ),
+            Text('at', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _collectionTimeCtrl,
+              style: serifStyle,
+              width: 100,
+            ),
+            Text('a.m./p.m. from the body of Shri/Smt/Kumari', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _subjectNameCtrl,
+              style: serifStyle,
+              width: 260,
+            ),
+            Text('of', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _subjectAddressCtrl,
+              style: serifStyle,
+              width: 320,
+            ),
+            Text('who was produced before me for medical examination and / or collection of blood from his / her body by', style: serifStyle.copyWith(fontSize: 13)),
+            _inlineBlank(
+              controller: _producedByCtrl,
+              style: serifStyle,
+              width: 260,
+            ),
+            Text('and request you to test the blood and issue a certificate ( in duplicates ) regarding the result of the test.', style: serifStyle.copyWith(fontSize: 13)),
           ],
         ),
-        _marathiCaption(
-          'वैद्यकीय तपासणी / रक्त गोळा करण्यासाठी सादर — रक्ताची तपासणी करून निकालाचे (दोन प्रती) प्रमाणपत्र द्यावे',
-          marathiStyle,
-        ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 28),
+
+        // ── Yours Faithfully Signoff ──
         Align(
           alignment: Alignment.centerRight,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('Yours Faithfully,', style: serifStyle),
-              Text('भवदीय', style: marathiStyle.copyWith(fontSize: 10)),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: 220,
-                child: BilingualSimpleUnderlineInput(
-                  controller: _formBSignatureCtrl,
-                  serifStyle: serifStyle,
-                ),
+              Text('Yours Faithfully,', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 20),
+              _inlineBlank(
+                controller: _formBSignatureCtrl,
+                style: serifStyle,
+                width: 260,
               ),
+              const SizedBox(height: 4),
               Text(
-                'Signature and designation of the registered medical practitioner.',
-                style: serifStyle.copyWith(fontSize: 10),
+                'Signature and designation of the registered medical\npractioner.',
                 textAlign: TextAlign.right,
-              ),
-              Text(
-                'नोंदणीकृत वैद्यकीय अधिकारी यांची सही व पदनाम',
-                style: marathiStyle.copyWith(fontSize: 9),
-                textAlign: TextAlign.right,
+                style: serifStyle.copyWith(fontSize: 11),
               ),
             ],
           ),
         ),
+        const SizedBox(height: 20),
+
+        // ── Facsimile of the seal or Monogram Box ──
+        Text(
+          'Fascimile of the seal or Monogram',
+          style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12.5),
+        ),
+        Text(
+          'used for sealing the phial containing the blood.',
+          style: serifStyle.copyWith(fontSize: 12),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          height: 90,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade400, width: 1.0),
+            borderRadius: BorderRadius.circular(4),
+            color: Colors.grey.shade50,
+          ),
+          padding: const EdgeInsets.all(8),
+          child: TextFormField(
+            controller: _sealFacsimileCtrl,
+            readOnly: widget.readOnly,
+            maxLines: 3,
+            style: serifStyle.copyWith(
+              fontSize: 12,
+              color: const Color(0xFF0D47A1),
+            ),
+            decoration: const InputDecoration(
+              isDense: true,
+              border: InputBorder.none,
+            ),
+          ),
+        ),
         const SizedBox(height: 24),
-        BilingualMultilineField(
-          label: 'Facsimile of the seal or Monogram used for sealing the phial containing the blood.',
-          marathiLabel: 'रक्ताची शीशी सील करण्यासाठी वापरलेल्या शिक्क्याची / monogram ची प्रतिकृती',
-          controller: _sealFacsimileCtrl,
-          minLines: 2,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiStyle,
+
+        // ── Footnotes Separator & 3 Statutory Rules ──
+        const Divider(color: Color(0xFF333333), thickness: 1.2),
+        const SizedBox(height: 6),
+        Text(
+          'Here specify the name, designation and address of the messenger with whom the phial containing the blood is forwarded for delivery to the Testing.',
+          style: serifStyle.copyWith(fontSize: 11, height: 1.3),
         ),
-        const SizedBox(height: 12),
-        _bilingualCaption(
-          'Here specify the name, designation and address of the messenger with whom the phial containing the blood is forwarded for delivery to the Testing Officer.',
-          'शीशी पाठवणाऱ्या दूताचे नाव, पदनाम व पत्ता (तपासणी अधिकाऱ्याकडे पोहोचण्यासाठी).',
-          serifStyle.copyWith(fontSize: 10),
-          marathiStyle,
+        const SizedBox(height: 4),
+        Text(
+          'Strike off, if these words are not required.',
+          style: serifStyle.copyWith(fontSize: 11, height: 1.3),
         ),
-        _bilingualCaption(
+        const SizedBox(height: 4),
+        Text(
           'Here state the name and designation of the officer by whom the said person was produced for collection of blood.',
-          'रक्त गोळा करण्यासाठी सादर केलेल्या व्यक्तीला कोणत्या अधिकाऱ्याने सादर केले — नाव व पदनाम.',
-          serifStyle.copyWith(fontSize: 10),
-          marathiStyle,
+          style: serifStyle.copyWith(fontSize: 11, height: 1.3),
         ),
       ],
     );
@@ -799,14 +1081,13 @@ class AbFormViewState extends State<AbFormView> {
   @override
   Widget build(BuildContext context) {
     final serifStyle = FormTypography.serifStyle();
-    final marathiStyle = FormTypography.marathiLabelStyle();
 
     return FormViewScaffold(
       readOnly: widget.readOnly,
       children: [
-        if (_showFormA) _formAPage(serifStyle, marathiStyle),
+        if (_showFormA) _buildFormAPage(serifStyle),
         if (_showFormA && _showFormB) const SizedBox(height: 24),
-        if (_showFormB) _formBPage(serifStyle, marathiStyle),
+        if (_showFormB) _buildFormBPage(serifStyle),
       ],
     );
   }
