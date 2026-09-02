@@ -5,44 +5,45 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+
+import '../modules/absconded/providers/absconded_provider.dart';
+import '../modules/accident/providers/accident_provider.dart';
+import '../modules/ad/providers/ad_provider.dart';
+import '../modules/application/providers/application_provider.dart';
+import '../modules/arrested/providers/arrested_provider.dart';
+import '../modules/bnss/providers/bnss_provider.dart';
+import '../modules/coin/providers/coin_provider.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/core/providers/base_module_provider.dart';
+import '../modules/crime_women/providers/crime_women_provider.dart';
+import '../modules/detected/providers/detected_provider.dart';
+import '../modules/disposal/providers/disposal_provider.dart';
 import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../modules/form_vi/providers/form_vi_provider.dart';
-import '../modules/nc/providers/nc_provider.dart';
-import '../modules/preventive/providers/preventive_provider.dart';
-import '../modules/ad/providers/ad_provider.dart';
-import '../modules/missing/providers/missing_provider.dart';
-import '../modules/kidnapping/providers/kidnapping_provider.dart';
-import '../modules/theft/providers/theft_provider.dart';
-import '../modules/sand_theft/providers/sand_theft_provider.dart';
-import '../modules/hurt/providers/hurt_provider.dart';
-import '../modules/pocso/providers/pocso_provider.dart';
-import '../modules/passport/providers/passport_provider.dart';
-import '../modules/monthly/providers/monthly_provider.dart';
-import '../modules/pending/providers/pending_provider.dart';
-import '../modules/detected/providers/detected_provider.dart';
-import '../modules/undetected/providers/undetected_provider.dart';
-import '../modules/disposal/providers/disposal_provider.dart';
-import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
-import '../modules/arrested/providers/arrested_provider.dart';
-import '../modules/absconded/providers/absconded_provider.dart';
-import '../modules/crime_women/providers/crime_women_provider.dart';
-import '../modules/juvenile/providers/juvenile_provider.dart';
-import '../modules/victim/providers/victim_provider.dart';
-import '../modules/accident/providers/accident_provider.dart';
-import '../modules/traffic/providers/traffic_provider.dart';
-import '../modules/application/providers/application_provider.dart';
-import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
-import '../modules/muddemal/providers/muddemal_provider.dart';
-import '../modules/bnss/providers/bnss_provider.dart';
-import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/gowans/providers/gowans_provider.dart';
+import '../modules/hurt/providers/hurt_provider.dart';
 import '../modules/it_act/providers/it_act_provider.dart';
+import '../modules/juvenile/providers/juvenile_provider.dart';
+import '../modules/kidnapping/providers/kidnapping_provider.dart';
 import '../modules/mcoca/providers/mcoca_provider.dart';
-import '../modules/uapa/providers/uapa_provider.dart';
+import '../modules/missing/providers/missing_provider.dart';
+import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
-import '../modules/coin/providers/coin_provider.dart';
+import '../modules/muddemal/providers/muddemal_provider.dart';
+import '../modules/nc/providers/nc_provider.dart';
+import '../modules/ndps/providers/ndps_provider.dart';
+import '../modules/passport/providers/passport_provider.dart';
+import '../modules/pending/providers/pending_provider.dart';
+import '../modules/pocso/providers/pocso_provider.dart';
+import '../modules/preventive/providers/preventive_provider.dart';
+import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
+import '../modules/sand_theft/providers/sand_theft_provider.dart';
+import '../modules/theft/providers/theft_provider.dart';
+import '../modules/traffic/providers/traffic_provider.dart';
+import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
+import '../modules/uapa/providers/uapa_provider.dart';
+import '../modules/undetected/providers/undetected_provider.dart';
+import '../modules/victim/providers/victim_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/base_form/base_form.dart';
@@ -67,33 +68,35 @@ class ModuleFormScreen extends StatefulWidget {
 
 class _ModuleFormScreenState extends State<ModuleFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _caseNoCtrl      = TextEditingController();
-  final _titleCtrl       = TextEditingController();
-  final _descCtrl        = TextEditingController();
+  final _caseNoCtrl = TextEditingController();
+  final _titleCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
   final _complainantCtrl = TextEditingController();
-  final _accusedCtrl     = TextEditingController();
-  final _locationCtrl    = TextEditingController();
+  final _accusedCtrl = TextEditingController();
+  final _locationCtrl = TextEditingController();
 
-  DateTime _date     = DateTime.now();
-  String _priority   = 'Medium';
-  String _status     = 'Open';
-  bool get _isEdit   => widget.existingRecord != null;
+  DateTime _date = DateTime.now();
+  String _priority = 'Medium';
+  String _status = 'Open';
+  bool get _isEdit => widget.existingRecord != null;
 
   @override
   void initState() {
     super.initState();
     if (_isEdit) {
       final r = widget.existingRecord!;
-      _caseNoCtrl.text      = r.caseNumber;
-      _titleCtrl.text       = r.title;
-      _descCtrl.text        = r.description;
+      _caseNoCtrl.text = r.caseNumber;
+      _titleCtrl.text = r.title;
+      _descCtrl.text = r.description;
       _complainantCtrl.text = r.complainant;
-      _accusedCtrl.text     = r.accused;
-      _locationCtrl.text    = r.location;
-      _date     = r.incidentDate;
+      _accusedCtrl.text = r.accused;
+      _locationCtrl.text = r.location;
+      _date = r.incidentDate;
       _priority = r.priority;
       if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
-        _status = (r.status == 'Disposal' || r.status == 'Closed' || r.status == 'Resolved')
+        _status = (r.status == 'Disposal' ||
+                r.status == 'Closed' ||
+                r.status == 'Resolved')
             ? 'Disposal'
             : 'Pending';
       } else {
@@ -113,7 +116,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
       final auth = context.read<AuthProvider>();
       final provider = _getProvider(context);
 
-      debugPrint('>>> [ModuleFormScreen] initState stationName="${auth.stationName}" uid="${auth.uid}"');
+      debugPrint(
+          '>>> [ModuleFormScreen] initState stationName="${auth.stationName}" uid="${auth.uid}"');
 
       // Only inject if stationName is available
       if (auth.stationName.isNotEmpty) {
@@ -135,50 +139,87 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
 
   BaseModuleProvider _getProvider(BuildContext context) {
     switch (widget.moduleKey) {
-      case 'form_1_5':         return context.read<FormIVProvider>();
-      case 'form_6':           return context.read<FormVIProvider>();
-      case 'nc':               return context.read<NcProvider>();
-      case 'preventive':       return context.read<PreventiveProvider>();
-      case 'ad':               return context.read<AdProvider>();
-      case 'missing':          return context.read<MissingProvider>();
-      case 'kidnapping':       return context.read<KidnappingProvider>();
-      case 'theft':            return context.read<TheftProvider>();
-      case 'sand_theft':       return context.read<SandTheftProvider>();
-      case 'hurt':             return context.read<HurtProvider>();
-      case 'pocso':            return context.read<PocsoProvider>();
-      case 'passport':         return context.read<PassportProvider>();
-      case 'monthly':          return context.read<MonthlyProvider>();
-      case 'pending':          return context.read<PendingProvider>();
-      case 'detected':         return context.read<DetectedProvider>();
-      case 'undetected':       return context.read<UndetectedProvider>();
-      case 'disposal':         return context.read<DisposalProvider>();
-      case 'two_four_wheeler': return context.read<TwoFourWheelerProvider>();
-      case 'arrested':         return context.read<ArrestedProvider>();
-      case 'absconded':        return context.read<AbscondedProvider>();
-      case 'crime_women':      return context.read<CrimeWomenProvider>();
-      case 'juvenile':         return context.read<JuvenileProvider>();
-      case 'victim':           return context.read<VictimProvider>();
-      case 'accident':         return context.read<AccidentProvider>();
-      case 'traffic':          return context.read<TrafficProvider>();
-      case 'application':      return context.read<ApplicationProvider>();
-      case 'sam_warrant':      return context.read<SamWarrantProvider>();
-      case 'muddemal':         return context.read<MuddemalProvider>();
-      case 'bnss':             return context.read<BnssProvider>();
-      case 'ndps':             return context.read<NdpsProvider>();
-      case 'gowans':           return context.read<GowansProvider>();
-      case 'it_act':           return context.read<ItActProvider>();
-      case 'mcoca':            return context.read<McocaProvider>();
-      case 'uapa':             return context.read<UapaProvider>();
-      case 'mpda':             return context.read<MpdaProvider>();
-      case 'coin':             return context.read<CoinProvider>();
-      default:                 return context.read<NcProvider>();
+      case 'form_1_5':
+        return context.read<FormIVProvider>();
+      case 'form_6':
+        return context.read<FormVIProvider>();
+      case 'nc':
+        return context.read<NcProvider>();
+      case 'preventive':
+        return context.read<PreventiveProvider>();
+      case 'ad':
+        return context.read<AdProvider>();
+      case 'missing':
+        return context.read<MissingProvider>();
+      case 'kidnapping':
+        return context.read<KidnappingProvider>();
+      case 'theft':
+        return context.read<TheftProvider>();
+      case 'sand_theft':
+        return context.read<SandTheftProvider>();
+      case 'hurt':
+        return context.read<HurtProvider>();
+      case 'pocso':
+        return context.read<PocsoProvider>();
+      case 'passport':
+        return context.read<PassportProvider>();
+      case 'monthly':
+        return context.read<MonthlyProvider>();
+      case 'pending':
+        return context.read<PendingProvider>();
+      case 'detected':
+        return context.read<DetectedProvider>();
+      case 'undetected':
+        return context.read<UndetectedProvider>();
+      case 'disposal':
+        return context.read<DisposalProvider>();
+      case 'two_four_wheeler':
+        return context.read<TwoFourWheelerProvider>();
+      case 'arrested':
+        return context.read<ArrestedProvider>();
+      case 'absconded':
+        return context.read<AbscondedProvider>();
+      case 'crime_women':
+        return context.read<CrimeWomenProvider>();
+      case 'juvenile':
+        return context.read<JuvenileProvider>();
+      case 'victim':
+        return context.read<VictimProvider>();
+      case 'accident':
+        return context.read<AccidentProvider>();
+      case 'traffic':
+        return context.read<TrafficProvider>();
+      case 'application':
+        return context.read<ApplicationProvider>();
+      case 'sam_warrant':
+        return context.read<SamWarrantProvider>();
+      case 'muddemal':
+        return context.read<MuddemalProvider>();
+      case 'bnss':
+        return context.read<BnssProvider>();
+      case 'ndps':
+        return context.read<NdpsProvider>();
+      case 'gowans':
+        return context.read<GowansProvider>();
+      case 'it_act':
+        return context.read<ItActProvider>();
+      case 'mcoca':
+        return context.read<McocaProvider>();
+      case 'uapa':
+        return context.read<UapaProvider>();
+      case 'mpda':
+        return context.read<MpdaProvider>();
+      case 'coin':
+        return context.read<CoinProvider>();
+      default:
+        return context.read<NcProvider>();
     }
   }
 
   Future<void> _onSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final auth     = context.read<AuthProvider>();
+    final auth = context.read<AuthProvider>();
     final provider = _getProvider(context);
 
     // ✅ Resolve stationName — prefer auth, never allow empty
@@ -201,41 +242,38 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
         ),
         backgroundColor: Colors.red,
       ));
-      debugPrint('>>> [_onSubmit] BLOCKED — stationName is empty. auth.stationName="${auth.stationName}" provider.stationId="${provider.stationId}"');
+      debugPrint(
+          '>>> [_onSubmit] BLOCKED — stationName is empty. auth.stationName="${auth.stationName}" provider.stationId="${provider.stationId}"');
       return;
     }
 
-    debugPrint('>>> [_onSubmit] stationName="$stationName" createdBy="$createdBy"');
+    debugPrint(
+        '>>> [_onSubmit] stationName="$stationName" createdBy="$createdBy"');
 
     final record = ModuleRecord(
       id: _isEdit
           ? widget.existingRecord!.id
           : '${DateTime.now().millisecondsSinceEpoch}',
-      moduleKey:       widget.moduleKey,
-      title:           _titleCtrl.text.trim(),
-      caseNumber:      _caseNoCtrl.text.trim(),
-      description:     _descCtrl.text.trim(),
-      complainant:     _complainantCtrl.text.trim(),
-      accused:         _accusedCtrl.text.trim(),
-      location:        _locationCtrl.text.trim(),
-      incidentDate:    _date,
-      priority:        _priority,
-      status:          _status,
-      assignedOfficer: _isEdit
-          ? widget.existingRecord!.assignedOfficer
-          : auth.displayName,
-      subCategory:     _isEdit
-          ? widget.existingRecord!.subCategory
-          : widget.subCategory,
-      createdAt:       _isEdit
-          ? widget.existingRecord!.createdAt
-          : DateTime.now(),
+      moduleKey: widget.moduleKey,
+      title: _titleCtrl.text.trim(),
+      caseNumber: _caseNoCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
+      complainant: _complainantCtrl.text.trim(),
+      accused: _accusedCtrl.text.trim(),
+      location: _locationCtrl.text.trim(),
+      incidentDate: _date,
+      priority: _priority,
+      status: _status,
+      assignedOfficer:
+          _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
+      subCategory:
+          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
+      createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       // ✅ Always populated — never empty
-      stationName:     stationName,
-      createdBy:       createdBy,
-      assignedOfficerUid: _isEdit
-          ? widget.existingRecord!.assignedOfficerUid
-          : auth.uid,
+      stationName: stationName,
+      createdBy: createdBy,
+      assignedOfficerUid:
+          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
     );
 
     try {
@@ -271,9 +309,10 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final statusItems = (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected')
-        ? ['Pending', 'Disposal']
-        : ['Open', 'Active', 'Resolved', 'Closed'];
+    final statusItems =
+        (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected')
+            ? ['Pending', 'Disposal']
+            : ['Open', 'Active', 'Resolved', 'Closed'];
 
     return BaseFormLayout(
       title: _isEdit
@@ -282,7 +321,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
       onSubmit: _onSubmit,
       submitLabel: _isEdit ? 'Update Record' : 'Register Case',
       backgroundColor: AppColors.lightBg,
-      darkAppBar: (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected'),
+      darkAppBar:
+          (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected'),
       appBarActions: [
         Container(
           margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -290,8 +330,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
           decoration: BoxDecoration(
             color: AppColors.goldPrimary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(AppRadius.sm),
-            border: Border.all(
-                color: AppColors.goldPrimary.withValues(alpha: 0.3)),
+            border:
+                Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.3)),
           ),
           child: Center(
             child: Text('MODULE',
@@ -370,10 +410,7 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
                 _dropdown('Priority', _priority, ['Low', 'Medium', 'High'],
                     (v) => setState(() => _priority = v!)),
                 const SizedBox(height: AppSpacing.md),
-                _dropdown(
-                    'Status',
-                    _status,
-                    statusItems,
+                _dropdown('Status', _status, statusItems,
                     (v) => setState(() => _status = v!)),
               ]),
             ],

@@ -313,6 +313,25 @@ class PoliceDesignationEntry {
 class PoliceDesignations {
   PoliceDesignations._();
 
+  /// Canonical IO Designations (from HC up to Addl. SP / Addl. CP).
+  static const List<String> ioDesignations = [
+    'HC',
+    'ASI',
+    'SI',
+    'PSI',
+    'API',
+    'PI',
+    'Sr. PI',
+    'SDPO',
+    'Dy. SP',
+    'ACP',
+    'ASP',
+    'DCP',
+    'SP',
+    'Addl. SP',
+    'Addl. CP',
+  ];
+
   /// Form IO / Reg dropdowns (common form, NC, missing).
   static const List<String> formIoAndReg = [
     'HC',
@@ -325,14 +344,33 @@ class PoliceDesignations {
     'API',
     'PI',
     'Sr. PI',
+    'SDPO',
+    'Dy. SP',
+    'ACP',
+    'ASP',
+    'DCP',
+    'SP',
+    'Addl. SP',
+    'Addl. CP',
   ];
 
-  /// AD form — IO designation dropdown.
+  /// AD form — IO designation dropdown (from HC up to Addl. SP / Addl. CP).
   static const List<String> adIo = [
+    'HC',
+    'ASI',
+    'SI',
     'PSI',
     'API',
     'PI',
     'Sr. PI',
+    'SDPO',
+    'Dy. SP',
+    'ACP',
+    'ASP',
+    'DCP',
+    'SP',
+    'Addl. SP',
+    'Addl. CP',
   ];
 
   /// AD form — registered-by designation dropdown.
@@ -342,6 +380,8 @@ class PoliceDesignations {
     'PC',
     'NPC',
     'ASI',
+    'SI',
+    'PSI',
   ];
 
   /// Commissionerate Police registration ranks (low → high).

@@ -150,8 +150,8 @@ class _NcFormScreenState extends State<NcFormScreen> {
       complainant: _personName(doc, 'complainant'),
       accused: _personName(doc, 'personComplainedAgainst'),
       location: _locationLine(doc),
-      incidentDate: _parseIncidentDate(
-          doc['registrationDateTime']?.toString() ?? ''),
+      incidentDate:
+          _parseIncidentDate(doc['registrationDateTime']?.toString() ?? ''),
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: _isEdit ? widget.existingRecord!.status : 'Open',
       assignedOfficer:
@@ -234,9 +234,8 @@ class _NcFormScreenState extends State<NcFormScreen> {
       extraFields: extra,
       stationName: stationName,
       createdBy: createdBy,
-      assignedOfficerUid: _isEdit
-          ? widget.existingRecord!.assignedOfficerUid
-          : auth.uid,
+      assignedOfficerUid:
+          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
     );
 
     if (_isEdit) {

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../utils/app_constants.dart';
+import '../../../utils/crime_detail_pdf.dart';
+import '../../../utils/translation_helper.dart';
 import '../../../widgets/base_form/base_form.dart';
 
 // ── Palette (matches nc_form.dart / common_form.dart) ─────────────────────────
@@ -1326,6 +1328,21 @@ class MissingFormState extends State<MissingForm> {
         ],
       );
 
+  Future<void> _generateCrimeDetailPdf() async {
+    try {
+      final doc = buildDocumentMap();
+      await previewCrimeDetailPdf(context, doc);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate PDF: $e'),
+          backgroundColor: _kRed,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
@@ -1353,6 +1370,13 @@ class MissingFormState extends State<MissingForm> {
                   const SizedBox(width: 6),
                   _barBtn(
                       'Save Draft', Icons.save_outlined, saveDraft, _kTeal),
+                  const SizedBox(width: 6),
+                  _barBtn(
+                    'Generate Crime Detail Form PDF',
+                    Icons.picture_as_pdf_outlined,
+                    _generateCrimeDetailPdf,
+                    const Color(0xFF0284C7),
+                  ),
                 ],
               ),
             ),
@@ -1438,7 +1462,7 @@ class MissingFormState extends State<MissingForm> {
                         children: [
                           _chipSelector(
                             label: 'Designation',
-                            items: PoliceDesignations.formIoAndReg,
+                            items: PoliceDesignations.ioDesignations,
                             selected: _ioDesig,
                             onSelect: (v) => setState(() => _ioDesig = v),
                           ),

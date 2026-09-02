@@ -802,6 +802,8 @@ class CommonFormDocumentView extends StatelessWidget {
     final isUnknown = m['isUnknownUntraced'] == true;
     final charges = m['charges'] as Map? ?? {};
     final comp = m['complainant'] as Map? ?? {};
+    final victim = m['victim'] as Map? ?? {};
+    final deceased = m['deceased'] as Map? ?? {};
     final u = m['unidentified'] as Map? ?? {};
     final cr8 = m['caseResponsibility'] as Map? ?? {};
     final procChecks = m['proceduralChecks'] as Map? ?? {};
@@ -809,6 +811,7 @@ class CommonFormDocumentView extends StatelessWidget {
     final seizures = (m['seizures'] as List?) ?? [];
     final prev = m['preventive'] as Map? ?? {};
     final discharge = (m['dischargeByAccused'] as Map?) ?? {};
+    final disDetails = (m['dischargeDetails'] as Map?) ?? {};
     final court = m['court'] as Map? ?? {};
     final verdict = m['verdict'] as Map? ?? {};
     final acquitted =
@@ -894,6 +897,44 @@ class CommonFormDocumentView extends StatelessWidget {
           ],
         ],
       ),
+      if (victim.isNotEmpty)
+        _sectionShell(
+          5,
+          'VICTIM KYC',
+          accent,
+          [
+            ..._pairedSimpleFields(context, [
+              (label: 'Name', value: _v(victim['name']), fullWidth: false),
+              (label: 'Age', value: _v(victim['age']), fullWidth: false),
+              (label: 'Gender', value: _v(victim['gender']), fullWidth: false),
+              (label: 'Occupation', value: _v(victim['occ']), fullWidth: false),
+              (label: 'Mobile', value: _v(victim['mobile']), fullWidth: false),
+              (label: 'Aadhaar', value: _v(victim['aadhaar']), fullWidth: false),
+              (label: 'Religion', value: _v(victim['religion']), fullWidth: false),
+              (label: 'Caste', value: _v(victim['caste']), fullWidth: false),
+              (label: 'PAN Number', value: _v(victim['pan']), fullWidth: false),
+            ]),
+          ],
+        ),
+      if (deceased.isNotEmpty)
+        _sectionShell(
+          6,
+          'DECEASED KYC',
+          accent,
+          [
+            ..._pairedSimpleFields(context, [
+              (label: 'Name', value: _v(deceased['name']), fullWidth: false),
+              (label: 'Age', value: _v(deceased['age']), fullWidth: false),
+              (label: 'Gender', value: _v(deceased['gender']), fullWidth: false),
+              (label: 'Occupation', value: _v(deceased['occ']), fullWidth: false),
+              (label: 'Mobile', value: _v(deceased['mobile']), fullWidth: false),
+              (label: 'Aadhaar', value: _v(deceased['aadhaar']), fullWidth: false),
+              (label: 'Religion', value: _v(deceased['religion']), fullWidth: false),
+              (label: 'Caste', value: _v(deceased['caste']), fullWidth: false),
+              (label: 'PAN Number', value: _v(deceased['pan']), fullWidth: false),
+            ]),
+          ],
+        ),
       _sectionShell(
         5,
         'ACCUSED DETAILS',
@@ -1059,7 +1100,11 @@ class CommonFormDocumentView extends StatelessWidget {
             );
           }),
           const SizedBox(height: 8),
-          _row('E-shaksh', _v(m['eshakshValue'], or: 'Not set')),
+          _row('E-Shakshya', _v(m['eshakshValue'], or: 'Not set')),
+          if (m['eshakshValue'] == 'yes' && (m['eshakshDt']?.toString().isNotEmpty ?? false))
+            _row('E-Shakshya Date & Time', _v(m['eshakshDt'])),
+          if (m['eshakshValue'] == 'no' && (m['eshakshReason']?.toString().isNotEmpty ?? false))
+            _row('Reason for No E-Shakshya', _v(m['eshakshReason'])),
         ],
       ),
       _sectionShell(
@@ -1114,10 +1159,15 @@ class CommonFormDocumentView extends StatelessWidget {
         'PREVENTIVE & BONDS',
         accent,
         _pairedSimpleFields(context, [
-          (label: 'Preventive Action', value: _v(prev['action'], or: 'Not set'), fullWidth: false),
-          (label: 'Outward Number', value: _v(prev['outwardNumber']), fullWidth: false),
-          (label: 'Bond Date', value: _v(prev['bondDate']), fullWidth: false),
-          (label: 'Bond Cancellation Date', value: _v(prev['bondCancellation']), fullWidth: false),
+          (label: 'Preventive Bonds', value: _v(prev['preventiveBonds'] ?? prev['prBond']), fullWidth: false),
+          if ((prev['preventiveBonds'] ?? prev['prBond']) == 'yes') ...[
+            (label: 'PR Bond Date', value: _v(prev['bondDate']), fullWidth: false),
+            (label: 'Bond Cancellation Date', value: _v(prev['bondCancellation']), fullWidth: false),
+            (label: 'Reason for PR Bond', value: _v(prev['bondReason']), fullWidth: true),
+          ],
+          (label: 'Action Type', value: _v(prev['action'], or: 'Not set'), fullWidth: false),
+          if (prev['actionDate'] != null && prev['actionDate'].toString().isNotEmpty)
+            (label: '${prev['action'] ?? 'Action Type'} Date & Time', value: _v(prev['actionDate']), fullWidth: false),
         ]),
       ),
       _sectionShell(
@@ -1133,26 +1183,77 @@ class CommonFormDocumentView extends StatelessWidget {
           else
             ...discharge.entries.map((e) {
               final ok = e.value == true;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
+              final name = e.key.toString();
+              final det = (disDetails[name] as Map?) ?? {};
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: ok
+                      ? AppColors.successGreen.withValues(alpha: 0.05)
+                      : AppColors.lightBg,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: ok
+                        ? AppColors.successGreen.withValues(alpha: 0.3)
+                        : AppColors.lightBorder,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      ok ? Icons.check_circle : Icons.cancel_outlined,
-                      size: 20,
-                      color: ok ? AppColors.successGreen : AppColors.lightSubText,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '${e.key} — ${ok ? 'Discharged' : 'Not discharged'}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: ok ? AppColors.navyDark : AppColors.lightSubText,
-                          fontWeight: FontWeight.w600,
+                    Row(
+                      children: [
+                        Icon(
+                          ok ? Icons.check_circle : Icons.cancel_outlined,
+                          size: 18,
+                          color: ok
+                              ? AppColors.successGreen
+                              : AppColors.lightSubText,
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '$name — ${ok ? 'Discharged' : 'Not discharged'}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: ok
+                                  ? AppColors.navyDark
+                                  : AppColors.lightSubText,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                    if (ok && det.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      if (det['date'] != null &&
+                          det['date'].toString().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 26, top: 2),
+                          child: Text(
+                            'Discharge Date: ${det['date']}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: AppColors.navyDark,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      if (det['reason'] != null &&
+                          det['reason'].toString().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 26, top: 2),
+                          child: Text(
+                            'Reason: ${det['reason']}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: AppColors.darkSubText,
+                            ),
+                          ),
+                        ),
+                    ],
                   ],
                 ),
               );
@@ -1165,9 +1266,7 @@ class CommonFormDocumentView extends StatelessWidget {
         accent,
         _pairedSimpleFields(context, [
           (label: 'Charge Sheet No.', value: _v(court['chargeSheetNumber']), fullWidth: false),
-          (label: 'CC / ST Number', value: _v(court['ccStNumber']), fullWidth: false),
-          (label: 'Final Summary', value: _v(court['finalSummary'], or: 'Not set'), fullWidth: false),
-          (label: 'Quashed by High Court', value: _v(court['quashedHighCourt']), fullWidth: false),
+          (label: 'Charge Sheet Date', value: _v(court['chargeSheetDate']), fullWidth: false),
         ]),
       ),
       _sectionShell(
@@ -1175,6 +1274,12 @@ class CommonFormDocumentView extends StatelessWidget {
         'FINAL VERDICT',
         accent,
         [
+          ..._pairedSimpleFields(context, [
+            (label: 'CC / ST Number', value: _v(court['ccStNumber']), fullWidth: false),
+            (label: 'Final Summary', value: _v(court['finalSummary'], or: 'Not set'), fullWidth: false),
+            (label: 'Quashed by High Court', value: _v(court['quashedHighCourt']), fullWidth: false),
+          ]),
+          const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

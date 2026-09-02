@@ -9,6 +9,8 @@ import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
 import '../services/firestore_service.dart';
 import '../utils/app_constants.dart';
+import '../utils/crime_detail_pdf.dart';
+import '../utils/translation_helper.dart';
 import '../widgets/base_form/base_form.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -339,6 +341,13 @@ class _ADFormScreenState extends State<ADFormScreen> {
     'chkExhumation': TextEditingController(),
   };
   String? eshakshValue;
+  TextEditingController? _eshakshDtController;
+  TextEditingController? _eshakshReasonController;
+
+  TextEditingController get eshakshDtController =>
+      _eshakshDtController ??= TextEditingController();
+  TextEditingController get eshakshReasonController =>
+      _eshakshReasonController ??= TextEditingController();
 
   // Section 11 Seizures
   List<Map<String, dynamic>> seizureList = [];
@@ -362,9 +371,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
   String saveBarText = 'All changes unsaved';
   Timer? _syncDebounce;
   final _scrollController = ScrollController();
-  final ValueNotifier<double> _scrollProgressNotifier = ValueNotifier<double>(0);
+  final ValueNotifier<double> _scrollProgressNotifier =
+      ValueNotifier<double>(0);
 
   final FirestoreService _caseFirestore = FirestoreService();
+
   /// Document id in `cases` collection (keeps hub list in sync with this form).
   String? _caseListDocId;
   bool _hydrating = false;
@@ -436,9 +447,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
       'X'
     ];
     return chargeData.entries.toList().asMap().entries.map((e) {
-      final roman = e.key < romanNumerals.length
-          ? romanNumerals[e.key]
-          : '${e.key + 1}';
+      final roman =
+          e.key < romanNumerals.length ? romanNumerals[e.key] : '${e.key + 1}';
       final rawAct = e.value.value['act'] as dynamic;
       return {
         'roman': roman,
@@ -547,6 +557,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
         (k, v) => MapEntry(k, v.text),
       ),
       'eshakshValue': eshakshValue,
+      'eshakshDt': eshakshDtController.text,
+      'eshakshReason': eshakshReasonController.text,
       'seizures': _seizuresPayloadList(),
       'cdrSent': cdrSentController.text,
       'cdrRecv': cdrRecvController.text,
@@ -573,9 +585,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
   ModuleRecord _moduleRecordForCaseList() {
     final auth = context.read<AuthProvider>();
     final adNo = adNoController.text.trim();
-    final id = _caseListDocId ??
-        widget.existingRecord?.id ??
-        const Uuid().v4();
+    final id = _caseListDocId ?? widget.existingRecord?.id ?? const Uuid().v4();
     _caseListDocId = id;
     final village = spotVillageController.text.trim();
     final area = spotAreaController.text.trim();
@@ -585,8 +595,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
         : [village, area].where((s) => s.isNotEmpty).join(', ');
     final prev = widget.existingRecord;
     final regStr = regDateController.text.trim();
-    final incident =
-        regStr.isNotEmpty ? _parseRegDate(regStr) : prev?.incidentDate ?? DateTime.now();
+    final incident = regStr.isNotEmpty
+        ? _parseRegDate(regStr)
+        : prev?.incidentDate ?? DateTime.now();
     final title = 'AD — $adNo';
     final comp = compNameController.text.trim();
     final desc = [
@@ -610,8 +621,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
       extraFields: const {},
       stationName: auth.stationName,
       createdBy: prev != null ? prev.createdBy : auth.uid,
-      assignedOfficerUid: prev?.assignedOfficerUid ??
-          (auth.uid.isNotEmpty ? auth.uid : null),
+      assignedOfficerUid:
+          prev?.assignedOfficerUid ?? (auth.uid.isNotEmpty ? auth.uid : null),
     );
   }
 
@@ -951,6 +962,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
       }
     }
     eshakshValue = d['eshakshValue']?.toString();
+    eshakshDtController.text = d['eshakshDt']?.toString() ?? '';
+    eshakshReasonController.text = d['eshakshReason']?.toString() ?? '';
 
     _disposeSeizureList();
     seizureList = [];
@@ -1118,7 +1131,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
     return combined;
   }
 
-  InputDecoration _fieldDecor(String label) => BaseFormStyles.inputDecoration(label);
+  InputDecoration _fieldDecor(String label) =>
+      BaseFormStyles.inputDecoration(label);
 
   Widget _responsiveGrid(BuildContext context, List<Widget> fields) {
     return LayoutBuilder(
@@ -1135,7 +1149,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
 
         final rows = <Widget>[];
         for (var i = 0; i < fields.length; i += safeCols) {
-          final end = i + safeCols > fields.length ? fields.length : i + safeCols;
+          final end =
+              i + safeCols > fields.length ? fields.length : i + safeCols;
           final chunk = fields.sublist(i, end);
           final rowChildren = <Widget>[];
           for (var j = 0; j < chunk.length; j++) {
@@ -2183,6 +2198,16 @@ class _ADFormScreenState extends State<ADFormScreen> {
                     child: const Text('SAVE DRAFT'),
                   ),
                   const SizedBox(width: 10),
+                  OutlinedButton.icon(
+                    onPressed: _generateCrimeDetailPdf,
+                    icon: const Icon(Icons.picture_as_pdf_outlined, size: 16),
+                    label: const Text('CRIME DETAIL PDF'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: accentTeal,
+                      side: const BorderSide(color: accentTeal),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   ElevatedButton.icon(
                     onPressed: submitForm,
                     style: ElevatedButton.styleFrom(
@@ -2215,6 +2240,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
                   icon: const Icon(Icons.save_outlined, color: textSecondary),
                   onPressed: saveDraft,
                 ),
+                IconButton(
+                  tooltip: 'Generate Crime Detail Form PDF',
+                  icon: const Icon(Icons.picture_as_pdf_outlined, color: accentTeal),
+                  onPressed: _generateCrimeDetailPdf,
+                ),
                 ElevatedButton(
                   onPressed: submitForm,
                   style: ElevatedButton.styleFrom(
@@ -2229,6 +2259,21 @@ class _ADFormScreenState extends State<ADFormScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _generateCrimeDetailPdf() async {
+    try {
+      final doc = buildAdDocumentMap(status: 'draft');
+      await previewCrimeDetailPdf(context, doc);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate PDF: $e'),
+          backgroundColor: accentRed,
+        ),
+      );
+    }
   }
 
   void debouncedSync() {
@@ -2299,9 +2344,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
       return;
     }
     try {
-      _caseListDocId = _caseListDocId ??
-          widget.existingRecord?.id ??
-          const Uuid().v4();
+      _caseListDocId =
+          _caseListDocId ?? widget.existingRecord?.id ?? const Uuid().v4();
 
       // Primary Save to PostgreSQL backend
       await _caseFirestore.saveCase(_moduleRecordForCaseList());
@@ -2384,6 +2428,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
     cctvValue = null;
     cctvDateTimeController.clear();
     eshakshValue = null;
+    eshakshDtController.clear();
+    eshakshReasonController.clear();
     proceduralChecks = {
       'chkMemo': false,
       'chkPanchSpot': false,
@@ -2772,24 +2818,95 @@ class _ADFormScreenState extends State<ADFormScreen> {
                   color: inputBg,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: inputBorder)),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Expanded(
-                    child: Text(
-                      'E-shaksh',
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: textPrimary),
-                    ),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'E-Shakshya',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary),
+                        ),
+                      ),
+                      _yesNoChip('Yes', eshakshValue == 'yes', accentGreen, () {
+                        setState(() => eshakshValue = 'yes');
+                        debouncedSync();
+                      }),
+                      const SizedBox(width: 10),
+                      _yesNoChip('No', eshakshValue == 'no', accentRed, () {
+                        setState(() => eshakshValue = 'no');
+                        debouncedSync();
+                      }),
+                    ],
                   ),
-                  _yesNoChip('Yes', eshakshValue == 'yes', accentGreen, () {
-                    setState(() => eshakshValue = 'yes');
-                  }),
-                  const SizedBox(width: 10),
-                  _yesNoChip('No', eshakshValue == 'no', accentRed, () {
-                    setState(() => eshakshValue = 'no');
-                  }),
+                  if (eshakshValue == 'yes') ...[
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      readOnly: true,
+                      controller: eshakshDtController,
+                      decoration: _fieldDecor('E-Shakshya Date & Time').copyWith(
+                        suffixIcon: const Icon(Icons.calendar_today,
+                            size: 18, color: textMuted),
+                      ),
+                      onTap: () async {
+                        final d = await _pickDate();
+                        if (!mounted || d == null) return;
+                        eshakshDtController.text = _formatDateDdMmYyyy(d);
+                        setState(() {});
+                        debouncedSync();
+                      },
+                    ),
+                  ] else if (eshakshValue == 'no') ...[
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: eshakshReasonController,
+                      maxLines: 3,
+                      decoration: _fieldDecor('Reason for No E-Shakshya (minimum 30 words)'),
+                      onChanged: (_) {
+                        setState(() {});
+                        debouncedSync();
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    Builder(
+                      builder: (ctx) {
+                        final words = eshakshReasonController.text
+                            .trim()
+                            .split(RegExp(r'\s+'))
+                            .where((w) => w.isNotEmpty)
+                            .length;
+                        final isComplete = words >= 30;
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              isComplete
+                                  ? TranslationHelper.translate(
+                                      ctx, 'Word requirement met')
+                                  : '${TranslationHelper.translate(ctx, 'Minimum 30 words required')} (${30 - words} ${TranslationHelper.translate(ctx, 'more needed')})',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isComplete ? accentGreen : accentRed,
+                              ),
+                            ),
+                            Text(
+                              '$words / 30 ${TranslationHelper.translate(ctx, 'words')}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: isComplete ? accentGreen : accentRed,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),

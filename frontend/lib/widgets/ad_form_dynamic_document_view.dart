@@ -54,7 +54,7 @@ const Map<String, String> kAdFormFieldLabels = {
   'regName': 'Registrar Name',
   'cctvValue': 'CCTV Available',
   'cctvDateTime': 'CCTV Date & Time',
-  'eshakshValue': 'E-shaksh',
+  'eshakshValue': 'E-Shakshya',
   'cdrSent': 'CDR Sent Date',
   'cdrRecv': 'CDR Received Date',
   'sdpoSend': 'SDPO / ACP — Sent',

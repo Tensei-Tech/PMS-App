@@ -279,6 +279,52 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     ),
   );
 
+  // ── Victim KYC ────────────────────────────────────────────────────────────
+  final victim = m['victim'] as Map? ?? {};
+  if (victim.isNotEmpty) {
+    sections.add(
+      _card(
+        5,
+        'VICTIM KYC',
+        _teal,
+        _grid2([
+          _f('Name', _v(victim['name'])),
+          _f('Age', _v(victim['age'])),
+          _f('Gender', _v(victim['gender'])),
+          _f('Occupation', _v(victim['occ'])),
+          _f('Mobile', _v(victim['mobile'])),
+          _f('Aadhaar', _v(victim['aadhaar'])),
+          _f('Religion', _v(victim['religion'])),
+          _f('Caste', _v(victim['caste'])),
+          _f('PAN Number', _v(victim['pan'])),
+        ]),
+      ),
+    );
+  }
+
+  // ── Deceased KYC (Murder Cases) ───────────────────────────────────────────
+  final deceased = m['deceased'] as Map? ?? {};
+  if (deceased.isNotEmpty) {
+    sections.add(
+      _card(
+        6,
+        'DECEASED KYC',
+        _teal,
+        _grid2([
+          _f('Name', _v(deceased['name'])),
+          _f('Age', _v(deceased['age'])),
+          _f('Gender', _v(deceased['gender'])),
+          _f('Occupation', _v(deceased['occ'])),
+          _f('Mobile', _v(deceased['mobile'])),
+          _f('Aadhaar', _v(deceased['aadhaar'])),
+          _f('Religion', _v(deceased['religion'])),
+          _f('Caste', _v(deceased['caste'])),
+          _f('PAN Number', _v(deceased['pan'])),
+        ]),
+      ),
+    );
+  }
+
   // ── §5 Accused Details ────────────────────────────────────────────────────
   final accusedList = (m['accused'] as List?) ?? [];
   sections.add(
@@ -481,7 +527,13 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             );
           }),
           pw.SizedBox(height: 6),
-          _grid2([_f('E-shaksh', _v(m['eshakshValue'], or: 'Not set'))]),
+          _grid2([
+            _f('E-Shakshya', _v(m['eshakshValue'], or: 'Not set')),
+            if (m['eshakshValue'] == 'yes' && (m['eshakshDt']?.toString().isNotEmpty ?? false))
+              _f('E-Shakshya Date & Time', _v(m['eshakshDt']))
+            else if (m['eshakshValue'] == 'no' && (m['eshakshReason']?.toString().isNotEmpty ?? false))
+              _f('Reason for No E-Shakshya', _v(m['eshakshReason'])),
+          ]),
         ],
       ),
     ),
@@ -528,22 +580,31 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── §13 Preventive & Bonds ─────────────────────────────────────────────────
   final prev = m['preventive'] as Map? ?? {};
+  final isBondYes = (prev['preventiveBonds'] ?? prev['prBond']) == 'yes';
+  final prevFields = <_FD>[
+    _f('Preventive Bonds', _v(prev['preventiveBonds'] ?? prev['prBond'], or: 'No')),
+  ];
+  if (isBondYes) {
+    prevFields.add(_f('PR Bond Date', _v(prev['bondDate'])));
+    prevFields.add(_f('Bond Cancellation Date', _v(prev['bondCancellation'])));
+    prevFields.add(_f('Reason for PR Bond', _v(prev['bondReason'])));
+  }
+  prevFields.add(_f('Action Type', _v(prev['action'], or: 'Not set')));
+  if (prev['actionDate'] != null && prev['actionDate'].toString().isNotEmpty) {
+    prevFields.add(_f('${prev['action'] ?? 'Action Type'} Date & Time', _v(prev['actionDate'])));
+  }
   sections.add(
     _card(
       13,
       'PREVENTIVE & BONDS',
       _teal,
-      _grid2([
-        _f('Preventive Action', _v(prev['action'], or: 'Not set')),
-        _f('Outward Number', _v(prev['outwardNumber'])),
-        _f('Bond Date', _v(prev['bondDate'])),
-        _f('Bond Cancellation Date', _v(prev['bondCancellation'])),
-      ]),
+      _grid2(prevFields),
     ),
   );
 
   // ── §14 Discharge Status ───────────────────────────────────────────────────
   final discharge = (m['dischargeByAccused'] as Map?) ?? {};
+  final disDetails = (m['dischargeDetails'] as Map?) ?? {};
   sections.add(
     _card(
       14,
@@ -552,21 +613,52 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       discharge.isEmpty
           ? _empty('No discharge data. Add accused names first.')
           : pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: discharge.entries.map((e) {
                 final discharged = e.value == true;
+                final name = e.key.toString();
+                final det = (disDetails[name] as Map?) ?? {};
                 return pw.Padding(
-                  padding: const pw.EdgeInsets.only(bottom: 4),
-                  child: pw.Row(
+                  padding: const pw.EdgeInsets.only(bottom: 6),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      _checkbox(discharged, color: _green),
-                      pw.SizedBox(width: 6),
-                      pw.Text(
-                        '${e.key} - ${discharged ? "Discharged" : "Not discharged"}',
-                        style: pw.TextStyle(
-                          fontSize: 10,
-                          color: discharged ? _dark : _muted,
-                        ),
+                      pw.Row(
+                        children: [
+                          _checkbox(discharged, color: _green),
+                          pw.SizedBox(width: 6),
+                          pw.Text(
+                            '$name - ${discharged ? "Discharged" : "Not discharged"}',
+                            style: pw.TextStyle(
+                              fontSize: 10,
+                              fontWeight: pw.FontWeight.bold,
+                              color: discharged ? _dark : _muted,
+                            ),
+                          ),
+                        ],
                       ),
+                      if (discharged && det.isNotEmpty) ...[
+                        if (det['date'] != null &&
+                            det['date'].toString().isNotEmpty)
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(left: 18, top: 2),
+                            child: pw.Text(
+                              'Discharge Date: ${det['date']}',
+                              style: const pw.TextStyle(
+                                  fontSize: 9, color: _dark),
+                            ),
+                          ),
+                        if (det['reason'] != null &&
+                            det['reason'].toString().isNotEmpty)
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(left: 18, top: 2),
+                            child: pw.Text(
+                              'Reason: ${det['reason']}',
+                              style: const pw.TextStyle(
+                                  fontSize: 9, color: _muted),
+                            ),
+                          ),
+                      ],
                     ],
                   ),
                 );
@@ -584,9 +676,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       _teal,
       _grid2([
         _f('Charge Sheet No.', _v(court['chargeSheetNumber'])),
-        _f('CC / ST Number', _v(court['ccStNumber'])),
-        _f('Final Summary', _v(court['finalSummary'], or: 'Not set')),
-        _f('Quashed by High Court', _v(court['quashedHighCourt'])),
+        _f('Charge Sheet Date', _v(court['chargeSheetDate'])),
       ]),
     ),
   );
@@ -602,15 +692,26 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       16,
       'FINAL VERDICT',
       _teal,
-      pw.Row(
+      pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Expanded(
-            child: _verdictCol('✓ ACQUITTED', acquitted, _green),
-          ),
-          pw.SizedBox(width: 10),
-          pw.Expanded(
-            child: _verdictCol('✗ CONVICTED', convicted, _red),
+          _grid2([
+            _f('CC / ST Number', _v(court['ccStNumber'])),
+            _f('Final Summary', _v(court['finalSummary'], or: 'Not set')),
+            _f('Quashed by High Court', _v(court['quashedHighCourt'])),
+          ]),
+          pw.SizedBox(height: 8),
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Expanded(
+                child: _verdictCol('✓ ACQUITTED', acquitted, _green),
+              ),
+              pw.SizedBox(width: 10),
+              pw.Expanded(
+                child: _verdictCol('✗ CONVICTED', convicted, _red),
+              ),
+            ],
           ),
         ],
       ),
