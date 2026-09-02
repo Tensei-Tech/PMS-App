@@ -258,6 +258,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── §4 Complainant KYC ────────────────────────────────────────────────────
   final comp = m['complainant'] as Map? ?? {};
+  final bool isSexualComp = m['isSexualOffence'] == true ||
+      (comp['name']?.toString().contains('Protected') ?? false);
   sections.add(
     _card(
       4,
@@ -266,7 +268,12 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       comp.isEmpty
           ? _empty('No complainant data.')
           : _grid2([
-              _f('Name', _v(comp['name'])),
+              _f(
+                'Name',
+                isSexualComp
+                    ? '[Victim Identity Protected - Sec 228A IPC / Sec 72 BNS]'
+                    : _v(comp['name']),
+              ),
               _f('Age', _v(comp['age'])),
               _f('Gender', _v(comp['gender'])),
               _f('Occupation', _v(comp['occ'])),
