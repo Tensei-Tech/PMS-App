@@ -158,7 +158,9 @@ class PoliceHierarchyHelper {
     final d = raw.trim().toUpperCase();
 
     if (d == 'DG' || d == 'DGP' || d.contains('DIRECTOR GENERAL')) return 'DG';
-    if (d == 'ADG' || d == 'ADGP' || d.contains('ADDITIONAL DIRECTOR GENERAL')) {
+    if (d == 'ADG' ||
+        d == 'ADGP' ||
+        d.contains('ADDITIONAL DIRECTOR GENERAL')) {
       return 'ADG';
     }
     if (d == 'IG' || d == 'IGP' || d.contains('INSPECTOR GENERAL')) return 'IG';

@@ -150,7 +150,8 @@ class ApiService {
           debugPrint(
             '[ApiService] Access token expired, attempting refresh...',
           );
-        }final refreshed = await refreshAccessToken();
+        }
+        final refreshed = await refreshAccessToken();
         if (refreshed) {
           return _cachedAuthToken;
         } else {

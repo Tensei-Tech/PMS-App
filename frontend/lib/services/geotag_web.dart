@@ -20,9 +20,7 @@ Future<GeotagLocation?> getWebCurrentLocation() async {
           latitude: coords.latitude.toDouble(),
           longitude: coords.longitude.toDouble(),
           accuracy: coords.accuracy.toDouble(),
-          timestamp: DateFormat(
-            'dd-MMM-yyyy HH:mm:ss',
-          ).format(DateTime.now()),
+          timestamp: DateFormat('dd-MMM-yyyy HH:mm:ss').format(DateTime.now()),
         );
         completer.complete(loc);
       }.toJS,
