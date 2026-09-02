@@ -1,6 +1,8 @@
 from rest_framework import viewsets, permissions, status, exceptions
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db import connection
 from apps.cases.models import CaseRecord
 from apps.cases.serializers import CaseRecordSerializer
 from apps.core.permissions import check_dynamic_permission
@@ -108,3 +110,93 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
             
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+# ------------------------------------------------------------------------------
+# Raw SQL Database Views
+# ------------------------------------------------------------------------------
+
+class PendingCasesView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM pending_cases_combined")
+            columns = [col[0] for col in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return Response(rows)
+
+
+class DisposalCasesView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM disposal_cases_combined")
+            columns = [col[0] for col in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return Response(rows)
+
+
+class CasesByCrimeTypeView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, crime_type):
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT c.case_id, c.case_number, c.title, c.status, c.priority,
+                       m.crime_type, m.act, m.section, m.sub_section, m.ipc_number
+                FROM cases c
+                JOIN crime_type_master m ON m.id = c.crime_type_master_id
+                WHERE m.crime_type = %s
+                ORDER BY c.created_at DESC
+            """, [crime_type])
+            columns = [col[0] for col in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return Response(rows)
+
+
+class CrimeTypeListView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT DISTINCT crime_type FROM crime_type_master ORDER BY crime_type")
+            rows = cursor.fetchall()
+        return Response([r[0] for r in rows])
+
+
+class SectionsByCrimeTypeView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, crime_type):
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, act, section, sub_section, ipc_number
+                FROM crime_type_master
+                WHERE crime_type = %s
+                ORDER BY section, sub_section
+            """, [crime_type])
+            columns = [col[0] for col in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return Response(rows)
+
+
+class CreateCaseView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        data = request.data
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO cases (case_number, title, case_type, priority, status, module, crime_type_master_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING case_id
+            """, [
+                data['case_number'], data['title'],
+                '1-5',
+                data['priority'], 'Draft', data['module'], data['crime_type_master_id']
+            ])
+            case_id = cursor.fetchone()[0]
+        return Response({'case_id': case_id}, status=201)
+
