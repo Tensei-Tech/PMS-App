@@ -1,29 +1,28 @@
 name: Flutter CI
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, dev]
     paths:
-      - 'frontend/**'          # adjust to your Flutter folder name
+      - 'frontend/**'
   pull_request:
-    branches: [main]
+    branches: [main, dev]
     paths:
       - 'frontend/**'
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
     defaults:
       run:
-        working-directory: ./frontend   # adjust or remove if Flutter is at repo root
-
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'    # match your project's version
+          flutter-version: '3.24.0'   # match your local `flutter --version`
           channel: 'stable'
           cache: true
 
@@ -42,18 +41,21 @@ jobs:
   build-apk:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'   # only build release APK when merged to main
     defaults:
       run:
         working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.0'
           channel: 'stable'
+
       - run: flutter pub get
       - run: flutter build apk --release
+
       - uses: actions/upload-artifact@v4
         with:
           name: release-apk
