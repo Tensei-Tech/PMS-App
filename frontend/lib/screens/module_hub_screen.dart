@@ -60,7 +60,6 @@ import '../widgets/forms_accordion_list.dart';
 import '../utils/pending_io_wise_logic.dart';
 import 'pending_summary_screen.dart';
 import 'pending_io_wise_screens.dart';
-import 'pending_io_wise_all_categories_screen.dart';
 import 'pending_demo_table_screen.dart';
 import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
@@ -132,10 +131,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     '1 month',
   ];
 
-  static const List<String> _pendingHubViewModes = [
-    'Case Wise',
-    'IO Wise',
-  ];
+  static const List<String> _pendingHubViewModes = ['Case Wise', 'IO Wise'];
 
   @override
   void initState() {
@@ -389,9 +385,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: const FormIVSelectionScreen(
-            mode: FormIVSelectionMode.add,
-          ),
+          page: const FormIVSelectionScreen(mode: FormIVSelectionMode.add),
         ),
       );
     } else {
@@ -423,8 +417,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       // Aggregate across ALL categories and show only active (non-closed) cases
       final consolidated = _getConsolidatedRecords(context);
       allRecords = consolidated
-          .where((r) =>
-              r.status != 'Closed' && r.moduleKey != 'nc')
+          .where((r) => r.status != 'Closed' && r.moduleKey != 'nc')
           .toList();
       totalCount = allRecords.length;
       openCount = allRecords.where((r) => r.status == 'Open').length;
@@ -459,21 +452,27 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     final List<ModuleRecord> filtered;
     if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
-      if (_filter == 'Disposal' || _filter == 'Closed' || _filter == 'Resolved') {
+      if (_filter == 'Disposal' ||
+          _filter == 'Closed' ||
+          _filter == 'Resolved') {
         filtered = allRecords
-            .where((r) =>
-                r.status == 'Disposal' ||
-                r.status == 'Closed' ||
-                r.status == 'Resolved')
+            .where(
+              (r) =>
+                  r.status == 'Disposal' ||
+                  r.status == 'Closed' ||
+                  r.status == 'Resolved',
+            )
             .toList();
       } else if (_filter == 'Pending' ||
           _filter == 'Open' ||
           _filter == 'Active') {
         filtered = allRecords
-            .where((r) =>
-                r.status != 'Disposal' &&
-                r.status != 'Closed' &&
-                r.status != 'Resolved')
+            .where(
+              (r) =>
+                  r.status != 'Disposal' &&
+                  r.status != 'Closed' &&
+                  r.status != 'Resolved',
+            )
             .toList();
       } else {
         filtered = allRecords;
@@ -503,15 +502,26 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               SliverToBoxAdapter(child: _buildModuleTabs()),
             if (_isReportMode && widget.moduleKey == 'disposal')
               SliverToBoxAdapter(
-                  child: _buildMonthlyReport(context, allRecords))
+                child: _buildMonthlyReport(context, allRecords),
+              )
             else ...[
-              if (widget.moduleKey != 'form_1_5' && widget.moduleKey != 'disposal') ...[
+              if (widget.moduleKey != 'form_1_5' &&
+                  widget.moduleKey != 'disposal') ...[
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
-                    child: _buildStatsRow(openCount, activeCount, resolvedCount,
-                        closedCount, totalCount),
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                    ),
+                    child: _buildStatsRow(
+                      openCount,
+                      activeCount,
+                      resolvedCount,
+                      closedCount,
+                      totalCount,
+                    ),
                   ),
                 ),
               ],
@@ -532,14 +542,22 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
-      floatingActionButton: (widget.readOnly || widget.moduleKey == 'detected' || widget.moduleKey == 'undetected' || widget.moduleKey == 'disposal')
+      floatingActionButton:
+          (widget.readOnly ||
+              widget.moduleKey == 'detected' ||
+              widget.moduleKey == 'undetected' ||
+              widget.moduleKey == 'disposal')
           ? null
           : FloatingActionButton.extended(
               onPressed: () => _openNewEntryForm(context),
               backgroundColor: AppColors.navyDark,
               elevation: 4,
               shape: const StadiumBorder(),
-              icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+              icon: const Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
               label: Text(
                 TranslationHelper.translate(context, 'Add Case'),
                 style: GoogleFonts.poppins(
@@ -563,28 +581,41 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       subtitle: '$total $transRecord $transReg',
       badgeLabel: transTitle.toUpperCase(),
       onAddPressed: widget.readOnly ? null : () => _openNewEntryForm(context),
-      backgroundColor: (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected' || widget.moduleKey == 'disposal') ? AppColors.navyDark : null,
+      backgroundColor:
+          (widget.moduleKey == 'detected' ||
+              widget.moduleKey == 'undetected' ||
+              widget.moduleKey == 'disposal')
+          ? AppColors.navyDark
+          : null,
     );
   }
 
   Widget _buildModuleTabs() {
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: 8,
+      ),
       child: Row(
         children: [
-          _tabControl('Records', !_isReportMode,
-              () => setState(() => _isReportMode = false)),
+          _tabControl(
+            'Records',
+            !_isReportMode,
+            () => setState(() => _isReportMode = false),
+          ),
           const SizedBox(width: 12),
-          _tabControl('Report', _isReportMode,
-              () => setState(() => _isReportMode = true)),
+          _tabControl(
+            'Report',
+            _isReportMode,
+            () => setState(() => _isReportMode = true),
+          ),
         ],
       ),
     );
   }
 
   Widget _tabControl(String label, bool active, VoidCallback onTap) {
-    final color = AppColors.navyMid;
+    const color = AppColors.navyMid;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -596,18 +627,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             border: Border.all(color: active ? color : (AppColors.lightBorder)),
           ),
           child: Center(
-            child: Text(TranslationHelper.translate(context, label),
-                style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                    color: active ? Colors.white : (AppColors.lightSubText))),
+            child: Text(
+              TranslationHelper.translate(context, label),
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                color: active ? Colors.white : (AppColors.lightSubText),
+              ),
+            ),
           ),
         ),
       ),
     );
   }
-
-
 
   Widget _buildMonthlyReport(BuildContext context, List<ModuleRecord> records) {
     // For the "Monthly" module, show report-only (no category record tiles),
@@ -629,7 +661,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       final key = '${r.moduleKey}_${sub ?? ""}';
       if (!catMeta.containsKey(key)) {
         catMeta[key] = _CategoryMeta(
-            label: label, moduleKey: r.moduleKey, subCategory: sub, count: 0);
+          label: label,
+          moduleKey: r.moduleKey,
+          subCategory: sub,
+          count: 0,
+        );
       }
       catMeta[key]!.count++;
       // Count solved: Resolved or Closed
@@ -644,7 +680,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     // For the PDF helper, we still need Map<String, int>
     final Map<String, int> countsForPdf = {
-      for (var m in sortedMetas) m.label: m.count
+      for (var m in sortedMetas) m.label: m.count,
     };
 
     return Padding(
@@ -658,14 +694,21 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Registration Summary',
-                      style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navyDark)),
-                  Text(DateFormat('MMMM yyyy').format(now),
-                      style: GoogleFonts.poppins(
-                          fontSize: 12, color: AppColors.goldPrimary)),
+                  Text(
+                    'Registration Summary',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                  Text(
+                    DateFormat('MMMM yyyy').format(now),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: AppColors.goldPrimary,
+                    ),
+                  ),
                 ],
               ),
               ElevatedButton.icon(
@@ -676,20 +719,25 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     widget.moduleKey == 'disposal'
                         ? 'Monthly Disposal Report'
                         : widget.moduleKey == 'pending'
-                            ? 'Pending Cases Report'
-                            : 'Monthly Registration Report',
+                        ? 'Pending Cases Report'
+                        : 'Monthly Registration Report',
                     DateFormat('MMMM yyyy').format(now),
                   ),
                 ),
-                icon: const Icon(Icons.download_rounded,
-                    size: 18, color: Colors.white),
-                label: Text('Summary',
-                    style:
-                        GoogleFonts.poppins(fontSize: 12, color: Colors.white)),
+                icon: const Icon(
+                  Icons.download_rounded,
+                  size: 18,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  'Summary',
+                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md)),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
                 ),
               ),
             ],
@@ -698,19 +746,26 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           if (sortedMetas.isEmpty)
             _buildEmptyReport()
           else
-            ...sortedMetas.map((meta) => _buildReportTile(
-                    meta.label, meta.count, solvedCount: meta.solvedCount,
-                    onTap: () {
+            ...sortedMetas.map(
+              (meta) => _buildReportTile(
+                meta.label,
+                meta.count,
+                solvedCount: meta.solvedCount,
+                onTap: () {
                   Navigator.push(
-                      context,
-                      AppTheme.fadeSlideRoute(
-                          page: ModuleHubScreen(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: ModuleHubScreen(
                         moduleLabel: meta.label,
                         moduleKey: meta.moduleKey,
                         subCategory: meta.subCategory,
                         readOnly: true,
-                      )));
-                })),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           const SizedBox(height: 24),
           _buildDemoReportSection(),
         ],
@@ -719,55 +774,25 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   String _pendingHubSubtitle(BuildContext context) {
-    if (_pendingCategory == null) return TranslationHelper.translate(context, 'Select a category');
-    final transCategory = TranslationHelper.translate(context, _pendingCategory!);
+    if (_pendingCategory == null) {
+      return TranslationHelper.translate(context, 'Select a category');
+    }
+    final transCategory = TranslationHelper.translate(
+      context,
+      _pendingCategory!,
+    );
     if (_pendingTimeRange == null) {
-      final transSelectTime = TranslationHelper.translate(context, 'Select time range');
+      final transSelectTime = TranslationHelper.translate(
+        context,
+        'Select time range',
+      );
       return '$transCategory — $transSelectTime';
     }
-    final transTimeRange = TranslationHelper.translate(context, _pendingTimeRange!);
-    return '$transCategory — $transTimeRange';
-  }
-
-  void _onPendingCategorySelected(String label) {
-    if (label == 'IO Wise') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const PendingIoWiseAllCategoriesScreen(),
-        ),
-      );
-      return;
-    }
-    setState(() {
-      _pendingCategory = label;
-      _pendingTimeRange = null;
-    });
-  }
-
-  void _onPendingTimeRangeSelected(String label) {
-    final category = _pendingCategory;
-    if (category == null) return;
-    if (label == 'IO Wise') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: PendingIoWiseByCategoryScreen(category: category),
-        ),
-      );
-      return;
-    }
-    final auth = context.read<AuthProvider>();
-    Navigator.push(
+    final transTimeRange = TranslationHelper.translate(
       context,
-      AppTheme.fadeSlideRoute(
-        page: PendingDemoTableScreen(
-          stationName: auth.stationName,
-          category: category,
-          timeRange: label,
-        ),
-      ),
+      _pendingTimeRange!,
     );
+    return '$transCategory — $transTimeRange';
   }
 
   Widget _buildPendingModuleReportOnly(BuildContext context) {
@@ -897,7 +922,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   if (val == 'IO Wise') {
                     final cat = _pendingCategory ?? _pendingHubCategories.first;
                     setState(() {
-                      _pendingViewMode = 'Case Wise'; // Reset back on back button
+                      _pendingViewMode =
+                          'Case Wise'; // Reset back on back button
                     });
                     Navigator.push(
                       context,
@@ -922,8 +948,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   Widget _buildFormsModuleReportOnly(BuildContext context) {
     void onFormSelect(FormsListEntry entry, {FormsSubSection? subSection}) {
-      final subCategory =
-          subSection?.subCategoryOverride ?? entry.subCategory;
+      final subCategory = subSection?.subCategoryOverride ?? entry.subCategory;
       final moduleLabel = subSection != null
           ? '${entry.title} — ${subSection.label}'
           : entry.title;
@@ -951,7 +976,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     return ModuleHubReportCard(
       title: TranslationHelper.translate(context, 'Forms Categories'),
-      subtitle: '${kFormsHierarchyMock.length} ${TranslationHelper.translate(context, 'form types')}',
+      subtitle:
+          '${kFormsHierarchyMock.length} ${TranslationHelper.translate(context, 'form types')}',
       showSummaryButton: false,
       showFilterRow: false,
       filterRow: const SizedBox.shrink(),
@@ -963,8 +989,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   Widget _buildMonthlyModuleReportOnly(
-      BuildContext context, List<ModuleRecord> allRecords) {
-    final months = const [
+    BuildContext context,
+    List<ModuleRecord> allRecords,
+  ) {
+    const months = [
       'January',
       'February',
       'March',
@@ -979,7 +1007,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'December',
     ];
 
-    final transMonth = TranslationHelper.translate(context, months[_reportMonth - 1]);
+    final transMonth = TranslationHelper.translate(
+      context,
+      months[_reportMonth - 1],
+    );
     final monthYearLabel = '$transMonth $_reportYear';
 
     // Reuse the Calendar monthly table builder from dashboard (static helper).
@@ -1038,12 +1069,17 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       _showMonthlyPreventiveTable = false;
                     }
                   }),
-                  icon: const Icon(Icons.download_rounded,
-                      size: 16, color: Colors.white),
+                  icon: const Icon(
+                    Icons.download_rounded,
+                    size: 16,
+                    color: Colors.white,
+                  ),
                   label: Text(
                     'Summary',
-                    style:
-                        GoogleFonts.poppins(fontSize: 11, color: Colors.white),
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: Colors.white,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.navyMid,
@@ -1071,8 +1107,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       child: DropdownButton<int>(
                         value: _reportMonth,
                         isExpanded: true,
-                        icon: Icon(Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.navyMid),
+                        icon: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.navyMid,
+                        ),
                         items: List.generate(
                           12,
                           (i) => DropdownMenuItem(
@@ -1080,7 +1118,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             child: Text(
                               TranslationHelper.translate(context, months[i]),
                               style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -1101,8 +1141,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<int>(
                       value: _reportYear,
-                      icon: Icon(Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid),
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.navyMid,
+                      ),
                       items: List.generate(
                         5,
                         (i) => DropdownMenuItem(
@@ -1110,7 +1152,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           child: Text(
                             '${DateTime.now().year - i}',
                             style: GoogleFonts.poppins(
-                                fontSize: 13, fontWeight: FontWeight.w600),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
@@ -1184,16 +1228,32 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
             if (_showMonthlySummaryTable)
               _buildMonthlySummaryPhotoTable(
-                  context, allRecords, _reportMonth, _reportYear),
+                context,
+                allRecords,
+                _reportMonth,
+                _reportYear,
+              ),
             if (_showMonthlyClassVTable)
               _buildMonthlyRegistrationTable(
-                  context, allRecords, _reportMonth, _reportYear),
+                context,
+                allRecords,
+                _reportMonth,
+                _reportYear,
+              ),
             if (_showMonthlyClassVITable)
               _buildMonthlyRegistrationTableVI(
-                  context, allRecords, _reportMonth, _reportYear),
+                context,
+                allRecords,
+                _reportMonth,
+                _reportYear,
+              ),
             if (_showMonthlyPreventiveTable)
               _buildMonthlyRegistrationTablePreventive(
-                  context, allRecords, _reportMonth, _reportYear),
+                context,
+                allRecords,
+                _reportMonth,
+                _reportYear,
+              ),
           ],
         ),
       ),
@@ -1257,28 +1317,36 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'preventive' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month == m)
+        .where(
+          (r) =>
+              r.moduleKey == 'preventive' &&
+              r.incidentDate.year == y &&
+              r.incidentDate.month == m,
+        )
         .toList();
 
     List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'preventive' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month <= m)
+        .where(
+          (r) =>
+              r.moduleKey == 'preventive' &&
+              r.incidentDate.year == y &&
+              r.incidentDate.month <= m,
+        )
         .toList();
 
     final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
     final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
     final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
     final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
+    final sameMonthLastYearRecords = filterMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
     final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
+    final yearPreviousRecords = filterYearToMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcm = 0, totalpm = 0, totalsmly = 0, totalyc = 0, totalyp = 0;
@@ -1352,19 +1420,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final ypLabel = 'Year\n${selectedYear - 1}';
 
     DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            softWrap: true,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
+      label: Text(
+        label,
+        textAlign: alignLeft ? TextAlign.left : TextAlign.center,
+        softWrap: true,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.poppins(
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          color: AppColors.navyDark,
+        ),
+      ),
+    );
 
     DataCell cell(String text, {bool alignLeft = false, bool isBold = false}) =>
         DataCell(
@@ -1384,8 +1452,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
 
-    DataCell navCell(String text, List<ModuleRecord> recs, String title,
-        {bool isBold = false}) {
+    DataCell navCell(
+      String text,
+      List<ModuleRecord> recs,
+      String title, {
+      bool isBold = false,
+    }) {
       return DataCell(
         InkWell(
           onTap: recs.isEmpty
@@ -1408,8 +1480,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color:
-                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
+                color: recs.isEmpty
+                    ? AppColors.lightSubText
+                    : AppColors.infoBlue,
                 decoration: recs.isEmpty ? null : TextDecoration.underline,
               ),
             ),
@@ -1430,8 +1503,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         LayoutBuilder(
           builder: (context, constraints) {
             final w = constraints.maxWidth;
-            final colSpace =
-                w < 360 ? 10.0 : (w < 600 ? 15.0 : (w < 1000 ? 20.0 : 36.0));
+            final colSpace = w < 360
+                ? 10.0
+                : (w < 600 ? 15.0 : (w < 1000 ? 20.0 : 36.0));
             final margin = w < 360 ? 8.0 : (w < 1000 ? 12.0 : 20.0);
             final headingH = w < 360 ? 52.0 : (w < 1000 ? 56.0 : 60.0);
             final rowH = w < 360 ? 44.0 : (w < 1000 ? 48.0 : 52.0);
@@ -1460,7 +1534,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       horizontalMargin: margin,
                       columnSpacing: colSpace,
                       border: TableBorder.all(
-                          color: AppColors.lightBorder, width: 0.5),
+                        color: AppColors.lightBorder,
+                        width: 0.5,
+                      ),
                       columns: [
                         col('SR'),
                         col('Heads', alignLeft: true),
@@ -1481,8 +1557,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                               : null,
                           cells: [
                             cell(row['N'].toString(), isBold: isTotal),
-                            cell(row['Heads'].toString(),
-                                alignLeft: true, isBold: true),
+                            cell(
+                              row['Heads'].toString(),
+                              alignLeft: true,
+                              isBold: true,
+                            ),
                             navCell(
                               '${row['cm_R']}',
                               (row['cmRecords'] as List<ModuleRecord>?) ??
@@ -1534,16 +1613,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
+              final label = DateFormat(
+                'MMMM yyyy',
+              ).format(DateTime(selectedYear, selectedMonth));
               runWithPdfAuthGate(
                 context,
-                () => ModulePdfHelper.generateMonthlyTablePdf(
-                    label, tableRows),
+                () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
               );
             },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
+            icon: const Icon(
+              Icons.picture_as_pdf_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             label: Text(
               'Export Table PDF',
               style: GoogleFonts.poppins(
@@ -1603,28 +1685,36 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'form_6' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month == m)
+        .where(
+          (r) =>
+              r.moduleKey == 'form_6' &&
+              r.incidentDate.year == y &&
+              r.incidentDate.month == m,
+        )
         .toList();
 
     List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'form_6' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month <= m)
+        .where(
+          (r) =>
+              r.moduleKey == 'form_6' &&
+              r.incidentDate.year == y &&
+              r.incidentDate.month <= m,
+        )
         .toList();
 
     final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
     final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
     final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
     final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
+    final sameMonthLastYearRecords = filterMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
     final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
+    final yearPreviousRecords = filterYearToMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcmR = 0;
@@ -1691,36 +1781,42 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     });
 
     DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
+      label: Text(
+        label,
+        textAlign: alignLeft ? TextAlign.left : TextAlign.center,
+        style: GoogleFonts.poppins(
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          color: AppColors.navyDark,
+        ),
+      ),
+    );
 
-    DataCell cell(String text,
-            {bool alignLeft = false, bool isBold = false, Color? color}) =>
-        DataCell(
-          Align(
-            alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: color ??
-                    (isBold ? AppColors.navyDark : AppColors.lightText),
-              ),
-            ),
+    DataCell cell(
+      String text, {
+      bool alignLeft = false,
+      bool isBold = false,
+      Color? color,
+    }) => DataCell(
+      Align(
+        alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
+        child: Text(
+          text,
+          style: GoogleFonts.poppins(
+            fontSize: 10,
+            fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+            color: color ?? (isBold ? AppColors.navyDark : AppColors.lightText),
           ),
-        );
+        ),
+      ),
+    );
 
-    DataCell navCell(String text, List<ModuleRecord> recs, String title,
-        {bool isBold = false}) {
+    DataCell navCell(
+      String text,
+      List<ModuleRecord> recs,
+      String title, {
+      bool isBold = false,
+    }) {
       return DataCell(
         InkWell(
           onTap: recs.isEmpty
@@ -1740,8 +1836,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color:
-                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
+                color: recs.isEmpty
+                    ? AppColors.lightSubText
+                    : AppColors.infoBlue,
                 decoration: recs.isEmpty ? null : TextDecoration.underline,
               ),
             ),
@@ -1771,8 +1868,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
-                constraints:
-                    BoxConstraints(minWidth: w), // fill available width on PC
+                constraints: BoxConstraints(
+                  minWidth: w,
+                ), // fill available width on PC
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -1791,7 +1889,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       horizontalMargin: 12,
                       columnSpacing: 15,
                       border: TableBorder.all(
-                          color: AppColors.lightBorder, width: 0.5),
+                        color: AppColors.lightBorder,
+                        width: 0.5,
+                      ),
                       columns: [
                         col('N'),
                         col('Heads', alignLeft: true),
@@ -1812,8 +1912,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                               : null,
                           cells: [
                             cell(row['N'].toString(), isBold: isTotal),
-                            cell(row['Heads'].toString(),
-                                alignLeft: true, isBold: true),
+                            cell(
+                              row['Heads'].toString(),
+                              alignLeft: true,
+                              isBold: true,
+                            ),
                             navCell(
                               '${row['cm_R']}',
                               (row['cmRecords'] as List<ModuleRecord>?) ??
@@ -1855,8 +1958,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                               color: (row['variation'] as int) > 0
                                   ? AppColors.dangerRed
                                   : ((row['variation'] as int) < 0
-                                      ? AppColors.successGreen
-                                      : null),
+                                        ? AppColors.successGreen
+                                        : null),
                             ),
                           ],
                         );
@@ -1873,16 +1976,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
+              final label = DateFormat(
+                'MMMM yyyy',
+              ).format(DateTime(selectedYear, selectedMonth));
               runWithPdfAuthGate(
                 context,
-                () => ModulePdfHelper.generateMonthlyTablePdf(
-                    label, tableRows),
+                () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
               );
             },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
+            icon: const Icon(
+              Icons.picture_as_pdf_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             label: Text(
               'Export Table PDF',
               style: GoogleFonts.poppins(
@@ -1948,33 +2054,37 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     Widget headText(String s) => Text(
-          s,
-          textAlign: TextAlign.center,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: FontWeight.w800,
-            color: AppColors.navyDark,
-          ),
-        );
+      s,
+      textAlign: TextAlign.center,
+      softWrap: true,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: GoogleFonts.poppins(
+        fontSize: 9.5,
+        fontWeight: FontWeight.w800,
+        color: AppColors.navyDark,
+      ),
+    );
 
     Widget labelText(String s, {bool bold = false}) => Text(
-          s,
-          textAlign: TextAlign.left,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: bold ? AppColors.navyDark : AppColors.lightText,
-          ),
-        );
+      s,
+      textAlign: TextAlign.left,
+      softWrap: true,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: GoogleFonts.poppins(
+        fontSize: 9.5,
+        fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+        color: bold ? AppColors.navyDark : AppColors.lightText,
+      ),
+    );
 
-    Widget linkText(int n, List<ModuleRecord> recs, String title,
-        {bool bold = false}) {
+    Widget linkText(
+      int n,
+      List<ModuleRecord> recs,
+      String title, {
+      bool bold = false,
+    }) {
       return InkWell(
         onTap: recs.isEmpty
             ? null
@@ -1992,8 +2102,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           style: GoogleFonts.poppins(
             fontSize: 9.5,
             fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-            color:
-                recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
+            color: recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
             decoration: recs.isEmpty ? null : TextDecoration.underline,
           ),
         ),
@@ -2001,67 +2110,102 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     Widget rowOf(List<Widget> cells) => IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: cells,
-          ),
-        );
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: cells,
+      ),
+    );
 
-    Widget dataRow5(String label, bool Function(ModuleRecord) test,
-        {bool bold = false, String detLabel = 'Detected'}) {
+    Widget dataRow5(
+      String label,
+      bool Function(ModuleRecord) test, {
+      bool bold = false,
+      String detLabel = 'Detected',
+    }) {
       final cmReg = monthRecsWhere(test);
       final cmDet = monthDetRecsWhere(test);
       final cyReg = yearRecsWhere(test);
       final cyDet = yearDetRecsWhere(test);
       return rowOf([
         cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(linkText(cmReg.length, cmReg,
+        cellBox(
+          linkText(
+            cmReg.length,
+            cmReg,
             '$label • Current Month • Registered',
-            bold: bold)),
-        cellBox(linkText(cmDet.length, cmDet,
+            bold: bold,
+          ),
+        ),
+        cellBox(
+          linkText(
+            cmDet.length,
+            cmDet,
             '$label • Current Month • $detLabel',
-            bold: bold)),
-        cellBox(linkText(cyReg.length, cyReg,
+            bold: bold,
+          ),
+        ),
+        cellBox(
+          linkText(
+            cyReg.length,
+            cyReg,
             '$label • Current Year • Registered',
-            bold: bold)),
-        cellBox(linkText(cyDet.length, cyDet,
+            bold: bold,
+          ),
+        ),
+        cellBox(
+          linkText(
+            cyDet.length,
+            cyDet,
             '$label • Current Year • $detLabel',
-            bold: bold)),
+            bold: bold,
+          ),
+        ),
       ]);
     }
 
-    Widget dataRow3(String label, bool Function(ModuleRecord) test,
-        {bool bold = false}) {
+    Widget dataRow3(
+      String label,
+      bool Function(ModuleRecord) test, {
+      bool bold = false,
+    }) {
       final cmReg = monthRecsWhere(test);
       final cyReg = yearRecsWhere(test);
       return rowOf([
         cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
         cellBox(
-            linkText(cmReg.length, cmReg,
-                '$label • Current Month • Registered',
-                bold: bold),
-            flex: 2),
+          linkText(
+            cmReg.length,
+            cmReg,
+            '$label • Current Month • Registered',
+            bold: bold,
+          ),
+          flex: 2,
+        ),
         cellBox(
-            linkText(cyReg.length, cyReg,
-                '$label • Current Year • Registered',
-                bold: bold),
-            flex: 2),
+          linkText(
+            cyReg.length,
+            cyReg,
+            '$label • Current Year • Registered',
+            bold: bold,
+          ),
+          flex: 2,
+        ),
       ]);
     }
 
     Widget groupHeader(String label) => rowOf([
-          cellBox(headText(label), flex: 5),
-          cellBox(headText('Current Month'), flex: 2),
-          cellBox(headText('Current Year'), flex: 2),
-        ]);
+      cellBox(headText(label), flex: 5),
+      cellBox(headText('Current Month'), flex: 2),
+      cellBox(headText('Current Year'), flex: 2),
+    ]);
 
     Widget groupSubHeader(String regLabel, String detLabel) => rowOf([
-          cellBox(headText(''), flex: 5),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-        ]);
+      cellBox(headText(''), flex: 5),
+      cellBox(headText(regLabel)),
+      cellBox(headText(detLabel)),
+      cellBox(headText(regLabel)),
+      cellBox(headText(detLabel)),
+    ]);
 
     // Heuristic mapping (same as dashboard summary).
     bool isBnss(ModuleRecord r) =>
@@ -2103,8 +2247,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     bool g1Total(ModuleRecord r) =>
         isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
-    bool g1NcTotal(ModuleRecord r) =>
-        isAd(r) || isAccident(r) || isNc(r);
+    bool g1NcTotal(ModuleRecord r) => isAd(r) || isAccident(r) || isNc(r);
     bool g2Total(ModuleRecord r) =>
         isSec186175Bnss(r) ||
         isSec128Bnss(r) ||
@@ -2117,8 +2260,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         isMpda(r);
     bool g3Total(ModuleRecord r) => isMotorVehicleAct(r) || isOtherMvAct(r);
 
-    final monthYearLabel =
-        DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
+    final monthYearLabel = DateFormat(
+      'MMMM yyyy',
+    ).format(DateTime(selectedYear, selectedMonth));
 
     // SINGLE SOURCE OF TRUTH for the Monthly Summary table.
     // Both the on-screen table and the PDF export iterate this exact list,
@@ -2139,7 +2283,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'k': 'd5', 'l': 'AD', 't': isAd, 'dl': 'Detected'},
       {'k': 'd5', 'l': 'N.C Injury', 't': isAccident, 'dl': 'Detected'},
       {'k': 'd5', 'l': 'N.C others', 't': isNc, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C Total', 't': g1NcTotal, 'bold': true, 'dl': 'Detected'},
+      {
+        'k': 'd5',
+        'l': 'N.C Total',
+        't': g1NcTotal,
+        'bold': true,
+        'dl': 'Detected',
+      },
       {'k': 'b'},
       {'k': 'h', 'l': 'Preventive'},
       {'k': 'd3', 'l': 'Sec. 126, 135(2) BNSS', 't': isSec186175Bnss},
@@ -2155,15 +2305,32 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'k': 'b'},
       {'k': 'h', 'l': 'MV Act'},
       {'k': 's', 'r': 'Registered', 'd': 'Fine'},
-      {'k': 'd5', 'l': 'Sec. 66/192 MV Act', 't': isMotorVehicleAct, 'dl': 'Fine'},
+      {
+        'k': 'd5',
+        'l': 'Sec. 66/192 MV Act',
+        't': isMotorVehicleAct,
+        'dl': 'Fine',
+      },
       {'k': 'd5', 'l': 'Other MV Act', 't': isOtherMvAct, 'dl': 'Fine'},
-      {'k': 'd5', 'l': 'Total MV Act', 't': g3Total, 'bold': true, 'dl': 'Fine'},
+      {
+        'k': 'd5',
+        'l': 'Total MV Act',
+        't': g3Total,
+        'bold': true,
+        'dl': 'Fine',
+      },
       {'k': 'b'},
       {'k': 'h', 'l': 'Missing'},
       {'k': 's', 'r': 'Registered', 'd': 'Found'},
       {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
       {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
-      {'k': 'd5', 'l': 'Total missing', 't': isMissingTotal, 'bold': true, 'dl': 'Found'},
+      {
+        'k': 'd5',
+        'l': 'Total missing',
+        't': isMissingTotal,
+        'bold': true,
+        'dl': 'Found',
+      },
     ];
 
     // Renders one rowDef as a Flutter widget (on-screen).
@@ -2200,22 +2367,21 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     Future<void> exportPdf() async {
       final doc = pw.Document();
 
-      pw.Widget pCellBox(String text,
-          {bool bold = false, bool alignLeft = false}) {
+      pw.Widget pCellBox(
+        String text, {
+        bool bold = false,
+        bool alignLeft = false,
+      }) {
         return pw.Container(
-          padding:
-              const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-          alignment:
-              alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
+          padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+          alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
           constraints: const pw.BoxConstraints(minHeight: 11),
           child: pw.Text(
             text,
-            textAlign:
-                alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
+            textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
             style: pw.TextStyle(
               fontSize: 7,
-              fontWeight:
-                  bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+              fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
             ),
           ),
         );
@@ -2244,37 +2410,49 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           case 'b':
             return pw.SizedBox(height: 4);
           case 'h':
-            return pTableRow([5, 2, 2], [
-              pCellBox(r['l'] as String, bold: true),
-              pCellBox('Current Month', bold: true),
-              pCellBox('Current Year', bold: true),
-            ]);
+            return pTableRow(
+              [5, 2, 2],
+              [
+                pCellBox(r['l'] as String, bold: true),
+                pCellBox('Current Month', bold: true),
+                pCellBox('Current Year', bold: true),
+              ],
+            );
           case 's':
-            return pTableRow([5, 1, 1, 1, 1], [
-              pCellBox(''),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-            ]);
+            return pTableRow(
+              [5, 1, 1, 1, 1],
+              [
+                pCellBox(''),
+                pCellBox(r['r'] as String, bold: true),
+                pCellBox(r['d'] as String, bold: true),
+                pCellBox(r['r'] as String, bold: true),
+                pCellBox(r['d'] as String, bold: true),
+              ],
+            );
           case 'd5':
             final test = r['t'] as bool Function(ModuleRecord);
             final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([5, 1, 1, 1, 1], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${monthDetRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearDetRecsWhere(test).length}', bold: bold),
-            ]);
+            return pTableRow(
+              [5, 1, 1, 1, 1],
+              [
+                pCellBox(r['l'] as String, bold: bold, alignLeft: true),
+                pCellBox('${monthRecsWhere(test).length}', bold: bold),
+                pCellBox('${monthDetRecsWhere(test).length}', bold: bold),
+                pCellBox('${yearRecsWhere(test).length}', bold: bold),
+                pCellBox('${yearDetRecsWhere(test).length}', bold: bold),
+              ],
+            );
           case 'd3':
             final test = r['t'] as bool Function(ModuleRecord);
             final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([5, 2, 2], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-            ]);
+            return pTableRow(
+              [5, 2, 2],
+              [
+                pCellBox(r['l'] as String, bold: bold, alignLeft: true),
+                pCellBox('${monthRecsWhere(test).length}', bold: bold),
+                pCellBox('${yearRecsWhere(test).length}', bold: bold),
+              ],
+            );
         }
         return pw.SizedBox.shrink();
       }
@@ -2344,10 +2522,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               const minW = 560.0;
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: w < minW ? minW : w,
-                  child: tableWidget,
-                ),
+                child: SizedBox(width: w < minW ? minW : w, child: tableWidget),
               );
             },
           ),
@@ -2516,11 +2691,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
     final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
     final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
+    final sameMonthLastYearRecords = filterMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
     final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
+    final yearPreviousRecords = filterYearToMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
 
     int detected(List<ModuleRecord> recs) =>
         recs.where((r) => r.status.toLowerCase() != 'open').length;
@@ -2604,12 +2783,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'ypRecords': yearPreviousRecords,
     });
 
-    final cmDateLabel = DateFormat('MMMM,yyyy')
-        .format(DateTime(selectedYear, selectedMonth));
-    final pmDateLabel =
-        DateFormat('MMMM,yyyy').format(DateTime(prevYear, prevMonth));
-    final smlyDateLabel = DateFormat('MMMM,yyyy')
-        .format(DateTime(selectedYear - 1, selectedMonth));
+    final cmDateLabel = DateFormat(
+      'MMMM,yyyy',
+    ).format(DateTime(selectedYear, selectedMonth));
+    final pmDateLabel = DateFormat(
+      'MMMM,yyyy',
+    ).format(DateTime(prevYear, prevMonth));
+    final smlyDateLabel = DateFormat(
+      'MMMM,yyyy',
+    ).format(DateTime(selectedYear - 1, selectedMonth));
     final ycDateLabel = 'Year,$selectedYear';
     final ypDateLabel = 'Year,${selectedYear - 1}';
 
@@ -2618,10 +2800,20 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'sr': '2', 'label': 'Attempt to murder', 'head': 'Att to Murder'},
       {'sr': '3', 'label': 'Dacoity', 'head': 'Dacoity'},
       {'sr': '4', 'label': 'Pro of Decoity', 'head': 'Pro Of Dacoity'},
-      {'sr': '5', 'label': 'Total Robery', 'head': 'Total Robery', 'bold': true},
+      {
+        'sr': '5',
+        'label': 'Total Robery',
+        'head': 'Total Robery',
+        'bold': true,
+      },
       {'sr': 'a', 'label': 'Chain Robery', 'head': 'Chain Robery', 'indent': 1},
       {'sr': 'b', 'label': 'Other Robery', 'head': 'Other Robery', 'indent': 1},
-      {'sr': '6', 'label': 'Total H.B.Ts', 'head': 'Total H B Ts', 'bold': true},
+      {
+        'sr': '6',
+        'label': 'Total H.B.Ts',
+        'head': 'Total H B Ts',
+        'bold': true,
+      },
       {'sr': 'a', 'label': 'H.B.Ts (Day)', 'head': 'H B Ts (Day)', 'indent': 1},
       {
         'sr': 'b',
@@ -2643,8 +2835,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         'head': 'Chain Snaching',
         'indent': 1,
       },
-      {'sr': 'd', 'label': 'Mobile Thefts', 'head': 'Mobile Thefts', 'indent': 1},
-      {'sr': 'e', 'label': 'Cattle Thefts', 'head': 'Cattel Theft', 'indent': 1},
+      {
+        'sr': 'd',
+        'label': 'Mobile Thefts',
+        'head': 'Mobile Thefts',
+        'indent': 1,
+      },
+      {
+        'sr': 'e',
+        'label': 'Cattle Thefts',
+        'head': 'Cattel Theft',
+        'indent': 1,
+      },
       {'sr': 'f', 'label': 'Other Thefts', 'head': 'Other Thefts', 'indent': 1},
       {'sr': '8', 'label': 'Extortion', 'head': 'Extcrtion'},
       {'sr': '9', 'label': 'Cheating', 'head': 'Cheating', 'bold': true},
@@ -2745,10 +2947,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var i = 0; i < flexes.length; i++)
-              Expanded(
-                flex: flexes[i],
-                child: children[i],
-              ),
+              Expanded(flex: flexes[i], child: children[i]),
           ],
         ),
       );
@@ -2760,8 +2959,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       AlignmentGeometry alignment = Alignment.center,
     }) {
       return Container(
-        padding: padding ??
-            const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+        padding:
+            padding ?? const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.lightBorder, width: 0.5),
         ),
@@ -2848,16 +3047,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       final ypR = vInt(src, 'yp_R');
       final ypD = vInt(src, 'yp_D');
       final varVal = vInt(src, 'variation');
-      final cmRecs = (src['cmRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
-      final pmRecs = (src['pmRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
-      final smlyRecs = (src['smlyRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
-      final ycRecs = (src['ycRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
-      final ypRecs = (src['ypRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
+      final cmRecs =
+          (src['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final pmRecs =
+          (src['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final smlyRecs =
+          (src['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final ycRecs =
+          (src['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final ypRecs =
+          (src['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
       final label = def['label'] as String;
       final labelPad = classVCellPad(
         denseTop: denseTop,
@@ -2867,103 +3066,86 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
       return rowOfFlex(dataFlexes, [
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cText(def['sr'] as String, bold: bold),
         ),
         cBox(
           alignment: Alignment.centerLeft,
           padding: labelPad,
-          child: cText(
-            label,
-            bold: bold,
-            alignLeft: true,
-            indent: indent,
-          ),
+          child: cText(label, bold: bold, alignLeft: true, indent: indent),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(cmR, cmRecs, '$label • $cmDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
+          child: cLink(
+            cmD,
+            detRecs(cmRecs),
+            '$label • $cmDateLabel • D',
+            bold: bold,
           ),
-          child: cLink(cmD, detRecs(cmRecs),
-              '$label • $cmDateLabel • D', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(pmR, pmRecs, '$label • $pmDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
+          child: cLink(
+            pmD,
+            detRecs(pmRecs),
+            '$label • $pmDateLabel • D',
+            bold: bold,
           ),
-          child: cLink(pmD, detRecs(pmRecs),
-              '$label • $pmDateLabel • D', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
+          child: cLink(
+            smlyR,
+            smlyRecs,
+            '$label • $smlyDateLabel • R',
+            bold: bold,
           ),
-          child: cLink(smlyR, smlyRecs,
-              '$label • $smlyDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
+          child: cLink(
+            smlyD,
+            detRecs(smlyRecs),
+            '$label • $smlyDateLabel • D',
+            bold: bold,
           ),
-          child: cLink(smlyD, detRecs(smlyRecs),
-              '$label • $smlyDateLabel • D', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(ycR, ycRecs, '$label • $ycDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
+          child: cLink(
+            ycD,
+            detRecs(ycRecs),
+            '$label • $ycDateLabel • D',
+            bold: bold,
           ),
-          child: cLink(ycD, detRecs(ycRecs),
-              '$label • $ycDateLabel • D', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(ypR, ypRecs, '$label • $ypDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
+          child: cLink(
+            ypD,
+            detRecs(ypRecs),
+            '$label • $ypDateLabel • D',
+            bold: bold,
           ),
-          child: cLink(ypD, detRecs(ypRecs),
-              '$label • $ypDateLabel • D', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cText('$varVal', bold: bold),
         ),
       ]);
@@ -2972,8 +3154,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     Widget buildScreenTable() {
       return LayoutBuilder(
         builder: (context, constraints) {
-          final barW = constraints.hasBoundedWidth &&
-                  constraints.maxWidth.isFinite
+          final barW =
+              constraints.hasBoundedWidth && constraints.maxWidth.isFinite
               ? constraints.maxWidth
               : MediaQuery.sizeOf(context).width;
 
@@ -2994,7 +3176,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       Expanded(
                         child: cBox(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 3),
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           child: cText(
                             'Name of the Police Station',
                             bold: true,
@@ -3007,75 +3191,112 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 ),
                 rowOfFlex(headerGroupFlexes, [
                   cBox(
-                      child: cText('Sr.No',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText(
+                      'Sr.No',
+                      bold: true,
+                      fontSize: classVBodyFontSize,
+                    ),
+                  ),
                   cBox(
-                      child: cText('Types of Crime',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText(
+                      'Types of Crime',
+                      bold: true,
+                      fontSize: classVBodyFontSize,
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(cmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        cmDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(pmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        pmDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(smlyDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        smlyDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(ycDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        ycDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(ypDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        ypDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: cText('Var.',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText(
+                      'Var.',
+                      bold: true,
+                      fontSize: classVBodyFontSize,
+                    ),
+                  ),
                 ]),
                 rowOfFlex(dataFlexes, [
                   cBox(
-                      child: cText('',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child: cText('',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('', bold: true, fontSize: classVBodyFontSize),
+                  ),
                 ]),
                 for (final def in classVRowDefs) buildScreenDataRow(def),
               ],
@@ -3095,12 +3316,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       double fontSize = 7,
     }) {
       return pw.Container(
-        padding: pw.EdgeInsets.fromLTRB(
-          2.0 + indentLevel * 6.0,
-          2,
-          2,
-          2,
-        ),
+        padding: pw.EdgeInsets.fromLTRB(2.0 + indentLevel * 6.0, 2, 2, 2),
         alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
         child: pw.Text(
           text,
@@ -3165,10 +3381,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     Future<void> exportPdf() async {
       final doc = pw.Document();
       final body = <pw.Widget>[
-        pTableRow([flexAll], [
-          pCellBox('Name of the Police Station',
-              bold: true, fontSize: 9),
-        ]),
+        pTableRow(
+          [flexAll],
+          [pCellBox('Name of the Police Station', bold: true, fontSize: 9)],
+        ),
         pTableRow(headerGroupFlexes, [
           pCellBox('Sr.No', bold: true),
           pCellBox('Types of Crime', bold: true),
@@ -3234,8 +3450,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => runWithPdfAuthGate(context, exportPdf),
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
+            icon: const Icon(
+              Icons.picture_as_pdf_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             label: Text(
               'Export Table PDF',
               style: GoogleFonts.poppins(
@@ -3265,8 +3484,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           backgroundColor: AppColors.navyMid,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           elevation: 0,
         ),
         child: Text(
@@ -3277,8 +3497,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  Widget _buildReportTile(String category, int count,
-      {int solvedCount = 0, VoidCallback? onTap}) {
+  Widget _buildReportTile(
+    String category,
+    int count, {
+    int solvedCount = 0,
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -3303,16 +3527,21 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             Expanded(
               child: Row(
                 children: [
-                  Text(TranslationHelper.translate(context, category),
-                      style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.lightText)),
+                  Text(
+                    TranslationHelper.translate(context, category),
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.lightText,
+                    ),
+                  ),
                   const SizedBox(width: 6),
                   if (onTap != null)
-                    Icon(Icons.open_in_new_rounded,
-                        size: 13,
-                        color: (AppColors.navyMid).withValues(alpha: 0.5)),
+                    Icon(
+                      Icons.open_in_new_rounded,
+                      size: 13,
+                      color: (AppColors.navyMid).withValues(alpha: 0.5),
+                    ),
                 ],
               ),
             ),
@@ -3324,17 +3553,24 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 color: AppColors.goldPrimary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text('$count ${TranslationHelper.translate(context, count == 1 ? 'Case' : 'Cases')}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.goldPrimary)),
+              child: Text(
+                '$count ${TranslationHelper.translate(context, count == 1 ? 'Case' : 'Cases')}',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.goldPrimary,
+                ),
+              ),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 6),
-              child: Text('|',
-                  style: TextStyle(
-                      color: Color(0xFFCCD0D5), fontWeight: FontWeight.w300)),
+              child: Text(
+                '|',
+                style: TextStyle(
+                  color: Color(0xFFCCD0D5),
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
             ),
             // Solved badge
             Container(
@@ -3343,11 +3579,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 color: AppColors.successGreen.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text('$solvedCount Solved',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.successGreen)),
+              child: Text(
+                '$solvedCount Solved',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.successGreen,
+                ),
+              ),
             ),
           ],
         ),
@@ -3361,11 +3600,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Column(
           children: [
-            Icon(Icons.analytics_outlined,
-                size: 64, color: Colors.grey.shade300),
+            Icon(
+              Icons.analytics_outlined,
+              size: 64,
+              color: Colors.grey.shade300,
+            ),
             const SizedBox(height: 16),
-            Text('No cases registered this month',
-                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
+            Text(
+              'No cases registered this month',
+              style: GoogleFonts.poppins(color: AppColors.lightSubText),
+            ),
           ],
         ),
       ),
@@ -3380,36 +3624,57 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.infoBlue.withValues(alpha: 0.2)),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Icon(Icons.info_outline_rounded,
-              size: 18, color: AppColors.infoBlue),
-          const SizedBox(width: 8),
-          Text('Demo Statistics',
-              style: GoogleFonts.poppins(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 18,
+                color: AppColors.infoBlue,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Demo Statistics',
+                style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.infoBlue)),
-        ]),
-        const SizedBox(height: 8),
-        Text(
+                  color: AppColors.infoBlue,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
             'The counts above reflect all cases registered across all modules for the current month. You can add new cases from the dashboard to see them reflected here instantly.',
             style: GoogleFonts.poppins(
-                fontSize: 11, color: AppColors.lightSubText)),
-      ]),
+              fontSize: 11,
+              color: AppColors.lightSubText,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildStatsRow(
-      int open, int active, int resolved, int closed, int total) {
+    int open,
+    int active,
+    int resolved,
+    int closed,
+    int total,
+  ) {
     if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
       final provider = _watchProvider(context);
       final allRecs = provider.getFilteredRecords(widget.subCategory);
       final disposalCount = allRecs
-          .where((r) =>
-              r.status == 'Disposal' ||
-              r.status == 'Closed' ||
-              r.status == 'Resolved')
+          .where(
+            (r) =>
+                r.status == 'Disposal' ||
+                r.status == 'Closed' ||
+                r.status == 'Resolved',
+          )
           .length;
       final pendingCount = allRecs.length - disposalCount;
       final totalCaseCount = allRecs.length;
@@ -3418,9 +3683,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         children: [
           _statCard('Total Case', totalCaseCount, AppColors.infoBlue, 'All'),
           const SizedBox(width: 8),
-          _statCard('Pending', pendingCount, AppColors.warningOrange, 'Pending'),
+          _statCard(
+            'Pending',
+            pendingCount,
+            AppColors.warningOrange,
+            'Pending',
+          ),
           const SizedBox(width: 8),
-          _statCard('Disposal', disposalCount, AppColors.successGreen, 'Disposal'),
+          _statCard(
+            'Disposal',
+            disposalCount,
+            AppColors.successGreen,
+            'Disposal',
+          ),
         ],
       );
     }
@@ -3435,7 +3710,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _openNewEntryForm(context),
-                    icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.add_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     label: Text(
                       '+ ${TranslationHelper.translate(context, 'Add New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'case')}',
                       style: GoogleFonts.poppins(
@@ -3458,21 +3737,25 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             ),
           ),
         ],
-        Row(children: [
-          _statCard('Total', total, AppColors.infoBlue, 'All'),
-          const SizedBox(width: 8),
-          _statCard('Open', open, AppColors.warningOrange, 'Open'),
-          const SizedBox(width: 8),
-          _statCard('Active', active, AppColors.goldPrimary, 'Active'),
-        ]),
+        Row(
+          children: [
+            _statCard('Total', total, AppColors.infoBlue, 'All'),
+            const SizedBox(width: 8),
+            _statCard('Open', open, AppColors.warningOrange, 'Open'),
+            const SizedBox(width: 8),
+            _statCard('Active', active, AppColors.goldPrimary, 'Active'),
+          ],
+        ),
         const SizedBox(height: 8),
-        Row(children: [
-          _statCard('Resolved', resolved, AppColors.successGreen, 'Resolved'),
-          const SizedBox(width: 8),
-          _statCard('Closed', closed, const Color(0xFF607D8B), 'Closed'),
-          const SizedBox(width: 8),
-          Expanded(child: const SizedBox()),
-        ]),
+        Row(
+          children: [
+            _statCard('Resolved', resolved, AppColors.successGreen, 'Resolved'),
+            const SizedBox(width: 8),
+            _statCard('Closed', closed, const Color(0xFF607D8B), 'Closed'),
+            const SizedBox(width: 8),
+            const Expanded(child: SizedBox()),
+          ],
+        ),
       ],
     );
   }
@@ -3500,7 +3783,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       color: color.withValues(alpha: 0.18),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
-                    )
+                    ),
                   ]
                 : null,
           ),
@@ -3527,8 +3810,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     TranslationHelper.translate(context, label),
                     style: GoogleFonts.poppins(
                       fontSize: 10,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                      color: isSelected ? AppColors.navyDark : AppColors.lightSubText,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.navyDark
+                          : AppColors.lightSubText,
                     ),
                   ),
                 ],
@@ -3555,7 +3842,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Column(
@@ -3568,7 +3855,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 color: AppColors.navyMid.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.folder_special_rounded,
                 size: 40,
                 color: AppColors.navyMid,
@@ -3586,7 +3873,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              TranslationHelper.translate(context, 'No registered entries found in this category.'),
+              TranslationHelper.translate(
+                context,
+                'No registered entries found in this category.',
+              ),
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
@@ -3621,13 +3911,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
-              )
+              ),
             ],
           ),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -3645,8 +3938,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.calendar_today_rounded,
-                            size: 13, color: AppColors.lightSubText),
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 13,
+                          color: AppColors.lightSubText,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat('dd MMM yyyy').format(record.incidentDate),
@@ -3657,8 +3953,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Icon(Icons.access_time_rounded,
-                            size: 13, color: AppColors.lightSubText),
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 13,
+                          color: AppColors.lightSubText,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat('hh:mm a').format(record.createdAt),
@@ -3723,12 +4022,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       );
     }
     final isDetectedCard =
-        widget.moduleKey == 'detected' || record.moduleKey == 'detected' ||
-        widget.moduleKey == 'undetected' || record.moduleKey == 'undetected';
+        widget.moduleKey == 'detected' ||
+        record.moduleKey == 'detected' ||
+        widget.moduleKey == 'undetected' ||
+        record.moduleKey == 'undetected';
     final String displayStatus;
     final Color sc;
     if (isDetectedCard) {
-      final isDisposal = record.status == 'Disposal' ||
+      final isDisposal =
+          record.status == 'Disposal' ||
           record.status == 'Closed' ||
           record.status == 'Resolved';
       displayStatus = isDisposal ? 'Disposal' : 'Pending';
@@ -3745,216 +4047,276 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         border: Border.all(color: AppColors.lightBorder),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 3))
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
-      child: Column(children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: isDetectedCard
-              ? BoxDecoration(
-                  color: AppColors.navyDark.withValues(alpha: 0.06),
-                  borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppRadius.lg)),
-                )
-              : null,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                      color: AppColors.infoBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4)),
-                  child: Text(record.caseNumber,
-                      style: GoogleFonts.poppins(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: isDetectedCard
+                ? BoxDecoration(
+                    color: AppColors.navyDark.withValues(alpha: 0.06),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppRadius.lg),
+                    ),
+                  )
+                : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.infoBlue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        record.caseNumber,
+                        style: GoogleFonts.poppins(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.infoBlue)),
+                          color: AppColors.infoBlue,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: sc.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: sc.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        displayStatus,
+                        style: GoogleFonts.poppins(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: sc,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: sc.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: sc.withValues(alpha: 0.3)),
-                  ),
-                  child: Text(displayStatus,
-                      style: GoogleFonts.poppins(
-                          fontSize: 9, fontWeight: FontWeight.w700, color: sc)),
-                ),
-              ]),
-              const SizedBox(height: 10),
-              Text(record.title,
+                const SizedBox(height: 10),
+                Text(
+                  record.title,
                   style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark)),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  record.firestoreCategoryDisplayName,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.goldPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              if (record.description.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(record.description,
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    record.firestoreCategoryDisplayName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.goldPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (record.description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    record.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                        fontSize: 12, color: AppColors.lightSubText)),
-              ],
-              const SizedBox(height: 10),
-              Row(children: [
-                Icon(Icons.person_rounded,
-                    size: 13, color: AppColors.lightSubText),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(record.assignedOfficer,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                          fontSize: 11, color: AppColors.lightSubText)),
-                ),
-                Icon(Icons.calendar_today_rounded,
-                    size: 13, color: AppColors.lightSubText),
-                const SizedBox(width: 4),
-                Text(DateFormat('dd MMM yyyy').format(record.incidentDate),
-                    style: GoogleFonts.poppins(
-                        fontSize: 11, color: AppColors.lightSubText)),
-              ]),
-            ],
-          ),
-        ),
-        Container(height: 1, color: AppColors.lightBorder),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      fontSize: 12,
+                      color: AppColors.lightSubText,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 10),
+                Row(
                   children: [
-                      _actionBtn(
-                          Icons.edit_note_rounded, 'Edit', AppColors.infoBlue,
-                          () {
-                        if (widget.moduleKey == 'ad') {
-                          Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(
-                              page: ADFormScreen(existingRecord: record),
-                            ),
+                    const Icon(
+                      Icons.person_rounded,
+                      size: 13,
+                      color: AppColors.lightSubText,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        record.assignedOfficer,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: AppColors.lightSubText,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      size: 13,
+                      color: AppColors.lightSubText,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormat('dd MMM yyyy').format(record.incidentDate),
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(height: 1, color: AppColors.lightBorder),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _actionBtn(
+                  Icons.edit_note_rounded,
+                  'Edit',
+                  AppColors.infoBlue,
+                  () {
+                    if (widget.moduleKey == 'ad') {
+                      Navigator.push(
+                        ctx,
+                        AppTheme.fadeSlideRoute(
+                          page: ADFormScreen(existingRecord: record),
+                        ),
+                      );
+                      return;
+                    }
+                    if (widget.moduleKey == 'nc') {
+                      Navigator.push(
+                        ctx,
+                        AppTheme.fadeSlideRoute(
+                          page: NcFormScreen(
+                            moduleLabel: record.firestoreCategoryDisplayName,
+                            subCategory: widget.subCategory,
+                            existingRecord: record,
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    if (widget.moduleKey == 'missing') {
+                      Navigator.push(
+                        ctx,
+                        AppTheme.fadeSlideRoute(
+                          page: MissingFormScreen(
+                            moduleLabel: record.firestoreCategoryDisplayName,
+                            subCategory: widget.subCategory,
+                            existingRecord: record,
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    final page = moduleUsesCommonCrimeForm(widget.moduleKey)
+                        ? CommonFormScreen(
+                            moduleLabel: record.firestoreCategoryDisplayName,
+                            moduleKey: widget.moduleKey,
+                            subCategory: record.subCategory,
+                            existingRecord: record,
+                          )
+                        : ModuleFormScreen(
+                            moduleLabel: record.firestoreCategoryDisplayName,
+                            moduleKey: widget.moduleKey,
+                            subCategory: record.subCategory,
+                            existingRecord: record,
                           );
-                          return;
-                        }
-                        if (widget.moduleKey == 'nc') {
-                          Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(
-                              page: NcFormScreen(
-                                moduleLabel:
-                                    record.firestoreCategoryDisplayName,
-                                subCategory: widget.subCategory,
-                                existingRecord: record,
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        if (widget.moduleKey == 'missing') {
-                          Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(
-                              page: MissingFormScreen(
-                                moduleLabel:
-                                    record.firestoreCategoryDisplayName,
-                                subCategory: widget.subCategory,
-                                existingRecord: record,
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        final page = moduleUsesCommonCrimeForm(widget.moduleKey)
-                            ? CommonFormScreen(
-                                moduleLabel: record.firestoreCategoryDisplayName,
-                                moduleKey: widget.moduleKey,
-                                subCategory: record.subCategory,
-                                existingRecord: record,
-                              )
-                            : ModuleFormScreen(
-                                moduleLabel: record.firestoreCategoryDisplayName,
-                                moduleKey: widget.moduleKey,
-                                subCategory: record.subCategory,
-                                existingRecord: record,
-                              );
-                        Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(page: page));
-                      }),
-                      Container(
-                          width: 1, height: 24, color: AppColors.lightBorder),
-                      _actionBtn(Icons.picture_as_pdf_rounded, 'PDF',
-                          AppColors.dangerRed, () {
-                        ModulePdfHelper.generatePdf(record);
-                      }),
-                      Container(
-                          width: 1, height: 24, color: AppColors.lightBorder),
-                      _actionBtn(Icons.visibility_rounded, 'View',
-                          AppColors.goldPrimary, () {
-                        Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(
-                              page: widget.moduleKey == 'ad'
-                                  ? AdRecordDetailScreen(
-                                      record: record,
-                                    )
-                                  : ModuleRecordDetailScreen(
-                                      record: record,
-                                    ),
-                            ));
-                      }),
-                      Container(
-                          width: 1, height: 24, color: AppColors.lightBorder),
-                      _actionBtn(Icons.delete_outline_rounded, 'Delete',
-                          AppColors.warningOrange, () {
-                        _confirmDelete(ctx, record);
-                      }),
-                    ]),
-        ),
-      ]),
+                    Navigator.push(ctx, AppTheme.fadeSlideRoute(page: page));
+                  },
+                ),
+                Container(width: 1, height: 24, color: AppColors.lightBorder),
+                _actionBtn(
+                  Icons.picture_as_pdf_rounded,
+                  'PDF',
+                  AppColors.dangerRed,
+                  () {
+                    ModulePdfHelper.generatePdf(record);
+                  },
+                ),
+                Container(width: 1, height: 24, color: AppColors.lightBorder),
+                _actionBtn(
+                  Icons.visibility_rounded,
+                  'View',
+                  AppColors.goldPrimary,
+                  () {
+                    Navigator.push(
+                      ctx,
+                      AppTheme.fadeSlideRoute(
+                        page: widget.moduleKey == 'ad'
+                            ? AdRecordDetailScreen(record: record)
+                            : ModuleRecordDetailScreen(record: record),
+                      ),
+                    );
+                  },
+                ),
+                Container(width: 1, height: 24, color: AppColors.lightBorder),
+                _actionBtn(
+                  Icons.delete_outline_rounded,
+                  'Delete',
+                  AppColors.warningOrange,
+                  () {
+                    _confirmDelete(ctx, record);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _actionBtn(
-      IconData icon, String label, Color color, VoidCallback onTap) {
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Expanded(
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 15, color: color),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(label,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 15, color: color),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
-                      fontSize: 10, fontWeight: FontWeight.w600, color: color)),
-            ),
-          ]),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -3966,12 +4328,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       builder: (_) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg)),
-        title: Text('Delete Record',
-            style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700, color: AppColors.dangerRed)),
-        content: Text('Delete "${record.title}"? This cannot be undone.',
-            style: GoogleFonts.poppins(fontSize: 13)),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        title: Text(
+          'Delete Record',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            color: AppColors.dangerRed,
+          ),
+        ),
+        content: Text(
+          'Delete "${record.title}"? This cannot be undone.',
+          style: GoogleFonts.poppins(fontSize: 13),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -3983,27 +4352,41 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               try {
                 await _readProvider(ctx).deleteRecord(record.id);
                 if (!ctx.mounted) return;
-                ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                  content: Text('Record deleted', style: GoogleFonts.poppins()),
-                  backgroundColor: AppColors.successGreen,
-                ));
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Record deleted',
+                      style: GoogleFonts.poppins(),
+                    ),
+                    backgroundColor: AppColors.successGreen,
+                  ),
+                );
               } catch (e) {
                 if (!ctx.mounted) return;
-                ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                  content: Text('Failed to delete record: $e',
-                      style: GoogleFonts.poppins()),
-                  backgroundColor: AppColors.dangerRed,
-                ));
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Failed to delete record: $e',
+                      style: GoogleFonts.poppins(),
+                    ),
+                    backgroundColor: AppColors.dangerRed,
+                  ),
+                );
               }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.dangerRed,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md)),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
             ),
-            child: Text('Delete',
-                style: GoogleFonts.poppins(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
+            child: Text(
+              'Delete',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

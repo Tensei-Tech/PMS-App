@@ -32,9 +32,8 @@ class StandardDatePicker extends StatelessWidget {
     final min = firstDate ?? DateTime(2000);
     final max = lastDate ?? now;
     final parsed = BaseFormStyles.parseDateDdMmYyyy(controller.text);
-    final initial = parsed != null &&
-            !parsed.isBefore(min) &&
-            !parsed.isAfter(max)
+    final initial =
+        parsed != null && !parsed.isBefore(min) && !parsed.isAfter(max)
         ? parsed
         : (max.isBefore(now) ? max : now);
 
@@ -59,8 +58,11 @@ class StandardDatePicker extends StatelessWidget {
       readOnly: true,
       onTap: () => _pick(context),
       suffixIcon: IconButton(
-        icon: const Icon(Icons.calendar_today_rounded,
-            size: 18, color: BaseFormStyles.accent),
+        icon: const Icon(
+          Icons.calendar_today_rounded,
+          size: 18,
+          color: BaseFormStyles.accent,
+        ),
         tooltip: 'Pick date',
         onPressed: () => _pick(context),
         padding: EdgeInsets.zero,

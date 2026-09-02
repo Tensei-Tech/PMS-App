@@ -13,9 +13,10 @@ class TranslationHelper {
 
     String locale = 'en';
     try {
-      locale = Provider.of<SettingsProvider>(context, listen: false)
-          .locale
-          .languageCode;
+      locale = Provider.of<SettingsProvider>(
+        context,
+        listen: false,
+      ).locale.languageCode;
     } catch (_) {
       try {
         locale = Localizations.localeOf(context).languageCode;
@@ -79,8 +80,9 @@ class TranslationHelper {
       final target = text.substring('showing: '.length).trim();
       final translatedTarget = translate(context, target);
       final translatedShowing = translate(context, 'showing');
-      final prefix =
-          (translatedShowing != 'showing') ? translatedShowing : 'Showing';
+      final prefix = (translatedShowing != 'showing')
+          ? translatedShowing
+          : 'Showing';
       return '$prefix: $translatedTarget';
     }
 
@@ -97,8 +99,9 @@ class TranslationHelper {
       final parts = text.split(' ');
       if (parts.isNotEmpty) {
         final numberPart = parts[0];
-        final label =
-            cleanText.endsWith(' form types') ? 'form types' : 'form type';
+        final label = cleanText.endsWith(' form types')
+            ? 'form types'
+            : 'form type';
         final translatedLabel = translate(context, label);
         return '$numberPart $translatedLabel';
       }
@@ -134,14 +137,19 @@ class TranslationHelper {
       'crime spot': 'घटनास्थल',
       'complainant kyc': 'शिकायतकर्ता केवाईसी',
       'you cannot enter victim name': 'आप पीड़िता का नाम दर्ज नहीं कर सकते',
-      'you cannot enter victim details': 'आप पीड़िता का विवरण दर्ज नहीं कर सकते',
-      'you cannot enter victim details in sexual offence against female': 'महिलाओं के विरुद्ध यौन अपराध में पीड़िता का विवरण दर्ज नहीं कर सकते',
+      'you cannot enter victim details':
+          'आप पीड़िता का विवरण दर्ज नहीं कर सकते',
+      'you cannot enter victim details in sexual offence against female':
+          'महिलाओं के विरुद्ध यौन अपराध में पीड़िता का विवरण दर्ज नहीं कर सकते',
       'protected (confidential)': 'सुरक्षित (गोपनीय)',
       'protected': 'सुरक्षित',
-      'sexual offence against women (victim protected)': 'महिलाओं के विरुद्ध यौन अपराध (पीड़िता की पहचान सुरक्षित)',
+      'sexual offence against women (victim protected)':
+          'महिलाओं के विरुद्ध यौन अपराध (पीड़िता की पहचान सुरक्षित)',
       'other offence': 'अन्य अपराध',
-      'offence category (victim confidentiality)': 'अपराध श्रेणी (पीड़िता की गोपनीयता)',
-      'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.': 'धारा 228A IPC / 72 BNS के तहत पीड़िता की पहचान सुरक्षित है। आप पीड़िता का विवरण दर्ज नहीं कर सकते।',
+      'offence category (victim confidentiality)':
+          'अपराध श्रेणी (पीड़िता की गोपनीयता)',
+      'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.':
+          'धारा 228A IPC / 72 BNS के तहत पीड़िता की पहचान सुरक्षित है। आप पीड़िता का विवरण दर्ज नहीं कर सकते।',
       'accused details': 'आरोपी का विवरण',
       'suspected accused': 'संदिग्ध आरोपी',
       'unidentified criminal description': 'अज्ञात अपराधी का विवरण',
@@ -310,9 +318,12 @@ class TranslationHelper {
       'deceased kyc': 'मृतक केवाईसी',
       'same as complainant': 'शिकायतकर्ता के समान',
       'same as victim': 'पीड़ित के समान',
-      'copied complainant details to victim kyc': 'शिकायतकर्ता का विवरण पीड़ित केवाईसी में कॉपी किया गया',
-      'copied complainant details to deceased kyc': 'शिकायतकर्ता का विवरण मृतक केवाईसी में कॉपी किया गया',
-      'copied victim details to deceased kyc': 'पीड़ित का विवरण मृतक केवाईसी में कॉपी किया गया',
+      'copied complainant details to victim kyc':
+          'शिकायतकर्ता का विवरण पीड़ित केवाईसी में कॉपी किया गया',
+      'copied complainant details to deceased kyc':
+          'शिकायतकर्ता का विवरण मृतक केवाईसी में कॉपी किया गया',
+      'copied victim details to deceased kyc':
+          'पीड़ित का विवरण मृतक केवाईसी में कॉपी किया गया',
       'e-shakshya': 'ई-साक्ष्य',
       'e-shakshya date & time': 'ई-साक्ष्य दिनांक और समय',
       'reason for no e-shakshya (minimum 30 words)':
@@ -338,7 +349,8 @@ class TranslationHelper {
       'bond cancellation date & time': 'बांड रद्दीकरण दिनांक और समय',
       'discharge date': 'उन्मोचन दिनांक',
       'reason for discharge': 'उन्मोचन का कारण',
-      'reason for discharge (minimum 20 words)': 'उन्मोचन का कारण (न्यूनतम 20 शब्द)',
+      'reason for discharge (minimum 20 words)':
+          'उन्मोचन का कारण (न्यूनतम 20 शब्द)',
       'minimum 20 words required': 'न्यूनतम 20 शब्द आवश्यक',
       'charge sheet number': 'चार्जशीट संख्या',
       'charge sheet date': 'चार्जशीट दिनांक',
@@ -352,12 +364,16 @@ class TranslationHelper {
       'add accused': 'अभियुक्त जोड़ें',
       'add suspected': 'संदिग्ध जोड़ें',
       'add seized property': 'जप्त संपत्ति जोड़ें',
-      'victim identity protected by law': 'पीड़िता की पहचान कानून द्वारा संरक्षित है',
-      'victim identity protected by law (rape offence)': 'पीड़िता की पहचान कानून द्वारा संरक्षित है (बलात्कार अपराध)',
+      'victim identity protected by law':
+          'पीड़िता की पहचान कानून द्वारा संरक्षित है',
+      'victim identity protected by law (rape offence)':
+          'पीड़िता की पहचान कानून द्वारा संरक्षित है (बलात्कार अपराध)',
       'identity protection notice': 'पहचान संरक्षण सूचना',
-      'identity protection notice (rape offence)': 'पहचान संरक्षण सूचना (बलात्कार अपराध)',
+      'identity protection notice (rape offence)':
+          'पहचान संरक्षण सूचना (बलात्कार अपराध)',
       'identity protected by law': 'पहचान कानून द्वारा संरक्षित है',
-      'you cannot enter victim details in sexual offence': 'यौन अपराध में आप पीड़िता का विवरण दर्ज नहीं कर सकते',
+      'you cannot enter victim details in sexual offence':
+          'यौन अपराध में आप पीड़िता का विवरण दर्ज नहीं कर सकते',
       'under section 228a ipc / section 73 bns, disclosure of the identity of a victim of rape is prohibited by law. if the complainant is the victim, the name field is locked.':
           'आईपीसी धारा 228A / बीएनएस धारा 73 के तहत बलात्कार पीड़िता की पहचान का खुलासा कानूनन प्रतिबंधित है। यदि शिकायतकर्ता पीड़िता है, तो नाम फ़ील्ड लॉक है।',
       'under section 228a ipc / section 73 bns, disclosure of the victim\'s name in rape offenses is strictly prohibited. name entry is disabled.':
@@ -371,13 +387,17 @@ class TranslationHelper {
       '⚠️ cannot enter victim\'s name because of the act / law (sec 228a ipc / sec 73 bns)':
           '⚠️ अधिनियम/कानून (आईपीसी धारा 228A / बीएनएस धारा 73) के कारण पीड़िता का नाम दर्ज नहीं किया जा सकता',
       'mobile number is required (10 digits)': 'मोबाइल नंबर आवश्यक है (10 अंक)',
-      'mobile number must be exactly 10 digits': 'मोबाइल नंबर ठीक 10 अंकों का होना चाहिए',
-      'enter a valid indian mobile number (starts with 6-9)': 'एक मान्य भारतीय मोबाइल नंबर दर्ज करें (6-9 से शुरू)',
+      'mobile number must be exactly 10 digits':
+          'मोबाइल नंबर ठीक 10 अंकों का होना चाहिए',
+      'enter a valid indian mobile number (starts with 6-9)':
+          'एक मान्य भारतीय मोबाइल नंबर दर्ज करें (6-9 से शुरू)',
       'aadhaar must be exactly 12 digits': 'आधार ठीक 12 अंकों का होना चाहिए',
       'aadhaar cannot start with 0 or 1': 'आधार 0 या 1 से शुरू नहीं हो सकता',
-      'invalid aadhaar number (checksum failed)': 'अमान्य आधार नंबर (चेकसम विफल)',
+      'invalid aadhaar number (checksum failed)':
+          'अमान्य आधार नंबर (चेकसम विफल)',
       'pan must be exactly 10 characters': 'पैन ठीक 10 वर्णों का होना चाहिए',
-      'invalid pan format (e.g. abcde1234f)': 'अमान्य पैन प्रारूप (उदा. ABCDE1234F)',
+      'invalid pan format (e.g. abcde1234f)':
+          'अमान्य पैन प्रारूप (उदा. ABCDE1234F)',
       'crime detail form': 'क्राइम डिटेल फॉर्म',
       'property & seizure form': 'संपत्ति और जब्ती फॉर्म',
       'house/property search & seizure': 'घर/संपत्ति की तलाशी और जब्ती',
@@ -492,15 +512,21 @@ class TranslationHelper {
       'acts & sections filed': 'दाखल केलेले कायदे व कलमे',
       'crime spot': 'घटनास्थळ',
       'complainant kyc': 'तक्रारदार केवायसी',
-      'you cannot enter victim name': 'तुम्ही पीडितेचे नाव प्रविष्ट करू शकत नाही',
-      'you cannot enter victim details': 'तुम्ही पीडितेचे तपशील प्रविष्ट करू शकत नाही',
-      'you cannot enter victim details in sexual offence against female': 'महिलांविरुद्ध लैंगिक गुन्ह्यात पीडितेचे तपशील प्रविष्ट करू शकत नाही',
+      'you cannot enter victim name':
+          'तुम्ही पीडितेचे नाव प्रविष्ट करू शकत नाही',
+      'you cannot enter victim details':
+          'तुम्ही पीडितेचे तपशील प्रविष्ट करू शकत नाही',
+      'you cannot enter victim details in sexual offence against female':
+          'महिलांविरुद्ध लैंगिक गुन्ह्यात पीडितेचे तपशील प्रविष्ट करू शकत नाही',
       'protected (confidential)': 'संरक्षित (गोपनीय)',
       'protected': 'संरक्षित',
-      'sexual offence against women (victim protected)': 'महिलांविरुद्ध लैंगिक गुन्हा (पीडितेची ओळख संरक्षित)',
+      'sexual offence against women (victim protected)':
+          'महिलांविरुद्ध लैंगिक गुन्हा (पीडितेची ओळख संरक्षित)',
       'other offence': 'इतर गुन्हा',
-      'offence category (victim confidentiality)': 'गुन्हा श्रेणी (पीडितेची गोपनीयता)',
-      'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.': 'कलम 228A IPC / 72 BNS अंतर्गत पीडितेची ओळख संरक्षित आहे. तुम्ही पीडितेचे तपशील प्रविष्ट करू शकत नाही.',
+      'offence category (victim confidentiality)':
+          'गुन्हा श्रेणी (पीडितेची गोपनीयता)',
+      'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.':
+          'कलम 228A IPC / 72 BNS अंतर्गत पीडितेची ओळख संरक्षित आहे. तुम्ही पीडितेचे तपशील प्रविष्ट करू शकत नाही.',
       'accused details': 'आरोपी तपशील',
       'suspected accused': 'संशयित आरोपी',
       'unidentified criminal description': 'अनोळखी गुन्हेगाराचे वर्णन',
@@ -653,9 +679,12 @@ class TranslationHelper {
       'deceased kyc': 'मृतक केवायसी',
       'same as complainant': 'तक्रारदाराप्रमाणेच',
       'same as victim': 'पीडिताप्रमाणेच',
-      'copied complainant details to victim kyc': 'तक्रारदाराचा तपशील पीडित केवायसीमध्ये कॉपी केला',
-      'copied complainant details to deceased kyc': 'तक्रारदाराचा तपशील मृतक केवायसीमध्ये कॉपी केला',
-      'copied victim details to deceased kyc': 'पीडिताचा तपशील मृतक केवायसीमध्ये कॉपी केला',
+      'copied complainant details to victim kyc':
+          'तक्रारदाराचा तपशील पीडित केवायसीमध्ये कॉपी केला',
+      'copied complainant details to deceased kyc':
+          'तक्रारदाराचा तपशील मृतक केवायसीमध्ये कॉपी केला',
+      'copied victim details to deceased kyc':
+          'पीडिताचा तपशील मृतक केवायसीमध्ये कॉपी केला',
       'e-shakshya': 'ई-साक्ष्य',
       'e-shakshya date & time': 'ई-साक्ष्य तारीख आणि वेळ',
       'reason for no e-shakshya (minimum 30 words)':
@@ -681,7 +710,8 @@ class TranslationHelper {
       'bond cancellation date & time': 'जामीनपत्र रद्द करणे तारीख आणि वेळ',
       'discharge date': 'दोषमुक्त तारीख',
       'reason for discharge': 'दोषमुक्तीचे कारण',
-      'reason for discharge (minimum 20 words)': 'दोषमुक्तीचे कारण (किमान 20 शब्द)',
+      'reason for discharge (minimum 20 words)':
+          'दोषमुक्तीचे कारण (किमान 20 शब्द)',
       'minimum 20 words required': 'किमान 20 शब्द आवश्यक',
       'charge sheet number': 'चार्जशीट क्रमांक',
       'charge sheet date': 'चार्जशीट तारीख',
@@ -695,12 +725,16 @@ class TranslationHelper {
       'add accused': 'आरोपी जोडा',
       'add suspected': 'संशयित जोडा',
       'add seized property': 'जप्त मालमत्ता जोडा',
-      'victim identity protected by law': 'कायद्यानुसार पीडितेची ओळख संरक्षित आहे',
-      'victim identity protected by law (rape offence)': 'कायद्यानुसार पीडितेची ओळख संरक्षित आहे (बलात्काराचा गुन्हा)',
+      'victim identity protected by law':
+          'कायद्यानुसार पीडितेची ओळख संरक्षित आहे',
+      'victim identity protected by law (rape offence)':
+          'कायद्यानुसार पीडितेची ओळख संरक्षित आहे (बलात्काराचा गुन्हा)',
       'identity protection notice': 'ओळख संरक्षण सूचना',
-      'identity protection notice (rape offence)': 'ओळख संरक्षण सूचना (बलात्काराचा गुन्हा)',
+      'identity protection notice (rape offence)':
+          'ओळख संरक्षण सूचना (बलात्काराचा गुन्हा)',
       'identity protected by law': 'ओळख कायद्यानुसार संरक्षित',
-      'you cannot enter victim details in sexual offence': 'लैंगिक गुन्ह्यामध्ये तुम्ही पीडितेचा तपशील प्रविष्ट करू शकत नाही',
+      'you cannot enter victim details in sexual offence':
+          'लैंगिक गुन्ह्यामध्ये तुम्ही पीडितेचा तपशील प्रविष्ट करू शकत नाही',
       'under section 228a ipc / section 73 bns, disclosure of the identity of a victim of rape is prohibited by law. if the complainant is the victim, the name field is locked.':
           'आयपीसी कलम 228A / बीएनएस कलम 73 नुसार बलात्कार पीडितेची ओळख जाहीर करण्यास कायद्याने बंदी आहे. तक्रारदार पीडित असल्यास नाव फील्ड लॉक आहे.',
       'under section 228a ipc / section 73 bns, disclosure of the victim\'s name in rape offenses is strictly prohibited. name entry is disabled.':
@@ -713,14 +747,19 @@ class TranslationHelper {
           '⚠️ कलम 228A आयपीसी / कलम 73 बीएनएस अंतर्गत नाव लॉक (पीडित संरक्षण)',
       '⚠️ cannot enter victim\'s name because of the act / law (sec 228a ipc / sec 73 bns)':
           '⚠️ कायद्यानुसार (कलम 228A आयपीसी / कलम 73 बीएनएस) पीडितेचे नाव प्रविष्ट केले जाऊ शकत नाही',
-      'mobile number is required (10 digits)': 'मोबाईल नंबर आवश्यक आहे (10 अंक)',
-      'mobile number must be exactly 10 digits': 'मोबाईल नंबर नेमका 10 अंकांचा असावा',
-      'enter a valid indian mobile number (starts with 6-9)': 'वैध भारतीय मोबाईल नंबर प्रविष्ट करा (6-9 ने सुरू)',
+      'mobile number is required (10 digits)':
+          'मोबाईल नंबर आवश्यक आहे (10 अंक)',
+      'mobile number must be exactly 10 digits':
+          'मोबाईल नंबर नेमका 10 अंकांचा असावा',
+      'enter a valid indian mobile number (starts with 6-9)':
+          'वैध भारतीय मोबाईल नंबर प्रविष्ट करा (6-9 ने सुरू)',
       'aadhaar must be exactly 12 digits': 'आधार नेमका 12 अंकांचा असावा',
       'aadhaar cannot start with 0 or 1': 'आधार 0 किंवा 1 ने सुरू होऊ शकत नाही',
-      'invalid aadhaar number (checksum failed)': 'अवैध आधार क्रमांक (चेकसम अयशस्वी)',
+      'invalid aadhaar number (checksum failed)':
+          'अवैध आधार क्रमांक (चेकसम अयशस्वी)',
       'pan must be exactly 10 characters': 'पॅन नेमके 10 वर्णांचे असावे',
-      'invalid pan format (e.g. abcde1234f)': 'अवैध पॅन स्वरूप (उदा. ABCDE1234F)',
+      'invalid pan format (e.g. abcde1234f)':
+          'अवैध पॅन स्वरूप (उदा. ABCDE1234F)',
       'crime detail form': 'क्राइम डिटेल फॉर्म',
       'property & seizure form': 'मालमत्ता आणि जप्ती फॉर्म',
       'house/property search & seizure': 'घर/मालमत्ता शोध आणि जप्ती',

@@ -62,7 +62,10 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
   Future<void> _search() async {
     final query = _searchCtrl.text.trim();
     if (query.isEmpty) {
-      _snack('Enter a mobile number or email to search.', AppColors.warningOrange);
+      _snack(
+        'Enter a mobile number or email to search.',
+        AppColors.warningOrange,
+      );
       return;
     }
 
@@ -88,8 +91,10 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
 
   Future<void> _assignPiInstant(UserModel user, AuthProvider auth) async {
     if (auth.homeStationName.trim().isEmpty) {
-      _snack('Your station is not set. Contact admin before assigning members.',
-          AppColors.warningOrange);
+      _snack(
+        'Your station is not set. Contact admin before assigning members.',
+        AppColors.warningOrange,
+      );
       return;
     }
 
@@ -155,9 +160,9 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
               if (state == 'Maharashtra') {
                 stations =
                     MaharashtraPoliceStationsRepository.getStationNamesForSelection(
-                  district: district!,
-                  unitType: unitType!,
-                );
+                      district: district!,
+                      unitType: unitType!,
+                    );
               } else {
                 stations = PoliceStationsRepository.forSelection(
                   unitType: unitType!,
@@ -172,7 +177,8 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                 left: AppSpacing.lg,
                 right: AppSpacing.lg,
                 top: AppSpacing.lg,
-                bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+                bottom:
+                    MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -248,7 +254,8 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                     SizedBox(
                       height: 48,
                       child: ElevatedButton(
-                        onPressed: _assigning ||
+                        onPressed:
+                            _assigning ||
                                 unitType == null ||
                                 district == null ||
                                 station == null
@@ -291,7 +298,9 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                         ),
                         child: Text(
                           'Confirm assignment',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
@@ -311,7 +320,10 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
     } else if (_isSenior(auth)) {
       await _showSeniorAssignSheet(user);
     } else {
-      _snack('You do not have permission to assign officers.', AppColors.dangerRed);
+      _snack(
+        'You do not have permission to assign officers.',
+        AppColors.dangerRed,
+      );
     }
   }
 
@@ -468,7 +480,9 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                               child: SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                             )
                           : IconButton(
@@ -500,8 +514,11 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                     // ── Header for Unassigned Roster ───────────────────────
                     Row(
                       children: [
-                        const Icon(Icons.badge_rounded,
-                            size: 20, color: AppColors.navyDark),
+                        const Icon(
+                          Icons.badge_rounded,
+                          size: 20,
+                          color: AppColors.navyDark,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Available Officers for Posting',
@@ -514,10 +531,13 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                         const Spacer(),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            color:
-                                AppColors.successGreen.withValues(alpha: 0.12),
+                            color: AppColors.successGreen.withValues(
+                              alpha: 0.12,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -537,41 +557,41 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: [
-                          'All',
-                          'Officers (API/PSI)',
-                          'Constabulary',
-                        ].map((filter) {
-                          final isSelected = _selectedRankFilter == filter;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ChoiceChip(
-                              label: Text(
-                                filter,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w500,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : AppColors.navyDark,
+                        children: ['All', 'Officers (API/PSI)', 'Constabulary']
+                            .map((filter) {
+                              final isSelected = _selectedRankFilter == filter;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ChoiceChip(
+                                  label: Text(
+                                    filter,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.navyDark,
+                                    ),
+                                  ),
+                                  selected: isSelected,
+                                  selectedColor: AppColors.navyMid,
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? AppColors.navyMid
+                                        : AppColors.lightBorder,
+                                  ),
+                                  onSelected: (_) {
+                                    setState(
+                                      () => _selectedRankFilter = filter,
+                                    );
+                                  },
                                 ),
-                              ),
-                              selected: isSelected,
-                              selectedColor: AppColors.navyMid,
-                              backgroundColor: Colors.white,
-                              side: BorderSide(
-                                color: isSelected
-                                    ? AppColors.navyMid
-                                    : AppColors.lightBorder,
-                              ),
-                              onSelected: (_) {
-                                setState(() => _selectedRankFilter = filter);
-                              },
-                            ),
-                          );
-                        }).toList(),
+                              );
+                            })
+                            .toList(),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -622,8 +642,7 @@ class _UserResultCard extends StatelessWidget {
           CircleAvatar(
             radius: 28,
             backgroundColor: AppColors.navyMid.withValues(alpha: 0.12),
-            backgroundImage:
-                photo.isNotEmpty ? NetworkImage(photo) : null,
+            backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
             child: photo.isEmpty
                 ? Text(
                     user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',

@@ -42,4 +42,3 @@ class IndiaStates {
     'Puducherry',
   ];
 }
-

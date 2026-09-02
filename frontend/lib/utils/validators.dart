@@ -35,9 +35,7 @@ class AppValidators {
   static String? email(String? v) {
     if (v == null || v.trim().isEmpty) return 'Email address is required';
     final value = v.trim();
-    final regex = RegExp(
-      r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$',
-    );
+    final regex = RegExp(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$');
     if (!regex.hasMatch(value)) return 'Enter a valid email address';
     return null;
   }
@@ -80,7 +78,7 @@ class AppValidators {
     [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
     [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
     [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
-    [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+    [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
   ];
 
   static const List<List<int>> _verhoeffP = [
@@ -91,7 +89,7 @@ class AppValidators {
     [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
     [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
     [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
-    [7, 0, 4, 6, 9, 1, 3, 2, 5, 8]
+    [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
   ];
 
   /// Validates a number string using the Verhoeff checksum algorithm
@@ -191,4 +189,3 @@ class AppValidators {
     return null;
   }
 }
-

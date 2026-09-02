@@ -88,84 +88,122 @@ class ReadOnlyModuleRecordHubCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                      color: AppColors.infoBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4)),
-                  child: Text(record.caseNumber,
-                      style: GoogleFonts.poppins(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.infoBlue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        record.caseNumber,
+                        style: GoogleFonts.poppins(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.infoBlue)),
-                ),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: sc.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: sc.withValues(alpha: 0.3)),
-                  ),
-                  child: Text(record.status,
-                      style: GoogleFonts.poppins(
+                          color: AppColors.infoBlue,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: sc.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: sc.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        record.status,
+                        style: GoogleFonts.poppins(
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
-                          color: sc)),
+                          color: sc,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ]),
-              const SizedBox(height: 10),
-              Text(record.title,
+                const SizedBox(height: 10),
+                Text(
+                  record.title,
                   style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark)),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  record.firestoreCategoryDisplayName,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.goldPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              if (record.description.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(record.description,
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    record.firestoreCategoryDisplayName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.goldPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (record.description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    record.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                        fontSize: 12, color: AppColors.lightSubText)),
-              ],
-              const SizedBox(height: 10),
-              Row(children: [
-                Icon(Icons.person_rounded,
-                    size: 13, color: AppColors.lightSubText),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(record.assignedOfficer,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      fontSize: 12,
+                      color: AppColors.lightSubText,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.person_rounded,
+                      size: 13,
+                      color: AppColors.lightSubText,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        record.assignedOfficer,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: AppColors.lightSubText,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      size: 13,
+                      color: AppColors.lightSubText,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormat('dd MMM yyyy').format(record.incidentDate),
                       style: GoogleFonts.poppins(
-                          fontSize: 11, color: AppColors.lightSubText)),
+                        fontSize: 11,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                  ],
                 ),
-                Icon(Icons.calendar_today_rounded,
-                    size: 13, color: AppColors.lightSubText),
-                const SizedBox(width: 4),
-                Text(DateFormat('dd MMM yyyy').format(record.incidentDate),
-                    style: GoogleFonts.poppins(
-                        fontSize: 11, color: AppColors.lightSubText)),
-              ]),
-            ]),
+              ],
+            ),
           ),
           Container(height: 1, color: AppColors.lightBorder),
           Padding(
@@ -173,22 +211,30 @@ class ReadOnlyModuleRecordHubCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _actionBtn(Icons.visibility_rounded, 'View',
-                    AppColors.goldPrimary, () {
-                  Navigator.push(
-                    context,
-                    AppTheme.fadeSlideRoute(
-                      page: record.moduleKey == 'ad'
-                          ? AdRecordDetailScreen(record: record)
-                          : ModuleRecordDetailScreen(record: record),
-                    ),
-                  );
-                }),
+                _actionBtn(
+                  Icons.visibility_rounded,
+                  'View',
+                  AppColors.goldPrimary,
+                  () {
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page: record.moduleKey == 'ad'
+                            ? AdRecordDetailScreen(record: record)
+                            : ModuleRecordDetailScreen(record: record),
+                      ),
+                    );
+                  },
+                ),
                 Container(width: 1, height: 24, color: AppColors.lightBorder),
-                _actionBtn(Icons.picture_as_pdf_rounded, 'Download',
-                    AppColors.dangerRed, () {
-                  ModulePdfHelper.generatePdf(record);
-                }),
+                _actionBtn(
+                  Icons.picture_as_pdf_rounded,
+                  'Download',
+                  AppColors.dangerRed,
+                  () {
+                    ModulePdfHelper.generatePdf(record);
+                  },
+                ),
               ],
             ),
           ),

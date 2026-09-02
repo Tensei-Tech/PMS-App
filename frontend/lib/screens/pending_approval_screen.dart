@@ -14,11 +14,7 @@ class PendingApprovalScreen extends StatelessWidget {
     final auth = context.read<AuthProvider>();
     await auth.signOutToLogin();
     if (!context.mounted) return;
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRoutes.login,
-      (_) => false,
-    );
+    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
   }
 
   @override

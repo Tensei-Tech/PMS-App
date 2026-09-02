@@ -46,24 +46,24 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '105',
         'label': '105 - Culpable homicide not amounting to murder',
-        'cat': 'BNS_C6'
+        'cat': 'BNS_C6',
       },
       {
         'val': '106',
         'label': '106 - Causing death by negligence',
-        'cat': 'BNS_C6'
+        'cat': 'BNS_C6',
       },
       {
         'val': '107',
         'label': '107 - Abetment of suicide of child',
-        'cat': 'BNS_C6'
+        'cat': 'BNS_C6',
       },
       {'val': '108', 'label': '108 - Abetment of suicide', 'cat': 'BNS_C6'},
       {'val': '109', 'label': '109 - Attempt to murder', 'cat': 'BNS_C6'},
       {
         'val': '110',
         'label': '110 - Attempt to commit culpable homicide',
-        'cat': 'BNS_C6'
+        'cat': 'BNS_C6',
       },
       {'val': '111', 'label': '111 - Organised crime', 'cat': 'BNS_C6'},
       {'val': '113', 'label': '113 - Terrorist act', 'cat': 'BNS_C6'},
@@ -71,18 +71,18 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '115',
         'label': '115 - Voluntarily causing hurt',
-        'cat': 'BNS_C6'
+        'cat': 'BNS_C6',
       },
       {'val': '116', 'label': '116 - Grievous hurt', 'cat': 'BNS_C6'},
       {
         'val': '117',
         'label': '117 - Voluntarily causing grievous hurt',
-        'cat': 'BNS_C6'
+        'cat': 'BNS_C6',
       },
       {
         'val': '118',
         'label': '118 - Hurt by dangerous weapons',
-        'cat': 'BNS_C6'
+        'cat': 'BNS_C6',
       },
       {'val': '124', 'label': '124 - Grievous hurt by acid', 'cat': 'BNS_C6'},
       {'val': '125', 'label': '125 - Act endangering life', 'cat': 'BNS_C6'},
@@ -94,7 +94,7 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '85',
         'label': '85 - Cruelty by husband or relatives',
-        'cat': 'BNS_C5'
+        'cat': 'BNS_C5',
       },
       {'val': '303', 'label': '303 - Theft', 'cat': 'BNS_C17'},
       {'val': '309', 'label': '309 - Robbery', 'cat': 'BNS_C17'},
@@ -102,7 +102,7 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '316',
         'label': '316 - Criminal breach of trust',
-        'cat': 'BNS_C17'
+        'cat': 'BNS_C17',
       },
       {'val': '318', 'label': '318 - Cheating', 'cat': 'BNS_C17'},
       {'val': '336', 'label': '336 - Forgery', 'cat': 'BNS_C18'},
@@ -117,12 +117,12 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '304',
         'label': '304 - Culpable homicide not amounting to murder',
-        'cat': '1'
+        'cat': '1',
       },
       {
         'val': '304A',
         'label': '304A - Causing death by negligence',
-        'cat': '1'
+        'cat': '1',
       },
       {'val': '307', 'label': '307 - Attempt to murder', 'cat': '1'},
       {'val': '376', 'label': '376 - Rape', 'cat': '3'},
@@ -140,7 +140,7 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '3',
         'label': '3 - Licence required for Arms/Ammunition',
-        'cat': '5'
+        'cat': '5',
       },
       {'val': '25', 'label': '25 - Unlawful Possession of Arms', 'cat': '5'},
       {'val': '27', 'label': '27 - Punishment for using arms', 'cat': '5'},
@@ -153,18 +153,18 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '8',
         'label': '8 - Prohibition on production/sale/possession',
-        'cat': '5'
+        'cat': '5',
       },
       {'val': '20', 'label': '20 - Offences relating to Cannabis', 'cat': '5'},
       {
         'val': '21',
         'label': '21 - Offences relating to manufactured drugs',
-        'cat': '5'
+        'cat': '5',
       },
       {
         'val': '22',
         'label': '22 - Offences relating to psychotropic substances',
-        'cat': '5'
+        'cat': '5',
       },
     ],
   },
@@ -176,7 +176,7 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '4',
         'label': '4 - Punishment for Penetrative Sexual Assault',
-        'cat': '3'
+        'cat': '3',
       },
       {'val': '7', 'label': '7 - Sexual Assault', 'cat': '3'},
       {'val': '8', 'label': '8 - Punishment for Sexual Assault', 'cat': '3'},
@@ -189,7 +189,7 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '3(1)(i)',
         'label': '3(1)(i) - Organised Crime causing death',
-        'cat': '5'
+        'cat': '5',
       },
       {'val': '3(2)', 'label': '3(2) - Abetment/Conspiracy', 'cat': '5'},
     ],
@@ -201,7 +201,7 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '3(1)',
         'label': '3(1) - Detention of dangerous person',
-        'cat': '5'
+        'cat': '5',
       },
     ],
   },
@@ -214,12 +214,12 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '66D',
         'label': '66D - Cheating by personation using computer',
-        'cat': '5'
+        'cat': '5',
       },
       {
         'val': '67',
         'label': '67 - Publishing obscene material electronically',
-        'cat': '5'
+        'cat': '5',
       },
     ],
   },
@@ -230,12 +230,12 @@ const Map<String, Map<String, dynamic>> ACT_DATA = {
       {
         'val': '3(1)(r)',
         'label': '3(1)(r) - Intentional insult/intimidation',
-        'cat': '5'
+        'cat': '5',
       },
       {
         'val': '3(2)(v)',
         'label': '3(2)(v) - Murder/attempt on SC/ST member',
-        'cat': '5'
+        'cat': '5',
       },
     ],
   },
@@ -371,8 +371,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
   String saveBarText = 'All changes unsaved';
   Timer? _syncDebounce;
   final _scrollController = ScrollController();
-  final ValueNotifier<double> _scrollProgressNotifier =
-      ValueNotifier<double>(0);
+  final ValueNotifier<double> _scrollProgressNotifier = ValueNotifier<double>(
+    0,
+  );
 
   final FirestoreService _caseFirestore = FirestoreService();
 
@@ -444,11 +445,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
       'VII',
       'VIII',
       'IX',
-      'X'
+      'X',
     ];
     return chargeData.entries.toList().asMap().entries.map((e) {
-      final roman =
-          e.key < romanNumerals.length ? romanNumerals[e.key] : '${e.key + 1}';
+      final roman = e.key < romanNumerals.length
+          ? romanNumerals[e.key]
+          : '${e.key + 1}';
       final rawAct = e.value.value['act'] as dynamic;
       return {
         'roman': roman,
@@ -460,13 +462,10 @@ class _ADFormScreenState extends State<ADFormScreen> {
 
   Map<String, dynamic> _chargeDataFirestoreMap() {
     return chargeData.map(
-      (k, v) => MapEntry(
-        k,
-        {
-          'act': v['act'],
-          'sections': (v['sections'] as Set<String>).toList(),
-        },
-      ),
+      (k, v) => MapEntry(k, {
+        'act': v['act'],
+        'sections': (v['sections'] as Set<String>).toList(),
+      }),
     );
   }
 
@@ -553,9 +552,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
       'cctvValue': cctvValue,
       'cctvDateTime': cctvDateTimeController.text,
       'proceduralChecks': Map<String, bool>.from(proceduralChecks),
-      'proceduralDates': proceduralDates.map(
-        (k, v) => MapEntry(k, v.text),
-      ),
+      'proceduralDates': proceduralDates.map((k, v) => MapEntry(k, v.text)),
       'eshakshValue': eshakshValue,
       'eshakshDt': eshakshDtController.text,
       'eshakshReason': eshakshReasonController.text,
@@ -648,16 +645,18 @@ class _ADFormScreenState extends State<ADFormScreen> {
     }
 
     _adFormSub?.cancel();
-    _adFormSub =
-        _caseFirestore.watchDocumentData('ad_forms', adNo).listen((data) {
+    _adFormSub = _caseFirestore.watchDocumentData('ad_forms', adNo).listen((
+      data,
+    ) {
       _liveFormData = data;
       _formSnapSeen = true;
       _onAdStreamUpdate();
     });
 
     _adDraftSub?.cancel();
-    _adDraftSub =
-        _caseFirestore.watchDocumentData('ad_drafts', adNo).listen((data) {
+    _adDraftSub = _caseFirestore.watchDocumentData('ad_drafts', adNo).listen((
+      data,
+    ) {
       _liveDraftData = data;
       _draftSnapSeen = true;
       _onAdStreamUpdate();
@@ -743,9 +742,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            Icon(Icons.sync_rounded, color: accentBlue, size: 20),
+            const Icon(Icons.sync_rounded, color: accentBlue, size: 20),
             const SizedBox(width: 10),
-            Expanded(
+            const Expanded(
               child: Text(
                 'This record was updated by another officer.',
                 style: TextStyle(fontSize: 12, color: textPrimary),
@@ -772,12 +771,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
     if (!_adDocumentDeleted) return const SizedBox.shrink();
     return Material(
       color: accentRed.withValues(alpha: 0.1),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
             Icon(Icons.delete_forever_rounded, color: accentRed, size: 20),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Expanded(
               child: Text(
                 'The A.D form document was removed remotely.',
@@ -844,10 +843,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
           'gender': m['gender']?.toString() ?? 'Male',
           'occ': TextEditingController(text: m['occ']?.toString() ?? ''),
           'mobile': TextEditingController(text: m['mobile']?.toString() ?? ''),
-          'aadhaar':
-              TextEditingController(text: m['aadhaar']?.toString() ?? ''),
-          'religion':
-              TextEditingController(text: m['religion']?.toString() ?? ''),
+          'aadhaar': TextEditingController(
+            text: m['aadhaar']?.toString() ?? '',
+          ),
+          'religion': TextEditingController(
+            text: m['religion']?.toString() ?? '',
+          ),
           'caste': TextEditingController(text: m['caste']?.toString() ?? ''),
           'pan': TextEditingController(text: m['pan']?.toString() ?? ''),
         });
@@ -880,10 +881,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
         final set = secsRaw is List
             ? Set<String>.from(secsRaw.map((x) => x.toString()))
             : <String>{};
-        chargeData[key] = {
-          'act': vm['act'] ?? '',
-          'sections': set,
-        };
+        chargeData[key] = {'act': vm['act'] ?? '', 'sections': set};
         final n = int.tryParse(key.replaceFirst(RegExp(r'^charge-'), ''));
         if (n != null && n > maxN) maxN = n;
       }
@@ -901,10 +899,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
         final set = secsRaw is List
             ? Set<String>.from(secsRaw.map((x) => x.toString()))
             : <String>{};
-        chargeData['charge-$i'] = {
-          'act': actKey,
-          'sections': set,
-        };
+        chargeData['charge-$i'] = {'act': actKey, 'sections': set};
       }
       if (i > chargeCount) chargeCount = i;
     }
@@ -975,8 +970,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
         seizureList.add({
           'desc': TextEditingController(text: m['desc']?.toString() ?? ''),
           'fromWhom': m['fromWhom']?.toString(),
-          'otherName':
-              TextEditingController(text: m['otherName']?.toString() ?? ''),
+          'otherName': TextEditingController(
+            text: m['otherName']?.toString() ?? '',
+          ),
         });
       }
     }
@@ -1010,7 +1006,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
         'aadhaar',
         'religion',
         'caste',
-        'pan'
+        'pan',
       ]) {
         (p[e] as TextEditingController).dispose();
       }
@@ -1103,14 +1099,16 @@ class _ADFormScreenState extends State<ADFormScreen> {
       '${_formatDateDdMmYyyy(d)} ${TimeOfDay(hour: d.hour, minute: d.minute).format(context)}';
 
   Future<DateTime?> _pickDate() async => showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(2000),
-        lastDate: DateTime(2100),
-      );
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+  );
 
-  Future<DateTime?> _pickDateThenTime(TextEditingController target,
-      {VoidCallback? onComplete}) async {
+  Future<DateTime?> _pickDateThenTime(
+    TextEditingController target, {
+    VoidCallback? onComplete,
+  }) async {
     final pickedDate = await _pickDate();
     if (!mounted || pickedDate == null) return null;
     final tod = await showTimePicker(
@@ -1141,26 +1139,24 @@ class _ADFormScreenState extends State<ADFormScreen> {
         final cols = w > 700
             ? 3
             : w > 450
-                ? 2
-                : 1;
+            ? 2
+            : 1;
         const spacing = 16.0;
         const runSpacing = 14.0;
         final safeCols = cols < 1 ? 1 : cols;
 
         final rows = <Widget>[];
         for (var i = 0; i < fields.length; i += safeCols) {
-          final end =
-              i + safeCols > fields.length ? fields.length : i + safeCols;
+          final end = i + safeCols > fields.length
+              ? fields.length
+              : i + safeCols;
           final chunk = fields.sublist(i, end);
           final rowChildren = <Widget>[];
           for (var j = 0; j < chunk.length; j++) {
             if (j > 0) rowChildren.add(const SizedBox(width: spacing));
             rowChildren.add(
               Expanded(
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: chunk[j],
-                ),
+                child: Align(alignment: Alignment.topLeft, child: chunk[j]),
               ),
             );
           }
@@ -1186,8 +1182,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _fullWidth(Widget child) =>
       SizedBox(width: double.infinity, child: child);
 
-  Widget _sectionCard(
-      {required String title, Widget? action, required Widget content}) {
+  Widget _sectionCard({
+    required String title,
+    Widget? action,
+    required Widget content,
+  }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 1,
@@ -1232,10 +1231,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
                 ),
                 if (action != null) ...[
                   const SizedBox(width: 8),
-                  Flexible(
-                    fit: FlexFit.loose,
-                    child: action,
-                  ),
+                  Flexible(fit: FlexFit.loose, child: action),
                 ],
               ],
             ),
@@ -1271,8 +1267,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
             decoration: BoxDecoration(
               color: borderColor,
               borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12)),
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              ),
             ),
           ),
           Expanded(
@@ -1299,12 +1296,18 @@ class _ADFormScreenState extends State<ADFormScreen> {
                       ),
                       TextButton.icon(
                         onPressed: onRemove,
-                        icon:
-                            const Icon(Icons.close, size: 14, color: accentRed),
-                        label: const Text('Remove',
-                            style: TextStyle(fontSize: 12, color: accentRed)),
+                        icon: const Icon(
+                          Icons.close,
+                          size: 14,
+                          color: accentRed,
+                        ),
+                        label: const Text(
+                          'Remove',
+                          style: TextStyle(fontSize: 12, color: accentRed),
+                        ),
                         style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
                       ),
                     ],
                   ),
@@ -1320,7 +1323,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
   }
 
   Widget _yesNoChip(
-      String label, bool selected, Color color, VoidCallback onTap) {
+    String label,
+    bool selected,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -1348,10 +1355,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
 
   void addChargeRow() {
     chargeCount++;
-    chargeData['charge-$chargeCount'] = {
-      'act': '',
-      'sections': <String>{},
-    };
+    chargeData['charge-$chargeCount'] = {'act': '', 'sections': <String>{}};
     setState(() {});
     debouncedSync();
   }
@@ -1400,24 +1404,26 @@ class _ADFormScreenState extends State<ADFormScreen> {
         .map(
           (e) => DropdownMenuItem<String>(
             value: e.key,
-            child: Text(e.value['label'] as String,
-                overflow: TextOverflow.ellipsis),
+            child: Text(
+              e.value['label'] as String,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         )
         .toList();
     final sectionItems = actKey == null
         ? const <DropdownMenuItem<String>>[]
-        : (ACT_DATA[actKey]!['sections'] as List<dynamic>).map(
-            (raw) {
-              final m = raw as Map<String, dynamic>;
-              final v = m['val'] as String;
-              return DropdownMenuItem<String>(
-                value: v,
-                child: Text(m['label'] as String? ?? v,
-                    overflow: TextOverflow.ellipsis),
-              );
-            },
-          ).toList();
+        : (ACT_DATA[actKey]!['sections'] as List<dynamic>).map((raw) {
+            final m = raw as Map<String, dynamic>;
+            final v = m['val'] as String;
+            return DropdownMenuItem<String>(
+              value: v,
+              child: Text(
+                m['label'] as String? ?? v,
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          }).toList();
 
     return _dynamicRowCard(
       key: ValueKey('charge_$id'),
@@ -1457,12 +1463,15 @@ class _ADFormScreenState extends State<ADFormScreen> {
               children: [
                 DropdownButtonFormField<String>(
                   key: ValueKey(
-                      'section_dd_${id}_${actKey ?? 'none'}_${selSections.length}'),
+                    'section_dd_${id}_${actKey ?? 'none'}_${selSections.length}',
+                  ),
                   isExpanded: true,
                   decoration: _fieldDecor('Section(s) — tap to add'),
                   initialValue: null,
-                  hint: const Text('Tap to add',
-                      style: TextStyle(color: textMuted, fontSize: 12)),
+                  hint: const Text(
+                    'Tap to add',
+                    style: TextStyle(color: textMuted, fontSize: 12),
+                  ),
                   items: sectionItems,
                   onChanged: actKey == null
                       ? null
@@ -1479,20 +1488,25 @@ class _ADFormScreenState extends State<ADFormScreen> {
                       children: selSections
                           .map(
                             (v) => Chip(
-                              backgroundColor:
-                                  accentBlue.withValues(alpha: 0.12),
+                              backgroundColor: accentBlue.withValues(
+                                alpha: 0.12,
+                              ),
                               side: const BorderSide(color: accentBlue),
                               label: Text(
                                 actKey != null
                                     ? _sectionDisplayLabel(actKey, v)
                                     : v,
                                 style: const TextStyle(
-                                    fontSize: 11,
-                                    color: accentBlue,
-                                    fontWeight: FontWeight.w600),
+                                  fontSize: 11,
+                                  color: accentBlue,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                              deleteIcon: const Icon(Icons.close,
-                                  size: 16, color: accentBlue),
+                              deleteIcon: const Icon(
+                                Icons.close,
+                                size: 16,
+                                color: accentBlue,
+                              ),
                               onDeleted: () => removeSection(id, v),
                             ),
                           )
@@ -1516,16 +1530,18 @@ class _ADFormScreenState extends State<ADFormScreen> {
         const Text(
           'CHARGE SUMMARY',
           style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: textSecondary,
-              letterSpacing: 1),
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: textSecondary,
+            letterSpacing: 1,
+          ),
         ),
         const SizedBox(height: 12),
         ...entries.map((e) {
           final actKey = e.value['act']?.toString() ?? '';
-          final label =
-              actKey.isNotEmpty ? (ACT_DATA[actKey]?['label'] ?? actKey) : '—';
+          final label = actKey.isNotEmpty
+              ? (ACT_DATA[actKey]?['label'] ?? actKey)
+              : '—';
           final secs = (e.value['sections'] as Set<String>?) ?? {};
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
@@ -1550,11 +1566,14 @@ class _ADFormScreenState extends State<ADFormScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(label,
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: primaryDark)),
+                            Text(
+                              label,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: primaryDark,
+                              ),
+                            ),
                             const SizedBox(height: 8),
                             ...secs.map(
                               (v) => Padding(
@@ -1562,17 +1581,22 @@ class _ADFormScreenState extends State<ADFormScreen> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('• ',
-                                        style: TextStyle(
-                                            color: accentTeal,
-                                            fontWeight: FontWeight.w800)),
+                                    const Text(
+                                      '• ',
+                                      style: TextStyle(
+                                        color: accentTeal,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
                                     Expanded(
                                       child: Text(
                                         actKey.isNotEmpty
                                             ? _sectionDisplayLabel(actKey, v)
                                             : v,
                                         style: const TextStyle(
-                                            fontSize: 12, color: textPrimary),
+                                          fontSize: 12,
+                                          color: textPrimary,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -1604,8 +1628,10 @@ class _ADFormScreenState extends State<ADFormScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         icon: const Icon(Icons.add, size: 18),
-        label: const Text('Add Charge',
-            style: TextStyle(fontWeight: FontWeight.w700)),
+        label: const Text(
+          'Add Charge',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1621,24 +1647,31 @@ class _ADFormScreenState extends State<ADFormScreen> {
               ),
               child: Column(
                 children: [
-                  Icon(Icons.gavel_outlined,
-                      size: 40, color: textMuted.withValues(alpha: 0.6)),
+                  Icon(
+                    Icons.gavel_outlined,
+                    size: 40,
+                    color: textMuted.withValues(alpha: 0.6),
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     'No charges added. Tap Add Charge to begin',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        fontSize: 13,
-                        color: textSecondary.withValues(alpha: 0.9)),
+                      fontSize: 13,
+                      color: textSecondary.withValues(alpha: 0.9),
+                    ),
                   ),
                 ],
               ),
             )
           else
             ...chargeData.entries.toList().asMap().entries.map(
-                  (indexed) => _buildChargeRow(
-                      indexed.value.key, indexed.key + 1, indexed.value.value),
-                ),
+              (indexed) => _buildChargeRow(
+                indexed.value.key,
+                indexed.key + 1,
+                indexed.value.value,
+              ),
+            ),
           if (chargeData.isNotEmpty) _chargeSummaryPanel(),
         ],
       ),
@@ -1671,9 +1704,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
   }
 
   Widget _buildUnknownCause() {
-    final relGenderItems = const ['Male', 'Female', 'Other']
-        .map((g) => DropdownMenuItem<String>(value: g, child: Text(g)))
-        .toList();
+    final relGenderItems = const [
+      'Male',
+      'Female',
+      'Other',
+    ].map((g) => DropdownMenuItem<String>(value: g, child: Text(g))).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1689,19 +1724,22 @@ class _ADFormScreenState extends State<ADFormScreen> {
         const Text(
           'RELATIVE DETAILS',
           style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: primaryDark,
-              letterSpacing: 1),
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: primaryDark,
+            letterSpacing: 1,
+          ),
         ),
         const SizedBox(height: 14),
         _responsiveGrid(context, [
           TextFormField(
-              controller: relNameController,
-              decoration: _fieldDecor('Relative Name')),
+            controller: relNameController,
+            decoration: _fieldDecor('Relative Name'),
+          ),
           TextFormField(
-              controller: relRelationController,
-              decoration: _fieldDecor('Relation')),
+            controller: relRelationController,
+            decoration: _fieldDecor('Relation'),
+          ),
           TextFormField(
             controller: relAgeController,
             keyboardType: TextInputType.number,
@@ -1718,24 +1756,30 @@ class _ADFormScreenState extends State<ADFormScreen> {
             },
           ),
           TextFormField(
-              controller: relOccController,
-              decoration: _fieldDecor('Occupation')),
+            controller: relOccController,
+            decoration: _fieldDecor('Occupation'),
+          ),
           TextFormField(
             controller: relMobileController,
             keyboardType: TextInputType.phone,
             decoration: _fieldDecor('Mobile Number'),
           ),
           TextFormField(
-              controller: relAadhaarController,
-              decoration: _fieldDecor('Aadhaar Number')),
+            controller: relAadhaarController,
+            decoration: _fieldDecor('Aadhaar Number'),
+          ),
           TextFormField(
-              controller: relReligionController,
-              decoration: _fieldDecor('Religion')),
+            controller: relReligionController,
+            decoration: _fieldDecor('Religion'),
+          ),
           TextFormField(
-              controller: relCasteController, decoration: _fieldDecor('Caste')),
+            controller: relCasteController,
+            decoration: _fieldDecor('Caste'),
+          ),
           TextFormField(
-              controller: relPanController,
-              decoration: _fieldDecor('PAN Number')),
+            controller: relPanController,
+            decoration: _fieldDecor('PAN Number'),
+          ),
         ]),
       ],
     );
@@ -1770,32 +1814,22 @@ class _ADFormScreenState extends State<ADFormScreen> {
                 child: Text(
                   label,
                   style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: textPrimary),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
+                  ),
                 ),
               ),
-              _yesNoChip(
-                'Yes',
-                val == 'yes',
-                accentGreen,
-                () {
-                  unknownFields[key]!['value'] = 'yes';
-                  setState(() {});
-                },
-              ),
+              _yesNoChip('Yes', val == 'yes', accentGreen, () {
+                unknownFields[key]!['value'] = 'yes';
+                setState(() {});
+              }),
               const SizedBox(width: 8),
-              _yesNoChip(
-                'No',
-                val == 'no',
-                accentRed,
-                () {
-                  unknownFields[key]!['value'] = 'no';
-                  (unknownFields[key]!['date'] as TextEditingController)
-                      .clear();
-                  setState(() {});
-                },
-              ),
+              _yesNoChip('No', val == 'no', accentRed, () {
+                unknownFields[key]!['value'] = 'no';
+                (unknownFields[key]!['date'] as TextEditingController).clear();
+                setState(() {});
+              }),
             ],
           ),
           if (val == 'yes') ...[
@@ -1804,8 +1838,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
               readOnly: true,
               controller: m['date'] as TextEditingController,
               decoration: _fieldDecor('Date').copyWith(
-                  suffixIcon: const Icon(Icons.calendar_today,
-                      size: 18, color: textMuted)),
+                suffixIcon: const Icon(
+                  Icons.calendar_today,
+                  size: 18,
+                  color: textMuted,
+                ),
+              ),
               onTap: pickUnknownDate,
             ),
           ],
@@ -1836,17 +1874,22 @@ class _ADFormScreenState extends State<ADFormScreen> {
             isExpanded: true,
             decoration: _fieldDecor('Select Cause of Death'),
             initialValue: causeOfDeath,
-            hint: const Text('Select Cause of Death',
-                style: TextStyle(color: textMuted)),
+            hint: const Text(
+              'Select Cause of Death',
+              style: TextStyle(color: textMuted),
+            ),
             items: causeItems,
             onChanged: (v) => setState(() => causeOfDeath = v),
           ),
         ),
         if (causeOfDeath == 'Other causes') ...[
           const SizedBox(height: 14),
-          _fullWidth(TextFormField(
+          _fullWidth(
+            TextFormField(
               controller: otherCauseController,
-              decoration: _fieldDecor('Specify Other Cause'))),
+              decoration: _fieldDecor('Specify Other Cause'),
+            ),
+          ),
         ],
       ],
     );
@@ -1886,13 +1929,16 @@ class _ADFormScreenState extends State<ADFormScreen> {
       boxShadow: active
           ? [
               BoxShadow(
-                  color: accentTeal.withValues(alpha: 0.55),
-                  blurRadius: 12,
-                  spreadRadius: 1),
+                color: accentTeal.withValues(alpha: 0.55),
+                blurRadius: 12,
+                spreadRadius: 1,
+              ),
             ]
           : null,
       border: Border.all(
-          color: active ? accentTeal : inputBorder, width: active ? 2 : 1),
+        color: active ? accentTeal : inputBorder,
+        width: active ? 2 : 1,
+      ),
     );
 
     return AnimatedOpacity(
@@ -1938,11 +1984,14 @@ class _ADFormScreenState extends State<ADFormScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
-                    child: Text(title,
-                        style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: primaryDark)),
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: primaryDark,
+                      ),
+                    ),
                   ),
                   Wrap(
                     spacing: 12,
@@ -1955,8 +2004,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
                           controller: sendCtrl,
                           enabled: active,
                           decoration: _fieldDecor('Send Date').copyWith(
-                              suffixIcon: const Icon(Icons.calendar_today,
-                                  size: 16, color: textMuted)),
+                            suffixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: textMuted,
+                            ),
+                          ),
                           onTap: onSendTap,
                         ),
                       ),
@@ -1967,8 +2020,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
                           controller: grantCtrl,
                           enabled: active,
                           decoration: _fieldDecor('Grant Date').copyWith(
-                              suffixIcon: const Icon(Icons.calendar_today,
-                                  size: 16, color: textMuted)),
+                            suffixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: textMuted,
+                            ),
+                          ),
                           onTap: onGrantTap,
                         ),
                       ),
@@ -2001,11 +2058,14 @@ class _ADFormScreenState extends State<ADFormScreen> {
                 });
                 setState(() {});
               },
-              title: Text(caption,
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: textPrimary)),
+              title: Text(
+                caption,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textPrimary,
+                ),
+              ),
               activeColor: accentTeal,
               controlAffinity: ListTileControlAffinity.leading,
               dense: true,
@@ -2017,8 +2077,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
                 child: TextFormField(
                   controller: dateCtrl,
                   decoration: _fieldDecor('Date & Time').copyWith(
-                    suffixIcon: const Icon(Icons.access_time,
-                        size: 14, color: textMuted),
+                    suffixIcon: const Icon(
+                      Icons.access_time,
+                      size: 14,
+                      color: textMuted,
+                    ),
                   ),
                   readOnly: true,
                   onTap: () async {
@@ -2030,7 +2093,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
                     );
                     if (!context.mounted || d == null) return;
                     final t = await showTimePicker(
-                        context: context, initialTime: TimeOfDay.now());
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
                     if (!context.mounted || t == null) return;
                     final dateStr =
                         '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${t.format(context)}';
@@ -2075,8 +2140,10 @@ class _ADFormScreenState extends State<ADFormScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: inputBorder),
                 ),
-                child: const Text('No seized property added',
-                    style: TextStyle(fontSize: 13, color: textSecondary)),
+                child: const Text(
+                  'No seized property added',
+                  style: TextStyle(fontSize: 13, color: textSecondary),
+                ),
               )
             else
               ...seizureList.asMap().entries.map((indexed) {
@@ -2085,11 +2152,14 @@ class _ADFormScreenState extends State<ADFormScreen> {
                 final fromWhomItems = <DropdownMenuItem<String?>>[
                   const DropdownMenuItem<String?>(
                     value: null,
-                    child: Text('Select Deceased',
-                        style: TextStyle(fontSize: 12, color: textMuted)),
+                    child: Text(
+                      'Select Deceased',
+                      style: TextStyle(fontSize: 12, color: textMuted),
+                    ),
                   ),
-                  ...peopleNames.map((n) =>
-                      DropdownMenuItem<String?>(value: n, child: Text(n))),
+                  ...peopleNames.map(
+                    (n) => DropdownMenuItem<String?>(value: n, child: Text(n)),
+                  ),
                 ];
                 return _dynamicRowCard(
                   key: ValueKey('seizure_$i'),
@@ -2106,8 +2176,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
                     children: [
                       _fullWidth(
                         TextFormField(
-                            controller: s['desc'] as TextEditingController,
-                            decoration: _fieldDecor('Property Description')),
+                          controller: s['desc'] as TextEditingController,
+                          decoration: _fieldDecor('Property Description'),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       _responsiveGrid(context, [
@@ -2116,8 +2187,10 @@ class _ADFormScreenState extends State<ADFormScreen> {
                           isExpanded: true,
                           decoration: _fieldDecor('From Whom (Deceased)'),
                           initialValue: s['fromWhom'] as String?,
-                          hint: const Text('Select Deceased',
-                              style: TextStyle(fontSize: 12, color: textMuted)),
+                          hint: const Text(
+                            'Select Deceased',
+                            style: TextStyle(fontSize: 12, color: textMuted),
+                          ),
                           items: fromWhomItems,
                           onChanged: (v) {
                             setState(() => s['fromWhom'] = v);
@@ -2125,8 +2198,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
                         ),
                         TextFormField(
                           controller: s['otherName'] as TextEditingController,
-                          decoration:
-                              _fieldDecor('Other Name (if not in list)'),
+                          decoration: _fieldDecor(
+                            'Other Name (if not in list)',
+                          ),
                         ),
                       ]),
                     ],
@@ -2148,11 +2222,13 @@ class _ADFormScreenState extends State<ADFormScreen> {
           content: const Text('Discard all entered data on this screen?'),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
             TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Clear', style: TextStyle(color: accentRed))),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Clear', style: TextStyle(color: accentRed)),
+            ),
           ],
         ),
       );
@@ -2160,11 +2236,14 @@ class _ADFormScreenState extends State<ADFormScreen> {
     }
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-              color: Colors.black12, blurRadius: 10, offset: Offset(0, -2)),
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -2177,24 +2256,30 @@ class _ADFormScreenState extends State<ADFormScreen> {
               return Row(
                 children: [
                   Expanded(
-                      child: Text(saveBarText,
-                          style: const TextStyle(
-                              color: textSecondary,
-                              fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis)),
+                    child: Text(
+                      saveBarText,
+                      style: const TextStyle(
+                        color: textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   OutlinedButton(
                     onPressed: runClearDraft,
                     style: OutlinedButton.styleFrom(
-                        foregroundColor: accentRed,
-                        side: const BorderSide(color: accentRed)),
+                      foregroundColor: accentRed,
+                      side: const BorderSide(color: accentRed),
+                    ),
                     child: const Text('CLEAR'),
                   ),
                   const SizedBox(width: 10),
                   OutlinedButton(
                     onPressed: saveDraft,
                     style: OutlinedButton.styleFrom(
-                        foregroundColor: textSecondary,
-                        side: const BorderSide(color: inputBorder)),
+                      foregroundColor: textSecondary,
+                      side: const BorderSide(color: inputBorder),
+                    ),
                     child: const Text('SAVE DRAFT'),
                   ),
                   const SizedBox(width: 10),
@@ -2211,11 +2296,14 @@ class _ADFormScreenState extends State<ADFormScreen> {
                   ElevatedButton.icon(
                     onPressed: submitForm,
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryDark,
-                        foregroundColor: Colors.white),
+                      backgroundColor: primaryDark,
+                      foregroundColor: Colors.white,
+                    ),
                     icon: const Icon(Icons.save_alt, size: 18),
-                    label: const Text('SUBMIT',
-                        style: TextStyle(fontWeight: FontWeight.w800)),
+                    label: const Text(
+                      'SUBMIT',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
                   ),
                 ],
               );
@@ -2226,7 +2314,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
                   child: Text(
                     saveBarText,
                     style: const TextStyle(
-                        color: textSecondary, fontWeight: FontWeight.w600),
+                      color: textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -2242,16 +2332,22 @@ class _ADFormScreenState extends State<ADFormScreen> {
                 ),
                 IconButton(
                   tooltip: 'Generate Crime Detail Form PDF',
-                  icon: const Icon(Icons.picture_as_pdf_outlined, color: accentTeal),
+                  icon: const Icon(
+                    Icons.picture_as_pdf_outlined,
+                    color: accentTeal,
+                  ),
                   onPressed: _generateCrimeDetailPdf,
                 ),
                 ElevatedButton(
                   onPressed: submitForm,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryDark,
-                      foregroundColor: Colors.white),
-                  child: const Text('SUBMIT',
-                      style: TextStyle(fontWeight: FontWeight.w800)),
+                    backgroundColor: primaryDark,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text(
+                    'SUBMIT',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
                 ),
               ],
             );
@@ -2279,68 +2375,54 @@ class _ADFormScreenState extends State<ADFormScreen> {
   void debouncedSync() {
     if (_hydrating) return;
     _syncDebounce?.cancel();
-    _syncDebounce =
-        Timer(const Duration(milliseconds: 800), syncChargesToCaseItoV);
+    _syncDebounce = Timer(
+      const Duration(milliseconds: 800),
+      syncChargesToCaseItoV,
+    );
   }
 
   Future<void> syncChargesToCaseItoV() async {
     if (_hydrating) return;
     final adNo = adNoController.text.trim();
     if (adNo.isEmpty) return;
-    const romanNumerals = [
-      'I',
-      'II',
-      'III',
-      'IV',
-      'V',
-      'VI',
-      'VII',
-      'VIII',
-      'IX',
-      'X'
-    ];
-    final payload = chargeData.entries
-        .toList()
-        .asMap()
-        .entries
-        .where((e) => e.value.value['act'].toString().isNotEmpty)
-        .map((e) {
-      final roman =
-          e.key < romanNumerals.length ? romanNumerals[e.key] : '${e.key + 1}';
-      final rawAct = e.value.value['act'] as dynamic;
-      return {
-        'roman': roman,
-        'act': ACT_DATA['$rawAct']?['label'] ?? '$rawAct',
-        'sections': (e.value.value['sections'] as Set<String>).toList(),
-      };
-    }).toList();
   }
 
   Future<void> saveDraft() async {
     final adNo = adNoController.text.trim();
     if (adNo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter AD No. first')));
+        const SnackBar(content: Text('Please enter AD No. first')),
+      );
       return;
     }
     try {
       if (!mounted) return;
-      setState(() =>
-          saveBarText = 'Draft saved at ${TimeOfDay.now().format(context)}');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Draft saved!'), backgroundColor: accentGreen));
+      setState(
+        () => saveBarText = 'Draft saved at ${TimeOfDay.now().format(context)}',
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Draft saved!'),
+          backgroundColor: accentGreen,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Save failed: $e'), backgroundColor: accentRed));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Save failed: $e'), backgroundColor: accentRed),
+      );
     }
   }
 
   Future<void> submitForm() async {
     final adNo = adNoController.text.trim();
     if (adNo.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('AD No. is required'), backgroundColor: accentRed));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('AD No. is required'),
+          backgroundColor: accentRed,
+        ),
+      );
       return;
     }
     try {
@@ -2352,9 +2434,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
 
       if (!mounted) return;
       setState(() => saveBarText = 'Submitted successfully!');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Form submitted!'),
-          backgroundColor: accentGreen));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Form submitted!'),
+          backgroundColor: accentGreen,
+        ),
+      );
       if (Navigator.canPop(context)) {
         var left = widget.popCountAfterSubmit.clamp(1, 5);
         while (left > 0 && Navigator.canPop(context)) {
@@ -2364,8 +2449,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Submit failed: $e'), backgroundColor: accentRed));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Submit failed: $e'),
+          backgroundColor: accentRed,
+        ),
+      );
     }
   }
 
@@ -2488,17 +2577,16 @@ class _ADFormScreenState extends State<ADFormScreen> {
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _responsiveGrid(
-              context,
-              [
-                TextFormField(
-                    controller: spotVillageController,
-                    decoration: _fieldDecor('Village / Town')),
-                TextFormField(
-                    controller: spotAreaController,
-                    decoration: _fieldDecor('Area Name')),
-              ],
-            ),
+            _responsiveGrid(context, [
+              TextFormField(
+                controller: spotVillageController,
+                decoration: _fieldDecor('Village / Town'),
+              ),
+              TextFormField(
+                controller: spotAreaController,
+                decoration: _fieldDecor('Area Name'),
+              ),
+            ]),
             const SizedBox(height: 14),
             _fullWidth(
               TextFormField(
@@ -2514,61 +2602,68 @@ class _ADFormScreenState extends State<ADFormScreen> {
   }
 
   Widget _buildSection4() {
-    final compGenderItems = const ['Male', 'Female', 'Other']
-        .map((g) => DropdownMenuItem<String>(value: g, child: Text(g)))
-        .toList();
+    final compGenderItems = const [
+      'Male',
+      'Female',
+      'Other',
+    ].map((g) => DropdownMenuItem<String>(value: g, child: Text(g))).toList();
     return RepaintBoundary(
       child: _sectionCard(
         title: '4. COMPLAINANT KYC',
-        content: _responsiveGrid(
-          context,
-          [
-            TextFormField(
-                controller: compNameController,
-                decoration: _fieldDecor('Name')),
-            TextFormField(
-              controller: compAgeController,
-              keyboardType: TextInputType.number,
-              decoration: _fieldDecor('Age'),
-            ),
-            DropdownButtonFormField<String>(
-              key: ValueKey(compGender),
-              isExpanded: true,
-              decoration: _fieldDecor('Gender'),
-              initialValue: compGender,
-              items: compGenderItems,
-              onChanged: (v) => setState(() => compGender = v ?? compGender),
-            ),
-            TextFormField(
-                controller: compOccController,
-                decoration: _fieldDecor('Occupation')),
-            TextFormField(
-              controller: compMobileController,
-              keyboardType: TextInputType.phone,
-              decoration: _fieldDecor('Mobile Number'),
-            ),
-            TextFormField(
-                controller: compAadhaarController,
-                decoration: _fieldDecor('Aadhaar Number')),
-            TextFormField(
-                controller: compReligionController,
-                decoration: _fieldDecor('Religion')),
-            TextFormField(
-                controller: compCasteController,
-                decoration: _fieldDecor('Caste')),
-            TextFormField(
-                controller: compPanController,
-                decoration: _fieldDecor('PAN Number')),
-          ],
-        ),
+        content: _responsiveGrid(context, [
+          TextFormField(
+            controller: compNameController,
+            decoration: _fieldDecor('Name'),
+          ),
+          TextFormField(
+            controller: compAgeController,
+            keyboardType: TextInputType.number,
+            decoration: _fieldDecor('Age'),
+          ),
+          DropdownButtonFormField<String>(
+            key: ValueKey(compGender),
+            isExpanded: true,
+            decoration: _fieldDecor('Gender'),
+            initialValue: compGender,
+            items: compGenderItems,
+            onChanged: (v) => setState(() => compGender = v ?? compGender),
+          ),
+          TextFormField(
+            controller: compOccController,
+            decoration: _fieldDecor('Occupation'),
+          ),
+          TextFormField(
+            controller: compMobileController,
+            keyboardType: TextInputType.phone,
+            decoration: _fieldDecor('Mobile Number'),
+          ),
+          TextFormField(
+            controller: compAadhaarController,
+            decoration: _fieldDecor('Aadhaar Number'),
+          ),
+          TextFormField(
+            controller: compReligionController,
+            decoration: _fieldDecor('Religion'),
+          ),
+          TextFormField(
+            controller: compCasteController,
+            decoration: _fieldDecor('Caste'),
+          ),
+          TextFormField(
+            controller: compPanController,
+            decoration: _fieldDecor('PAN Number'),
+          ),
+        ]),
       ),
     );
   }
 
   Widget _buildSection5() {
-    final deceasedGenderItems = const ['Male', 'Female', 'Other']
-        .map((g) => DropdownMenuItem<String>(value: g, child: Text(g)))
-        .toList();
+    final deceasedGenderItems = const [
+      'Male',
+      'Female',
+      'Other',
+    ].map((g) => DropdownMenuItem<String>(value: g, child: Text(g))).toList();
     return RepaintBoundary(
       child: _sectionCard(
         title: '5. DECEASED KYC DETAILS',
@@ -2620,8 +2715,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
                   },
                 ),
                 TextFormField(
-                    controller: p['occ'] as TextEditingController,
-                    decoration: _fieldDecor('Occupation')),
+                  controller: p['occ'] as TextEditingController,
+                  decoration: _fieldDecor('Occupation'),
+                ),
                 TextFormField(
                   controller: p['mobile'] as TextEditingController,
                   keyboardType: TextInputType.phone,
@@ -2636,11 +2732,13 @@ class _ADFormScreenState extends State<ADFormScreen> {
                   decoration: _fieldDecor('Religion'),
                 ),
                 TextFormField(
-                    controller: p['caste'] as TextEditingController,
-                    decoration: _fieldDecor('Caste')),
+                  controller: p['caste'] as TextEditingController,
+                  decoration: _fieldDecor('Caste'),
+                ),
                 TextFormField(
-                    controller: p['pan'] as TextEditingController,
-                    decoration: _fieldDecor('PAN Number')),
+                  controller: p['pan'] as TextEditingController,
+                  decoration: _fieldDecor('PAN Number'),
+                ),
               ]),
             );
           }).toList(),
@@ -2655,11 +2753,14 @@ class _ADFormScreenState extends State<ADFormScreen> {
         title: '6. CAUSE OF DEATH',
         action: Row(
           children: [
-            const Text('Unknown',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: textSecondary)),
+            const Text(
+              'Unknown',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: textSecondary,
+              ),
+            ),
             Switch.adaptive(
               value: isUnknownDeath,
               activeThumbColor: accentTeal,
@@ -2672,8 +2773,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
           duration: const Duration(milliseconds: 300),
           child: KeyedSubtree(
             key: ValueKey<bool>(isUnknownDeath),
-            child:
-                isUnknownDeath ? _buildUnknownCause() : _buildStandardCause(),
+            child: isUnknownDeath
+                ? _buildUnknownCause()
+                : _buildStandardCause(),
           ),
         ),
       ),
@@ -2693,40 +2795,40 @@ class _ADFormScreenState extends State<ADFormScreen> {
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _responsiveGrid(
-              context,
-              [
-                DropdownButtonFormField<String>(
-                  key: ValueKey('io_$ioDesig'),
-                  isExpanded: true,
-                  decoration: _fieldDecor('IO Designation'),
-                  initialValue: ioDesig,
-                  items: ioDesigItems,
-                  onChanged: (v) => setState(() => ioDesig = v ?? ioDesig),
-                ),
-                TextFormField(
-                    controller: ioNameController,
-                    decoration: _fieldDecor('IO Name')),
-                DropdownButtonFormField<String>(
-                  key: ValueKey('reg_$regDesig'),
-                  isExpanded: true,
-                  decoration: _fieldDecor('Reg. By Designation'),
-                  initialValue: regDesig,
-                  items: regDesigItems,
-                  onChanged: (v) => setState(() => regDesig = v ?? regDesig),
-                ),
-                TextFormField(
-                    controller: regNameController,
-                    decoration: _fieldDecor('Registrar Name')),
-              ],
-            ),
+            _responsiveGrid(context, [
+              DropdownButtonFormField<String>(
+                key: ValueKey('io_$ioDesig'),
+                isExpanded: true,
+                decoration: _fieldDecor('IO Designation'),
+                initialValue: ioDesig,
+                items: ioDesigItems,
+                onChanged: (v) => setState(() => ioDesig = v ?? ioDesig),
+              ),
+              TextFormField(
+                controller: ioNameController,
+                decoration: _fieldDecor('IO Name'),
+              ),
+              DropdownButtonFormField<String>(
+                key: ValueKey('reg_$regDesig'),
+                isExpanded: true,
+                decoration: _fieldDecor('Reg. By Designation'),
+                initialValue: regDesig,
+                items: regDesigItems,
+                onChanged: (v) => setState(() => regDesig = v ?? regDesig),
+              ),
+              TextFormField(
+                controller: regNameController,
+                decoration: _fieldDecor('Registrar Name'),
+              ),
+            ]),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                  color: inputBg,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: inputBorder)),
+                color: inputBg,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: inputBorder),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2736,9 +2838,10 @@ class _ADFormScreenState extends State<ADFormScreen> {
                         child: Text(
                           'CCTV Available',
                           style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: textPrimary),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
+                          ),
                         ),
                       ),
                       _yesNoChip('Yes', cctvValue == 'yes', accentGreen, () {
@@ -2759,8 +2862,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
                       readOnly: true,
                       controller: cctvDateTimeController,
                       decoration: _fieldDecor('CCTV Date & Time').copyWith(
-                        suffixIcon: const Icon(Icons.access_time,
-                            size: 18, color: textMuted),
+                        suffixIcon: const Icon(
+                          Icons.access_time,
+                          size: 18,
+                          color: textMuted,
+                        ),
                       ),
                       onTap: () async {
                         await _pickDateThenTime(cctvDateTimeController);
@@ -2786,38 +2892,52 @@ class _ADFormScreenState extends State<ADFormScreen> {
             Wrap(
               children: [
                 SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine(
-                        'chkMemo', 'Memorandum Panchanama')),
+                  width: 360,
+                  child: _buildProceduralLine(
+                    'chkMemo',
+                    'Memorandum Panchanama',
+                  ),
+                ),
                 SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine(
-                        'chkPanchSpot', 'Panchanama Spot')),
+                  width: 360,
+                  child: _buildProceduralLine(
+                    'chkPanchSpot',
+                    'Panchanama Spot',
+                  ),
+                ),
                 SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine('chkInquest', 'Inquest')),
+                  width: 360,
+                  child: _buildProceduralLine('chkInquest', 'Inquest'),
+                ),
                 SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine('chkIdent', 'Identification')),
+                  width: 360,
+                  child: _buildProceduralLine('chkIdent', 'Identification'),
+                ),
                 SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine('chkSearch', 'Search')),
+                  width: 360,
+                  child: _buildProceduralLine('chkSearch', 'Search'),
+                ),
                 SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine(
-                        'chkPersSearch', 'Personal Search')),
+                  width: 360,
+                  child: _buildProceduralLine(
+                    'chkPersSearch',
+                    'Personal Search',
+                  ),
+                ),
                 SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine('chkExhumation', 'Exhumation')),
+                  width: 360,
+                  child: _buildProceduralLine('chkExhumation', 'Exhumation'),
+                ),
               ],
             ),
             const Divider(height: 24, color: inputBorder),
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                  color: inputBg,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: inputBorder)),
+                color: inputBg,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: inputBorder),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2827,9 +2947,10 @@ class _ADFormScreenState extends State<ADFormScreen> {
                         child: Text(
                           'E-Shakshya',
                           style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: textPrimary),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
+                          ),
                         ),
                       ),
                       _yesNoChip('Yes', eshakshValue == 'yes', accentGreen, () {
@@ -2848,10 +2969,14 @@ class _ADFormScreenState extends State<ADFormScreen> {
                     TextFormField(
                       readOnly: true,
                       controller: eshakshDtController,
-                      decoration: _fieldDecor('E-Shakshya Date & Time').copyWith(
-                        suffixIcon: const Icon(Icons.calendar_today,
-                            size: 18, color: textMuted),
-                      ),
+                      decoration: _fieldDecor('E-Shakshya Date & Time')
+                          .copyWith(
+                            suffixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                              color: textMuted,
+                            ),
+                          ),
                       onTap: () async {
                         final d = await _pickDate();
                         if (!mounted || d == null) return;
@@ -2865,7 +2990,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
                     TextFormField(
                       controller: eshakshReasonController,
                       maxLines: 3,
-                      decoration: _fieldDecor('Reason for No E-Shakshya (minimum 30 words)'),
+                      decoration: _fieldDecor(
+                        'Reason for No E-Shakshya (minimum 30 words)',
+                      ),
                       onChanged: (_) {
                         setState(() {});
                         debouncedSync();
@@ -2886,7 +3013,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
                             Text(
                               isComplete
                                   ? TranslationHelper.translate(
-                                      ctx, 'Word requirement met')
+                                      ctx,
+                                      'Word requirement met',
+                                    )
                                   : '${TranslationHelper.translate(ctx, 'Minimum 30 words required')} (${30 - words} ${TranslationHelper.translate(ctx, 'more needed')})',
                               style: TextStyle(
                                 fontSize: 11,
@@ -2920,39 +3049,42 @@ class _ADFormScreenState extends State<ADFormScreen> {
     return RepaintBoundary(
       child: _sectionCard(
         title: '12. TECHNICAL RECORDS',
-        content: _responsiveGrid(
-          context,
-          [
-            TextFormField(
-              readOnly: true,
-              controller: cdrSentController,
-              decoration: _fieldDecor('CDR Sent Date').copyWith(
-                suffixIcon: const Icon(Icons.calendar_today,
-                    size: 18, color: textMuted),
+        content: _responsiveGrid(context, [
+          TextFormField(
+            readOnly: true,
+            controller: cdrSentController,
+            decoration: _fieldDecor('CDR Sent Date').copyWith(
+              suffixIcon: const Icon(
+                Icons.calendar_today,
+                size: 18,
+                color: textMuted,
               ),
-              onTap: () async {
-                final d = await _pickDate();
-                if (!mounted || d == null) return;
-                cdrSentController.text = _formatDateDdMmYyyy(d);
-                setState(() {});
-              },
             ),
-            TextFormField(
-              readOnly: true,
-              controller: cdrRecvController,
-              decoration: _fieldDecor('CDR Received Date').copyWith(
-                suffixIcon: const Icon(Icons.calendar_today,
-                    size: 18, color: textMuted),
+            onTap: () async {
+              final d = await _pickDate();
+              if (!mounted || d == null) return;
+              cdrSentController.text = _formatDateDdMmYyyy(d);
+              setState(() {});
+            },
+          ),
+          TextFormField(
+            readOnly: true,
+            controller: cdrRecvController,
+            decoration: _fieldDecor('CDR Received Date').copyWith(
+              suffixIcon: const Icon(
+                Icons.calendar_today,
+                size: 18,
+                color: textMuted,
               ),
-              onTap: () async {
-                final d = await _pickDate();
-                if (!mounted || d == null) return;
-                cdrRecvController.text = _formatDateDdMmYyyy(d);
-                setState(() {});
-              },
             ),
-          ],
-        ),
+            onTap: () async {
+              final d = await _pickDate();
+              if (!mounted || d == null) return;
+              cdrRecvController.text = _formatDateDdMmYyyy(d);
+              setState(() {});
+            },
+          ),
+        ]),
       ),
     );
   }

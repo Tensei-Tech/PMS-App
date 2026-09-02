@@ -47,9 +47,7 @@ class FeedbackService {
 
       await http.post(
         Uri.parse(ApiConstants.feedbackWebAppUrl),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(body),
       );
     } catch (e) {

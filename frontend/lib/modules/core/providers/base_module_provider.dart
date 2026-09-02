@@ -124,33 +124,43 @@ class BaseModuleProvider extends ChangeNotifier {
 
   int getFilteredOpenCount(String? subCategory) {
     if (subCategory == null) return openCount;
-    return records.where((r) => r.subCategory == subCategory && r.status == 'Open').length;
+    return records
+        .where((r) => r.subCategory == subCategory && r.status == 'Open')
+        .length;
   }
 
   int getFilteredActiveCount(String? subCategory) {
     if (subCategory == null) return activeCount;
-    return records.where((r) => r.subCategory == subCategory && r.status == 'Active').length;
+    return records
+        .where((r) => r.subCategory == subCategory && r.status == 'Active')
+        .length;
   }
 
   int getFilteredResolvedCount(String? subCategory) {
     if (subCategory == null) return resolvedCount;
-    return records.where((r) => r.subCategory == subCategory && r.status == 'Resolved').length;
+    return records
+        .where((r) => r.subCategory == subCategory && r.status == 'Resolved')
+        .length;
   }
 
   int getFilteredClosedCount(String? subCategory) {
     if (subCategory == null) return closedCount;
-    return records.where((r) => r.subCategory == subCategory && r.status == 'Closed').length;
+    return records
+        .where((r) => r.subCategory == subCategory && r.status == 'Closed')
+        .length;
   }
 
   Future<void> addRecord(ModuleRecord record) async {
     if (record.moduleKey != moduleKey) {
       throw ArgumentError(
-          'Cannot add a ${record.moduleKey} record into $moduleKey module!');
+        'Cannot add a ${record.moduleKey} record into $moduleKey module!',
+      );
     }
     final enriched = record.copyWith(
       stationName: record.stationName.isEmpty ? _stationId : record.stationName,
       createdBy: record.createdBy.isEmpty ? _uid : record.createdBy,
-      assignedOfficerUid: record.assignedOfficerUid ??
+      assignedOfficerUid:
+          record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
     await _caseService.saveCase(enriched, isCreate: true);
@@ -160,12 +170,14 @@ class BaseModuleProvider extends ChangeNotifier {
   Future<void> updateRecord(ModuleRecord record) async {
     if (record.moduleKey != moduleKey) {
       throw ArgumentError(
-          'Cannot update a ${record.moduleKey} record in $moduleKey module!');
+        'Cannot update a ${record.moduleKey} record in $moduleKey module!',
+      );
     }
     final enriched = record.copyWith(
       stationName: record.stationName.isEmpty ? _stationId : record.stationName,
       createdBy: record.createdBy.isEmpty ? _uid : record.createdBy,
-      assignedOfficerUid: record.assignedOfficerUid ??
+      assignedOfficerUid:
+          record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
     await _caseService.saveCase(enriched, isCreate: false);

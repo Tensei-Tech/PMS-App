@@ -94,7 +94,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
       _date = r.incidentDate;
       _priority = r.priority;
       if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
-        _status = (r.status == 'Disposal' ||
+        _status =
+            (r.status == 'Disposal' ||
                 r.status == 'Closed' ||
                 r.status == 'Resolved')
             ? 'Disposal'
@@ -117,7 +118,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
       final provider = _getProvider(context);
 
       debugPrint(
-          '>>> [ModuleFormScreen] initState stationName="${auth.stationName}" uid="${auth.uid}"');
+        '>>> [ModuleFormScreen] initState stationName="${auth.stationName}" uid="${auth.uid}"',
+      );
 
       // Only inject if stationName is available
       if (auth.stationName.isNotEmpty) {
@@ -226,8 +228,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
     final stationName = _isEdit && widget.existingRecord!.stationName.isNotEmpty
         ? widget.existingRecord!.stationName
         : auth.stationName.isNotEmpty
-            ? auth.stationName
-            : provider.stationId; // fallback to what provider already knows
+        ? auth.stationName
+        : provider.stationId; // fallback to what provider already knows
 
     final createdBy = _isEdit && widget.existingRecord!.createdBy.isNotEmpty
         ? widget.existingRecord!.createdBy
@@ -235,20 +237,24 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
 
     // ✅ Guard: block save if stationName is still empty
     if (!_isEdit && stationName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'Station not assigned. Please log out and log in again.',
-          style: GoogleFonts.poppins(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Station not assigned. Please log out and log in again.',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.red,
         ),
-        backgroundColor: Colors.red,
-      ));
+      );
       debugPrint(
-          '>>> [_onSubmit] BLOCKED — stationName is empty. auth.stationName="${auth.stationName}" provider.stationId="${provider.stationId}"');
+        '>>> [_onSubmit] BLOCKED — stationName is empty. auth.stationName="${auth.stationName}" provider.stationId="${provider.stationId}"',
+      );
       return;
     }
 
     debugPrint(
-        '>>> [_onSubmit] stationName="$stationName" createdBy="$createdBy"');
+      '>>> [_onSubmit] stationName="$stationName" createdBy="$createdBy"',
+    );
 
     final record = ModuleRecord(
       id: _isEdit
@@ -264,16 +270,19 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
       incidentDate: _date,
       priority: _priority,
       status: _status,
-      assignedOfficer:
-          _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
-      subCategory:
-          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
+      assignedOfficer: _isEdit
+          ? widget.existingRecord!.assignedOfficer
+          : auth.displayName,
+      subCategory: _isEdit
+          ? widget.existingRecord!.subCategory
+          : widget.subCategory,
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       // ✅ Always populated — never empty
       stationName: stationName,
       createdBy: createdBy,
-      assignedOfficerUid:
-          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
+      assignedOfficerUid: _isEdit
+          ? widget.existingRecord!.assignedOfficerUid
+          : auth.uid,
     );
 
     try {
@@ -285,25 +294,29 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          _isEdit
-              ? '${widget.moduleLabel} record updated!'
-              : '${widget.moduleLabel} case registered!',
-          style: GoogleFonts.poppins(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEdit
+                ? '${widget.moduleLabel} record updated!'
+                : '${widget.moduleLabel} case registered!',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: AppColors.successGreen,
         ),
-        backgroundColor: AppColors.successGreen,
-      ));
+      );
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'Failed to save record: $e',
-          style: GoogleFonts.poppins(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to save record: $e',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: AppColors.dangerRed,
         ),
-        backgroundColor: AppColors.dangerRed,
-      ));
+      );
     }
   }
 
@@ -311,8 +324,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
   Widget build(BuildContext context) {
     final statusItems =
         (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected')
-            ? ['Pending', 'Disposal']
-            : ['Open', 'Active', 'Resolved', 'Closed'];
+        ? ['Pending', 'Disposal']
+        : ['Open', 'Active', 'Resolved', 'Closed'];
 
     return BaseFormLayout(
       title: _isEdit
@@ -330,15 +343,19 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
           decoration: BoxDecoration(
             color: AppColors.goldPrimary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(AppRadius.sm),
-            border:
-                Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: AppColors.goldPrimary.withValues(alpha: 0.3),
+            ),
           ),
           child: Center(
-            child: Text('MODULE',
-                style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.goldPrimary)),
+            child: Text(
+              'MODULE',
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: AppColors.goldPrimary,
+              ),
+            ),
           ),
         ),
       ],
@@ -350,20 +367,22 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
             children: [
               _sectionTitle('General Information', Icons.info_outline_rounded),
               _card([
-                StandardFormFieldRow(children: [
-                  StandardTextField(
-                    label: 'Case / FIR Number',
-                    controller: _caseNoCtrl,
-                    hint: 'e.g. FIR/2024/0101',
-                    prefixIcon: Icons.numbers_rounded,
-                  ),
-                  StandardTextField(
-                    label: 'Subject / Case Title',
-                    controller: _titleCtrl,
-                    hint: 'Brief case title',
-                    prefixIcon: Icons.title_rounded,
-                  ),
-                ]),
+                StandardFormFieldRow(
+                  children: [
+                    StandardTextField(
+                      label: 'Case / FIR Number',
+                      controller: _caseNoCtrl,
+                      hint: 'e.g. FIR/2024/0101',
+                      prefixIcon: Icons.numbers_rounded,
+                    ),
+                    StandardTextField(
+                      label: 'Subject / Case Title',
+                      controller: _titleCtrl,
+                      hint: 'Brief case title',
+                      prefixIcon: Icons.title_rounded,
+                    ),
+                  ],
+                ),
                 const SizedBox(height: AppSpacing.md),
                 StandardDatePickerValue(
                   label: 'Incident Date',
@@ -375,19 +394,21 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
               const SizedBox(height: AppSpacing.lg),
               _sectionTitle('Incident Details', Icons.location_on_outlined),
               _card([
-                StandardFormFieldRow(children: [
-                  StandardTextField(
-                    label: 'Location',
-                    controller: _locationCtrl,
-                    hint: 'Place of occurrence',
-                    prefixIcon: Icons.map_rounded,
-                  ),
-                  StandardTextField(
-                    label: 'Complainant Name',
-                    controller: _complainantCtrl,
-                    prefixIcon: Icons.person_add_alt_rounded,
-                  ),
-                ]),
+                StandardFormFieldRow(
+                  children: [
+                    StandardTextField(
+                      label: 'Location',
+                      controller: _locationCtrl,
+                      hint: 'Place of occurrence',
+                      prefixIcon: Icons.map_rounded,
+                    ),
+                    StandardTextField(
+                      label: 'Complainant Name',
+                      controller: _complainantCtrl,
+                      prefixIcon: Icons.person_add_alt_rounded,
+                    ),
+                  ],
+                ),
                 const SizedBox(height: AppSpacing.md),
                 StandardTextField(
                   label: 'Description',
@@ -407,11 +428,18 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
               const SizedBox(height: AppSpacing.lg),
               _sectionTitle('Priority & Status', Icons.priority_high_rounded),
               _card([
-                _dropdown('Priority', _priority, ['Low', 'Medium', 'High'],
-                    (v) => setState(() => _priority = v!)),
+                _dropdown('Priority', _priority, [
+                  'Low',
+                  'Medium',
+                  'High',
+                ], (v) => setState(() => _priority = v!)),
                 const SizedBox(height: AppSpacing.md),
-                _dropdown('Status', _status, statusItems,
-                    (v) => setState(() => _status = v!)),
+                _dropdown(
+                  'Status',
+                  _status,
+                  statusItems,
+                  (v) => setState(() => _status = v!),
+                ),
               ]),
             ],
           ),
@@ -421,67 +449,89 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
   }
 
   Widget _sectionTitle(String title, IconData icon) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 12),
-        child: Row(children: [
-          Icon(icon, size: 18, color: AppColors.goldPrimary),
-          const SizedBox(width: 8),
-          Text(title.toUpperCase(),
-              style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.2,
-                  color: AppColors.lightSubText)),
-        ]),
-      );
-
-  Widget _card(List<Widget> children) => Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4))
-          ],
-          border: Border.all(color: AppColors.lightBorder),
-        ),
-        child: Column(children: children),
-      );
-
-  Widget _dropdown(String label, String value, List<String> items,
-      void Function(String?) onChanged) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label,
+    padding: const EdgeInsets.only(left: 4, bottom: 12),
+    child: Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.goldPrimary),
+        const SizedBox(width: 8),
+        Text(
+          title.toUpperCase(),
           style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.navyDark)),
-      const SizedBox(height: 8),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFD),
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: value,
-            isExpanded: true,
-            dropdownColor: Colors.white,
-            items: items
-                .map((p) => DropdownMenuItem(
-                      value: p,
-                      child: Text(p,
-                          style: GoogleFonts.poppins(
-                              fontSize: 14, color: AppColors.lightText)),
-                    ))
-                .toList(),
-            onChanged: onChanged,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+            color: AppColors.lightSubText,
           ),
         ),
-      ),
-    ]);
+      ],
+    ),
+  );
+
+  Widget _card(List<Widget> children) => Container(
+    padding: const EdgeInsets.all(AppSpacing.md),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+      border: Border.all(color: AppColors.lightBorder),
+    ),
+    child: Column(children: children),
+  );
+
+  Widget _dropdown(
+    String label,
+    String value,
+    List<String> items,
+    void Function(String?) onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.navyDark,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFD),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              dropdownColor: Colors.white,
+              items: items
+                  .map(
+                    (p) => DropdownMenuItem(
+                      value: p,
+                      child: Text(
+                        p,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: AppColors.lightText,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

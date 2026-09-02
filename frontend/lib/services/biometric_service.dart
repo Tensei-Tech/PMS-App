@@ -41,7 +41,8 @@ class BiometricService {
   /// Checks if there are any enrolled biometrics.
   Future<bool> hasEnrolledBiometrics() async {
     try {
-      final List<BiometricType> availableBiometrics = await _auth.getAvailableBiometrics();
+      final List<BiometricType> availableBiometrics = await _auth
+          .getAvailableBiometrics();
       return availableBiometrics.isNotEmpty;
     } on PlatformException catch (_) {
       return false;
@@ -74,7 +75,9 @@ class BiometricService {
 
       // Remote DB query check via /api/auth/check-exists/?email=...
       final apiService = ApiService();
-      final response = await apiService.get('${ApiConfig.baseUrl}/auth/check-exists/?email=${Uri.encodeComponent(cleanEmail)}');
+      final response = await apiService.get(
+        '${ApiConfig.baseUrl}/auth/check-exists/?email=${Uri.encodeComponent(cleanEmail)}',
+      );
       if (response.isSuccess && response.data is Map) {
         final data = response.data as Map<String, dynamic>;
         bool remoteVal = data['is_biometric_enabled'] == true;
@@ -90,7 +93,10 @@ class BiometricService {
   }
 
   /// Register or unregister biometric setup for a specific user email profile in DB
-  Future<void> setBiometricConfiguredForUser(String email, bool configured) async {
+  Future<void> setBiometricConfiguredForUser(
+    String email,
+    bool configured,
+  ) async {
     final cleanEmail = email.trim().toLowerCase();
     if (cleanEmail.isEmpty) return;
     try {

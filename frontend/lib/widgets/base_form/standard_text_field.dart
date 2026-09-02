@@ -46,15 +46,18 @@ class StandardTextField extends StatelessWidget {
       validator: validator,
       textAlign: TextAlign.start,
       style: BaseFormStyles.fieldTextStyle,
-      decoration: BaseFormStyles.inputDecoration(
-        TranslationHelper.translate(context, label),
-        hintText: hint != null ? TranslationHelper.translate(context, hint!) : null,
-        suffixIcon: suffixIcon,
-      ).copyWith(
-        prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, size: 20, color: BaseFormStyles.labelColor)
-            : null,
-      ),
+      decoration:
+          BaseFormStyles.inputDecoration(
+            TranslationHelper.translate(context, label),
+            hintText: hint != null
+                ? TranslationHelper.translate(context, hint!)
+                : null,
+            suffixIcon: suffixIcon,
+          ).copyWith(
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, size: 20, color: BaseFormStyles.labelColor)
+                : null,
+          ),
     );
   }
 }

@@ -84,8 +84,7 @@ Map<String, String> pendingModuleRecordToTableRow(
   DateTime reference, {
   required int sr,
 }) {
-  final io =
-      pendingIoWiseIoDisplayName(r) ?? r.assignedOfficer.trim();
+  final io = pendingIoWiseIoDisplayName(r) ?? r.assignedOfficer.trim();
   return {
     'sr': '$sr',
     'cr': r.caseNumber.trim(),
@@ -103,17 +102,14 @@ List<Map<String, String>> pendingModuleRecordsToTableRows(
   List<ModuleRecord> records,
   DateTime reference,
 ) {
-  final sorted = List<ModuleRecord>.from(records)
-      .where((r) => r.moduleKey != 'nc')
-      .toList()
-    ..sort((a, b) => b.incidentDate.compareTo(a.incidentDate));
+  final sorted =
+      List<ModuleRecord>.from(
+          records,
+        ).where((r) => r.moduleKey != 'nc').toList()
+        ..sort((a, b) => b.incidentDate.compareTo(a.incidentDate));
   return List<Map<String, String>>.generate(
     sorted.length,
-    (i) => pendingModuleRecordToTableRow(
-      sorted[i],
-      reference,
-      sr: i + 1,
-    ),
+    (i) => pendingModuleRecordToTableRow(sorted[i], reference, sr: i + 1),
   );
 }
 

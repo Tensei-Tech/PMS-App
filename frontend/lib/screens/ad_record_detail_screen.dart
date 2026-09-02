@@ -21,10 +21,7 @@ import 'ad_form_screen.dart';
 class AdRecordDetailScreen extends StatefulWidget {
   final ModuleRecord record;
 
-  const AdRecordDetailScreen({
-    super.key,
-    required this.record,
-  });
+  const AdRecordDetailScreen({super.key, required this.record});
 
   @override
   State<AdRecordDetailScreen> createState() => _AdRecordDetailScreenState();
@@ -60,24 +57,26 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
     final hubId = _hubRecord.id;
     if (hubId.isNotEmpty) {
       _hubSub?.cancel();
-      _hubSub = _firestore.watchCaseById(hubId).listen(
-        (next) {
-          if (!mounted) return;
-          setState(() {
-            if (next == null) {
-              _hubDeleted = true;
-            } else {
-              _hubDeleted = false;
-              _accessDenied = false;
-              _hubRecord = next;
-            }
-          });
-        },
-        onError: (_) {
-          if (!mounted) return;
-          setState(() => _accessDenied = true);
-        },
-      );
+      _hubSub = _firestore
+          .watchCaseById(hubId)
+          .listen(
+            (next) {
+              if (!mounted) return;
+              setState(() {
+                if (next == null) {
+                  _hubDeleted = true;
+                } else {
+                  _hubDeleted = false;
+                  _accessDenied = false;
+                  _hubRecord = next;
+                }
+              });
+            },
+            onError: (_) {
+              if (!mounted) return;
+              setState(() => _accessDenied = true);
+            },
+          );
     }
 
     final adNo = _adNo();
@@ -168,8 +167,10 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final canView =
-        CaseVisibility.canViewRecord(record: _hubRecord, auth: auth);
+    final canView = CaseVisibility.canViewRecord(
+      record: _hubRecord,
+      auth: auth,
+    );
     final showContent = !_hubDeleted && !_accessDenied && canView;
     final statusColor = _statusColor(_hubRecord.status);
     final merged = AdFirestorePayload.mergeHubIntoForm(
@@ -186,9 +187,10 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
             final mainTitle = _adNo().trim().isNotEmpty
                 ? _adNo().trim()
                 : (_hubRecord.caseNumber.trim().isNotEmpty
-                    ? _hubRecord.caseNumber.trim()
-                    : _hubRecord.firestoreCategoryDisplayName.trim());
-            final showSubtitle = mainTitle.toLowerCase() !=
+                      ? _hubRecord.caseNumber.trim()
+                      : _hubRecord.firestoreCategoryDisplayName.trim());
+            final showSubtitle =
+                mainTitle.toLowerCase() !=
                 _hubRecord.firestoreCategoryDisplayName.trim().toLowerCase();
 
             return SliverAppBar(
@@ -197,8 +199,11 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
               backgroundColor: AppColors.navyDark,
               leading: IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white, size: 20),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
               title: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -241,9 +246,10 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
             SliverFillRemaining(
               hasScrollBody: false,
               child: AccessDeniedView(
-                message: CaseVisibility.showAskPiHint(
-                  CaseVisibility.resolveFor(auth),
-                )
+                message:
+                    CaseVisibility.showAskPiHint(
+                      CaseVisibility.resolveFor(auth),
+                    )
                     ? 'Ask your PI or API for station-wide dashboard access to view this record.'
                     : null,
               ),
@@ -273,62 +279,70 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                         border: Border.all(
-                            color: statusColor.withValues(alpha: 0.35)),
-                      ),
-                      child: Row(children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                              color: statusColor, shape: BoxShape.circle),
-                          child: const Icon(Icons.assignment_turned_in_rounded,
-                              color: Colors.white, size: 18),
+                          color: statusColor.withValues(alpha: 0.35),
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.assignment_turned_in_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Case Status',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: statusColor,
+                                  ),
+                                ),
+                                Text(
+                                  _hubRecord.status.toUpperCase(),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: statusColor,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'Case Status',
+                                'Priority',
                                 style: GoogleFonts.poppins(
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: statusColor,
+                                  color: AppColors.lightSubText,
                                 ),
                               ),
                               Text(
-                                _hubRecord.status.toUpperCase(),
+                                _hubRecord.priority,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  color: statusColor,
-                                  letterSpacing: 1.2,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.navyDark,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Priority',
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                color: AppColors.lightSubText,
-                              ),
-                            ),
-                            Text(
-                              _hubRecord.priority,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.navyDark,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ]),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 20),
                     if (_adDocumentDeleted)
@@ -353,8 +367,9 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: Material(
-                          color:
-                              AppColors.warningOrange.withValues(alpha: 0.12),
+                          color: AppColors.warningOrange.withValues(
+                            alpha: 0.12,
+                          ),
                           borderRadius: BorderRadius.circular(AppRadius.md),
                           child: Padding(
                             padding: const EdgeInsets.all(AppSpacing.md),
@@ -398,58 +413,69 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
       ),
       floatingActionButton: !showContent
           ? null
-          : Builder(builder: (ctx) {
-              final canEdit =
-                  PoliceRbacHelper.canEditRecord(_hubRecord, auth);
-              final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
+          : Builder(
+              builder: (ctx) {
+                final canEdit = PoliceRbacHelper.canEditRecord(
+                  _hubRecord,
+                  auth,
+                );
+                final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
 
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (canSendReminder) ...[
-                    FloatingActionButton.extended(
-                      heroTag: 'ad_reminder_btn',
-                      onPressed: () =>
-                          SendReminderDialog.show(context, _hubRecord),
-                      backgroundColor: AppColors.warningOrange,
-                      icon: const Icon(Icons.notifications_active_rounded,
-                          color: Colors.white),
-                      label: Text(
-                        'Send Reminder to IO',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600, color: Colors.white),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  if (canEdit) ...[
-                    FloatingActionButton.extended(
-                      heroTag: 'ad_edit_btn',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          AppTheme.fadeSlideRoute(
-                            page: ADFormScreen(
-                              existingRecord: _hubRecord,
-                              popCountAfterSubmit: 2,
-                            ),
-                          ),
-                        );
-                      },
-                      backgroundColor: AppColors.goldPrimary,
-                      icon: const Icon(Icons.edit_note_rounded,
-                          color: AppColors.navyDark),
-                      label: Text(
-                        'Edit Record',
-                        style: GoogleFonts.poppins(
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (canSendReminder) ...[
+                      FloatingActionButton.extended(
+                        heroTag: 'ad_reminder_btn',
+                        onPressed: () =>
+                            SendReminderDialog.show(context, _hubRecord),
+                        backgroundColor: AppColors.warningOrange,
+                        icon: const Icon(
+                          Icons.notifications_active_rounded,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          'Send Reminder to IO',
+                          style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark),
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                    ],
+                    if (canEdit) ...[
+                      FloatingActionButton.extended(
+                        heroTag: 'ad_edit_btn',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            AppTheme.fadeSlideRoute(
+                              page: ADFormScreen(
+                                existingRecord: _hubRecord,
+                                popCountAfterSubmit: 2,
+                              ),
+                            ),
+                          );
+                        },
+                        backgroundColor: AppColors.goldPrimary,
+                        icon: const Icon(
+                          Icons.edit_note_rounded,
+                          color: AppColors.navyDark,
+                        ),
+                        label: Text(
+                          'Edit Record',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
-              );
-            }),
+                );
+              },
+            ),
     );
   }
 
@@ -460,8 +486,11 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.delete_forever_rounded,
-                size: 64, color: AppColors.lightSubText),
+            const Icon(
+              Icons.delete_forever_rounded,
+              size: 64,
+              color: AppColors.lightSubText,
+            ),
             const SizedBox(height: 16),
             Text(
               title,

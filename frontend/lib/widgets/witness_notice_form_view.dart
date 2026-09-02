@@ -89,8 +89,20 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
             Center(
               child: Column(
                 children: [
-                  Text('WITNESS NOTICE', style: serif.copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('साक्षीदार सूचनापत्र', style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text(
+                    'WITNESS NOTICE',
+                    style: serif.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'साक्षीदार सूचनापत्र',
+                    style: marathi.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -108,8 +120,20 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'CR No.', marathiLabel: 'गु.र.क्र.', controller: _fields['crNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'CR No.',
+                  marathiLabel: 'गु.र.क्र.',
+                  controller: _fields['crNo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Section',
+                  marathiLabel: 'कलम',
+                  controller: _fields['section']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             BilingualMultilineField(
@@ -130,16 +154,46 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Appearance date', marathiLabel: 'हजर दिनांक', controller: _fields['appearanceDate']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Time', marathiLabel: 'वेळ', controller: _fields['appearanceTime']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Appearance date',
+                  marathiLabel: 'हजर दिनांक',
+                  controller: _fields['appearanceDate']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Time',
+                  marathiLabel: 'वेळ',
+                  controller: _fields['appearanceTime']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
-            BilingualField(label: 'Place', marathiLabel: 'ठिकाण', controller: _fields['appearancePlace']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Place',
+              marathiLabel: 'ठिकाण',
+              controller: _fields['appearancePlace']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             const SizedBox(height: 16),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Witness signature', marathiLabel: 'साक्षी सही', controller: _fields['witnessSig']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Receipt date', marathiLabel: 'पोच दिनांक', controller: _fields['witnessReceiptDate']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Witness signature',
+                  marathiLabel: 'साक्षी सही',
+                  controller: _fields['witnessSig']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Receipt date',
+                  marathiLabel: 'पोच दिनांक',
+                  controller: _fields['witnessReceiptDate']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             const SizedBox(height: 16),

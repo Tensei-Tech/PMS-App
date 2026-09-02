@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../../utils/app_constants.dart';
 import '../../../utils/crime_detail_pdf.dart';
-import '../../../utils/translation_helper.dart';
 import '../../../widgets/base_form/base_form.dart';
 import '../../../widgets/voice_dictation_button.dart';
 
@@ -153,7 +152,8 @@ class NcFormState extends State<NcForm> {
 
   void saveDraft() {
     setState(
-        () => saveBarText = 'Draft saved · ${TimeOfDay.now().format(context)}');
+      () => saveBarText = 'Draft saved · ${TimeOfDay.now().format(context)}',
+    );
   }
 
   void clearForm() {
@@ -218,10 +218,12 @@ class NcFormState extends State<NcForm> {
       final y = int.tryParse(p[2]);
       if (d == null || m == null || y == null) return parsedFallback ?? now;
       final dt = DateTime(y, m, d);
-      if (dt.year != y || dt.month != m || dt.day != d)
+      if (dt.year != y || dt.month != m || dt.day != d) {
         return parsedFallback ?? now;
-      if (dt.isBefore(DateTime(2000)) || dt.isAfter(now))
+      }
+      if (dt.isBefore(DateTime(2000)) || dt.isAfter(now)) {
         return parsedFallback ?? now;
+      }
       return dt;
     }
 
@@ -243,8 +245,9 @@ class NcFormState extends State<NcForm> {
 
   DateTime? _parseRegDdMmYyyyHhMm(String raw) {
     final s = raw.trim();
-    final m =
-        RegExp(r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$').firstMatch(s);
+    final m = RegExp(
+      r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$',
+    ).firstMatch(s);
     if (m == null) return null;
     final dd = int.tryParse(m.group(1)!);
     final mo = int.tryParse(m.group(2)!);
@@ -285,7 +288,8 @@ class NcFormState extends State<NcForm> {
     if (!mounted || pickedDate == null) return;
 
     final p0 = _parseRegDdMmYyyyHhMm(_regDateTime.text);
-    final initialTod = p0 != null &&
+    final initialTod =
+        p0 != null &&
             p0.year == pickedDate.year &&
             p0.month == pickedDate.month &&
             p0.day == pickedDate.day
@@ -312,10 +316,7 @@ class NcFormState extends State<NcForm> {
 
   void addChargeRow() {
     _chargeSeq++;
-    _chargeData['charge-$_chargeSeq'] = {
-      'act': '',
-      'sections': <String>{},
-    };
+    _chargeData['charge-$_chargeSeq'] = {'act': '', 'sections': <String>{}};
     setState(() {});
   }
 
@@ -464,15 +465,17 @@ class NcFormState extends State<NcForm> {
     final io = m['investigationOfficer'];
     if (io is Map) {
       final d = _s(io['designation']);
-      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d))
+      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) {
         _ioDesig = d;
+      }
       _ioName.text = _s(io['name']);
     }
     final rb = m['registeredBy'];
     if (rb is Map) {
       final d = _s(rb['designation']);
-      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d))
+      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) {
         _regDesig = d;
+      }
       _registrarName.text = _s(rb['name']);
     }
     final prev = m['preventives'];
@@ -507,21 +510,25 @@ class NcFormState extends State<NcForm> {
 
   Map<String, dynamic> buildDocumentMap() {
     List<Map<String, dynamic>> preventiveMaps() => _preventives
-        .map((p) => {
-              'action': p.action,
-              'outwardNumber': p.outwardNum.text.trim(),
-              'outwardDate': p.outwardDate.text.trim(),
-              'bondDate': p.bondDate.text.trim(),
-              'bondCancellation': p.bondCancel.text.trim(),
-            })
+        .map(
+          (p) => {
+            'action': p.action,
+            'outwardNumber': p.outwardNum.text.trim(),
+            'outwardDate': p.outwardDate.text.trim(),
+            'bondDate': p.bondDate.text.trim(),
+            'bondCancellation': p.bondCancel.text.trim(),
+          },
+        )
         .toList();
 
     return {
       'ncNumber': _ncNumber.text.trim(),
-      'charges': _chargeData.map((k, v) => MapEntry(k, {
-            'act': v['act'],
-            'sections': (v['sections'] as Set<String>).toList(),
-          })),
+      'charges': _chargeData.map(
+        (k, v) => MapEntry(k, {
+          'act': v['act'],
+          'sections': (v['sections'] as Set<String>).toList(),
+        }),
+      ),
       'registrationDateTime': _regDateTime.text.trim(),
       'crimeSpot': {
         'village': _spotVillage.text.trim(),
@@ -565,14 +572,18 @@ class NcFormState extends State<NcForm> {
       },
       'firstInformationContent': _fic.text.trim(),
       'chargesAddedOnNc': _chargesAddedOnNc,
-      'crNumberIfChargesAdded':
-          _chargesAddedOnNc == 'yes' ? _crNumberIfCharges.text.trim() : '',
+      'crNumberIfChargesAdded': _chargesAddedOnNc == 'yes'
+          ? _crNumberIfCharges.text.trim()
+          : '',
     };
   }
 
   void _onFicChanged(String v) {
-    final words =
-        v.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+    final words = v
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((e) => e.isNotEmpty)
+        .toList();
     if (words.length > 25) {
       final allowed = words.take(25).join(' ');
       _fic.value = TextEditingValue(
@@ -595,27 +606,26 @@ class NcFormState extends State<NcForm> {
   }
 
   InputDecoration _d(String label) => InputDecoration(
-        labelText: label,
-        labelStyle: _tsLabel,
-        floatingLabelStyle: _tsLabel.copyWith(color: _kTeal),
-        isDense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        filled: true,
-        fillColor: _kInputBg,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: _kBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: _kBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: _kTeal, width: 1.5),
-        ),
-      );
+    labelText: label,
+    labelStyle: _tsLabel,
+    floatingLabelStyle: _tsLabel.copyWith(color: _kTeal),
+    isDense: true,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    filled: true,
+    fillColor: _kInputBg,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: const BorderSide(color: _kBorder),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: const BorderSide(color: _kBorder),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: const BorderSide(color: _kTeal, width: 1.5),
+    ),
+  );
 
   Widget _row(List<Widget> children) =>
       StandardFormFieldRow(children: children);
@@ -659,8 +669,10 @@ class NcFormState extends State<NcForm> {
                   onTap: () => onSelect(item),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 140),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: active
                           ? activeColor.withValues(alpha: 0.1)
@@ -707,7 +719,11 @@ class NcFormState extends State<NcForm> {
   }
 
   Widget _yesNoChip(
-      String label, bool active, Color color, VoidCallback onTap) {
+    String label,
+    bool active,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -717,7 +733,9 @@ class NcFormState extends State<NcForm> {
           color: active ? color.withValues(alpha: 0.1) : _kInputBg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: active ? color : _kBorder, width: active ? 1.5 : 1),
+            color: active ? color : _kBorder,
+            width: active ? 1.5 : 1,
+          ),
         ),
         child: Text(
           label,
@@ -732,30 +750,30 @@ class NcFormState extends State<NcForm> {
   }
 
   Widget _headerBtn(String label, VoidCallback onTap) => TextButton.icon(
-        onPressed: onTap,
-        icon: const Icon(Icons.add, size: 14),
-        label: Text(
-          label,
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-        ),
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          foregroundColor: _kTeal,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          minimumSize: Size.zero,
-        ),
-      );
+    onPressed: onTap,
+    icon: const Icon(Icons.add, size: 14),
+    label: Text(
+      label,
+      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+    ),
+    style: TextButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      foregroundColor: _kTeal,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      minimumSize: Size.zero,
+    ),
+  );
 
   Widget _emptyBox(String t) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: _kInputBg,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: _kBorder, style: BorderStyle.solid),
-        ),
-        child: Text(t, textAlign: TextAlign.center, style: _tsMuted),
-      );
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: _kInputBg,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: _kBorder, style: BorderStyle.solid),
+    ),
+    child: Text(t, textAlign: TextAlign.center, style: _tsMuted),
+  );
 
   Widget _barBtn(String label, IconData icon, VoidCallback onTap, Color color) {
     return InkWell(
@@ -772,9 +790,14 @@ class NcFormState extends State<NcForm> {
           children: [
             Icon(icon, size: 13, color: color),
             const SizedBox(width: 4),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
           ],
         ),
       ),
@@ -863,8 +886,11 @@ class NcFormState extends State<NcForm> {
           Row(
             children: [
               Expanded(
-                  child: Text('Charge #$num',
-                      style: _tsSection.copyWith(fontSize: 11))),
+                child: Text(
+                  'Charge #$num',
+                  style: _tsSection.copyWith(fontSize: 11),
+                ),
+              ),
               GestureDetector(
                 onTap: () => _removeCharge(id),
                 child: const Icon(Icons.close, size: 16, color: _kRed),
@@ -890,10 +916,13 @@ class NcFormState extends State<NcForm> {
             Text(
               ACT_DATA[actKey]?['hint'] as String? ?? '',
               style: const TextStyle(
-                  fontSize: 10, color: _kAmber, fontStyle: FontStyle.italic),
+                fontSize: 10,
+                color: _kAmber,
+                fontStyle: FontStyle.italic,
+              ),
             ),
             const SizedBox(height: 10),
-            Text('Section(s) — tap to add', style: _tsLabel),
+            const Text('Section(s) — tap to add', style: _tsLabel),
             const SizedBox(height: 6),
             _NcSectionSearchPicker(
               actKey: actKey,
@@ -908,353 +937,372 @@ class NcFormState extends State<NcForm> {
   }
 
   Widget _sCharges() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_chargeData.isEmpty)
-            _emptyBox('No charges. Tap + Add Charge to begin.')
-          else ...[
-            ..._chargeData.entries.toList().asMap().entries.map((e) {
-              final id = e.value.key;
-              final data = e.value.value;
-              final num = e.key + 1;
-              return _chargeCard(id, num, data);
-            }),
-          ],
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (_chargeData.isEmpty)
+        _emptyBox('No charges. Tap + Add Charge to begin.')
+      else ...[
+        ..._chargeData.entries.toList().asMap().entries.map((e) {
+          final id = e.value.key;
+          final data = e.value.value;
+          final num = e.key + 1;
+          return _chargeCard(id, num, data);
+        }),
+      ],
+    ],
+  );
 
   Widget _sRegDt() => Column(
-        children: [
-          _row([
-            TextFormField(
-              controller: _regDateTime,
-              readOnly: true,
-              style: _tsBody,
-              decoration:
-                  _d('Registration Date & Time (dd/MM/yyyy HH:mm)').copyWith(
+    children: [
+      _row([
+        TextFormField(
+          controller: _regDateTime,
+          readOnly: true,
+          style: _tsBody,
+          decoration: _d('Registration Date & Time (dd/MM/yyyy HH:mm)')
+              .copyWith(
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.calendar_today_rounded,
-                      size: 16, color: _kTeal),
+                  icon: const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 16,
+                    color: _kTeal,
+                  ),
                   tooltip: 'Pick date & time',
                   onPressed: _pickRegistrationDateTime,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(
-                      minHeight: 36, minWidth: 36, maxHeight: 36, maxWidth: 36),
+                    minHeight: 36,
+                    minWidth: 36,
+                    maxHeight: 36,
+                    maxWidth: 36,
+                  ),
                 ),
                 suffixIconConstraints: const BoxConstraints(
-                    minHeight: 36, minWidth: 36, maxHeight: 36, maxWidth: 36),
+                  minHeight: 36,
+                  minWidth: 36,
+                  maxHeight: 36,
+                  maxWidth: 36,
+                ),
               ),
-              onTap: () => _pickRegistrationDateTime(),
-            ),
-          ]),
-        ],
-      );
+          onTap: () => _pickRegistrationDateTime(),
+        ),
+      ]),
+    ],
+  );
 
   Widget _sSpot() => Column(
-        children: [
-          _row([
-            _tf('Village/Town', _spotVillage),
-            _tf('Area Name', _spotArea),
-          ]),
-          _tf('Full Address', _spotAddress, maxLines: 3),
-        ],
-      );
+    children: [
+      _row([_tf('Village/Town', _spotVillage), _tf('Area Name', _spotArea)]),
+      _tf('Full Address', _spotAddress, maxLines: 3),
+    ],
+  );
 
   Widget _sComplainant() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _row([
-            _tf('Name', _compName),
-            _tf('Age', _compAge, keyboardType: TextInputType.number),
-          ]),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _chipSelector(
-              label: 'Gender',
-              items: _kGenders,
-              selected: _compGender,
-              onSelect: (v) => setState(() => _compGender = v),
-            ),
-          ),
-          _row([
-            _tf('Occupation', _compOcc),
-            _tf('Mobile Number', _compMobile,
-                keyboardType: TextInputType.phone),
-          ]),
-          _row([
-            _tf('Aadhaar Number', _compAadhaar),
-            _tf('PAN Number', _compPan),
-          ]),
-          _row([
-            _tf('Religion', _compReligion),
-            _tf('Caste', _compCaste),
-          ]),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _row([
+        _tf('Name', _compName),
+        _tf('Age', _compAge, keyboardType: TextInputType.number),
+      ]),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: _chipSelector(
+          label: 'Gender',
+          items: _kGenders,
+          selected: _compGender,
+          onSelect: (v) => setState(() => _compGender = v),
+        ),
+      ),
+      _row([
+        _tf('Occupation', _compOcc),
+        _tf('Mobile Number', _compMobile, keyboardType: TextInputType.phone),
+      ]),
+      _row([_tf('Aadhaar Number', _compAadhaar), _tf('PAN Number', _compPan)]),
+      _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
+    ],
+  );
 
   Widget _sAgainst() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _row([
-            _tf('Name', _againstName),
-            _tf('Age', _againstAge, keyboardType: TextInputType.number),
-          ]),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _chipSelector(
-              label: 'Gender',
-              items: _kGenders,
-              selected: _againstGender,
-              onSelect: (v) => setState(() => _againstGender = v),
-            ),
-          ),
-          _row([
-            _tf('Occupation', _againstOcc),
-            _tf('Mobile Number', _againstMobile,
-                keyboardType: TextInputType.phone),
-          ]),
-          _row([
-            _tf('Aadhaar Number', _againstAadhaar),
-            _tf('PAN Number', _againstPan),
-          ]),
-          _row([
-            _tf('Religion', _againstReligion),
-            _tf('Caste', _againstCaste),
-          ]),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _row([
+        _tf('Name', _againstName),
+        _tf('Age', _againstAge, keyboardType: TextInputType.number),
+      ]),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: _chipSelector(
+          label: 'Gender',
+          items: _kGenders,
+          selected: _againstGender,
+          onSelect: (v) => setState(() => _againstGender = v),
+        ),
+      ),
+      _row([
+        _tf('Occupation', _againstOcc),
+        _tf('Mobile Number', _againstMobile, keyboardType: TextInputType.phone),
+      ]),
+      _row([
+        _tf('Aadhaar Number', _againstAadhaar),
+        _tf('PAN Number', _againstPan),
+      ]),
+      _row([_tf('Religion', _againstReligion), _tf('Caste', _againstCaste)]),
+    ],
+  );
 
   Widget _sIo() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _chipSelector(
-              label: 'IO Designation',
-              items: PoliceDesignations.ioDesignations,
-              selected: _ioDesig,
-              onSelect: (v) => setState(() => _ioDesig = v),
-            ),
-          ),
-          _row([_tf('IO Name', _ioName)]),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: _chipSelector(
+          label: 'IO Designation',
+          items: PoliceDesignations.ioDesignations,
+          selected: _ioDesig,
+          onSelect: (v) => setState(() => _ioDesig = v),
+        ),
+      ),
+      _row([_tf('IO Name', _ioName)]),
+    ],
+  );
 
   Widget _sRegBy() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _chipSelector(
-              label: 'Registered By Designation',
-              items: PoliceDesignations.formIoAndReg,
-              selected: _regDesig,
-              onSelect: (v) => setState(() => _regDesig = v),
-            ),
-          ),
-          _row([_tf('Registrar Name', _registrarName)]),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: _chipSelector(
+          label: 'Registered By Designation',
+          items: PoliceDesignations.formIoAndReg,
+          selected: _regDesig,
+          onSelect: (v) => setState(() => _regDesig = v),
+        ),
+      ),
+      _row([_tf('Registrar Name', _registrarName)]),
+    ],
+  );
 
   Widget _sPreventives() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_preventives.isEmpty)
-            _emptyBox('No preventive blocks. Tap + Add Preventive.')
-          else
-            ..._preventives.asMap().entries.map((e) {
-              final i = e.key;
-              final p = e.value;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: _kBorder),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (_preventives.isEmpty)
+        _emptyBox('No preventive blocks. Tap + Add Preventive.')
+      else
+        ..._preventives.asMap().entries.map((e) {
+          final i = e.key;
+          final p = e.value;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(color: _kBorder),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text('Preventive #${i + 1}',
-                              style: _tsSection.copyWith(fontSize: 11)),
-                        ),
-                        GestureDetector(
-                          onTap: () => _removePreventive(i),
-                          child:
-                              const Icon(Icons.close, size: 16, color: _kRed),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _chipSelector(
-                        label: 'Preventive Action',
-                        items: _kPreventiveItems,
-                        selected: p.action,
-                        onSelect: (v) => setState(() => p.action = v),
+                    Expanded(
+                      child: Text(
+                        'Preventive #${i + 1}',
+                        style: _tsSection.copyWith(fontSize: 11),
                       ),
                     ),
-                    _row([_tf('Outward Number', p.outwardNum)]),
-                    _row([
-                      TextFormField(
-                        controller: p.outwardDate,
-                        readOnly: true,
-                        style: _tsBody,
-                        decoration: _d('Outward Date (dd/MM/yyyy)').copyWith(
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.calendar_today_rounded,
-                                size: 16, color: _kTeal),
-                            tooltip: 'Pick date',
-                            onPressed: () => _pickDateFor(p.outwardDate),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                                minHeight: 36,
-                                minWidth: 36,
-                                maxHeight: 36,
-                                maxWidth: 36),
-                          ),
-                          suffixIconConstraints: const BoxConstraints(
-                              minHeight: 36,
-                              minWidth: 36,
-                              maxHeight: 36,
-                              maxWidth: 36),
+                    GestureDetector(
+                      onTap: () => _removePreventive(i),
+                      child: const Icon(Icons.close, size: 16, color: _kRed),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _chipSelector(
+                    label: 'Preventive Action',
+                    items: _kPreventiveItems,
+                    selected: p.action,
+                    onSelect: (v) => setState(() => p.action = v),
+                  ),
+                ),
+                _row([_tf('Outward Number', p.outwardNum)]),
+                _row([
+                  TextFormField(
+                    controller: p.outwardDate,
+                    readOnly: true,
+                    style: _tsBody,
+                    decoration: _d('Outward Date (dd/MM/yyyy)').copyWith(
+                      suffixIcon: IconButton(
+                        icon: const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 16,
+                          color: _kTeal,
                         ),
-                        onTap: () => _pickDateFor(p.outwardDate),
-                      ),
-                    ]),
-                    _row([
-                      TextFormField(
-                        controller: p.bondDate,
-                        readOnly: true,
-                        style: _tsBody,
-                        decoration: _d('Bond Date (dd/MM/yyyy)').copyWith(
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.calendar_today_rounded,
-                                size: 16, color: _kTeal),
-                            tooltip: 'Pick date',
-                            onPressed: () => _pickDateFor(p.bondDate),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                                minHeight: 36,
-                                minWidth: 36,
-                                maxHeight: 36,
-                                maxWidth: 36),
-                          ),
-                          suffixIconConstraints: const BoxConstraints(
-                              minHeight: 36,
-                              minWidth: 36,
-                              maxHeight: 36,
-                              maxWidth: 36),
+                        tooltip: 'Pick date',
+                        onPressed: () => _pickDateFor(p.outwardDate),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minHeight: 36,
+                          minWidth: 36,
+                          maxHeight: 36,
+                          maxWidth: 36,
                         ),
-                        onTap: () => _pickDateFor(p.bondDate),
                       ),
-                      TextFormField(
-                        controller: p.bondCancel,
-                        readOnly: true,
-                        style: _tsBody,
-                        decoration:
-                            _d('Bond Cancellation Date (dd/MM/yyyy)').copyWith(
+                      suffixIconConstraints: const BoxConstraints(
+                        minHeight: 36,
+                        minWidth: 36,
+                        maxHeight: 36,
+                        maxWidth: 36,
+                      ),
+                    ),
+                    onTap: () => _pickDateFor(p.outwardDate),
+                  ),
+                ]),
+                _row([
+                  TextFormField(
+                    controller: p.bondDate,
+                    readOnly: true,
+                    style: _tsBody,
+                    decoration: _d('Bond Date (dd/MM/yyyy)').copyWith(
+                      suffixIcon: IconButton(
+                        icon: const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 16,
+                          color: _kTeal,
+                        ),
+                        tooltip: 'Pick date',
+                        onPressed: () => _pickDateFor(p.bondDate),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minHeight: 36,
+                          minWidth: 36,
+                          maxHeight: 36,
+                          maxWidth: 36,
+                        ),
+                      ),
+                      suffixIconConstraints: const BoxConstraints(
+                        minHeight: 36,
+                        minWidth: 36,
+                        maxHeight: 36,
+                        maxWidth: 36,
+                      ),
+                    ),
+                    onTap: () => _pickDateFor(p.bondDate),
+                  ),
+                  TextFormField(
+                    controller: p.bondCancel,
+                    readOnly: true,
+                    style: _tsBody,
+                    decoration: _d('Bond Cancellation Date (dd/MM/yyyy)')
+                        .copyWith(
                           suffixIcon: IconButton(
-                            icon: const Icon(Icons.calendar_today_rounded,
-                                size: 16, color: _kTeal),
+                            icon: const Icon(
+                              Icons.calendar_today_rounded,
+                              size: 16,
+                              color: _kTeal,
+                            ),
                             tooltip: 'Pick date',
                             onPressed: () => _pickDateFor(p.bondCancel),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
-                                minHeight: 36,
-                                minWidth: 36,
-                                maxHeight: 36,
-                                maxWidth: 36),
-                          ),
-                          suffixIconConstraints: const BoxConstraints(
                               minHeight: 36,
                               minWidth: 36,
                               maxHeight: 36,
-                              maxWidth: 36),
+                              maxWidth: 36,
+                            ),
+                          ),
+                          suffixIconConstraints: const BoxConstraints(
+                            minHeight: 36,
+                            minWidth: 36,
+                            maxHeight: 36,
+                            maxWidth: 36,
+                          ),
                         ),
-                        onTap: () => _pickDateFor(p.bondCancel),
-                      ),
-                    ]),
-                  ],
-                ),
-              );
-            }),
-        ],
-      );
+                    onTap: () => _pickDateFor(p.bondCancel),
+                  ),
+                ]),
+              ],
+            ),
+          );
+        }),
+    ],
+  );
 
   Widget _sCaseOutward() => Column(
-        children: [
-          _row([_tf('Outward Number', _caseOutwardNum)]),
-          _row([
-            TextFormField(
-              controller: _caseOutwardDate,
-              readOnly: true,
-              style: _tsBody,
-              decoration: _d('Outward Date (dd/MM/yyyy)').copyWith(
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.calendar_today_rounded,
-                      size: 16, color: _kTeal),
-                  tooltip: 'Pick date',
-                  onPressed: () => _pickDateFor(_caseOutwardDate),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                      minHeight: 36, minWidth: 36, maxHeight: 36, maxWidth: 36),
-                ),
-                suffixIconConstraints: const BoxConstraints(
-                    minHeight: 36, minWidth: 36, maxHeight: 36, maxWidth: 36),
+    children: [
+      _row([_tf('Outward Number', _caseOutwardNum)]),
+      _row([
+        TextFormField(
+          controller: _caseOutwardDate,
+          readOnly: true,
+          style: _tsBody,
+          decoration: _d('Outward Date (dd/MM/yyyy)').copyWith(
+            suffixIcon: IconButton(
+              icon: const Icon(
+                Icons.calendar_today_rounded,
+                size: 16,
+                color: _kTeal,
               ),
-              onTap: () => _pickDateFor(_caseOutwardDate),
+              tooltip: 'Pick date',
+              onPressed: () => _pickDateFor(_caseOutwardDate),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                minHeight: 36,
+                minWidth: 36,
+                maxHeight: 36,
+                maxWidth: 36,
+              ),
             ),
-          ]),
-        ],
-      );
+            suffixIconConstraints: const BoxConstraints(
+              minHeight: 36,
+              minWidth: 36,
+              maxHeight: 36,
+              maxWidth: 36,
+            ),
+          ),
+          onTap: () => _pickDateFor(_caseOutwardDate),
+        ),
+      ]),
+    ],
+  );
 
   Widget _sFic() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('First Information Content / हकीकत', style: _tsLabel),
-              VoiceDictationButton(
-                controller: _fic,
-                label: 'बोलून लिहा (Voice)',
-                onSpeechCompleted: () => _onFicChanged(_fic.text),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          _tf(
-            '',
-            _fic,
-            maxLines: 5,
-            onChanged: _onFicChanged,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              '$_ficWordCount / 25 words',
-              style: _tsMuted,
-            ),
+          const Text('First Information Content / हकीकत', style: _tsLabel),
+          VoiceDictationButton(
+            controller: _fic,
+            label: 'बोलून लिहा (Voice)',
+            onSpeechCompleted: () => _onFicChanged(_fic.text),
           ),
         ],
-      );
+      ),
+      const SizedBox(height: 6),
+      _tf('', _fic, maxLines: 5, onChanged: _onFicChanged),
+      Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text('$_ficWordCount / 25 words', style: _tsMuted),
+      ),
+    ],
+  );
 
   Widget _sChargesAdded() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _yesNo('Charges Added on NC', _chargesAddedOnNc,
-              (v) => setState(() => _chargesAddedOnNc = v)),
-          if (_chargesAddedOnNc == 'yes') ...[
-            const SizedBox(height: 10),
-            _row([_tf('CR Number', _crNumberIfCharges)]),
-          ],
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _yesNo(
+        'Charges Added on NC',
+        _chargesAddedOnNc,
+        (v) => setState(() => _chargesAddedOnNc = v),
+      ),
+      if (_chargesAddedOnNc == 'yes') ...[
+        const SizedBox(height: 10),
+        _row([_tf('CR Number', _crNumberIfCharges)]),
+      ],
+    ],
+  );
 
   Future<void> _generateCrimeDetailPdf() async {
     try {
@@ -1311,13 +1359,19 @@ class NcFormState extends State<NcForm> {
             Expanded(
               child: ListView(
                 controller: _scroll,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 children: [
                   BaseFormContent.scrollSections(
                     children: [
-                      _card(1, 'NC Number', _row([_tf('NC Number', _ncNumber)]),
-                          startOpen: true),
+                      _card(
+                        1,
+                        'NC Number',
+                        _row([_tf('NC Number', _ncNumber)]),
+                        startOpen: true,
+                      ),
                       _card(
                         2,
                         'Acts & Sections',
@@ -1325,8 +1379,12 @@ class NcFormState extends State<NcForm> {
                         startOpen: true,
                         headerAction: _headerBtn('+ Add Charge', addChargeRow),
                       ),
-                      _card(3, 'Registration Date & Time', _sRegDt(),
-                          startOpen: true),
+                      _card(
+                        3,
+                        'Registration Date & Time',
+                        _sRegDt(),
+                        startOpen: true,
+                      ),
                       _card(4, 'Crime Spot', _sSpot()),
                       _card(5, 'Complainant KYC', _sComplainant()),
                       _card(6, 'Person Complained Against KYC', _sAgainst()),
@@ -1336,8 +1394,10 @@ class NcFormState extends State<NcForm> {
                         9,
                         'Preventives',
                         _sPreventives(),
-                        headerAction:
-                            _headerBtn('+ Add Preventive', addPreventiveRow),
+                        headerAction: _headerBtn(
+                          '+ Add Preventive',
+                          addPreventiveRow,
+                        ),
                       ),
                       _card(10, 'Outward Number & Date', _sCaseOutward()),
                       _card(11, 'First Information Content', _sFic()),
@@ -1422,13 +1482,17 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
             spacing: 4,
             runSpacing: 4,
             children: widget.selected.map((v) {
-              final sec = sections.firstWhere((s) => s['val'] == v,
-                  orElse: () => {'val': v, 'label': v, 'cat': ''});
+              final sec = sections.firstWhere(
+                (s) => s['val'] == v,
+                orElse: () => {'val': v, 'label': v, 'cat': ''},
+              );
               return InputChip(
                 label: Text(
                   '§${sec['val']}',
                   style: const TextStyle(
-                      fontSize: 10, fontWeight: FontWeight.w700),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 tooltip: sec['label'] as String? ?? v,
                 onDeleted: () => widget.onRemove(v),
@@ -1449,19 +1513,24 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
             hintText: 'Search sections…',
             hintStyle: _tsMuted,
             isDense: true,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 8,
+            ),
             filled: true,
             fillColor: _kInputBg,
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: _kBorder)),
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: _kBorder),
+            ),
             enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: _kBorder)),
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: _kBorder),
+            ),
             focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: _kTeal, width: 1.5)),
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: _kTeal, width: 1.5),
+            ),
             prefixIcon: const Icon(Icons.search, size: 15, color: _kSec),
           ),
           onChanged: (v) => setState(() {
@@ -1480,9 +1549,10 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
               border: Border.all(color: _kBorder),
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4))
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
             child: ListView.builder(
@@ -1505,12 +1575,15 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
                           });
                         },
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: isSelected ? _kTeal.withValues(alpha: 0.07) : null,
-                      border: Border(
-                          bottom: BorderSide(color: _kBorder, width: 0.5)),
+                      border: const Border(
+                        bottom: BorderSide(color: _kBorder, width: 0.5),
+                      ),
                     ),
                     child: Row(
                       children: [

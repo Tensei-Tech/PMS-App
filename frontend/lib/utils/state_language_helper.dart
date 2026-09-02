@@ -221,7 +221,7 @@ class MenuLocalizations {
       'pendingCases': 'মুলতুবি মামলা',
       'disposalCases': 'নিস্পত্তি মামলা',
       'caseVisibility': 'মামলার দৃশ্যমানতা',
-    }
+    },
   };
 
   static String get(String langCode, String key) {

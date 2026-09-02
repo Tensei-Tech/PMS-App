@@ -32,7 +32,10 @@ class PendingDemoTableScreen extends StatelessWidget {
     this.realDataRows,
   });
 
-  Future<void> _exportPdf(BuildContext context, List<Map<String, String>> rows) async {
+  Future<void> _exportPdf(
+    BuildContext context,
+    List<Map<String, String>> rows,
+  ) async {
     await runWithPdfAuthGate(context, () async {
       final theme = await PdfUnicodeFonts.openSansTheme();
       final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
@@ -99,8 +102,11 @@ class PendingDemoTableScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.navyMid,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -119,19 +125,25 @@ class PendingDemoTableScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap:
-                        filtered.isEmpty ? null : () => _exportPdf(context, filtered),
+                    onTap: filtered.isEmpty
+                        ? null
+                        : () => _exportPdf(context, filtered),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.navyMid,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.download_rounded,
-                              color: Colors.white, size: 18),
+                          const Icon(
+                            Icons.download_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             'Export',
@@ -158,8 +170,9 @@ class PendingDemoTableScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final demoFiltered =
-        kPendingDemoTableRows.where((r) => r['period'] == timeRange).toList();
+    final demoFiltered = kPendingDemoTableRows
+        .where((r) => r['period'] == timeRange)
+        .toList();
 
     final override = realDataRows;
     if (override != null) {
@@ -199,7 +212,8 @@ class _LivePendingTableLoader extends StatefulWidget {
     required BuildContext context,
     required List<Map<String, String>> filtered,
     required bool liveExclusive,
-  }) bodyFromRows;
+  })
+  bodyFromRows;
 
   @override
   State<_LivePendingTableLoader> createState() =>
@@ -243,24 +257,26 @@ class _LivePendingTableLoaderState extends State<_LivePendingTableLoader> {
       setState(() => _initialLoad = true);
     }
 
-    _sub = _firestore.getPendingCasesStream(station).listen(
-      (data) {
-        if (!mounted) return;
-        final auth = Provider.of<AuthProvider>(context, listen: false);
-        setState(() {
-          _modules = CaseVisibility.filterForAuth(data, auth);
-          _initialLoad = false;
-          _error = null;
-        });
-      },
-      onError: (e) {
-        if (!mounted) return;
-        setState(() {
-          _error = e;
-          _initialLoad = false;
-        });
-      },
-    );
+    _sub = _firestore
+        .getPendingCasesStream(station)
+        .listen(
+          (data) {
+            if (!mounted) return;
+            final auth = Provider.of<AuthProvider>(context, listen: false);
+            setState(() {
+              _modules = CaseVisibility.filterForAuth(data, auth);
+              _initialLoad = false;
+              _error = null;
+            });
+          },
+          onError: (e) {
+            if (!mounted) return;
+            setState(() {
+              _error = e;
+              _initialLoad = false;
+            });
+          },
+        );
   }
 
   @override
@@ -294,9 +310,9 @@ class _LivePendingTableLoaderState extends State<_LivePendingTableLoader> {
     }
 
     if (_initialLoad && modules.isEmpty) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppColors.lightBg,
-        body: const SafeArea(
+        body: SafeArea(
           child: Center(
             child: CircularProgressIndicator(color: AppColors.navyMid),
           ),
@@ -308,8 +324,11 @@ class _LivePendingTableLoaderState extends State<_LivePendingTableLoader> {
     final liveExclusive = modules.isNotEmpty;
     final List<Map<String, String>> filtered;
     if (liveExclusive) {
-      final categoryRows =
-          pendingTableRowsForCategory(modules, widget.category, now);
+      final categoryRows = pendingTableRowsForCategory(
+        modules,
+        widget.category,
+        now,
+      );
       filtered = categoryRows
           .where((r) => (r['period'] ?? '') == widget.timeRange)
           .toList();

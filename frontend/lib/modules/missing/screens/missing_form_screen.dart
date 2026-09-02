@@ -42,7 +42,8 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
     final found = doc['found'];
     if (found is! Map) return false;
     final reported = found['reported'];
-    final yes = reported == true ||
+    final yes =
+        reported == true ||
         (reported is String && reported.toLowerCase() == 'true');
     if (!yes) return false;
     final d = found['date']?.toString().trim() ?? '';
@@ -75,8 +76,9 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
 
   DateTime _parseIncidentDate(String raw) {
     final s = raw.trim();
-    final dtMatch =
-        RegExp(r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$').firstMatch(s);
+    final dtMatch = RegExp(
+      r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$',
+    ).firstMatch(s);
     if (dtMatch != null) {
       final dd = int.tryParse(dtMatch.group(1)!);
       final mo = int.tryParse(dtMatch.group(2)!);
@@ -131,11 +133,7 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
     }
     final found = doc['found'];
     if (found is Map) {
-      final parts = [
-        found['village'],
-        found['areaName'],
-        found['fullAddress'],
-      ]
+      final parts = [found['village'], found['areaName'], found['fullAddress']]
           .map((x) => x?.toString().trim() ?? '')
           .where((s) => s.isNotEmpty)
           .toList();
@@ -172,8 +170,8 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
     final stationName = _isEdit
         ? widget.existingRecord!.stationName
         : auth.stationName.isNotEmpty
-            ? auth.stationName
-            : context.read<MissingProvider>().stationId;
+        ? auth.stationName
+        : context.read<MissingProvider>().stationId;
 
     final stub = ModuleRecord(
       id: _isEdit ? widget.existingRecord!.id : 'preview_missing_pdf',
@@ -189,10 +187,12 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
           : _parseIncidentDate(doc['cdrSentDate']?.toString() ?? ''),
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: _isEdit ? widget.existingRecord!.status : 'Open',
-      assignedOfficer:
-          _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
-      subCategory:
-          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
+      assignedOfficer: _isEdit
+          ? widget.existingRecord!.assignedOfficer
+          : auth.displayName,
+      subCategory: _isEdit
+          ? widget.existingRecord!.subCategory
+          : widget.subCategory,
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: {
         kMissingFormExtraFieldsKey: doc,
@@ -202,10 +202,7 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
       createdBy: _isEdit ? widget.existingRecord!.createdBy : auth.uid,
     );
 
-    await runWithPdfAuthGate(
-      context,
-      () => ModulePdfHelper.generatePdf(stub),
-    );
+    await runWithPdfAuthGate(context, () => ModulePdfHelper.generatePdf(stub));
   }
 
   void _submit() {
@@ -218,21 +215,23 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
     final stationName = _isEdit && widget.existingRecord!.stationName.isNotEmpty
         ? widget.existingRecord!.stationName
         : auth.stationName.isNotEmpty
-            ? auth.stationName
-            : provider.stationId;
+        ? auth.stationName
+        : provider.stationId;
 
     final createdBy = _isEdit && widget.existingRecord!.createdBy.isNotEmpty
         ? widget.existingRecord!.createdBy
         : auth.uid;
 
     if (!_isEdit && stationName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'Station not assigned. Please log out and log in again.',
-          style: GoogleFonts.poppins(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Station not assigned. Please log out and log in again.',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.red,
         ),
-        backgroundColor: Colors.red,
-      ));
+      );
       return;
     }
 
@@ -272,16 +271,19 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
           : _parseIncidentDate(doc['cdrSentDate']?.toString() ?? ''),
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: status,
-      assignedOfficer:
-          _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
-      subCategory:
-          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
+      assignedOfficer: _isEdit
+          ? widget.existingRecord!.assignedOfficer
+          : auth.displayName,
+      subCategory: _isEdit
+          ? widget.existingRecord!.subCategory
+          : widget.subCategory,
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: extra,
       stationName: stationName,
       createdBy: createdBy,
-      assignedOfficerUid:
-          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
+      assignedOfficerUid: _isEdit
+          ? widget.existingRecord!.assignedOfficerUid
+          : auth.uid,
     );
 
     if (_isEdit) {
@@ -290,15 +292,17 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
       provider.addRecord(record);
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(
-        _isEdit
-            ? '${widget.moduleLabel} record updated!'
-            : '${widget.moduleLabel} case registered!',
-        style: GoogleFonts.poppins(),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isEdit
+              ? '${widget.moduleLabel} record updated!'
+              : '${widget.moduleLabel} case registered!',
+          style: GoogleFonts.poppins(),
+        ),
+        backgroundColor: AppColors.successGreen,
       ),
-      backgroundColor: AppColors.successGreen,
-    ));
+    );
     Navigator.pop(context);
   }
 
@@ -313,15 +317,20 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
         IconButton(
           tooltip: 'Generate PDF',
           onPressed: _exportPdf,
-          icon: Icon(Icons.picture_as_pdf_outlined,
-              color: AppColors.navyMid, size: 24),
+          icon: const Icon(
+            Icons.picture_as_pdf_outlined,
+            color: AppColors.navyMid,
+            size: 24,
+          ),
         ),
         TextButton(
           onPressed: _submit,
           child: Text(
             _isEdit ? 'Save' : 'Submit',
             style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700, color: AppColors.navyMid),
+              fontWeight: FontWeight.w700,
+              color: AppColors.navyMid,
+            ),
           ),
         ),
       ],

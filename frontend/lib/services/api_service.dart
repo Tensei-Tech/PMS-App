@@ -21,11 +21,7 @@ class ApiResponse {
   });
 
   factory ApiResponse.success(dynamic data, {int statusCode = 200}) {
-    return ApiResponse(
-      isSuccess: true,
-      statusCode: statusCode,
-      data: data,
-    );
+    return ApiResponse(isSuccess: true, statusCode: statusCode, data: data);
   }
 
   factory ApiResponse.error(String message, {int statusCode = 500}) {
@@ -51,7 +47,10 @@ class ApiService {
   /// Explicitly set the active JWT token in-memory and in secure storage
   Future<void> setAuthToken(String token) async {
     _cachedAuthToken = token;
-    await _secureStorage.write(key: ApiConstants.jwtAccessTokenKey, value: token);
+    await _secureStorage.write(
+      key: ApiConstants.jwtAccessTokenKey,
+      value: token,
+    );
   }
 
   /// Explicitly clear the active JWT token
@@ -93,26 +92,32 @@ class ApiService {
   /// Refresh access token using stored refresh token
   Future<bool> refreshAccessToken() async {
     try {
-      final refreshToken = await _secureStorage.read(key: ApiConstants.jwtRefreshTokenKey);
+      final refreshToken = await _secureStorage.read(
+        key: ApiConstants.jwtRefreshTokenKey,
+      );
       if (refreshToken == null || refreshToken.isEmpty) {
         return false;
       }
 
-      final response = await http.post(
-        Uri.parse(ApiConfig.authTokenRefresh),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({'refresh': refreshToken}),
-      ).timeout(ApiConstants.receiveTimeout);
+      final response = await http
+          .post(
+            Uri.parse(ApiConfig.authTokenRefresh),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({'refresh': refreshToken}),
+          )
+          .timeout(ApiConstants.receiveTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final newAccessToken = data['access']?.toString();
         if (newAccessToken != null && newAccessToken.isNotEmpty) {
           await setAuthToken(newAccessToken);
-          if (kDebugMode) debugPrint('[ApiService] JWT Access Token refreshed successfully.');
+          if (kDebugMode) {
+            debugPrint('[ApiService] JWT Access Token refreshed successfully.');
+          }
           return true;
         }
       }
@@ -133,14 +138,19 @@ class ApiService {
           _cachedAuthToken = token;
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('[ApiService] Error retrieving auth token: $e');
+        if (kDebugMode) {
+          debugPrint('[ApiService] Error retrieving auth token: $e');
+        }
       }
     }
 
     if (token != null && token.isNotEmpty) {
       if (isTokenExpired(token)) {
-        if (kDebugMode) debugPrint('[ApiService] Access token expired, attempting refresh...');
-        final refreshed = await refreshAccessToken();
+        if (kDebugMode) {
+          debugPrint(
+            '[ApiService] Access token expired, attempting refresh...',
+          );
+        }final refreshed = await refreshAccessToken();
         if (refreshed) {
           return _cachedAuthToken;
         } else {
@@ -153,7 +163,9 @@ class ApiService {
   }
 
   /// Helper to build standard HTTP headers
-  Future<Map<String, String>> _buildHeaders({Map<String, String>? customHeaders}) async {
+  Future<Map<String, String>> _buildHeaders({
+    Map<String, String>? customHeaders,
+  }) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -181,24 +193,41 @@ class ApiService {
     try {
       Uri uri = Uri.parse(url);
       if (queryParameters != null && queryParameters.isNotEmpty) {
-        uri = uri.replace(queryParameters: queryParameters.map((k, v) => MapEntry(k, v.toString())));
+        uri = uri.replace(
+          queryParameters: queryParameters.map(
+            (k, v) => MapEntry(k, v.toString()),
+          ),
+        );
       }
 
       final requestHeaders = await _buildHeaders(customHeaders: headers);
-      final response = await http.get(uri, headers: requestHeaders).timeout(ApiConstants.receiveTimeout);
+      final response = await http
+          .get(uri, headers: requestHeaders)
+          .timeout(ApiConstants.receiveTimeout);
 
       final apiRes = _processResponse(response);
       if ((apiRes.statusCode == 401 || apiRes.statusCode == 403) && !isRetry) {
         final refreshed = await refreshAccessToken();
         if (refreshed) {
-          return await get(url, headers: headers, queryParameters: queryParameters, isRetry: true);
+          return await get(
+            url,
+            headers: headers,
+            queryParameters: queryParameters,
+            isRetry: true,
+          );
         }
       }
       return apiRes;
     } on SocketException {
-      return ApiResponse.error('No Internet connection or server unavailable.', statusCode: 503);
+      return ApiResponse.error(
+        'No Internet connection or server unavailable.',
+        statusCode: 503,
+      );
     } on http.ClientException catch (e) {
-      return ApiResponse.error('Network client error: ${e.message}', statusCode: 500);
+      return ApiResponse.error(
+        'Network client error: ${e.message}',
+        statusCode: 500,
+      );
     } catch (e) {
       return ApiResponse.error('Unexpected error: $e', statusCode: 500);
     }
@@ -226,12 +255,21 @@ class ApiService {
       if ((apiRes.statusCode == 401 || apiRes.statusCode == 403) && !isRetry) {
         final refreshed = await refreshAccessToken();
         if (refreshed) {
-          return await post(url, headers: headers, body: body, data: data, isRetry: true);
+          return await post(
+            url,
+            headers: headers,
+            body: body,
+            data: data,
+            isRetry: true,
+          );
         }
       }
       return apiRes;
     } on SocketException {
-      return ApiResponse.error('No Internet connection or server unavailable.', statusCode: 503);
+      return ApiResponse.error(
+        'No Internet connection or server unavailable.',
+        statusCode: 503,
+      );
     } catch (e) {
       return ApiResponse.error('Unexpected error: $e', statusCode: 500);
     }
@@ -256,7 +294,10 @@ class ApiService {
 
       return _processResponse(response);
     } on SocketException {
-      return ApiResponse.error('No Internet connection or server unavailable.', statusCode: 503);
+      return ApiResponse.error(
+        'No Internet connection or server unavailable.',
+        statusCode: 503,
+      );
     } catch (e) {
       return ApiResponse.error('Unexpected error: $e', statusCode: 500);
     }
@@ -281,26 +322,31 @@ class ApiService {
 
       return _processResponse(response);
     } on SocketException {
-      return ApiResponse.error('No Internet connection or server unavailable.', statusCode: 503);
+      return ApiResponse.error(
+        'No Internet connection or server unavailable.',
+        statusCode: 503,
+      );
     } catch (e) {
       return ApiResponse.error('Unexpected error: $e', statusCode: 500);
     }
   }
 
   /// Perform a DELETE request
-  Future<ApiResponse> delete(
-    String url, {
-    Map<String, String>? headers,
-  }) async {
+  Future<ApiResponse> delete(String url, {Map<String, String>? headers}) async {
     try {
       final uri = Uri.parse(url);
       final requestHeaders = await _buildHeaders(customHeaders: headers);
 
-      final response = await http.delete(uri, headers: requestHeaders).timeout(ApiConstants.receiveTimeout);
+      final response = await http
+          .delete(uri, headers: requestHeaders)
+          .timeout(ApiConstants.receiveTimeout);
 
       return _processResponse(response);
     } on SocketException {
-      return ApiResponse.error('No Internet connection or server unavailable.', statusCode: 503);
+      return ApiResponse.error(
+        'No Internet connection or server unavailable.',
+        statusCode: 503,
+      );
     } catch (e) {
       return ApiResponse.error('Unexpected error: $e', statusCode: 500);
     }
@@ -312,7 +358,10 @@ class ApiService {
   }
 
   /// Approve or Reject an officer's registration in PostgreSQL backend
-  Future<ApiResponse> approveOrRejectOfficer(String uid, {required String action}) async {
+  Future<ApiResponse> approveOrRejectOfficer(
+    String uid, {
+    required String action,
+  }) async {
     return await post(
       ApiConfig.authApproveRegistration(uid),
       body: {'action': action},
@@ -320,13 +369,13 @@ class ApiService {
   }
 
   /// Change officer password in PostgreSQL backend database
-  Future<ApiResponse> changePassword({required String oldPassword, required String newPassword}) async {
+  Future<ApiResponse> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
     return await post(
       ApiConfig.authChangePassword,
-      body: {
-        'old_password': oldPassword,
-        'new_password': newPassword,
-      },
+      body: {'old_password': oldPassword, 'new_password': newPassword},
     );
   }
 
@@ -370,7 +419,8 @@ class ApiService {
       } else if (bodyData is String && bodyData.isNotEmpty) {
         final trimmed = bodyData.trim();
         if (trimmed.startsWith('<') || trimmed.length > 250) {
-          message = 'Server Error (${response.statusCode}): Unexpected response';
+          message =
+              'Server Error (${response.statusCode}): Unexpected response';
         } else {
           message = trimmed;
         }

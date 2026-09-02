@@ -74,19 +74,20 @@ class _PendingTransfersScreenState extends State<PendingTransfersScreen> {
       _action = 'approve';
     });
     try {
-      await _service.approveTransfer(
-        request: request,
-        approverUid: auth.uid,
-      );
+      await _service.approveTransfer(request: request, approverUid: auth.uid);
       if (!mounted) return;
-      _snack('Transfer approved. Officer posting updated in place.',
-          AppColors.successGreen);
+      _snack(
+        'Transfer approved. Officer posting updated in place.',
+        AppColors.successGreen,
+      );
       await _load();
     } catch (e) {
       debugPrint('approve failed: $e');
       if (!mounted) return;
-      _snack('Approval failed. Check your connection or permissions.',
-          AppColors.dangerRed);
+      _snack(
+        'Approval failed. Check your connection or permissions.',
+        AppColors.dangerRed,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -103,8 +104,10 @@ class _PendingTransfersScreenState extends State<PendingTransfersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Reject transfer?',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+        title: Text(
+          'Reject transfer?',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        ),
         content: TextField(
           controller: reasonCtrl,
           maxLines: 3,
@@ -159,7 +162,9 @@ class _PendingTransfersScreenState extends State<PendingTransfersScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isApprover = TransferRequestRoles.canApproveTransfers(auth.designation);
+    final isApprover = TransferRequestRoles.canApproveTransfers(
+      auth.designation,
+    );
     final isSenior = SeniorOfficerRoles.canSwitchLocation(auth.designation);
     final title = isSenior ? 'Pending PI Transfers' : 'Pending Transfers';
     final emptyMessage = isSenior
@@ -201,37 +206,37 @@ class _PendingTransfersScreenState extends State<PendingTransfersScreen> {
               ),
             )
           : _loading
-              ? const Center(
-                  child: CircularProgressIndicator(color: AppColors.navyMid),
-                )
-              : _pending.isEmpty
-                  ? Center(
-                      child: Text(
-                        emptyMessage,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          color: AppColors.lightSubText,
-                          fontSize: 14,
-                        ),
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      itemCount: _pending.length,
-                      separatorBuilder: (_, __) =>
-                          const SizedBox(height: AppSpacing.md),
-                      itemBuilder: (context, index) {
-                        final req = _pending[index];
-                        final busy = _processingId == req.id;
-                        return _RequestCard(
-                          request: req,
-                          busy: busy,
-                          action: _action,
-                          onApprove: () => _approve(req),
-                          onReject: () => _reject(req),
-                        );
-                      },
-                    ),
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.navyMid),
+            )
+          : _pending.isEmpty
+          ? Center(
+              child: Text(
+                emptyMessage,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  color: AppColors.lightSubText,
+                  fontSize: 14,
+                ),
+              ),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              itemCount: _pending.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.md),
+              itemBuilder: (context, index) {
+                final req = _pending[index];
+                final busy = _processingId == req.id;
+                return _RequestCard(
+                  request: req,
+                  busy: busy,
+                  action: _action,
+                  onApprove: () => _approve(req),
+                  onReject: () => _reject(req),
+                );
+              },
+            ),
     );
   }
 }
@@ -304,8 +309,12 @@ class _RequestCard extends StatelessWidget {
                           width: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text('Reject',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                      : Text(
+                          'Reject',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -324,11 +333,13 @@ class _RequestCard extends StatelessWidget {
                             color: Colors.white,
                           ),
                         )
-                      : Text('Approve',
+                      : Text(
+                          'Approve',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
-                          )),
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -346,9 +357,13 @@ class _RequestCard extends StatelessWidget {
         children: [
           SizedBox(
             width: 110,
-            child: Text(label,
-                style: GoogleFonts.poppins(
-                    fontSize: 12, color: AppColors.lightSubText)),
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: AppColors.lightSubText,
+              ),
+            ),
           ),
           Expanded(
             child: Text(

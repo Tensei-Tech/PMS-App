@@ -82,10 +82,7 @@ List<ModuleRecord> _watchConsolidatedRecords(BuildContext context) {
 class PendingIoWiseByCategoryScreen extends StatelessWidget {
   final String category;
 
-  const PendingIoWiseByCategoryScreen({
-    super.key,
-    required this.category,
-  });
+  const PendingIoWiseByCategoryScreen({super.key, required this.category});
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +99,8 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
 
     final names = buckets.keys.toList()..sort((a, b) => a.compareTo(b));
 
-    final title = '${TranslationHelper.translate(context, 'IO Wise Pending')} - ${TranslationHelper.translate(context, category)}';
+    final title =
+        '${TranslationHelper.translate(context, 'IO Wise Pending')} - ${TranslationHelper.translate(context, category)}';
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -123,8 +121,11 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.navyMid,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -148,7 +149,10 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
               child: names.isEmpty
                   ? Center(
                       child: Text(
-                        TranslationHelper.translate(context, 'No IO Wise pending cases in this category'),
+                        TranslationHelper.translate(
+                          context,
+                          'No IO Wise pending cases in this category',
+                        ),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
@@ -184,11 +188,14 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
                               child: Ink(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
-                                  border:
-                                      Border.all(color: AppColors.lightBorder),
+                                  border: Border.all(
+                                    color: AppColors.lightBorder,
+                                  ),
                                 ),
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 16),
+                                  horizontal: 14,
+                                  vertical: 16,
+                                ),
                                 child: Row(
                                   children: [
                                     Expanded(
@@ -269,8 +276,11 @@ class PendingIoWiseDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.navyMid,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -304,7 +314,11 @@ class PendingIoWiseDetailScreen extends StatelessWidget {
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.lg, 0, AppSpacing.lg, 24),
+                        AppSpacing.lg,
+                        0,
+                        AppSpacing.lg,
+                        24,
+                      ),
                       itemCount: mine.length,
                       itemBuilder: (_, i) =>
                           ReadOnlyModuleRecordHubCard(record: mine[i]),

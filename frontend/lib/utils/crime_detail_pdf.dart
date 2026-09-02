@@ -15,7 +15,8 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final out = Map<String, dynamic>.from(source);
 
   // Registration / FIR
-  final firNo = source['crNo'] ??
+  final firNo =
+      source['crNo'] ??
       source['firNo'] ??
       source['caseNumber'] ??
       source['adNo'] ??
@@ -45,8 +46,7 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   // Victim KYC
   final victim = source['victim'];
   if (victim is Map) {
-    out['victimName'] =
-        victim['name']?.toString() ?? out['victimName'] ?? '';
+    out['victimName'] = victim['name']?.toString() ?? out['victimName'] ?? '';
     out['victimAge'] = victim['age']?.toString() ?? '';
     out['victimGender'] = victim['gender']?.toString() ?? '';
     out['victimOccupation'] = victim['occ']?.toString() ?? '';
@@ -61,8 +61,7 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final village = source['spotVillage']?.toString() ?? '';
   final area = source['spotArea']?.toString() ?? '';
   final addr = source['spotAddress']?.toString() ?? '';
-  final spotFull =
-      [addr, area, village].where((s) => s.isNotEmpty).join(', ');
+  final spotFull = [addr, area, village].where((s) => s.isNotEmpty).join(', ');
   if (spotFull.isNotEmpty) {
     out['placeAddress'] = spotFull;
     out['spotAddress'] = spotFull;
@@ -72,8 +71,7 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final caseResp = source['caseResponsibility'];
   if (caseResp is Map) {
     out['ioName'] = caseResp['ioName']?.toString() ?? out['ioName'] ?? '';
-    out['ioDesig'] =
-        caseResp['ioDesig']?.toString() ?? out['ioDesig'] ?? '';
+    out['ioDesig'] = caseResp['ioDesig']?.toString() ?? out['ioDesig'] ?? '';
     out['ioRank'] = caseResp['ioDesig']?.toString() ?? out['ioRank'] ?? '';
   }
 
@@ -116,10 +114,10 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
   final activeSection = doc['formSection']?.toString();
 
   bool showsSection(String sectionId) => showsFormSection(
-        activeSection: activeSection,
-        sectionId: sectionId,
-        knownSectionIds: knownSectionIds,
-      );
+    activeSection: activeSection,
+    sectionId: sectionId,
+    knownSectionIds: knownSectionIds,
+  );
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -175,10 +173,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
       footer: (pw.Context context) {
         return pw.Align(
           alignment: pw.Alignment.bottomRight,
-          child: pw.Text(
-            'M.R.W',
-            style: englishBold.copyWith(fontSize: 9),
-          ),
+          child: pw.Text('M.R.W', style: englishBold.copyWith(fontSize: 9)),
         );
       },
       build: (pw.Context context) {
@@ -282,14 +277,18 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                               decoration: const pw.BoxDecoration(
                                 border: pw.Border(
                                   bottom: pw.BorderSide(
-                                      color: PdfColors.black, width: 0.8),
+                                    color: PdfColors.black,
+                                    width: 0.8,
+                                  ),
                                 ),
                               ),
                               alignment: pw.Alignment.bottomCenter,
                               child: cache.has('val_firNo')
                                   ? cache.img('val_firNo')
-                                  : pw.Text(doc['firNo'] ?? '',
-                                      style: valueStyle),
+                                  : pw.Text(
+                                      doc['firNo'] ?? '',
+                                      style: valueStyle,
+                                    ),
                             ),
                           ),
                           pw.Text('/20', style: englishStyle),
@@ -298,14 +297,18 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
-                                    color: PdfColors.black, width: 0.8),
+                                  color: PdfColors.black,
+                                  width: 0.8,
+                                ),
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
                             child: cache.has('val_firYearSuffix')
                                 ? cache.img('val_firYearSuffix')
-                                : pw.Text(doc['firYearSuffix'] ?? '',
-                                    style: valueStyle),
+                                : pw.Text(
+                                    doc['firYearSuffix'] ?? '',
+                                    style: valueStyle,
+                                  ),
                           ),
                         ],
                       ),
@@ -333,14 +336,18 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
-                                    color: PdfColors.black, width: 0.8),
+                                  color: PdfColors.black,
+                                  width: 0.8,
+                                ),
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
                             child: cache.has('val_dateDay')
                                 ? cache.img('val_dateDay')
-                                : pw.Text(doc['dateDay'] ?? '',
-                                    style: valueStyle),
+                                : pw.Text(
+                                    doc['dateDay'] ?? '',
+                                    style: valueStyle,
+                                  ),
                           ),
                           pw.Text('/', style: englishStyle),
                           pw.Container(
@@ -348,14 +355,18 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
-                                    color: PdfColors.black, width: 0.8),
+                                  color: PdfColors.black,
+                                  width: 0.8,
+                                ),
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
                             child: cache.has('val_dateMonth')
                                 ? cache.img('val_dateMonth')
-                                : pw.Text(doc['dateMonth'] ?? '',
-                                    style: valueStyle),
+                                : pw.Text(
+                                    doc['dateMonth'] ?? '',
+                                    style: valueStyle,
+                                  ),
                           ),
                           pw.Text('/20', style: englishStyle),
                           pw.Container(
@@ -363,14 +374,18 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
-                                    color: PdfColors.black, width: 0.8),
+                                  color: PdfColors.black,
+                                  width: 0.8,
+                                ),
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
                             child: cache.has('val_dateYear')
                                 ? cache.img('val_dateYear')
-                                : pw.Text(doc['dateYear'] ?? '',
-                                    style: valueStyle),
+                                : pw.Text(
+                                    doc['dateYear'] ?? '',
+                                    style: valueStyle,
+                                  ),
                           ),
                         ],
                       ),
@@ -412,7 +427,10 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
               pw.Text(
                 'घटनेचे ठिकाण दाखविणाऱ्याचे :',
                 style: pw.TextStyle(
-                    font: devanagariBold, fontSize: 10, color: PdfColors.black),
+                  font: devanagariBold,
+                  fontSize: 10,
+                  color: PdfColors.black,
+                ),
               ),
             pw.SizedBox(height: 4),
             pw.Row(
@@ -745,41 +763,79 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                 pw.TableRow(
                   decoration: const pw.BoxDecoration(color: PdfColors.grey100),
                   children: [
-                    _buildPdfHeaderCell("Sr.\nNo\n\nअ.\nक.\n\n(1)", "th_1",
-                        devanagariBold, cache),
-                    _buildPdfHeaderCell("Full Name\n\nसंपूर्ण नांव\n\n(2)",
-                        "th_2", devanagariBold, cache),
                     _buildPdfHeaderCell(
-                        "Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)",
-                        "th_3",
-                        devanagariBold,
-                        cache),
+                      "Sr.\nNo\n\nअ.\nक.\n\n(1)",
+                      "th_1",
+                      devanagariBold,
+                      cache,
+                    ),
                     _buildPdfHeaderCell(
-                        "Sex\n\nलिंग\n\n(*4)", "th_4", devanagariBold, cache),
-                    _buildPdfHeaderCell("Nationality\n\nराष्ट्रीयत्व\n\n(*5)",
-                        "th_5", devanagariBold, cache),
-                    _buildPdfHeaderCell("Religion\n\nधर्म\n\n(*6)", "th_6",
-                        devanagariBold, cache),
+                      "Full Name\n\nसंपूर्ण नांव\n\n(2)",
+                      "th_2",
+                      devanagariBold,
+                      cache,
+                    ),
                     _buildPdfHeaderCell(
-                        "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)",
-                        "th_7",
-                        devanagariBold,
-                        cache),
-                    _buildPdfHeaderCell("Ocupetion\n\nव्यवसाय\n\n(*8)", "th_8",
-                        devanagariBold, cache),
-                    _buildPdfHeaderCell("Address\n\nपत्ता\n\n(*9)", "th_9",
-                        devanagariBold, cache),
+                      "Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)",
+                      "th_3",
+                      devanagariBold,
+                      cache,
+                    ),
                     _buildPdfHeaderCell(
-                        "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
-                        "th_10",
-                        devanagariBold,
-                        cache),
-                    _buildPdfHeaderCell("Means\n\nसाधने/\nहत्यारे\n\n(11)",
-                        "th_11", devanagariBold, cache),
+                      "Sex\n\nलिंग\n\n(*4)",
+                      "th_4",
+                      devanagariBold,
+                      cache,
+                    ),
+                    _buildPdfHeaderCell(
+                      "Nationality\n\nराष्ट्रीयत्व\n\n(*5)",
+                      "th_5",
+                      devanagariBold,
+                      cache,
+                    ),
+                    _buildPdfHeaderCell(
+                      "Religion\n\nधर्म\n\n(*6)",
+                      "th_6",
+                      devanagariBold,
+                      cache,
+                    ),
+                    _buildPdfHeaderCell(
+                      "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)",
+                      "th_7",
+                      devanagariBold,
+                      cache,
+                    ),
+                    _buildPdfHeaderCell(
+                      "Ocupetion\n\nव्यवसाय\n\n(*8)",
+                      "th_8",
+                      devanagariBold,
+                      cache,
+                    ),
+                    _buildPdfHeaderCell(
+                      "Address\n\nपत्ता\n\n(*9)",
+                      "th_9",
+                      devanagariBold,
+                      cache,
+                    ),
+                    _buildPdfHeaderCell(
+                      "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
+                      "th_10",
+                      devanagariBold,
+                      cache,
+                    ),
+                    _buildPdfHeaderCell(
+                      "Means\n\nसाधने/\nहत्यारे\n\n(11)",
+                      "th_11",
+                      devanagariBold,
+                      cache,
+                    ),
                   ],
                 ),
                 ..._buildPdfVictimsRows(
-                    doc['victims'], devanagariRegular, cache),
+                  doc['victims'],
+                  devanagariRegular,
+                  cache,
+                ),
               ],
             ),
             pw.SizedBox(height: 8),
@@ -788,8 +844,10 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                pw.Text('6) Motive of Crime: ',
-                    style: englishBold.copyWith(fontSize: 9)),
+                pw.Text(
+                  '6) Motive of Crime: ',
+                  style: englishBold.copyWith(fontSize: 9),
+                ),
                 pw.Expanded(
                   child: pw.Stack(
                     alignment: pw.Alignment.bottomLeft,
@@ -830,8 +888,10 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                 if (cache.has('lbl_motive'))
                   cache.img('lbl_motive')
                 else
-                  pw.Text('गुन्ह्याचा हेतू : ',
-                      style: pw.TextStyle(font: devanagariBold, fontSize: 9)),
+                  pw.Text(
+                    'गुन्ह्याचा हेतू : ',
+                    style: pw.TextStyle(font: devanagariBold, fontSize: 9),
+                  ),
                 pw.Expanded(
                   child: pw.Container(
                     height: 10,
@@ -872,13 +932,20 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
               pw.Text(
                 'चोरीचा / अंतर्भूत मालमत्तेचा तपशील (योग्य नमुना वापरावा व सोबत जोडावा) :',
                 style: pw.TextStyle(
-                    font: devanagariBold,
-                    fontSize: 8.5,
-                    fontWeight: pw.FontWeight.bold),
+                  font: devanagariBold,
+                  fontSize: 8.5,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
             pw.SizedBox(height: 2),
-            ..._buildPdfLinedBlock(doc['propertyDetails']?.toString() ?? '', 4,
-                85, valueStyle, 'val_propertyDetails', cache),
+            ..._buildPdfLinedBlock(
+              doc['propertyDetails']?.toString() ?? '',
+              4,
+              85,
+              valueStyle,
+              'val_propertyDetails',
+              cache,
+            ),
             pw.SizedBox(height: 8),
 
             pw.Text(
@@ -891,13 +958,20 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
               pw.Text(
                 '(घटनेच्या जागेचे वर्णन) :',
                 style: pw.TextStyle(
-                    font: devanagariBold,
-                    fontSize: 8.5,
-                    fontWeight: pw.FontWeight.bold),
+                  font: devanagariBold,
+                  fontSize: 8.5,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
             pw.SizedBox(height: 2),
-            ..._buildPdfLinedBlock(doc['placeDescription']?.toString() ?? '', 6,
-                85, valueStyle, 'val_placeDescription', cache),
+            ..._buildPdfLinedBlock(
+              doc['placeDescription']?.toString() ?? '',
+              6,
+              85,
+              valueStyle,
+              'val_placeDescription',
+              cache,
+            ),
             pw.SizedBox(height: 6),
 
             // Conditional page break between Page 2 and Page 3
@@ -932,12 +1006,13 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
               ),
             pw.SizedBox(height: 2),
             ..._buildPdfLinedBlock(
-                doc['placeDescriptionCont']?.toString() ?? '',
-                6,
-                85,
-                valueStyle,
-                'val_placeDescriptionCont',
-                cache),
+              doc['placeDescriptionCont']?.toString() ?? '',
+              6,
+              85,
+              valueStyle,
+              'val_placeDescriptionCont',
+              cache,
+            ),
             pw.SizedBox(height: 8),
 
             // --- SECTION 9: Map ---
@@ -956,9 +1031,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                 border: pw.Border.all(color: PdfColors.black, width: 1.5),
               ),
               child: mapImage != null
-                  ? pw.Center(
-                      child: pw.Image(mapImage, fit: pw.BoxFit.contain),
-                    )
+                  ? pw.Center(child: pw.Image(mapImage, fit: pw.BoxFit.contain))
                   : pw.Center(
                       child: cache.has('lbl_no_map')
                           ? cache.img('lbl_no_map')
@@ -996,8 +1069,14 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                 ),
               ),
             pw.SizedBox(height: 2),
-            ..._buildPdfLinedBlock(doc['physicalEvidence']?.toString() ?? '', 6,
-                85, valueStyle, 'val_physicalEvidence', cache),
+            ..._buildPdfLinedBlock(
+              doc['physicalEvidence']?.toString() ?? '',
+              6,
+              85,
+              valueStyle,
+              'val_physicalEvidence',
+              cache,
+            ),
             pw.SizedBox(height: 6),
             pw.Divider(color: PdfColors.black, thickness: 0.8),
             pw.SizedBox(height: 4),
@@ -1023,8 +1102,10 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                       if (cache.has('lbl_panchas_name'))
                         cache.img('lbl_panchas_name')
                       else
-                        pw.Text("Name of panchas: / पंचाची नांवे :",
-                            style: englishBold.copyWith(fontSize: 8.5)),
+                        pw.Text(
+                          "Name of panchas: / पंचाची नांवे :",
+                          style: englishBold.copyWith(fontSize: 8.5),
+                        ),
                       pw.SizedBox(height: 4),
                       pw.Text("(1)", style: englishBold.copyWith(fontSize: 9)),
                       pw.SizedBox(height: 2),
@@ -1102,8 +1183,10 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                       if (cache.has('lbl_panchas_sig'))
                         cache.img('lbl_panchas_sig')
                       else
-                        pw.Text("Signature of Panchas: / पंचाच्या सह्या :",
-                            style: englishBold.copyWith(fontSize: 8.5)),
+                        pw.Text(
+                          "Signature of Panchas: / पंचाच्या सह्या :",
+                          style: englishBold.copyWith(fontSize: 8.5),
+                        ),
                       pw.SizedBox(height: 4),
                       pw.Text("1)", style: englishBold.copyWith(fontSize: 9)),
                       pw.SizedBox(height: 2),
@@ -1132,13 +1215,17 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                       if (cache.has('lbl_io_sig'))
                         cache.img('lbl_io_sig')
                       else
-                        pw.Text("Name and Signature of Investigation Officer",
-                            style: englishBold.copyWith(fontSize: 8.5)),
+                        pw.Text(
+                          "Name and Signature of Investigation Officer",
+                          style: englishBold.copyWith(fontSize: 8.5),
+                        ),
                       if (cache.has('lbl_io_sig_mar'))
                         cache.img('lbl_io_sig_mar')
                       else
-                        pw.Text(FormIoTerminology.amaldarSignatureHeader,
-                            style: marathiStyle),
+                        pw.Text(
+                          FormIoTerminology.amaldarSignatureHeader,
+                          style: marathiStyle,
+                        ),
                       pw.SizedBox(height: 4),
                       _buildPdfLinedField(
                         labelKey: 'lbl_io_name',
@@ -1184,7 +1271,11 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
 }
 
 pw.Widget _buildPdfHeaderCell(
-    String text, String key, pw.Font font, MarathiImageCache cache) {
+  String text,
+  String key,
+  pw.Font font,
+  MarathiImageCache cache,
+) {
   return pw.Padding(
     padding: const pw.EdgeInsets.all(3),
     child: cache.has(key)
@@ -1203,13 +1294,17 @@ pw.Widget _buildPdfHeaderCell(
 }
 
 List<pw.TableRow> _buildPdfVictimsRows(
-    dynamic victimsData, pw.Font font, MarathiImageCache cache) {
+  dynamic victimsData,
+  pw.Font font,
+  MarathiImageCache cache,
+) {
   final rows = <pw.TableRow>[];
   if (victimsData is List) {
     for (int i = 0; i < victimsData.length; i++) {
       final item = victimsData[i];
-      final Map<String, dynamic> row =
-          item is Map ? Map<String, dynamic>.from(item) : {};
+      final Map<String, dynamic> row = item is Map
+          ? Map<String, dynamic>.from(item)
+          : {};
       rows.add(
         pw.TableRow(
           children: [
@@ -1219,30 +1314,73 @@ List<pw.TableRow> _buildPdfVictimsRows(
                 child: pw.Text(
                   '${i + 1}',
                   style: pw.TextStyle(
-                      font: font, fontSize: 8, color: PdfColors.black),
+                    font: font,
+                    fontSize: 8,
+                    color: PdfColors.black,
+                  ),
                 ),
               ),
             ),
-            _buildPdfValueCell(row['fullName']?.toString() ?? '',
-                'victim_${i}_fullName', font, cache),
             _buildPdfValueCell(
-                row['dob']?.toString() ?? '', 'victim_${i}_dob', font, cache),
+              row['fullName']?.toString() ?? '',
+              'victim_${i}_fullName',
+              font,
+              cache,
+            ),
             _buildPdfValueCell(
-                row['sex']?.toString() ?? '', 'victim_${i}_sex', font, cache),
-            _buildPdfValueCell(row['nationality']?.toString() ?? '',
-                'victim_${i}_nationality', font, cache),
-            _buildPdfValueCell(row['religion']?.toString() ?? '',
-                'victim_${i}_religion', font, cache),
+              row['dob']?.toString() ?? '',
+              'victim_${i}_dob',
+              font,
+              cache,
+            ),
             _buildPdfValueCell(
-                row['scSt']?.toString() ?? '', 'victim_${i}_scSt', font, cache),
-            _buildPdfValueCell(row['occupation']?.toString() ?? '',
-                'victim_${i}_occupation', font, cache),
-            _buildPdfValueCell(row['address']?.toString() ?? '',
-                'victim_${i}_address', font, cache),
-            _buildPdfValueCell(row['injury']?.toString() ?? '',
-                'victim_${i}_injury', font, cache),
-            _buildPdfValueCell(row['means']?.toString() ?? '',
-                'victim_${i}_means', font, cache),
+              row['sex']?.toString() ?? '',
+              'victim_${i}_sex',
+              font,
+              cache,
+            ),
+            _buildPdfValueCell(
+              row['nationality']?.toString() ?? '',
+              'victim_${i}_nationality',
+              font,
+              cache,
+            ),
+            _buildPdfValueCell(
+              row['religion']?.toString() ?? '',
+              'victim_${i}_religion',
+              font,
+              cache,
+            ),
+            _buildPdfValueCell(
+              row['scSt']?.toString() ?? '',
+              'victim_${i}_scSt',
+              font,
+              cache,
+            ),
+            _buildPdfValueCell(
+              row['occupation']?.toString() ?? '',
+              'victim_${i}_occupation',
+              font,
+              cache,
+            ),
+            _buildPdfValueCell(
+              row['address']?.toString() ?? '',
+              'victim_${i}_address',
+              font,
+              cache,
+            ),
+            _buildPdfValueCell(
+              row['injury']?.toString() ?? '',
+              'victim_${i}_injury',
+              font,
+              cache,
+            ),
+            _buildPdfValueCell(
+              row['means']?.toString() ?? '',
+              'victim_${i}_means',
+              font,
+              cache,
+            ),
           ],
         ),
       );
@@ -1252,7 +1390,9 @@ List<pw.TableRow> _buildPdfVictimsRows(
     rows.add(
       pw.TableRow(
         children: List.generate(
-            11, (j) => _buildPdfValueCell(j == 0 ? '1' : '', '', font, cache)),
+          11,
+          (j) => _buildPdfValueCell(j == 0 ? '1' : '', '', font, cache),
+        ),
       ),
     );
   }
@@ -1260,7 +1400,11 @@ List<pw.TableRow> _buildPdfVictimsRows(
 }
 
 pw.Widget _buildPdfValueCell(
-    String text, String key, pw.Font font, MarathiImageCache cache) {
+  String text,
+  String key,
+  pw.Font font,
+  MarathiImageCache cache,
+) {
   return pw.Padding(
     padding: const pw.EdgeInsets.all(3),
     child: (key.isNotEmpty && cache.has(key))
@@ -1299,7 +1443,8 @@ pw.Widget _buildPdfInlineField({
             child: pw.Container(
               decoration: const pw.BoxDecoration(
                 border: pw.Border(
-                    bottom: pw.BorderSide(color: PdfColors.black, width: 0.8)),
+                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                ),
               ),
               alignment: pw.Alignment.bottomLeft,
               padding: const pw.EdgeInsets.only(left: 2),
@@ -1344,7 +1489,8 @@ pw.Widget _buildPdfWideField({
             child: pw.Container(
               decoration: const pw.BoxDecoration(
                 border: pw.Border(
-                    bottom: pw.BorderSide(color: PdfColors.black, width: 0.8)),
+                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                ),
               ),
               alignment: pw.Alignment.bottomLeft,
               padding: const pw.EdgeInsets.only(left: 2),
@@ -1381,9 +1527,7 @@ pw.Widget _buildPdfLinedField({
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
       // Render label parts (skip if empty)
-      if (labelKey.isNotEmpty && cache.has(labelKey)) ...[
-        cache.img(labelKey),
-      ],
+      if (labelKey.isNotEmpty && cache.has(labelKey)) ...[cache.img(labelKey)],
       pw.SizedBox(height: 3),
       // Render underlined value lines
       for (var i = 0; i < total; i++) ...[
@@ -1393,7 +1537,8 @@ pw.Widget _buildPdfLinedField({
           height: 16,
           decoration: const pw.BoxDecoration(
             border: pw.Border(
-                bottom: pw.BorderSide(color: PdfColors.black, width: 0.8)),
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+            ),
           ),
           alignment: pw.Alignment.bottomLeft,
           padding: const pw.EdgeInsets.only(left: 4, bottom: 2),
@@ -1422,7 +1567,8 @@ pw.Widget _buildNumberedMethodPdfField({
         child: pw.Container(
           decoration: const pw.BoxDecoration(
             border: pw.Border(
-                bottom: pw.BorderSide(color: PdfColors.black, width: 0.8)),
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+            ),
           ),
           alignment: pw.Alignment.bottomLeft,
           padding: const pw.EdgeInsets.only(left: 2),
@@ -1464,10 +1610,7 @@ List<pw.Widget> _buildPdfLinedBlock(
       padding: const pw.EdgeInsets.only(left: 4, bottom: 2),
       child: cache.has(lineKey)
           ? cache.img(lineKey)
-          : pw.Text(
-              textLine,
-              style: style,
-            ),
+          : pw.Text(textLine, style: style),
     );
   });
 }
@@ -1545,8 +1688,12 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await GoogleFonts.pendingFonts();
 
   // Helper to add label
-  Future<void> addLbl(String key, String text, TextStyle style,
-      {double maxWidth = 500}) async {
+  Future<void> addLbl(
+    String key,
+    String text,
+    TextStyle style, {
+    double maxWidth = 500,
+  }) async {
     await cache.add(key, text, style, maxWidth: maxWidth);
   }
 
@@ -1570,8 +1717,11 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   }
 
   // Pre-render static labels
-  await addLbl('header_title',
-      'गुन्ह्यांंच्या तपशीलाचा नमुना/ घटनास्थल पंचनामा', headerStyle);
+  await addLbl(
+    'header_title',
+    'गुन्ह्यांंच्या तपशीलाचा नमुना/ घटनास्थल पंचनामा',
+    headerStyle,
+  );
 
   // Section 1
   await addLbl('lbl_district', 'जिल्हा', marathiLabelStyle);
@@ -1590,8 +1740,11 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addLbl('lbl_address', 'पत्ता :', marathiLabelStyle);
 
   // Section 4
-  await addLbl('lbl_type_crime',
-      'गुन्ह्याचा प्रकार (गुन्ह्यांच्या सर्व पद्धतीसह)', marathiLabelStyle);
+  await addLbl(
+    'lbl_type_crime',
+    'गुन्ह्याचा प्रकार (गुन्ह्यांच्या सर्व पद्धतीसह)',
+    marathiLabelStyle,
+  );
   await addLbl('lbl_major_head', 'प्रधान शीर्ष', marathiLabelStyle);
   await addLbl('lbl_minor_head', 'गौण शीर्ष', marathiLabelStyle);
   await addLbl('lbl_method', 'पद्धती', marathiLabelStyle);
@@ -1600,7 +1753,10 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addLbl('lbl_m3', '(३)', boldLabelStyle);
   await addLbl('lbl_conveyances', 'वापरलेली वाहने', marathiLabelStyle);
   await addLbl(
-      'lbl_character', 'केलेले वेषांतर/ केलेली बतावणी', marathiLabelStyle);
+    'lbl_character',
+    'केलेले वेषांतर/ केलेली बतावणी',
+    marathiLabelStyle,
+  );
   await addLbl('lbl_lang', 'वापरलेली भाषा/ बोली भाषा', marathiLabelStyle);
   await addLbl('lbl_sf1', 'विशेष वैशिष्ट्ये - १', marathiLabelStyle);
   await addLbl('lbl_sf2', 'विशेष वैशिष्ट्ये - २', marathiLabelStyle);
@@ -1609,83 +1765,148 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addLbl('lbl_prop_inv', 'अंतर्भूत मालमत्तेचे प्रकार', marathiLabelStyle);
 
   // Section 5
-  await addLbl('lbl_victim_title',
-      'बळीचा तपशील ( आवश्यक असल्यास स्वतंत्र कागद जोडावा. )', boldLabelStyle);
+  await addLbl(
+    'lbl_victim_title',
+    'बळीचा तपशील ( आवश्यक असल्यास स्वतंत्र कागद जोडावा. )',
+    boldLabelStyle,
+  );
 
   // Table headers
-  await addLbl('th_1', "Sr.\nNo\n\nअ.\nक.\n\n(1)", tableHeaderStyle,
-      maxWidth: 30);
-  await addLbl('th_2', "Full Name\n\nसंपूर्ण नांव\n\n(2)", tableHeaderStyle,
-      maxWidth: 100);
-  await addLbl('th_3', "Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)",
-      tableHeaderStyle,
-      maxWidth: 80);
+  await addLbl(
+    'th_1',
+    "Sr.\nNo\n\nअ.\nक.\n\n(1)",
+    tableHeaderStyle,
+    maxWidth: 30,
+  );
+  await addLbl(
+    'th_2',
+    "Full Name\n\nसंपूर्ण नांव\n\n(2)",
+    tableHeaderStyle,
+    maxWidth: 100,
+  );
+  await addLbl(
+    'th_3',
+    "Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)",
+    tableHeaderStyle,
+    maxWidth: 80,
+  );
   await addLbl('th_4', "Sex\n\nलिंग\n\n(*4)", tableHeaderStyle, maxWidth: 50);
-  await addLbl('th_5', "Nationality\n\nराष्ट्रीयत्व\n\n(*5)", tableHeaderStyle,
-      maxWidth: 60);
-  await addLbl('th_6', "Religion\n\nधर्म\n\n(*6)", tableHeaderStyle,
-      maxWidth: 60);
   await addLbl(
-      'th_7', "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)", tableHeaderStyle,
-      maxWidth: 60);
-  await addLbl('th_8', "Ocupetion\n\nव्यवसाय\n\n(*8)", tableHeaderStyle,
-      maxWidth: 60);
-  await addLbl('th_9', "Address\n\nपत्ता\n\n(*9)", tableHeaderStyle,
-      maxWidth: 100);
+    'th_5',
+    "Nationality\n\nराष्ट्रीयत्व\n\n(*5)",
+    tableHeaderStyle,
+    maxWidth: 60,
+  );
   await addLbl(
-      'th_10',
-      "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
-      tableHeaderStyle,
-      maxWidth: 80);
-  await addLbl('th_11', "Means\n\nसाधने/\nहत्यारे\n\n(11)", tableHeaderStyle,
-      maxWidth: 80);
+    'th_6',
+    "Religion\n\nधर्म\n\n(*6)",
+    tableHeaderStyle,
+    maxWidth: 60,
+  );
+  await addLbl(
+    'th_7',
+    "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)",
+    tableHeaderStyle,
+    maxWidth: 60,
+  );
+  await addLbl(
+    'th_8',
+    "Ocupetion\n\nव्यवसाय\n\n(*8)",
+    tableHeaderStyle,
+    maxWidth: 60,
+  );
+  await addLbl(
+    'th_9',
+    "Address\n\nपत्ता\n\n(*9)",
+    tableHeaderStyle,
+    maxWidth: 100,
+  );
+  await addLbl(
+    'th_10',
+    "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
+    tableHeaderStyle,
+    maxWidth: 80,
+  );
+  await addLbl(
+    'th_11',
+    "Means\n\nसाधने/\nहत्यारे\n\n(11)",
+    tableHeaderStyle,
+    maxWidth: 80,
+  );
 
   // Section 6
   await addLbl('lbl_motive', 'गुन्ह्याचा हेतू :', boldLabelStyle);
 
   // Section 7
   await addLbl(
-      'lbl_prop_det',
-      'चोरीचा / अंतर्भूत मालमत्तेचा तपशील (योग्य नमुना वापरावा व सोबत जोडावा) :',
-      boldLabelStyle);
+    'lbl_prop_det',
+    'चोरीचा / अंतर्भूत मालमत्तेचा तपशील (योग्य नमुना वापरावा व सोबत जोडावा) :',
+    boldLabelStyle,
+  );
 
   // Section 8
   await addLbl('lbl_place_desc', '(घटनेच्या जागेचे वर्णन) :', boldLabelStyle);
   await addLbl(
-      'lbl_place_desc_cont', '(घटनेच्या जागेचे वर्णन) :', boldLabelStyle);
+    'lbl_place_desc_cont',
+    '(घटनेच्या जागेचे वर्णन) :',
+    boldLabelStyle,
+  );
 
   // Section 9
   await addLbl('lbl_map', 'Map: नकाशा', boldLabelStyle);
   await addLbl(
-      'lbl_no_map', 'No Map Uploaded\n(नकाशा जोडला नाही)', boldLabelStyle);
+    'lbl_no_map',
+    'No Map Uploaded\n(नकाशा जोडला नाही)',
+    boldLabelStyle,
+  );
 
   // Section 10
   await addLbl(
-      'lbl_phys_ev',
-      'तपासकामी प्रत्यक्ष पुरावा म्हणून गुन्ह्यांच्या जागेवरून मिळविलेल्या / जप्त केलेल्या मालमत्तेचे वर्णन :',
-      boldLabelStyle);
+    'lbl_phys_ev',
+    'तपासकामी प्रत्यक्ष पुरावा म्हणून गुन्ह्यांच्या जागेवरून मिळविलेल्या / जप्त केलेल्या मालमत्तेचे वर्णन :',
+    boldLabelStyle,
+  );
 
   // Page 4 Signatures labels
   await addLbl(
-      'lbl_dt_panchnama',
-      "Date and Time of panchnama\nघटनास्थळ पंचनाम्याची दिनांक",
-      boldLabelStyle);
+    'lbl_dt_panchnama',
+    "Date and Time of panchnama\nघटनास्थळ पंचनाम्याची दिनांक",
+    boldLabelStyle,
+  );
   await addLbl(
-      'lbl_panchas_name', "Name of panchas: / पंचाची नांवे :", boldLabelStyle);
+    'lbl_panchas_name',
+    "Name of panchas: / पंचाची नांवे :",
+    boldLabelStyle,
+  );
   await addLbl('lbl_p1_addr', "Full Address\nपत्ता", boldLabelStyle);
   await addLbl('lbl_p2_addr', "Full Address\nपत्ता", boldLabelStyle);
   await addLbl('lbl_date_form', "Date\nदिनांक", boldLabelStyle);
   await addLbl('lbl_time_form', "Time\nवेळ", boldLabelStyle);
-  await addLbl('lbl_panchas_sig', "Signature of Panchas: / पंचाच्या सह्या :",
-      boldLabelStyle);
-  await addLbl('lbl_io_sig', "Name and Signature of Investigation Officer",
-      boldLabelStyle);
-  await addLbl('lbl_io_sig_mar', FormIoTerminology.amaldarSignatureHeader,
-      marathiLabelStyle);
   await addLbl(
-      'lbl_io_name', "Name\n${FormIoTerminology.name}", boldLabelStyle);
+    'lbl_panchas_sig',
+    "Signature of Panchas: / पंचाच्या सह्या :",
+    boldLabelStyle,
+  );
   await addLbl(
-      'lbl_io_rank', "Rank\n${FormIoTerminology.rank}", boldLabelStyle);
+    'lbl_io_sig',
+    "Name and Signature of Investigation Officer",
+    boldLabelStyle,
+  );
+  await addLbl(
+    'lbl_io_sig_mar',
+    FormIoTerminology.amaldarSignatureHeader,
+    marathiLabelStyle,
+  );
+  await addLbl(
+    'lbl_io_name',
+    "Name\n${FormIoTerminology.name}",
+    boldLabelStyle,
+  );
+  await addLbl(
+    'lbl_io_rank',
+    "Rank\n${FormIoTerminology.rank}",
+    boldLabelStyle,
+  );
   await addLbl('lbl_io_buckle', "B.No. if any\nबक्कल नंबर", boldLabelStyle);
 
   // Pre-render dynamic user values
@@ -1701,7 +1922,9 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
 
   await addVal('val_shownByName', doc['shownByName']?.toString());
   await addVal(
-      'val_shownByFatherHusband', doc['shownByFatherHusband']?.toString());
+    'val_shownByFatherHusband',
+    doc['shownByFatherHusband']?.toString(),
+  );
   await addVal('val_shownByAddress', doc['shownByAddress']?.toString());
 
   await addVal('val_typeOfCrime', doc['typeOfCrime']?.toString());
@@ -1719,7 +1942,9 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addVal('val_specialFeature2', doc['specialFeature2']?.toString());
   await addVal('val_specialFeature3', doc['specialFeature3']?.toString());
   await addVal(
-      'val_placeOfOccurrenceType', doc['placeOfOccurrenceType']?.toString());
+    'val_placeOfOccurrenceType',
+    doc['placeOfOccurrenceType']?.toString(),
+  );
   await addVal('val_propertyInvolved', doc['propertyInvolved']?.toString());
   await addVal('val_propertyType1', doc['propertyType1']?.toString());
   await addVal('val_propertyType2', doc['propertyType2']?.toString());
@@ -1729,21 +1954,34 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
 
   // Lined blocks
   await addLinedBlock(
-      'val_propertyDetails', doc['propertyDetails']?.toString(), 85);
+    'val_propertyDetails',
+    doc['propertyDetails']?.toString(),
+    85,
+  );
   await addLinedBlock(
-      'val_placeDescription', doc['placeDescription']?.toString(), 85);
+    'val_placeDescription',
+    doc['placeDescription']?.toString(),
+    85,
+  );
   await addLinedBlock(
-      'val_placeDescriptionCont', doc['placeDescriptionCont']?.toString(), 85);
+    'val_placeDescriptionCont',
+    doc['placeDescriptionCont']?.toString(),
+    85,
+  );
   await addLinedBlock(
-      'val_physicalEvidence', doc['physicalEvidence']?.toString(), 85);
+    'val_physicalEvidence',
+    doc['physicalEvidence']?.toString(),
+    85,
+  );
 
   // Victims table rows
   final victims = doc['victims'];
   if (victims is List) {
     for (int i = 0; i < victims.length; i++) {
       final item = victims[i];
-      final Map<String, dynamic> row =
-          item is Map ? Map<String, dynamic>.from(item) : {};
+      final Map<String, dynamic> row = item is Map
+          ? Map<String, dynamic>.from(item)
+          : {};
       final fields = [
         'fullName',
         'dob',
@@ -1754,13 +1992,17 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
         'occupation',
         'address',
         'injury',
-        'means'
+        'means',
       ];
       for (final field in fields) {
         final val = row[field]?.toString() ?? '';
         if (containsDevanagari(val)) {
-          await cache.add('victim_${i}_$field', val, victimValueStyle,
-              maxWidth: 100);
+          await cache.add(
+            'victim_${i}_$field',
+            val,
+            victimValueStyle,
+            maxWidth: 100,
+          );
         }
       }
     }
