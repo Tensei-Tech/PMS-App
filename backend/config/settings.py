@@ -94,6 +94,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database Configuration - Primary (Write) + Read Replicas for High Availability
 DATABASES = {}
 
+
 def is_ssl_required(db_url: str) -> bool:
     env_flag = os.getenv('DB_SSL_REQUIRE')
     if env_flag is not None:
@@ -101,6 +102,7 @@ def is_ssl_required(db_url: str) -> bool:
     if 'localhost' in db_url or '127.0.0.1' in db_url or 'sslmode=disable' in db_url:
         return False
     return True
+
 
 # 1. Primary Database (Writes & Critical Operations)
 if os.getenv('DATABASE_URL') and dj_database_url:
@@ -111,6 +113,7 @@ if os.getenv('DATABASE_URL') and dj_database_url:
         ssl_require=is_ssl_required(os.getenv('DATABASE_URL', '')),
     )
 elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWORD') != 'YOUR_SUPABASE_DB_PASSWORD':
+    is_local = os.getenv('DB_HOST') in ['localhost', '127.0.0.1']
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'postgres'),
@@ -121,7 +124,7 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
         'CONN_MAX_AGE': 600,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
-            'sslmode': os.getenv('DB_SSLMODE', 'disable' if os.getenv('DB_HOST') in ['localhost', '127.0.0.1'] else 'require'),
+            'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_local else 'require'),
         },
     }
 else:
@@ -139,6 +142,7 @@ if os.getenv('DATABASE_REPLICA_1_URL') and dj_database_url:
         ssl_require=is_ssl_required(os.getenv('DATABASE_REPLICA_1_URL', '')),
     )
 elif os.getenv('DB_REPLICA_1_HOST'):
+    is_rep1_local = os.getenv('DB_REPLICA_1_HOST') in ['localhost', '127.0.0.1']
     DATABASES['replica_1'] = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_REPLICA_1_NAME', os.getenv('DB_NAME', 'postgres')),
@@ -149,7 +153,7 @@ elif os.getenv('DB_REPLICA_1_HOST'):
         'CONN_MAX_AGE': 600,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
-            'sslmode': os.getenv('DB_SSLMODE', 'disable' if os.getenv('DB_REPLICA_1_HOST') in ['localhost', '127.0.0.1'] else 'require'),
+            'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_rep1_local else 'require'),
         },
     }
 
@@ -280,6 +284,3 @@ CACHES = {
         'TIMEOUT': 300,  # Default 5 min TTL
     }
 }
-
-
-

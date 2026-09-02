@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, status, exceptions
+from rest_framework import viewsets, permissions, exceptions
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -67,15 +67,12 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
         if not user or not user.is_authenticated:
             return CaseRecord.objects.none()
 
-        role_id = getattr(user, 'role_id', 'officer')
-
         # Dynamic DB Permission Check: District/State visibility vs Station visibility
         if check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all'):
             queryset = self.case_repo.get_all()
         else:
             stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
             queryset = self.case_repo.get_cases_for_stations(stations)
-
 
         # Apply query parameter filters
         module_key = self.request.query_params.get('module_key')
@@ -104,10 +101,10 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
         user_uid = str(getattr(user, 'uid', getattr(user, 'id', '')))
         if not user_uid:
             return Response([])
-        
+
         active_only = request.query_params.get('active_only', 'true').lower() == 'true'
         queryset = self.case_repo.get_assigned_cases_for_officer(user_uid, active_only=active_only)
-            
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -199,4 +196,3 @@ class CreateCaseView(APIView):
             ])
             case_id = cursor.fetchone()[0]
         return Response({'case_id': case_id}, status=201)
-

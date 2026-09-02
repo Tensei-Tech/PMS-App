@@ -50,6 +50,8 @@ class HierarchyAvailabilityEngine:
         active_division_names = set()
         active_station_names = set()
 
+        try:
+            with connection.cursor() as cursor:
                 # Query active district admins from users_officerprofile
                 try:
                     cursor.execute(f"""

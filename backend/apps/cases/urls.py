@@ -31,4 +31,3 @@ urlpatterns = [
     # Existing CaseRecordViewSet router
     path('', include(router.urls)),
 ]
-
