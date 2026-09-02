@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/translation_helper.dart';
 
 /// Shared AppBar for module hub screens (Pending, Forms, Monthly, Form I-V).
 class ModuleHubScreenAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -74,7 +75,7 @@ class ModuleHubScreenAppBar extends StatelessWidget implements PreferredSizeWidg
               onPressed: onAddPressed,
               icon: Icon(Icons.add_rounded, color: btnFg, size: 16),
               label: Text(
-                'Add Case',
+                TranslationHelper.translate(context, 'Add Case'),
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,

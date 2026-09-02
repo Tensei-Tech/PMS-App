@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../providers/module_registry.dart';
 import '../modules/core/models/base_record.dart';
+import '../utils/translation_helper.dart';
 
 class CaseFormScreen extends StatefulWidget {
   final String categoryName;
@@ -72,7 +73,9 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
               color: AppColors.navyDark, size: 20),
         ),
         title: Text(
-          isEdit ? 'Edit ${widget.categoryName}' : '${widget.categoryName} Form',
+          isEdit 
+              ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, widget.categoryName)}'
+              : '${TranslationHelper.translate(context, widget.categoryName)} ${TranslationHelper.translate(context, 'Form')}',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -90,7 +93,7 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
             ),
             child: Center(
               child: Text(
-                'ACTIVE',
+                TranslationHelper.translate(context, 'Active').toUpperCase(),
                 style: GoogleFonts.poppins(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -164,7 +167,7 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
           Icon(icon, size: 18, color: AppColors.goldPrimary),
           const SizedBox(width: 8),
           Text(
-            title.toUpperCase(),
+            TranslationHelper.translate(context, title).toUpperCase(),
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -203,7 +206,7 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          TranslationHelper.translate(context, label),
           style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -219,7 +222,7 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
             color: AppColors.lightText,
           ),
           decoration: InputDecoration(
-            hintText: hint,
+            hintText: hint != null ? TranslationHelper.translate(context, hint) : null,
             hintStyle: GoogleFonts.poppins(
               fontSize: 14,
               color: AppColors.lightSubText,
@@ -243,7 +246,7 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Incident Date',
+          TranslationHelper.translate(context, 'Incident Date'),
           style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -293,7 +296,7 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Priority Level',
+          TranslationHelper.translate(context, 'Priority Level'),
           style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -314,7 +317,10 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
               dropdownColor: Colors.white,
               items: ['Low', 'Medium', 'High'].map((p) => DropdownMenuItem(
                 value: p,
-                child: Text(p, style: GoogleFonts.poppins(fontSize: 14, color: AppColors.lightText)),
+                child: Text(
+                  TranslationHelper.translate(context, p),
+                  style: GoogleFonts.poppins(fontSize: 14, color: AppColors.lightText),
+                ),
               )).toList(),
               onChanged: (v) => setState(() => _priority = v!),
             ),
@@ -404,7 +410,7 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
         ),
         child: Text(
-          isEdit ? 'Update Details' : 'Submit Application',
+          TranslationHelper.translate(context, isEdit ? 'Update Details' : 'Submit Application'),
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w700,

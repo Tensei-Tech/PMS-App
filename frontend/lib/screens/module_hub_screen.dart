@@ -3437,7 +3437,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     onPressed: () => _openNewEntryForm(context),
                     icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
                     label: Text(
-                      '+ Add New ${widget.moduleLabel} Case',
+                      '+ ${TranslationHelper.translate(context, 'Add New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'case')}',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import 'base_form_styles.dart';
+import '../../utils/translation_helper.dart';
 
 /// Unified text field for standalone data-entry forms.
 class StandardTextField extends StatelessWidget {
@@ -46,8 +47,8 @@ class StandardTextField extends StatelessWidget {
       textAlign: TextAlign.start,
       style: BaseFormStyles.fieldTextStyle,
       decoration: BaseFormStyles.inputDecoration(
-        label,
-        hintText: hint,
+        TranslationHelper.translate(context, label),
+        hintText: hint != null ? TranslationHelper.translate(context, hint!) : null,
         suffixIcon: suffixIcon,
       ).copyWith(
         prefixIcon: prefixIcon != null

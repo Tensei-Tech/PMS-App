@@ -1836,7 +1836,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     children: [
                       Text(
-                        'View Profile',
+                        TranslationHelper.translate(context, 'View Profile'),
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
                           color: AppColors.goldPrimary,
@@ -2620,7 +2620,7 @@ class _HomeTabState extends State<_HomeTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        label,
+                        TranslationHelper.translate(context, label),
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -2650,7 +2650,7 @@ class _HomeTabState extends State<_HomeTab> {
                   );
                 },
                 child: Text(
-                  'Need full station view? Ask your PI for access.',
+                  TranslationHelper.translate(context, 'Need full station view? Ask your PI for access.'),
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     color: AppColors.infoBlue,
@@ -3087,14 +3087,14 @@ class _HomeTabState extends State<_HomeTab> {
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: Text(item.tag,
+                  child: Text(TranslationHelper.translate(context, item.tag),
                       style: GoogleFonts.poppins(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: Colors.white)),
                 ),
                 const SizedBox(height: 6),
-                Text(item.title,
+                Text(TranslationHelper.translate(context, item.title),
                     style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -3102,7 +3102,7 @@ class _HomeTabState extends State<_HomeTab> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Text(item.description,
+                Text(TranslationHelper.translate(context, item.description),
                     style: GoogleFonts.poppins(
                         fontSize: 11, color: Colors.white70),
                     maxLines: 2,
@@ -3141,7 +3141,7 @@ class _HomeTabState extends State<_HomeTab> {
         onChanged: _onSearchChanged,
         style: GoogleFonts.poppins(color: AppColors.lightText, fontSize: 14),
         decoration: InputDecoration(
-          hintText: 'Search cases or type module (e.g. Murder, Theft, Missing)...',
+          hintText: TranslationHelper.translate(context, 'Search cases or type module (e.g. Murder, Theft, Missing)...'),
           hintStyle:
               GoogleFonts.poppins(color: AppColors.lightSubText, fontSize: 13),
           prefixIcon:
