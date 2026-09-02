@@ -1,14 +1,14 @@
 name: Django CI
-
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'backend/**'          # adjust to your backend folder name
-  pull_request:
-    branches: [main]
-    paths:
-      - 'backend/**'
+     workflow_dispatch:
+     push:
+       branches: [main]
+       paths:
+         - 'backend/**'
+     pull_request:
+       branches: [main]
+       paths:
+         - 'backend/**'
 
 jobs:
   test:
