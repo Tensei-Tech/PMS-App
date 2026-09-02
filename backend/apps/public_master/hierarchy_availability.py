@@ -52,41 +52,52 @@ class HierarchyAvailabilityEngine:
 
         try:
             with connection.cursor() as cursor:
-                # Query active district admins from users_officerprofile
-                try:
-                    cursor.execute(f"""
-                    SELECT DISTINCT district FROM "{clean_schema}".users_officerprofile
-                    WHERE (role_id IN ('district_admin', 'super_admin', 'state_super_admin') OR designation IN ('SP', 'CP', 'SSP', 'DIG', 'IG', 'DGP'))
-                    AND account_status = 'active';
-                    """)
-                    for r in cursor.fetchall():
-                        if r[0]:
-                            active_district_names.add(r[0].strip().lower())
-                except Exception:
-                    pass
+                cursor.execute(
+                    "SELECT 1 FROM information_schema.tables WHERE table_schema = %s AND table_name = 'users_officerprofile';",
+                    [clean_schema]
+                )
+                table_exists = bool(cursor.fetchone())
 
-                # Query district_admins table if exists
-                try:
-                    cursor.execute(f"""
-                    SELECT DISTINCT d.name FROM "{clean_schema}".district_admins da
-                    JOIN "{clean_schema}".districts d ON da.district_id = d.district_id
-                    WHERE da.status = 'active';
-                    """)
-                    for r in cursor.fetchall():
-                        if r[0]:
-                            active_district_names.add(r[0].strip().lower())
-                except Exception:
-                    pass
+            if table_exists:
+                with connection.cursor() as cursor:
+                    # Query active district admins from users_officerprofile
+                    try:
+                        cursor.execute(f"""
+                        SELECT DISTINCT district FROM "{clean_schema}".users_officerprofile
+                        WHERE (role_id IN ('district_admin', 'super_admin', 'state_super_admin') OR designation IN ('SP', 'CP', 'SSP', 'DIG', 'IG', 'DGP'))
+                        AND account_status = 'active';
+                        """)
+                        for r in cursor.fetchall():
+                            if r[0]:
+                                active_district_names.add(r[0].strip().lower())
+                    except Exception:
+                        pass
 
-                # Query active station heads
-                cursor.execute(f"""
-                SELECT DISTINCT station_name FROM "{clean_schema}".users_officerprofile
-                WHERE (role_id IN ('station_head', 'sho') OR designation IN ('Senior PI', 'SHO', 'PI'))
-                AND account_status = 'active';
-                """)
-                for r in cursor.fetchall():
-                    if r[0]:
-                        active_station_names.add(r[0].strip().lower())
+                    # Query district_admins table if exists
+                    try:
+                        cursor.execute(f"""
+                        SELECT DISTINCT d.name FROM "{clean_schema}".district_admins da
+                        JOIN "{clean_schema}".districts d ON da.district_id = d.district_id
+                        WHERE da.status = 'active';
+                        """)
+                        for r in cursor.fetchall():
+                            if r[0]:
+                                active_district_names.add(r[0].strip().lower())
+                    except Exception:
+                        pass
+
+                    # Query active station heads
+                    try:
+                        cursor.execute(f"""
+                        SELECT DISTINCT station_name FROM "{clean_schema}".users_officerprofile
+                        WHERE (role_id IN ('station_head', 'sho') OR designation IN ('Senior PI', 'SHO', 'PI'))
+                        AND account_status = 'active';
+                        """)
+                        for r in cursor.fetchall():
+                            if r[0]:
+                                active_station_names.add(r[0].strip().lower())
+                    except Exception:
+                        pass
         except Exception as e:
             logger.warning(f"[HierarchyAvailability] Exception reading tenant schema tables: {e}")
 
