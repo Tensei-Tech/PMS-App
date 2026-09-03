@@ -18,12 +18,18 @@ class TransferRequestService {
   Future<TransferRequest?> getActiveRequestForUser(String uid) async {
     if (uid.isEmpty) return null;
     try {
-      final res = await _api.get('${ApiConfig.transfers}?uid=$uid&status=pending');
-      if (res.statusCode == 200 && res.data is List && (res.data as List).isNotEmpty) {
-        return TransferRequest.fromMap((res.data as List).first, (res.data as List).first['id']);
+      final res =
+          await _api.get('${ApiConfig.transfers}?uid=$uid&status=pending');
+      if (res.statusCode == 200 &&
+          res.data is List &&
+          (res.data as List).isNotEmpty) {
+        return TransferRequest.fromMap(
+            (res.data as List).first, (res.data as List).first['id']);
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('TransferRequestService.getActiveRequestForUser: $e');
+      if (kDebugMode) {
+        debugPrint('TransferRequestService.getActiveRequestForUser: $e');
+      }
     }
     return null;
   }
@@ -38,11 +44,16 @@ class TransferRequestService {
     if (uid.isEmpty) return null;
     try {
       final res = await _api.get('${ApiConfig.transfers}?uid=$uid');
-      if (res.statusCode == 200 && res.data is List && (res.data as List).isNotEmpty) {
-        return TransferRequest.fromMap((res.data as List).first, (res.data as List).first['id']);
+      if (res.statusCode == 200 &&
+          res.data is List &&
+          (res.data as List).isNotEmpty) {
+        return TransferRequest.fromMap(
+            (res.data as List).first, (res.data as List).first['id']);
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('TransferRequestService.getLatestStatusRequestForUser: $e');
+      if (kDebugMode) {
+        debugPrint('TransferRequestService.getLatestStatusRequestForUser: $e');
+      }
     }
     return null;
   }
@@ -54,7 +65,8 @@ class TransferRequestService {
     String? approverDesignation,
   }) async {
     try {
-      final url = '${ApiConfig.transfers}?status=pending&to_station_name=${Uri.encodeComponent(homeStationName)}&to_district=${Uri.encodeComponent(district)}';
+      final url =
+          '${ApiConfig.transfers}?status=pending&to_station_name=${Uri.encodeComponent(homeStationName)}&to_district=${Uri.encodeComponent(district)}';
       final res = await _api.get(url);
       if (res.statusCode == 200 && res.data is List) {
         return (res.data as List)
@@ -62,13 +74,17 @@ class TransferRequestService {
             .toList();
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('TransferRequestService.getPendingForApprover: $e');
+      if (kDebugMode) {
+        debugPrint('TransferRequestService.getPendingForApprover: $e');
+      }
     }
     return [];
   }
 
   Future<String> createRequest(TransferRequest request) async {
-    final id = request.id.isNotEmpty ? request.id : '${DateTime.now().millisecondsSinceEpoch}';
+    final id = request.id.isNotEmpty
+        ? request.id
+        : '${DateTime.now().millisecondsSinceEpoch}';
     final payload = {
       'id': id,
       'requested_by_uid': request.requestedByUid,
@@ -118,4 +134,3 @@ class TransferRequestService {
     });
   }
 }
-

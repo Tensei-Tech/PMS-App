@@ -47,8 +47,7 @@ class _AnalyticsPerformanceScreenState
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon:
-              const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,9 +452,8 @@ class _AnalyticsPerformanceScreenState
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
-                        value: records.isNotEmpty
-                            ? e.value / records.length
-                            : 0.0,
+                        value:
+                            records.isNotEmpty ? e.value / records.length : 0.0,
                         minHeight: 6,
                         backgroundColor: AppColors.lightBg,
                         valueColor: const AlwaysStoppedAnimation<Color>(
@@ -571,8 +569,8 @@ class _AnalyticsPerformanceScreenState
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.warningOrange
-                                .withValues(alpha: 0.15),
+                            color:
+                                AppColors.warningOrange.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(

@@ -12,7 +12,8 @@ Future<void> previewGroundOfArrestPdf(
 ) async {
   final bytes = await generateGroundOfArrestPdf(doc);
   if (!context.mounted) return;
-  final fileName = 'Ground_of_Arrest_${DateTime.now().millisecondsSinceEpoch}.pdf';
+  final fileName =
+      'Ground_of_Arrest_${DateTime.now().millisecondsSinceEpoch}.pdf';
   try {
     if (kIsWeb) {
       await Printing.sharePdf(bytes: bytes, filename: fileName);
@@ -32,8 +33,10 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
   final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
 
   final body = pw.TextStyle(font: loraRegular, fontSize: 10);
-  final bold = pw.TextStyle(font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
-  final title = pw.TextStyle(font: loraBold, fontSize: 14, fontWeight: pw.FontWeight.bold);
+  final bold = pw.TextStyle(
+      font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
+  final title = pw.TextStyle(
+      font: loraBold, fontSize: 14, fontWeight: pw.FontWeight.bold);
   final mr = pw.TextStyle(font: devanagari, fontSize: 9);
   final mrBold = pw.TextStyle(font: devanagariBold, fontSize: 10);
 
@@ -54,7 +57,8 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
   }
 
   final section = v('formSection').toLowerCase();
-  final showMain = section.isEmpty || (section.contains('main') && !section.contains('continuation'));
+  final showMain = section.isEmpty ||
+      (section.contains('main') && !section.contains('continuation'));
   final showCont = section.isEmpty || section.contains('continuation');
 
   if (showMain) {
@@ -65,16 +69,20 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Center(child: pw.Text('NOTICE — Section 47(1)(2) BNSS', style: title)),
+            pw.Center(
+                child: pw.Text('NOTICE — Section 47(1)(2) BNSS', style: title)),
             pw.Center(child: pw.Text('सूचनापत्र', style: mrBold)),
             pw.SizedBox(height: 12),
-            row('Outward No.', 'जावक क्र.', '${v('outwardNo')}/${v('outwardYear')}'),
+            row('Outward No.', 'जावक क्र.',
+                '${v('outwardNo')}/${v('outwardYear')}'),
             row('Police Station', 'पोलीस स्टेशन', v('policeStation')),
-            row('Taluka / District', 'ता./जिल्हा', '${v('taluka')} / ${v('district')}'),
+            row('Taluka / District', 'ता./जिल्हा',
+                '${v('taluka')} / ${v('district')}'),
             row('Date', 'दिनांक', v('noticeDate')),
             row('To', 'प्रति', v('accusedNameAddress')),
             row('CR No.', 'गु.र.क्र.', v('subjectCrNo')),
-            row('Section / BNS', 'कलम', '${v('subjectSection')} ${v('subjectBns')}'),
+            row('Section / BNS', 'कलम',
+                '${v('subjectSection')} ${v('subjectBns')}'),
             row('IO', 'तपासी अधिकारी', v('ioName')),
             row('Brief description', 'संक्षिप्त विवरण', v('briefDescription')),
           ],
@@ -94,12 +102,14 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
             pw.Text('Grounds of Arrest', style: title),
             pw.Text('अटकेचे आधार', style: mrBold),
             pw.SizedBox(height: 10),
-            for (var i = 1; i <= 5; i++)
-              row('Ground $i', '$i.', v('ground$i')),
+            for (var i = 1; i <= 5; i++) row('Ground $i', '$i.', v('ground$i')),
             pw.SizedBox(height: 8),
-            row('Relative informed', 'नातेवाईक', '${v('relativeName')} ${v('relativeAddress')} ${v('relativePhone')}'),
-            row('Accused sig / date', 'आरोपी', '${v('accusedSig')} ${v('accusedDateTime')}'),
-            row('IO sig / rank / PS', FormIoTerminology.officer, '${v('ioSig')} ${v('ioNameRank')} ${v('ioPs')}'),
+            row('Relative informed', 'नातेवाईक',
+                '${v('relativeName')} ${v('relativeAddress')} ${v('relativePhone')}'),
+            row('Accused sig / date', 'आरोपी',
+                '${v('accusedSig')} ${v('accusedDateTime')}'),
+            row('IO sig / rank / PS', FormIoTerminology.officer,
+                '${v('ioSig')} ${v('ioNameRank')} ${v('ioPs')}'),
           ],
         ),
       ),

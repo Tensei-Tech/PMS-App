@@ -150,8 +150,8 @@ class NcFormState extends State<NcForm> {
   }
 
   void saveDraft() {
-    setState(() =>
-        saveBarText = 'Draft saved · ${TimeOfDay.now().format(context)}');
+    setState(
+        () => saveBarText = 'Draft saved · ${TimeOfDay.now().format(context)}');
   }
 
   void clearForm() {
@@ -216,8 +216,12 @@ class NcFormState extends State<NcForm> {
       final y = int.tryParse(p[2]);
       if (d == null || m == null || y == null) return parsedFallback ?? now;
       final dt = DateTime(y, m, d);
-      if (dt.year != y || dt.month != m || dt.day != d) return parsedFallback ?? now;
-      if (dt.isBefore(DateTime(2000)) || dt.isAfter(now)) return parsedFallback ?? now;
+      if (dt.year != y || dt.month != m || dt.day != d) {
+        return parsedFallback ?? now;
+      }
+      if (dt.isBefore(DateTime(2000)) || dt.isAfter(now)) {
+        return parsedFallback ?? now;
+      }
       return dt;
     }
 
@@ -414,7 +418,8 @@ class NcFormState extends State<NcForm> {
         _chargeData[id] = {
           'act': _s(raw['act']),
           'sections': <String>{
-            if (secs is Iterable) for (final s in secs) s.toString(),
+            if (secs is Iterable)
+              for (final s in secs) s.toString(),
           },
         };
       }
@@ -459,13 +464,17 @@ class NcFormState extends State<NcForm> {
     final io = m['investigationOfficer'];
     if (io is Map) {
       final d = _s(io['designation']);
-      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) _ioDesig = d;
+      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) {
+        _ioDesig = d;
+      }
       _ioName.text = _s(io['name']);
     }
     final rb = m['registeredBy'];
     if (rb is Map) {
       final d = _s(rb['designation']);
-      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) _regDesig = d;
+      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) {
+        _regDesig = d;
+      }
       _registrarName.text = _s(rb['name']);
     }
     final prev = m['preventives'];
@@ -558,18 +567,14 @@ class NcFormState extends State<NcForm> {
       },
       'firstInformationContent': _fic.text.trim(),
       'chargesAddedOnNc': _chargesAddedOnNc,
-      'crNumberIfChargesAdded': _chargesAddedOnNc == 'yes'
-          ? _crNumberIfCharges.text.trim()
-          : '',
+      'crNumberIfChargesAdded':
+          _chargesAddedOnNc == 'yes' ? _crNumberIfCharges.text.trim() : '',
     };
   }
 
   void _onFicChanged(String v) {
-    final words = v
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
+    final words =
+        v.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
     if (words.length > 25) {
       final allowed = words.take(25).join(' ');
       _fic.value = TextEditingValue(
@@ -595,8 +600,7 @@ class NcFormState extends State<NcForm> {
         labelText: label,
         labelStyle: _tsLabel,
         isDense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
         filled: true,
         fillColor: _kInputBg,
         border: OutlineInputBorder(
@@ -878,8 +882,9 @@ class NcFormState extends State<NcForm> {
           const SizedBox(height: 8),
           _chipSelector(
             label: 'Act / Law',
-            items:
-                ACT_DATA.keys.map((k) => ACT_DATA[k]!['label'] as String).toList(),
+            items: ACT_DATA.keys
+                .map((k) => ACT_DATA[k]!['label'] as String)
+                .toList(),
             selected: hasAct ? (ACT_DATA[actKey]!['label'] as String) : null,
             onSelect: (label) {
               final key = ACT_DATA.entries
@@ -934,8 +939,8 @@ class NcFormState extends State<NcForm> {
               controller: _regDateTime,
               readOnly: true,
               style: _tsBody,
-              decoration: _d('Registration Date & Time (dd/MM/yyyy HH:mm)')
-                  .copyWith(
+              decoration:
+                  _d('Registration Date & Time (dd/MM/yyyy HH:mm)').copyWith(
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.calendar_today_rounded,
                       size: 18, color: _kTeal),
@@ -1098,14 +1103,12 @@ class NcFormState extends State<NcForm> {
                         controller: p.outwardDate,
                         readOnly: true,
                         style: _tsBody,
-                        decoration:
-                            _d('Outward Date (dd/MM/yyyy)').copyWith(
+                        decoration: _d('Outward Date (dd/MM/yyyy)').copyWith(
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.calendar_today_rounded,
                                 size: 18, color: _kTeal),
                             tooltip: 'Pick date',
-                            onPressed: () =>
-                                _pickDateFor(p.outwardDate),
+                            onPressed: () => _pickDateFor(p.outwardDate),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
                                 minHeight: 32, minWidth: 36),
@@ -1137,14 +1140,12 @@ class NcFormState extends State<NcForm> {
                         readOnly: true,
                         style: _tsBody,
                         decoration:
-                            _d('Bond Cancellation Date (dd/MM/yyyy)')
-                                .copyWith(
+                            _d('Bond Cancellation Date (dd/MM/yyyy)').copyWith(
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.calendar_today_rounded,
                                 size: 18, color: _kTeal),
                             tooltip: 'Pick date',
-                            onPressed: () =>
-                                _pickDateFor(p.bondCancel),
+                            onPressed: () => _pickDateFor(p.bondCancel),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
                                 minHeight: 32, minWidth: 36),
@@ -1253,8 +1254,7 @@ class NcFormState extends State<NcForm> {
                   Expanded(child: Text(saveBarText, style: _tsMuted)),
                   _barBtn('Clear', Icons.refresh_outlined, clearForm, _kRed),
                   const SizedBox(width: 6),
-                  _barBtn(
-                      'Save Draft', Icons.save_outlined, saveDraft, _kTeal),
+                  _barBtn('Save Draft', Icons.save_outlined, saveDraft, _kTeal),
                 ],
               ),
             ),
@@ -1267,21 +1267,21 @@ class NcFormState extends State<NcForm> {
                 children: [
                   BaseFormContent.scrollSections(
                     children: [
-                  _card(1, 'NC Number', _row([_tf('NC Number', _ncNumber)]),
-                      startOpen: true),
-                  _card(2, 'Acts & Sections', _sCharges(), startOpen: true),
-                  _card(3, 'Registration Date & Time', _sRegDt(),
-                      startOpen: true),
-                  _card(4, 'Crime Spot', _sSpot()),
-                  _card(5, 'Complainant KYC', _sComplainant()),
-                  _card(6, 'Person Complained Against KYC', _sAgainst()),
-                  _card(7, 'Investigation Officer', _sIo()),
-                  _card(8, 'Registered By', _sRegBy()),
-                  _card(9, 'Preventives', _sPreventives()),
-                  _card(10, 'Outward Number & Date', _sCaseOutward()),
-                  _card(11, 'First Information Content', _sFic()),
-                  _card(12, 'Charges Added on NC', _sChargesAdded()),
-                  const SizedBox(height: 80),
+                      _card(1, 'NC Number', _row([_tf('NC Number', _ncNumber)]),
+                          startOpen: true),
+                      _card(2, 'Acts & Sections', _sCharges(), startOpen: true),
+                      _card(3, 'Registration Date & Time', _sRegDt(),
+                          startOpen: true),
+                      _card(4, 'Crime Spot', _sSpot()),
+                      _card(5, 'Complainant KYC', _sComplainant()),
+                      _card(6, 'Person Complained Against KYC', _sAgainst()),
+                      _card(7, 'Investigation Officer', _sIo()),
+                      _card(8, 'Registered By', _sRegBy()),
+                      _card(9, 'Preventives', _sPreventives()),
+                      _card(10, 'Outward Number & Date', _sCaseOutward()),
+                      _card(11, 'First Information Content', _sFic()),
+                      _card(12, 'Charges Added on NC', _sChargesAdded()),
+                      const SizedBox(height: 80),
                     ],
                   ),
                 ],
@@ -1323,8 +1323,7 @@ class _NcSectionSearchPicker extends StatefulWidget {
   final ValueChanged<String> onRemove;
 
   @override
-  State<_NcSectionSearchPicker> createState() =>
-      _NcSectionSearchPickerState();
+  State<_NcSectionSearchPicker> createState() => _NcSectionSearchPickerState();
 }
 
 class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {

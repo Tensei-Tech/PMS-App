@@ -21,8 +21,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
   final _campNoCtrl = TextEditingController();
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
-  final _dateYearCtrl = TextEditingController(
-      text: DateTime.now().year.toString().substring(2));
+  final _dateYearCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
   final _panch1NameCtrl = TextEditingController();
   final _panch2NameCtrl = TextEditingController();
   final _bodyCtrl = TextEditingController();
@@ -114,7 +114,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                       ResponsiveFieldRow(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('कंप :', style: marathiLabelStyle.copyWith(fontSize: 12)),
+                          Text('कंप :',
+                              style: marathiLabelStyle.copyWith(fontSize: 12)),
                           const SizedBox(width: 4),
                           Expanded(
                             child: BilingualSimpleUnderlineInput(
@@ -128,7 +129,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('दिनांक :- ', style: marathiLabelStyle.copyWith(fontSize: 12)),
+                          Text('दिनांक :- ',
+                              style: marathiLabelStyle.copyWith(fontSize: 12)),
                           const SizedBox(width: 4),
                           SizedBox(
                             width: 35,
@@ -145,7 +147,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                               serifStyle: serifStyle,
                             ),
                           ),
-                          Text(' / २०', style: marathiLabelStyle.copyWith(fontSize: 12)),
+                          Text(' / २०',
+                              style: marathiLabelStyle.copyWith(fontSize: 12)),
                           SizedBox(
                             width: 35,
                             child: BilingualSimpleUnderlineInput(
@@ -168,7 +171,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 8, right: 12),
-                  child: Text('पंच नांव', style: marathiLabelStyle.copyWith(fontSize: 12)),
+                  child: Text('पंच नांव',
+                      style: marathiLabelStyle.copyWith(fontSize: 12)),
                 ),
                 Expanded(
                   child: Column(
@@ -176,7 +180,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                       ResponsiveFieldRow(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(': १)', style: marathiLabelStyle.copyWith(fontSize: 12)),
+                          Text(': १)',
+                              style: marathiLabelStyle.copyWith(fontSize: 12)),
                           const SizedBox(width: 4),
                           Expanded(
                             child: BilingualSimpleUnderlineInput(
@@ -190,7 +195,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                       ResponsiveFieldRow(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('  २)', style: marathiLabelStyle.copyWith(fontSize: 12)),
+                          Text('  २)',
+                              style: marathiLabelStyle.copyWith(fontSize: 12)),
                           const SizedBox(width: 4),
                           Expanded(
                             child: BilingualSimpleUnderlineInput(
@@ -210,7 +216,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
             // --- PANCHANAMA BODY ---
             BilingualDynamicLinedTextField(
               controller: _bodyCtrl,
-              minLines: 45, // Increased to natively stretch the container to A4 proportions
+              minLines:
+                  45, // Increased to natively stretch the container to A4 proportions
               serifStyle: serifStyle,
             ),
             const SizedBox(height: 32),
@@ -226,7 +233,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('तपासी अंमलदार', style: marathiLabelStyle.copyWith(fontSize: 12)),
+                      Text('तपासी अंमलदार',
+                          style: marathiLabelStyle.copyWith(fontSize: 12)),
                       const SizedBox(height: 8),
                       SizedBox(
                         width: 200,
@@ -248,7 +256,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                       ResponsiveFieldRow(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('पंच सही :- १) ', style: marathiLabelStyle.copyWith(fontSize: 12)),
+                          Text('पंच सही :- १) ',
+                              style: marathiLabelStyle.copyWith(fontSize: 12)),
                           Expanded(
                             child: BilingualSimpleUnderlineInput(
                               controller: _panchSig1Ctrl,
@@ -261,7 +270,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                       ResponsiveFieldRow(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('              २) ', style: marathiLabelStyle.copyWith(fontSize: 12)),
+                          Text('              २) ',
+                              style: marathiLabelStyle.copyWith(fontSize: 12)),
                           Expanded(
                             child: BilingualSimpleUnderlineInput(
                               controller: _panchSig2Ctrl,

@@ -13,7 +13,14 @@ Future<void> previewBnssPanchNoticePdf(
       titleMr: 'पंच सूचनापत्र',
       titleEn: 'Panch Notice BNSS',
       fieldKeys: [
-        'noticeType', 'outwardNo', 'policeStation', 'noticeDate',
-        'toNameAddress', 'crNo', 'noticeBody', 'ioName', 'receiptName',
+        'noticeType',
+        'outwardNo',
+        'policeStation',
+        'noticeDate',
+        'toNameAddress',
+        'crNo',
+        'noticeBody',
+        'ioName',
+        'receiptName',
       ],
     );

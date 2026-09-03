@@ -27,7 +27,8 @@ class JuvenileSocialReportFormView extends StatefulWidget {
       JuvenileSocialReportFormViewState();
 }
 
-class JuvenileSocialReportFormViewState extends State<JuvenileSocialReportFormView> {
+class JuvenileSocialReportFormViewState
+    extends State<JuvenileSocialReportFormView> {
   static const kPartI = 'Juvenile Social Part I';
   static const kPartII = 'Juvenile Social Part II';
   static const kPartIII = 'Juvenile Social Part III';
@@ -105,34 +106,88 @@ class JuvenileSocialReportFormViewState extends State<JuvenileSocialReportFormVi
         Center(
           child: Column(
             children: [
-              Text('JUVENILE SOCIAL BACKGROUND REPORT', style: serif.copyWith(fontSize: 15, fontWeight: FontWeight.bold)),
-              Text('विधी संघर्षित बालक सामाजिक पार्श्वभूमी अहवाल', style: marathi.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+              Text('JUVENILE SOCIAL BACKGROUND REPORT',
+                  style: serif.copyWith(
+                      fontSize: 15, fontWeight: FontWeight.bold)),
+              Text('विधी संघर्षित बालक सामाजिक पार्श्वभूमी अहवाल',
+                  style: marathi.copyWith(
+                      fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
         const SizedBox(height: 16),
         BilingualFieldRow(
           fields: [
-            BilingualField(label: 'Report No.', marathiLabel: 'अहवाल क्र.', controller: _fields['reportNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['reportDate']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Report No.',
+                marathiLabel: 'अहवाल क्र.',
+                controller: _fields['reportNo']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Date',
+                marathiLabel: 'दिनांक',
+                controller: _fields['reportDate']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
           ],
         ),
-        BilingualField(label: 'Police Station', marathiLabel: 'पोलीस स्टेशन', controller: _fields['policeStation']!, serifStyle: serif, marathiLabelStyle: marathi),
+        BilingualField(
+            label: 'Police Station',
+            marathiLabel: 'पोलीस स्टेशन',
+            controller: _fields['policeStation']!,
+            serifStyle: serif,
+            marathiLabelStyle: marathi),
         BilingualFieldRow(
           fields: [
-            BilingualField(label: 'CR No.', marathiLabel: 'गु.र.क्र.', controller: _fields['crNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'CR No.',
+                marathiLabel: 'गु.र.क्र.',
+                controller: _fields['crNo']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Section',
+                marathiLabel: 'कलम',
+                controller: _fields['section']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
           ],
         ),
-        BilingualWideField(label: 'Juvenile name & address', marathiLabel: 'विधी संघर्षित बालकाचे नाव व पत्ता', controller: _fields['juvenileName']!, serifStyle: serif, marathiLabelStyle: marathi),
+        BilingualWideField(
+            label: 'Juvenile name & address',
+            marathiLabel: 'विधी संघर्षित बालकाचे नाव व पत्ता',
+            controller: _fields['juvenileName']!,
+            serifStyle: serif,
+            marathiLabelStyle: marathi),
         BilingualFieldRow(
           fields: [
-            BilingualField(label: 'Age', marathiLabel: 'वय', controller: _fields['juvenileAge']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Sex', marathiLabel: 'लिंग', controller: _fields['juvenileSex']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Age',
+                marathiLabel: 'वय',
+                controller: _fields['juvenileAge']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Sex',
+                marathiLabel: 'लिंग',
+                controller: _fields['juvenileSex']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
           ],
         ),
-        BilingualField(label: 'Guardian name', marathiLabel: 'पालकाचे नाव', controller: _fields['guardianName']!, serifStyle: serif, marathiLabelStyle: marathi),
-        BilingualWideField(label: 'Guardian address', marathiLabel: 'पालकाचा पत्ता', controller: _fields['guardianAddress']!, serifStyle: serif, marathiLabelStyle: marathi),
+        BilingualField(
+            label: 'Guardian name',
+            marathiLabel: 'पालकाचे नाव',
+            controller: _fields['guardianName']!,
+            serifStyle: serif,
+            marathiLabelStyle: marathi),
+        BilingualWideField(
+            label: 'Guardian address',
+            marathiLabel: 'पालकाचा पत्ता',
+            controller: _fields['guardianAddress']!,
+            serifStyle: serif,
+            marathiLabelStyle: marathi),
       ],
     );
   }
@@ -237,11 +292,26 @@ class JuvenileSocialReportFormViewState extends State<JuvenileSocialReportFormVi
         ),
         BilingualFieldRow(
           fields: [
-            BilingualField(label: 'Name', marathiLabel: 'नाव', controller: _fields['probationOfficerName']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['probationOfficerDate']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Name',
+                marathiLabel: 'नाव',
+                controller: _fields['probationOfficerName']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Date',
+                marathiLabel: 'दिनांक',
+                controller: _fields['probationOfficerDate']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
           ],
         ),
-        BilingualField(label: 'Signature', marathiLabel: 'सही', controller: _fields['probationOfficerSig']!, serifStyle: serif, marathiLabelStyle: marathi),
+        BilingualField(
+            label: 'Signature',
+            marathiLabel: 'सही',
+            controller: _fields['probationOfficerSig']!,
+            serifStyle: serif,
+            marathiLabelStyle: marathi),
         const SizedBox(height: 16),
         FormIoSignatureBlock(
           nameCtrl: _fields['ioName']!,
@@ -260,9 +330,24 @@ class JuvenileSocialReportFormViewState extends State<JuvenileSocialReportFormVi
         ),
         BilingualFieldRow(
           fields: [
-            BilingualField(label: 'Name', marathiLabel: 'नाव', controller: _fields['shoName']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Rank', marathiLabel: 'पद', controller: _fields['shoRank']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'P.S.', marathiLabel: 'पोलीस स्टेशन', controller: _fields['shoPs']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Name',
+                marathiLabel: 'नाव',
+                controller: _fields['shoName']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Rank',
+                marathiLabel: 'पद',
+                controller: _fields['shoRank']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'P.S.',
+                marathiLabel: 'पोलीस स्टेशन',
+                controller: _fields['shoPs']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
           ],
         ),
         const SizedBox(height: 16),

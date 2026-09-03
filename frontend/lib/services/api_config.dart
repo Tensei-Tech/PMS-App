@@ -4,14 +4,16 @@ import 'dart:io' show Platform;
 /// Configuration class for Django REST API endpoints and base URL.
 class ApiConfig {
   /// Base URL override via --dart-define=API_BASE_URL=https://...
-  static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+  static const String _envBaseUrl =
+      String.fromEnvironment('API_BASE_URL', defaultValue: '');
 
   /// Environment flag: --dart-define=IS_DEV=true (Switches to Local Dev Server).
   /// Default is false (Render Cloud Backend).
   static const bool isDev = bool.fromEnvironment('IS_DEV', defaultValue: false);
 
   /// Default Render Cloud Backend URL (Hardcoded Default)
-  static const String renderBackendUrl = 'https://pms-app-backend.onrender.com/api';
+  static const String renderBackendUrl =
+      'https://pms-app-backend.onrender.com/api';
 
   /// Default local development port
   static const int defaultPort = 8000;
@@ -55,7 +57,10 @@ class ApiConfig {
     }
 
     // Enforce HTTPS scheme for non-localhost endpoints
-    if (url.startsWith('http://') && !url.contains('127.0.0.1') && !url.contains('localhost') && !url.contains('10.0.2.2')) {
+    if (url.startsWith('http://') &&
+        !url.contains('127.0.0.1') &&
+        !url.contains('localhost') &&
+        !url.contains('10.0.2.2')) {
       url = url.replaceFirst('http://', 'https://');
     }
     return url;
@@ -68,8 +73,10 @@ class ApiConfig {
   static String get authCheckExists => '$baseUrl/auth/check-exists/';
   static String get authTokenRefresh => '$baseUrl/auth/token/refresh/';
   static String get authPermissions => '$baseUrl/auth/me/permissions/';
-  static String get authPendingApprovals => '$baseUrl/auth/notifications/pending-approvals/';
-  static String authApproveRegistration(String uid) => '$baseUrl/auth/users/$uid/approve-registration/';
+  static String get authPendingApprovals =>
+      '$baseUrl/auth/notifications/pending-approvals/';
+  static String authApproveRegistration(String uid) =>
+      '$baseUrl/auth/users/$uid/approve-registration/';
 
   // Resource Endpoints
   static String get users => '$baseUrl/users/';

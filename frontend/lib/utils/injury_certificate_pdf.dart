@@ -13,7 +13,15 @@ Future<void> previewInjuryCertificatePdf(
       titleMr: 'जखम प्रमाणपत्र',
       titleEn: 'Injury Certificate',
       fieldKeys: [
-        'certificateNo', 'date', 'hospital', 'patientName', 'patientAge',
-        'injuryDescription', 'opinion', 'moName', 'moDesignation', 'moHospital',
+        'certificateNo',
+        'date',
+        'hospital',
+        'patientName',
+        'patientAge',
+        'injuryDescription',
+        'opinion',
+        'moName',
+        'moDesignation',
+        'moHospital',
       ],
     );

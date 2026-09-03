@@ -21,7 +21,8 @@ class StorageService {
   }
 
   /// Uploads a case document/photo and returns the download URL.
-  Future<String> uploadCaseDocument(String caseId, String fileName, File file) async {
+  Future<String> uploadCaseDocument(
+      String caseId, String fileName, File file) async {
     try {
       final ref = _storage.ref().child('cases').child(caseId).child(fileName);
       final uploadTask = await ref.putFile(file);

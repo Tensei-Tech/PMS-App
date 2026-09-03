@@ -1,7 +1,6 @@
 // lib/screens/notification_screen.dart
 // Full-page notification history — lists all received FCM notifications.
 
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -74,7 +73,8 @@ class NotificationScreen extends StatelessWidget {
                   : (auth.isSupervisor || auth.isAdmin)
                       ? firestore.getSentRemindersStream(auth.uid)
                       : (auth.stationName.isNotEmpty
-                          ? firestore.getStationRemindersStream(auth.stationName)
+                          ? firestore
+                              .getStationRemindersStream(auth.stationName)
                           : firestore.getIoRemindersStream(auth.uid)),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -82,9 +82,10 @@ class NotificationScreen extends StatelessWidget {
                 }
 
                 final reminders = snapshot.data ?? [];
-                final isSenior = SeniorOfficerRoles.isCpLevel(auth.designation) ||
-                    SeniorOfficerRoles.isSpLevel(auth.designation) ||
-                    auth.isSupervisor;
+                final isSenior =
+                    SeniorOfficerRoles.isCpLevel(auth.designation) ||
+                        SeniorOfficerRoles.isSpLevel(auth.designation) ||
+                        auth.isSupervisor;
 
                 if (reminders.isEmpty) {
                   return _buildEmptyRemindersState(isSenior: isSenior);
@@ -186,7 +187,8 @@ class NotificationScreen extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.warningOrange.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppRadius.full),

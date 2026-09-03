@@ -66,8 +66,7 @@ class _A4ZoomableViewState extends State<A4ZoomableView> {
   }
 
   void _ensureInitialTransform(double viewportWidth) {
-    if (_initializedScale &&
-        (viewportWidth - _lastViewportWidth).abs() <= 1) {
+    if (_initializedScale && (viewportWidth - _lastViewportWidth).abs() <= 1) {
       return;
     }
     _applyCenteredFitScale(viewportWidth);

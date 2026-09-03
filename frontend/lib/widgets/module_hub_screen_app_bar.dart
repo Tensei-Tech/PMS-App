@@ -5,7 +5,8 @@ import '../theme/app_theme.dart';
 import '../utils/translation_helper.dart';
 
 /// Shared AppBar for module hub screens (Pending, Forms, Monthly, Form I-V).
-class ModuleHubScreenAppBar extends StatelessWidget implements PreferredSizeWidget {
+class ModuleHubScreenAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   final String title;
   final String subtitle;
   final String badgeLabel;
@@ -29,8 +30,9 @@ class ModuleHubScreenAppBar extends StatelessWidget implements PreferredSizeWidg
     final bg = backgroundColor ?? Colors.white;
     final isDarkHeader = bg != Colors.white;
     final textColor = isDarkHeader ? Colors.white : AppColors.navyDark;
-    final subTextColor =
-        isDarkHeader ? Colors.white.withValues(alpha: 0.7) : AppColors.lightSubText;
+    final subTextColor = isDarkHeader
+        ? Colors.white.withValues(alpha: 0.7)
+        : AppColors.lightSubText;
     final iconColor = isDarkHeader ? Colors.white : AppColors.navyDark;
     final btnBg = isDarkHeader ? AppColors.goldPrimary : AppColors.navyDark;
     final btnFg = isDarkHeader ? AppColors.navyDark : Colors.white;
@@ -40,8 +42,8 @@ class ModuleHubScreenAppBar extends StatelessWidget implements PreferredSizeWidg
       elevation: 0,
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
-        icon: Icon(Icons.arrow_back_ios_new_rounded,
-            color: iconColor, size: 20),
+        icon:
+            Icon(Icons.arrow_back_ios_new_rounded, color: iconColor, size: 20),
       ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,7 +88,8 @@ class ModuleHubScreenAppBar extends StatelessWidget implements PreferredSizeWidg
               style: ElevatedButton.styleFrom(
                 backgroundColor: btnBg,
                 foregroundColor: btnFg,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 shape: const StadiumBorder(),
                 elevation: 3,
                 shadowColor: btnBg.withValues(alpha: 0.3),
@@ -101,8 +104,8 @@ class ModuleHubScreenAppBar extends StatelessWidget implements PreferredSizeWidg
             decoration: BoxDecoration(
               color: AppColors.goldPrimary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppRadius.sm),
-              border:
-                  Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: AppColors.goldPrimary.withValues(alpha: 0.3)),
             ),
             child: Center(
               child: Text(

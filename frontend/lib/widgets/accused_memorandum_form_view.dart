@@ -180,10 +180,14 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       _furtherDateCtrl.text = data['furtherDate']?.toString() ?? '';
       _furtherTimeFromCtrl.text = data['furtherTimeFrom']?.toString() ?? '';
       _furtherTimeToCtrl.text = data['furtherTimeTo']?.toString() ?? '';
-      _furtherPanch1Line1Ctrl.text = data['furtherPanch1Line1']?.toString() ?? '';
-      _furtherPanch1Line2Ctrl.text = data['furtherPanch1Line2']?.toString() ?? '';
-      _furtherPanch2Line1Ctrl.text = data['furtherPanch2Line1']?.toString() ?? '';
-      _furtherPanch2Line2Ctrl.text = data['furtherPanch2Line2']?.toString() ?? '';
+      _furtherPanch1Line1Ctrl.text =
+          data['furtherPanch1Line1']?.toString() ?? '';
+      _furtherPanch1Line2Ctrl.text =
+          data['furtherPanch1Line2']?.toString() ?? '';
+      _furtherPanch2Line1Ctrl.text =
+          data['furtherPanch2Line1']?.toString() ?? '';
+      _furtherPanch2Line2Ctrl.text =
+          data['furtherPanch2Line2']?.toString() ?? '';
       _furtherPanch1SigCtrl.text = data['furtherPanch1Sig']?.toString() ?? '';
       _furtherPanch2SigCtrl.text = data['furtherPanch2Sig']?.toString() ?? '';
     });
@@ -349,375 +353,377 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       readOnly: widget.readOnly,
       children: [
         if (_shows(kPartI))
-              FormPaperPage(
-                formLabel: widget.pageRange ?? 'Page 47',
+          FormPaperPage(
+            formLabel: widget.pageRange ?? 'Page 47',
+            children: [
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'Accused Memorandum Form',
+                      style: serifStyle.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        decoration: TextDecoration.underline,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '(आरोपीचे निवेदन पंचनामा)',
+                      style: GoogleFonts.notoSansDevanagari(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '( Panchanama u/s 23 (2) Bhartiya Saksh Adhiniyam, 2023',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      'कलम २३ (२) भारतीय साक्ष अधिनियम २०२३ )',
+                      style: marathiLabelStyle.copyWith(fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // 1) District / P.S. / Year / FIR / Date
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Column(
+                  Expanded(
+                    flex: 18,
+                    child: BilingualField(
+                      label: '1) District: ',
+                      marathiLabel: 'जिल्हा',
+                      controller: _distCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 18,
+                    child: BilingualField(
+                      label: 'P.S.: ',
+                      marathiLabel: 'पोलीस स्टेशन',
+                      controller: _psCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 10,
+                    child: BilingualField(
+                      label: 'Year: ',
+                      marathiLabel: 'वर्ष',
+                      controller: _yearCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 22,
+                    child: ResponsiveFieldRow(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Accused Memorandum Form',
-                          style: serifStyle.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                            decoration: TextDecoration.underline,
+                        Expanded(
+                          child: BilingualField(
+                            label: 'FIR No: ',
+                            marathiLabel: 'पहिली खबर क्र.',
+                            controller: _firNoCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle,
                           ),
-                          textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '(आरोपीचे निवेदन पंचनामा)',
-                          style: GoogleFonts.notoSansDevanagari(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                        Padding(
+                          padding:
+                              const EdgeInsets.only(top: 2, left: 2, right: 2),
+                          child: Text('/20', style: serifStyle),
+                        ),
+                        SizedBox(
+                          width: 35,
+                          child: BilingualSimpleUnderlineInput(
+                            controller: _firYearSuffixCtrl,
+                            serifStyle: serifStyle,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '( Panchanama u/s 23 (2) Bhartiya Saksh Adhiniyam, 2023',
-                          style: serifStyle.copyWith(fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          'कलम २३ (२) भारतीय साक्ष अधिनियम २०२३ )',
-                          style: marathiLabelStyle.copyWith(fontSize: 12),
-                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // 1) District / P.S. / Year / FIR / Date
-                  ResponsiveFieldRow(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 18,
-                        child: BilingualField(
-                          label: '1) District: ',
-                          marathiLabel: 'जिल्हा',
-                          controller: _distCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 18,
-                        child: BilingualField(
-                          label: 'P.S.: ',
-                          marathiLabel: 'पोलीस स्टेशन',
-                          controller: _psCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 10,
-                        child: BilingualField(
-                          label: 'Year: ',
-                          marathiLabel: 'वर्ष',
-                          controller: _yearCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 22,
-                        child: ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: BilingualField(
-                                label: 'FIR No: ',
-                                marathiLabel: 'पहिली खबर क्र.',
-                                controller: _firNoCtrl,
-                                serifStyle: serifStyle,
-                                marathiLabelStyle: marathiLabelStyle,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2, left: 2, right: 2),
-                              child: Text('/20', style: serifStyle),
-                            ),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _firYearSuffixCtrl,
-                                serifStyle: serifStyle,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 18,
-                        child: BilingualField(
-                          label: 'Date: ',
-                          marathiLabel: 'तारीख',
-                          controller: _headerDateCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 18,
+                    child: BilingualField(
+                      label: 'Date: ',
+                      marathiLabel: 'तारीख',
+                      controller: _headerDateCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-                  // 2) Accused name / age / sex
-                  BilingualWideField(
-                    label: '2) Name Of Accused: ',
-                    marathiLabel: 'आरोपीचे नांव व पत्ता',
-                    controller: _accusedNameCtrl,
+              // 2) Accused name / age / sex
+              BilingualWideField(
+                label: '2) Name Of Accused: ',
+                marathiLabel: 'आरोपीचे नांव व पत्ता',
+                controller: _accusedNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 12),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Age: ',
+                    marathiLabel: 'वय',
+                    controller: _accusedAgeCtrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
                   ),
-                  const SizedBox(height: 12),
-                  BilingualFieldRow(
-                    fields: [
-                      BilingualField(
-                        label: 'Age: ',
-                        marathiLabel: 'वय',
-                        controller: _accusedAgeCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Sex: ',
-                        marathiLabel: 'लिंग',
-                        controller: _accusedSexCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
+                  BilingualField(
+                    label: 'Sex: ',
+                    marathiLabel: 'लिंग',
+                    controller: _accusedSexCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
                   ),
-                  const SizedBox(height: 20),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-                  // 3) Arrest date/time
-                  BilingualSectionHeader(
-                    label: '3) Date and Time of Arrest :-',
-                    marathiLabel: 'अटकेची तारीख व वेळ',
+              // 3) Arrest date/time
+              BilingualSectionHeader(
+                label: '3) Date and Time of Arrest :-',
+                marathiLabel: 'अटकेची तारीख व वेळ',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 8),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Date: ',
+                    marathiLabel: 'तारीख',
+                    controller: _arrestDateCtrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
                   ),
-                  const SizedBox(height: 8),
-                  BilingualFieldRow(
-                    fields: [
-                      BilingualField(
-                        label: 'Date: ',
-                        marathiLabel: 'तारीख',
-                        controller: _arrestDateCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Time: ',
-                        marathiLabel: 'वेळ',
-                        controller: _arrestTimeCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
+                  BilingualField(
+                    label: 'Time: ',
+                    marathiLabel: 'वेळ',
+                    controller: _arrestTimeCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
                   ),
-                  const SizedBox(height: 20),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-                  // 4) Memorandum
-                  BilingualMultilineField(
-                    label: '4) Memorandum made by Accused :-',
-                    marathiLabel: 'आरोपीने केलेले निवेदन',
-                    controller: _memorandumCtrl,
-                    minLines: 18,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 20),
+              // 4) Memorandum
+              BilingualMultilineField(
+                label: '4) Memorandum made by Accused :-',
+                marathiLabel: 'आरोपीने केलेले निवेदन',
+                controller: _memorandumCtrl,
+                minLines: 18,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 20),
 
-                  // 5) Place / date / time
-                  BilingualWideField(
-                    label: '5) Place of Memorandum: ',
-                    marathiLabel: 'पंचनाम्याचे ठिकाण',
-                    controller: _memPlaceCtrl,
+              // 5) Place / date / time
+              BilingualWideField(
+                label: '5) Place of Memorandum: ',
+                marathiLabel: 'पंचनाम्याचे ठिकाण',
+                controller: _memPlaceCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 12),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Date: ',
+                    marathiLabel: 'तारीख',
+                    controller: _memDateCtrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
                   ),
-                  const SizedBox(height: 12),
-                  BilingualFieldRow(
-                    fields: [
-                      BilingualField(
-                        label: 'Date: ',
-                        marathiLabel: 'तारीख',
-                        controller: _memDateCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Time: ',
-                        marathiLabel: 'वेळ',
-                        controller: _memTimeFromCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'To: ',
-                        marathiLabel: 'ते',
-                        controller: _memTimeToCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
+                  BilingualField(
+                    label: 'Time: ',
+                    marathiLabel: 'वेळ',
+                    controller: _memTimeFromCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
                   ),
-                  const SizedBox(height: 20),
+                  BilingualField(
+                    label: 'To: ',
+                    marathiLabel: 'ते',
+                    controller: _memTimeToCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-                  // 6) Panchas
-                  BilingualSectionHeader(
-                    label: '6)',
-                    marathiLabel: 'पंच व सह्या',
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildPanchSignatureSection(
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                    p1l1: _panch1Line1Ctrl,
-                    p1l2: _panch1Line2Ctrl,
-                    p2l1: _panch2Line1Ctrl,
-                    p2l2: _panch2Line2Ctrl,
-                    sig1: _panch1SigCtrl,
-                    sig2: _panch2SigCtrl,
-                  ),
-                  const SizedBox(height: 24),
+              // 6) Panchas
+              BilingualSectionHeader(
+                label: '6)',
+                marathiLabel: 'पंच व सह्या',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 8),
+              _buildPanchSignatureSection(
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+                p1l1: _panch1Line1Ctrl,
+                p1l2: _panch1Line2Ctrl,
+                p2l1: _panch2Line1Ctrl,
+                p2l2: _panch2Line2Ctrl,
+                sig1: _panch1SigCtrl,
+                sig2: _panch2SigCtrl,
+              ),
+              const SizedBox(height: 24),
 
-                  // 7) Accused sig + IO
-                  BilingualSectionHeader(
-                    label: '7)',
-                    marathiLabel: 'सही',
+              // 7) Accused sig + IO
+              BilingualSectionHeader(
+                label: '7)',
+                marathiLabel: 'सही',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: BilingualSectionHeader(
+                      label: 'Accused Signature and Thump',
+                      marathiLabel: 'आरोपीची सही व अंगठा',
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                      child: _buildIoSignatureBlock(
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  )),
+                ],
+              ),
+              const SizedBox(height: 16),
+              FormMrwFooter(serifStyle: serifStyle),
+            ],
+          ),
+        if (_shows(kPartI) && (_shows(kPartII) || _showAll))
+          const SizedBox(height: 24),
+        if (_shows(kPartII))
+          FormPaperPage(
+            formLabel: widget.pageRange ?? 'Page 48',
+            children: [
+              BilingualMultilineField(
+                label: '8) Details of Further Panchanama:-',
+                marathiLabel: 'पंचनाम्याचा पुढील भाग',
+                controller: _furtherPanchanamaCtrl,
+                minLines: 18,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 12),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Date: ',
+                    marathiLabel: 'तारीख',
+                    controller: _furtherDateCtrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: BilingualSectionHeader(
-                          label: 'Accused Signature and Thump',
+                  BilingualField(
+                    label: 'Time: ',
+                    marathiLabel: 'वेळ',
+                    controller: _furtherTimeFromCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'To: ',
+                    marathiLabel: 'ते',
+                    controller: _furtherTimeToCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // 9) Panchas
+              BilingualSectionHeader(
+                label: '9)',
+                marathiLabel: 'पंच व सह्या',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 8),
+              _buildPanchSignatureSection(
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+                p1l1: _furtherPanch1Line1Ctrl,
+                p1l2: _furtherPanch1Line2Ctrl,
+                p2l1: _furtherPanch2Line1Ctrl,
+                p2l2: _furtherPanch2Line2Ctrl,
+                sig1: _furtherPanch1SigCtrl,
+                sig2: _furtherPanch2SigCtrl,
+              ),
+              const SizedBox(height: 24),
+
+              // 10) Accused sig + IO
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        BilingualSectionHeader(
+                          label: '10) Accused Signature and Thump',
                           marathiLabel: 'आरोपीची सही व अंगठा',
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
                         ),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(child: _buildIoSignatureBlock(
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      )),
-                    ],
+                        const SizedBox(height: 48),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  FormMrwFooter(serifStyle: serifStyle),
+                  const SizedBox(width: 24),
+                  Expanded(
+                      child: _buildIoSignatureBlock(
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  )),
                 ],
               ),
-        if (_shows(kPartI) && (_shows(kPartII) || _showAll))
-              const SizedBox(height: 24),
-
-        if (_shows(kPartII))
-              FormPaperPage(
-                formLabel: widget.pageRange ?? 'Page 48',
-                children: [
-                  BilingualMultilineField(
-                    label: '8) Details of Further Panchanama:-',
-                    marathiLabel: 'पंचनाम्याचा पुढील भाग',
-                    controller: _furtherPanchanamaCtrl,
-                    minLines: 18,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 12),
-                  BilingualFieldRow(
-                    fields: [
-                      BilingualField(
-                        label: 'Date: ',
-                        marathiLabel: 'तारीख',
-                        controller: _furtherDateCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Time: ',
-                        marathiLabel: 'वेळ',
-                        controller: _furtherTimeFromCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'To: ',
-                        marathiLabel: 'ते',
-                        controller: _furtherTimeToCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // 9) Panchas
-                  BilingualSectionHeader(
-                    label: '9)',
-                    marathiLabel: 'पंच व सह्या',
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildPanchSignatureSection(
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                    p1l1: _furtherPanch1Line1Ctrl,
-                    p1l2: _furtherPanch1Line2Ctrl,
-                    p2l1: _furtherPanch2Line1Ctrl,
-                    p2l2: _furtherPanch2Line2Ctrl,
-                    sig1: _furtherPanch1SigCtrl,
-                    sig2: _furtherPanch2SigCtrl,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 10) Accused sig + IO
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            BilingualSectionHeader(
-                              label: '10) Accused Signature and Thump',
-                              marathiLabel: 'आरोपीची सही व अंगठा',
-                              serifStyle: serifStyle,
-                              marathiLabelStyle: marathiLabelStyle,
-                            ),
-                            const SizedBox(height: 48),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(child: _buildIoSignatureBlock(
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      )),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  FormMrwFooter(serifStyle: serifStyle),
-                ],
-              ),
+              const SizedBox(height: 16),
+              FormMrwFooter(serifStyle: serifStyle),
             ],
+          ),
+      ],
     );
   }
 }

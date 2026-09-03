@@ -42,22 +42,23 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
     if (_hasTriggeredBiometric) return;
 
     final hasEnrolled = await _biometricService.hasEnrolledBiometrics();
-    
+
     if (!hasEnrolled) {
       if (!mounted) return;
       _showNotEnrolledDialog();
       return;
     }
 
-    final reason = _isFaceId 
-        ? 'Enable Face ID for faster login' 
+    final reason = _isFaceId
+        ? 'Enable Face ID for faster login'
         : 'Enable Fingerprint for faster login';
-    
+
     if (mounted) {
       setState(() => _hasTriggeredBiometric = true);
     }
 
-    final authenticated = await _biometricService.authenticate(localizedReason: reason);
+    final authenticated =
+        await _biometricService.authenticate(localizedReason: reason);
 
     if (!authenticated && mounted) {
       setState(() => _hasTriggeredBiometric = false);
@@ -69,7 +70,10 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isFaceId ? 'Face ID enabled successfully!' : 'Fingerprint enabled successfully!',
+            content: Text(
+                _isFaceId
+                    ? 'Face ID enabled successfully!'
+                    : 'Fingerprint enabled successfully!',
                 style: GoogleFonts.poppins()),
             backgroundColor: AppColors.successGreen,
           ),
@@ -94,7 +98,7 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
         title: Text(_isFaceId ? 'Face ID Not Set Up' : 'Fingerprint Not Set Up',
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         content: Text(
-          _isFaceId 
+          _isFaceId
               ? 'Face ID not set up. Please go to Settings > Face ID & Passcode to enroll.'
               : 'No fingerprint found. Please add a fingerprint in Settings > Security to use this feature.',
           style: GoogleFonts.poppins(),
@@ -102,7 +106,8 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: GoogleFonts.poppins(color: AppColors.lightSubText)),
+            child: Text('Cancel',
+                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
           ),
           TextButton(
             onPressed: () async {
@@ -113,7 +118,9 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
                 await launchUrl(Uri.parse('app-settings:'));
               }
             },
-            child: Text('Open Settings', style: GoogleFonts.poppins(color: AppColors.navyMid, fontWeight: FontWeight.bold)),
+            child: Text('Open Settings',
+                style: GoogleFonts.poppins(
+                    color: AppColors.navyMid, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -174,7 +181,9 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
                         ),
                         child: Center(
                           child: Icon(
-                            _isFaceId ? Icons.face_rounded : Icons.fingerprint_rounded,
+                            _isFaceId
+                                ? Icons.face_rounded
+                                : Icons.fingerprint_rounded,
                             size: isSmallScreen ? 70 : 100,
                             color: primaryColor,
                           ),
@@ -193,7 +202,7 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      _isFaceId 
+                      _isFaceId
                           ? 'If you enable Face ID, you don\'t need to enter your password when you login.'
                           : 'If you enable touch ID, you don\'t need to enter your password when you login.',
                       style: GoogleFonts.poppins(

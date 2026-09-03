@@ -19,7 +19,6 @@ class AppRoutes {
   static const String pendingTransfers = '/transfer/pending';
   static const String transferStatus = '/transfer/status';
   static const String stationAccessGrants = '/station/access-grants';
-
 }
 
 /// App-wide timeout and timing constants
@@ -27,8 +26,10 @@ class AppTimeouts {
   /// Minutes of inactivity before auto-lock
   static const int autoLockMinutes = 10;
   static const Duration autoLockDuration = Duration(minutes: autoLockMinutes);
+
   /// Search debounce delay
   static const Duration searchDebounce = Duration(milliseconds: 300);
+
   /// Carousel auto-scroll interval
   static const Duration carouselInterval = Duration(seconds: 4);
 }
@@ -46,6 +47,7 @@ class StorageKeys {
   // ── Domain 1: PIN Hashing (PBKDF2-HMAC-SHA256) ───────────────────────────
   /// PBKDF2 hash of the user's PIN (hex-encoded, 64 chars).
   static const String pinHash = 'user_pin_hash';
+
   /// Per-user cryptographic salt for PBKDF2 (hex-encoded, 64 chars).
   static const String pinSalt = 'user_pin_salt';
 
@@ -76,51 +78,51 @@ class Classification {
 
   // ── Part 1: Crime Statistics ──────────────────────────────────────────────
   static const List<Classification> statsGroup = [
-    Classification('Monthly',              'calendar_month',   'monthly'),
-    Classification('Pending',              'pending_actions',  'pending'),
-    Classification('Forms',                'description',      'form_1_5'),
-    Classification('Detected',             'search',           'detected'),
-    Classification('Undetected',           'visibility_off',   'undetected'),
-    Classification('Disposal',             'delete_forever',   'disposal'),
-    Classification('I to V',               'description',      'form_1_5'),
-    Classification('VI',                   'article',          'form_6'),
+    Classification('Monthly', 'calendar_month', 'monthly'),
+    Classification('Pending', 'pending_actions', 'pending'),
+    Classification('Forms', 'description', 'form_1_5'),
+    Classification('Detected', 'search', 'detected'),
+    Classification('Undetected', 'visibility_off', 'undetected'),
+    Classification('Disposal', 'delete_forever', 'disposal'),
+    Classification('I to V', 'description', 'form_1_5'),
+    Classification('VI', 'article', 'form_6'),
   ];
 
   // ── Part 2: Case Categories ───────────────────────────────────────────────
   static const List<Classification> casesGroup = [
-    Classification('A.D',                 'gavel',            'ad'),
-    Classification('Hurt',                'local_hospital',   'hurt'),
-    Classification('Theft',               'no_encryption',    'theft'),
-    Classification('Sand Theft',          'terrain',          'sand_theft'),
-    Classification('Two/Four\nWheeler',   'two_wheeler',      'two_four_wheeler'),
-    Classification('Kidnapping',          'child_care',       'kidnapping'),
-    Classification('Missing',             'person_search',    'missing'),
-    Classification('N.C',                 'report',           'nc'),
-    Classification('Preventive',          'security',         'preventive'),
-    Classification('Arrested',            'handcuffs',        'arrested'),
-    Classification('Absconded',           'directions_run',   'absconded'),
-    Classification('POCSO',               'shield',           'pocso'),
-    Classification('Crime against\nWomen', 'woman',            'crime_women'),
-    Classification('Juvenile',            'child_friendly',   'juvenile'),
-    Classification('Victim',              'healing',          'victim'),
+    Classification('A.D', 'gavel', 'ad'),
+    Classification('Hurt', 'local_hospital', 'hurt'),
+    Classification('Theft', 'no_encryption', 'theft'),
+    Classification('Sand Theft', 'terrain', 'sand_theft'),
+    Classification('Two/Four\nWheeler', 'two_wheeler', 'two_four_wheeler'),
+    Classification('Kidnapping', 'child_care', 'kidnapping'),
+    Classification('Missing', 'person_search', 'missing'),
+    Classification('N.C', 'report', 'nc'),
+    Classification('Preventive', 'security', 'preventive'),
+    Classification('Arrested', 'handcuffs', 'arrested'),
+    Classification('Absconded', 'directions_run', 'absconded'),
+    Classification('POCSO', 'shield', 'pocso'),
+    Classification('Crime against\nWomen', 'woman', 'crime_women'),
+    Classification('Juvenile', 'child_friendly', 'juvenile'),
+    Classification('Victim', 'healing', 'victim'),
   ];
 
   // ── Part 3: Special Services ──────────────────────────────────────────────
   static const List<Classification> servicesGroup = [
-    Classification('Accident',            'car_crash',        'accident'),
-    Classification('Traffic',             'traffic',          'traffic'),
-    Classification('Application',         'description',      'application'),
-    Classification('Sam/Warrant',         'assignment',       'sam_warrant'),
-    Classification('Muddemal',            'inventory',        'muddemal'),
-    Classification('Sec 186/175\n(BNSS)', 'balance',          'bnss'),
-    Classification('Passport/\nPVR/Lic', 'badge',            'passport'),
-    Classification('NDPS',                'medication',       'ndps'),
-    Classification('Gowans',              'home_work',        'gowans'),
-    Classification('IT Act',              'computer',         'it_act'),
-    Classification('MCOCA',               'policy',           'mcoca'),
-    Classification('UAPA',                'account_balance',  'uapa'),
-    Classification('MPDA',                'admin_panel',      'mpda'),
-    Classification('COIN',                'monetization_on',  'coin'),
+    Classification('Accident', 'car_crash', 'accident'),
+    Classification('Traffic', 'traffic', 'traffic'),
+    Classification('Application', 'description', 'application'),
+    Classification('Sam/Warrant', 'assignment', 'sam_warrant'),
+    Classification('Muddemal', 'inventory', 'muddemal'),
+    Classification('Sec 186/175\n(BNSS)', 'balance', 'bnss'),
+    Classification('Passport/\nPVR/Lic', 'badge', 'passport'),
+    Classification('NDPS', 'medication', 'ndps'),
+    Classification('Gowans', 'home_work', 'gowans'),
+    Classification('IT Act', 'computer', 'it_act'),
+    Classification('MCOCA', 'policy', 'mcoca'),
+    Classification('UAPA', 'account_balance', 'uapa'),
+    Classification('MPDA', 'admin_panel', 'mpda'),
+    Classification('COIN', 'monetization_on', 'coin'),
   ];
 
   /// Combined flat list for the drawer
@@ -129,37 +131,38 @@ class Classification {
 
   /// Unified sequence for the "Add" (FAB) menu as requested by user
   static const List<Classification> addMenuAll = [
-    Classification('I to V',               'description',      'form_1_5'),
-    Classification('VI',                   'article',          'form_6'),
-    Classification('A.D',                 'gavel',            'ad'),
-    Classification('Hurt',                'local_hospital',   'hurt'),
-    Classification('Theft',               'no_encryption',    'theft'),
-    Classification('Sand Theft',          'terrain',          'sand_theft'),
-    Classification('Two/Four Wheeler Stolen', 'two_wheeler',  'two_four_wheeler'),
-    Classification('Kid',                 'child_care',       'kidnapping'),
-    Classification('Missing',             'person_search',    'missing'),
-    Classification('N.C',                 'report',           'nc'),
-    Classification('Preventive',          'security',         'preventive'),
-    Classification('Arrested',            'handcuffs',        'arrested'),
-    Classification('Absconded',           'directions_run',   'absconded'),
-    Classification('POCSO',               'shield',           'pocso'),
-    Classification('Crime against Women', 'woman',            'crime_women'),
-    Classification('Juvenile',            'child_friendly',   'juvenile'),
-    Classification('Victim',              'healing',          'victim'),
-    Classification('Accident',            'car_crash',        'accident'),
-    Classification('Traffic',             'traffic',          'traffic'),
-    Classification('Application',         'description',      'application'),
-    Classification('Sam (Summons) / Warrant', 'assignment',   'sam_warrant'),
-    Classification('Muddemal',            'inventory',        'muddemal'),
-    Classification('Section 186/175/BNSS', 'balance',          'bnss'),
-    Classification('Passport /PVR / License', 'badge',         'passport'),
-    Classification('NDPS',                'medication',       'ndps'),
-    Classification('Gowans',              'home_work',        'gowans'),
-    Classification('IT Act',              'computer',         'it_act'),
-    Classification('MCOCA',               'policy',           'mcoca'),
-    Classification('UAPA',                'account_balance',  'uapa'),
-    Classification('MPDA',                'admin_panel',      'mpda'),
-    Classification('COIN',                'monetization_on',  'coin'),
+    Classification('I to V', 'description', 'form_1_5'),
+    Classification('VI', 'article', 'form_6'),
+    Classification('A.D', 'gavel', 'ad'),
+    Classification('Hurt', 'local_hospital', 'hurt'),
+    Classification('Theft', 'no_encryption', 'theft'),
+    Classification('Sand Theft', 'terrain', 'sand_theft'),
+    Classification(
+        'Two/Four Wheeler Stolen', 'two_wheeler', 'two_four_wheeler'),
+    Classification('Kid', 'child_care', 'kidnapping'),
+    Classification('Missing', 'person_search', 'missing'),
+    Classification('N.C', 'report', 'nc'),
+    Classification('Preventive', 'security', 'preventive'),
+    Classification('Arrested', 'handcuffs', 'arrested'),
+    Classification('Absconded', 'directions_run', 'absconded'),
+    Classification('POCSO', 'shield', 'pocso'),
+    Classification('Crime against Women', 'woman', 'crime_women'),
+    Classification('Juvenile', 'child_friendly', 'juvenile'),
+    Classification('Victim', 'healing', 'victim'),
+    Classification('Accident', 'car_crash', 'accident'),
+    Classification('Traffic', 'traffic', 'traffic'),
+    Classification('Application', 'description', 'application'),
+    Classification('Sam (Summons) / Warrant', 'assignment', 'sam_warrant'),
+    Classification('Muddemal', 'inventory', 'muddemal'),
+    Classification('Section 186/175/BNSS', 'balance', 'bnss'),
+    Classification('Passport /PVR / License', 'badge', 'passport'),
+    Classification('NDPS', 'medication', 'ndps'),
+    Classification('Gowans', 'home_work', 'gowans'),
+    Classification('IT Act', 'computer', 'it_act'),
+    Classification('MCOCA', 'policy', 'mcoca'),
+    Classification('UAPA', 'account_balance', 'uapa'),
+    Classification('MPDA', 'admin_panel', 'mpda'),
+    Classification('COIN', 'monetization_on', 'coin'),
   ];
 }
 
@@ -471,7 +474,11 @@ class TransferRequestRoles {
   /// Designations that may approve subordinate transfer requests (Phase 3 UI).
   static const List<String> piApiDesignations = ['PI', 'API'];
 
-  static const List<String> piSelfTransferDesignations = ['PI', 'API', 'Sr. PI'];
+  static const List<String> piSelfTransferDesignations = [
+    'PI',
+    'API',
+    'Sr. PI'
+  ];
 
   /// Ranks strictly below PI/API that may submit transfer requests.
   /// Keep in sync with `belowPiApiDesignations` in firestore.rules.

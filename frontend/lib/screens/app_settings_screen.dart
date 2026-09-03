@@ -46,7 +46,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.xxl),
+              padding: const EdgeInsets.only(
+                  top: AppSpacing.lg, bottom: AppSpacing.xxl),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Align(
@@ -65,7 +66,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                               title: l10n.fontSize,
                               value: _fontSizeLabel(settings.fontSize),
                               icon: Icons.format_size_rounded,
-                              onTap: () => _showFontSizePicker(context, settings),
+                              onTap: () =>
+                                  _showFontSizePicker(context, settings),
                             ),
                           ],
                         ),
@@ -79,7 +81,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                               title: l10n.appLanguage,
                               value: settings.language,
                               icon: Icons.translate_rounded,
-                              onTap: () => _showLanguagePicker(context, settings),
+                              onTap: () =>
+                                  _showLanguagePicker(context, settings),
                             ),
                           ],
                         ),
@@ -325,7 +328,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: AppColors.navyDark, size: 20),
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppColors.navyDark, size: 20),
                     onPressed: () => Navigator.pop(ctx),
                     visualDensity: VisualDensity.compact,
                   ),
@@ -336,7 +340,9 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
               const SizedBox(height: AppSpacing.md),
               ...FontSize.values.map((fs) {
                 final isSelected = settings.fontSize == fs;
-                double previewSize = fs == FontSize.small ? 12.5 : (fs == FontSize.large ? 16 : 14);
+                double previewSize = fs == FontSize.small
+                    ? 12.5
+                    : (fs == FontSize.large ? 16 : 14);
                 return Container(
                   margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                   decoration: BoxDecoration(
@@ -352,13 +358,16 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                     ),
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md, vertical: 2),
                     title: Text(
                       _fontSizeLabel(fs),
                       style: GoogleFonts.poppins(
                         fontSize: previewSize,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? AppColors.navyMid : AppColors.navyDark,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color:
+                            isSelected ? AppColors.navyMid : AppColors.navyDark,
                       ),
                     ),
                     subtitle: Text(
@@ -373,8 +382,10 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                       ),
                     ),
                     trailing: isSelected
-                        ? const Icon(Icons.check_circle_rounded, color: AppColors.navyMid, size: 22)
-                        : const Icon(Icons.radio_button_unchecked_rounded, color: Colors.grey, size: 20),
+                        ? const Icon(Icons.check_circle_rounded,
+                            color: AppColors.navyMid, size: 22)
+                        : const Icon(Icons.radio_button_unchecked_rounded,
+                            color: Colors.grey, size: 20),
                     onTap: () {
                       settings.setFontSize(fs);
                       Navigator.pop(ctx);
@@ -430,7 +441,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: AppColors.navyDark, size: 20),
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppColors.navyDark, size: 20),
                     onPressed: () => Navigator.pop(ctx),
                     visualDensity: VisualDensity.compact,
                   ),
@@ -442,8 +454,10 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
-                  children: SettingsProvider.supportedLanguages.entries.map((entry) {
-                    final isSelected = settings.locale.languageCode == entry.key;
+                  children:
+                      SettingsProvider.supportedLanguages.entries.map((entry) {
+                    final isSelected =
+                        settings.locale.languageCode == entry.key;
                     return Container(
                       margin: const EdgeInsets.only(bottom: AppSpacing.xs),
                       decoration: BoxDecoration(
@@ -461,12 +475,16 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                           entry.value,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? AppColors.cyanDark : AppColors.navyDark,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.cyanDark
+                                : AppColors.navyDark,
                           ),
                         ),
                         trailing: isSelected
-                            ? const Icon(Icons.check_circle_rounded, color: AppColors.cyanDark, size: 20)
+                            ? const Icon(Icons.check_circle_rounded,
+                                color: AppColors.cyanDark, size: 20)
                             : null,
                         onTap: () {
                           settings.setLanguage(entry.key);

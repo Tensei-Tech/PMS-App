@@ -105,8 +105,7 @@ class DynamicMapPdf {
     return pw.Container(
       width: double.infinity,
       padding: const pw.EdgeInsets.all(20),
-      decoration:
-          const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1A2A4A)),
+      decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1A2A4A)),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -283,9 +282,8 @@ class DynamicMapPdf {
         if (m.isEmpty) {
           out.add(_singleKv('(empty)', emptyDisplay));
         } else {
-          final childOrder = hubInsertionNestedMaps
-              ? _insertionKeys(m)
-              : _sortedKeys(m);
+          final childOrder =
+              hubInsertionNestedMaps ? _insertionKeys(m) : _sortedKeys(m);
           out.addAll(_buildHubKeyedMap(m, childOrder));
         }
       } else if (item is List) {
@@ -364,8 +362,8 @@ class DynamicMapPdf {
         if (item.isEmpty) {
           out.add(_singleKv('(empty)', emptyDisplay));
         } else {
-          out.addAll(_professionalListItemsAd(item,
-              listFieldKey: listFieldKey));
+          out.addAll(
+              _professionalListItemsAd(item, listFieldKey: listFieldKey));
         }
       } else {
         out.add(subSectionBanner(title));
@@ -401,11 +399,11 @@ class DynamicMapPdf {
         if (m.isEmpty) {
           out.add(_singleKv('(empty)', emptyDisplay));
         } else {
-          final kind =
-              adNestedMapKindFor(parentFieldKey: parentFieldKey, m: m);
+          final kind = adNestedMapKindFor(parentFieldKey: parentFieldKey, m: m);
           final childKeys = orderedKeysForAdNestedMap(kind: kind, m: m);
-          final parentForNestedValues =
-              kind == AdNestedMapKind.chargeDataSlots ? 'chargeData' : parentFieldKey;
+          final parentForNestedValues = kind == AdNestedMapKind.chargeDataSlots
+              ? 'chargeData'
+              : parentFieldKey;
           out.addAll(_buildAdFormKeyedMap(m, childKeys,
               parentFieldKey: parentForNestedValues));
         }
@@ -554,7 +552,8 @@ class DynamicMapPdf {
                 pw.TableRow(
                   children: [
                     if (prependSerial) _landscapeHeaderCell('Sr. No.'),
-                    ...sortedKeys.map((k) => _landscapeHeaderCell(pdfLabelForKey(k))),
+                    ...sortedKeys
+                        .map((k) => _landscapeHeaderCell(pdfLabelForKey(k))),
                   ],
                 ),
                 for (var i = 0; i < rows.length; i++)

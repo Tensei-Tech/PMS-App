@@ -85,35 +85,94 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
             Center(
               child: Column(
                 children: [
-                  Text('MEDICAL EXAMINATION REQUEST — Section 51 BNSS', style: serif.copyWith(fontSize: 15, fontWeight: FontWeight.bold)),
-                  Text('वैद्यकीय तपासणी विनंती — कलम ५१ भा.न्या.स.', style: marathi.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text('MEDICAL EXAMINATION REQUEST — Section 51 BNSS',
+                      style: serif.copyWith(
+                          fontSize: 15, fontWeight: FontWeight.bold)),
+                  Text('वैद्यकीय तपासणी विनंती — कलम ५१ भा.न्या.स.',
+                      style: marathi.copyWith(
+                          fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
             const SizedBox(height: 16),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Letter No.', marathiLabel: 'पत्र क्र.', controller: _fields['letterNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['date']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Letter No.',
+                    marathiLabel: 'पत्र क्र.',
+                    controller: _fields['letterNo']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Date',
+                    marathiLabel: 'दिनांक',
+                    controller: _fields['date']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
               ],
             ),
-            BilingualField(label: 'Police Station', marathiLabel: 'पोलीस स्टेशन', controller: _fields['policeStation']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Police Station',
+                marathiLabel: 'पोलीस स्टेशन',
+                controller: _fields['policeStation']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'CR No.', marathiLabel: 'गु.र.क्र.', controller: _fields['crNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'CR No.',
+                    marathiLabel: 'गु.र.क्र.',
+                    controller: _fields['crNo']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Section',
+                    marathiLabel: 'कलम',
+                    controller: _fields['section']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
               ],
             ),
-            BilingualField(label: 'To — Hospital', marathiLabel: 'प्रति — रुग्णालय', controller: _fields['toHospital']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Medical Officer', marathiLabel: 'वैद्यकीय अधिकारी', controller: _fields['toDoctor']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualWideField(label: 'Accused name & address', marathiLabel: 'आरोपीचे नाव व पत्ता', controller: _fields['accusedName']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'To — Hospital',
+                marathiLabel: 'प्रति — रुग्णालय',
+                controller: _fields['toHospital']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Medical Officer',
+                marathiLabel: 'वैद्यकीय अधिकारी',
+                controller: _fields['toDoctor']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
+            BilingualWideField(
+                label: 'Accused name & address',
+                marathiLabel: 'आरोपीचे नाव व पत्ता',
+                controller: _fields['accusedName']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Age', marathiLabel: 'वय', controller: _fields['accusedAge']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Sex', marathiLabel: 'लिंग', controller: _fields['accusedSex']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Age',
+                    marathiLabel: 'वय',
+                    controller: _fields['accusedAge']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Sex',
+                    marathiLabel: 'लिंग',
+                    controller: _fields['accusedSex']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
               ],
             ),
-            BilingualField(label: 'Arrest date', marathiLabel: 'अटक दिनांक', controller: _fields['arrestDate']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Arrest date',
+                marathiLabel: 'अटक दिनांक',
+                controller: _fields['arrestDate']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
             BilingualMultilineField(
               label: 'Request details',
               marathiLabel: 'विनंती तपशील',

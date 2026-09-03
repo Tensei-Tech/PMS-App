@@ -15,7 +15,6 @@ import '../models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/permission_service.dart';
 
-
 void _secureLog(String message) {
   if (kDebugMode) debugPrint('[AuthProvider] $message');
 }
@@ -37,39 +36,46 @@ class RegistrationResult {
       RegistrationResult._(success: true, userId: userId);
 
   factory RegistrationResult.failure(String code, String message) =>
-      RegistrationResult._(success: false, errorCode: code, errorMessage: message);
+      RegistrationResult._(
+          success: false, errorCode: code, errorMessage: message);
 
   factory RegistrationResult.networkError() => const RegistrationResult._(
         success: false,
         errorCode: 'network-request-failed',
-        errorMessage: 'Network connection failed. Please check your internet connection.',
+        errorMessage:
+            'Network connection failed. Please check your internet connection.',
       );
 
   factory RegistrationResult.emailInUse() => const RegistrationResult._(
         success: false,
         errorCode: 'email-already-in-use',
-        errorMessage: 'This Government ID is already registered. Please login instead.',
+        errorMessage:
+            'This Government ID is already registered. Please login instead.',
       );
 
   factory RegistrationResult.weakPassword() => const RegistrationResult._(
         success: false,
         errorCode: 'weak-password',
-        errorMessage: 'PIN does not meet security requirements. Please try again.',
+        errorMessage:
+            'PIN does not meet security requirements. Please try again.',
       );
 
   factory RegistrationResult.invalidEmail() => const RegistrationResult._(
         success: false,
         errorCode: 'invalid-email',
-        errorMessage: 'Invalid email format. Please enter a valid Government Email.',
+        errorMessage:
+            'Invalid email format. Please enter a valid Government Email.',
       );
 
-  factory RegistrationResult.unknownError(String message) => RegistrationResult._(
+  factory RegistrationResult.unknownError(String message) =>
+      RegistrationResult._(
         success: false,
         errorCode: 'unknown',
         errorMessage: 'Registration failed: $message',
       );
 
-  factory RegistrationResult.firestoreError(String authUid, {String? message}) =>
+  factory RegistrationResult.firestoreError(String authUid,
+          {String? message}) =>
       RegistrationResult._(
         success: false,
         errorCode: 'backend-error',
@@ -128,6 +134,7 @@ class AuthProvider extends ChangeNotifier {
   String get badgeNumber => _badgeNumber;
   String get sevaNumber => _badgeNumber.isNotEmpty ? _badgeNumber : _govtId;
   String get stationName => _overrideStationName ?? _stationName;
+
   /// Active station for queries and new records (may differ from [homeStationName] when switched).
   String get activeStation => stationName;
   String get homeStationName => _stationName;
@@ -174,7 +181,12 @@ class AuthProvider extends ChangeNotifier {
       : null;
 
   bool get isAdmin => _role == 'admin' || _role == 'master_admin';
-  bool get isSupervisor => _role == 'supervisor' || _role == 'division_admin' || _role == 'district_admin' || _role == 'admin' || _role == 'master_admin';
+  bool get isSupervisor =>
+      _role == 'supervisor' ||
+      _role == 'division_admin' ||
+      _role == 'district_admin' ||
+      _role == 'admin' ||
+      _role == 'master_admin';
   bool get isViewingOtherStation =>
       _overrideStationName != null && _overrideStationName != _stationName;
 
@@ -191,18 +203,45 @@ class AuthProvider extends ChangeNotifier {
     switch (permissionCode) {
       case 'alert:send':
       case 'reminder:send':
-        return ['master_admin', 'state_super_admin', 'district_admin'].contains(normRole);
+        return ['master_admin', 'state_super_admin', 'district_admin']
+            .contains(normRole);
       case 'reminder:to_io':
-        return ['master_admin', 'state_super_admin', 'district_admin', 'supervisor', 'division_admin', 'station_admin'].contains(normRole);
+        return [
+          'master_admin',
+          'state_super_admin',
+          'district_admin',
+          'supervisor',
+          'division_admin',
+          'station_admin'
+        ].contains(normRole);
       case 'district:view_data':
-        return ['master_admin', 'state_super_admin', 'district_admin', 'supervisor', 'division_admin'].contains(normRole);
+        return [
+          'master_admin',
+          'state_super_admin',
+          'district_admin',
+          'supervisor',
+          'division_admin'
+        ].contains(normRole);
       case 'station:view_data':
         return true;
       case 'station:select_multiple':
       case 'station:switch':
-        return ['master_admin', 'state_super_admin', 'district_admin', 'supervisor', 'division_admin'].contains(normRole);
+        return [
+          'master_admin',
+          'state_super_admin',
+          'district_admin',
+          'supervisor',
+          'division_admin'
+        ].contains(normRole);
       case 'case:edit_station':
-        return ['master_admin', 'state_super_admin', 'district_admin', 'supervisor', 'division_admin', 'station_admin'].contains(normRole);
+        return [
+          'master_admin',
+          'state_super_admin',
+          'district_admin',
+          'supervisor',
+          'division_admin',
+          'station_admin'
+        ].contains(normRole);
       case 'case:edit_own':
         return true;
       default:
@@ -220,7 +259,6 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (_) {}
   }
-
 
   /// Switch the active station (for senior officers viewing another station).
   void switchStation(String stationName) {
@@ -249,7 +287,8 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     // Persist to Firestore
     try {
-      await _firestore.updateUserField(uid, 'additionalStations', _additionalStations);
+      await _firestore.updateUserField(
+          uid, 'additionalStations', _additionalStations);
     } catch (e) {
       _secureLog('addStation: Firestore persist failed');
     }
@@ -266,7 +305,8 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     // Persist to Firestore
     try {
-      await _firestore.updateUserField(uid, 'additionalStations', _additionalStations);
+      await _firestore.updateUserField(
+          uid, 'additionalStations', _additionalStations);
     } catch (e) {
       _secureLog('removeStation: Firestore persist failed');
     }
@@ -287,13 +327,15 @@ class AuthProvider extends ChangeNotifier {
   void _init() {
     Future.microtask(() async {
       try {
-        final storedEmail = (await _secure.read(key: StorageKeys.email) ?? '').trim();
-        final storedToken = (await _secure.read(key: ApiConstants.jwtAccessTokenKey) ?? '').trim();
+        final storedToken =
+            (await _secure.read(key: ApiConstants.jwtAccessTokenKey) ?? '')
+                .trim();
         final storedProfileJson = await _secure.read(key: 'user_profile_json');
 
         if (storedProfileJson != null && storedProfileJson.isNotEmpty) {
           try {
-            final userMap = json.decode(storedProfileJson) as Map<String, dynamic>;
+            final userMap =
+                json.decode(storedProfileJson) as Map<String, dynamic>;
             final profile = UserModel.fromMap(userMap);
             _applyProfile(profile);
             _uid = profile.uid;
@@ -301,7 +343,8 @@ class AuthProvider extends ChangeNotifier {
         }
 
         bool isTokenValid = false;
-        if (storedToken.isNotEmpty && !ApiService().isTokenExpired(storedToken)) {
+        if (storedToken.isNotEmpty &&
+            !ApiService().isTokenExpired(storedToken)) {
           await ApiService().setAuthToken(storedToken);
           isTokenValid = true;
         } else {
@@ -448,12 +491,16 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (!response.isSuccess) {
-        return RegistrationResult.failure('backend_error', response.errorMessage ?? 'Registration failed.');
+        return RegistrationResult.failure(
+            'backend_error', response.errorMessage ?? 'Registration failed.');
       }
 
-      final data = response.data is Map<String, dynamic> ? response.data as Map<String, dynamic> : {};
+      final data = response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : {};
       final userJson = data['user'] as Map<String, dynamic>? ?? {};
-      final authUid = userJson['uid']?.toString() ?? userJson['id']?.toString() ?? '';
+      final authUid =
+          userJson['uid']?.toString() ?? userJson['id']?.toString() ?? '';
 
       final salt = PinCrypto.generateSalt();
       final pinHash = await PinCrypto.hashPinAsync(sanitizedPin, salt);
@@ -461,18 +508,24 @@ class AuthProvider extends ChangeNotifier {
       await _secure.write(key: StorageKeys.email, value: sanitizedEmail);
       await _secure.write(key: StorageKeys.pinHash, value: pinHash);
       await _secure.write(key: StorageKeys.pinSalt, value: salt);
-      await _secure.write(key: 'user_profile_json', value: json.encode(userJson));
+      await _secure.write(
+          key: 'user_profile_json', value: json.encode(userJson));
 
-      final accountStatus = data['account_status']?.toString() ?? 'pending_approval';
-      if (accountStatus == 'active' && data['tokens'] != null && data['tokens'] is Map) {
+      final accountStatus =
+          data['account_status']?.toString() ?? 'pending_approval';
+      if (accountStatus == 'active' &&
+          data['tokens'] != null &&
+          data['tokens'] is Map) {
         final tokens = data['tokens'] as Map<String, dynamic>;
         final access = (tokens['access_token'] ?? tokens['access'])?.toString();
-        final refresh = (tokens['refresh_token'] ?? tokens['refresh'])?.toString();
+        final refresh =
+            (tokens['refresh_token'] ?? tokens['refresh'])?.toString();
         if (access != null && access.isNotEmpty) {
           await ApiService().setAuthToken(access);
         }
         if (refresh != null && refresh.isNotEmpty) {
-          await _secure.write(key: ApiConstants.jwtRefreshTokenKey, value: refresh);
+          await _secure.write(
+              key: ApiConstants.jwtRefreshTokenKey, value: refresh);
         }
         _isSessionActive = true;
       } else {
@@ -509,7 +562,8 @@ class AuthProvider extends ChangeNotifier {
       return 'Account locked. Try again in ${lockoutStatus.remainingLabel}.';
     }
 
-    final storedHash = (await _secure.read(key: StorageKeys.pinHash) ?? '').trim();
+    final storedHash =
+        (await _secure.read(key: StorageKeys.pinHash) ?? '').trim();
     if (storedHash.isEmpty) {
       return 'No credentials found on device. Please login with PIN.';
     }
@@ -570,18 +624,22 @@ class AuthProvider extends ChangeNotifier {
         await _secure.write(key: StorageKeys.email, value: sanitizedEmail);
         await _secure.write(key: StorageKeys.pinHash, value: pinHash);
         await _secure.write(key: StorageKeys.pinSalt, value: salt);
-        await _secure.write(key: 'user_profile_json', value: json.encode(userJson));
+        await _secure.write(
+            key: 'user_profile_json', value: json.encode(userJson));
 
         // Store JWT authentication tokens for backend API requests
         if (data['tokens'] != null && data['tokens'] is Map) {
           final tokens = data['tokens'] as Map<String, dynamic>;
-          final access = (tokens['access_token'] ?? tokens['access'])?.toString();
-          final refresh = (tokens['refresh_token'] ?? tokens['refresh'])?.toString();
+          final access =
+              (tokens['access_token'] ?? tokens['access'])?.toString();
+          final refresh =
+              (tokens['refresh_token'] ?? tokens['refresh'])?.toString();
           if (access != null && access.isNotEmpty) {
             await ApiService().setAuthToken(access);
           }
           if (refresh != null && refresh.isNotEmpty) {
-            await _secure.write(key: ApiConstants.jwtRefreshTokenKey, value: refresh);
+            await _secure.write(
+                key: ApiConstants.jwtRefreshTokenKey, value: refresh);
           }
         }
 
@@ -621,8 +679,10 @@ class AuthProvider extends ChangeNotifier {
     final lockoutStatus = await _lockout.checkStatus();
     if (lockoutStatus.isLocked) return false;
 
-    final storedHash = (await _secure.read(key: StorageKeys.pinHash) ?? '').trim();
-    final storedSalt = (await _secure.read(key: StorageKeys.pinSalt) ?? '').trim();
+    final storedHash =
+        (await _secure.read(key: StorageKeys.pinHash) ?? '').trim();
+    final storedSalt =
+        (await _secure.read(key: StorageKeys.pinSalt) ?? '').trim();
 
     if (storedHash.isEmpty || storedSalt.isEmpty) {
       _secureLog('verifyPin: no stored hash/salt found');
@@ -630,17 +690,20 @@ class AuthProvider extends ChangeNotifier {
     }
 
     // Try first with optimized 1,000 iterations
-    var isValid = await PinCrypto.verifyPinAsync(pin.trim(), storedHash, storedSalt, 1000);
+    var isValid = await PinCrypto.verifyPinAsync(
+        pin.trim(), storedHash, storedSalt, 1000);
 
     // Fallback to legacy 100,000 iterations
     if (!isValid) {
-      isValid = await PinCrypto.verifyPinAsync(pin.trim(), storedHash, storedSalt, 100000);
+      isValid = await PinCrypto.verifyPinAsync(
+          pin.trim(), storedHash, storedSalt, 100000);
       if (isValid) {
         final newSalt = PinCrypto.generateSalt();
         final newHash = await PinCrypto.hashPinAsync(pin.trim(), newSalt);
         await _secure.write(key: StorageKeys.pinHash, value: newHash);
         await _secure.write(key: StorageKeys.pinSalt, value: newSalt);
-        _secureLog('verifyPin: migrated hash from 100,000 to 1,000 iterations successfully');
+        _secureLog(
+            'verifyPin: migrated hash from 100,000 to 1,000 iterations successfully');
       }
     }
 
@@ -683,11 +746,17 @@ class AuthProvider extends ChangeNotifier {
     final storedSalt = await _secure.read(key: StorageKeys.pinSalt) ?? '';
 
     var isOldPinValid = await PinCrypto.verifyPinAsync(
-      oldPin.trim(), storedHash, storedSalt, 1000,
+      oldPin.trim(),
+      storedHash,
+      storedSalt,
+      1000,
     );
     if (!isOldPinValid) {
       isOldPinValid = await PinCrypto.verifyPinAsync(
-        oldPin.trim(), storedHash, storedSalt, 100000,
+        oldPin.trim(),
+        storedHash,
+        storedSalt,
+        100000,
       );
     }
     if (!isOldPinValid) {
@@ -740,9 +809,15 @@ class AuthProvider extends ChangeNotifier {
     await ApiService().clearAuthToken();
     await _secure.deleteAll();
 
-    if (savedEmail != null) await _secure.write(key: StorageKeys.email, value: savedEmail);
-    if (savedHash != null)  await _secure.write(key: StorageKeys.pinHash, value: savedHash);
-    if (savedSalt != null)  await _secure.write(key: StorageKeys.pinSalt, value: savedSalt);
+    if (savedEmail != null) {
+      await _secure.write(key: StorageKeys.email, value: savedEmail);
+    }
+    if (savedHash != null) {
+      await _secure.write(key: StorageKeys.pinHash, value: savedHash);
+    }
+    if (savedSalt != null) {
+      await _secure.write(key: StorageKeys.pinSalt, value: savedSalt);
+    }
 
     await _lockout.resetAll();
 
@@ -764,13 +839,13 @@ class AuthProvider extends ChangeNotifier {
     String? stationLandline,
     String? profilePhoto,
   }) async {
-    if (fullName != null)        _fullName = fullName;
-    if (phone != null)           _phone = phone;
-    if (designation != null)     _designation = designation;
-    if (stationName != null)     _stationName = stationName;
-    if (stationAddress != null)  _stationAddress = stationAddress;
+    if (fullName != null) _fullName = fullName;
+    if (phone != null) _phone = phone;
+    if (designation != null) _designation = designation;
+    if (stationName != null) _stationName = stationName;
+    if (stationAddress != null) _stationAddress = stationAddress;
     if (stationLandline != null) _stationLandline = stationLandline;
-    if (profilePhoto != null)    _profilePhoto = profilePhoto;
+    if (profilePhoto != null) _profilePhoto = profilePhoto;
 
     final user = UserModel(
       uid: _uid,
@@ -790,7 +865,8 @@ class AuthProvider extends ChangeNotifier {
       district: _district,
       accountStatus: _accountStatus,
     );
-    await _secure.write(key: 'user_profile_json', value: json.encode(user.toMap()));
+    await _secure.write(
+        key: 'user_profile_json', value: json.encode(user.toMap()));
 
     notifyListeners();
   }

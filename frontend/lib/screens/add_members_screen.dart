@@ -62,7 +62,8 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
   Future<void> _search() async {
     final query = _searchCtrl.text.trim();
     if (query.isEmpty) {
-      _snack('Enter a mobile number or email to search.', AppColors.warningOrange);
+      _snack(
+          'Enter a mobile number or email to search.', AppColors.warningOrange);
       return;
     }
 
@@ -153,8 +154,8 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
             List<String> stations = [];
             if (unitType != null && district != null) {
               if (state == 'Maharashtra') {
-                stations =
-                    MaharashtraPoliceStationsRepository.getStationNamesForSelection(
+                stations = MaharashtraPoliceStationsRepository
+                    .getStationNamesForSelection(
                   district: district!,
                   unitType: unitType!,
                 );
@@ -172,7 +173,8 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                 left: AppSpacing.lg,
                 right: AppSpacing.lg,
                 top: AppSpacing.lg,
-                bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+                bottom:
+                    MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -291,7 +293,8 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                         ),
                         child: Text(
                           'Confirm assignment',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                          style:
+                              GoogleFonts.poppins(fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -311,7 +314,8 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
     } else if (_isSenior(auth)) {
       await _showSeniorAssignSheet(user);
     } else {
-      _snack('You do not have permission to assign officers.', AppColors.dangerRed);
+      _snack('You do not have permission to assign officers.',
+          AppColors.dangerRed);
     }
   }
 
@@ -468,7 +472,8 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                               child: SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               ),
                             )
                           : IconButton(
@@ -622,8 +627,7 @@ class _UserResultCard extends StatelessWidget {
           CircleAvatar(
             radius: 28,
             backgroundColor: AppColors.navyMid.withValues(alpha: 0.12),
-            backgroundImage:
-                photo.isNotEmpty ? NetworkImage(photo) : null,
+            backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
             child: photo.isEmpty
                 ? Text(
                     user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',

@@ -307,11 +307,15 @@ Widget buildPanchSignatureSection({
               marathiLabelStyle: marathiLabelStyle,
             ),
             const SizedBox(height: 8),
-            BilingualNumberedMethodField(number: '1', controller: p1l1, serifStyle: serifStyle),
-            BilingualNumberedMethodField(number: '', controller: p1l2, serifStyle: serifStyle),
+            BilingualNumberedMethodField(
+                number: '1', controller: p1l1, serifStyle: serifStyle),
+            BilingualNumberedMethodField(
+                number: '', controller: p1l2, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            BilingualNumberedMethodField(number: '2', controller: p2l1, serifStyle: serifStyle),
-            BilingualNumberedMethodField(number: '', controller: p2l2, serifStyle: serifStyle),
+            BilingualNumberedMethodField(
+                number: '2', controller: p2l1, serifStyle: serifStyle),
+            BilingualNumberedMethodField(
+                number: '', controller: p2l2, serifStyle: serifStyle),
           ],
         ),
       ),
@@ -327,9 +331,11 @@ Widget buildPanchSignatureSection({
               marathiLabelStyle: marathiLabelStyle,
             ),
             const SizedBox(height: 8),
-            BilingualNumberedMethodField(number: '1', controller: sig1, serifStyle: serifStyle),
+            BilingualNumberedMethodField(
+                number: '1', controller: sig1, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            BilingualNumberedMethodField(number: '2', controller: sig2, serifStyle: serifStyle),
+            BilingualNumberedMethodField(
+                number: '2', controller: sig2, serifStyle: serifStyle),
           ],
         ),
       ),

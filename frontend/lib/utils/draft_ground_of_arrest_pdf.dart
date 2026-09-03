@@ -44,10 +44,13 @@ Future<Uint8List> generateDraftGroundOfArrestPdf(
   final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
 
   final body = pw.TextStyle(font: loraRegular, fontSize: 10);
-  final bold = pw.TextStyle(font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
-  final title = pw.TextStyle(font: loraBold, fontSize: 14, fontWeight: pw.FontWeight.bold);
+  final bold = pw.TextStyle(
+      font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
+  final title = pw.TextStyle(
+      font: loraBold, fontSize: 14, fontWeight: pw.FontWeight.bold);
   final mr = pw.TextStyle(font: devanagari, fontSize: 9);
-  final mrBold = pw.TextStyle(font: devanagariBold, fontSize: 10, fontWeight: pw.FontWeight.bold);
+  final mrBold = pw.TextStyle(
+      font: devanagariBold, fontSize: 10, fontWeight: pw.FontWeight.bold);
 
   String v(String key) => doc[key]?.toString().trim() ?? '';
   bool b(String key) => doc[key] == true;
@@ -141,11 +144,17 @@ Future<Uint8List> generateDraftGroundOfArrestPdf(
             pw.Text('अटकेचे कारणे — संदर्भ', style: mrBold),
             pw.SizedBox(height: 12),
             pw.Text('Ground vs Reason vs PCR:', style: bold),
-            pw.Text('• Ground (S.47): Prima facie evidence — all offences', style: body),
-            pw.Text('• Reason (S.35(1)(b)): 5 specific reasons — ≤7 yr offences', style: body),
-            pw.Text('• PCR (S.187): Custody necessity — all offences', style: body),
+            pw.Text('• Ground (S.47): Prima facie evidence — all offences',
+                style: body),
+            pw.Text(
+                '• Reason (S.35(1)(b)): 5 specific reasons — ≤7 yr offences',
+                style: body),
+            pw.Text('• PCR (S.187): Custody necessity — all offences',
+                style: body),
             pw.SizedBox(height: 12),
-            pw.Text('Record at: accused notice, relative notice, station diary, arrest panchanama col. 8, remand report, case diary.', style: body),
+            pw.Text(
+                'Record at: accused notice, relative notice, station diary, arrest panchanama col. 8, remand report, case diary.',
+                style: body),
           ],
         ),
       ),
@@ -164,9 +173,12 @@ Future<Uint8List> generateDraftGroundOfArrestPdf(
             pw.Text('अटकेचा आधार (कलम ४७ BNSS)', style: mrBold),
             pw.SizedBox(height: 10),
             row('Accused name', 'अटक केलेल्या आरोपीचे नाव', v('accusedName')),
-            row('Age / Address', 'वय / पत्ता', '${v('accusedAge')} / ${v('accusedAddress')}'),
-            row('PS / CR No. / BNS', 'ठाणे / ग.र.क्र. / कलम', '${v('psName')} / ${v('crNo')} / ${v('bnsSection')}'),
-            row('Arrest date/time', 'अटक दिनांक/वेळ', '${v('arrestDate')} ${v('arrestTime')}'),
+            row('Age / Address', 'वय / पत्ता',
+                '${v('accusedAge')} / ${v('accusedAddress')}'),
+            row('PS / CR No. / BNS', 'ठाणे / ग.र.क्र. / कलम',
+                '${v('psName')} / ${v('crNo')} / ${v('bnsSection')}'),
+            row('Arrest date/time', 'अटक दिनांक/वेळ',
+                '${v('arrestDate')} ${v('arrestTime')}'),
             row('Brief facts', 'गुन्ह्याची हकीकत', v('briefFacts')),
             pw.SizedBox(height: 8),
             pw.Text('Grounds of Arrest:', style: bold),
@@ -180,7 +192,8 @@ Future<Uint8List> generateDraftGroundOfArrestPdf(
             row('Witness name', 'साक्षीदाराचे नाव', v('goaWitnessName')),
             row('Co-accused name', 'सह-आरोपीचे नाव', v('goaCoAccused')),
             row('Kin informed', 'नातेवाईक', v('goaKinName')),
-            row('Officer', 'पोलीस अधिकारी', '${v('goaOfficerName')} ${v('goaOfficerRank')}'),
+            row('Officer', 'पोलीस अधिकारी',
+                '${v('goaOfficerName')} ${v('goaOfficerRank')}'),
             row('Date', 'दिनांक', v('goaFooterDate')),
           ],
         ),
@@ -198,7 +211,8 @@ Future<Uint8List> generateDraftGroundOfArrestPdf(
             pw.Text('नातेवाईक/मित्रांसाठी नोटीस (कलम ४८)', style: mrBold),
             pw.SizedBox(height: 10),
             row('Relative name', 'नातेवाईकाचे नाव', v('s48RelativeName')),
-            row('Age / Address', 'वय / पत्ता', '${v('s48RelativeAge')} / ${v('s48RelativeAddress')}'),
+            row('Age / Address', 'वय / पत्ता',
+                '${v('s48RelativeAge')} / ${v('s48RelativeAddress')}'),
             row('Relationship', 'नाते', v('s48Relationship')),
             row('Detention PS', 'ठेवण्याचे ठाणे', v('s48CustodyPs')),
             checkRow('FIR mention', 'FIR', b('s48G1')),
@@ -206,7 +220,8 @@ Future<Uint8List> generateDraftGroundOfArrestPdf(
             checkRow('CCTV', 'CCTV', b('s48G3')),
             checkRow('Confession', 'कबुली', b('s48G5')),
             checkRow('Co-accused', 'सह-आरोपी', b('s48G6')),
-            row('Date / Place', 'दिनांक / ठिकाण', '${v('s48Date')} / ${v('s48Place')}'),
+            row('Date / Place', 'दिनांक / ठिकाण',
+                '${v('s48Date')} / ${v('s48Place')}'),
           ],
         ),
       ),
@@ -222,12 +237,16 @@ Future<Uint8List> generateDraftGroundOfArrestPdf(
             pw.Text('Reason of Arrest (Section 35(1)(b))', style: title),
             pw.Text('अटकेचे कारणे (कलम ३५(१)(ब))', style: mrBold),
             pw.SizedBox(height: 10),
-            checkRow('Prevent further crimes', 'पुढील गुन्हे टाळणे', b('roaR1')),
+            checkRow(
+                'Prevent further crimes', 'पुढील गुन्हे टाळणे', b('roaR1')),
             checkRow('Proper investigation', 'योग्य तपास', b('roaR2')),
             checkRow('Prevent evidence tampering', 'पुरावे रोखणे', b('roaR3')),
-            checkRow('Prevent witness inducement', 'साक्षीदार रोखणे', b('roaR4')),
-            checkRow('Ensure court presence', 'न्यायालयात उपस्थिती', b('roaR5')),
-            row('Date / Place', 'दिनांक / ठिकाण', '${v('roaDate')} / ${v('roaPlace')}'),
+            checkRow(
+                'Prevent witness inducement', 'साक्षीदार रोखणे', b('roaR4')),
+            checkRow(
+                'Ensure court presence', 'न्यायालयात उपस्थिती', b('roaR5')),
+            row('Date / Place', 'दिनांक / ठिकाण',
+                '${v('roaDate')} / ${v('roaPlace')}'),
             pw.SizedBox(height: 16),
             pw.Text('Reasons for PCR', style: title),
             pw.Text('पोलिस कोठडीची कारणे', style: mrBold),

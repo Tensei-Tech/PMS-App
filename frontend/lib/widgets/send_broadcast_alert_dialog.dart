@@ -18,7 +18,8 @@ class SendBroadcastAlertDialog extends StatefulWidget {
   }
 
   @override
-  State<SendBroadcastAlertDialog> createState() => _SendBroadcastAlertDialogState();
+  State<SendBroadcastAlertDialog> createState() =>
+      _SendBroadcastAlertDialogState();
 }
 
 class _SendBroadcastAlertDialogState extends State<SendBroadcastAlertDialog> {
@@ -42,7 +43,8 @@ class _SendBroadcastAlertDialogState extends State<SendBroadcastAlertDialog> {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Broadcast $_alertType sent successfully to assigned jurisdiction!'),
+          content: Text(
+              'Broadcast $_alertType sent successfully to assigned jurisdiction!'),
           backgroundColor: AppColors.successGreen,
         ),
       );
@@ -52,8 +54,10 @@ class _SendBroadcastAlertDialogState extends State<SendBroadcastAlertDialog> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isSuper = PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId);
-    final isDistrict = PoliceHierarchyHelper.isDistrictAdmin(auth.designation, auth.roleId);
+    final isSuper =
+        PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId);
+    final isDistrict =
+        PoliceHierarchyHelper.isDistrictAdmin(auth.designation, auth.roleId);
 
     final scopeLabel = isSuper
         ? 'STATE-WIDE BROADCAST (ALL DISTRICTS)'
@@ -76,7 +80,8 @@ class _SendBroadcastAlertDialogState extends State<SendBroadcastAlertDialog> {
                     color: AppColors.goldPrimary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.campaign_rounded, color: AppColors.goldPrimary),
+                  child: const Icon(Icons.campaign_rounded,
+                      color: AppColors.goldPrimary),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -85,16 +90,24 @@ class _SendBroadcastAlertDialogState extends State<SendBroadcastAlertDialog> {
                     children: [
                       Text(
                         'Dispatch Broadcast / Alert',
-                        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.navyDark),
+                        style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.navyDark),
                       ),
                       Text(
                         scopeLabel,
-                        style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.goldPrimary),
+                        style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.goldPrimary),
                       ),
                     ],
                   ),
                 ),
-                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close_rounded)),
+                IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded)),
               ],
             ),
             const Divider(height: 24),
@@ -107,7 +120,10 @@ class _SendBroadcastAlertDialogState extends State<SendBroadcastAlertDialog> {
                   selected: _alertType == 'Alert',
                   onSelected: (ok) => setState(() => _alertType = 'Alert'),
                   selectedColor: AppColors.navyDark,
-                  labelStyle: TextStyle(color: _alertType == 'Alert' ? Colors.white : AppColors.navyDark),
+                  labelStyle: TextStyle(
+                      color: _alertType == 'Alert'
+                          ? Colors.white
+                          : AppColors.navyDark),
                 ),
                 const SizedBox(width: 10),
                 ChoiceChip(
@@ -115,7 +131,10 @@ class _SendBroadcastAlertDialogState extends State<SendBroadcastAlertDialog> {
                   selected: _alertType == 'Reminder',
                   onSelected: (ok) => setState(() => _alertType = 'Reminder'),
                   selectedColor: AppColors.navyDark,
-                  labelStyle: TextStyle(color: _alertType == 'Reminder' ? Colors.white : AppColors.navyDark),
+                  labelStyle: TextStyle(
+                      color: _alertType == 'Reminder'
+                          ? Colors.white
+                          : AppColors.navyDark),
                 ),
               ],
             ),
@@ -126,8 +145,10 @@ class _SendBroadcastAlertDialogState extends State<SendBroadcastAlertDialog> {
               controller: _messageCtrl,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText: 'Type official directive, emergency alert or pending case reminder...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                hintText:
+                    'Type official directive, emergency alert or pending case reminder...',
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
             const SizedBox(height: 20),
@@ -138,13 +159,16 @@ class _SendBroadcastAlertDialogState extends State<SendBroadcastAlertDialog> {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyDark,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: _isSending ? null : _sendBroadcast,
-                icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                icon: const Icon(Icons.send_rounded,
+                    color: Colors.white, size: 18),
                 label: Text(
                   _isSending ? 'Dispatching...' : 'Dispatch Broadcast',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white),
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600, color: Colors.white),
                 ),
               ),
             ),

@@ -128,8 +128,8 @@ class BaseFormLayout extends StatelessWidget {
         foregroundColor: appBarFg,
         elevation: darkAppBar ? 0 : 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: appBarFg, size: 20),
+          icon:
+              Icon(Icons.arrow_back_ios_new_rounded, color: appBarFg, size: 20),
           onPressed: () => Navigator.maybePop(context),
         ),
         title: subtitle == null

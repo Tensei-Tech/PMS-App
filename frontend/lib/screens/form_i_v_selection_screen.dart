@@ -126,9 +126,11 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     if (_selectedCategory == FormIVSelectionScreen.allFilterLabel) {
       final transCases = TranslationHelper.translate(context, 'cases');
       final transTypes = TranslationHelper.translate(context, 'types');
-      subtitle = '${visibleRecords.length} $transCases · ${kFormIVCaseCategories.length} $transTypes';
+      subtitle =
+          '${visibleRecords.length} $transCases · ${kFormIVCaseCategories.length} $transTypes';
     } else {
-      final transCategory = TranslationHelper.translate(context, _selectedCategory);
+      final transCategory =
+          TranslationHelper.translate(context, _selectedCategory);
       final transCases = TranslationHelper.translate(context, 'cases');
       subtitle = '$transCategory · ${visibleRecords.length} $transCases';
     }
@@ -138,7 +140,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       appBar: ModuleHubScreenAppBar(
         title: TranslationHelper.translate(context, 'Form I-V Cases'),
         subtitle: subtitle,
-        badgeLabel: TranslationHelper.translate(context, 'i to v').toUpperCase(),
+        badgeLabel:
+            TranslationHelper.translate(context, 'i to v').toUpperCase(),
       ),
       floatingActionButton: _showNewCaseFab
           ? FloatingActionButton.extended(
@@ -456,7 +459,8 @@ class _FormIVCaseCard extends StatelessWidget {
     final statusColor = _statusColor(record.status);
     final categoryLabel = record.subCategory?.trim().isNotEmpty == true
         ? TranslationHelper.translate(context, record.subCategory!.trim())
-        : TranslationHelper.translate(context, record.firestoreCategoryDisplayName);
+        : TranslationHelper.translate(
+            context, record.firestoreCategoryDisplayName);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -558,7 +562,8 @@ class _FormIVCaseCard extends StatelessWidget {
                       child: Text(
                         record.assignedOfficer.trim().isNotEmpty
                             ? record.assignedOfficer
-                            : TranslationHelper.translate(context, 'Unassigned'),
+                            : TranslationHelper.translate(
+                                context, 'Unassigned'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
@@ -667,8 +672,10 @@ class _EmptyCasesState extends StatelessWidget {
         ? TranslationHelper.translate(context, 'No Form I-V cases yet')
         : '${TranslationHelper.translate(context, 'No')} $transCategory ${TranslationHelper.translate(context, 'cases yet')}';
     final descText = readOnly
-        ? TranslationHelper.translate(context, 'Cases will appear here once registered.')
-        : TranslationHelper.translate(context, 'Tap New Case to register the first case.');
+        ? TranslationHelper.translate(
+            context, 'Cases will appear here once registered.')
+        : TranslationHelper.translate(
+            context, 'Tap New Case to register the first case.');
 
     return Center(
       child: Padding(

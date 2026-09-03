@@ -67,33 +67,35 @@ class ModuleFormScreen extends StatefulWidget {
 
 class _ModuleFormScreenState extends State<ModuleFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _caseNoCtrl      = TextEditingController();
-  final _titleCtrl       = TextEditingController();
-  final _descCtrl        = TextEditingController();
+  final _caseNoCtrl = TextEditingController();
+  final _titleCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
   final _complainantCtrl = TextEditingController();
-  final _accusedCtrl     = TextEditingController();
-  final _locationCtrl    = TextEditingController();
+  final _accusedCtrl = TextEditingController();
+  final _locationCtrl = TextEditingController();
 
-  DateTime _date     = DateTime.now();
-  String _priority   = 'Medium';
-  String _status     = 'Open';
-  bool get _isEdit   => widget.existingRecord != null;
+  DateTime _date = DateTime.now();
+  String _priority = 'Medium';
+  String _status = 'Open';
+  bool get _isEdit => widget.existingRecord != null;
 
   @override
   void initState() {
     super.initState();
     if (_isEdit) {
       final r = widget.existingRecord!;
-      _caseNoCtrl.text      = r.caseNumber;
-      _titleCtrl.text       = r.title;
-      _descCtrl.text        = r.description;
+      _caseNoCtrl.text = r.caseNumber;
+      _titleCtrl.text = r.title;
+      _descCtrl.text = r.description;
       _complainantCtrl.text = r.complainant;
-      _accusedCtrl.text     = r.accused;
-      _locationCtrl.text    = r.location;
-      _date     = r.incidentDate;
+      _accusedCtrl.text = r.accused;
+      _locationCtrl.text = r.location;
+      _date = r.incidentDate;
       _priority = r.priority;
       if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
-        _status = (r.status == 'Disposal' || r.status == 'Closed' || r.status == 'Resolved')
+        _status = (r.status == 'Disposal' ||
+                r.status == 'Closed' ||
+                r.status == 'Resolved')
             ? 'Disposal'
             : 'Pending';
       } else {
@@ -113,7 +115,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
       final auth = context.read<AuthProvider>();
       final provider = _getProvider(context);
 
-      debugPrint('>>> [ModuleFormScreen] initState stationName="${auth.stationName}" uid="${auth.uid}"');
+      debugPrint(
+          '>>> [ModuleFormScreen] initState stationName="${auth.stationName}" uid="${auth.uid}"');
 
       // Only inject if stationName is available
       if (auth.stationName.isNotEmpty) {
@@ -135,50 +138,87 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
 
   BaseModuleProvider _getProvider(BuildContext context) {
     switch (widget.moduleKey) {
-      case 'form_1_5':         return context.read<FormIVProvider>();
-      case 'form_6':           return context.read<FormVIProvider>();
-      case 'nc':               return context.read<NcProvider>();
-      case 'preventive':       return context.read<PreventiveProvider>();
-      case 'ad':               return context.read<AdProvider>();
-      case 'missing':          return context.read<MissingProvider>();
-      case 'kidnapping':       return context.read<KidnappingProvider>();
-      case 'theft':            return context.read<TheftProvider>();
-      case 'sand_theft':       return context.read<SandTheftProvider>();
-      case 'hurt':             return context.read<HurtProvider>();
-      case 'pocso':            return context.read<PocsoProvider>();
-      case 'passport':         return context.read<PassportProvider>();
-      case 'monthly':          return context.read<MonthlyProvider>();
-      case 'pending':          return context.read<PendingProvider>();
-      case 'detected':         return context.read<DetectedProvider>();
-      case 'undetected':       return context.read<UndetectedProvider>();
-      case 'disposal':         return context.read<DisposalProvider>();
-      case 'two_four_wheeler': return context.read<TwoFourWheelerProvider>();
-      case 'arrested':         return context.read<ArrestedProvider>();
-      case 'absconded':        return context.read<AbscondedProvider>();
-      case 'crime_women':      return context.read<CrimeWomenProvider>();
-      case 'juvenile':         return context.read<JuvenileProvider>();
-      case 'victim':           return context.read<VictimProvider>();
-      case 'accident':         return context.read<AccidentProvider>();
-      case 'traffic':          return context.read<TrafficProvider>();
-      case 'application':      return context.read<ApplicationProvider>();
-      case 'sam_warrant':      return context.read<SamWarrantProvider>();
-      case 'muddemal':         return context.read<MuddemalProvider>();
-      case 'bnss':             return context.read<BnssProvider>();
-      case 'ndps':             return context.read<NdpsProvider>();
-      case 'gowans':           return context.read<GowansProvider>();
-      case 'it_act':           return context.read<ItActProvider>();
-      case 'mcoca':            return context.read<McocaProvider>();
-      case 'uapa':             return context.read<UapaProvider>();
-      case 'mpda':             return context.read<MpdaProvider>();
-      case 'coin':             return context.read<CoinProvider>();
-      default:                 return context.read<NcProvider>();
+      case 'form_1_5':
+        return context.read<FormIVProvider>();
+      case 'form_6':
+        return context.read<FormVIProvider>();
+      case 'nc':
+        return context.read<NcProvider>();
+      case 'preventive':
+        return context.read<PreventiveProvider>();
+      case 'ad':
+        return context.read<AdProvider>();
+      case 'missing':
+        return context.read<MissingProvider>();
+      case 'kidnapping':
+        return context.read<KidnappingProvider>();
+      case 'theft':
+        return context.read<TheftProvider>();
+      case 'sand_theft':
+        return context.read<SandTheftProvider>();
+      case 'hurt':
+        return context.read<HurtProvider>();
+      case 'pocso':
+        return context.read<PocsoProvider>();
+      case 'passport':
+        return context.read<PassportProvider>();
+      case 'monthly':
+        return context.read<MonthlyProvider>();
+      case 'pending':
+        return context.read<PendingProvider>();
+      case 'detected':
+        return context.read<DetectedProvider>();
+      case 'undetected':
+        return context.read<UndetectedProvider>();
+      case 'disposal':
+        return context.read<DisposalProvider>();
+      case 'two_four_wheeler':
+        return context.read<TwoFourWheelerProvider>();
+      case 'arrested':
+        return context.read<ArrestedProvider>();
+      case 'absconded':
+        return context.read<AbscondedProvider>();
+      case 'crime_women':
+        return context.read<CrimeWomenProvider>();
+      case 'juvenile':
+        return context.read<JuvenileProvider>();
+      case 'victim':
+        return context.read<VictimProvider>();
+      case 'accident':
+        return context.read<AccidentProvider>();
+      case 'traffic':
+        return context.read<TrafficProvider>();
+      case 'application':
+        return context.read<ApplicationProvider>();
+      case 'sam_warrant':
+        return context.read<SamWarrantProvider>();
+      case 'muddemal':
+        return context.read<MuddemalProvider>();
+      case 'bnss':
+        return context.read<BnssProvider>();
+      case 'ndps':
+        return context.read<NdpsProvider>();
+      case 'gowans':
+        return context.read<GowansProvider>();
+      case 'it_act':
+        return context.read<ItActProvider>();
+      case 'mcoca':
+        return context.read<McocaProvider>();
+      case 'uapa':
+        return context.read<UapaProvider>();
+      case 'mpda':
+        return context.read<MpdaProvider>();
+      case 'coin':
+        return context.read<CoinProvider>();
+      default:
+        return context.read<NcProvider>();
     }
   }
 
   Future<void> _onSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final auth     = context.read<AuthProvider>();
+    final auth = context.read<AuthProvider>();
     final provider = _getProvider(context);
 
     // ✅ Resolve stationName — prefer auth, never allow empty
@@ -201,41 +241,38 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
         ),
         backgroundColor: Colors.red,
       ));
-      debugPrint('>>> [_onSubmit] BLOCKED — stationName is empty. auth.stationName="${auth.stationName}" provider.stationId="${provider.stationId}"');
+      debugPrint(
+          '>>> [_onSubmit] BLOCKED — stationName is empty. auth.stationName="${auth.stationName}" provider.stationId="${provider.stationId}"');
       return;
     }
 
-    debugPrint('>>> [_onSubmit] stationName="$stationName" createdBy="$createdBy"');
+    debugPrint(
+        '>>> [_onSubmit] stationName="$stationName" createdBy="$createdBy"');
 
     final record = ModuleRecord(
       id: _isEdit
           ? widget.existingRecord!.id
           : '${DateTime.now().millisecondsSinceEpoch}',
-      moduleKey:       widget.moduleKey,
-      title:           _titleCtrl.text.trim(),
-      caseNumber:      _caseNoCtrl.text.trim(),
-      description:     _descCtrl.text.trim(),
-      complainant:     _complainantCtrl.text.trim(),
-      accused:         _accusedCtrl.text.trim(),
-      location:        _locationCtrl.text.trim(),
-      incidentDate:    _date,
-      priority:        _priority,
-      status:          _status,
-      assignedOfficer: _isEdit
-          ? widget.existingRecord!.assignedOfficer
-          : auth.displayName,
-      subCategory:     _isEdit
-          ? widget.existingRecord!.subCategory
-          : widget.subCategory,
-      createdAt:       _isEdit
-          ? widget.existingRecord!.createdAt
-          : DateTime.now(),
+      moduleKey: widget.moduleKey,
+      title: _titleCtrl.text.trim(),
+      caseNumber: _caseNoCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
+      complainant: _complainantCtrl.text.trim(),
+      accused: _accusedCtrl.text.trim(),
+      location: _locationCtrl.text.trim(),
+      incidentDate: _date,
+      priority: _priority,
+      status: _status,
+      assignedOfficer:
+          _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
+      subCategory:
+          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
+      createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       // ✅ Always populated — never empty
-      stationName:     stationName,
-      createdBy:       createdBy,
-      assignedOfficerUid: _isEdit
-          ? widget.existingRecord!.assignedOfficerUid
-          : auth.uid,
+      stationName: stationName,
+      createdBy: createdBy,
+      assignedOfficerUid:
+          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
     );
 
     try {
@@ -271,9 +308,10 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final statusItems = (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected')
-        ? ['Pending', 'Disposal']
-        : ['Open', 'Active', 'Resolved', 'Closed'];
+    final statusItems =
+        (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected')
+            ? ['Pending', 'Disposal']
+            : ['Open', 'Active', 'Resolved', 'Closed'];
 
     return BaseFormLayout(
       title: _isEdit
@@ -282,7 +320,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
       onSubmit: _onSubmit,
       submitLabel: _isEdit ? 'Update Record' : 'Register Case',
       backgroundColor: AppColors.lightBg,
-      darkAppBar: (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected'),
+      darkAppBar:
+          (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected'),
       appBarActions: [
         Container(
           margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -290,8 +329,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
           decoration: BoxDecoration(
             color: AppColors.goldPrimary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(AppRadius.sm),
-            border: Border.all(
-                color: AppColors.goldPrimary.withValues(alpha: 0.3)),
+            border:
+                Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.3)),
           ),
           child: Center(
             child: Text('MODULE',
@@ -370,10 +409,7 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
                 _dropdown('Priority', _priority, ['Low', 'Medium', 'High'],
                     (v) => setState(() => _priority = v!)),
                 const SizedBox(height: AppSpacing.md),
-                _dropdown(
-                    'Status',
-                    _status,
-                    statusItems,
+                _dropdown('Status', _status, statusItems,
                     (v) => setState(() => _status = v!)),
               ]),
             ],

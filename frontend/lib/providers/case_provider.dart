@@ -46,7 +46,8 @@ class CaseRecord {
           : DateTime.now(),
       priority: map['priority'] ?? 'Medium',
       status: map['status'] ?? 'Open',
-      assignedOfficer: map['assigned_officer'] ?? map['assigned_officer_name'] ?? '',
+      assignedOfficer:
+          map['assigned_officer'] ?? map['assigned_officer_name'] ?? '',
     );
   }
 
@@ -153,7 +154,9 @@ class CaseProvider extends ChangeNotifier {
 
   List<CaseRecord> getCasesByCategory(String category) {
     if (category == 'Form I-V' || category == 'Form VI') {
-      return _cases.where((c) => c.category == category || c.category == 'Theft').toList();
+      return _cases
+          .where((c) => c.category == category || c.category == 'Theft')
+          .toList();
     }
     return _cases.where((c) => c.category == category).toList();
   }
@@ -171,11 +174,13 @@ class CaseProvider extends ChangeNotifier {
       );
 
       if (remoteCasesData != null && remoteCasesData.isNotEmpty) {
-        final remoteCases = remoteCasesData.map((data) => CaseRecord.fromMap(data)).toList();
-        
+        final remoteCases =
+            remoteCasesData.map((data) => CaseRecord.fromMap(data)).toList();
+
         // Merge or update local list
         for (var remoteCase in remoteCases) {
-          final index = _cases.indexWhere((c) => c.id == remoteCase.id || c.caseNumber == remoteCase.caseNumber);
+          final index = _cases.indexWhere((c) =>
+              c.id == remoteCase.id || c.caseNumber == remoteCase.caseNumber);
           if (index != -1) {
             _cases[index] = remoteCase;
           } else {
@@ -199,7 +204,8 @@ class CaseProvider extends ChangeNotifier {
     try {
       final created = await _backendService.createCase(newCase.toMap());
       if (created != null && created.containsKey('id')) {
-        final idx = _cases.indexWhere((c) => c.id == newCase.id || c.caseNumber == newCase.caseNumber);
+        final idx = _cases.indexWhere(
+            (c) => c.id == newCase.id || c.caseNumber == newCase.caseNumber);
         if (idx != -1) {
           _cases[idx] = CaseRecord.fromMap(created);
           notifyListeners();

@@ -70,7 +70,9 @@ void main() async {
   };
 
   try {
-    if (kIsWeb) usePathUrlStrategy(); // PLATFORM FIX: enable clean URLs on web without hash
+    if (kIsWeb) {
+      usePathUrlStrategy(); // PLATFORM FIX: enable clean URLs on web without hash
+    }
 
     // Initialize Firebase (Supports all platforms including Web)
     try {
@@ -89,7 +91,8 @@ void main() async {
     // Register FCM background message handler (must be called before runApp).
     // PLATFORM FIX: Background messaging is NOT supported on web.
     if (!kIsWeb) {
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler);
     }
 
     // System chrome setup (fast, no await needed)
@@ -330,7 +333,6 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
         AppRoutes.stationAccessGrants: (_) => const StationAccessGrantsScreen(),
         AppRoutes.loginSecurity: (_) => const LoginSecurityScreen(),
         AppRoutes.appSettings: (_) => const AppSettingsScreen(),
-
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.registerPinSetup) {
@@ -427,7 +429,10 @@ class _AppLockNavigatorState extends State<_AppLockNavigator> {
         // Use navigatorKey instead of Navigator.of(context) to avoid context issues
         // Schedule navigation after build completes
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && auth.isInitialized && !auth.isSessionActive && auth.isRegistered) {
+          if (mounted &&
+              auth.isInitialized &&
+              !auth.isSessionActive &&
+              auth.isRegistered) {
             final nav = widget.navigatorKey.currentState;
             if (nav != null) {
               nav.pushNamedAndRemoveUntil(

@@ -47,7 +47,9 @@ class SecureStorage {
   }
 
   Future<String?> read({required String key}) async {
-    if (_memoryCache.containsKey(key) && _memoryCache[key] != null && _memoryCache[key]!.isNotEmpty) {
+    if (_memoryCache.containsKey(key) &&
+        _memoryCache[key] != null &&
+        _memoryCache[key]!.isNotEmpty) {
       return _memoryCache[key];
     }
     try {
@@ -106,4 +108,3 @@ class SecureStorage {
     }
   }
 }
-

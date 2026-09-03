@@ -90,31 +90,80 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
             Center(
               child: Column(
                 children: [
-                  Text('CHEHARE PATTI / IDENTIFICATION PARADE', style: serif.copyWith(fontSize: 15, fontWeight: FontWeight.bold)),
-                  Text('चेहरे पट्टी / ओळख परेड', style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text('CHEHARE PATTI / IDENTIFICATION PARADE',
+                      style: serif.copyWith(
+                          fontSize: 15, fontWeight: FontWeight.bold)),
+                  Text('चेहरे पट्टी / ओळख परेड',
+                      style: marathi.copyWith(
+                          fontSize: 13, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
             const SizedBox(height: 16),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Camp No.', marathiLabel: 'कंप क्र.', controller: _fields['campNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['date']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Camp No.',
+                    marathiLabel: 'कंप क्र.',
+                    controller: _fields['campNo']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Date',
+                    marathiLabel: 'दिनांक',
+                    controller: _fields['date']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
               ],
             ),
-            BilingualField(label: 'Police Station', marathiLabel: 'पोलीस स्टेशन', controller: _fields['policeStation']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Police Station',
+                marathiLabel: 'पोलीस स्टेशन',
+                controller: _fields['policeStation']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'CR No.', marathiLabel: 'गु.र.क्र.', controller: _fields['crNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'CR No.',
+                    marathiLabel: 'गु.र.क्र.',
+                    controller: _fields['crNo']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Section',
+                    marathiLabel: 'कलम',
+                    controller: _fields['section']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
               ],
             ),
-            BilingualField(label: 'Identifying witness', marathiLabel: 'ओळख करणारा साक्षी', controller: _fields['identifyingWitness']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Suspect / accused', marathiLabel: 'संशयित / आरोपी', controller: _fields['suspectName']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Identifying witness',
+                marathiLabel: 'ओळख करणारा साक्षी',
+                controller: _fields['identifyingWitness']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Suspect / accused',
+                marathiLabel: 'संशयित / आरोपी',
+                controller: _fields['suspectName']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Place', marathiLabel: 'ठिकाण', controller: _fields['paradePlace']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Time', marathiLabel: 'वेळ', controller: _fields['paradeTime']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Place',
+                    marathiLabel: 'ठिकाण',
+                    controller: _fields['paradePlace']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
+                BilingualField(
+                    label: 'Time',
+                    marathiLabel: 'वेळ',
+                    controller: _fields['paradeTime']!,
+                    serifStyle: serif,
+                    marathiLabelStyle: marathi),
               ],
             ),
             BilingualMultilineField(
@@ -136,7 +185,12 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
               sig1: _fields['panch1Sig']!,
               sig2: _fields['panch2Sig']!,
             ),
-            BilingualField(label: 'Witness signature', marathiLabel: 'साक्षी सही', controller: _fields['witnessSig']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+                label: 'Witness signature',
+                marathiLabel: 'साक्षी सही',
+                controller: _fields['witnessSig']!,
+                serifStyle: serif,
+                marathiLabelStyle: marathi),
             const SizedBox(height: 16),
             FormIoSignatureBlock(
               nameCtrl: _fields['ioName']!,

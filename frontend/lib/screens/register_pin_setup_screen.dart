@@ -177,7 +177,8 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
+            icon:
+                const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
             onPressed: _loading ? null : () => Navigator.pop(context),
           ),
         ),
@@ -238,8 +239,7 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
                             filled: true,
                             fillColor: const Color(0xFFF8FAFF),
                             border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                           ),
                           validator: AppValidators.pin,
@@ -263,8 +263,7 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
                             filled: true,
                             fillColor: const Color(0xFFF8FAFF),
                             border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                           ),
                           validator: (v) {

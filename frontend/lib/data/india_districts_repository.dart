@@ -14,7 +14,8 @@ class IndiaDistrictsRepository {
 
     final raw = await rootBundle.loadString('assets/data/india_districts.json');
     final decoded = jsonDecode(raw) as Map<String, dynamic>;
-    final districts = (decoded['districts'] as List).cast<Map<String, dynamic>>();
+    final districts =
+        (decoded['districts'] as List).cast<Map<String, dynamic>>();
 
     final Map<String, List<String>> map = {};
     for (final d in districts) {
@@ -35,4 +36,3 @@ class IndiaDistrictsRepository {
     return map;
   }
 }
-

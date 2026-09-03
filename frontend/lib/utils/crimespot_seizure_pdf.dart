@@ -26,15 +26,13 @@ Future<void> previewCrimespotSeizurePdf(
   }
 }
 
-Future<Uint8List> generateCrimespotSeizurePdf(
-    Map<String, dynamic> doc) async {
+Future<Uint8List> generateCrimespotSeizurePdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
 
   // Load fonts
   final loraRegular = await PdfGoogleFonts.loraRegular();
   final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagariRegular =
-      await PdfGoogleFonts.notoSansDevanagariRegular();
+  final devanagariRegular = await PdfGoogleFonts.notoSansDevanagariRegular();
 
   // Pre-render Marathi text blocks
   final cache = await _preRenderAllMarathi(doc);
@@ -83,8 +81,7 @@ Future<Uint8List> generateCrimespotSeizurePdf(
             pw.Spacer(),
             pw.Align(
               alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W',
-                  style: englishBold.copyWith(fontSize: 9)),
+              child: pw.Text('M.R.W', style: englishBold.copyWith(fontSize: 9)),
             ),
           ],
         );
@@ -100,8 +97,7 @@ Future<Uint8List> generateCrimespotSeizurePdf(
       footer: (pw.Context context) {
         return pw.Align(
           alignment: pw.Alignment.bottomRight,
-          child: pw.Text('M.R.W',
-              style: englishBold.copyWith(fontSize: 9)),
+          child: pw.Text('M.R.W', style: englishBold.copyWith(fontSize: 9)),
         );
       },
       build: (pw.Context context) {
@@ -230,12 +226,10 @@ Future<Uint8List> generateCrimespotSeizurePdf(
               constraints: const pw.BoxConstraints(minHeight: 16),
               decoration: const pw.BoxDecoration(
                 border: pw.Border(
-                    bottom: pw.BorderSide(
-                        color: PdfColors.black, width: 0.5)),
+                    bottom: pw.BorderSide(color: PdfColors.black, width: 0.5)),
               ),
               alignment: pw.Alignment.bottomLeft,
-              padding:
-                  const pw.EdgeInsets.only(left: 4, bottom: 2),
+              padding: const pw.EdgeInsets.only(left: 4, bottom: 2),
               child: cache.has('body_line_$i')
                   ? cache.img('body_line_$i')
                   : pw.Text(bodyLines[i], style: valueStyle),
@@ -250,8 +244,7 @@ Future<Uint8List> generateCrimespotSeizurePdf(
               height: 16,
               decoration: const pw.BoxDecoration(
                 border: pw.Border(
-                    bottom: pw.BorderSide(
-                        color: PdfColors.black, width: 0.5)),
+                    bottom: pw.BorderSide(color: PdfColors.black, width: 0.5)),
               ),
             ),
             pw.SizedBox(height: 3),
@@ -271,8 +264,7 @@ Future<Uint8List> generateCrimespotSeizurePdf(
                     if (cache.has('lbl_io'))
                       cache.img('lbl_io')
                     else
-                      pw.Text('तपासी अंमलदार',
-                          style: englishBold),
+                      pw.Text('तपासी अंमलदार', style: englishBold),
                     pw.SizedBox(height: 4),
                     pw.Text('Investigating Officer',
                         style: englishStyle.copyWith(fontSize: 8)),
@@ -317,8 +309,7 @@ Future<Uint8List> generateCrimespotSeizurePdf(
                           pw.Expanded(
                             child: _buildPdfUnderlineField(
                               valKey: 'val_panchSig2',
-                              fallbackValue:
-                                  doc['panchSig2'] ?? '',
+                              fallbackValue: doc['panchSig2'] ?? '',
                               valueStyle: valueStyle,
                               cache: cache,
                               expanded: true,
@@ -359,9 +350,8 @@ pw.Widget _buildPdfUnderlineField({
   final child = pw.Container(
     width: expanded ? null : (width ?? 60),
     decoration: const pw.BoxDecoration(
-      border: pw.Border(
-          bottom:
-              pw.BorderSide(color: PdfColors.black, width: 0.8)),
+      border:
+          pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 0.8)),
     ),
     alignment: pw.Alignment.bottomCenter,
     padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
@@ -369,9 +359,7 @@ pw.Widget _buildPdfUnderlineField({
         ? cache.img(valKey)
         : pw.Text(fallbackValue, style: valueStyle),
   );
-  return expanded
-      ? pw.SizedBox(width: double.infinity, child: child)
-      : child;
+  return expanded ? pw.SizedBox(width: double.infinity, child: child) : child;
 }
 
 List<String> _splitTextIntoLines(String text, int maxChars) {
@@ -403,8 +391,7 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
   return result;
 }
 
-Future<MarathiImageCache> _preRenderAllMarathi(
-    Map<String, dynamic> doc) async {
+Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final cache = MarathiImageCache();
 
   final headerStyle = GoogleFonts.notoSansDevanagari(
@@ -433,8 +420,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(
     await cache.add(key, text, style, maxWidth: maxWidth);
   }
 
-  Future<void> addVal(String key, String? val,
-      {double maxWidth = 500}) async {
+  Future<void> addVal(String key, String? val, {double maxWidth = 500}) async {
     final text = val?.trim() ?? '';
     if (containsDevanagari(text)) {
       await cache.add(key, text, valueStyle, maxWidth: maxWidth);
@@ -442,8 +428,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(
   }
 
   // Title page
-  await addLbl(
-      'title_main', 'घटनास्थळ जप्ती पंचनामा', headerStyle);
+  await addLbl('title_main', 'घटनास्थळ जप्ती पंचनामा', headerStyle);
 
   // Form header
   await addLbl('header_title', 'घटनास्थळ जप्ती पंचनामा',
@@ -454,8 +439,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(
   await addLbl('lbl_date', 'दिनांक :- ', marathiLabelStyle);
   await addLbl('lbl_panch_name', 'पंच नांव', marathiLabelStyle);
   await addLbl('lbl_io', FormIoTerminology.officerAmaldar, marathiLabelStyle);
-  await addLbl(
-      'lbl_panch_sig', 'पंच साही :- ', marathiLabelStyle);
+  await addLbl('lbl_panch_sig', 'पंच साही :- ', marathiLabelStyle);
 
   // Dynamic values
   await addVal('val_campNo', doc['campNo']);
@@ -474,8 +458,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(
   for (int i = 0; i < bodyLines.length; i++) {
     final lineText = bodyLines[i];
     if (containsDevanagari(lineText)) {
-      await cache.add(
-          'body_line_$i', lineText, valueStyle, maxWidth: 480);
+      await cache.add('body_line_$i', lineText, valueStyle, maxWidth: 480);
     }
   }
 

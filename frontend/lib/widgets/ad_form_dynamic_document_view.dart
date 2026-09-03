@@ -349,8 +349,7 @@ class AdFormDynamicDocumentView extends StatelessWidget {
   List<Widget> _expandMap(Map raw, {String? parentFieldKey}) {
     final m = Map<String, dynamic>.from(raw);
     if (m.isEmpty) return [_row('(empty)', '—')];
-    final kind =
-        adNestedMapKindFor(parentFieldKey: parentFieldKey, m: m);
+    final kind = adNestedMapKindFor(parentFieldKey: parentFieldKey, m: m);
     final keys = orderedKeysForAdNestedMap(kind: kind, m: m);
     final parentForNestedValues =
         kind == AdNestedMapKind.chargeDataSlots ? 'chargeData' : parentFieldKey;
@@ -430,8 +429,7 @@ class AdFormDynamicDocumentView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader(
-            'A.D — complete form record (all saved fields)',
+        _sectionHeader('A.D — complete form record (all saved fields)',
             Icons.fact_check_outlined),
         const SizedBox(height: 10),
         _card(children: _allFieldRows(formData)),

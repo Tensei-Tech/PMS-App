@@ -61,8 +61,10 @@ class AccessDeniedView extends StatelessWidget {
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.navyMid,
-                side: BorderSide(color: AppColors.navyMid.withValues(alpha: 0.35)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                side: BorderSide(
+                    color: AppColors.navyMid.withValues(alpha: 0.35)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),
           ],

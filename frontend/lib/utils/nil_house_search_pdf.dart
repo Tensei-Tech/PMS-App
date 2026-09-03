@@ -13,7 +13,13 @@ Future<void> previewNilHouseSearchPdf(
       titleMr: 'घर शोध पंचनामा — निरर्थक',
       titleEn: 'Nil House Search Panchanama',
       fieldKeys: [
-        'campNo', 'date', 'policeStation', 'crNo', 'searchAddress',
-        'ownerName', 'searchBody', 'ioName',
+        'campNo',
+        'date',
+        'policeStation',
+        'crNo',
+        'searchAddress',
+        'ownerName',
+        'searchBody',
+        'ioName',
       ],
     );

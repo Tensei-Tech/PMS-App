@@ -114,9 +114,7 @@ class ReadOnlyModuleRecordHubCard extends StatelessWidget {
                   ),
                   child: Text(record.status,
                       style: GoogleFonts.poppins(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: sc)),
+                          fontSize: 9, fontWeight: FontWeight.w700, color: sc)),
                 ),
               ]),
               const SizedBox(height: 10),
@@ -173,8 +171,9 @@ class ReadOnlyModuleRecordHubCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _actionBtn(Icons.visibility_rounded, 'View',
-                    AppColors.goldPrimary, () {
+                _actionBtn(
+                    Icons.visibility_rounded, 'View', AppColors.goldPrimary,
+                    () {
                   Navigator.push(
                     context,
                     AppTheme.fadeSlideRoute(

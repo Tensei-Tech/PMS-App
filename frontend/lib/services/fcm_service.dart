@@ -13,7 +13,9 @@ class FcmService {
   FcmService._internal();
 
   FirebaseMessaging? get _messaging {
-    if (kIsWeb || defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS) {
+    if (kIsWeb ||
+        defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS) {
       try {
         return FirebaseMessaging.instance;
       } catch (_) {
@@ -126,9 +128,11 @@ class FcmService {
     final msg = _messaging;
     if (msg == null) return;
     try {
-      const String webVapidKey = String.fromEnvironment('FCM_WEB_VAPID_KEY', defaultValue: '');
+      const String webVapidKey =
+          String.fromEnvironment('FCM_WEB_VAPID_KEY', defaultValue: '');
       if (kIsWeb && webVapidKey.isEmpty) {
-        debugPrint('[FCM] Web VAPID key not configured; skipping web push registration.');
+        debugPrint(
+            '[FCM] Web VAPID key not configured; skipping web push registration.');
         return;
       }
 
@@ -139,8 +143,7 @@ class FcmService {
 
       debugPrint(
           '╔══════════════════════════════════════════════════════════╗');
-      debugPrint(
-          '║  FCM DEVICE TOKEN (copy for Firebase Console testing):  ║');
+      debugPrint('║  FCM DEVICE TOKEN (copy for Firebase Console testing):  ║');
       debugPrint(
           '╠══════════════════════════════════════════════════════════╣');
       debugPrint('║  $token');

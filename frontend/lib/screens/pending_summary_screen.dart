@@ -182,9 +182,7 @@ class PendingSummaryScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap: !anyRows
-                        ? null
-                        : () => _exportPdf(context, dataset),
+                    onTap: !anyRows ? null : () => _exportPdf(context, dataset),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 10),

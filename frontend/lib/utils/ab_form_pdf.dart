@@ -30,11 +30,15 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
   final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
 
   final bodyStyle = pw.TextStyle(font: loraRegular, fontSize: 10);
-  final boldStyle = pw.TextStyle(font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
-  final titleStyle = pw.TextStyle(font: loraBold, fontSize: 16, fontWeight: pw.FontWeight.bold);
+  final boldStyle = pw.TextStyle(
+      font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
+  final titleStyle = pw.TextStyle(
+      font: loraBold, fontSize: 16, fontWeight: pw.FontWeight.bold);
   final marathiStyle = pw.TextStyle(font: devanagari, fontSize: 8.5);
-  final marathiBold = pw.TextStyle(font: devanagariBold, fontSize: 9, fontWeight: pw.FontWeight.bold);
-  final valueStyle = pw.TextStyle(font: devanagari, fontSize: 10, color: PdfColors.blue900);
+  final marathiBold = pw.TextStyle(
+      font: devanagariBold, fontSize: 9, fontWeight: pw.FontWeight.bold);
+  final valueStyle =
+      pw.TextStyle(font: devanagari, fontSize: 10, color: PdfColors.blue900);
 
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
@@ -47,16 +51,16 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-          pw.SizedBox(
-            width: 180,
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(labelEn, style: boldStyle),
-                pw.Text(labelMr, style: marathiStyle),
-              ],
-            ),
-          ),
+              pw.SizedBox(
+                width: 180,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(labelEn, style: boldStyle),
+                    pw.Text(labelMr, style: marathiStyle),
+                  ],
+                ),
+              ),
               pw.Expanded(
                 child: pw.Text(value.isEmpty ? '—' : value, style: valueStyle),
               ),
@@ -68,9 +72,11 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
   }
 
   final section = v('formSection').toLowerCase();
-  final showA = section.isEmpty || section.contains('main') || section.contains('form a');
-  final showB =
-      section.isEmpty || section.contains('continuation') || section.contains('form b');
+  final showA =
+      section.isEmpty || section.contains('main') || section.contains('form a');
+  final showB = section.isEmpty ||
+      section.contains('continuation') ||
+      section.contains('form b');
 
   if (showA) {
     pdf.addPage(
@@ -85,7 +91,8 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                 children: [
                   pw.Text('Form A / नमुना "अ"', style: titleStyle),
                   pw.SizedBox(height: 4),
-                  pw.Text('(See Rule No 3) / (नियम क्र. ३ पहा)', style: bodyStyle),
+                  pw.Text('(See Rule No 3) / (नियम क्र. ३ पहा)',
+                      style: bodyStyle),
                   pw.SizedBox(height: 8),
                   pw.Text(
                     'Certificate by registered medical practitioner regarding consumption of an intoxicant.',
@@ -102,8 +109,10 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             ),
             pw.SizedBox(height: 16),
             bilingualFieldRow('Serial No', 'अ.क्र.', v('serialNo')),
-            bilingualFieldRow('Dispensary / Hospital', 'दवाखाना / औषधालय', v('dispensary')),
-            bilingualFieldRow('Person examined', 'तपासण्यात आलेली व्यक्ती', v('personName')),
+            bilingualFieldRow(
+                'Dispensary / Hospital', 'दवाखाना / औषधालय', v('dispensary')),
+            bilingualFieldRow(
+                'Person examined', 'तपासण्यात आलेली व्यक्ती', v('personName')),
             bilingualFieldRow('Brought by', 'कोणी आणले', v('broughtBy')),
             bilingualFieldRow(
               'Brought on',
@@ -124,17 +133,23 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             bilingualFieldRow('Speech', 'बोलणे', v('speech')),
             bilingualFieldRow('Gait', 'चाल', v('gait')),
             bilingualFieldRow('Pupils', 'डोळ्यांची बाभळ', v('pupils')),
-            bilingualFieldRow('Additional remarks', 'अतिरिक्त शेरा', v('additionalRemarks')),
-            bilingualFieldRow('Consumed', 'सेवन', '${v('consumed')} ${v('intoxicantType')}'),
-            bilingualFieldRow('Under influence', 'मद्याच्या प्रभावाखाली', v('underInfluence')),
-            bilingualFieldRow('Blood collected', 'रक्त गोळा', v('bloodCollected')),
+            bilingualFieldRow(
+                'Additional remarks', 'अतिरिक्त शेरा', v('additionalRemarks')),
+            bilingualFieldRow(
+                'Consumed', 'सेवन', '${v('consumed')} ${v('intoxicantType')}'),
+            bilingualFieldRow('Under influence', 'मद्याच्या प्रभावाखाली',
+                v('underInfluence')),
+            bilingualFieldRow(
+                'Blood collected', 'रक्त गोळा', v('bloodCollected')),
             pw.SizedBox(height: 8),
             bilingualFieldRow('Dated', 'दिनांक', v('formADated')),
             bilingualFieldRow('Time', 'वेळ', v('formATime')),
             bilingualFieldRow('MO Signature', 'वै.अ. सही', v('moSignature')),
             bilingualFieldRow('Designation', 'पदनाम', v('moDesignation')),
-            bilingualFieldRow('Examined person signature', 'तपासलेल्याची सही', v('examinedSignature')),
-            bilingualFieldRow('Identification marks', 'ओळखीच्या खुणा', v('identificationMarks')),
+            bilingualFieldRow('Examined person signature', 'तपासलेल्याची सही',
+                v('examinedSignature')),
+            bilingualFieldRow('Identification marks', 'ओळखीच्या खुणा',
+                v('identificationMarks')),
           ],
         ),
       ),
@@ -153,7 +168,8 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
               child: pw.Column(
                 children: [
                   pw.Text('FORM "B" / नमुना "ब"', style: titleStyle),
-                  pw.Text('(See rule 4 (2)) / (नियम ४ (२) पहा)', style: bodyStyle),
+                  pw.Text('(See rule 4 (2)) / (नियम ४ (२) पहा)',
+                      style: bodyStyle),
                 ],
               ),
             ),
@@ -163,8 +179,10 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             bilingualFieldRow('To', 'प्रति', v('toTestingOfficer')),
             bilingualFieldRow('Date', 'दिनांक', v('formBDate')),
             bilingualFieldRow('Messenger', 'दूत', v('messengerName')),
-            bilingualFieldRow('Phial serial No.', 'शीशी अ.क्र.', v('phialSerial')),
-            bilingualFieldRow('Blood amount (c.c.)', 'रक्त (स.स.)', v('bloodAmountCc')),
+            bilingualFieldRow(
+                'Phial serial No.', 'शीशी अ.क्र.', v('phialSerial')),
+            bilingualFieldRow(
+                'Blood amount (c.c.)', 'रक्त (स.स.)', v('bloodAmountCc')),
             bilingualFieldRow(
               'Collected on',
               'गोळा दिनांक/वेळ',
@@ -173,8 +191,10 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             bilingualFieldRow('Subject', 'व्यक्ती', v('subjectName')),
             bilingualFieldRow('Subject address', 'पत्ता', v('subjectAddress')),
             bilingualFieldRow('Produced by', 'सादर केले', v('producedBy')),
-            bilingualFieldRow('Signature / designation', 'सही / पदनाम', v('formBSignature')),
-            bilingualFieldRow('Seal facsimile', 'शिक्का प्रतिकृती', v('sealFacsimile')),
+            bilingualFieldRow(
+                'Signature / designation', 'सही / पदनाम', v('formBSignature')),
+            bilingualFieldRow(
+                'Seal facsimile', 'शिक्का प्रतिकृती', v('sealFacsimile')),
           ],
         ),
       ),

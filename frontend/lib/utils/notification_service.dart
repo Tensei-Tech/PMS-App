@@ -15,7 +15,10 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
-  bool get _isSupported => !kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+  bool get _isSupported =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
   /// Call once at app startup
   Future<void> initialize() async {
@@ -34,14 +37,15 @@ class NotificationService {
 
     // flutter_local_notifications newer APIs prefer named-only parameters.
     await _plugin.initialize(
-      settings: const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      settings: const InitializationSettings(
+          android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
     // Request Android 13+ permission
     final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
-        
+
     await androidPlugin?.requestNotificationsPermission();
 
     // Create high importance notification channels for Android 8.0+
@@ -54,7 +58,7 @@ class NotificationService {
         playSound: true,
         enableVibration: true,
       );
-      
+
       const dutyChannel = AndroidNotificationChannel(
         'police_notifications',
         'Duty Notifications',

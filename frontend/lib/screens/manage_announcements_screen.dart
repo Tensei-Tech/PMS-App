@@ -35,11 +35,23 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
     (name: 'videocam', icon: Icons.videocam_rounded, label: 'Body Camera'),
     (name: 'security', icon: Icons.security_rounded, label: 'Security / Cyber'),
     (name: 'campaign', icon: Icons.campaign_rounded, label: 'Announcement'),
-    (name: 'warning', icon: Icons.warning_amber_rounded, label: 'Alert / Warning'),
+    (
+      name: 'warning',
+      icon: Icons.warning_amber_rounded,
+      label: 'Alert / Warning'
+    ),
     (name: 'policy', icon: Icons.policy_rounded, label: 'Policy / Rule'),
     (name: 'article', icon: Icons.article_rounded, label: 'Document / Order'),
-    (name: 'local_police', icon: Icons.local_police_rounded, label: 'Police Badge'),
-    (name: 'handshake', icon: Icons.handshake_rounded, label: 'Community / Public'),
+    (
+      name: 'local_police',
+      icon: Icons.local_police_rounded,
+      label: 'Police Badge'
+    ),
+    (
+      name: 'handshake',
+      icon: Icons.handshake_rounded,
+      label: 'Community / Public'
+    ),
   ];
 
   static const List<({String label, int hexColor})> _themeColors = [
@@ -66,8 +78,7 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
-          final selectedIconData =
-              NewsItem.iconFromName(selectedIconName);
+          final selectedIconData = NewsItem.iconFromName(selectedIconName);
 
           return Container(
             padding: EdgeInsets.only(
@@ -277,7 +288,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                       fillColor: AppColors.lightBg,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: const BorderSide(color: AppColors.lightBorder),
+                        borderSide:
+                            const BorderSide(color: AppColors.lightBorder),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 12),
@@ -308,7 +320,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                       fillColor: AppColors.lightBg,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: const BorderSide(color: AppColors.lightBorder),
+                        borderSide:
+                            const BorderSide(color: AppColors.lightBorder),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 12),
@@ -337,8 +350,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                         final isSel = entry.name == selectedIconName;
                         return InkWell(
                           borderRadius: BorderRadius.circular(10),
-                          onTap: () =>
-                              setModalState(() => selectedIconName = entry.name),
+                          onTap: () => setModalState(
+                              () => selectedIconName = entry.name),
                           child: Container(
                             width: 48,
                             height: 48,
@@ -387,8 +400,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                         final isSel = theme.hexColor == selectedColor;
                         return InkWell(
                           borderRadius: BorderRadius.circular(20),
-                          onTap: () =>
-                              setModalState(() => selectedColor = theme.hexColor),
+                          onTap: () => setModalState(
+                              () => selectedColor = theme.hexColor),
                           child: Container(
                             width: 40,
                             height: 40,
@@ -396,7 +409,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                               color: Color(theme.hexColor),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isSel ? Colors.white : Colors.transparent,
+                                color:
+                                    isSel ? Colors.white : Colors.transparent,
                                 width: 2.5,
                               ),
                               boxShadow: [
@@ -439,7 +453,9 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                       label: Text(
                         isSaving
                             ? 'Saving...'
-                            : (isEditing ? 'Update Announcement' : 'Publish Announcement'),
+                            : (isEditing
+                                ? 'Update Announcement'
+                                : 'Publish Announcement'),
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -461,7 +477,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                               if (title.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Please enter announcement title'),
+                                    content:
+                                        Text('Please enter announcement title'),
                                   ),
                                 );
                                 return;
@@ -478,7 +495,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                                 icon: selectedIconData,
                                 iconColorHex: selectedColor,
                                 tag: selectedTag,
-                                order: item?.order ?? (provider.items.length + 1),
+                                order:
+                                    item?.order ?? (provider.items.length + 1),
                               );
 
                               try {
@@ -489,7 +507,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                                 }
                                 if (ctx.mounted) Navigator.pop(ctx);
                                 if (mounted) {
-                                  ScaffoldMessenger.of(this.context).showSnackBar(
+                                  ScaffoldMessenger.of(this.context)
+                                      .showSnackBar(
                                     SnackBar(
                                       backgroundColor: AppColors.successGreen,
                                       content: Text(
@@ -503,7 +522,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                               } catch (err) {
                                 setModalState(() => isSaving = false);
                                 if (mounted) {
-                                  ScaffoldMessenger.of(this.context).showSnackBar(
+                                  ScaffoldMessenger.of(this.context)
+                                      .showSnackBar(
                                     SnackBar(
                                       backgroundColor: AppColors.dangerRed,
                                       content: Text('Error saving: $err'),

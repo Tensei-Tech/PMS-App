@@ -111,8 +111,10 @@ void main() {
     file.writeAsStringSync(content);
     final after = content.split('\n').length;
     totalAfter += after;
-    stdout.writeln('$path: $before -> $after lines (${before - after} removed)');
+    stdout
+        .writeln('$path: $before -> $after lines (${before - after} removed)');
   }
 
-  stdout.writeln('Total: $totalBefore -> $totalAfter (${totalBefore - totalAfter} lines removed)');
+  stdout.writeln(
+      'Total: $totalBefore -> $totalAfter (${totalBefore - totalAfter} lines removed)');
 }

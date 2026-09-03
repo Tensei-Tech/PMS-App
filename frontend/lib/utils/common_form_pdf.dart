@@ -923,7 +923,8 @@ pw.Widget _buildAnyMap(Map<dynamic, dynamic> m) {
                         pw.Expanded(
                           child: pw.Text(
                             _anyToString(item.value),
-                            style: const pw.TextStyle(fontSize: 10, color: _dark),
+                            style:
+                                const pw.TextStyle(fontSize: 10, color: _dark),
                           ),
                         ),
                       ],

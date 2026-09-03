@@ -9,7 +9,8 @@ class RenderedText {
   final double width;
   final double height;
 
-  RenderedText({required this.bytes, required this.width, required this.height});
+  RenderedText(
+      {required this.bytes, required this.width, required this.height});
 
   bool get isEmpty => bytes.isEmpty;
   bool get isNotEmpty => bytes.isNotEmpty;

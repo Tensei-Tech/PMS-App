@@ -27,7 +27,8 @@ class MockOtpVerificationSection extends StatefulWidget {
       _MockOtpVerificationSectionState();
 }
 
-class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection> {
+class _MockOtpVerificationSectionState
+    extends State<MockOtpVerificationSection> {
   static const _mockOtp = '123456';
   static const _resendSeconds = 60;
 
@@ -171,10 +172,14 @@ class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection>
             const SizedBox(width: 12),
             if (_otpSent)
               Text(
-                _secondsLeft > 0 ? 'Resend in $_secondsLeft s' : 'You can resend now',
+                _secondsLeft > 0
+                    ? 'Resend in $_secondsLeft s'
+                    : 'You can resend now',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
-                  color: _secondsLeft > 0 ? Colors.black54 : AppColors.successGreen,
+                  color: _secondsLeft > 0
+                      ? Colors.black54
+                      : AppColors.successGreen,
                 ),
               ),
           ],
@@ -195,7 +200,8 @@ class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection>
               hintText: '6-digit OTP',
               errorText: _error,
               filled: true,
-              fillColor: disabled ? const Color(0xFFF1F3F7) : const Color(0xFFF8FAFF),
+              fillColor:
+                  disabled ? const Color(0xFFF1F3F7) : const Color(0xFFF8FAFF),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
@@ -220,4 +226,3 @@ class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection>
     );
   }
 }
-

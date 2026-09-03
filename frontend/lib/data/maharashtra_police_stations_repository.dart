@@ -20,11 +20,12 @@ class PoliceStation {
   String get displayName => stationName;
 
   @override
-  String toString() => 'PoliceStation(district: $districtName, station: $stationName, type: $type)';
+  String toString() =>
+      'PoliceStation(district: $districtName, station: $stationName, type: $type)';
 }
 
 /// Repository for Maharashtra police stations loaded from CSV.
-/// 
+///
 /// Provides:
 /// - List of all districts/commissionerates
 /// - Map of District -> List of Stations
@@ -39,38 +40,39 @@ class MaharashtraPoliceStationsRepository {
     if (_cachedStations != null) return; // Already loaded
 
     try {
-      final csvString = await rootBundle.loadString('assets/data/maharashtra_police_stations.csv');
+      final csvString = await rootBundle
+          .loadString('assets/data/maharashtra_police_stations.csv');
       final rows = const CsvToListConverter().convert(csvString);
-      
+
       // Skip header row and parse
       final stations = <PoliceStation>[];
       final byDistrict = <String, List<PoliceStation>>{};
-      
+
       for (int i = 1; i < rows.length; i++) {
         final row = rows[i];
         if (row.length < 3) continue; // Skip invalid rows
-        
+
         final district = row[0]?.toString().trim() ?? '';
         final station = row[1]?.toString().trim() ?? '';
         final type = row[2]?.toString().trim() ?? '';
-        
+
         if (district.isEmpty || station.isEmpty) continue;
-        
+
         // Normalize type to match the repository constants
-        final normalizedType = type.toLowerCase().contains('commissionerate') 
-            ? 'Commissionerate Police' 
+        final normalizedType = type.toLowerCase().contains('commissionerate')
+            ? 'Commissionerate Police'
             : 'Superintendent of Police';
-        
+
         final policeStation = PoliceStation(
           districtName: district,
           stationName: station,
           type: normalizedType,
         );
-        
+
         stations.add(policeStation);
         byDistrict.putIfAbsent(district, () => []).add(policeStation);
       }
-      
+
       _cachedStations = stations;
       _cachedByDistrict = byDistrict;
       _cachedDistricts = byDistrict.keys.toList()..sort();
@@ -98,7 +100,8 @@ class MaharashtraPoliceStationsRepository {
   /// Returns station names for a district filtered by unit type.
   static List<String> getStationNamesForSelection({
     required String district,
-    required String unitType, // 'Commissionerate Police' or 'Superintendent of Police'
+    required String
+        unitType, // 'Commissionerate Police' or 'Superintendent of Police'
   }) {
     _ensureLoaded();
     final stations = _cachedByDistrict?[district] ?? [];
@@ -124,11 +127,11 @@ class MaharashtraPoliceStationsRepository {
   static List<PoliceStation> searchStations(String query) {
     _ensureLoaded();
     if (query.isEmpty) return _cachedStations ?? [];
-    
+
     final q = query.toLowerCase();
     return (_cachedStations ?? []).where((s) {
       return s.stationName.toLowerCase().contains(q) ||
-             s.districtName.toLowerCase().contains(q);
+          s.districtName.toLowerCase().contains(q);
     }).toList();
   }
 
@@ -144,10 +147,8 @@ class MaharashtraPoliceStationsRepository {
 
   static void _ensureLoaded() {
     if (_cachedStations == null) {
-      throw StateError(
-        'MaharashtraPoliceStationsRepository not initialized. '
-        'Call initialize() before using the repository.'
-      );
+      throw StateError('MaharashtraPoliceStationsRepository not initialized. '
+          'Call initialize() before using the repository.');
     }
   }
 }

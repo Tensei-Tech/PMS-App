@@ -48,7 +48,8 @@ class StandardTextField extends StatelessWidget {
       style: BaseFormStyles.fieldTextStyle,
       decoration: BaseFormStyles.inputDecoration(
         TranslationHelper.translate(context, label),
-        hintText: hint != null ? TranslationHelper.translate(context, hint!) : null,
+        hintText:
+            hint != null ? TranslationHelper.translate(context, hint!) : null,
         suffixIcon: suffixIcon,
       ).copyWith(
         prefixIcon: prefixIcon != null

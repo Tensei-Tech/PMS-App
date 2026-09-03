@@ -50,8 +50,6 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
   int _countdown = 3;
   Timer? _timer;
   bool _isTriggered = false;
-  bool _isBroadcasting = false;
-  String? _alertId;
 
   @override
   void initState() {
@@ -91,32 +89,23 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
   Future<void> _broadcastSos() async {
     _timer?.cancel();
     setState(() {
-      _isBroadcasting = true;
       _isTriggered = true;
     });
 
     try {
-      final alertId = await OfficerSosService().triggerEmergencySos(
+      await OfficerSosService().triggerEmergencySos(
         officerName: widget.officerName,
         sevaNumber: widget.sevaNumber,
         designation: widget.designation,
         stationName: widget.stationName,
         contactNumber: widget.contactNumber,
       );
-
-      if (mounted) {
-        setState(() {
-          _isBroadcasting = false;
-          _alertId = alertId;
-        });
-      }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isBroadcasting = false;
-        });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to broadcast SOS: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('Failed to broadcast SOS: $e'),
+              backgroundColor: Colors.red),
         );
       }
     }
@@ -154,7 +143,8 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
                     padding: EdgeInsets.all(16 + (_pulseController.value * 8)),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.red.withValues(alpha: 0.2 + (_pulseController.value * 0.3)),
+                      color: Colors.red.withValues(
+                          alpha: 0.2 + (_pulseController.value * 0.3)),
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(20),
@@ -175,7 +165,9 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
 
               // Title
               Text(
-                _isTriggered ? '🚨 SOS BROADCAST ACTIVE' : 'EMERGENCY DISTRESS SOS',
+                _isTriggered
+                    ? '🚨 SOS BROADCAST ACTIVE'
+                    : 'EMERGENCY DISTRESS SOS',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -212,18 +204,26 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Officer:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        const Text('Officer:',
+                            style: TextStyle(color: Colors.grey, fontSize: 12)),
                         Text('${widget.designation} ${widget.officerName}',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12)),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Seva No / Station:', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        const Text('Seva No / Station:',
+                            style: TextStyle(color: Colors.grey, fontSize: 12)),
                         Text('${widget.sevaNumber} • ${widget.stationName}',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12)),
                       ],
                     ),
                   ],
@@ -242,7 +242,8 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white38),
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                         child: const Text('CANCEL (रद्द करा)'),
                       ),
@@ -255,9 +256,11 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
                           backgroundColor: Colors.redAccent,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: const Text('SEND NOW 🚨', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text('SEND NOW 🚨',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -271,7 +274,8 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
                     backgroundColor: const Color(0xFF10B981),
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(44),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ],

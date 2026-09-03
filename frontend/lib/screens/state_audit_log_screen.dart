@@ -56,7 +56,8 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
     });
 
     try {
-      final endpoint = '${ApiConfig.baseUrl}/core/audit-logs/?q=${Uri.encodeComponent(_searchQuery)}&category=$_selectedCategory';
+      final endpoint =
+          '${ApiConfig.baseUrl}/core/audit-logs/?q=${Uri.encodeComponent(_searchQuery)}&category=$_selectedCategory';
       final response = await _apiService.get(endpoint);
       if (!mounted) return;
 
@@ -92,10 +93,15 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
     final auth = context.watch<AuthProvider>();
     final role = (auth.roleId).toLowerCase();
 
-    final isStateAdmin = PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId) ||
-        role == 'state_admin' || role == 'state_super_admin' || role == 'master_admin';
-    final isDivAdmin = !isStateAdmin && (role == 'division_admin' || role == 'supervisor');
-    final isDistrictAdmin = !isStateAdmin && !isDivAdmin && (role == 'district_admin');
+    final isStateAdmin = PoliceHierarchyHelper.isStateSuperAdmin(
+            auth.designation, auth.roleId) ||
+        role == 'state_admin' ||
+        role == 'state_super_admin' ||
+        role == 'master_admin';
+    final isDivAdmin =
+        !isStateAdmin && (role == 'division_admin' || role == 'supervisor');
+    final isDistrictAdmin =
+        !isStateAdmin && !isDivAdmin && (role == 'district_admin');
 
     final screenTitle = isStateAdmin
         ? 'State Audit Trail & Logs'
@@ -122,11 +128,17 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
           children: [
             Text(
               screenTitle,
-              style: GoogleFonts.poppins(fontSize: 15.5, fontWeight: FontWeight.w700, color: Colors.white),
+              style: GoogleFonts.poppins(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),
             ),
             Text(
               screenSubtitle,
-              style: GoogleFonts.poppins(fontSize: 10.5, color: AppColors.goldLight, fontWeight: FontWeight.w500),
+              style: GoogleFonts.poppins(
+                  fontSize: 10.5,
+                  color: AppColors.goldLight,
+                  fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -134,12 +146,14 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
         elevation: 0,
         toolbarHeight: 52,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.white, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.goldLight, size: 20),
+            icon: const Icon(Icons.refresh_rounded,
+                color: AppColors.goldLight, size: 20),
             onPressed: _fetchAuditLogs,
             tooltip: 'Refresh Logs',
           ),
@@ -159,11 +173,15 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
                     _searchQuery = val;
                     _fetchAuditLogs();
                   },
-                  style: GoogleFonts.poppins(fontSize: 12.5, color: AppColors.navyDark),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12.5, color: AppColors.navyDark),
                   decoration: InputDecoration(
-                    hintText: 'Search event, officer name, email, IP or action...',
-                    hintStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500),
-                    prefixIcon: const Icon(Icons.search_rounded, size: 18, color: AppColors.navyDark),
+                    hintText:
+                        'Search event, officer name, email, IP or action...',
+                    hintStyle: GoogleFonts.poppins(
+                        fontSize: 12, color: Colors.grey.shade500),
+                    prefixIcon: const Icon(Icons.search_rounded,
+                        size: 18, color: AppColors.navyDark),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.clear_rounded, size: 16),
@@ -174,11 +192,16 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
                             },
                           )
                         : null,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -194,12 +217,15 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
                           selected: isSelected,
                           labelStyle: GoogleFonts.poppins(
                             fontSize: 10.5,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? Colors.white : AppColors.navyDark,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color:
+                                isSelected ? Colors.white : AppColors.navyDark,
                           ),
                           selectedColor: AppColors.navyDark,
                           backgroundColor: const Color(0xFFF1F5F9),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
                           onSelected: (val) {
                             setState(() => _selectedCategory = cat['id']!);
                             _fetchAuditLogs();
@@ -215,15 +241,18 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
 
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.navyDark))
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.navyDark))
                 : _errorMessage != null
                     ? _buildErrorView()
                     : _logs.isEmpty
-                        ? _buildEmptyState('No audit log records match your current filters.')
+                        ? _buildEmptyState(
+                            'No audit log records match your current filters.')
                         : ListView.builder(
                             padding: const EdgeInsets.all(12),
                             itemCount: _logs.length,
-                            itemBuilder: (ctx, idx) => _buildAuditCard(_logs[idx]),
+                            itemBuilder: (ctx, idx) =>
+                                _buildAuditCard(_logs[idx]),
                           ),
           ),
         ],
@@ -233,13 +262,13 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
 
   Widget _buildAuditCard(Map<String, dynamic> log) {
     final event = log['event']?.toString() ?? 'Security Event';
-    final userName = log['user_name']?.toString() ?? log['uid']?.toString() ?? 'System User';
+    final userName =
+        log['user_name']?.toString() ?? log['uid']?.toString() ?? 'System User';
     final role = log['user_role']?.toString() ?? 'Officer';
     final details = log['action_details']?.toString() ?? '';
     final category = log['category']?.toString() ?? 'general';
     final station = log['station_name']?.toString() ?? '';
     final district = log['district_name']?.toString() ?? '';
-    final ip = log['ip_address']?.toString() ?? '127.0.0.1';
     final createdAt = log['created_at']?.toString() ?? '';
 
     String formattedDate = '';
@@ -307,21 +336,28 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
                         Expanded(
                           child: Text(
                             event,
-                            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.navyDark),
+                            style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyDark),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Text(
                           formattedDate,
-                          style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade600),
+                          style: GoogleFonts.poppins(
+                              fontSize: 10, color: Colors.grey.shade600),
                         ),
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '$userName ($role) • $locationLabel',
-                      style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                      style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -331,7 +367,8 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
                         details,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade600),
+                        style: GoogleFonts.poppins(
+                            fontSize: 10.5, color: Colors.grey.shade600),
                       ),
                     ],
                   ],
@@ -355,20 +392,30 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Audit Event Details', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
+              Text('Audit Event Details',
+                  style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark)),
               const SizedBox(height: 12),
               _dialogRow('Event:', log['event']?.toString() ?? 'N/A'),
               _dialogRow('Category:', log['category']?.toString() ?? 'N/A'),
               _dialogRow('User:', '${log['user_name']} (${log['user_role']})'),
               _dialogRow('Email:', log['user_email']?.toString() ?? 'N/A'),
-              _dialogRow('Location:', '${log['station_name'] ?? ''} ${log['district_name'] ?? ''}'),
-              _dialogRow('IP Address:', log['ip_address']?.toString() ?? '127.0.0.1'),
+              _dialogRow('Location:',
+                  '${log['station_name'] ?? ''} ${log['district_name'] ?? ''}'),
+              _dialogRow(
+                  'IP Address:', log['ip_address']?.toString() ?? '127.0.0.1'),
               _dialogRow('Timestamp:', log['created_at']?.toString() ?? 'N/A'),
               if ((log['action_details']?.toString() ?? '').isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text('Action Summary:', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700)),
+                Text('Action Summary:',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
-                Text(log['action_details'].toString(), style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade800)),
+                Text(log['action_details'].toString(),
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: Colors.grey.shade800)),
               ],
               const SizedBox(height: 16),
               Align(
@@ -391,8 +438,17 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 80, child: Text(label, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey.shade700))),
-          Expanded(child: Text(val, style: GoogleFonts.poppins(fontSize: 11, color: AppColors.navyDark))),
+          SizedBox(
+              width: 80,
+              child: Text(label,
+                  style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700))),
+          Expanded(
+              child: Text(val,
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, color: AppColors.navyDark))),
         ],
       ),
     );
@@ -405,9 +461,13 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history_toggle_off_rounded, size: 48, color: Colors.grey.shade400),
+            Icon(Icons.history_toggle_off_rounded,
+                size: 48, color: Colors.grey.shade400),
             const SizedBox(height: 12),
-            Text(msg, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700)),
+            Text(msg,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                    fontSize: 12.5, color: Colors.grey.shade700)),
           ],
         ),
       ),
@@ -419,15 +479,20 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline_rounded, size: 44, color: Colors.redAccent),
+          const Icon(Icons.error_outline_rounded,
+              size: 44, color: Colors.redAccent),
           const SizedBox(height: 12),
-          Text(_errorMessage!, style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark)),
+          Text(_errorMessage!,
+              style:
+                  GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark)),
           const SizedBox(height: 14),
           ElevatedButton.icon(
             onPressed: _fetchAuditLogs,
             icon: const Icon(Icons.refresh_rounded, size: 16),
             label: const Text('Retry'),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyDark, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyDark,
+                foregroundColor: Colors.white),
           ),
         ],
       ),

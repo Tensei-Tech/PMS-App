@@ -50,7 +50,8 @@ class CategoryRecordsScreen extends StatelessWidget {
                     page: CaseFormScreen(categoryName: categoryName)),
               );
             },
-            icon: const Icon(Icons.add_circle_rounded, color: AppColors.navyMid),
+            icon:
+                const Icon(Icons.add_circle_rounded, color: AppColors.navyMid),
           ),
         ],
       ),

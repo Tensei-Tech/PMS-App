@@ -134,7 +134,9 @@ class FormEViewState extends State<FormEView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (englishLabel.trim().isNotEmpty) Text(englishLabel, style: englishStyle.copyWith(fontWeight: FontWeight.bold)),
+              if (englishLabel.trim().isNotEmpty)
+                Text(englishLabel,
+                    style: englishStyle.copyWith(fontWeight: FontWeight.bold)),
               Text(marathiLabel, style: marathiStyle),
             ],
           ),
@@ -198,7 +200,9 @@ class FormEViewState extends State<FormEView> {
                   const SizedBox(height: 4),
                   Container(
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Colors.black87, style: BorderStyle.solid)),
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.black87, style: BorderStyle.solid)),
                     ),
                     child: Text(
                       'मोडस ऑपरेंडी ब्युरोला पुरविण्यात',
@@ -207,7 +211,9 @@ class FormEViewState extends State<FormEView> {
                   ),
                   Container(
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Colors.black87, style: BorderStyle.solid)),
+                      border: Border(
+                          bottom: BorderSide(
+                              color: Colors.black87, style: BorderStyle.solid)),
                     ),
                     child: Text(
                       'यावयाची माहिती',
@@ -228,24 +234,145 @@ class FormEViewState extends State<FormEView> {
                 2: FlexColumnWidth(3),
               },
               children: [
-                _buildTableRow(srNo: '1.', englishLabel: 'Police Station: ', marathiLabel: 'पोलीस स्टेशन', controller: _ctrl1, englishStyle: englishStyle, marathiStyle: marathiStyle),
-                _buildTableRow(srNo: '2.', englishLabel: 'Name and Address of Complainant: ', marathiLabel: 'तक्रार दाखल करणाऱ्याचे नांव व पत्ता', controller: _ctrl2, englishStyle: englishStyle, marathiStyle: marathiStyle, minLines: 2),
-                _buildTableRow(srNo: '3.', englishLabel: 'City or Village of Crime: ', marathiLabel: 'गुन्हा घडला ते शहर अथवा गांव ई.', controller: _ctrl3, englishStyle: englishStyle, marathiStyle: marathiStyle, minLines: 2),
-                _buildTableRow(srNo: '4.', englishLabel: 'Date of Crime: ', marathiLabel: 'गुन्हा घडल्याची तारीख', controller: _ctrl4, englishStyle: englishStyle, marathiStyle: marathiStyle),
-                _buildTableRow(srNo: '5.', englishLabel: 'Crime No. & Section: ', marathiLabel: 'अप क्रमांक व कलम', controller: _ctrl5, englishStyle: englishStyle, marathiStyle: marathiStyle),
-                _buildTableRow(srNo: '6.', englishLabel: 'Value of Stolen Property: ', marathiLabel: 'चोरीस गेलेल्या मालमत्तेची किंमत', controller: _ctrl6, englishStyle: englishStyle, marathiStyle: marathiStyle, minLines: 2),
-                _buildTableRow(srNo: '7.', englishLabel: 'Value of Recovered Property: ', marathiLabel: 'परत मिळालेल्या मालमत्तेची किंमत (मालमत्ता कोणाकडून व कोणत्या ठिकाणी परत मिळाली)', controller: _ctrl7, englishStyle: englishStyle, marathiStyle: marathiStyle, minLines: 3),
-                _buildTableRow(srNo: '8.', englishLabel: 'Class of Person/Property Attacked: ', marathiLabel: 'ज्याच्यावर हल्ला करण्यात आला त्या ईसमाचा अथवा मिळकतीचा वर्ग', controller: _ctrl8, englishStyle: englishStyle, marathiStyle: marathiStyle, minLines: 3),
-                _buildTableRow(srNo: '9.', englishLabel: 'Means used to reach Crime Scene: ', marathiLabel: 'गुन्ह्याच्या जागी पोहचण्याकरीता उपयोगात आणलेले साधन', controller: _ctrl9, englishStyle: englishStyle, marathiStyle: marathiStyle, minLines: 2),
-                _buildTableRow(srNo: '10.', englishLabel: 'Method used to commit crime: ', marathiLabel: 'गुन्हा करण्यासाठी वापरलेली रीत', controller: _ctrl10, englishStyle: englishStyle, marathiStyle: marathiStyle),
-                _buildTableRow(srNo: '11.', englishLabel: 'Instrument Used: ', marathiLabel: 'गुन्हा करण्यासाठी वापरलेले साधन', controller: _ctrl11, englishStyle: englishStyle, marathiStyle: marathiStyle, minLines: 2),
-                _buildTableRow(srNo: '12.', englishLabel: 'Time of Day: ', marathiLabel: 'दिवसाचा वेळ', controller: _ctrl12, englishStyle: englishStyle, marathiStyle: marathiStyle),
-                _buildTableRow(srNo: '13.', englishLabel: 'Accomplices: ', marathiLabel: 'साथीदार', controller: _ctrl13, englishStyle: englishStyle, marathiStyle: marathiStyle),
-                _buildTableRow(srNo: '14.', englishLabel: 'Vehicle: ', marathiLabel: 'वाहन', controller: _ctrl14, englishStyle: englishStyle, marathiStyle: marathiStyle),
-                _buildTableRow(srNo: '15.', englishLabel: 'Specific Identification Mark: ', marathiLabel: 'विशीष्ट निदर्शक खुण', controller: _ctrl15, englishStyle: englishStyle, marathiStyle: marathiStyle),
-                _buildTableRow(srNo: '16.', englishLabel: 'Style/Modus Operandi: ', marathiLabel: 'शैली', controller: _ctrl16, englishStyle: englishStyle, marathiStyle: marathiStyle),
-                _buildTableRow(srNo: '17.', englishLabel: 'Fabricated Story / Motive: ', marathiLabel: 'रचुन सांगीतलेली हकीकत, गुन्ह्याकरण्याबाबत केलेले हेतुनिवेदन', controller: _ctrl17, englishStyle: englishStyle, marathiStyle: marathiStyle, minLines: 3),
-                _buildTableRow(srNo: '18.', englishLabel: 'Brief Facts of the Case: ', marathiLabel: 'गुन्ह्यासंबंधीत थोडक्यात हकीकत', controller: _ctrl18, englishStyle: englishStyle, marathiStyle: marathiStyle, minLines: 15),
+                _buildTableRow(
+                    srNo: '1.',
+                    englishLabel: 'Police Station: ',
+                    marathiLabel: 'पोलीस स्टेशन',
+                    controller: _ctrl1,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle),
+                _buildTableRow(
+                    srNo: '2.',
+                    englishLabel: 'Name and Address of Complainant: ',
+                    marathiLabel: 'तक्रार दाखल करणाऱ्याचे नांव व पत्ता',
+                    controller: _ctrl2,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle,
+                    minLines: 2),
+                _buildTableRow(
+                    srNo: '3.',
+                    englishLabel: 'City or Village of Crime: ',
+                    marathiLabel: 'गुन्हा घडला ते शहर अथवा गांव ई.',
+                    controller: _ctrl3,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle,
+                    minLines: 2),
+                _buildTableRow(
+                    srNo: '4.',
+                    englishLabel: 'Date of Crime: ',
+                    marathiLabel: 'गुन्हा घडल्याची तारीख',
+                    controller: _ctrl4,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle),
+                _buildTableRow(
+                    srNo: '5.',
+                    englishLabel: 'Crime No. & Section: ',
+                    marathiLabel: 'अप क्रमांक व कलम',
+                    controller: _ctrl5,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle),
+                _buildTableRow(
+                    srNo: '6.',
+                    englishLabel: 'Value of Stolen Property: ',
+                    marathiLabel: 'चोरीस गेलेल्या मालमत्तेची किंमत',
+                    controller: _ctrl6,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle,
+                    minLines: 2),
+                _buildTableRow(
+                    srNo: '7.',
+                    englishLabel: 'Value of Recovered Property: ',
+                    marathiLabel:
+                        'परत मिळालेल्या मालमत्तेची किंमत (मालमत्ता कोणाकडून व कोणत्या ठिकाणी परत मिळाली)',
+                    controller: _ctrl7,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle,
+                    minLines: 3),
+                _buildTableRow(
+                    srNo: '8.',
+                    englishLabel: 'Class of Person/Property Attacked: ',
+                    marathiLabel:
+                        'ज्याच्यावर हल्ला करण्यात आला त्या ईसमाचा अथवा मिळकतीचा वर्ग',
+                    controller: _ctrl8,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle,
+                    minLines: 3),
+                _buildTableRow(
+                    srNo: '9.',
+                    englishLabel: 'Means used to reach Crime Scene: ',
+                    marathiLabel:
+                        'गुन्ह्याच्या जागी पोहचण्याकरीता उपयोगात आणलेले साधन',
+                    controller: _ctrl9,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle,
+                    minLines: 2),
+                _buildTableRow(
+                    srNo: '10.',
+                    englishLabel: 'Method used to commit crime: ',
+                    marathiLabel: 'गुन्हा करण्यासाठी वापरलेली रीत',
+                    controller: _ctrl10,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle),
+                _buildTableRow(
+                    srNo: '11.',
+                    englishLabel: 'Instrument Used: ',
+                    marathiLabel: 'गुन्हा करण्यासाठी वापरलेले साधन',
+                    controller: _ctrl11,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle,
+                    minLines: 2),
+                _buildTableRow(
+                    srNo: '12.',
+                    englishLabel: 'Time of Day: ',
+                    marathiLabel: 'दिवसाचा वेळ',
+                    controller: _ctrl12,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle),
+                _buildTableRow(
+                    srNo: '13.',
+                    englishLabel: 'Accomplices: ',
+                    marathiLabel: 'साथीदार',
+                    controller: _ctrl13,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle),
+                _buildTableRow(
+                    srNo: '14.',
+                    englishLabel: 'Vehicle: ',
+                    marathiLabel: 'वाहन',
+                    controller: _ctrl14,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle),
+                _buildTableRow(
+                    srNo: '15.',
+                    englishLabel: 'Specific Identification Mark: ',
+                    marathiLabel: 'विशीष्ट निदर्शक खुण',
+                    controller: _ctrl15,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle),
+                _buildTableRow(
+                    srNo: '16.',
+                    englishLabel: 'Style/Modus Operandi: ',
+                    marathiLabel: 'शैली',
+                    controller: _ctrl16,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle),
+                _buildTableRow(
+                    srNo: '17.',
+                    englishLabel: 'Fabricated Story / Motive: ',
+                    marathiLabel:
+                        'रचुन सांगीतलेली हकीकत, गुन्ह्याकरण्याबाबत केलेले हेतुनिवेदन',
+                    controller: _ctrl17,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle,
+                    minLines: 3),
+                _buildTableRow(
+                    srNo: '18.',
+                    englishLabel: 'Brief Facts of the Case: ',
+                    marathiLabel: 'गुन्ह्यासंबंधीत थोडक्यात हकीकत',
+                    controller: _ctrl18,
+                    englishStyle: englishStyle,
+                    marathiStyle: marathiStyle,
+                    minLines: 15),
               ],
             ),
           ],

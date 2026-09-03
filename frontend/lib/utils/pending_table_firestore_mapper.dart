@@ -84,8 +84,7 @@ Map<String, String> pendingModuleRecordToTableRow(
   DateTime reference, {
   required int sr,
 }) {
-  final io =
-      pendingIoWiseIoDisplayName(r) ?? r.assignedOfficer.trim();
+  final io = pendingIoWiseIoDisplayName(r) ?? r.assignedOfficer.trim();
   return {
     'sr': '$sr',
     'cr': r.caseNumber.trim(),

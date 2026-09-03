@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
+// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 
 import 'dart:async';
 import 'dart:html' as html;
@@ -9,10 +9,12 @@ import 'evidence_geotag_service.dart';
 Future<GeotagLocation?> getWebCurrentLocation() async {
   try {
     final completer = Completer<GeotagLocation?>();
-    html.window.navigator.geolocation.getCurrentPosition(
+    html.window.navigator.geolocation
+        .getCurrentPosition(
       enableHighAccuracy: true,
       timeout: const Duration(seconds: 10),
-    ).then((pos) {
+    )
+        .then((pos) {
       final coords = pos.coords;
       if (coords != null) {
         final loc = GeotagLocation(

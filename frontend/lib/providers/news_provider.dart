@@ -13,7 +13,8 @@ class NewsItem {
   final IconData icon;
   final String iconName;
   final int iconColorHex;
-  final String tag; // e.g. "New Law", "Circular", "Amendment", "Alert", "Notice"
+  final String
+      tag; // e.g. "New Law", "Circular", "Amendment", "Alert", "Notice"
   final int order;
   final DateTime? updatedAt;
 
@@ -57,10 +58,15 @@ class NewsItem {
   }
 
   factory NewsItem.fromMap(String docId, Map<String, dynamic> map) {
-    final name = map['icon_name']?.toString() ?? map['iconName']?.toString() ?? 'article';
+    final name = map['icon_name']?.toString() ??
+        map['iconName']?.toString() ??
+        'article';
     final colorHex = map['iconColorHex'] is int
         ? map['iconColorHex'] as int
-        : (int.tryParse(map['icon_color_hex']?.toString() ?? map['iconColorHex']?.toString() ?? '') ?? 0xFF1976D2);
+        : (int.tryParse(map['icon_color_hex']?.toString() ??
+                map['iconColorHex']?.toString() ??
+                '') ??
+            0xFF1976D2);
 
     DateTime? updated;
     if (map['updatedAt'] != null || map['updated_at'] != null) {
@@ -202,9 +208,12 @@ class NewsProvider extends ChangeNotifier {
 
     try {
       final res = await ApiService().get(ApiConfig.announcements);
-      if (res.statusCode == 200 && res.data is List && (res.data as List).isNotEmpty) {
+      if (res.statusCode == 200 &&
+          res.data is List &&
+          (res.data as List).isNotEmpty) {
         _items = (res.data as List)
-            .map((item) => NewsItem.fromMap(item['id'].toString(), item as Map<String, dynamic>))
+            .map((item) => NewsItem.fromMap(
+                item['id'].toString(), item as Map<String, dynamic>))
             .toList();
       }
     } catch (e) {
@@ -247,7 +256,8 @@ class NewsProvider extends ChangeNotifier {
         'tag': item.tag,
         'order': item.order,
       };
-      await ApiService().put('${ApiConfig.announcements}${item.id}/', data: payload);
+      await ApiService()
+          .put('${ApiConfig.announcements}${item.id}/', data: payload);
       await fetchAnnouncements();
     } catch (e) {
       debugPrint('[NewsProvider] Error updating announcement: $e');

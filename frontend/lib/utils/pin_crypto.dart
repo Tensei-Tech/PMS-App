@@ -30,17 +30,22 @@ class PinCrypto {
     final pinBytes = utf8.encode(pin);
 
     // PBKDF2 manual implementation using HMAC-SHA256
-    final derivedKey = _pbkdf2HmacSha256(pinBytes, saltBytes, _iterations, _keyLengthBytes);
+    final derivedKey =
+        _pbkdf2HmacSha256(pinBytes, saltBytes, _iterations, _keyLengthBytes);
     return _bytesToHex(derivedKey);
   }
 
   /// Verifies a PIN against a stored hash + salt.
   /// Returns true if the PIN matches.
-  static bool verifyPin(String inputPin, String storedHash, String storedSalt, [int iterations = _iterations]) {
-    if (inputPin.isEmpty || storedHash.isEmpty || storedSalt.isEmpty) return false;
+  static bool verifyPin(String inputPin, String storedHash, String storedSalt,
+      [int iterations = _iterations]) {
+    if (inputPin.isEmpty || storedHash.isEmpty || storedSalt.isEmpty) {
+      return false;
+    }
     final saltBytes = _hexToBytes(storedSalt);
     final pinBytes = utf8.encode(inputPin);
-    final derivedKey = _pbkdf2HmacSha256(pinBytes, saltBytes, iterations, _keyLengthBytes);
+    final derivedKey =
+        _pbkdf2HmacSha256(pinBytes, saltBytes, iterations, _keyLengthBytes);
     final computedHash = _bytesToHex(derivedKey);
     // Constant-time comparison to prevent timing attacks
     return _constantTimeEquals(computedHash, storedHash);
@@ -138,5 +143,6 @@ bool _isolateVerify(Map<String, String> args) {
   final iterations = args.containsKey('iterations')
       ? int.parse(args['iterations']!)
       : PinCrypto._iterations;
-  return PinCrypto.verifyPin(args['pin']!, args['hash']!, args['salt']!, iterations);
+  return PinCrypto.verifyPin(
+      args['pin']!, args['hash']!, args['salt']!, iterations);
 }

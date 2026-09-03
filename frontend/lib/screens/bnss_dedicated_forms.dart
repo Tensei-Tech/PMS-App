@@ -65,7 +65,8 @@ class BnssDedicatedForms {
   static final orderSection4748Key = GlobalKey<OrderSection4748FormViewState>();
   static final panchanamaContinuationKey =
       GlobalKey<PanchanamaContinuationFormViewState>();
-  static final injuryCertificateKey = GlobalKey<InjuryCertificateFormViewState>();
+  static final injuryCertificateKey =
+      GlobalKey<InjuryCertificateFormViewState>();
   static final bnssPanchNoticeKey = GlobalKey<BnssPanchNoticeFormViewState>();
   static final noticeToAccusedKey = GlobalKey<NoticeToAccusedFormViewState>();
   static final muddemalPavtiKey = GlobalKey<MuddemalPavtiFormViewState>();
@@ -287,7 +288,8 @@ class BnssDedicatedForms {
             ? doc['juvenileName']!.trim()
             : doc['patientName']?.toString().trim().isNotEmpty == true
                 ? doc['patientName']!.trim()
-                : doc['witnessNameAddress']?.toString().trim().isNotEmpty == true
+                : doc['witnessNameAddress']?.toString().trim().isNotEmpty ==
+                        true
                     ? doc['witnessNameAddress']!.trim()
                     : doc['toNameAddress']?.toString().trim().isNotEmpty == true
                         ? doc['toNameAddress']!.trim()

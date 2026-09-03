@@ -13,10 +13,25 @@ Future<void> previewJuvenileSocialReportPdf(
       titleEn: 'Juvenile Social Background Report',
       titleMr: 'विधी संघर्षित बालक सामाजिक अहवाल',
       sections: const [
-        BnssPdfSection(id: 'Juvenile Social Part I', headingEn: 'Part I — Personal', headingMr: 'भाग १'),
-        BnssPdfSection(id: 'Juvenile Social Part II', headingEn: 'Part II — Family', headingMr: 'भाग २'),
-        BnssPdfSection(id: 'Juvenile Social Part III', headingEn: 'Part III — Social', headingMr: 'भाग ३'),
-        BnssPdfSection(id: 'Juvenile Social Part IV', headingEn: 'Part IV — Reports', headingMr: 'भाग ४'),
-        BnssPdfSection(id: 'Juvenile Social Part V', headingEn: 'Part V — Signatures', headingMr: 'भाग ५'),
+        BnssPdfSection(
+            id: 'Juvenile Social Part I',
+            headingEn: 'Part I — Personal',
+            headingMr: 'भाग १'),
+        BnssPdfSection(
+            id: 'Juvenile Social Part II',
+            headingEn: 'Part II — Family',
+            headingMr: 'भाग २'),
+        BnssPdfSection(
+            id: 'Juvenile Social Part III',
+            headingEn: 'Part III — Social',
+            headingMr: 'भाग ३'),
+        BnssPdfSection(
+            id: 'Juvenile Social Part IV',
+            headingEn: 'Part IV — Reports',
+            headingMr: 'भाग ४'),
+        BnssPdfSection(
+            id: 'Juvenile Social Part V',
+            headingEn: 'Part V — Signatures',
+            headingMr: 'भाग ५'),
       ],
     );

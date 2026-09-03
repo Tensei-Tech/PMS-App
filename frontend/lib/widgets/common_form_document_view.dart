@@ -46,8 +46,8 @@ String _disp(dynamic v) {
           (t.contains('T') || RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(t))) {
         final d = DateTime.parse(t).toLocal();
         final datePart = DateFormat('dd MMMM yyyy').format(d);
-        final hasTime = t.contains('T') &&
-            (d.hour != 0 || d.minute != 0 || d.second != 0);
+        final hasTime =
+            t.contains('T') && (d.hour != 0 || d.minute != 0 || d.second != 0);
         if (hasTime) {
           return '$datePart, ${DateFormat('hh:mm a').format(d)}';
         }
@@ -352,7 +352,8 @@ class CommonFormDocumentView extends StatelessWidget {
     );
   }
 
-  Widget _personCard(BuildContext context, String heading, Map<String, dynamic> p) {
+  Widget _personCard(
+      BuildContext context, String heading, Map<String, dynamic> p) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -394,7 +395,8 @@ class CommonFormDocumentView extends StatelessWidget {
 
   Widget _chargeCard(int n, Map<dynamic, dynamic> data) {
     final act = _v(data['act']);
-    final secs = (data['sections'] as List?)?.map((s) => s.toString()).toList() ?? [];
+    final secs =
+        (data['sections'] as List?)?.map((s) => s.toString()).toList() ?? [];
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -439,7 +441,8 @@ class CommonFormDocumentView extends StatelessWidget {
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
-                      side: BorderSide(color: AppColors.infoBlue.withValues(alpha: 0.5)),
+                      side: BorderSide(
+                          color: AppColors.infoBlue.withValues(alpha: 0.5)),
                     ),
                   )
                   .toList(),
@@ -523,7 +526,8 @@ class CommonFormDocumentView extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 12,
-                backgroundColor: active ? AppColors.infoBlue : AppColors.lightBorder,
+                backgroundColor:
+                    active ? AppColors.infoBlue : AppColors.lightBorder,
                 child: Text(
                   '$step',
                   style: GoogleFonts.poppins(
@@ -637,7 +641,8 @@ class CommonFormDocumentView extends StatelessWidget {
           final a = pending[i];
           if (i + 1 < pending.length) {
             final b = pending[i + 1];
-            rows.add(_desktopTwoSimpleFieldsRow(a.label, a.value, b.label, b.value));
+            rows.add(
+                _desktopTwoSimpleFieldsRow(a.label, a.value, b.label, b.value));
           } else {
             rows.add(_row(a.label, a.value));
           }
@@ -686,7 +691,8 @@ class CommonFormDocumentView extends StatelessWidget {
                 fontSize: 12,
               ),
             ));
-            rows.addAll(_flattenDynamic(context, Map<String, dynamic>.from(item)));
+            rows.addAll(
+                _flattenDynamic(context, Map<String, dynamic>.from(item)));
           } else {
             rows.add(_row('#${i + 1}', _disp(item)));
           }
@@ -706,7 +712,8 @@ class CommonFormDocumentView extends StatelessWidget {
               fontSize: 12,
             ),
           ));
-          rows.addAll(_flattenDynamic(context, Map<String, dynamic>.from(item)));
+          rows.addAll(
+              _flattenDynamic(context, Map<String, dynamic>.from(item)));
         } else {
           if (i + 1 < v.length && v[i + 1] is! Map) {
             rows.add(_desktopTwoSimpleFieldsRow(
@@ -785,8 +792,7 @@ class CommonFormDocumentView extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (layoutContext, constraints) {
-        final wide =
-            constraints.maxWidth > _kCaseDetailDesktopBreakpoint;
+        final wide = constraints.maxWidth > _kCaseDetailDesktopBreakpoint;
         return _CaseDetailLayoutScope(
           desktop: wide,
           child: Builder(
@@ -812,9 +818,11 @@ class CommonFormDocumentView extends StatelessWidget {
     final court = m['court'] as Map? ?? {};
     final verdict = m['verdict'] as Map? ?? {};
     final acquitted =
-        (verdict['acquitted'] as List?)?.map((x) => x.toString()).toList() ?? [];
+        (verdict['acquitted'] as List?)?.map((x) => x.toString()).toList() ??
+            [];
     final convicted =
-        (verdict['convicted'] as List?)?.map((x) => x.toString()).toList() ?? [];
+        (verdict['convicted'] as List?)?.map((x) => x.toString()).toList() ??
+            [];
     final sc = m['scrutiny'] as Map? ?? {};
     final accusedList = (m['accused'] as List?) ?? [];
     final suspectedList = (m['suspectedAccused'] as List?) ?? [];
@@ -836,8 +844,16 @@ class CommonFormDocumentView extends StatelessWidget {
         _pairedSimpleFields(context, [
           (label: 'Cr. No.', value: _v(m['crNo']), fullWidth: false),
           (label: 'Registered Date', value: _v(m['regDate']), fullWidth: false),
-          (label: 'Unknown / Untraced', value: isUnknown ? 'Yes' : 'No', fullWidth: false),
-          (label: 'FIR Copy', value: _v(m['firCopyPath'], or: 'Not uploaded'), fullWidth: false),
+          (
+            label: 'Unknown / Untraced',
+            value: isUnknown ? 'Yes' : 'No',
+            fullWidth: false
+          ),
+          (
+            label: 'FIR Copy',
+            value: _v(m['firCopyPath'], or: 'Not uploaded'),
+            fullWidth: false
+          ),
         ]),
       ),
       _sectionShell(
@@ -848,8 +864,7 @@ class CommonFormDocumentView extends StatelessWidget {
           if (charges.isEmpty)
             Text('No charges added.',
                 style: GoogleFonts.poppins(
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.lightSubText))
+                    fontStyle: FontStyle.italic, color: AppColors.lightSubText))
           else
             ...charges.entries.toList().asMap().entries.map((e) {
               final i = e.key + 1;
@@ -863,7 +878,11 @@ class CommonFormDocumentView extends StatelessWidget {
         'CRIME SPOT',
         accent,
         _pairedSimpleFields(context, [
-          (label: 'Village / Town', value: _v(m['spotVillage']), fullWidth: false),
+          (
+            label: 'Village / Town',
+            value: _v(m['spotVillage']),
+            fullWidth: false
+          ),
           (label: 'Area Name', value: _v(m['spotArea']), fullWidth: false),
           (label: 'Full Address', value: _v(m['spotAddress']), fullWidth: true),
         ]),
@@ -877,14 +896,14 @@ class CommonFormDocumentView extends StatelessWidget {
           if (comp.isEmpty)
             Text('No complainant data.',
                 style: GoogleFonts.poppins(
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.lightSubText))
+                    fontStyle: FontStyle.italic, color: AppColors.lightSubText))
           else ...[
             ..._pairedSimpleFields(context, [
               (
                 label: 'Name',
                 value: (commonMap['isSexualOffence'] == true ||
-                        (comp['name']?.toString().contains('Protected') ?? false))
+                        (comp['name']?.toString().contains('Protected') ??
+                            false))
                     ? '⚠️ [Victim Identity Protected - Confidential]'
                     : _v(comp['name']),
                 fullWidth: false
@@ -894,7 +913,11 @@ class CommonFormDocumentView extends StatelessWidget {
               (label: 'Occupation', value: _v(comp['occ']), fullWidth: false),
               (label: 'Mobile', value: _v(comp['mobile']), fullWidth: false),
               (label: 'Aadhaar', value: _v(comp['aadhaar']), fullWidth: false),
-              (label: 'Religion', value: _v(comp['religion']), fullWidth: false),
+              (
+                label: 'Religion',
+                value: _v(comp['religion']),
+                fullWidth: false
+              ),
               (label: 'Caste', value: _v(comp['caste']), fullWidth: false),
               (label: 'PAN Number', value: _v(comp['pan']), fullWidth: false),
             ]),
@@ -930,8 +953,7 @@ class CommonFormDocumentView extends StatelessWidget {
         'SUSPECTED ACCUSED',
         accent,
         [
-          if (isUnknown)
-            _mutedNote('Hidden when Unknown/Untraced is ON.'),
+          if (isUnknown) _mutedNote('Hidden when Unknown/Untraced is ON.'),
           if (!isUnknown)
             suspectedList.isEmpty
                 ? Text('No suspected accused added.',
@@ -957,16 +979,37 @@ class CommonFormDocumentView extends StatelessWidget {
           if (!isUnknown)
             _mutedNote(
                 'Known accused mode — unidentified block still reflects saved values.'),
-          if (isUnknown) _mutedNote('Unknown/Untraced — fill all applicable fields.'),
+          if (isUnknown)
+            _mutedNote('Unknown/Untraced — fill all applicable fields.'),
           ..._pairedSimpleFields(context, [
             (label: 'Gender', value: _v(u['gender']), fullWidth: false),
             (label: 'Approx Age', value: _v(u['approxAge']), fullWidth: false),
             (label: 'Skin Color', value: _v(u['skinColor']), fullWidth: false),
-            (label: 'Approx Height', value: _v(u['approxHeight']), fullWidth: false),
-            (label: 'Mobile (if known)', value: _v(u['mobile']), fullWidth: false),
-            (label: 'Occupation (possible)', value: _v(u['occupation']), fullWidth: false),
-            (label: 'Last Known Address', value: _v(u['lastKnownAddress']), fullWidth: true),
-            (label: 'Other Physical Markers', value: _v(u['otherPhysicalMarkers']), fullWidth: true),
+            (
+              label: 'Approx Height',
+              value: _v(u['approxHeight']),
+              fullWidth: false
+            ),
+            (
+              label: 'Mobile (if known)',
+              value: _v(u['mobile']),
+              fullWidth: false
+            ),
+            (
+              label: 'Occupation (possible)',
+              value: _v(u['occupation']),
+              fullWidth: false
+            ),
+            (
+              label: 'Last Known Address',
+              value: _v(u['lastKnownAddress']),
+              fullWidth: true
+            ),
+            (
+              label: 'Other Physical Markers',
+              value: _v(u['otherPhysicalMarkers']),
+              fullWidth: true
+            ),
           ]),
         ],
       ),
@@ -975,12 +1018,32 @@ class CommonFormDocumentView extends StatelessWidget {
         'CASE RESPONSIBILITY',
         accent,
         _pairedSimpleFields(context, [
-          (label: 'IO Designation', value: _v(cr8['ioDesig']), fullWidth: false),
+          (
+            label: 'IO Designation',
+            value: _v(cr8['ioDesig']),
+            fullWidth: false
+          ),
           (label: 'IO Name', value: _v(cr8['ioName']), fullWidth: false),
-          (label: 'Reg. By Desig.', value: _v(cr8['regDesig']), fullWidth: false),
-          (label: 'Registrar Name', value: _v(cr8['regName']), fullWidth: false),
-          (label: 'CCTV', value: _v(cr8['cctvValue'], or: 'Not set'), fullWidth: false),
-          (label: 'CCTV Date & Time', value: _v(cr8['cctvDateTime']), fullWidth: false),
+          (
+            label: 'Reg. By Desig.',
+            value: _v(cr8['regDesig']),
+            fullWidth: false
+          ),
+          (
+            label: 'Registrar Name',
+            value: _v(cr8['regName']),
+            fullWidth: false
+          ),
+          (
+            label: 'CCTV',
+            value: _v(cr8['cctvValue'], or: 'Not set'),
+            fullWidth: false
+          ),
+          (
+            label: 'CCTV Date & Time',
+            value: _v(cr8['cctvDateTime']),
+            fullWidth: false
+          ),
         ]),
       ),
       _sectionShell(
@@ -991,8 +1054,7 @@ class CommonFormDocumentView extends StatelessWidget {
           if (arrests.isEmpty)
             Text('No arrest records.',
                 style: GoogleFonts.poppins(
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.lightSubText))
+                    fontStyle: FontStyle.italic, color: AppColors.lightSubText))
           else
             ...arrests.map((r) {
               final row = r as Map;
@@ -1006,10 +1068,26 @@ class CommonFormDocumentView extends StatelessWidget {
                 ),
                 child: Column(children: [
                   ..._pairedSimpleFields(context, [
-                    (label: 'Name', value: _v(row['accusedName']), fullWidth: false),
-                    (label: 'Arrest Date/Time', value: _v(row['arrestDt']), fullWidth: false),
-                    (label: 'Release Type', value: _v(row['releaseType']), fullWidth: false),
-                    (label: 'Release Date', value: _v(row['releaseDt']), fullWidth: false),
+                    (
+                      label: 'Name',
+                      value: _v(row['accusedName']),
+                      fullWidth: false
+                    ),
+                    (
+                      label: 'Arrest Date/Time',
+                      value: _v(row['arrestDt']),
+                      fullWidth: false
+                    ),
+                    (
+                      label: 'Release Type',
+                      value: _v(row['releaseType']),
+                      fullWidth: false
+                    ),
+                    (
+                      label: 'Release Date',
+                      value: _v(row['releaseDt']),
+                      fullWidth: false
+                    ),
                   ]),
                 ]),
               );
@@ -1045,7 +1123,9 @@ class CommonFormDocumentView extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: on ? AppColors.navyDark : AppColors.lightSubText,
+                            color: on
+                                ? AppColors.navyDark
+                                : AppColors.lightSubText,
                           ),
                         ),
                       ),
@@ -1077,8 +1157,7 @@ class CommonFormDocumentView extends StatelessWidget {
           if (seizures.isEmpty)
             Text('No seizure records.',
                 style: GoogleFonts.poppins(
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.lightSubText))
+                    fontStyle: FontStyle.italic, color: AppColors.lightSubText))
           else
             ...seizures.asMap().entries.map((e) {
               final s = e.value as Map;
@@ -1097,8 +1176,16 @@ class CommonFormDocumentView extends StatelessWidget {
                       value: _v(s['desc']),
                       fullWidth: true
                     ),
-                    (label: 'Seized From', value: _v(s['fromWhom'], or: '—'), fullWidth: false),
-                    (label: 'Other Name', value: _v(s['otherName']), fullWidth: false),
+                    (
+                      label: 'Seized From',
+                      value: _v(s['fromWhom'], or: '—'),
+                      fullWidth: false
+                    ),
+                    (
+                      label: 'Other Name',
+                      value: _v(s['otherName']),
+                      fullWidth: false
+                    ),
                   ]),
                 ]),
               );
@@ -1111,7 +1198,11 @@ class CommonFormDocumentView extends StatelessWidget {
         accent,
         _pairedSimpleFields(context, [
           (label: 'CDR Sent Date', value: _v(m['cdrSent']), fullWidth: false),
-          (label: 'CDR Received Date', value: _v(m['cdrRecv']), fullWidth: false),
+          (
+            label: 'CDR Received Date',
+            value: _v(m['cdrRecv']),
+            fullWidth: false
+          ),
           (label: 'PCR (Days)', value: _v(m['pcrDays']), fullWidth: false),
           (label: 'MCR (Days)', value: _v(m['mcrDays']), fullWidth: false),
         ]),
@@ -1121,10 +1212,22 @@ class CommonFormDocumentView extends StatelessWidget {
         'PREVENTIVE & BONDS',
         accent,
         _pairedSimpleFields(context, [
-          (label: 'Preventive Action', value: _v(prev['action'], or: 'Not set'), fullWidth: false),
-          (label: 'Outward Number', value: _v(prev['outwardNumber']), fullWidth: false),
+          (
+            label: 'Preventive Action',
+            value: _v(prev['action'], or: 'Not set'),
+            fullWidth: false
+          ),
+          (
+            label: 'Outward Number',
+            value: _v(prev['outwardNumber']),
+            fullWidth: false
+          ),
           (label: 'Bond Date', value: _v(prev['bondDate']), fullWidth: false),
-          (label: 'Bond Cancellation Date', value: _v(prev['bondCancellation']), fullWidth: false),
+          (
+            label: 'Bond Cancellation Date',
+            value: _v(prev['bondCancellation']),
+            fullWidth: false
+          ),
         ]),
       ),
       _sectionShell(
@@ -1135,8 +1238,7 @@ class CommonFormDocumentView extends StatelessWidget {
           if (discharge.isEmpty)
             Text('No discharge data.',
                 style: GoogleFonts.poppins(
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.lightSubText))
+                    fontStyle: FontStyle.italic, color: AppColors.lightSubText))
           else
             ...discharge.entries.map((e) {
               final ok = e.value == true;
@@ -1147,7 +1249,8 @@ class CommonFormDocumentView extends StatelessWidget {
                     Icon(
                       ok ? Icons.check_circle : Icons.cancel_outlined,
                       size: 20,
-                      color: ok ? AppColors.successGreen : AppColors.lightSubText,
+                      color:
+                          ok ? AppColors.successGreen : AppColors.lightSubText,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -1155,7 +1258,8 @@ class CommonFormDocumentView extends StatelessWidget {
                         '${e.key} — ${ok ? 'Discharged' : 'Not discharged'}',
                         style: GoogleFonts.poppins(
                           fontSize: 13,
-                          color: ok ? AppColors.navyDark : AppColors.lightSubText,
+                          color:
+                              ok ? AppColors.navyDark : AppColors.lightSubText,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1171,10 +1275,26 @@ class CommonFormDocumentView extends StatelessWidget {
         'COURT FILING',
         accent,
         _pairedSimpleFields(context, [
-          (label: 'Charge Sheet No.', value: _v(court['chargeSheetNumber']), fullWidth: false),
-          (label: 'CC / ST Number', value: _v(court['ccStNumber']), fullWidth: false),
-          (label: 'Final Summary', value: _v(court['finalSummary'], or: 'Not set'), fullWidth: false),
-          (label: 'Quashed by High Court', value: _v(court['quashedHighCourt']), fullWidth: false),
+          (
+            label: 'Charge Sheet No.',
+            value: _v(court['chargeSheetNumber']),
+            fullWidth: false
+          ),
+          (
+            label: 'CC / ST Number',
+            value: _v(court['ccStNumber']),
+            fullWidth: false
+          ),
+          (
+            label: 'Final Summary',
+            value: _v(court['finalSummary'], or: 'Not set'),
+            fullWidth: false
+          ),
+          (
+            label: 'Quashed by High Court',
+            value: _v(court['quashedHighCourt']),
+            fullWidth: false
+          ),
         ]),
       ),
       _sectionShell(
@@ -1185,8 +1305,7 @@ class CommonFormDocumentView extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _verdictColumn(
-                  '✓ ACQUITTED', acquitted, AppColors.successGreen),
+              _verdictColumn('✓ ACQUITTED', acquitted, AppColors.successGreen),
               const SizedBox(width: 10),
               _verdictColumn('✗ CONVICTED', convicted, AppColors.dangerRed),
             ],

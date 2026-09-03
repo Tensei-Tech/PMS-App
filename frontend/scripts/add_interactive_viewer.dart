@@ -40,7 +40,7 @@ void main() {
       stdout.writeln('File not found: $filePath');
       continue;
     }
-    
+
     var content = file.readAsStringSync();
     if (content.contains(targetStart) && content.contains(targetEnd)) {
       content = content.replaceFirst(targetStart, replacementStart);

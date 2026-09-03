@@ -59,7 +59,8 @@ Future<Uint8List> generateFormEPdf(Map<String, dynamic> doc) async {
     return pw.Text(val, style: engStyle);
   }
 
-  pw.TableRow buildPdfRow(String srNo, String labelKey, String fieldKey, String? val) {
+  pw.TableRow buildPdfRow(
+      String srNo, String labelKey, String fieldKey, String? val) {
     return pw.TableRow(
       children: [
         pw.Padding(
@@ -93,9 +94,13 @@ Future<Uint8List> generateFormEPdf(Map<String, dynamic> doc) async {
                 if (cache.has('header_title1')) cache.img('header_title1'),
                 pw.Container(
                   decoration: const pw.BoxDecoration(
-                    border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 1)),
+                    border: pw.Border(
+                        bottom:
+                            pw.BorderSide(color: PdfColors.black, width: 1)),
                   ),
-                  child: cache.has('header_title2') ? cache.img('header_title2') : pw.SizedBox(),
+                  child: cache.has('header_title2')
+                      ? cache.img('header_title2')
+                      : pw.SizedBox(),
                 ),
               ],
             ),
@@ -158,7 +163,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
 
   await GoogleFonts.pendingFonts();
 
-  Future<void> addLbl(String key, String text, TextStyle style, {double maxWidth = 500}) async {
+  Future<void> addLbl(String key, String text, TextStyle style,
+      {double maxWidth = 500}) async {
     await cache.add(key, text, style, maxWidth: maxWidth);
   }
 
@@ -169,27 +175,49 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     }
   }
 
-  await addLbl('header_title1', 'मोडस ऑपरेंडी ब्युरोला पुरविण्यात', headerStyle);
+  await addLbl(
+      'header_title1', 'मोडस ऑपरेंडी ब्युरोला पुरविण्यात', headerStyle);
   await addLbl('header_title2', 'यावयाची माहिती', headerStyle);
 
   await addLbl('lbl_1', 'पोलीस स्टेशन', marathiLabelStyle);
-  await addLbl('lbl_2', 'तक्रार दाखल करणाऱ्याचे नांव\nव पत्ता', marathiLabelStyle, maxWidth: 180);
-  await addLbl('lbl_3', 'गुन्हा घडला ते शहर अथवा गांव\nई.', marathiLabelStyle, maxWidth: 180);
+  await addLbl(
+      'lbl_2', 'तक्रार दाखल करणाऱ्याचे नांव\nव पत्ता', marathiLabelStyle,
+      maxWidth: 180);
+  await addLbl('lbl_3', 'गुन्हा घडला ते शहर अथवा गांव\nई.', marathiLabelStyle,
+      maxWidth: 180);
   await addLbl('lbl_4', 'गुन्हा घडल्याची तारीख', marathiLabelStyle);
   await addLbl('lbl_5', 'अप क्रमांक व कलम', marathiLabelStyle);
-  await addLbl('lbl_6', 'चोरीस गेलेल्या मालमत्तेची\nकिंमत', marathiLabelStyle, maxWidth: 180);
-  await addLbl('lbl_7', 'परत मिळालेल्या मालमत्तेची\nकिंमत (मालमत्ता कोणाकडून व\nकोणत्या ठिकाणी परत मिळाली)', marathiLabelStyle, maxWidth: 180);
-  await addLbl('lbl_8', 'ज्याच्यावर हल्ला करण्यात\nआला त्या ईसमाचा अथवा\nमिळकतीचा वर्ग', marathiLabelStyle, maxWidth: 180);
-  await addLbl('lbl_9', 'गुन्ह्याच्या जागी पोहचण्याकरीता\nउपयोगात आणलेले साधन', marathiLabelStyle, maxWidth: 180);
-  await addLbl('lbl_10', 'गुन्हा करण्यासाठी वापरलेली रीत', marathiLabelStyle, maxWidth: 180);
-  await addLbl('lbl_11', 'गुन्हा करण्यासाठी वापरलेले\nसाधन', marathiLabelStyle, maxWidth: 180);
+  await addLbl('lbl_6', 'चोरीस गेलेल्या मालमत्तेची\nकिंमत', marathiLabelStyle,
+      maxWidth: 180);
+  await addLbl(
+      'lbl_7',
+      'परत मिळालेल्या मालमत्तेची\nकिंमत (मालमत्ता कोणाकडून व\nकोणत्या ठिकाणी परत मिळाली)',
+      marathiLabelStyle,
+      maxWidth: 180);
+  await addLbl(
+      'lbl_8',
+      'ज्याच्यावर हल्ला करण्यात\nआला त्या ईसमाचा अथवा\nमिळकतीचा वर्ग',
+      marathiLabelStyle,
+      maxWidth: 180);
+  await addLbl('lbl_9', 'गुन्ह्याच्या जागी पोहचण्याकरीता\nउपयोगात आणलेले साधन',
+      marathiLabelStyle,
+      maxWidth: 180);
+  await addLbl('lbl_10', 'गुन्हा करण्यासाठी वापरलेली रीत', marathiLabelStyle,
+      maxWidth: 180);
+  await addLbl('lbl_11', 'गुन्हा करण्यासाठी वापरलेले\nसाधन', marathiLabelStyle,
+      maxWidth: 180);
   await addLbl('lbl_12', 'दिवसाचा वेळ', marathiLabelStyle);
   await addLbl('lbl_13', 'साथीदार', marathiLabelStyle);
   await addLbl('lbl_14', 'वाहन', marathiLabelStyle);
   await addLbl('lbl_15', 'विशीष्ट निदर्शक खुण', marathiLabelStyle);
   await addLbl('lbl_16', 'शैली', marathiLabelStyle);
-  await addLbl('lbl_17', 'रचुन सांगीतलेली हकीकत,\nगुन्ह्याकरण्याबाबत केलेले\nहेतुनिवेदन', marathiLabelStyle, maxWidth: 180);
-  await addLbl('lbl_18', 'गुन्ह्यासंबंधीत थोडक्यात\nहकीकत', marathiLabelStyle, maxWidth: 180);
+  await addLbl(
+      'lbl_17',
+      'रचुन सांगीतलेली हकीकत,\nगुन्ह्याकरण्याबाबत केलेले\nहेतुनिवेदन',
+      marathiLabelStyle,
+      maxWidth: 180);
+  await addLbl('lbl_18', 'गुन्ह्यासंबंधीत थोडक्यात\nहकीकत', marathiLabelStyle,
+      maxWidth: 180);
 
   await addVal('val_1', doc['field1'], maxWidth: 280);
   await addVal('val_2', doc['field2'], maxWidth: 280);

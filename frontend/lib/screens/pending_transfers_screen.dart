@@ -159,7 +159,8 @@ class _PendingTransfersScreenState extends State<PendingTransfersScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isApprover = TransferRequestRoles.canApproveTransfers(auth.designation);
+    final isApprover =
+        TransferRequestRoles.canApproveTransfers(auth.designation);
     final isSenior = SeniorOfficerRoles.canSwitchLocation(auth.designation);
     final title = isSenior ? 'Pending PI Transfers' : 'Pending Transfers';
     final emptyMessage = isSenior
@@ -305,7 +306,8 @@ class _RequestCard extends StatelessWidget {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Text('Reject',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                          style:
+                              GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: 12),

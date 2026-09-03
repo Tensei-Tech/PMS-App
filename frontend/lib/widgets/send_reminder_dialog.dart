@@ -83,8 +83,7 @@ class _SendReminderDialogState extends State<SendReminderDialog> {
         SnackBar(
           backgroundColor: AppColors.successGreen,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           content: Row(
             children: [
               const Icon(Icons.check_circle_rounded,
@@ -282,7 +281,8 @@ class _SendReminderDialogState extends State<SendReminderDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                    onPressed:
+                        _isSubmitting ? null : () => Navigator.pop(context),
                     child: Text(
                       'Cancel',
                       style: GoogleFonts.poppins(

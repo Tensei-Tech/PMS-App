@@ -62,12 +62,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final auth = context.watch<AuthProvider>();
     final role = (auth.roleId).toLowerCase();
 
-    final isStateAdmin = PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId) ||
-        role == 'state_admin' || role == 'state_super_admin' || role == 'master_admin';
+    final isStateAdmin = PoliceHierarchyHelper.isStateSuperAdmin(
+            auth.designation, auth.roleId) ||
+        role == 'state_admin' ||
+        role == 'state_super_admin' ||
+        role == 'master_admin';
 
-    final isDivAdmin = !isStateAdmin && (role == 'division_admin' || role == 'supervisor');
-    final isDistrictAdmin = !isStateAdmin && !isDivAdmin && (role == 'district_admin');
-    final isStationAdmin = !isStateAdmin && !isDivAdmin && !isDistrictAdmin && (role == 'station_head' || role == 'station_admin');
+    final isDivAdmin =
+        !isStateAdmin && (role == 'division_admin' || role == 'supervisor');
+    final isDistrictAdmin =
+        !isStateAdmin && !isDivAdmin && (role == 'district_admin');
+    final isStationAdmin = !isStateAdmin &&
+        !isDivAdmin &&
+        !isDistrictAdmin &&
+        (role == 'station_head' || role == 'station_admin');
 
     // If caller is Station Head / Station Admin, render Station Command Panel
     if (isStationAdmin) {
@@ -131,7 +139,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         elevation: 0,
         toolbarHeight: 48,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.white, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -167,9 +176,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.goldPrimary.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.4), width: 1.2),
+                      border: Border.all(
+                          color: AppColors.goldPrimary.withValues(alpha: 0.4),
+                          width: 1.2),
                     ),
-                    child: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.goldLight, size: 20),
+                    child: const Icon(Icons.admin_panel_settings_rounded,
+                        color: AppColors.goldLight, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -217,7 +229,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             // ── CARD 1: PENDING APPROVALS ──
             _buildCompactControlCard(
               title: 'Officer Approvals (Pending)',
-              subtitle: 'Review & approve pending officer registration and access requests across jurisdiction.',
+              subtitle:
+                  'Review & approve pending officer registration and access requests across jurisdiction.',
               icon: Icons.how_to_reg_rounded,
               color: Colors.orange.shade700,
               badgeCount: _pendingCount,
@@ -225,7 +238,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               onTap: () async {
                 await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const PendingApprovalsScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const PendingApprovalsScreen()),
                 );
                 _fetchPendingCount();
               },
@@ -342,11 +356,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                           const SizedBox(
                             width: 12,
                             height: 12,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.orange),
                           )
                         else if (badgeCount > 0)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.orange.shade700,
                               borderRadius: BorderRadius.circular(10),
@@ -377,7 +393,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
               ),
               const SizedBox(width: 6),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  size: 14, color: Colors.grey),
             ],
           ),
         ),

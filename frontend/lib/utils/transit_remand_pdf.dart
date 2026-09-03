@@ -10,7 +10,8 @@ Future<void> previewTransitRemandPdf(
 ) async {
   final bytes = await generateTransitRemandPdf(doc);
   if (!context.mounted) return;
-  final fileName = 'Transit_Remand_${DateTime.now().millisecondsSinceEpoch}.pdf';
+  final fileName =
+      'Transit_Remand_${DateTime.now().millisecondsSinceEpoch}.pdf';
   try {
     if (kIsWeb) {
       await Printing.sharePdf(bytes: bytes, filename: fileName);
@@ -29,7 +30,8 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
   final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
 
   final body = pw.TextStyle(font: loraRegular, fontSize: 10);
-  final bold = pw.TextStyle(font: loraBold, fontSize: 12, fontWeight: pw.FontWeight.bold);
+  final bold = pw.TextStyle(
+      font: loraBold, fontSize: 12, fontWeight: pw.FontWeight.bold);
   final mr = pw.TextStyle(font: devanagari, fontSize: 9);
 
   String v(String key) => doc[key]?.toString().trim() ?? '';
@@ -66,11 +68,13 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
             row('To Court', '${v('eCourtToLine1')} ${v('eCourtToLine2')}'),
             row('Report by', '${v('eReportByName')} (${v('eReportByRank')})'),
             row('FIR / Sections', '${v('eFirNo')} ${v('eIpcSections')}'),
-            row('Complainant', '${v('eComplainantName')}, ${v('eComplainantAge')}'),
+            row('Complainant',
+                '${v('eComplainantName')}, ${v('eComplainantAge')}'),
             row('Accused 1', '${v('eAccused1Name')} ${v('eAccused1Details')}'),
             row('Arrested', v('eArrestedName')),
             row('Arrest PS / SD', '${v('eArrestPs')} ${v('eSdNo')}'),
-            row('Court / Hours', '${v('eCourtName')} — ${v('eRemandHours')} hrs'),
+            row('Court / Hours',
+                '${v('eCourtName')} — ${v('eRemandHours')} hrs'),
             row('Summary', v('eIncidentSummary')),
           ],
         ),
@@ -94,13 +98,16 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
             children: [
               pw.Text('Requisition to Transit Remand', style: bold),
               pw.SizedBox(height: 10),
-              row('Court', '${v('m1CourtName')} ${v('m1CourtCity')} ${v('m1CourtState')}'),
+              row('Court',
+                  '${v('m1CourtName')} ${v('m1CourtCity')} ${v('m1CourtState')}'),
               row('PS', '${v('m1PsName')} ${v('m1PsCity')}'),
               row('CR No.', '${v('m1CrNo')} ${v('m1CrSections')}'),
               row('Accused', '${v('m1AccusedName')} (${v('m1AccusedAge')})'),
               row('Address', v('m1AccusedAddress')),
-              row('Arrest', '${v('m1ArrestDateTime')} at ${v('m1ArrestPlace')}'),
-              row('Remand', '${v('m1RemandFrom')} for ${v('m1RemandDays')} days'),
+              row('Arrest',
+                  '${v('m1ArrestDateTime')} at ${v('m1ArrestPlace')}'),
+              row('Remand',
+                  '${v('m1RemandFrom')} for ${v('m1RemandDays')} days'),
               row('Produce at', v('m1ProduceCourt')),
               row('Officer', '${v('m1OfficerName')} ${v('m1OfficerRank')}'),
             ],
@@ -120,7 +127,8 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
               pw.SizedBox(height: 10),
               row('To PS', v('m2RecipientPs')),
               row('Ref CR', '${v('m2RefCrNo')} ${v('m2RefSections')}'),
-              row('Wanted accused', '${v('m2AccusedName')} (${v('m2AccusedAge')})'),
+              row('Wanted accused',
+                  '${v('m2AccusedName')} (${v('m2AccusedAge')})'),
               row('Address', v('m2AccusedAddress')),
               row('Officer', '${v('m2OfficerName')} ${v('m2OfficerPs')}'),
             ],

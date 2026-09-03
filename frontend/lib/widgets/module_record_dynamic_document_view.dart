@@ -102,10 +102,12 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
       final t = v.trim();
       if (t.isEmpty) return '—';
       try {
-        if (t.length >= 10 && (t.contains('T') || RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(t))) {
+        if (t.length >= 10 &&
+            (t.contains('T') || RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(t))) {
           final d = DateTime.parse(t).toLocal();
           final datePart = DateFormat('dd MMMM yyyy').format(d);
-          final hasTime = t.contains('T') && (d.hour != 0 || d.minute != 0 || d.second != 0);
+          final hasTime = t.contains('T') &&
+              (d.hour != 0 || d.minute != 0 || d.second != 0);
           if (hasTime) {
             return '$datePart, ${DateFormat('hh:mm a').format(d)}';
           }
@@ -266,7 +268,8 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
     return rows;
   }
 
-  Widget _extraFieldsSection(Map<String, dynamic> extra, {required bool desktop}) {
+  Widget _extraFieldsSection(Map<String, dynamic> extra,
+      {required bool desktop}) {
     if (extra.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -345,7 +348,8 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader('Extended & additional fields', Icons.extension_outlined),
+        _sectionHeader(
+            'Extended & additional fields', Icons.extension_outlined),
         const SizedBox(height: 10),
         ...blocks,
         const SizedBox(height: AppSpacing.lg),
@@ -466,8 +470,7 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
 
     final body = LayoutBuilder(
       builder: (context, constraints) {
-        final desktop =
-            constraints.maxWidth > _kCaseDetailDesktopBreakpoint;
+        final desktop = constraints.maxWidth > _kCaseDetailDesktopBreakpoint;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -478,11 +481,10 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
             ]),
             const SizedBox(height: AppSpacing.lg),
             if (commonFormMap == null) ...[
-              _sectionHeader('All saved case fields', Icons.fact_check_outlined),
+              _sectionHeader(
+                  'All saved case fields', Icons.fact_check_outlined),
               const SizedBox(height: 10),
-              _card(
-                  children:
-                      _orderedScalarRows(raw, desktop: desktop)),
+              _card(children: _orderedScalarRows(raw, desktop: desktop)),
               const SizedBox(height: AppSpacing.lg),
             ],
             if (commonFormMap != null) ...[

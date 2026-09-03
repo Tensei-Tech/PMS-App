@@ -43,7 +43,8 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedTabIndex = widget.initialTab.clamp(MyCasesTab.active, MyCasesTab.disposal);
+    _selectedTabIndex =
+        widget.initialTab.clamp(MyCasesTab.active, MyCasesTab.disposal);
   }
 
   @override
@@ -100,7 +101,8 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
                   emptyMessage: stationWide
                       ? 'No pending cases for this station.'
                       : 'No pending cases assigned to you.',
-                  emptyHint: 'Pending investigations and follow-ups appear in this tab.',
+                  emptyHint:
+                      'Pending investigations and follow-ups appear in this tab.',
                   listKind: _CaseListKind.pending,
                 ),
                 _VisibilityCasesTab(
@@ -184,7 +186,9 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        auth.displayName.isNotEmpty ? auth.displayName : 'Officer',
+                        auth.displayName.isNotEmpty
+                            ? auth.displayName
+                            : 'Officer',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -234,7 +238,8 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
 
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: AppSpacing.md),
+      padding:
+          const EdgeInsets.symmetric(vertical: 8, horizontal: AppSpacing.md),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 820),
@@ -372,7 +377,8 @@ class _HoverTabItemState extends State<_HoverTabItem> {
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
-                    fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+                    fontWeight:
+                        widget.isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: fg,
                   ),
                 ),
@@ -629,17 +635,20 @@ class _SearchField extends StatelessWidget {
           fontSize: 12.5,
           color: AppColors.lightSubText,
         ),
-        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.navyMid, size: 20),
+        prefixIcon: const Icon(Icons.search_rounded,
+            color: AppColors.navyMid, size: 20),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
                 onPressed: onClear,
-                icon: const Icon(Icons.close_rounded, color: AppColors.lightSubText, size: 18),
+                icon: const Icon(Icons.close_rounded,
+                    color: AppColors.lightSubText, size: 18),
               )
             : null,
         filled: true,
         fillColor: Colors.white,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.lightBorder),
@@ -675,7 +684,11 @@ class _CaseCardState extends State<_CaseCard> {
 
   String get _displayStatus {
     final s = widget.record.status.trim().toLowerCase();
-    if (s == 'closed' || s == 'resolved' || s == 'disposed' || s == 'disposal' || widget.listKind == _CaseListKind.closed) {
+    if (s == 'closed' ||
+        s == 'resolved' ||
+        s == 'disposed' ||
+        s == 'disposal' ||
+        widget.listKind == _CaseListKind.closed) {
       return 'Disposal';
     }
     return 'Pending';
@@ -707,8 +720,9 @@ class _CaseCardState extends State<_CaseCard> {
     final accent = _accentColor;
     final displayStatus = _displayStatus;
     final statusColor = _recordStatusColor(displayStatus);
-    final displayTitle =
-        widget.record.title.trim().isNotEmpty ? widget.record.title.trim() : 'Untitled Case';
+    final displayTitle = widget.record.title.trim().isNotEmpty
+        ? widget.record.title.trim()
+        : 'Untitled Case';
     final firLabel = widget.record.caseNumber.trim().isNotEmpty
         ? widget.record.caseNumber.trim()
         : 'No FIR / case number';
@@ -767,7 +781,8 @@ class _CaseCardState extends State<_CaseCard> {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.navyMid.withValues(alpha: 0.08),
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -787,7 +802,8 @@ class _CaseCardState extends State<_CaseCard> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: statusColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(AppRadius.full),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.full),
                                   border: Border.all(
                                     color: statusColor.withValues(alpha: 0.25),
                                   ),
@@ -829,7 +845,8 @@ class _CaseCardState extends State<_CaseCard> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (widget.record.firestoreCategoryDisplayName.isNotEmpty) ...[
+                          if (widget.record.firestoreCategoryDisplayName
+                              .isNotEmpty) ...[
                             const SizedBox(height: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -837,7 +854,8 @@ class _CaseCardState extends State<_CaseCard> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.goldPrimary.withValues(alpha: 0.12),
+                                color: AppColors.goldPrimary
+                                    .withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -867,7 +885,9 @@ class _CaseCardState extends State<_CaseCard> {
                                   icon: Icons.location_on_outlined,
                                   label: widget.record.location.trim(),
                                 ),
-                              if (widget.record.assignedOfficer.trim().isNotEmpty)
+                              if (widget.record.assignedOfficer
+                                  .trim()
+                                  .isNotEmpty)
                                 _MetaChip(
                                   icon: Icons.person_outline_rounded,
                                   label: widget.record.assignedOfficer.trim(),
@@ -1051,7 +1071,8 @@ class _EmptyState extends StatelessWidget {
                 color: iconColor.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 34, color: iconColor.withValues(alpha: 0.7)),
+              child:
+                  Icon(icon, size: 34, color: iconColor.withValues(alpha: 0.7)),
             ),
             const SizedBox(height: 16),
             Text(

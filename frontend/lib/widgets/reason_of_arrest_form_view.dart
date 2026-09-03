@@ -196,7 +196,8 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
               ),
               const SizedBox(height: 8),
               Text('NOTICE / सूचनापत्र',
-                  style: serif.copyWith(fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: serif.copyWith(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -361,7 +362,8 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
         Text(
           'नमुद गुन्हा दखलपात्र असून जामीनपात्र आहे. '
           'आपल्या अटकेची माहिती नातेवाईक/मित्र यांना देण्यात आली आहे.',
-          style: marathiLabel.copyWith(fontSize: 11, fontWeight: FontWeight.normal),
+          style: marathiLabel.copyWith(
+              fontSize: 11, fontWeight: FontWeight.normal),
         ),
         const SizedBox(height: 16),
         BilingualFieldRow(
@@ -430,7 +432,8 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
                 children: [
                   BilingualField(
                     label: 'IO signature',
-                    marathiLabel: '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
+                    marathiLabel:
+                        '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
                     controller: _ioSigCtrl,
                     serifStyle: serif,
                     marathiLabelStyle: marathiLabel,

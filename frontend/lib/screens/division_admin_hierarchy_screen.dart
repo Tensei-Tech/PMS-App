@@ -12,10 +12,13 @@ class DivisionAdminHierarchyScreen extends StatefulWidget {
   const DivisionAdminHierarchyScreen({super.key});
 
   @override
-  State<DivisionAdminHierarchyScreen> createState() => _DivisionAdminHierarchyScreenState();
+  State<DivisionAdminHierarchyScreen> createState() =>
+      _DivisionAdminHierarchyScreenState();
 }
 
-class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScreen> with SingleTickerProviderStateMixin {
+class _DivisionAdminHierarchyScreenState
+    extends State<DivisionAdminHierarchyScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ApiService _apiService = ApiService();
 
@@ -52,14 +55,18 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
       if (response.isSuccess && response.data is Map) {
         final data = response.data as Map<String, dynamic>;
         setState(() {
-          _districts = (data['districts'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-          _stations = (data['stations'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-          _assignedDivisionName = data['assigned_division']?.toString() ?? 'Division Range';
+          _districts =
+              (data['districts'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+          _stations =
+              (data['stations'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+          _assignedDivisionName =
+              data['assigned_division']?.toString() ?? 'Division Range';
           _isLoading = false;
         });
       } else {
         setState(() {
-          _errorMessage = response.errorMessage ?? 'Failed to load division hierarchy directory';
+          _errorMessage = response.errorMessage ??
+              'Failed to load division hierarchy directory';
           _isLoading = false;
         });
       }
@@ -103,12 +110,14 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
         elevation: 0,
         toolbarHeight: 52,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.white, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.goldLight, size: 20),
+            icon: const Icon(Icons.refresh_rounded,
+                color: AppColors.goldLight, size: 20),
             onPressed: _fetchDivisionHierarchyDirectory,
             tooltip: 'Refresh Directory',
           ),
@@ -119,16 +128,21 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
           indicatorWeight: 3,
           labelColor: AppColors.goldLight,
           unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
-          labelStyle: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w700),
-          unselectedLabelStyle: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w500),
+          labelStyle:
+              GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w700),
+          unselectedLabelStyle:
+              GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w500),
           tabs: const [
             Tab(icon: Icon(Icons.map_rounded, size: 18), text: 'Districts'),
-            Tab(icon: Icon(Icons.local_police_rounded, size: 18), text: 'Stations'),
+            Tab(
+                icon: Icon(Icons.local_police_rounded, size: 18),
+                text: 'Stations'),
           ],
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.navyDark))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.navyDark))
           : _errorMessage != null
               ? _buildErrorView()
               : TabBarView(
@@ -143,7 +157,8 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
 
   Widget _buildDistrictsTab() {
     if (_districts.isEmpty) {
-      return _buildEmptyState('No districts assigned under $_assignedDivisionName.');
+      return _buildEmptyState(
+          'No districts assigned under $_assignedDivisionName.');
     }
     return ListView.builder(
       padding: const EdgeInsets.all(12),
@@ -151,7 +166,8 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
       itemBuilder: (ctx, idx) {
         final dist = _districts[idx];
         final name = dist['name'] ?? 'District';
-        final admins = (dist['admins'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+        final admins =
+            (dist['admins'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
         return Card(
           elevation: 1,
@@ -164,15 +180,20 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
             leading: CircleAvatar(
               radius: 16,
               backgroundColor: Colors.blue.shade50,
-              child: Icon(Icons.map_rounded, color: Colors.blue.shade700, size: 18),
+              child: Icon(Icons.map_rounded,
+                  color: Colors.blue.shade700, size: 18),
             ),
             title: Text(
               name,
-              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.navyDark),
+              style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark),
             ),
             subtitle: Text(
               '${admins.length} District Admin(s) assigned',
-              style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade600),
+              style: GoogleFonts.poppins(
+                  fontSize: 11, color: Colors.grey.shade600),
             ),
             children: admins.isEmpty
                 ? [
@@ -180,11 +201,14 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
                       padding: const EdgeInsets.all(12),
                       child: Text(
                         'No District Admin currently assigned.',
-                        style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500),
+                        style: GoogleFonts.poppins(
+                            fontSize: 11.5, color: Colors.grey.shade500),
                       ),
                     )
                   ]
-                : admins.map((adm) => _buildOfficerListTile(adm, 'District Admin')).toList(),
+                : admins
+                    .map((adm) => _buildOfficerListTile(adm, 'District Admin'))
+                    .toList(),
           ),
         );
       },
@@ -193,7 +217,8 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
 
   Widget _buildStationsTab() {
     if (_stations.isEmpty) {
-      return _buildEmptyState('No police stations assigned under $_assignedDivisionName.');
+      return _buildEmptyState(
+          'No police stations assigned under $_assignedDivisionName.');
     }
     return ListView.builder(
       padding: const EdgeInsets.all(12),
@@ -212,15 +237,20 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
             side: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             leading: CircleAvatar(
               radius: 16,
               backgroundColor: Colors.teal.shade50,
-              child: Icon(Icons.local_police_rounded, color: Colors.teal.shade700, size: 18),
+              child: Icon(Icons.local_police_rounded,
+                  color: Colors.teal.shade700, size: 18),
             ),
             title: Text(
               name,
-              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.navyDark),
+              style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,15 +258,20 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
                 if (dist.isNotEmpty)
                   Text(
                     'District: $dist',
-                    style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade600),
+                    style: GoogleFonts.poppins(
+                        fontSize: 10.5, color: Colors.grey.shade600),
                   ),
                 const SizedBox(height: 2),
                 Text(
-                  head != null ? 'Head: ${head['name']} (${head['designation']})' : 'Head: Unassigned',
+                  head != null
+                      ? 'Head: ${head['name']} (${head['designation']})'
+                      : 'Head: Unassigned',
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: head != null ? AppColors.navyDark : Colors.orange.shade800,
+                    color: head != null
+                        ? AppColors.navyDark
+                        : Colors.orange.shade800,
                   ),
                 ),
               ],
@@ -247,7 +282,8 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
     );
   }
 
-  Widget _buildOfficerListTile(Map<String, dynamic> officer, String defaultRole) {
+  Widget _buildOfficerListTile(
+      Map<String, dynamic> officer, String defaultRole) {
     final name = officer['name'] ?? 'Officer';
     final desig = officer['designation'] ?? defaultRole;
     final badge = officer['badge_number'] ?? '';
@@ -263,20 +299,27 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
         leading: CircleAvatar(
           radius: 14,
           backgroundColor: AppColors.navyDark.withValues(alpha: 0.1),
-          child: const Icon(Icons.person_rounded, size: 16, color: AppColors.navyDark),
+          child: const Icon(Icons.person_rounded,
+              size: 16, color: AppColors.navyDark),
         ),
         title: Text(
           '$name ($desig)',
-          style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.navyDark),
+          style: GoogleFonts.poppins(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.navyDark),
         ),
         subtitle: Text(
           'Badge: ${badge.isNotEmpty ? badge : "N/A"} • Phone: ${phone.isNotEmpty ? phone : "N/A"}',
-          style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade600),
+          style:
+              GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade600),
         ),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: status == 'active' ? Colors.green.shade50 : Colors.orange.shade50,
+            color: status == 'active'
+                ? Colors.green.shade50
+                : Colors.orange.shade50,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
@@ -284,7 +327,9 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
             style: GoogleFonts.poppins(
               fontSize: 9.5,
               fontWeight: FontWeight.w700,
-              color: status == 'active' ? Colors.green.shade800 : Colors.orange.shade800,
+              color: status == 'active'
+                  ? Colors.green.shade800
+                  : Colors.orange.shade800,
             ),
           ),
         ),
@@ -299,12 +344,16 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.folder_open_rounded, size: 44, color: Colors.grey.shade400),
+            Icon(Icons.folder_open_rounded,
+                size: 44, color: Colors.grey.shade400),
             const SizedBox(height: 12),
             Text(
               msg,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+              style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -319,12 +368,14 @@ class _DivisionAdminHierarchyScreenState extends State<DivisionAdminHierarchyScr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded, size: 44, color: Colors.redAccent),
+            const Icon(Icons.error_outline_rounded,
+                size: 44, color: Colors.redAccent),
             const SizedBox(height: 12),
             Text(
               _errorMessage!,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+              style:
+                  GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
             ),
             const SizedBox(height: 14),
             ElevatedButton.icon(

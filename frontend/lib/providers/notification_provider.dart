@@ -43,7 +43,8 @@ class NotificationProvider extends ChangeNotifier {
 
   void _handleMessage(RemoteMessage message) {
     final notification = message.notification;
-    final title = notification?.title ?? message.data['title'] ?? 'Notification';
+    final title =
+        notification?.title ?? message.data['title'] ?? 'Notification';
     final body = notification?.body ?? message.data['body'] ?? '';
 
     addNotification(title: title, body: body);

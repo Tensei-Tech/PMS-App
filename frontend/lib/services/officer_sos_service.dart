@@ -51,7 +51,9 @@ class OfficerSosService {
       try {
         await _api.post(ApiConfig.sosAlerts, data: payload);
       } catch (e) {
-        if (kDebugMode) debugPrint('[OfficerSosService] Django SOS endpoint error: $e');
+        if (kDebugMode) {
+          debugPrint('[OfficerSosService] Django SOS endpoint error: $e');
+        }
       }
 
       return alertId;
@@ -70,4 +72,3 @@ class OfficerSosService {
     } catch (_) {}
   }
 }
-

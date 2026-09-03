@@ -21,7 +21,8 @@ class SettingsProvider extends ChangeNotifier {
   Locale get locale => _locale;
   bool get isBiometricEnabled => _isBiometricEnabled;
   bool get isBiometricSkipped => _isBiometricSkipped;
-  bool get shouldSkipNextBiometricAutoTrigger => _shouldSkipNextBiometricAutoTrigger;
+  bool get shouldSkipNextBiometricAutoTrigger =>
+      _shouldSkipNextBiometricAutoTrigger;
 
   String get language {
     return supportedLanguages[_locale.languageCode] ?? 'English';

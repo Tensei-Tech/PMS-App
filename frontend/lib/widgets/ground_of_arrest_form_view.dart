@@ -203,7 +203,8 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
               ),
               const SizedBox(height: 8),
               Text('NOTICE / सूचनापत्र',
-                  style: serif.copyWith(fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: serif.copyWith(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -430,7 +431,8 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                 children: [
                   BilingualField(
                     label: 'IO signature',
-                    marathiLabel: '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
+                    marathiLabel:
+                        '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
                     controller: _ioSigCtrl,
                     serifStyle: serif,
                     marathiLabelStyle: marathiLabel,
