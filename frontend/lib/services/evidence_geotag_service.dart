@@ -26,7 +26,8 @@ class GeotagLocation {
 
 /// Service to capture tamper-resistant geolocation and burn forensic overlays onto evidence photos.
 class EvidenceGeotagService {
-  static final EvidenceGeotagService _instance = EvidenceGeotagService._internal();
+  static final EvidenceGeotagService _instance =
+      EvidenceGeotagService._internal();
   factory EvidenceGeotagService() => _instance;
   EvidenceGeotagService._internal();
 
@@ -63,7 +64,12 @@ class EvidenceGeotagService {
 
       // 2. Overlay Forensic Header / Footer banner
       final bannerHeight = (height * 0.14).clamp(70.0, 140.0);
-      final bannerRect = Rect.fromLTWH(0, height - bannerHeight, width, bannerHeight);
+      final bannerRect = Rect.fromLTWH(
+        0,
+        height - bannerHeight,
+        width,
+        bannerHeight,
+      );
 
       // Dark translucent banner with orange/yellow forensic border
       final bannerPaint = Paint()..color = const Color(0xDD0B132B);
@@ -113,7 +119,8 @@ class EvidenceGeotagService {
       );
 
       // Row 2: GPS Coordinates + Time
-      final line2 = '📍 GPS: $latStr, $lngStr$accStr  •  🕒 ${location.timestamp} IST';
+      final line2 =
+          '📍 GPS: $latStr, $lngStr$accStr  •  🕒 ${location.timestamp} IST';
       textPainter.text = TextSpan(text: line2, style: textStyleBody);
       textPainter.layout(maxWidth: width - 24);
       textPainter.paint(
@@ -122,7 +129,8 @@ class EvidenceGeotagService {
       );
 
       // Row 3: Officer Name + Seva No
-      final line3 = '👮 IO: $officerName [Seva: $officerSevaNo]  •  ORIGINAL SCENE CAPTURE';
+      final line3 =
+          '👮 IO: $officerName [Seva: $officerSevaNo]  •  ORIGINAL SCENE CAPTURE';
       textPainter.text = TextSpan(
         text: line3,
         style: textStyleBody.copyWith(color: const Color(0xFFE2E8F0)),
@@ -135,7 +143,9 @@ class EvidenceGeotagService {
 
       final picture = recorder.endRecording();
       final stampedImage = await picture.toImage(image.width, image.height);
-      final byteData = await stampedImage.toByteData(format: ui.ImageByteFormat.png);
+      final byteData = await stampedImage.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
 
       if (byteData != null) {
         return byteData.buffer.asUint8List();

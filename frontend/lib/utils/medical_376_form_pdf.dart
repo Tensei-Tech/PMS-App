@@ -10,7 +10,8 @@ Future<void> previewMedical376FormPdf(
 ) async {
   final bytes = await generateMedical376FormPdf(doc);
   if (!context.mounted) return;
-  final fileName = '376_Medical_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
+  final fileName =
+      '376_Medical_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
   try {
     if (kIsWeb) {
       await Printing.sharePdf(bytes: bytes, filename: fileName);
@@ -30,11 +31,27 @@ Future<Uint8List> generateMedical376FormPdf(Map<String, dynamic> doc) async {
   final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
 
   final body = pw.TextStyle(font: loraRegular, fontSize: 10);
-  final bold = pw.TextStyle(font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
-  final title = pw.TextStyle(font: loraBold, fontSize: 14, fontWeight: pw.FontWeight.bold);
+  final bold = pw.TextStyle(
+    font: loraBold,
+    fontSize: 11,
+    fontWeight: pw.FontWeight.bold,
+  );
+  final title = pw.TextStyle(
+    font: loraBold,
+    fontSize: 14,
+    fontWeight: pw.FontWeight.bold,
+  );
   final marathi = pw.TextStyle(font: devanagari, fontSize: 8.5);
-  final marathiBold = pw.TextStyle(font: devanagariBold, fontSize: 9, fontWeight: pw.FontWeight.bold);
-  final value = pw.TextStyle(font: devanagari, fontSize: 10, color: PdfColors.blue900);
+  final marathiBold = pw.TextStyle(
+    font: devanagariBold,
+    fontSize: 9,
+    fontWeight: pw.FontWeight.bold,
+  );
+  final value = pw.TextStyle(
+    font: devanagari,
+    fontSize: 10,
+    color: PdfColors.blue900,
+  );
 
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
@@ -133,9 +150,16 @@ Future<Uint8List> generateMedical376FormPdf(Map<String, dynamic> doc) async {
           row('Hospital', 'रुग्णालय', v('f_hospital')),
           row('Name', 'नाव', v('f_name')),
           row('Age / DOB', 'वय / जन्मतारीख', '${v('f_age')} / ${v('f_dob')}'),
-          row('MLC / P.S.', 'एम.एल.सी. / पो.ठ.', '${v('f_mlc')} / ${v('f_ps')}'),
+          row(
+            'MLC / P.S.',
+            'एम.एल.सी. / पो.ठ.',
+            '${v('f_mlc')} / ${v('f_ps')}',
+          ),
           row('Arrival', 'आगमन', v('f_arrival')),
-          section('12. Informed Consent / Refusal', '१२. माहितीपूर्ण संमती / नकार'),
+          section(
+            '12. Informed Consent / Refusal',
+            '१२. माहितीपूर्ण संमती / नकार',
+          ),
           textBlock(v('f_consent'), 'संमती तपशील'),
           section('History of Sexual Violence', 'लैंगिक हिंसाचाराचा इतिहास'),
           textBlock(v('f_violenceHistory'), ''),
@@ -197,11 +221,22 @@ Future<Uint8List> generateMedical376FormPdf(Map<String, dynamic> doc) async {
           row('Hospital', 'रुग्णालय', v('m_hospital')),
           row('Accused Name', 'आरोपीचे नाव', v('m_accusedName')),
           row('Age / DOB', 'वय / जन्मतारीख', '${v('m_age')} / ${v('m_dob')}'),
-          row('MLC / C.R.No', 'एम.एल.सी. / गु.नो.', '${v('m_mlc')} / ${v('m_crNo')}'),
-          row('Police / P.S.', 'पोलीस / ठाणे', '${v('m_policeName')} / ${v('m_ps')}'),
+          row(
+            'MLC / C.R.No',
+            'एम.एल.सी. / गु.नो.',
+            '${v('m_mlc')} / ${v('m_crNo')}',
+          ),
+          row(
+            'Police / P.S.',
+            'पोलीस / ठाणे',
+            '${v('m_policeName')} / ${v('m_ps')}',
+          ),
           section('8. CONSENT', '८. संमती'),
           textBlock(v('m_consent'), 'संमती तपशील'),
-          section('History (as stated by Accused)', 'आरोपीने सांगितलेला इतिहास'),
+          section(
+            'History (as stated by Accused)',
+            'आरोपीने सांगितलेला इतिहास',
+          ),
           textBlock(v('m_assaultHistory'), ''),
           section('General Physical Examination', 'सामान्य शारीरिक तपासणी'),
           textBlock(v('m_generalPhysical'), ''),

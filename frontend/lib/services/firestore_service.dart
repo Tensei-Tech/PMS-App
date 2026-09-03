@@ -32,21 +32,24 @@ class FirestoreService {
   Stream<ModuleRecord?> watchCaseById(String id) => Stream.value(null);
 
   Stream<Map<String, dynamic>?> watchDocumentData(
-      String collection, String docId) =>
-      Stream.value(null);
+    String collection,
+    String docId,
+  ) => Stream.value(null);
 
   Stream<List<ModuleRecord>> getCasesStream(
-      String moduleKey, String stationId) =>
-      Stream.value(const []);
+    String moduleKey,
+    String stationId,
+  ) => Stream.value(const []);
 
   Stream<List<ModuleRecord>> watchAssignedCasesStream(
     String officerUid, {
     required bool activeOnly,
-  }) =>
-      Stream.value(const []);
+  }) => Stream.value(const []);
 
-  Stream<List<ModuleRecord>> getRecentCasesStream(int limit, String stationId) =>
-      Stream.value(const []);
+  Stream<List<ModuleRecord>> getRecentCasesStream(
+    int limit,
+    String stationId,
+  ) => Stream.value(const []);
 
   Stream<List<ModuleRecord>> getStationCasesStream(String stationId) =>
       Stream.value(const []);
@@ -54,7 +57,8 @@ class FirestoreService {
   Stream<List<ModuleRecord>> getPendingCasesStream(String stationId) =>
       Stream.value(const []);
 
-  Future<List<ModuleRecord>> fetchPendingCasesOnce(String stationId) async => [];
+  Future<List<ModuleRecord>> fetchPendingCasesOnce(String stationId) async =>
+      [];
 
   Stream<List<ModuleRecord>> getDisposalCasesStream(String stationId) =>
       Stream.value(const []);
@@ -100,8 +104,7 @@ class FirestoreService {
     required String approverDesignation,
     required String approverZone,
     required String approverStation,
-  }) =>
-      Stream.value(const []);
+  }) => Stream.value(const []);
 
   Future<void> approveUserRegistration(String uid) async {}
 
@@ -124,8 +127,9 @@ class FirestoreService {
   Stream<List<Map<String, dynamic>>> getIoRemindersStream(String ioUid) =>
       Stream.value(const []);
 
-  Stream<List<Map<String, dynamic>>> getStationRemindersStream(String stationName) =>
-      Stream.value(const []);
+  Stream<List<Map<String, dynamic>>> getStationRemindersStream(
+    String stationName,
+  ) => Stream.value(const []);
 
   Stream<List<Map<String, dynamic>>> getSentRemindersStream(String sentByUid) =>
       Stream.value(const []);

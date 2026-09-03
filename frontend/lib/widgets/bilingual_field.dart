@@ -75,8 +75,7 @@ class BilingualField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (label.isNotEmpty)
-          Text(label, style: serifStyle),
+        if (label.isNotEmpty) Text(label, style: serifStyle),
         if (showMarathiLabel && marathiLabel.isNotEmpty) ...[
           const SizedBox(height: 2),
           Text(marathiLabel, style: marathiLabelStyle),
@@ -176,7 +175,9 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
                     (index) => Container(
                       height: 24,
                       decoration: const BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Colors.black87, width: 1)),
+                        border: Border(
+                          bottom: BorderSide(color: Colors.black87, width: 1),
+                        ),
                       ),
                     ),
                   ),
@@ -193,7 +194,10 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
                     enabledBorder: InputBorder.none,
                     errorBorder: InputBorder.none,
                     disabledBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 0,
+                    ),
                     fillColor: Colors.transparent,
                     filled: true,
                   ),
@@ -233,12 +237,18 @@ class BilingualMultilineField extends StatelessWidget {
         if (label.isNotEmpty)
           Text(
             label,
-            style: serifStyle.copyWith(fontSize: 14, fontWeight: FontWeight.bold),
+            style: serifStyle.copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         if (marathiLabel.isNotEmpty)
           Text(
             marathiLabel,
-            style: marathiLabelStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
+            style: marathiLabelStyle.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         const SizedBox(height: 8),
         BilingualDynamicLinedTextField(
@@ -276,7 +286,10 @@ class BilingualSectionHeader extends StatelessWidget {
           Text(label, style: serifStyle),
           Text(
             marathiLabel,
-            style: marathiLabelStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
+            style: marathiLabelStyle.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -287,10 +300,7 @@ class BilingualSectionHeader extends StatelessWidget {
 class BilingualFieldRow extends StatelessWidget {
   final List<Widget> fields;
 
-  const BilingualFieldRow({
-    super.key,
-    required this.fields,
-  });
+  const BilingualFieldRow({super.key, required this.fields});
 
   @override
   Widget build(BuildContext context) {

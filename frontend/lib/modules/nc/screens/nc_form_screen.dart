@@ -61,8 +61,9 @@ class _NcFormScreenState extends State<NcFormScreen> {
 
   DateTime _parseIncidentDate(String raw) {
     final s = raw.trim();
-    final dtMatch =
-        RegExp(r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$').firstMatch(s);
+    final dtMatch = RegExp(
+      r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$',
+    ).firstMatch(s);
     if (dtMatch != null) {
       final dd = int.tryParse(dtMatch.group(1)!);
       final mo = int.tryParse(dtMatch.group(2)!);
@@ -112,11 +113,7 @@ class _NcFormScreenState extends State<NcFormScreen> {
   String _locationLine(Map<String, dynamic> doc) {
     final spot = doc['crimeSpot'];
     if (spot is! Map) return '';
-    final parts = [
-      spot['village'],
-      spot['area'],
-      spot['address'],
-    ]
+    final parts = [spot['village'], spot['area'], spot['address']]
         .map((x) => x?.toString().trim() ?? '')
         .where((s) => s.isNotEmpty)
         .toList();
@@ -138,8 +135,8 @@ class _NcFormScreenState extends State<NcFormScreen> {
     final stationName = _isEdit
         ? widget.existingRecord!.stationName
         : auth.stationName.isNotEmpty
-            ? auth.stationName
-            : context.read<NcProvider>().stationId;
+        ? auth.stationName
+        : context.read<NcProvider>().stationId;
 
     final stub = ModuleRecord(
       id: _isEdit ? widget.existingRecord!.id : 'preview_nc_pdf',
@@ -151,13 +148,16 @@ class _NcFormScreenState extends State<NcFormScreen> {
       accused: _personName(doc, 'personComplainedAgainst'),
       location: _locationLine(doc),
       incidentDate: _parseIncidentDate(
-          doc['registrationDateTime']?.toString() ?? ''),
+        doc['registrationDateTime']?.toString() ?? '',
+      ),
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: _isEdit ? widget.existingRecord!.status : 'Open',
-      assignedOfficer:
-          _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
-      subCategory:
-          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
+      assignedOfficer: _isEdit
+          ? widget.existingRecord!.assignedOfficer
+          : auth.displayName,
+      subCategory: _isEdit
+          ? widget.existingRecord!.subCategory
+          : widget.subCategory,
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: {
         kNcFormExtraFieldsKey: doc,
@@ -167,10 +167,7 @@ class _NcFormScreenState extends State<NcFormScreen> {
       createdBy: _isEdit ? widget.existingRecord!.createdBy : auth.uid,
     );
 
-    await runWithPdfAuthGate(
-      context,
-      () => ModulePdfHelper.generatePdf(stub),
-    );
+    await runWithPdfAuthGate(context, () => ModulePdfHelper.generatePdf(stub));
   }
 
   void _submit() {
@@ -183,21 +180,23 @@ class _NcFormScreenState extends State<NcFormScreen> {
     final stationName = _isEdit && widget.existingRecord!.stationName.isNotEmpty
         ? widget.existingRecord!.stationName
         : auth.stationName.isNotEmpty
-            ? auth.stationName
-            : provider.stationId;
+        ? auth.stationName
+        : provider.stationId;
 
     final createdBy = _isEdit && widget.existingRecord!.createdBy.isNotEmpty
         ? widget.existingRecord!.createdBy
         : auth.uid;
 
     if (!_isEdit && stationName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'Station not assigned. Please log out and log in again.',
-          style: GoogleFonts.poppins(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Station not assigned. Please log out and log in again.',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.red,
         ),
-        backgroundColor: Colors.red,
-      ));
+      );
       return;
     }
 
@@ -222,14 +221,17 @@ class _NcFormScreenState extends State<NcFormScreen> {
       complainant: complainantName,
       accused: accusedName,
       location: _locationLine(doc),
-      incidentDate:
-          _parseIncidentDate(doc['registrationDateTime']?.toString() ?? ''),
+      incidentDate: _parseIncidentDate(
+        doc['registrationDateTime']?.toString() ?? '',
+      ),
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: _isEdit ? widget.existingRecord!.status : 'Open',
-      assignedOfficer:
-          _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
-      subCategory:
-          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
+      assignedOfficer: _isEdit
+          ? widget.existingRecord!.assignedOfficer
+          : auth.displayName,
+      subCategory: _isEdit
+          ? widget.existingRecord!.subCategory
+          : widget.subCategory,
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: extra,
       stationName: stationName,
@@ -245,15 +247,17 @@ class _NcFormScreenState extends State<NcFormScreen> {
       provider.addRecord(record);
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(
-        _isEdit
-            ? '${widget.moduleLabel} record updated!'
-            : '${widget.moduleLabel} case registered!',
-        style: GoogleFonts.poppins(),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isEdit
+              ? '${widget.moduleLabel} record updated!'
+              : '${widget.moduleLabel} case registered!',
+          style: GoogleFonts.poppins(),
+        ),
+        backgroundColor: AppColors.successGreen,
       ),
-      backgroundColor: AppColors.successGreen,
-    ));
+    );
     Navigator.pop(context);
   }
 
@@ -268,15 +272,20 @@ class _NcFormScreenState extends State<NcFormScreen> {
         IconButton(
           tooltip: 'Generate PDF',
           onPressed: _exportPdf,
-          icon: const Icon(Icons.picture_as_pdf_outlined,
-              color: AppColors.navyMid, size: 24),
+          icon: const Icon(
+            Icons.picture_as_pdf_outlined,
+            color: AppColors.navyMid,
+            size: 24,
+          ),
         ),
         TextButton(
           onPressed: _submit,
           child: Text(
             _isEdit ? 'Save' : 'Submit',
             style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700, color: AppColors.navyMid),
+              fontWeight: FontWeight.w700,
+              color: AppColors.navyMid,
+            ),
           ),
         ),
       ],

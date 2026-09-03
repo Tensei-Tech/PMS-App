@@ -3,16 +3,20 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/settings_provider.dart';
 
 class TranslationHelper {
   /// Translates the input string based on the active locale.
   static String translate(BuildContext context, String text) {
     if (text.isEmpty) return text;
-    
+
     String locale = 'en';
     try {
-      locale = Provider.of<SettingsProvider>(context, listen: false).locale.languageCode;
+      locale = Provider.of<SettingsProvider>(
+        context,
+        listen: false,
+      ).locale.languageCode;
     } catch (_) {
       try {
         locale = Localizations.localeOf(context).languageCode;
@@ -56,7 +60,7 @@ class TranslationHelper {
     if (shortForms.containsKey(cleanText)) {
       return shortForms[cleanText]!;
     }
-    
+
     final langMap = _translations[locale];
     if (langMap != null && langMap.containsKey(cleanText)) {
       return langMap[cleanText]!;
@@ -76,7 +80,9 @@ class TranslationHelper {
       final target = text.substring('showing: '.length).trim();
       final translatedTarget = translate(context, target);
       final translatedShowing = translate(context, 'showing');
-      final prefix = (translatedShowing != 'showing') ? translatedShowing : 'Showing';
+      final prefix = (translatedShowing != 'showing')
+          ? translatedShowing
+          : 'Showing';
       return '$prefix: $translatedTarget';
     }
 
@@ -93,7 +99,9 @@ class TranslationHelper {
       final parts = text.split(' ');
       if (parts.isNotEmpty) {
         final numberPart = parts[0];
-        final label = cleanText.endsWith(' form types') ? 'form types' : 'form type';
+        final label = cleanText.endsWith(' form types')
+            ? 'form types'
+            : 'form type';
         final translatedLabel = translate(context, label);
         return '$numberPart $translatedLabel';
       }
@@ -118,7 +126,8 @@ class TranslationHelper {
       'io wise pending': 'आईओ वार लंबित',
       'all categories': 'सभी श्रेणियां',
       'no io wise pending cases': 'कोई आईओ वार लंबित मामले नहीं हैं',
-      'no io wise pending cases in this category': 'इस श्रेणी में कोई आईओ वार लंबित मामले नहीं हैं',
+      'no io wise pending cases in this category':
+          'इस श्रेणी में कोई आईओ वार लंबित मामले नहीं हैं',
       'io name': 'आईओ का नाम',
       'cases': 'मामले',
       'it act/cyber': 'आईटी एक्ट/साइबर',
@@ -128,14 +137,19 @@ class TranslationHelper {
       'crime spot': 'घटनास्थल',
       'complainant kyc': 'शिकायतकर्ता केवाईसी',
       'you cannot enter victim name': 'आप पीड़िता का नाम दर्ज नहीं कर सकते',
-      'you cannot enter victim details': 'आप पीड़िता का विवरण दर्ज नहीं कर सकते',
-      'you cannot enter victim details in sexual offence against female': 'महिलाओं के विरुद्ध यौन अपराध में पीड़िता का विवरण दर्ज नहीं कर सकते',
+      'you cannot enter victim details':
+          'आप पीड़िता का विवरण दर्ज नहीं कर सकते',
+      'you cannot enter victim details in sexual offence against female':
+          'महिलाओं के विरुद्ध यौन अपराध में पीड़िता का विवरण दर्ज नहीं कर सकते',
       'protected (confidential)': 'सुरक्षित (गोपनीय)',
       'protected': 'सुरक्षित',
-      'sexual offence against women (victim protected)': 'महिलाओं के विरुद्ध यौन अपराध (पीड़िता की पहचान सुरक्षित)',
+      'sexual offence against women (victim protected)':
+          'महिलाओं के विरुद्ध यौन अपराध (पीड़िता की पहचान सुरक्षित)',
       'other offence': 'अन्य अपराध',
-      'offence category (victim confidentiality)': 'अपराध श्रेणी (पीड़िता की गोपनीयता)',
-      'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.': 'धारा 228A IPC / 72 BNS के तहत पीड़िता की पहचान सुरक्षित है। आप पीड़िता का विवरण दर्ज नहीं कर सकते।',
+      'offence category (victim confidentiality)':
+          'अपराध श्रेणी (पीड़िता की गोपनीयता)',
+      'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.':
+          'धारा 228A IPC / 72 BNS के तहत पीड़िता की पहचान सुरक्षित है। आप पीड़िता का विवरण दर्ज नहीं कर सकते।',
       'accused details': 'आरोपी का विवरण',
       'suspected accused': 'संदिग्ध आरोपी',
       'unidentified criminal description': 'अज्ञात अपराधी का विवरण',
@@ -151,7 +165,8 @@ class TranslationHelper {
       'case scrutiny pipeline': 'मामला संवीक्षा पाइपलाइन',
       'cr. no.': 'अपराध क्रमांक',
       'registered date (dd/mm/yyyy)': 'पंजीकरण तिथि (दिन/माह/वर्ष)',
-      'upload fir copy (tap to select)': 'प्राथमिकी (FIR) प्रति अपलोड करें (चयन करने के लिए टैप करें)',
+      'upload fir copy (tap to select)':
+          'प्राथमिकी (FIR) प्रति अपलोड करें (चयन करने के लिए टैप करें)',
       'village/town': 'गाँव/कस्बा',
       'area name': 'क्षेत्र का नाम',
       'full address': 'पूरा पता',
@@ -181,8 +196,10 @@ class TranslationHelper {
       'mischief': 'शरारत',
       'all': 'सभी',
       'no form i-v cases yet': 'अभी तक कोई फॉर्म १ से ५ मामले नहीं हैं',
-      'cases will appear here once registered.': 'पंजीकृत होने के बाद मामले यहाँ दिखाई देंगे।',
-      'tap new case to register the first case.': 'पहला मामला पंजीकृत करने के लिए नया मामला पर टैप करें।',
+      'cases will appear here once registered.':
+          'पंजीकृत होने के बाद मामले यहाँ दिखाई देंगे।',
+      'tap new case to register the first case.':
+          'पहला मामला पंजीकृत करने के लिए नया मामला पर टैप करें।',
       'edit': 'संपादित करें',
       'view': 'देखें',
       'no': 'कोई',
@@ -284,7 +301,8 @@ class TranslationHelper {
       'forms categories': 'फॉर्म श्रेणियां',
       'unified police entry menu': 'एकीकृत पुलिस प्रविष्टि मेनू',
       'search entry types...': 'प्रविष्टि प्रकार खोजें...',
-      'search cases or type module (e.g. murder, theft, missing)...': 'मामले या मॉड्यूल खोजें...',
+      'search cases or type module (e.g. murder, theft, missing)...':
+          'मामले या मॉड्यूल खोजें...',
       'registration summary': 'पंजीकरण सारांश',
       'monthly registration report': 'मासिक पंजीकरण रिपोर्ट',
       'monthly disposal report': 'मासिक निपटान रिपोर्ट',
@@ -293,8 +311,93 @@ class TranslationHelper {
       'record': 'रिकॉर्ड',
       'registered': 'पंजीकृत',
       'form types': 'फॉर्म प्रकार',
-      'sub-sections — tap to expand': 'उप-अनुभाग — विस्तृत करने के लिए टैप करें',
+      'sub-sections — tap to expand':
+          'उप-अनुभाग — विस्तृत करने के लिए टैप करें',
       'complete form (all sections)': 'पूरा फॉर्म (सभी अनुभाग)',
+      'victim kyc': 'पीड़ित केवाईसी',
+      'deceased kyc': 'मृतक केवाईसी',
+      'same as complainant': 'शिकायतकर्ता के समान',
+      'same as victim': 'पीड़ित के समान',
+      'copied complainant details to victim kyc':
+          'शिकायतकर्ता का विवरण पीड़ित केवाईसी में कॉपी किया गया',
+      'copied complainant details to deceased kyc':
+          'शिकायतकर्ता का विवरण मृतक केवाईसी में कॉपी किया गया',
+      'copied victim details to deceased kyc':
+          'पीड़ित का विवरण मृतक केवाईसी में कॉपी किया गया',
+      'e-shakshya': 'ई-साक्ष्य',
+      'e-shakshya date & time': 'ई-साक्ष्य दिनांक और समय',
+      'reason for no e-shakshya (minimum 30 words)':
+          'ई-साक्ष्य न होने का कारण (न्यूनतम 30 शब्द)',
+      'reason for no e-shakshya': 'ई-साक्ष्य न होने का कारण',
+      'word requirement met': 'शब्द आवश्यकता पूरी हुई',
+      'minimum 30 words required': 'न्यूनतम 30 शब्द आवश्यक',
+      'more needed': 'और आवश्यक',
+      'words': 'शब्द',
+      'pr bond': 'पीआर बांड',
+      'pr bond date': 'पीआर बांड दिनांक',
+      'reason for pr bond': 'पीआर बांड का कारण',
+      'preventive bonds': 'प्रतिबंधात्मक बांड',
+      'preventive actions': 'प्रतिबंधात्मक कार्रवाई',
+      'action type': 'कार्रवाई का प्रकार',
+      'bnss 126': 'बीएनएसएस 126',
+      'bnss 129': 'बीएनएसएस 129',
+      'bns 126': 'बीएनएस 126',
+      'bns 129': 'बीएनएस 129',
+      'bnss 126 date & time': 'बीएनएसएस 126 दिनांक और समय',
+      'bnss 129 date & time': 'बीएनएसएस 129 दिनांक और समय',
+      'bond cancellation': 'बांड रद्दीकरण',
+      'bond cancellation date & time': 'बांड रद्दीकरण दिनांक और समय',
+      'discharge date': 'उन्मोचन दिनांक',
+      'reason for discharge': 'उन्मोचन का कारण',
+      'reason for discharge (minimum 20 words)':
+          'उन्मोचन का कारण (न्यूनतम 20 शब्द)',
+      'minimum 20 words required': 'न्यूनतम 20 शब्द आवश्यक',
+      'charge sheet number': 'चार्जशीट संख्या',
+      'charge sheet date': 'चार्जशीट दिनांक',
+      '(discharged)': '(उन्मोचित)',
+      'same as suspected': 'संदिग्ध के समान',
+      'same as accused': 'अभियुक्त के समान',
+      'copy from accused': 'अभियुक्त से कॉपी करें',
+      'copy from suspected': 'संदिग्ध से कॉपी करें',
+      'copy from': 'से कॉपी करें',
+      'add charge': 'आरोप जोड़ें',
+      'add accused': 'अभियुक्त जोड़ें',
+      'add suspected': 'संदिग्ध जोड़ें',
+      'add seized property': 'जप्त संपत्ति जोड़ें',
+      'victim identity protected by law':
+          'पीड़िता की पहचान कानून द्वारा संरक्षित है',
+      'victim identity protected by law (rape offence)':
+          'पीड़िता की पहचान कानून द्वारा संरक्षित है (बलात्कार अपराध)',
+      'identity protection notice': 'पहचान संरक्षण सूचना',
+      'identity protection notice (rape offence)':
+          'पहचान संरक्षण सूचना (बलात्कार अपराध)',
+      'identity protected by law': 'पहचान कानून द्वारा संरक्षित है',
+      'you cannot enter victim details in sexual offence':
+          'यौन अपराध में आप पीड़िता का विवरण दर्ज नहीं कर सकते',
+      'under section 228a ipc / section 73 bns, disclosure of the identity of a victim of rape is prohibited by law. if the complainant is the victim, the name field is locked.':
+          'आईपीसी धारा 228A / बीएनएस धारा 73 के तहत बलात्कार पीड़िता की पहचान का खुलासा कानूनन प्रतिबंधित है। यदि शिकायतकर्ता पीड़िता है, तो नाम फ़ील्ड लॉक है।',
+      'under section 228a ipc / section 73 bns, disclosure of the victim\'s name in rape offenses is strictly prohibited. name entry is disabled.':
+          'बलात्कार अपराधों में आईपीसी धारा 228A / बीएनएस धारा 73 के तहत पीड़िता के नाम का खुलासा सख्त वर्जित है। नाम प्रविष्टि अक्षम है।',
+      'under section 228a ipc / section 73 bns / pocso act, disclosure of victim\'s name is prohibited by law. if the complainant is the victim, entering victim\'s name is locked.':
+          'आईपीसी धारा 228A / बीएनएस धारा 73 / पॉक्सो अधिनियम के तहत पीड़िता के नाम का खुलासा कानूनन प्रतिबंधित है। यदि शिकायतकर्ता पीड़िता है, तो नाम दर्ज करना वर्जित है।',
+      'under section 228a ipc / section 73 bns / pocso act, disclosure of the victim\'s name in crimes against women and sexual offenses is strictly prohibited. name entry is disabled.':
+          'महिला अपराध और यौन अपराधों में आईपीसी धारा 228A / बीएनएस धारा 73 / पॉक्सो अधिनियम के तहत पीड़िता के नाम का खुलासा सख्त वर्जित है। नाम प्रविष्टि अक्षम है।',
+      '⚠️ name locked under sec 228a ipc / sec 73 bns (victim protection)':
+          '⚠️ धारा 228A आईपीसी / धारा 73 बीएनएस के तहत नाम लॉक (पीड़िता संरक्षण)',
+      '⚠️ cannot enter victim\'s name because of the act / law (sec 228a ipc / sec 73 bns)':
+          '⚠️ अधिनियम/कानून (आईपीसी धारा 228A / बीएनएस धारा 73) के कारण पीड़िता का नाम दर्ज नहीं किया जा सकता',
+      'mobile number is required (10 digits)': 'मोबाइल नंबर आवश्यक है (10 अंक)',
+      'mobile number must be exactly 10 digits':
+          'मोबाइल नंबर ठीक 10 अंकों का होना चाहिए',
+      'enter a valid indian mobile number (starts with 6-9)':
+          'एक मान्य भारतीय मोबाइल नंबर दर्ज करें (6-9 से शुरू)',
+      'aadhaar must be exactly 12 digits': 'आधार ठीक 12 अंकों का होना चाहिए',
+      'aadhaar cannot start with 0 or 1': 'आधार 0 या 1 से शुरू नहीं हो सकता',
+      'invalid aadhaar number (checksum failed)':
+          'अमान्य आधार नंबर (चेकसम विफल)',
+      'pan must be exactly 10 characters': 'पैन ठीक 10 वर्णों का होना चाहिए',
+      'invalid pan format (e.g. abcde1234f)':
+          'अमान्य पैन प्रारूप (उदा. ABCDE1234F)',
       'crime detail form': 'क्राइम डिटेल फॉर्म',
       'property & seizure form': 'संपत्ति और जब्ती फॉर्म',
       'house/property search & seizure': 'घर/संपत्ति की तलाशी और जब्ती',
@@ -312,26 +415,37 @@ class TranslationHelper {
       'transit remand': 'पारगमन रिमांड',
       'order section 47 & 48': 'आदेश धारा 47 और 48',
       'ab form': 'एबी फॉर्म',
-      'panchanama, forms & notices (bnss)': 'पंचनामा, फॉर्म और नोटिस (बीएनएसएस)',
+      'panchanama, forms & notices (bnss)':
+          'पंचनामा, फॉर्म और नोटिस (बीएनएसएस)',
       'total case': 'कुल मामले',
       'records yet': 'रिकॉर्ड अभी तक नहीं',
-      'no registered entries found in this category.': 'इस श्रेणी में कोई पंजीकृत प्रविष्टि नहीं मिली।',
+      'no registered entries found in this category.':
+          'इस श्रेणी में कोई पंजीकृत प्रविष्टि नहीं मिली।',
       'view profile': 'प्रोफ़ाइल देखें',
       'showing: my cases': 'प्रदर्शित: मेरे मामले',
       'showing: all station cases': 'प्रदर्शित: थाने के सभी मामले',
       'my cases': 'मेरे मामले',
       'all station cases': 'थाने के सभी मामले',
-      'need full station view? ask your pi for access.': 'पूरे स्टेशन का दृश्य चाहिए? पहुंच के लिए अपने पीआई से पूछें।',
+      'need full station view? ask your pi for access.':
+          'पूरे स्टेशन का दृश्य चाहिए? पहुंच के लिए अपने पीआई से पूछें।',
       'director general of police': 'पुलिस महानिदेशक',
       'directive': 'निर्देश',
-      'mandatory zero fir registration directive': 'अनिवार्य शून्य एफआईआर पंजीकरण निर्देश',
-      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.': 'क्षेत्राधिकार की परवाह किए बिना संज्ञेय अपराध की शिकायत प्राप्त होने पर सभी पुलिस स्टेशनों को तुरंत शून्य एफआईआर दर्ज करनी होगी।',
-      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines': 'भारतीय नागरिक सुरक्षा संहिता (बीएनएसएस) 2023 दिशानिर्देश',
-      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.': 'एफआईआर पंजीकरण, फोरेंसिक डेटा संग्रह और इलेक्ट्रॉनिक साक्ष्य रिकॉर्डिंग के लिए नई प्रक्रियात्मक समय सीमा अब राज्य भर में लागू है।',
-      'section 63 bsa electronic evidence certification': 'धारा 63 बीएसए इलेक्ट्रॉनिक साक्ष्य प्रमाणन',
-      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.': 'चार्जशीट जमा करते समय सभी डिजिटल साक्ष्य, सीसीटीवी रिकॉर्डिंग और कॉल लॉग के साथ अनिवार्य धारा 63 प्रमाणपत्र (पूर्व में 65B) होना चाहिए।',
-      'standard operating procedure for online financial frauds': 'ऑनलाइन वित्तीय धोखाधड़ी के लिए मानक संचालन प्रक्रिया',
-      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.': 'जांच अधिकारियों के लिए पहले गोल्डन आवर के भीतर 1930 पोर्टल के माध्यम से लाभार्थी खातों को तुरंत फ्रीज करना अब अनिवार्य है।',
+      'mandatory zero fir registration directive':
+          'अनिवार्य शून्य एफआईआर पंजीकरण निर्देश',
+      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.':
+          'क्षेत्राधिकार की परवाह किए बिना संज्ञेय अपराध की शिकायत प्राप्त होने पर सभी पुलिस स्टेशनों को तुरंत शून्य एफआईआर दर्ज करनी होगी।',
+      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines':
+          'भारतीय नागरिक सुरक्षा संहिता (बीएनएसएस) 2023 दिशानिर्देश',
+      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.':
+          'एफआईआर पंजीकरण, फोरेंसिक डेटा संग्रह और इलेक्ट्रॉनिक साक्ष्य रिकॉर्डिंग के लिए नई प्रक्रियात्मक समय सीमा अब राज्य भर में लागू है।',
+      'section 63 bsa electronic evidence certification':
+          'धारा 63 बीएसए इलेक्ट्रॉनिक साक्ष्य प्रमाणन',
+      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.':
+          'चार्जशीट जमा करते समय सभी डिजिटल साक्ष्य, सीसीटीवी रिकॉर्डिंग और कॉल लॉग के साथ अनिवार्य धारा 63 प्रमाणपत्र (पूर्व में 65B) होना चाहिए।',
+      'standard operating procedure for online financial frauds':
+          'ऑनलाइन वित्तीय धोखाधड़ी के लिए मानक संचालन प्रक्रिया',
+      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.':
+          'जांच अधिकारियों के लिए पहले गोल्डन आवर के भीतर 1930 पोर्टल के माध्यम से लाभार्थी खातों को तुरंत फ्रीज करना अब अनिवार्य है।',
       'new law': 'नया कानून',
       'circular': 'परिपत्रक',
       'sop update': 'एसओपी अपडेट',
@@ -374,8 +488,10 @@ class TranslationHelper {
       'home police station': 'गृह पुलिस स्टेशन',
       'dismiss': 'बंद करें',
       'serving': 'सेवारत',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.': 'राज्य की सेवा सम्मान, सत्यनिष्ठा और उत्कृष्टता के साथ। खाकी डायरी एंटरप्राइज पोर्टल द्वारा एकीकृत।',
-      'to protect the good and punish the evil': 'सज्जनों का रक्षण और दुर्जनों का दमन',
+      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+          'राज्य की सेवा सम्मान, सत्यनिष्ठा और उत्कृष्टता के साथ। खाकी डायरी एंटरप्राइज पोर्टल द्वारा एकीकृत।',
+      'to protect the good and punish the evil':
+          'सज्जनों का रक्षण और दुर्जनों का दमन',
       'headquarters': 'मुख्यालय',
       'state hq': 'राज्य मुख्यालय',
       'director general of police (dg)': 'पुलिस महानिदेशक (डीजी)',
@@ -384,8 +500,10 @@ class TranslationHelper {
       'case wise': 'गुन्हा निहाय',
       'io wise pending': 'तपास अधिकारी निहाय प्रलंबित',
       'all categories': 'सर्व श्रेणी',
-      'no io wise pending cases': 'तपास अधिकारी निहाय कोणतेही प्रलंबित गुन्हे नाहीत',
-      'no io wise pending cases in this category': 'या श्रेणीत तपास अधिकारी निहाय कोणतेही प्रलंबित गुन्हे नाहीत',
+      'no io wise pending cases':
+          'तपास अधिकारी निहाय कोणतेही प्रलंबित गुन्हे नाहीत',
+      'no io wise pending cases in this category':
+          'या श्रेणीत तपास अधिकारी निहाय कोणतेही प्रलंबित गुन्हे नाहीत',
       'io name': 'तपास अधिकाऱ्याचे नाव',
       'cases': 'गुन्हे',
       'it act/cyber': 'माहिती तंत्रज्ञान कायदा/सायबर',
@@ -394,15 +512,21 @@ class TranslationHelper {
       'acts & sections filed': 'दाखल केलेले कायदे व कलमे',
       'crime spot': 'घटनास्थळ',
       'complainant kyc': 'तक्रारदार केवायसी',
-      'you cannot enter victim name': 'तुम्ही पीडितेचे नाव प्रविष्ट करू शकत नाही',
-      'you cannot enter victim details': 'तुम्ही पीडितेचे तपशील प्रविष्ट करू शकत नाही',
-      'you cannot enter victim details in sexual offence against female': 'महिलांविरुद्ध लैंगिक गुन्ह्यात पीडितेचे तपशील प्रविष्ट करू शकत नाही',
+      'you cannot enter victim name':
+          'तुम्ही पीडितेचे नाव प्रविष्ट करू शकत नाही',
+      'you cannot enter victim details':
+          'तुम्ही पीडितेचे तपशील प्रविष्ट करू शकत नाही',
+      'you cannot enter victim details in sexual offence against female':
+          'महिलांविरुद्ध लैंगिक गुन्ह्यात पीडितेचे तपशील प्रविष्ट करू शकत नाही',
       'protected (confidential)': 'संरक्षित (गोपनीय)',
       'protected': 'संरक्षित',
-      'sexual offence against women (victim protected)': 'महिलांविरुद्ध लैंगिक गुन्हा (पीडितेची ओळख संरक्षित)',
+      'sexual offence against women (victim protected)':
+          'महिलांविरुद्ध लैंगिक गुन्हा (पीडितेची ओळख संरक्षित)',
       'other offence': 'इतर गुन्हा',
-      'offence category (victim confidentiality)': 'गुन्हा श्रेणी (पीडितेची गोपनीयता)',
-      'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.': 'कलम 228A IPC / 72 BNS अंतर्गत पीडितेची ओळख संरक्षित आहे. तुम्ही पीडितेचे तपशील प्रविष्ट करू शकत नाही.',
+      'offence category (victim confidentiality)':
+          'गुन्हा श्रेणी (पीडितेची गोपनीयता)',
+      'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.':
+          'कलम 228A IPC / 72 BNS अंतर्गत पीडितेची ओळख संरक्षित आहे. तुम्ही पीडितेचे तपशील प्रविष्ट करू शकत नाही.',
       'accused details': 'आरोपी तपशील',
       'suspected accused': 'संशयित आरोपी',
       'unidentified criminal description': 'अनोळखी गुन्हेगाराचे वर्णन',
@@ -418,7 +542,8 @@ class TranslationHelper {
       'case scrutiny pipeline': 'गुन्हा पडताळणी प्रक्रिया',
       'cr. no.': 'गुन्हा रजिस्टर क्र.',
       'registered date (dd/mm/yyyy)': 'नोंदणी तारीख (दिनांक/महिना/वर्ष)',
-      'upload fir copy (tap to select)': 'एफआयआर प्रत अपलोड करा (निवडण्यासाठी टॅप करा)',
+      'upload fir copy (tap to select)':
+          'एफआयआर प्रत अपलोड करा (निवडण्यासाठी टॅप करा)',
       'village/town': 'गाव/शहर',
       'area name': 'भागाचे नाव',
       'full address': 'पूर्ण पत्ता',
@@ -538,7 +663,8 @@ class TranslationHelper {
       'forms categories': 'Form categories',
       'unified police entry menu': 'एकीकृत पोलीस नोंदणी मेनू',
       'search entry types...': 'नोंदीचे प्रकार शोधा...',
-      'search cases or type module (e.g. murder, theft, missing)...': 'गुन्हे शोधा...',
+      'search cases or type module (e.g. murder, theft, missing)...':
+          'गुन्हे शोधा...',
       'registration summary': 'नोंदणी सारांश',
       'monthly registration report': 'मासिक नोंदणी अहवाल',
       'monthly disposal report': 'मासिक विल्हेवाट अहवाल',
@@ -549,6 +675,91 @@ class TranslationHelper {
       'form types': 'फॉर्म प्रकार',
       'sub-sections — tap to expand': 'उप-विभाग — पाहण्यासाठी टॅप करा',
       'complete form (all sections)': 'पूर्ण फॉर्म (सर्व विभाग)',
+      'victim kyc': 'पीडित केवायसी',
+      'deceased kyc': 'मृतक केवायसी',
+      'same as complainant': 'तक्रारदाराप्रमाणेच',
+      'same as victim': 'पीडिताप्रमाणेच',
+      'copied complainant details to victim kyc':
+          'तक्रारदाराचा तपशील पीडित केवायसीमध्ये कॉपी केला',
+      'copied complainant details to deceased kyc':
+          'तक्रारदाराचा तपशील मृतक केवायसीमध्ये कॉपी केला',
+      'copied victim details to deceased kyc':
+          'पीडिताचा तपशील मृतक केवायसीमध्ये कॉपी केला',
+      'e-shakshya': 'ई-साक्ष्य',
+      'e-shakshya date & time': 'ई-साक्ष्य तारीख आणि वेळ',
+      'reason for no e-shakshya (minimum 30 words)':
+          'ई-साक्ष्य नसण्याचे कारण (किमान 30 शब्द)',
+      'reason for no e-shakshya': 'ई-साक्ष्य नसण्याचे कारण',
+      'word requirement met': 'शब्द मर्यादा पूर्ण झाली',
+      'minimum 30 words required': 'किमान 30 शब्द आवश्यक',
+      'more needed': 'आणखी आवश्यक',
+      'words': 'शब्द',
+      'pr bond': 'पीआर जामीनपत्र',
+      'pr bond date': 'पीआर जामीनपत्र तारीख',
+      'reason for pr bond': 'पीआर जामीनपत्राचे कारण',
+      'preventive bonds': 'प्रतिबंधक जामीनपत्र',
+      'preventive actions': 'प्रतिबंधक कारवाई',
+      'action type': 'कारवाईचा प्रकार',
+      'bnss 126': 'बीएनएसएस 126',
+      'bnss 129': 'बीएनएसएस 129',
+      'bns 126': 'बीएनएस 126',
+      'bns 129': 'बीएनएस 129',
+      'bnss 126 date & time': 'बीएनएसएस 126 तारीख आणि वेळ',
+      'bnss 129 date & time': 'बीएनएसएस 129 तारीख आणि वेळ',
+      'bond cancellation': 'जामीनपत्र रद्द करणे',
+      'bond cancellation date & time': 'जामीनपत्र रद्द करणे तारीख आणि वेळ',
+      'discharge date': 'दोषमुक्त तारीख',
+      'reason for discharge': 'दोषमुक्तीचे कारण',
+      'reason for discharge (minimum 20 words)':
+          'दोषमुक्तीचे कारण (किमान 20 शब्द)',
+      'minimum 20 words required': 'किमान 20 शब्द आवश्यक',
+      'charge sheet number': 'चार्जशीट क्रमांक',
+      'charge sheet date': 'चार्जशीट तारीख',
+      '(discharged)': '(दोषमुक्त)',
+      'same as suspected': 'संशयिताप्रमाणे',
+      'same as accused': 'आरोपीप्रमाणे',
+      'copy from accused': 'आरोपीकडून कॉपी करा',
+      'copy from suspected': 'संशयिताकडून कॉपी करा',
+      'copy from': 'कडून कॉपी करा',
+      'add charge': 'कलम जोडा',
+      'add accused': 'आरोपी जोडा',
+      'add suspected': 'संशयित जोडा',
+      'add seized property': 'जप्त मालमत्ता जोडा',
+      'victim identity protected by law':
+          'कायद्यानुसार पीडितेची ओळख संरक्षित आहे',
+      'victim identity protected by law (rape offence)':
+          'कायद्यानुसार पीडितेची ओळख संरक्षित आहे (बलात्काराचा गुन्हा)',
+      'identity protection notice': 'ओळख संरक्षण सूचना',
+      'identity protection notice (rape offence)':
+          'ओळख संरक्षण सूचना (बलात्काराचा गुन्हा)',
+      'identity protected by law': 'ओळख कायद्यानुसार संरक्षित',
+      'you cannot enter victim details in sexual offence':
+          'लैंगिक गुन्ह्यामध्ये तुम्ही पीडितेचा तपशील प्रविष्ट करू शकत नाही',
+      'under section 228a ipc / section 73 bns, disclosure of the identity of a victim of rape is prohibited by law. if the complainant is the victim, the name field is locked.':
+          'आयपीसी कलम 228A / बीएनएस कलम 73 नुसार बलात्कार पीडितेची ओळख जाहीर करण्यास कायद्याने बंदी आहे. तक्रारदार पीडित असल्यास नाव फील्ड लॉक आहे.',
+      'under section 228a ipc / section 73 bns, disclosure of the victim\'s name in rape offenses is strictly prohibited. name entry is disabled.':
+          'बलात्काराच्या गुन्ह्यांमध्ये आयपीसी कलम 228A / बीएनएस कलम 73 नुसार पीडितेचे नाव उघड करण्यास सक्त मनाई आहे. नाव प्रविष्ट करणे अक्षम केले आहे.',
+      'under section 228a ipc / section 73 bns / pocso act, disclosure of victim\'s name is prohibited by law. if the complainant is the victim, entering victim\'s name is locked.':
+          'आयपीसी कलम 228A / बीएनएस कलम 73 / पॉक्सो कायद्यानुसार पीडितेचे नाव जाहीर करण्यास कायद्याने बंदी आहे. तक्रारदार पीडित असल्यास नाव प्रविष्ट करण्यास बंदी आहे.',
+      'under section 228a ipc / section 73 bns / pocso act, disclosure of the victim\'s name in crimes against women and sexual offenses is strictly prohibited. name entry is disabled.':
+          'महिलांवरील गुन्हे आणि लैंगिक अत्याचारांमध्ये आयपीसी कलम 228A / बीएनएस कलम 73 / पॉक्सो कायद्यानुसार पीडितेचे नाव उघड करण्यास सक्त मनाई आहे. नाव प्रविष्ट करणे अक्षम केले आहे.',
+      '⚠️ name locked under sec 228a ipc / sec 73 bns (victim protection)':
+          '⚠️ कलम 228A आयपीसी / कलम 73 बीएनएस अंतर्गत नाव लॉक (पीडित संरक्षण)',
+      '⚠️ cannot enter victim\'s name because of the act / law (sec 228a ipc / sec 73 bns)':
+          '⚠️ कायद्यानुसार (कलम 228A आयपीसी / कलम 73 बीएनएस) पीडितेचे नाव प्रविष्ट केले जाऊ शकत नाही',
+      'mobile number is required (10 digits)':
+          'मोबाईल नंबर आवश्यक आहे (10 अंक)',
+      'mobile number must be exactly 10 digits':
+          'मोबाईल नंबर नेमका 10 अंकांचा असावा',
+      'enter a valid indian mobile number (starts with 6-9)':
+          'वैध भारतीय मोबाईल नंबर प्रविष्ट करा (6-9 ने सुरू)',
+      'aadhaar must be exactly 12 digits': 'आधार नेमका 12 अंकांचा असावा',
+      'aadhaar cannot start with 0 or 1': 'आधार 0 किंवा 1 ने सुरू होऊ शकत नाही',
+      'invalid aadhaar number (checksum failed)':
+          'अवैध आधार क्रमांक (चेकसम अयशस्वी)',
+      'pan must be exactly 10 characters': 'पॅन नेमके 10 वर्णांचे असावे',
+      'invalid pan format (e.g. abcde1234f)':
+          'अवैध पॅन स्वरूप (उदा. ABCDE1234F)',
       'crime detail form': 'क्राइम डिटेल फॉर्म',
       'property & seizure form': 'मालमत्ता आणि जप्ती फॉर्म',
       'house/property search & seizure': 'घर/मालमत्ता शोध आणि जप्ती',
@@ -566,26 +777,37 @@ class TranslationHelper {
       'transit remand': 'ट्रान्झิต रिमांड',
       'order section 47 & 48': 'आदेश कलम ४७ आणि ४८',
       'ab form': 'ए.बी. फॉर्म',
-      'panchanama, forms & notices (bnss)': 'पंचनामा, फॉर्म आणि नोटिसा (बीएनएसएस)',
+      'panchanama, forms & notices (bnss)':
+          'पंचनामा, फॉर्म आणि नोटिसा (बीएनएसएस)',
       'total case': 'एकूण प्रकरणे',
       'records yet': 'रेकॉर्ड अद्याप नाही',
-      'no registered entries found in this category.': 'या श्रेणीत कोणतीही नोंदणीकृत नोंद आढळली नाही.',
+      'no registered entries found in this category.':
+          'या श्रेणीत कोणतीही नोंदणीकृत नोंद आढळली नाही.',
       'view profile': 'प्रोफाईल पहा',
       'showing: my cases': 'दर्शवित आहे: माझे गुन्हे',
       'showing: all station cases': 'दर्शवित आहे: ठाण्यातील सर्व गुन्हे',
       'my cases': 'माझे गुन्हे',
       'all station cases': 'ठाण्यातील सर्व गुन्हे',
-      'need full station view? ask your pi for access.': 'संपूर्ण ठाण्याचे दृश्य हवे आहे? प्रवेशासाठी तुमच्या पीआयला विचारा.',
+      'need full station view? ask your pi for access.':
+          'संपूर्ण ठाण्याचे दृश्य हवे आहे? प्रवेशासाठी तुमच्या पीआयला विचारा.',
       'director general of police': 'पोलीस महासंचालक',
       'directive': 'निर्देश',
-      'mandatory zero fir registration directive': 'सक्तीचे शून्य एफआयआर नोंदणी निर्देश',
-      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.': 'प्रादेशिक हद्दीचा विचार न करता दखलपात्र गुन्ह्याची तक्रार मिळताच सर्व पोलीस ठाण्यांनी तत्काळ शून्य एफआयआर नोंदवणे बंधनकारक आहे.',
-      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines': 'भारतीय नागरिक सुरक्षा संहिता (बीएनएसएस) २०२३ मार्गदर्शक तत्त्वे',
-      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.': 'एफआयआर नोंदणी, फॉरेन्सिक डेटा संकलन आणि इलेक्ट्रॉनिक पुरावे नोंदवण्यासाठी नवीन कायदेशीर मुदत आता राज्यभरात लागू करण्यात आली आहे.',
-      'section 63 bsa electronic evidence certification': 'कलम ६३ बीएसए इलेक्ट्रॉनिक पुरावा प्रमाणपत्र',
-      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.': 'आरोपपत्र दाखल करताना सर्व डिजिटल पुरावे, सीसीटीव्ही फुटेज आणि कॉल लॉग सोबत कलम ६३ चे प्रमाणपत्र जोडणे अनिवार्य आहे.',
-      'standard operating procedure for online financial frauds': 'ऑनलाइन आर्थिक फसवणुकीसाठी मानक कार्यपद्धती',
-      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.': 'गोल्डन अवर दरम्यान १९३० पोर्टलद्वारे लाभार्थी खाती तत्काळ फ्रीज करणे तपास अधिकाऱ्यांसाठी अनिवार्य आहे.',
+      'mandatory zero fir registration directive':
+          'सक्तीचे शून्य एफआयआर नोंदणी निर्देश',
+      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.':
+          'प्रादेशिक हद्दीचा विचार न करता दखलपात्र गुन्ह्याची तक्रार मिळताच सर्व पोलीस ठाण्यांनी तत्काळ शून्य एफआयआर नोंदवणे बंधनकारक आहे.',
+      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines':
+          'भारतीय नागरिक सुरक्षा संहिता (बीएनएसएस) २०२३ मार्गदर्शक तत्त्वे',
+      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.':
+          'एफआयआर नोंदणी, फॉरेन्सिक डेटा संकलन आणि इलेक्ट्रॉनिक पुरावे नोंदवण्यासाठी नवीन कायदेशीर मुदत आता राज्यभरात लागू करण्यात आली आहे.',
+      'section 63 bsa electronic evidence certification':
+          'कलम ६३ बीएसए इलेक्ट्रॉनिक पुरावा प्रमाणपत्र',
+      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.':
+          'आरोपपत्र दाखल करताना सर्व डिजिटल पुरावे, सीसीटीव्ही फुटेज आणि कॉल लॉग सोबत कलम ६३ चे प्रमाणपत्र जोडणे अनिवार्य आहे.',
+      'standard operating procedure for online financial frauds':
+          'ऑनलाइन आर्थिक फसवणुकीसाठी मानक कार्यपद्धती',
+      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.':
+          'गोल्डन अवर दरम्यान १९३० पोर्टलद्वारे लाभार्थी खाती तत्काळ फ्रीज करणे तपास अधिकाऱ्यांसाठी अनिवार्य आहे.',
       'new law': 'नवीन कायदा',
       'circular': 'परिपत्रक',
       'sop update': 'एसओपी अपडेट',
@@ -645,16 +867,19 @@ class TranslationHelper {
       'coin': 'नाणे',
       'form': 'फॉर्म',
       'no': 'कोणतेही नाही',
-      'cases will appear here once registered.': 'नोंदणी झाल्यानंतर गुन्हे येथे दिसतील.',
+      'cases will appear here once registered.':
+          'नोंदणी झाल्यानंतर गुन्हे येथे दिसतील.',
       'cases yet': 'गुन्हे अद्याप',
-      'tap new case to register the first case.': 'पहिला गुन्हा नोंदवण्यासाठी नवीन गुन्ह्यावर टॅप करा.',
+      'tap new case to register the first case.':
+          'पहिला गुन्हा नोंदवण्यासाठी नवीन गुन्ह्यावर टॅप करा.',
       'logged-in officer': 'लॉग-इन अधिकारी',
       'state jurisdiction': 'राज्य कार्यक्षेत्र',
       'district / unit': 'जिल्हा / युनिट',
       'home police station': 'मूळ पोलीस ठाणे',
       'dismiss': 'बंद करा',
       'serving': 'सेवारत',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.': 'राज्य सेवा सन्मान, सत्यनिष्ठा आणि उत्कृष्टतेसह. खाकी डायरी एंटरप्राइझ पोर्टलद्वारे समाकलित.',
+      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+          'राज्य सेवा सन्मान, सत्यनिष्ठा आणि उत्कृष्टतेसह. खाकी डायरी एंटरप्राइझ पोर्टलद्वारे समाकलित.',
       'to protect the good and punish the evil': 'सद्क्षणाय खलनिग्रहणाय',
       'headquarters': 'मुख्यालय',
       'state hq': 'राज्य मुख्यालय',
@@ -665,7 +890,8 @@ class TranslationHelper {
       'io wise pending': 'આઈટી વાઇસ બાકી',
       'all categories': 'બધી શ્રેણીઓ',
       'no io wise pending cases': 'કોઈ આઈઓ વાઇસ બાકી કેસ નથી',
-      'no io wise pending cases in this category': 'આ શ્રેણીમાં કોઈ આઈઓ વાઇસ બાકી કેસ નથી',
+      'no io wise pending cases in this category':
+          'આ શ્રેણીમાં કોઈ આઈઓ વાઇસ બાકી કેસ નથી',
       'io name': 'આઈઓ નામ',
       'cases': 'કેસો',
       'it act/cyber': 'આઈટી એક્ટ/સાયબર',
@@ -689,7 +915,8 @@ class TranslationHelper {
       'case scrutiny pipeline': 'કેસ ચકાસણી પાઇપલાઇન',
       'cr. no.': 'ગુના રજિસ્ટર નંબર',
       'registered date (dd/mm/yyyy)': 'નોંધણી તારીખ (દિવસ/મહિનો/વર્ષ)',
-      'upload fir copy (tap to select)': 'એફઆઈઆર નકલ અપલોડ કરો (પસંદ કરવા ટેપ કરો)',
+      'upload fir copy (tap to select)':
+          'એફઆઈઆર નકલ અપલોડ કરો (પસંદ કરવા ટેપ કરો)',
       'village/town': 'ગામ/શહેર',
       'area name': 'વિસ્તારનું નામ',
       'full address': 'પૂરું સરનામું',
@@ -719,8 +946,10 @@ class TranslationHelper {
       'mischief': 'तोફાન',
       'all': 'બધા',
       'no form i-v cases yet': 'હજુ સુધી કોઈ પત્રક ૧ થી ૫ ના કેસ નથી',
-      'cases will appear here once registered.': 'નોંધણી થયા પછી કેસો અહીં દેખાશે.',
-      'tap new case to register the first case.': 'પ્રથમ કેસ નોંધવા માટે નવો કેસ પર ટેપ કરો.',
+      'cases will appear here once registered.':
+          'નોંધણી થયા પછી કેસો અહીં દેખાશે.',
+      'tap new case to register the first case.':
+          'પ્રથમ કેસ નોંધવા માટે નવો કેસ પર ટેપ કરો.',
       'edit': 'ફેરફાર',
       'view': 'જુઓ',
       'no': 'કોઈ',
@@ -822,7 +1051,8 @@ class TranslationHelper {
       'forms categories': 'પત્રકોના પ્રકારો',
       'unified police entry menu': 'એકીકૃત પોલીસ એન્ટ્રી મેનુ',
       'search entry types...': 'પ્રવેશ પ્રકાર શોધો...',
-      'search cases or type module (e.g. murder, theft, missing)...': 'કેસો શોધો...',
+      'search cases or type module (e.g. murder, theft, missing)...':
+          'કેસો શોધો...',
       'registration summary': 'નોંધણી સારાંશ',
       'monthly registration report': 'માસિક નોંધણી અહેવાલ',
       'monthly disposal report': 'માસિક નિકાલ અહેવાલ',
@@ -835,7 +1065,8 @@ class TranslationHelper {
       'complete form (all sections)': 'સંપૂર્ણ પત્રક (બધા વિભાગો)',
       'total case': 'કુલ કેસ',
       'records yet': 'હજુ સુધી કોઈ રેકોર્ડ નથી',
-      'no registered entries found in this category.': 'આ શ્રેણીમાં કોઈ નોંધાયેલ એન્ટ્રી મળી નથી.',
+      'no registered entries found in this category.':
+          'આ શ્રેણીમાં કોઈ નોંધાયેલ એન્ટ્રી મળી નથી.',
       'form i-v cases': 'પત્રક ૧ થી ૫ કેસો',
       'hurts': 'ઈજાઓ',
       'assault on public servant': 'સરકારી કર્મચારી પર હુમલો',
@@ -886,23 +1117,33 @@ class TranslationHelper {
       'transit remand': 'ટ્રાન્ઝિટ રિમાન્ડ',
       'order section 47 & 48': 'આદેશ કલમ 47 અને 48',
       'ab form': 'એબી ફોર્મ',
-      'panchanama, forms & notices (bnss)': 'પંચનામા, ફોર્મ્સ અને નોટિસો (બીએનએસએસ)',
+      'panchanama, forms & notices (bnss)':
+          'પંચનામા, ફોર્મ્સ અને નોટિસો (બીએનએસએસ)',
       'view profile': 'પ્રોફાઇલ જુઓ',
       'showing: my cases': 'દર્શાવે છે: મારા કેસો',
       'showing: all station cases': 'દર્શાવે છે: તમામ સ્ટેશન કેસો',
       'my cases': 'મારા કેસો',
       'all station cases': 'તમામ સ્ટેશન કેસો',
-      'need full station view? ask your pi for access.': 'સંપૂર્ણ સ્ટેશન વ્યૂ જોઈએ છે? એક્સેસ માટે તમારા PI ને પૂછો.',
+      'need full station view? ask your pi for access.':
+          'સંપૂર્ણ સ્ટેશન વ્યૂ જોઈએ છે? એક્સેસ માટે તમારા PI ને પૂછો.',
       'director general of police': 'પોલીસ મહાનિર્દેશક',
       'directive': 'માર્ગદર્શિકા',
-      'mandatory zero fir registration directive': 'તમામ શૂન્ય એફઆઈઆર નોંધણી ફરજિયાત માર્ગદર્શિકા',
-      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.': 'પ્રાદેશિક અધિકારક્ષેત્રની પરવા કર્યા વિના સંજ્ઞેય ગુનાની ફરિયાદ મળતાં જ તમામ પોલીસ સ્ટેશનોએ તાત્કાલિક શૂન્ય એફઆઈઆર નોંધવી જોઈએ.',
-      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines': 'ભારતીય નાગરિક સુરક્ષા સંહિતા (BNSS) 2023 માર્ગદર્શિકા',
-      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.': 'એફઆઈઆર નોંધણી, ફોરેન્સિક ડેટા સંગ્રહ અને ઇલેક્ટ્રોનિક પુરાવા રેકોર્ડિંગ માટે નવી પ્રક્રિયાગત સમયમર્યાદા હવે સમગ્ર રાજ્યમાં લાગુ કરવામાં આવી છે.',
-      'section 63 bsa electronic evidence certification': 'કલમ 63 BSA ઇલેક્ટ્રોનિક પુરાવા પ્રમાણપત્ર',
-      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.': 'ચાર્જશીટ સબમિટ કરતી વખતે તમામ ડિજિટલ પુરાવા, સીસીટીવી રેકોર્ડિંગ અને કોલ લોગ સાથે ફરજિયાત કલમ 63 પ્રમાણપત્ર (અગાઉ 65B) હોવું આવશ્યક છે.',
-      'standard operating procedure for online financial frauds': 'ઓનલાઇન નાણાકીય છેતરપિંડી માટે માનક સંચાલન પ્રક્રિયા',
-      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.': 'તપાસ અધિકારીઓ માટે પ્રથમ ગોલ્ડન અવરની અંદર 1930 પોર્ટલ ઇન્ટિગ્રેશન દ્વારા લાભાર્થી ખાતાઓને તાત્કાલિક ફ્રીઝ કરવું હવે ફરજિયાત છે.',
+      'mandatory zero fir registration directive':
+          'તમામ શૂન્ય એફઆઈઆર નોંધણી ફરજિયાત માર્ગદર્શિકા',
+      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.':
+          'પ્રાદેશિક અધિકારક્ષેત્રની પરવા કર્યા વિના સંજ્ઞેય ગુનાની ફરિયાદ મળતાં જ તમામ પોલીસ સ્ટેશનોએ તાત્કાલિક શૂન્ય એફઆઈઆર નોંધવી જોઈએ.',
+      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines':
+          'ભારતીય નાગરિક સુરક્ષા સંહિતા (BNSS) 2023 માર્ગદર્શિકા',
+      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.':
+          'એફઆઈઆર નોંધણી, ફોરેન્સિક ડેટા સંગ્રહ અને ઇલેક્ટ્રોનિક પુરાવા રેકોર્ડિંગ માટે નવી પ્રક્રિયાગત સમયમર્યાદા હવે સમગ્ર રાજ્યમાં લાગુ કરવામાં આવી છે.',
+      'section 63 bsa electronic evidence certification':
+          'કલમ 63 BSA ઇલેક્ટ્રોનિક પુરાવા પ્રમાણપત્ર',
+      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.':
+          'ચાર્જશીટ સબમિટ કરતી વખતે તમામ ડિજિટલ પુરાવા, સીસીટીવી રેકોર્ડિંગ અને કોલ લોગ સાથે ફરજિયાત કલમ 63 પ્રમાણપત્ર (અગાઉ 65B) હોવું આવશ્યક છે.',
+      'standard operating procedure for online financial frauds':
+          'ઓનલાઇન નાણાકીય છેતરપિંડી માટે માનક સંચાલન પ્રક્રિયા',
+      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.':
+          'તપાસ અધિકારીઓ માટે પ્રથમ ગોલ્ડન અવરની અંદર 1930 પોર્ટલ ઇન્ટિગ્રેશન દ્વારા લાભાર્થી ખાતાઓને તાત્કાલિક ફ્રીઝ કરવું હવે ફરજિયાત છે.',
       'new law': 'નવો કાયદો',
       'circular': 'પરિપત્ર',
       'sop update': 'SOP અપડેટ',
@@ -912,8 +1153,10 @@ class TranslationHelper {
       'home police station': 'મૂળ પોલીસ સ્ટેશન',
       'dismiss': 'બંધ કરો',
       'serving': 'સેવામાં',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.': 'રાજ્યની સેવા સન્માન, સત્યનિષ્ઠા અને શ્રેષ્ઠતા સાથે. ખાકી ડાયરી એન્ટરપ્રાઇઝ પોર્ટલ દ્વારા સંકલિત.',
-      'to protect the good and punish the evil': 'સજ્જનોનું રક્ષણ અને દુર્જનોનો સંહાર',
+      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+          'રાજ્યની સેવા સન્માન, સત્યનિષ્ઠા અને શ્રેષ્ઠતા સાથે. ખાકી ડાયરી એન્ટરપ્રાઇઝ પોર્ટલ દ્વારા સંકલિત.',
+      'to protect the good and punish the evil':
+          'સજ્જનોનું રક્ષણ અને દુર્જનોનો સંહાર',
       'headquarters': 'વડું મથક',
       'state hq': 'રાજ્ય વડું મથક',
       'director general of police (dg)': 'પોલીસ મહાનિર્દેશક (ડીજી)',
@@ -923,7 +1166,8 @@ class TranslationHelper {
       'io wise pending': 'ஐஓ வாரியாக நிலுவை',
       'all categories': 'அனைத்து பிரிவுகளும்',
       'no io wise pending cases': 'ஐஓ வாரியாக நிலுவை வழக்குகள் ஏதுமில்லை',
-      'no io wise pending cases in this category': 'இந்த பிரிவில் ஐஓ வாரியாக நிலுவை வழக்குகள் ஏதுமில்லை',
+      'no io wise pending cases in this category':
+          'இந்த பிரிவில் ஐஓ வாரியாக நிலுவை வழக்குகள் ஏதுமில்லை',
       'io name': 'ஐஓ பெயர்',
       'cases': 'வழக்குகள்',
       'it act/cyber': 'தகவல் தொழில்நுட்ப சட்டம்/சைபர்',
@@ -946,8 +1190,10 @@ class TranslationHelper {
       'final verdict': 'இறுதித் தீர்ப்பு',
       'case scrutiny pipeline': 'வழக்கு மறுஆய்வு செயல்முறை',
       'cr. no.': 'குற்ற எண்',
-      'registered date (dd/mm/yyyy)': 'பதிவு செய்யப்பட்ட தேதி (தேதி/மாதம்/வருடம்)',
-      'upload fir copy (tap to select)': 'முதல் தகவல் அறிக்கை நகலை பதிவேற்றவும் (தேர்வு செய்ய தட்டவும்)',
+      'registered date (dd/mm/yyyy)':
+          'பதிவு செய்யப்பட்ட தேதி (தேதி/மாதம்/வருடம்)',
+      'upload fir copy (tap to select)':
+          'முதல் தகவல் அறிக்கை நகலை பதிவேற்றவும் (தேர்வு செய்ய தட்டவும்)',
       'village/town': 'கிராமம்/நகரம்',
       'area name': 'பகுதி பெயர்',
       'full address': 'முழு முகவரி',
@@ -977,8 +1223,10 @@ class TranslationHelper {
       'mischief': 'குறும்பு',
       'all': 'அனைத்தும்',
       'no form i-v cases yet': 'படிவம் I-V வழக்குகள் இன்னும் இல்லை',
-      'cases will appear here once registered.': 'பதிவு செய்யப்பட்டதும் வழக்குகள் இங்கே தோன்றும்.',
-      'tap new case to register the first case.': 'முதல் வழக்கை பதிவு செய்ய புதிய வழக்கு என்பதைத் தட்டவும்.',
+      'cases will appear here once registered.':
+          'பதிவு செய்யப்பட்டதும் வழக்குகள் இங்கே தோன்றும்.',
+      'tap new case to register the first case.':
+          'முதல் வழக்கை பதிவு செய்ய புதிய வழக்கு என்பதைத் தட்டவும்.',
       'edit': 'தொகு',
       'view': 'பார்',
       'no': 'இல்லை',
@@ -1080,7 +1328,8 @@ class TranslationHelper {
       'forms categories': 'படிவங்களின் வகைகள்',
       'unified police entry menu': 'ஒருங்கிணைந்த காவல் நுழைவு பட்டி',
       'search entry types...': 'தேடுங்கள்...',
-      'search cases or type module (e.g. murder, theft, missing)...': 'தேடுங்கள்...',
+      'search cases or type module (e.g. murder, theft, missing)...':
+          'தேடுங்கள்...',
       'registration summary': 'பதிவு சுருக்கம்',
       'monthly registration report': 'மாதாந்திர பதிவு அறிக்கை',
       'monthly disposal report': 'மாதாந்திர முடிவு அறிக்கை',
@@ -1093,7 +1342,8 @@ class TranslationHelper {
       'complete form (all sections)': 'முழு படிவம் (அனைத்து பிரிவுகளும்)',
       'total case': 'மொத்த வழக்குகள்',
       'records yet': 'பதிவுகள் இன்னும் இல்லை',
-      'no registered entries found in this category.': 'இந்த பிரிவில் பதிவு செய்யப்பட்ட உள்ளீடுகள் எதுவும் இல்லை.',
+      'no registered entries found in this category.':
+          'இந்த பிரிவில் பதிவு செய்யப்பட்ட உள்ளீடுகள் எதுவும் இல்லை.',
       'form i-v cases': 'படிவம் 1 முதல் 5 வழக்குகள்',
       'hurts': 'காயங்கள்',
       'assault on public servant': 'அரசு ஊழியர் மீது தாக்குதல்',
@@ -1144,23 +1394,34 @@ class TranslationHelper {
       'transit remand': 'டிரான்சிட் ரிமாண்ட்',
       'order section 47 & 48': 'ஆணை பிரிவு 47 & 48',
       'ab form': 'AB படிவம்',
-      'panchanama, forms & notices (bnss)': 'பஞ்சநாமா, படிவங்கள் & அறிவிப்புகள் (பிஎன்எஸ்எஸ்)',
+      'panchanama, forms & notices (bnss)':
+          'பஞ்சநாமா, படிவங்கள் & அறிவிப்புகள் (பிஎன்எஸ்எஸ்)',
       'view profile': 'சுயவிவரத்தைப் பார்',
       'showing: my cases': 'காண்பிக்கப்படுகிறது: எனது வழக்குகள்',
-      'showing: all station cases': 'காண்பிக்கப்படுகிறது: அனைத்து காவல் நிலைய வழக்குகள்',
+      'showing: all station cases':
+          'காண்பிக்கப்படுகிறது: அனைத்து காவல் நிலைய வழக்குகள்',
       'my cases': 'எனது வழக்குகள்',
       'all station cases': 'அனைத்து காவல் நிலைய வழக்குகள்',
-      'need full station view? ask your pi for access.': 'முழு நிலையப் பார்வை தேவையா? அணுகலுக்கு உங்கள் PI-யிடம் கேட்கவும்.',
+      'need full station view? ask your pi for access.':
+          'முழு நிலையப் பார்வை தேவையா? அணுகலுக்கு உங்கள் PI-யிடம் கேட்கவும்.',
       'director general of police': 'காவல்துறை தலைமை இயக்குநர்',
       'directive': 'உத்தரவு',
-      'mandatory zero fir registration directive': 'கட்டாய ஜீரோ எஃப்.ஐ.ஆர் பதிவு உத்தரவு',
-      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.': 'எல்லை வரம்பைப் பொருட்படுத்தாமல் குற்றவியல் புகார் வரப்பெற்ற உடனே அனைத்து காவல் நிலையங்களும் ஜீரோ எஃப்ஐஆர் பதிவு செய்ய வேண்டும்.',
-      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines': 'பாரதிய நாகரிக் சுரக்ஷா சன்ஹிதா (BNSS) 2023 வழிகாட்டுதல்கள்',
-      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.': 'எஃப்ஐஆர் பதிவு, தடயவியல் தரவு சேகரிப்பு மற்றும் மின்னணு ஆதாரப் பதிவுக்கான புதிய நடைமுறை காலவரம்புகள் இப்போது மாநிலம் முழுவதும் அமல்படுத்தப்பட்டுள்ளன.',
-      'section 63 bsa electronic evidence certification': 'பிரிவு 63 BSA மின்னணு ஆதாரச் சான்றிதழ்',
-      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.': 'குற்றப்பத்திரிகை தாக்கல் செய்யும் போது அனைத்து டிஜிட்டல் ஆதாரங்கள், சிசிடிவி பதிவுகள் மற்றும் அழைப்புப் பதிவுகளுடன் கட்டாயப் பிரிவு 63 சான்றிதழ் (முன்பு 65B) இணைக்கப்பட வேண்டும்.',
-      'standard operating procedure for online financial frauds': 'ஆன்லைன் நிதி மோசடிகளுக்கான நிலையான இயக்க முறைமை',
-      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.': 'முதல் கோல்டன் ஹவரில் 1930 போர்டல் ஒருங்கிணைப்பு மூலம் பயனாளியின் கணக்குகளை உடனடியாக முடக்குவது இப்போது புலனாய்வு அதிகாரிகளுக்கு கட்டாயமாகும்.',
+      'mandatory zero fir registration directive':
+          'கட்டாய ஜீரோ எஃப்.ஐ.ஆர் பதிவு உத்தரவு',
+      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.':
+          'எல்லை வரம்பைப் பொருட்படுத்தாமல் குற்றவியல் புகார் வரப்பெற்ற உடனே அனைத்து காவல் நிலையங்களும் ஜீரோ எஃப்ஐஆர் பதிவு செய்ய வேண்டும்.',
+      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines':
+          'பாரதிய நாகரிக் சுரக்ஷா சன்ஹிதா (BNSS) 2023 வழிகாட்டுதல்கள்',
+      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.':
+          'எஃப்ஐஆர் பதிவு, தடயவியல் தரவு சேகரிப்பு மற்றும் மின்னணு ஆதாரப் பதிவுக்கான புதிய நடைமுறை காலவரம்புகள் இப்போது மாநிலம் முழுவதும் அமல்படுத்தப்பட்டுள்ளன.',
+      'section 63 bsa electronic evidence certification':
+          'பிரிவு 63 BSA மின்னணு ஆதாரச் சான்றிதழ்',
+      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.':
+          'குற்றப்பத்திரிகை தாக்கல் செய்யும் போது அனைத்து டிஜிட்டல் ஆதாரங்கள், சிசிடிவி பதிவுகள் மற்றும் அழைப்புப் பதிவுகளுடன் கட்டாயப் பிரிவு 63 சான்றிதழ் (முன்பு 65B) இணைக்கப்பட வேண்டும்.',
+      'standard operating procedure for online financial frauds':
+          'ஆன்லைன் நிதி மோசடிகளுக்கான நிலையான இயக்க முறைமை',
+      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.':
+          'முதல் கோல்டன் ஹவரில் 1930 போர்டல் ஒருங்கிணைப்பு மூலம் பயனாளியின் கணக்குகளை உடனடியாக முடக்குவது இப்போது புலனாய்வு அதிகாரிகளுக்கு கட்டாயமாகும்.',
       'new law': 'புதிய சட்டம்',
       'circular': 'சுற்றறிக்கை',
       'sop update': 'SOP புதுப்பிப்பு',
@@ -1170,8 +1431,10 @@ class TranslationHelper {
       'home police station': 'சொந்த காவல் நிலையம்',
       'dismiss': 'மூடு',
       'serving': 'சேவையில்',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.': 'கௌரவம், நேர்மை மற்றும் சிறப்பம்சத்துடன் மாநிலச் சேவை. காக்கி டைரி என்டர்பிரைஸ் போர்டல் மூலம் இணைக்கப்பட்டது.',
-      'to protect the good and punish the evil': 'நல்லோரைக் காத்து தீயோரைத் தண்டிப்போம்',
+      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+          'கௌரவம், நேர்மை மற்றும் சிறப்பம்சத்துடன் மாநிலச் சேவை. காக்கி டைரி என்டர்பிரைஸ் போர்டல் மூலம் இணைக்கப்பட்டது.',
+      'to protect the good and punish the evil':
+          'நல்லோரைக் காத்து தீயோரைத் தண்டிப்போம்',
       'headquarters': 'தலைமையகம்',
       'state hq': 'மாநில தலைமையகம்',
       'director general of police (dg)': 'காவல்துறை தலைமை இயக்குநர் (DG)',
@@ -1181,7 +1444,8 @@ class TranslationHelper {
       'io wise pending': 'ఐఓ వారీగా పెండింగ్',
       'all categories': 'అన్ని విభాగాలు',
       'no io wise pending cases': 'ఐఓ వారీగా పెండింగ్ కేసులు లేవు',
-      'no io wise pending cases in this category': 'ఈ విభాగంలో ఐఓ వారీగా పెండింగ్ కేసులు లేవు',
+      'no io wise pending cases in this category':
+          'ఈ విభాగంలో ఐఓ వారీగా పెండింగ్ కేసులు లేవు',
       'io name': 'ఐఓ పేరు',
       'cases': 'కేసులు',
       'it act/cyber': 'ఐటీ చట్టం/సైబర్',
@@ -1192,7 +1456,8 @@ class TranslationHelper {
       'complainant kyc': 'ఫిర్యాదుదారు కేవైసీ',
       'accused details': 'ನಿಂದುತ ಪ್ರಕಟಣೆ',
       'suspected accused': 'సందేహాస్పద నిందితుడు',
-      'unidentified criminal description': 'అపరిచిత నేరస్థుడి గుర్తింపు వివరాలు',
+      'unidentified criminal description':
+          'అపరిచిత నేరస్థుడి గుర్తింపు వివరాలు',
       'case responsibility': 'కేసు బాధ్యత',
       'arrest & release status': 'అరెస్టు & విడుదల స్థితి',
       'procedural details': 'విచారణాత్మక వివరాలు',
@@ -1205,7 +1470,8 @@ class TranslationHelper {
       'case scrutiny pipeline': 'కేసు పరిశీలనా విధానం',
       'cr. no.': 'క్రైమ్ నంబర్',
       'registered date (dd/mm/yyyy)': 'నమోదు తేదీ (తేదీ/నెల/సంవత్సరం)',
-      'upload fir copy (tap to select)': 'ఎఫ్ఐఆర్ కాపీని అప్‌లోడ్ చేయండి (ఎంచుకోవడానికి నొక్కండి)',
+      'upload fir copy (tap to select)':
+          'ఎఫ్ఐఆర్ కాపీని అప్‌లోడ్ చేయండి (ఎంచుకోవడానికి నొక్కండి)',
       'village/town': 'గ్రామం/పట్టణం',
       'area name': 'ప్రాంతం పేరు',
       'full address': 'పూర్తి చిరునామా',
@@ -1235,8 +1501,10 @@ class TranslationHelper {
       'mischief': 'కీడు/నష్టం',
       'all': 'అన్నీ',
       'no form i-v cases yet': 'ఇంका ఫారం I-V కేసులు లేవు',
-      'cases will appear here once registered.': 'నమోదైన తర్వాత కేసులు ఇక్కడ కనిపిస్తాయి.',
-      'tap new case to register the first case.': 'మొదటి కేసును నమోదు చేయడానికి కొత్త కేసు నొక్కండి.',
+      'cases will appear here once registered.':
+          'నమోదైన తర్వాత కేసులు ఇక్కడ కనిపిస్తాయి.',
+      'tap new case to register the first case.':
+          'మొదటి కేసును నమోదు చేయడానికి కొత్త కేసు నొక్కండి.',
       'edit': 'సవరించు',
       'view': 'చూడు',
       'no': 'ఏమీ',
@@ -1338,7 +1606,8 @@ class TranslationHelper {
       'forms categories': 'ఫారాల వర్గాలు',
       'unified police entry menu': 'యూనిఫైడ్ పోలీస్ ఎంట్రీ మెనూ',
       'search entry types...': 'ఎంట్రీ రకాలను శోధించండి...',
-      'search cases or type module (e.g. murder, theft, missing)...': 'శోధించండి...',
+      'search cases or type module (e.g. murder, theft, missing)...':
+          'శోధించండి...',
       'registration summary': 'నమోదు సారాంశం',
       'monthly registration report': 'నెలవారీ నమోదు నివేదిక',
       'monthly disposal report': 'నెలవారీ పరిష్కార నివేదిక',
@@ -1351,7 +1620,8 @@ class TranslationHelper {
       'complete form (all sections)': 'పూర్తి ఫారం (అన్ని విభాగాలు)',
       'total case': 'మొత్తం కేసులు',
       'records yet': 'ఇంకా రికార్డులు లేవు',
-      'no registered entries found in this category.': 'ఈ విభాగంలో నమోదైన ఎంట్రీలు ఏవీ కనుగొనబడలేదు.',
+      'no registered entries found in this category.':
+          'ఈ విభాగంలో నమోదైన ఎంట్రీలు ఏవీ కనుగొనబడలేదు.',
       'form i-v cases': 'ఫారం 1 నుండి 5 కేసులు',
       'hurts': 'గాయాలు',
       'assault on public servant': 'ప్రభుత్వ ఉద్యోగిపై దాడి',
@@ -1395,7 +1665,8 @@ class TranslationHelper {
       'accused memorandum form': 'నిందితుడి మెమోరాండమ్ ఫారం',
       'final report form': 'ఫైనల్ రిపోర్ట్ ఫారం',
       '376 medical form': '376 మెడికൽ ఫారం',
-      'panchanama, forms & notices (bnss)': 'పంచనామా, ఫారాలు మరియు నోటీసులు (బిఎన్ఎస్ఎస్)',
+      'panchanama, forms & notices (bnss)':
+          'పంచనామా, ఫారాలు మరియు నోటీసులు (బిఎన్ఎస్ఎస్)',
       'interrogation form': 'విచారణ ఫారం',
       'draft ground of arrest': 'అరెస్టు ఆధారాల డ్రాఫ్ట్',
       'ground of arrest': 'అరెస్టు ఆధారం',
@@ -1408,17 +1679,26 @@ class TranslationHelper {
       'showing: all station cases': 'చూపిస్తోంది: అన్ని స్టేషన్ కేసులు',
       'my cases': 'నా కేసులు',
       'all station cases': 'అన్ని స్టేషన్ కేసులు',
-      'need full station view? ask your pi for access.': 'పూర్తి స్టేషన్ వీక్షణ కావాలా? యాక్సెస్ కోసం మీ PIని అడగండి.',
+      'need full station view? ask your pi for access.':
+          'పూర్తి స్టేషన్ వీక్షణ కావాలా? యాక్సెస్ కోసం మీ PIని అడగండి.',
       'director general of police': 'డైరెక్టర్ జనరల్ ఆఫ్ పోలీస్',
       'directive': 'మార్గదర్శకం',
-      'mandatory zero fir registration directive': 'తప్పనిసరి జీరో ఎఫ్‌ఐఆర్ నమోదు మార్గదర్శకం',
-      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.': 'ప్రాంతీయ అధికార పరిధిత్వంతో సంబంధం లేకుండా కాగ్నిజబుల్ నేర ఫిర్యాదు అందిన వెంటనే అన్ని పోలీస్ స్టేషన్లు జీరో ఎఫ్‌ఐఆర్‌ను నమోదు చేయాలి.',
-      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines': 'భారతీయ నాగరిక్ సురక్ష సంహిత (BNSS) 2023 మార్గదర్శకాలు',
-      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.': 'ఎఫ్‌ఐఆర్ నమోదు, ఫోరెన్సిక్ డేటా సేకరణ మరియు ఎలక్ట్రానిక్ ఆధారాల రికార్డింగ్ కోసం కొత్త ప్రాసెస్ సమయపరిమితులు ఇప్పుడు రాష్ట్రవ్యాప్తంగా అమలులో ఉన్నాయి.',
-      'section 63 bsa electronic evidence certification': 'సెక్షన్ 63 BSA ఎలక్ట్రానిక్ ఆధారాల ధృవీకరణ',
-      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.': 'ఛార్జిషీట్ సమర్పించే సమయంలో అన్ని డిజిటల్ ఆధారాలు, సిసిటివి రికార్డింగ్‌లు మరియు కాల్ లాగ్‌లతో పాటు తప్పనిసరి సెక్షన్ 63 సర్టిఫికేట్ (గతంలో 65B) ఉండాలి.',
-      'standard operating procedure for online financial frauds': 'ఆన్‌లైన్ ఆర్థిక మోసాల కోసం ప్రామాణిక కార్యాచరణ విధానం',
-      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.': 'ఇన్వెస్టిగేషన్ ఆఫీసర్లకు మొదటి గోల్డెన్ అవర్‌లో 1930 పోర్టల్ ఇంటిగ్రేషన్ ద్వారా లబ్ధిదారుల ఖాతాలను వెంటనే ఫ్రీజ్ చేయడం ఇప్పుడు తప్పనిసరి.',
+      'mandatory zero fir registration directive':
+          'తప్పనిసరి జీరో ఎఫ్‌ఐఆర్ నమోదు మార్గదర్శకం',
+      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.':
+          'ప్రాంతీయ అధికార పరిధిత్వంతో సంబంధం లేకుండా కాగ్నిజబుల్ నేర ఫిర్యాదు అందిన వెంటనే అన్ని పోలీస్ స్టేషన్లు జీరో ఎఫ్‌ఐఆర్‌ను నమోదు చేయాలి.',
+      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines':
+          'భారతీయ నాగరిక్ సురక్ష సంహిత (BNSS) 2023 మార్గదర్శకాలు',
+      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.':
+          'ఎఫ్‌ఐఆర్ నమోదు, ఫోరెన్సిక్ డేటా సేకరణ మరియు ఎలక్ట్రానిక్ ఆధారాల రికార్డింగ్ కోసం కొత్త ప్రాసెస్ సమయపరిమితులు ఇప్పుడు రాష్ట్రవ్యాప్తంగా అమలులో ఉన్నాయి.',
+      'section 63 bsa electronic evidence certification':
+          'సెక్షన్ 63 BSA ఎలక్ట్రానిక్ ఆధారాల ధృవీకరణ',
+      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.':
+          'ఛార్జిషీట్ సమర్పించే సమయంలో అన్ని డిజిటల్ ఆధారాలు, సిసిటివి రికార్డింగ్‌లు మరియు కాల్ లాగ్‌లతో పాటు తప్పనిసరి సెక్షన్ 63 సర్టిఫికేట్ (గతంలో 65B) ఉండాలి.',
+      'standard operating procedure for online financial frauds':
+          'ఆన్‌లైన్ ఆర్థిక మోసాల కోసం ప్రామాణిక కార్యాచరణ విధానం',
+      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.':
+          'ఇన్వెస్టిగేషన్ ఆఫీసర్లకు మొదటి గోల్డెన్ అవర్‌లో 1930 పోర్టల్ ఇంటిగ్రేషన్ ద్వారా లబ్ధిదారుల ఖాతాలను వెంటనే ఫ్రీజ్ చేయడం ఇప్పుడు తప్పనిసరి.',
       'new law': 'కొత్త చట్టం',
       'circular': 'సర్క్యులర్',
       'sop update': 'SOP అప్‌డేట్',
@@ -1428,8 +1708,10 @@ class TranslationHelper {
       'home police station': 'సొంత పోలీస్ స్టేషన్',
       'dismiss': 'మూసివేయి',
       'serving': 'సేవలో',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.': 'గౌరవం, నిబద్ధత మరియు విశిష్టతతో రాష్ట్ర సేవ. ఖాకీ డైరీ ఎంటర్‌ప్రైజ్ పోర్టల్ ద్వారా అనుసంధానించబడింది.',
-      'to protect the good and punish the evil': 'మంచివారిని రక్షించడం, చెడ్డవారిని శిక్షించడం',
+      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+          'గౌరవం, నిబద్ధత మరియు విశిష్టతతో రాష్ట్ర సేవ. ఖాకీ డైరీ ఎంటర్‌ప్రైజ్ పోర్టల్ ద్వారా అనుసంధానించబడింది.',
+      'to protect the good and punish the evil':
+          'మంచివారిని రక్షించడం, చెడ్డవారిని శిక్షించడం',
       'headquarters': 'ప్రధాన కార్యాలయం',
       'state hq': 'రాష్ట్ర ప్రధాన కార్యాలయం',
       'director general of police (dg)': 'డైరెక్టర్ జనరల్ ఆఫ్ పోలీస్ (DG)',
@@ -1439,7 +1721,8 @@ class TranslationHelper {
       'io wise pending': 'ಐಒ ವಾರು ಬಾಕಿ',
       'all categories': 'ಎಲ್ಲಾ ವರ್ಗಗಳು',
       'no io wise pending cases': 'ಐಒ ವಾರು ಯಾವುದೇ ಬಾಕಿ ಪ್ರಕರಣಗಳಿಲ್ಲ',
-      'no io wise pending cases in this category': 'ಈ ವರ್ಗದಲ್ಲಿ ಐಒ ವಾರು ಯಾವುದೇ ಬಾಕಿ ಪ್ರಕರಣಗಳಿಲ್ಲ',
+      'no io wise pending cases in this category':
+          'ಈ ವರ್ಗದಲ್ಲಿ ಐಒ ವಾರು ಯಾವುದೇ ಬಾಕಿ ಪ್ರಕರಣಗಳಿಲ್ಲ',
       'io name': 'ಐಒ ಹೆಸರು',
       'cases': 'ಪ್ರಕರಣಗಳು',
       'it act/cyber': 'ಐಟಿ ಕಾಯ್ದೆ/ಸೈಬರ್',
@@ -1463,7 +1746,8 @@ class TranslationHelper {
       'case scrutiny pipeline': 'ಪ್ರಕರಣ ಪರಿಶೀಲನಾ ಪ್ರಕ್ರಿಯೆ',
       'cr. no.': 'ಅಪರಾಧ ಸಂಖ್ಯೆ',
       'registered date (dd/mm/yyyy)': 'ನೋಂದಣಿ ದಿನಾಂಕ (ದಿನ/ತಿಂಗಳು/ವರ್ಷ)',
-      'upload fir copy (tap to select)': 'ಎಫ್‌ಐಆರ್ ನಕಲನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ (ಆಯ್ಕೆ ಮಾಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ)',
+      'upload fir copy (tap to select)':
+          'ಎಫ್‌ಐಆರ್ ನಕಲನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ (ಆಯ್ಕೆ ಮಾಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ)',
       'village/town': 'ಗ್ರಾಮ/ಪಟ್ಟಣ',
       'area name': 'ಪ್ರದೇಶದ ಹೆಸರು',
       'full address': 'ಪೂರ್ಣ ವಿಳಾಸ',
@@ -1493,8 +1777,10 @@ class TranslationHelper {
       'mischief': 'ತುಂಟಾಟ',
       'all': 'ಎಲ್ಲಾ',
       'no form i-v cases yet': 'ಇನ್ನೂ ಯಾವುದೇ ನಮೂನೆ ೧-೫ ಪ್ರಕರಣಗಳಿಲ್ಲ',
-      'cases will appear here once registered.': 'ನೋಂದಾಯಿಸಿದ తర్వాత ಪ್ರಕರಣಗಳು ಇಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ.',
-      'tap new case to register the first case.': 'ಮೊದಲ ಪ್ರಕರಣವನ್ನು ನೋಂದಾಯಿಸಲು ಹೊಸ ಪ್ರಕರಣವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ.',
+      'cases will appear here once registered.':
+          'ನೋಂದಾಯಿಸಿದ తర్వాత ಪ್ರಕರಣಗಳು ಇಲ್ಲಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ.',
+      'tap new case to register the first case.':
+          'ಮೊದಲ ಪ್ರಕರಣವನ್ನು ನೋಂದಾಯಿಸಲು ಹೊಸ ಪ್ರಕರಣವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ.',
       'edit': 'ಸಂಪಾದಿಸಿ',
       'view': 'ವೀಕ್ಷಿಸಿ',
       'no': 'ಯಾವುದೇ',
@@ -1596,7 +1882,8 @@ class TranslationHelper {
       'forms categories': 'ನಮೂನೆಗಳ ವರ್ಗಗಳು',
       'unified police entry menu': 'ಸಂಯೋಜಿತ ಪೊಲೀಸ್ ನಮೂದು ಮೆನು',
       'search entry types...': 'ಹುಡುಕಿ...',
-      'search cases or type module (e.g. murder, theft, missing)...': 'ಹುಡುಕಿ...',
+      'search cases or type module (e.g. murder, theft, missing)...':
+          'ಹುಡುಕಿ...',
       'registration summary': 'ನೋಂದಣಿ ಸಾರಾಂಶ',
       'monthly registration report': 'ಮಾಸಿಕ ನೋಂದಣಿ ವರದಿ',
       'monthly disposal report': 'ಮಾಸಿಕ ವಿಲೇವಾರಿ ವರದಿ',
@@ -1609,7 +1896,8 @@ class TranslationHelper {
       'complete form (all sections)': 'ಸಂಪೂರ್ಣ ನಮೂನೆ (ಎಲ್ಲಾ ವಿಭಾಗಗಳು)',
       'total case': 'ಒಟ್ಟು ಪ್ರಕರಣಗಳು',
       'records yet': 'ಇನ್ನೂ ದಾಖಲೆಗಳಿಲ್ಲ',
-      'no registered entries found in this category.': 'ಈ ವಿಭಾಗದಲ್ಲಿ ಯಾವುದೇ ನೋಂದಾಯಿತ ನಮೂದುಗಳು ಕಂಡುಬಂದಿಲ್ಲ.',
+      'no registered entries found in this category.':
+          'ಈ ವಿಭಾಗದಲ್ಲಿ ಯಾವುದೇ ನೋಂದಾಯಿತ ನಮೂದುಗಳು ಕಂಡುಬಂದಿಲ್ಲ.',
       'form i-v cases': 'ಫಾರ್ಮ್ 1 ರಿಂದ 5 ಪ್ರಕರಣಗಳು',
       'hurts': 'ಗಾಯಗಳು',
       'assault on public servant': 'ಸರ್ಕಾರಿ ನೌಕರನ ಮೇಲೆ ಹಲ್ಲೆ',
@@ -1660,23 +1948,33 @@ class TranslationHelper {
       'transit remand': 'ಟ್ರಾನ್ಸಿಟ್ ರಿಮಾಂಡ್',
       'order section 47 & 48': 'ಆದೇಶ ಕಲಂ 47 ಮತ್ತು 48',
       'ab form': 'ಎಬಿ ಫಾರ್ಮ್',
-      'panchanama, forms & notices (bnss)': 'ಪಂಚನಾಮೆ, ಫಾರ್ಮ್‌ಗಳು ಮತ್ತು ನೋಟೀಸ್‌ಗಳು (ಬಿಎನ್‌ಎಸ್‌ಎಸ್)',
+      'panchanama, forms & notices (bnss)':
+          'ಪಂಚನಾಮೆ, ಫಾರ್ಮ್‌ಗಳು ಮತ್ತು ನೋಟೀಸ್‌ಗಳು (ಬಿಎನ್‌ಎಸ್‌ಎಸ್)',
       'view profile': 'ಪ್ರೊಫೈಲ್ ವೀಕ್ಷಿಸಿ',
       'showing: my cases': 'ತೋರಿಸಲಾಗುತ್ತಿದೆ: ನನ್ನ ಪ್ರಕರಣಗಳು',
       'showing: all station cases': 'ತೋರಿಸಲಾಗುತ್ತಿದೆ: ಎಲ್ಲಾ ಠಾಣೆಯ ಪ್ರಕರಣಗಳು',
       'my cases': 'ನನ್ನ ಪ್ರಕರಣಗಳು',
       'all station cases': 'ಎಲ್ಲಾ ಠಾಣೆಯ ಪ್ರಕರಣಗಳು',
-      'need full station view? ask your pi for access.': 'ಸಂಪೂರ್ಣ ಠಾಣೆಯ ವೀಕ್ಷಣೆ ಬೇಕೇ? ಪ್ರವೇಶಕ್ಕಾಗಿ ನಿಮ್ಮ PI ಅನ್ನು ಕೇಳಿ.',
+      'need full station view? ask your pi for access.':
+          'ಸಂಪೂರ್ಣ ಠಾಣೆಯ ವೀಕ್ಷಣೆ ಬೇಕೇ? ಪ್ರವೇಶಕ್ಕಾಗಿ ನಿಮ್ಮ PI ಅನ್ನು ಕೇಳಿ.',
       'director general of police': 'ಪೊಲೀಸ್ ಮಹಾನಿರ್ದೇಶಕರು',
       'directive': 'ಮಾರ್ಗದರ್ಶನ',
-      'mandatory zero fir registration directive': 'ಕಡ್ಡಾಯ ಝೀರೋ ಎಫ್‌ಐಆರ್ ನೋಂದಣಿ ಆದೇಶ',
-      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.': 'ಪ್ರಾದೇಶಿಕ ವ್ಯಾಪ್ತಿಯನ್ನು ಲೆಕ್ಕಿಸದೆ ಗ್ರಹಿಸಬಹುದಾದ ಅಪರಾಧದ ದೂರು ಬಂದ ತಕ್ಷಣವೇ ಎಲ್ಲಾ ಪೊಲೀಸ್ ಠಾಣೆಗಳು ಝೀರೋ ಎಫ್‌ಐಆರ್ ಅನ್ನು ತಕ್ಷಣವೇ ನೋಂದಾಯಿಸಬೇಕು.',
-      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines': 'ಭಾರತೀಯ ನಾಗರಿಕ ಸುರಕ್ಷಾ ಸಂಹಿತೆ (BNSS) 2023 ಮಾರ್ಗದರ್ಶಿ ಸೂತ್ರಗಳು',
-      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.': 'ಎಫ್‌ಐಆರ್ ನೋಂದಣಿ, ಫೋರೆನ್ಸಿಕ್ ಡೇಟಾ ಸಂಗ್ರಹಣೆ ಮತ್ತು ಎಲೆಕ್ಟ್ರಾನಿಕ್ ಸಾಕ್ಷ್ಯ ಮುದ್ರಣಕ್ಕಾಗಿ ಹೊಸ ಕಾರ್ಯವಿಧಾನದ ಸಮಯಮಿತಿಗಳನ್ನು ಈಗ ರಾಜ್ಯಾದ್ಯಂತ ಜಾರಿಗೊಳಿಸಲಾಗಿದೆ.',
-      'section 63 bsa electronic evidence certification': 'ಕಲಂ 63 BSA ಎಲೆಕ್ಟ್ರಾನಿಕ್ ಸಾಕ್ಷ್ಯ ಪ್ರಮಾಣೀಕರಣ',
-      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.': 'ದೋಷಾರೋಪಣೆ ಪಟ್ಟಿ ಸಲ್ಲಿಸುವಾಗ ಎಲ್ಲಾ ಡಿಜಿಟಲ್ ಸಾಕ್ಷ್ಯಗಳು, ಸಿಸಿಟಿವಿ ರೆಕಾರ್ಡಿಂಗ್‌ಗಳು ಮತ್ತು ಕಾಲ್ ಲಾಗ್‌ನೊಂದಿಗೆ ಕಡ್ಡಾಯ ಕಲಂ 63 ಪ್ರಮಾಣಪತ್ರ (ಹಿಂದಿನ 65B) ಇರಬೇಕು.',
-      'standard operating procedure for online financial frauds': 'ಆನ್‌ಲೈನ್ ಹಣಕಾಸು ವಂಚನೆಗಳಿಗೆ ಪ್ರಮಾಣಿತ ಕಾರ್ಯಾಚರಣೆಯ ವಿಧಾನ',
-      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.': 'ತನಿಖಾಧಿಕಾರಿಗಳಿಗೆ ಮೊದಲ ಗೋಲ್ಡನ್ ಅವರ್‌ನಲ್ಲಿ 1930 ಪೋರ್ಟಲ್ ಏಕೀಕರಣದ ಮೂಲಕ ಫಲಾನುಭವಿಗಳ ಖಾತೆಗಳನ್ನು ತಕ್ಷಣವೇ ಫ್ರೀಜ್ ಮಾಡುವುದು ಈಗ ಕಡ್ಡಾಯವಾಗಿದೆ.',
+      'mandatory zero fir registration directive':
+          'ಕಡ್ಡಾಯ ಝೀರೋ ಎಫ್‌ಐಆರ್ ನೋಂದಣಿ ಆದೇಶ',
+      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.':
+          'ಪ್ರಾದೇಶಿಕ ವ್ಯಾಪ್ತಿಯನ್ನು ಲೆಕ್ಕಿಸದೆ ಗ್ರಹಿಸಬಹುದಾದ ಅಪರಾಧದ ದೂರು ಬಂದ ತಕ್ಷಣವೇ ಎಲ್ಲಾ ಪೊಲೀಸ್ ಠಾಣೆಗಳು ಝೀರೋ ಎಫ್‌ಐಆರ್ ಅನ್ನು ತಕ್ಷಣವೇ ನೋಂದಾಯಿಸಬೇಕು.',
+      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines':
+          'ಭಾರತೀಯ ನಾಗರಿಕ ಸುರಕ್ಷಾ ಸಂಹಿತೆ (BNSS) 2023 ಮಾರ್ಗದರ್ಶಿ ಸೂತ್ರಗಳು',
+      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.':
+          'ಎಫ್‌ಐಆರ್ ನೋಂದಣಿ, ಫೋರೆನ್ಸಿಕ್ ಡೇಟಾ ಸಂಗ್ರಹಣೆ ಮತ್ತು ಎಲೆಕ್ಟ್ರಾನಿಕ್ ಸಾಕ್ಷ್ಯ ಮುದ್ರಣಕ್ಕಾಗಿ ಹೊಸ ಕಾರ್ಯವಿಧಾನದ ಸಮಯಮಿತಿಗಳನ್ನು ಈಗ ರಾಜ್ಯಾದ್ಯಂತ ಜಾರಿಗೊಳಿಸಲಾಗಿದೆ.',
+      'section 63 bsa electronic evidence certification':
+          'ಕಲಂ 63 BSA ಎಲೆಕ್ಟ್ರಾನಿಕ್ ಸಾಕ್ಷ್ಯ ಪ್ರಮಾಣೀಕರಣ',
+      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.':
+          'ದೋಷಾರೋಪಣೆ ಪಟ್ಟಿ ಸಲ್ಲಿಸುವಾಗ ಎಲ್ಲಾ ಡಿಜಿಟಲ್ ಸಾಕ್ಷ್ಯಗಳು, ಸಿಸಿಟಿವಿ ರೆಕಾರ್ಡಿಂಗ್‌ಗಳು ಮತ್ತು ಕಾಲ್ ಲಾಗ್‌ನೊಂದಿಗೆ ಕಡ್ಡಾಯ ಕಲಂ 63 ಪ್ರಮಾಣಪತ್ರ (ಹಿಂದಿನ 65B) ಇರಬೇಕು.',
+      'standard operating procedure for online financial frauds':
+          'ಆನ್‌ಲೈನ್ ಹಣಕಾಸು ವಂಚನೆಗಳಿಗೆ ಪ್ರಮಾಣಿತ ಕಾರ್ಯಾಚರಣೆಯ ವಿಧಾನ',
+      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.':
+          'ತನಿಖಾಧಿಕಾರಿಗಳಿಗೆ ಮೊದಲ ಗೋಲ್ಡನ್ ಅವರ್‌ನಲ್ಲಿ 1930 ಪೋರ್ಟಲ್ ಏಕೀಕರಣದ ಮೂಲಕ ಫಲಾನುಭವಿಗಳ ಖಾತೆಗಳನ್ನು ತಕ್ಷಣವೇ ಫ್ರೀಜ್ ಮಾಡುವುದು ಈಗ ಕಡ್ಡಾಯವಾಗಿದೆ.',
       'new law': 'ಹೊಸ ಕಾನೂನು',
       'circular': 'ಸುತ್ತೋಲೆ',
       'sop update': 'SOP ಅಪ್‌ಡೇಟ್',
@@ -1686,8 +1984,10 @@ class TranslationHelper {
       'home police station': 'ತವರು ಪೊಲೀಸ್ ಠಾಣೆ',
       'dismiss': 'ಮುಚ್ಚಿ',
       'serving': 'ಸೇವೆಯಲ್ಲಿ',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.': 'ಗೌರವ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಶ್ರೇಷ್ಠತೆಯೊಂದಿಗೆ ರಾಜ್ಯ ಸೇವೆ. ಖಾಕಿ ಡೈರಿ ಎಂಟರ್‌ಪ್ರೈಸ್ ಪೋರ್ಟಲ್ ಮೂಲಕ ಸಂಯೋಜಿಸಲಾಗಿದೆ.',
-      'to protect the good and punish the evil': 'ಸಜ್ಜನರ ರಕ್ಷಣೆ ಮತ್ತು ದುಷ್ಟರ ಶಿಕ್ಷಣೆ',
+      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+          'ಗೌರವ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಶ್ರೇಷ್ಠತೆಯೊಂದಿಗೆ ರಾಜ್ಯ ಸೇವೆ. ಖಾಕಿ ಡೈರಿ ಎಂಟರ್‌ಪ್ರೈಸ್ ಪೋರ್ಟಲ್ ಮೂಲಕ ಸಂಯೋಜಿಸಲಾಗಿದೆ.',
+      'to protect the good and punish the evil':
+          'ಸಜ್ಜನರ ರಕ್ಷಣೆ ಮತ್ತು ದುಷ್ಟರ ಶಿಕ್ಷಣೆ',
       'headquarters': 'ಪ್ರಧಾನ ಕಚೇರಿ',
       'state hq': 'ರಾಜ್ಯ ಪ್ರಧಾನ ಕಚೇರಿ',
       'director general of police (dg)': 'ಪೊಲೀಸ್ ಮಹಾನಿರ್ದೇಶಕರು (DG)',
@@ -1696,8 +1996,10 @@ class TranslationHelper {
       'case wise': 'കേസ് തിരിച്ച്',
       'io wise pending': 'ഐഒ തിരിച്ച് തീർപ്പാക്കാത്തവ',
       'all categories': 'എല്ലാ വിഭാഗങ്ങളും',
-      'no io wise pending cases': 'ഐഒ തിരിച്ച് തീർപ്പാക്കാത്ത കേസുകൾ ഒന്നുമില്ല',
-      'no io wise pending cases in this category': 'ഈ വിഭാഗത്തിൽ ഐഒ തിരിച്ച് തീർപ്പാക്കാത്ത കേസുകൾ ഒന്നുമില്ല',
+      'no io wise pending cases':
+          'ഐഒ തിരിച്ച് തീർപ്പാക്കാത്ത കേസുകൾ ഒന്നുമില്ല',
+      'no io wise pending cases in this category':
+          'ഈ വിഭാഗത്തിൽ ഐഒ തിരിച്ച് തീർപ്പാക്കാത്ത കേസുകൾ ഒന്നുമില്ല',
       'io name': 'ഐഒ പേര്',
       'cases': 'കേസുകൾ',
       'it act/cyber': 'ഐ.ടി ആക്ട്/സൈബർ',
@@ -1721,7 +2023,8 @@ class TranslationHelper {
       'case scrutiny pipeline': 'കേസ് പരിശോധനാ പ്രക്രിയ',
       'cr. no.': 'ക്രൈം നമ്പർ',
       'registered date (dd/mm/yyyy)': 'രജിസ്റ്റർ ചെയ്ത തീയതി (തീയതി/മാസം/വർഷം)',
-      'upload fir copy (tap to select)': 'എഫ്ഐആർ കോപ്പി അപ്‌ലോഡ് ചെയ്യുക (തിരഞ്ഞെടുക്കാൻ ടാപ്പ് ചെയ്യുക)',
+      'upload fir copy (tap to select)':
+          'എഫ്ഐആർ കോപ്പി അപ്‌ലോഡ് ചെയ്യുക (തിരഞ്ഞെടുക്കാൻ ടാപ്പ് ചെയ്യുക)',
       'village/town': 'ഗ്രാമം/പട്ടണം',
       'area name': 'സ്ഥലത്തിന്റെ പേര്',
       'full address': 'മുഴുൻ മേൽവിലാസം',
@@ -1751,8 +2054,10 @@ class TranslationHelper {
       'mischief': 'ദ്രോഹം',
       'all': 'എല്ലാം',
       'no form i-v cases yet': 'ഫോം I-V കേസുകൾ ഇതുവരെയില്ല',
-      'cases will appear here once registered.': 'രജിസ്റ്റർ ചെയ്തുകഴിഞ്ഞാൽ കേസുകൾ ഇവിടെ ദൃശ്യമാകും.',
-      'tap new case to register the first case.': 'ആദ്യത്തെ കേസ് രജിസ്റ്റർ ചെയ്യാൻ പുതിയ കേസ് ടാപ്പ് ചെയ്യുക.',
+      'cases will appear here once registered.':
+          'രജിസ്റ്റർ ചെയ്തുകഴിഞ്ഞാൽ കേസുകൾ ഇവിടെ ദൃശ്യമാകും.',
+      'tap new case to register the first case.':
+          'ആദ്യത്തെ കേസ് രജിസ്റ്റർ ചെയ്യാൻ പുതിയ കേസ് ടാപ്പ് ചെയ്യുക.',
       'edit': 'തിരുത്തുക',
       'view': 'കാണുക',
       'no': 'ഇല്ല',
@@ -1854,7 +2159,8 @@ class TranslationHelper {
       'forms categories': 'ഫോമുകളുടെ വിഭാഗങ്ങൾ',
       'unified police entry menu': 'യൂണിഫൈഡ് പോലീസ് എൻട്രി മെനു',
       'search entry types...': 'തിരയുക...',
-      'search cases or type module (e.g. murder, theft, missing)...': 'തിരയുക...',
+      'search cases or type module (e.g. murder, theft, missing)...':
+          'തിരയുക...',
       'registration summary': 'രജിസ്ട്രേഷൻ സംഗ്രഹം',
       'monthly registration report': 'പ്രതിമാസ രജിസ്ട്രേഷൻ റിപ്പോർട്ട്',
       'monthly disposal report': 'പ്രതിമാസ തീർപ്പാക്കൽ റിപ്പോർട്ട്',
@@ -1867,7 +2173,8 @@ class TranslationHelper {
       'complete form (all sections)': 'പൂർണ്ണ ഫോം (എല്ലാ ഭാഗങ്ങളും)',
       'total case': 'മൊത്തം കേസുകൾ',
       'records yet': 'ഇതുവരെ രേഖകളില്ല',
-      'no registered entries found in this category.': 'ഈ വിഭാഗത്തിൽ രജിസ്റ്റർ ചെയ്ത എൻട്രികളൊന്നും കണ്ടെത്തിയില്ല.',
+      'no registered entries found in this category.':
+          'ഈ വിഭാഗത്തിൽ രജിസ്റ്റർ ചെയ്ത എൻട്രികളൊന്നും കണ്ടെത്തിയില്ല.',
       'form i-v cases': 'ഫോം 1 മുതൽ 5 വരെയുള്ള കേസുകൾ',
       'hurts': 'പരിക്കുകൾ',
       'assault on public servant': 'പൊതുപ്രവർത്തകനെ ആക്രമിക്കൽ',
@@ -1903,7 +2210,8 @@ class TranslationHelper {
       'update details': 'വിശദാംശങ്ങൾ അപ്‌ഡേറ്റ് ചെയ്യുക',
       'crime detail form': 'ക്രൈം ഡിറ്റെയിൽ ഫോം',
       'property & seizure form': 'സ്വത്തും പിടിച്ചെടുക്കൽ ഫോമും',
-      'house/property search & seizure': 'വീട്/സ്വത്ത് തിരച്ചിലും പിടിച്ചെടുക്കലും',
+      'house/property search & seizure':
+          'വീട്/സ്വത്ത് തിരച്ചിലും പിടിച്ചെടുക്കലും',
       'crimespot seizure panchanama': 'സംഭവസ്ഥല മഹസർ (പഞ്ചനാമ)',
       'form e': 'ഫോം ഇ',
       'arrest/court surrender form': 'അറസ്റ്റ്/കോടതി കീഴടങ്ങൽ ഫോം',
@@ -1918,23 +2226,33 @@ class TranslationHelper {
       'transit remand': 'ട്രാൻസിറ്റ് റിമാൻഡ്',
       'order section 47 & 48': 'ഉത്തരവ് സെക്ഷൻ 47 & 48',
       'ab form': 'എബി ഫോം',
-      'panchanama, forms & notices (bnss)': 'പഞ്ചനാമ, ഫോമുകൾ & നോട്ടീസുകൾ (ബിഎൻഎസ്എസ്)',
+      'panchanama, forms & notices (bnss)':
+          'പഞ്ചനാമ, ഫോമുകൾ & നോട്ടീസുകൾ (ബിഎൻഎസ്എസ്)',
       'view profile': 'പ്രൊഫൈൽ കാണുക',
       'showing: my cases': 'കാണിക്കുന്നത്: എന്റെ കേസുകൾ',
       'showing: all station cases': 'കാണിക്കുന്നത്: എല്ലാ സ്റ്റേഷൻ കേസുകളും',
       'my cases': 'എന്റെ കേസുകൾ',
       'all station cases': 'എല്ലാ സ്റ്റേഷൻ കേസുകളും',
-      'need full station view? ask your pi for access.': 'മുഴുവൻ സ്റ്റേഷൻ കാഴ്ച വേണമെന്നുണ്ടോ? ആക്‌സസിനായി നിങ്ങളുടെ PI-യോട് ചോദിക്കുക.',
+      'need full station view? ask your pi for access.':
+          'മുഴുവൻ സ്റ്റേഷൻ കാഴ്ച വേണമെന്നുണ്ടോ? ആക്‌സസിനായി നിങ്ങളുടെ PI-യോട് ചോദിക്കുക.',
       'director general of police': 'ഡയറക്ടർ ജനറൽ ഓഫ് പോലീസ്',
       'directive': 'മാർഗ്ഗനിർദ്ദേശം',
-      'mandatory zero fir registration directive': 'നിർബന്ധിത സീറോ എഫ്‌ഐആർ രജിസ്ട്രേഷൻ നിർദ്ദേശം',
-      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.': 'അതിർത്തി പരിധി നോക്കാതെ കോഗ്നിസബിൾ കുറ്റകൃത്യത്തെക്കുറിച്ച് പരാതി ലഭിച്ച ഉടൻ തന്നെ എല്ലാ പോലീസ് സ്റ്റേഷനുകളും സീറോ എഫ്ഐആർ രജിസ്റ്റർ ചെയ്യണം.',
-      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines': 'ഭാരതീയ നാഗരിക് സുരക്ഷാ സംഹിത (BNSS) 2023 മാർഗ്ഗനിർദ്ദേശങ്ങൾ',
-      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.': 'എഫ്ഐആർ രജിസ്ട്രേഷൻ, ഫോറൻസിക് ഡാറ്റ ശേഖരണം, ഇലക്ട്രോണിക് തെളിവ് റെക്കോർഡിംഗ് എന്നിവയ്ക്കുള്ള പുതിയ നടപടിക്രമങ്ങൾ ഇപ്പോൾ സംസ്ഥാനത്തുടനീളം പ്രാബല്യത്തിൽ ഉണ്ട്.',
-      'section 63 bsa electronic evidence certification': 'സെക്ഷൻ 63 ബിഎസ്എ ഇലക്ട്രോണിക് തെളിവ് സാക്ഷ്യപ്പെടുത്തൽ',
-      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.': 'ചാർജ്ജ് ഷീറ്റ് സമർപ്പിക്കുമ്പോൾ എല്ലാ ഡിജിറ്റൽ തെളിവുകളും സിസിടിവി റെക്കോർഡിംഗുകളും കോൾ ലോഗുകളും നിർബന്ധിത സെക്ഷൻ 63 സർട്ടിഫിക്കറ്റിനൊപ്പം (പഴയ 65B) ഉണ്ടായിരിക്കണം.',
-      'standard operating procedure for online financial frauds': 'ഓൺലൈൻ സാമ്പത്തിക തട്ടിപ്പുകൾക്കുള്ള സ്റ്റാൻഡേർഡ് ഓപ്പറേറ്റിംഗ് നടപടിക്രമം',
-      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.': 'അന്വേഷണ ഉദ്യോഗസ്ഥർക്ക് ആദ്യത്തെ ഗോൾഡൻ അവറിനുള്ളിൽ 1930 പോർട്ടൽ സംയോജനം വഴി ഗുണഭോക്താക്കളുടെ അക്കൗണ്ടുകൾ ഉടൻ ഫ്രീസ് ചെയ്യുന്നത് ഇപ്പോൾ നിർബന്ധമാണ്.',
+      'mandatory zero fir registration directive':
+          'നിർബന്ധിത സീറോ എഫ്‌ഐആർ രജിസ്ട്രേഷൻ നിർദ്ദേശം',
+      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.':
+          'അതിർത്തി പരിധി നോക്കാതെ കോഗ്നിസബിൾ കുറ്റകൃത്യത്തെക്കുറിച്ച് പരാതി ലഭിച്ച ഉടൻ തന്നെ എല്ലാ പോലീസ് സ്റ്റേഷനുകളും സീറോ എഫ്ഐആർ രജിസ്റ്റർ ചെയ്യണം.',
+      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines':
+          'ഭാരതീയ നാഗരിക് സുരക്ഷാ സംഹിത (BNSS) 2023 മാർഗ്ഗനിർദ്ദേശങ്ങൾ',
+      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.':
+          'എഫ്ഐആർ രജിസ്ട്രേഷൻ, ഫോറൻസിക് ഡാറ്റ ശേഖരണം, ഇലക്ട്രോണിക് തെളിവ് റെക്കോർഡിംഗ് എന്നിവയ്ക്കുള്ള പുതിയ നടപടിക്രമങ്ങൾ ഇപ്പോൾ സംസ്ഥാനത്തുടനീളം പ്രാബല്യത്തിൽ ഉണ്ട്.',
+      'section 63 bsa electronic evidence certification':
+          'സെക്ഷൻ 63 ബിഎസ്എ ഇലക്ട്രോണിക് തെളിവ് സാക്ഷ്യപ്പെടുത്തൽ',
+      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.':
+          'ചാർജ്ജ് ഷീറ്റ് സമർപ്പിക്കുമ്പോൾ എല്ലാ ഡിജിറ്റൽ തെളിവുകളും സിസിടിവി റെക്കോർഡിംഗുകളും കോൾ ലോഗുകളും നിർബന്ധിത സെക്ഷൻ 63 സർട്ടിഫിക്കറ്റിനൊപ്പം (പഴയ 65B) ഉണ്ടായിരിക്കണം.',
+      'standard operating procedure for online financial frauds':
+          'ഓൺലൈൻ സാമ്പത്തിക തട്ടിപ്പുകൾക്കുള്ള സ്റ്റാൻഡേർഡ് ഓപ്പറേറ്റിംഗ് നടപടിക്രമം',
+      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.':
+          'അന്വേഷണ ഉദ്യോഗസ്ഥർക്ക് ആദ്യത്തെ ഗോൾഡൻ അവറിനുള്ളിൽ 1930 പോർട്ടൽ സംയോജനം വഴി ഗുണഭോക്താക്കളുടെ അക്കൗണ്ടുകൾ ഉടൻ ഫ്രീസ് ചെയ്യുന്നത് ഇപ്പോൾ നിർബന്ധമാണ്.',
       'new law': 'പുതിയ നിയമം',
       'circular': 'സർക്കുലർ',
       'sop update': 'SOP അപ്ഡേറ്റ്',
@@ -1944,8 +2262,10 @@ class TranslationHelper {
       'home police station': 'ഹോം പോലീസ് സ്റ്റേഷൻ',
       'dismiss': 'അടയ്ക്കുക',
       'serving': 'സേവനത്തിൽ',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.': 'ബഹുമാനം, സമഗ്രത, മികവ് എന്നിവയോടെ സംസ്ഥാന സേവനം. ഖാക്കി ഡയറി എന്റർപ്രൈസ് പോർട്ടൽ വഴി സംയോജിപ്പിച്ചു.',
-      'to protect the good and punish the evil': 'നല്ലവരെ സംരക്ഷിക്കുക, ദുഷ്ടരെ ശിക്ഷിക്കുക',
+      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+          'ബഹുമാനം, സമഗ്രത, മികവ് എന്നിവയോടെ സംസ്ഥാന സേവനം. ഖാക്കി ഡയറി എന്റർപ്രൈസ് പോർട്ടൽ വഴി സംയോജിപ്പിച്ചു.',
+      'to protect the good and punish the evil':
+          'നല്ലവരെ സംരക്ഷിക്കുക, ദുഷ്ടരെ ശിക്ഷിക്കുക',
       'headquarters': 'ആസ്ഥാനം',
       'state hq': 'സംസ്ഥാന ആസ്ഥാനം',
       'director general of police (dg)': 'ഡയറക്ടർ ജനറൽ ഓഫ് പോലീസ് (DG)',
@@ -1955,7 +2275,8 @@ class TranslationHelper {
       'io wise pending': 'ਆਈਓ ਵਾਰ ਲੰਬਿਤ',
       'all categories': 'ਸਾਰੀਆਂ ਸ਼੍ਰੇਣੀਆਂ',
       'no io wise pending cases': 'ਕੋਈ ਆਈਓ ਵਾਰ ਲੰਬਿਤ ਕੇਸ ਨਹੀਂ ਹਨ',
-      'no io wise pending cases in this category': 'ਇਸ ਸ਼੍ਰੇਣੀ ਵਿੱਚ ਕੋਈ ਆਈਓ ਵਾਰ ਲੰਬਿਤ ਕੇਸ ਨਹੀਂ ਹਨ',
+      'no io wise pending cases in this category':
+          'ਇਸ ਸ਼੍ਰੇਣੀ ਵਿੱਚ ਕੋਈ ਆਈਓ ਵਾਰ ਲੰਬਿਤ ਕੇਸ ਨਹੀਂ ਹਨ',
       'io name': 'ਆਈਓ ਨਾਮ',
       'cases': 'ਕੇਸ',
       'it act/cyber': 'ਆਈਟੀ ਐਕਟ/ਸਾਈਬਰ',
@@ -1979,7 +2300,8 @@ class TranslationHelper {
       'case scrutiny pipeline': 'ਕੇਸ ਪੜਤਾਲ ਪਾਈਪਲਾਈਨ',
       'cr. no.': 'ਅਪਰਾਧ ਨੰਬਰ',
       'registered date (dd/mm/yyyy)': 'ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਮਿਤੀ (ਦਿਨ/ਮਹੀਨਾ/ਸਾਲ)',
-      'upload fir copy (tap to select)': 'ਐਫਆਈਆਰ ਦੀ ਕਾਪੀ ਅਪਲੋਡ ਕਰੋ (ਚੁਣਨ ਲਈ ਟੈਪ ਕਰੋ)',
+      'upload fir copy (tap to select)':
+          'ਐਫਆਈਆਰ ਦੀ ਕਾਪੀ ਅਪਲੋਡ ਕਰੋ (ਚੁਣਨ ਲਈ ਟੈਪ ਕਰੋ)',
       'village/town': 'ਪਿੰਡ/ਕਸਬਾ',
       'area name': 'ਇਲਾਕੇ ਦਾ ਨਾਮ',
       'full address': 'ਪੂਰਾ ਪਤਾ',
@@ -2009,8 +2331,10 @@ class TranslationHelper {
       'mischief': 'ਸ਼ਰਾਰਤ',
       'all': 'ਸਭ',
       'no form i-v cases yet': 'ਅਜੇ ਤੱਕ ਕੋਈ ਫਾਰਮ ੧-੫ ਕੇਸ ਨਹੀਂ ਹਨ',
-      'cases will appear here once registered.': 'ਰਜਿਸਟਰ ਹੋਣ ਤੋਂ ਬਾਅਦ ਕੇਸ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ।',
-      'tap new case to register the first case.': 'ਪਹਿਲਾ ਕੇਸ ਰਜਿਸਟਰ ਕਰਨ ਲਈ ਨਵਾਂ ਕੇਸ ਤੇ ਟੈਪ ਕਰੋ।',
+      'cases will appear here once registered.':
+          'ਰਜਿਸਟਰ ਹੋਣ ਤੋਂ ਬਾਅਦ ਕੇਸ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ।',
+      'tap new case to register the first case.':
+          'ਪਹਿਲਾ ਕੇਸ ਰਜਿਸਟਰ ਕਰਨ ਲਈ ਨਵਾਂ ਕੇਸ ਤੇ ਟੈਪ ਕਰੋ।',
       'edit': 'ਸੋਧੋ',
       'view': 'ਦੇਖੋ',
       'no': 'ਕੋਈ',
@@ -2125,7 +2449,8 @@ class TranslationHelper {
       'complete form (all sections)': 'ਪੂਰਾ ਫਾਰਮ (ਸਾਰੇ ਭਾਗ)',
       'total case': 'ਕੁੱਲ ਕੇਸ',
       'records yet': 'ਹਾਲੇ ਤੱਕ ਕੋਈ ਰਿਕਾਰਡ ਨਹੀਂ',
-      'no registered entries found in this category.': 'ਇਸ ਸ਼੍ਰੇਣੀ ਵਿੱਚ ਕੋਈ ਰਜਿਸਟਰਡ ਐਂਟਰੀ ਨਹੀਂ ਮਿਲੀ.',
+      'no registered entries found in this category.':
+          'ਇਸ ਸ਼੍ਰੇਣੀ ਵਿੱਚ ਕੋਈ ਰਜਿਸਟਰਡ ਐਂਟਰੀ ਨਹੀਂ ਮਿਲੀ.',
       'form i-v cases': 'ਫਾਰਮ ੧ ਤੋਂ ੫ ਕੇਸ',
       'hurts': 'ਸੱਟਾਂ',
       'assault on public servant': "ਸਰਕਾਰੀ ਕਰਮਚਾਰੀ 'ਤੇ ਹਮਲਾ",
@@ -2176,23 +2501,33 @@ class TranslationHelper {
       'transit remand': 'ਟਰਾਂਜ਼ਿਟ ਰਿਮਾਂਡ',
       'order section 47 & 48': 'ਹੁਕਮ ਧਾਰਾ 47 ਅਤੇ 48',
       'ab form': 'ਏਬੀ ਫਾਰਮ',
-      'panchanama, forms & notices (bnss)': 'ਪੰਚਨਾਮਾ, ਫਾਰਮ ਅਤੇ ਨੋਟਿਸ (ਬੀਐਨਐਸਐਸ)',
+      'panchanama, forms & notices (bnss)':
+          'ਪੰਚਨਾਮਾ, ਫਾਰਮ ਅਤੇ ਨੋਟਿਸ (ਬੀਐਨਐਸਐਸ)',
       'view profile': 'ਪ੍ਰੋਫਾਈਲ ਵੇਖੋ',
       'showing: my cases': 'ਦਿਖਾ ਰਿਹਾ ਹੈ: ਮੇਰੇ ਕੇਸ',
       'showing: all station cases': 'ਦਿਖਾ ਰਿਹਾ ਹੈ: ਸਾਰੇ ਸਟੇਸ਼ਨ ਕੇਸ',
       'my cases': 'ਮੇਰੇ ਕੇਸ',
       'all station cases': 'ਸਾਰੇ ਸਟੇਸ਼ਨ ਕੇਸ',
-      'need full station view? ask your pi for access.': 'ਪੂਰੇ ਸਟੇਸ਼ਨ ਦਾ ਦ੍ਰਿਸ਼ ਚਾਹੀਦਾ ਹੈ? ਪਹੁੰਚ ਲਈ ਆਪਣੇ PI ਨੂੰ ਪੁੱਛੋ.',
+      'need full station view? ask your pi for access.':
+          'ਪੂਰੇ ਸਟੇਸ਼ਨ ਦਾ ਦ੍ਰਿਸ਼ ਚਾਹੀਦਾ ਹੈ? ਪਹੁੰਚ ਲਈ ਆਪਣੇ PI ਨੂੰ ਪੁੱਛੋ.',
       'director general of police': 'ਡਾਇਰੈਕਟਰ ਜਨਰਲ ਆਫ਼ ਪੁਲਿਸ',
       'directive': 'ਨਿਰਦੇਸ਼',
-      'mandatory zero fir registration directive': 'ਲਾਜ਼ਮੀ ਜ਼ੀਰੋ ਐਫਆਈਆਰ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਨਿਰਦੇਸ਼',
-      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.': "ਖੇਤਰੀ ਅਧਿਕਾਰ ਖੇਤਰ ਦੀ ਪਰਵਾਹ ਕੀਤੇ ਬਿਨਾਂ ਗੰਭੀਰ ਅਪਰਾਧ ਦੀ ਸ਼ਿਕਾਇਤ ਮਿਲਣ 'ਤੇ ਸਾਰੇ ਪੁਲਿਸ ਸਟੇਸ਼ਨਾਂ ਨੂੰ ਤੁਰੰਤ ਜ਼ੀਰੋ ਐਫਆਈਆਰ ਦਰਜ ਕਰਨੀ ਚਾਹੀਦੀ ਹੈ.",
-      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines': 'ਭਾਰਤੀ ਨਾਗਰਿਕ ਸੁਰੱਖਿਆ ਸੰਹਿਤਾ (BNSS) 2023 ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼',
-      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.': 'ਐਫਆਈਆਰ ਰਜਿਸਟ੍ਰੇਸ਼ਨ, ਫੋਰੈਂਸਿਕ ਡਾਟਾ ਇਕੱਠਾ ਕਰਨ ਅਤੇ ਇਲੈਕਟ੍ਰਾਨਿਕ ਸਬੂਤ ਰਿਕਾਰਡਿੰਗ ਲਈ ਨਵੀਂ ਪ੍ਰਕਿਰਿਆਤਮਕ ਸਮਾਂ-ਸੀਮਾਵਾਂ ਹੁਣ ਪੂਰੇ ਰਾਜ ਵਿੱਚ ਲਾਗੂ ਹਨ.',
-      'section 63 bsa electronic evidence certification': 'ਧਾਰਾ 63 BSA ਇਲੈਕਟ੍ਰਾਨਿਕ ਸਬੂਤ ਪ੍ਰਮਾਣੀਕਰਨ',
-      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.': 'ਚਾਰਜਸ਼ੀਟ ਜਮ੍ਹਾਂ ਕਰਵਾਉਣ ਸਮੇਂ ਸਾਰੇ ਡਿਜੀਟਲ ਸਬੂਤ, ਸੀਸੀਟੀਵੀ ਰਿਕਾਰਡਿੰਗਾਂ ਅਤੇ ਕਾਲ ਲੌਗ ਦੇ ਨਾਲ ਲਾਜ਼ਮੀ ਧਾਰਾ 63 ਸਰਟੀਫਿਕੇਟ (ਪਹਿਲਾਂ 65B) ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ.',
-      'standard operating procedure for online financial frauds': 'ਆਨਲਾਈਨ ਵਿੱਤੀ ਧੋਖਾਧੜੀ ਲਈ ਸਟੈਂਡਰਡ ਓਪਰੇਟਿੰਗ ਪ੍ਰੋਸੀਜਰ',
-      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.': 'ਜਾਂਚ ਅਧਿਕਾਰੀਆਂ ਲਈ ਪਹਿਲੇ ਗੋਲਡਨ ਅਵਰ ਦੇ ਅੰਦਰ 1930 ਪੋਰਟਲ ਰਾਹੀਂ ਲਾਭਪਾਤਰੀਆਂ ਦੇ ਖਾਤਿਆਂ ਨੂੰ ਤੁਰੰਤ ਫ੍ਰੀਜ਼ ਕਰਨਾ ਹੁਣ ਲਾਜ਼ਮੀ ਹੈ.',
+      'mandatory zero fir registration directive':
+          'ਲਾਜ਼ਮੀ ਜ਼ੀਰੋ ਐਫਆਈਆਰ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਨਿਰਦੇਸ਼',
+      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.':
+          "ਖੇਤਰੀ ਅਧਿਕਾਰ ਖੇਤਰ ਦੀ ਪਰਵਾਹ ਕੀਤੇ ਬਿਨਾਂ ਗੰਭੀਰ ਅਪਰਾਧ ਦੀ ਸ਼ਿਕਾਇਤ ਮਿਲਣ 'ਤੇ ਸਾਰੇ ਪੁਲਿਸ ਸਟੇਸ਼ਨਾਂ ਨੂੰ ਤੁਰੰਤ ਜ਼ੀਰੋ ਐਫਆਈਆਰ ਦਰਜ ਕਰਨੀ ਚਾਹੀਦੀ ਹੈ.",
+      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines':
+          'ਭਾਰਤੀ ਨਾਗਰਿਕ ਸੁਰੱਖਿਆ ਸੰਹਿਤਾ (BNSS) 2023 ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼',
+      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.':
+          'ਐਫਆਈਆਰ ਰਜਿਸਟ੍ਰੇਸ਼ਨ, ਫੋਰੈਂਸਿਕ ਡਾਟਾ ਇਕੱਠਾ ਕਰਨ ਅਤੇ ਇਲੈਕਟ੍ਰਾਨਿਕ ਸਬੂਤ ਰਿਕਾਰਡਿੰਗ ਲਈ ਨਵੀਂ ਪ੍ਰਕਿਰਿਆਤਮਕ ਸਮਾਂ-ਸੀਮਾਵਾਂ ਹੁਣ ਪੂਰੇ ਰਾਜ ਵਿੱਚ ਲਾਗੂ ਹਨ.',
+      'section 63 bsa electronic evidence certification':
+          'ਧਾਰਾ 63 BSA ਇਲੈਕਟ੍ਰਾਨਿਕ ਸਬੂਤ ਪ੍ਰਮਾਣੀਕਰਨ',
+      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.':
+          'ਚਾਰਜਸ਼ੀਟ ਜਮ੍ਹਾਂ ਕਰਵਾਉਣ ਸਮੇਂ ਸਾਰੇ ਡਿਜੀਟਲ ਸਬੂਤ, ਸੀਸੀਟੀਵੀ ਰਿਕਾਰਡਿੰਗਾਂ ਅਤੇ ਕਾਲ ਲੌਗ ਦੇ ਨਾਲ ਲਾਜ਼ਮੀ ਧਾਰਾ 63 ਸਰਟੀਫਿਕੇਟ (ਪਹਿਲਾਂ 65B) ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ.',
+      'standard operating procedure for online financial frauds':
+          'ਆਨਲਾਈਨ ਵਿੱਤੀ ਧੋਖਾਧੜੀ ਲਈ ਸਟੈਂਡਰਡ ਓਪਰੇਟਿੰਗ ਪ੍ਰੋਸੀਜਰ',
+      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.':
+          'ਜਾਂਚ ਅਧਿਕਾਰੀਆਂ ਲਈ ਪਹਿਲੇ ਗੋਲਡਨ ਅਵਰ ਦੇ ਅੰਦਰ 1930 ਪੋਰਟਲ ਰਾਹੀਂ ਲਾਭਪਾਤਰੀਆਂ ਦੇ ਖਾਤਿਆਂ ਨੂੰ ਤੁਰੰਤ ਫ੍ਰੀਜ਼ ਕਰਨਾ ਹੁਣ ਲਾਜ਼ਮੀ ਹੈ.',
       'new law': 'ਨਵਾਂ ਕਾਨੂੰਨ',
       'circular': 'ਸਰਕੂਲਰ',
       'sop update': 'SOP ਅੱਪਡੇਟ',
@@ -2202,8 +2537,10 @@ class TranslationHelper {
       'home police station': 'ਹੋਮ ਪੁਲਿਸ ਸਟੇਸ਼ਨ',
       'dismiss': 'ਬੰਦ ਕਰੋ',
       'serving': 'ਸੇਵਾ ਵਿੱਚ',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.': 'ਸਨਮਾਨ, ਇਮਾਨਦਾਰੀ ਅਤੇ ਉੱਤਮਤਾ ਨਾਲ ਰਾਜ ਦੀ ਸੇਵਾ। ਖਾਕੀ ਡਾਇਰੀ ਐਂਟਰਪ੍ਰਾਈਜ਼ ਪੋਰਟਲ ਦੁਆਰਾ ਏਕੀਕ੍ਰਿਤ।',
-      'to protect the good and punish the evil': 'ਨੇਕਾਂ ਦੀ ਰੱਖਿਆ ਅਤੇ ਬੁਰਿਆਂ ਦਾ ਖਾਤਮਾ',
+      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+          'ਸਨਮਾਨ, ਇਮਾਨਦਾਰੀ ਅਤੇ ਉੱਤਮਤਾ ਨਾਲ ਰਾਜ ਦੀ ਸੇਵਾ। ਖਾਕੀ ਡਾਇਰੀ ਐਂਟਰਪ੍ਰਾਈਜ਼ ਪੋਰਟਲ ਦੁਆਰਾ ਏਕੀਕ੍ਰਿਤ।',
+      'to protect the good and punish the evil':
+          'ਨੇਕਾਂ ਦੀ ਰੱਖਿਆ ਅਤੇ ਬੁਰਿਆਂ ਦਾ ਖਾਤਮਾ',
       'headquarters': 'ਮੁੱਖ ਦਫ਼ਤਰ',
       'state hq': 'ਸੂਬਾ ਮੁੱਖ ਦਫ਼ਤਰ',
       'director general of police (dg)': 'ਡਾਇਰੈਕਟਰ ਜਨਰਲ ਆਫ਼ ਪੁਲਿਸ (DG)',
@@ -2213,7 +2550,8 @@ class TranslationHelper {
       'io wise pending': 'আইটি ওয়ারী পেন্ডিং',
       'all categories': 'সমস্ত বিভাগ',
       'no io wise pending cases': 'কোনো আইটি ওয়ারী পেন্ডিং মামলা নেই',
-      'no io wise pending cases in this category': 'এই বিভাগে কোনো আইটি ওয়ারী পেন্ডিং মামলা নেই',
+      'no io wise pending cases in this category':
+          'এই বিভাগে কোনো আইটি ওয়ারী পেন্ডিং মামলা নেই',
       'io name': 'আইটি নাম',
       'cases': 'মামলা',
       'it act/cyber': 'আইটি আইন/সাইবার',
@@ -2237,7 +2575,8 @@ class TranslationHelper {
       'case scrutiny pipeline': 'মামলা যাচাইকরণ পাইপলাইন',
       'cr. no.': 'অপরাধ নম্বর',
       'registered date (dd/mm/yyyy)': 'নিবন্ধনের তারিখ (দিন/মাস/বছর)',
-      'upload fir copy (tap to select)': 'এফআইআর কপি আপলোড করুন (নির্বাচন করতে আলতো চাপুন)',
+      'upload fir copy (tap to select)':
+          'এফআইআর কপি আপলোড করুন (নির্বাচন করতে আলতো চাপুন)',
       'village/town': 'গ্রাম/শহর',
       'area name': 'এলাকার নাম',
       'full address': 'সম্পূর্ণ ঠিকানা',
@@ -2267,8 +2606,10 @@ class TranslationHelper {
       'mischief': 'ক্ষতিসাধন',
       'all': 'সব',
       'no form i-v cases yet': 'এখনও কোনো ফরম ১-৫ মামলা নেই',
-      'cases will appear here once registered.': 'নিবন্ধিত হওয়ার পরে মামলাগুলি এখানে উপস্থিত হবে।',
-      'tap new case to register the first case.': 'প্রথম মামলাটি নিবন্ধন করতে নতুন মামলা আলতো চাপুন।',
+      'cases will appear here once registered.':
+          'নিবন্ধিত হওয়ার পরে মামলাগুলি এখানে উপস্থিত হবে।',
+      'tap new case to register the first case.':
+          'প্রথম মামলাটি নিবন্ধন করতে নতুন মামলা আলতো চাপুন।',
       'edit': 'সম্পাদনা',
       'view': 'দেখান',
       'no': 'কোনো',
@@ -2370,7 +2711,8 @@ class TranslationHelper {
       'forms categories': 'ফরমের শ্রেণীবিভাগ',
       'unified police entry menu': 'ইউনিফাইড পুলিশ এন্ট্রি মেনু',
       'search entry types...': 'খুঁজুন...',
-      'search cases or type module (e.g. murder, theft, missing)...': 'খুঁজুন...',
+      'search cases or type module (e.g. murder, theft, missing)...':
+          'খুঁজুন...',
       'registration summary': 'নিবন্ধন সারাংশ',
       'monthly registration report': 'মাসিক নিবন্ধন রিপোর্ট',
       'monthly disposal report': 'মাসিক নিষ্পত্তি রিপোর্ট',
@@ -2383,7 +2725,8 @@ class TranslationHelper {
       'complete form (all sections)': 'সম্পূর্ণ ফরম (সব বিভাগ)',
       'total case': 'মোট মামলা',
       'records yet': 'এখনও কোনো রেকর্ড নেই',
-      'no registered entries found in this category.': 'এই বিভাগে কোনো নিবন্ধিত এন্ট্রি পাওয়া যায়নি.',
+      'no registered entries found in this category.':
+          'এই বিভাগে কোনো নিবন্ধিত এন্ট্রি পাওয়া যায়নি.',
       'form i-v cases': 'ফরম ১ থেকে ৫ মামলা',
       'hurts': 'আঘাত',
       'assault on public servant': 'সরকারি কর্মচারীর ওপর হামলা',
@@ -2419,7 +2762,8 @@ class TranslationHelper {
       'update details': 'বিবরণ আপডেট করুন',
       'crime detail form': 'ক্রাইম ডিটেইল ফরম',
       'property & seizure form': 'সম্পত্তি ও বাজেয়াপ্তকরণ ফরম',
-      'house/property search & seizure': 'বাড়ি/সম্পত্তি তল্লাশি ও বাজেয়াপ্তকরণ',
+      'house/property search & seizure':
+          'বাড়ি/সম্পত্তি তল্লাশি ও বাজেয়াপ্তকরণ',
       'crimespot seizure panchanama': 'ঘটনাস্থল বাজেয়াপ্তকরণ পঞ্চনামা',
       'form e': 'ফরম ই',
       'arrest/court surrender form': 'গ্রেপ্তার/আদালতে আত্মসমর্পণ ফরম',
@@ -2440,17 +2784,26 @@ class TranslationHelper {
       'showing: all station cases': 'প্রদর্শিত: থানার সমস্ত মামলা',
       'my cases': 'আমার মামলা',
       'all station cases': 'থানার সমস্ত মামলা',
-      'need full station view? ask your pi for access.': 'সম্পূর্ণ স্টেশনের দৃশ্য প্রয়োজন? অ্যাক্সেসের জন্য আপনার পিআই-কে জিজ্ঞাসা করুন।',
+      'need full station view? ask your pi for access.':
+          'সম্পূর্ণ স্টেশনের দৃশ্য প্রয়োজন? অ্যাক্সেসের জন্য আপনার পিআই-কে জিজ্ঞাসা করুন।',
       'director general of police': 'পুলিশ মহাপরিদর্শক',
       'directive': 'নির্দেশনা',
-      'mandatory zero fir registration directive': 'বাধ্যতামূলক শূন্য এফআইআর নিবন্ধন নির্দেশনা',
-      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.': 'আঞ্চলিক এখতিয়ার নির্বিশেষে জ্ঞানীয় অপরাধের অভিযোগ পাওয়ার সাথে সাথে সমস্ত পুলিশ স্টেশনকে অবিলম্বে শূন্য এফআইআর নিবন্ধন করতে হবে।',
-      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines': 'ভারতীয় নাগরিক সুরক্ষা সংহিতা (বিএনএসএস) ২০২৩ নির্দেশিকা',
-      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.': 'এফআইআর নিবন্ধন, ফরেনসিক ডেটা সংগ্রহ এবং ইলেকট্রনিক প্রমাণ রেকর্ডিংয়ের জন্য নতুন প্রক্রিয়াগত বাধ্যতামূলক সময়সীমা এখন রাজ্যব্যাপী বলবৎ করা হয়েছে।',
-      'section 63 bsa electronic evidence certification': 'ধারা ৬৩ বিএসএ ইলেকট্রনিক প্রমাণ শংসাপত্র',
-      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.': 'চার্জশিট জমা দেওয়ার সময় সমস্ত ডিজিটাল প্রমাণ, সিসিটিভি রেকর্ডিং এবং কল লগের সাথে বাধ্যতামূলক ধারা ৬৩ সার্টিফিকেট (পূর্বে ৬৫বি) থাকা আবশ্যক।',
-      'standard operating procedure for online financial frauds': 'অনলাইন আর্থিক প্রতারণার জন্য মানক পরিচালন পদ্ধতি',
-      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.': 'তদন্তকারীদের জন্য প্রথম গোল্ডেন আওয়ারের মধ্যে ১৯৩০ পোর্টাল সংহতকরণের মাধ্যমে সুবিধাভোগী অ্যাকাউন্টগুলি অবিলম্বে ফ্রিজ করা এখন বাধ্যতামূলক।',
+      'mandatory zero fir registration directive':
+          'বাধ্যতামূলক শূন্য এফআইআর নিবন্ধন নির্দেশনা',
+      'all police stations must register zero fir immediately upon receipt of cognizable offense complaints, regardless of territorial jurisdiction.':
+          'আঞ্চলিক এখতিয়ার নির্বিশেষে জ্ঞানীয় অপরাধের অভিযোগ পাওয়ার সাথে সাথে সমস্ত পুলিশ স্টেশনকে অবিলম্বে শূন্য এফআইআর নিবন্ধন করতে হবে।',
+      'bhartiya nagarik suraksha sanhita (bnss) 2023 guidelines':
+          'ভারতীয় নাগরিক সুরক্ষা সংহিতা (বিএনএসএস) ২০২৩ নির্দেশিকা',
+      'new procedural mandatory timelines for fir registration, forensic data collection, and electronic evidence recording are now enforced state-wide.':
+          'এফআইআর নিবন্ধন, ফরেনসিক ডেটা সংগ্রহ এবং ইলেকট্রনিক প্রমাণ রেকর্ডিংয়ের জন্য নতুন প্রক্রিয়াগত বাধ্যতামূলক সময়সীমা এখন রাজ্যব্যাপী বলবৎ করা হয়েছে।',
+      'section 63 bsa electronic evidence certification':
+          'ধারা ৬৩ বিএসএ ইলেকট্রনিক প্রমাণ শংসাপত্র',
+      'all digital evidence, cctv recordings, and call logs must be accompanied by mandatory section 63 certificate (formerly 65b) at the time of charge-sheet submission.':
+          'চার্জশিট জমা দেওয়ার সময় সমস্ত ডিজিটাল প্রমাণ, সিসিটিভি রেকর্ডিং এবং কল লগের সাথে বাধ্যতামূলক ধারা ৬৩ সার্টিফিকেট (পূর্বে ৬৫বি) থাকা আবশ্যক।',
+      'standard operating procedure for online financial frauds':
+          'অনলাইন আর্থিক প্রতারণার জন্য মানক পরিচালন পদ্ধতি',
+      'immediate freezing of beneficiary accounts through 1930 portal integration within the first golden hour is now mandatory for ios.':
+          'তদন্তকারীদের জন্য প্রথম গোল্ডেন আওয়ারের মধ্যে ১৯৩০ পোর্টাল সংহতকরণের মাধ্যমে সুবিধাভোগী অ্যাকাউন্টগুলি অবিলম্বে ফ্রিজ করা এখন বাধ্যতামূলক।',
       'new law': 'নতুন আইন',
       'circular': 'পরিপত্র',
       'sop update': 'এসওপি আপডেট',
@@ -2460,7 +2813,8 @@ class TranslationHelper {
       'home police station': 'হোম পুলিশ স্টেশন',
       'dismiss': 'বন্ধ করুন',
       'serving': 'সেবায়',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.': 'সম্মান, সততা এবং শ্রেষ্ঠত্বের সাথে রাজ্য সেবা। খাকি ডায়েরি এন্টারপ্রাইজ পোর্টালের মাধ্যমে সমন্বিত।',
+      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+          'সম্মান, সততা এবং শ্রেষ্ঠত্বের সাথে রাজ্য সেবা। খাকি ডায়েরি এন্টারপ্রাইজ পোর্টালের মাধ্যমে সমন্বিত।',
       'to protect the good and punish the evil': 'সৎকে রক্ষা এবং অসৎকে দমন',
       'headquarters': 'সদর দপ্তর',
       'state hq': 'রাজ্য সদর দপ্তর',

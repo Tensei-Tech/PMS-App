@@ -32,10 +32,7 @@ class FormIVSelectionScreen extends StatefulWidget {
 
   final FormIVSelectionMode mode;
 
-  const FormIVSelectionScreen({
-    super.key,
-    this.mode = FormIVSelectionMode.add,
-  });
+  const FormIVSelectionScreen({super.key, this.mode = FormIVSelectionMode.add});
 
   @override
   State<FormIVSelectionScreen> createState() => _FormIVSelectionScreenState();
@@ -48,8 +45,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   bool get _readOnly => widget.mode == FormIVSelectionMode.readOnly;
   bool get _showNewCaseFab => !_readOnly;
 
-  List<String> get _filterOptions =>
-      [FormIVSelectionScreen.allFilterLabel, ...kFormIVCaseCategories];
+  List<String> get _filterOptions => [
+    FormIVSelectionScreen.allFilterLabel,
+    ...kFormIVCaseCategories,
+  ];
 
   @override
   void initState() {
@@ -120,15 +119,21 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<FormIVProvider>();
     final allRecords = provider.records;
-    final visibleRecords =
-        _filteredRecordsForCategory(allRecords, _selectedCategory);
+    final visibleRecords = _filteredRecordsForCategory(
+      allRecords,
+      _selectedCategory,
+    );
     final String subtitle;
     if (_selectedCategory == FormIVSelectionScreen.allFilterLabel) {
       final transCases = TranslationHelper.translate(context, 'cases');
       final transTypes = TranslationHelper.translate(context, 'types');
-      subtitle = '${visibleRecords.length} $transCases · ${kFormIVCaseCategories.length} $transTypes';
+      subtitle =
+          '${visibleRecords.length} $transCases · ${kFormIVCaseCategories.length} $transTypes';
     } else {
-      final transCategory = TranslationHelper.translate(context, _selectedCategory);
+      final transCategory = TranslationHelper.translate(
+        context,
+        _selectedCategory,
+      );
       final transCases = TranslationHelper.translate(context, 'cases');
       subtitle = '$transCategory · ${visibleRecords.length} $transCases';
     }
@@ -138,7 +143,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       appBar: ModuleHubScreenAppBar(
         title: TranslationHelper.translate(context, 'Form I-V Cases'),
         subtitle: subtitle,
-        badgeLabel: TranslationHelper.translate(context, 'i to v').toUpperCase(),
+        badgeLabel: TranslationHelper.translate(
+          context,
+          'i to v',
+        ).toUpperCase(),
       ),
       floatingActionButton: _showNewCaseFab
           ? FloatingActionButton.extended(
@@ -172,8 +180,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               itemCount: _filterOptions.length,
               itemBuilder: (context, pageIndex) {
                 final currentCategory = _filterOptions[pageIndex];
-                final recordsForPage =
-                    _filteredRecordsForCategory(allRecords, currentCategory);
+                final recordsForPage = _filteredRecordsForCategory(
+                  allRecords,
+                  currentCategory,
+                );
 
                 if (recordsForPage.isEmpty) {
                   return _EmptyCasesState(
@@ -456,7 +466,10 @@ class _FormIVCaseCard extends StatelessWidget {
     final statusColor = _statusColor(record.status);
     final categoryLabel = record.subCategory?.trim().isNotEmpty == true
         ? TranslationHelper.translate(context, record.subCategory!.trim())
-        : TranslationHelper.translate(context, record.firestoreCategoryDisplayName);
+        : TranslationHelper.translate(
+            context,
+            record.firestoreCategoryDisplayName,
+          );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -551,14 +564,20 @@ class _FormIVCaseCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    const Icon(Icons.person_rounded,
-                        size: 13, color: AppColors.lightSubText),
+                    const Icon(
+                      Icons.person_rounded,
+                      size: 13,
+                      color: AppColors.lightSubText,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         record.assignedOfficer.trim().isNotEmpty
                             ? record.assignedOfficer
-                            : TranslationHelper.translate(context, 'Unassigned'),
+                            : TranslationHelper.translate(
+                                context,
+                                'Unassigned',
+                              ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
@@ -567,8 +586,11 @@ class _FormIVCaseCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Icon(Icons.calendar_today_rounded,
-                        size: 13, color: AppColors.lightSubText),
+                    const Icon(
+                      Icons.calendar_today_rounded,
+                      size: 13,
+                      color: AppColors.lightSubText,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       DateFormat('dd MMM yyyy').format(record.incidentDate),
@@ -596,8 +618,11 @@ class _FormIVCaseCard extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.edit_note_rounded,
-                            size: 16, color: AppColors.infoBlue),
+                        const Icon(
+                          Icons.edit_note_rounded,
+                          size: 16,
+                          color: AppColors.infoBlue,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           TranslationHelper.translate(context, 'Edit'),
@@ -624,8 +649,11 @@ class _FormIVCaseCard extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.visibility_rounded,
-                            size: 16, color: AppColors.goldPrimary),
+                        const Icon(
+                          Icons.visibility_rounded,
+                          size: 16,
+                          color: AppColors.goldPrimary,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           TranslationHelper.translate(context, 'View'),
@@ -667,8 +695,14 @@ class _EmptyCasesState extends StatelessWidget {
         ? TranslationHelper.translate(context, 'No Form I-V cases yet')
         : '${TranslationHelper.translate(context, 'No')} $transCategory ${TranslationHelper.translate(context, 'cases yet')}';
     final descText = readOnly
-        ? TranslationHelper.translate(context, 'Cases will appear here once registered.')
-        : TranslationHelper.translate(context, 'Tap New Case to register the first case.');
+        ? TranslationHelper.translate(
+            context,
+            'Cases will appear here once registered.',
+          )
+        : TranslationHelper.translate(
+            context,
+            'Tap New Case to register the first case.',
+          );
 
     return Center(
       child: Padding(
@@ -676,8 +710,11 @@ class _EmptyCasesState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.folder_open_rounded,
-                size: 72, color: Colors.grey.shade300),
+            Icon(
+              Icons.folder_open_rounded,
+              size: 72,
+              color: Colors.grey.shade300,
+            ),
             const SizedBox(height: 16),
             Text(
               titleText,

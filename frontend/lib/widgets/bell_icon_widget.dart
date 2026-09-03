@@ -92,7 +92,9 @@ class _BellIconWidgetState extends State<BellIconWidget>
                   scale: _bounceAnim,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 5, vertical: 1),
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
                     constraints: const BoxConstraints(
                       minWidth: 18,
                       minHeight: 18,

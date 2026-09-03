@@ -26,14 +26,8 @@ final removePatterns = [
     r'\n  Widget _buildSimpleUnderlineInput\(\{[\s\S]*?\n  \}\n',
     multiLine: true,
   ),
-  RegExp(
-    r'\n  Widget _buildInlineField\(\{[\s\S]*?\n  \}\n',
-    multiLine: true,
-  ),
-  RegExp(
-    r'\n  Widget _buildWideField\(\{[\s\S]*?\n  \}\n',
-    multiLine: true,
-  ),
+  RegExp(r'\n  Widget _buildInlineField\(\{[\s\S]*?\n  \}\n', multiLine: true),
+  RegExp(r'\n  Widget _buildWideField\(\{[\s\S]*?\n  \}\n', multiLine: true),
   RegExp(
     r'\n  Widget _buildDynamicLinedTextField\(\{[\s\S]*?\n  \}\n',
     multiLine: true,
@@ -46,10 +40,7 @@ final removePatterns = [
     r'\n  Widget _buildSectionHeader\(\{[\s\S]*?\n  \}\n',
     multiLine: true,
   ),
-  RegExp(
-    r'\n  Widget _buildFieldRow\(\{[\s\S]*?\n  \}\n',
-    multiLine: true,
-  ),
+  RegExp(r'\n  Widget _buildFieldRow\(\{[\s\S]*?\n  \}\n', multiLine: true),
   RegExp(
     r'\n  Widget _buildNumberedMethodField\(\{[\s\S]*?\n  \}\n',
     multiLine: true,
@@ -58,10 +49,7 @@ final removePatterns = [
     r'\n  // ── Crime Detail field helpers[\s\S]*?\n  Widget _buildCheckbox',
     multiLine: true,
   ),
-  RegExp(
-    r'\n  // --- HELPER WIDGETS ---\n',
-    multiLine: true,
-  ),
+  RegExp(r'\n  // --- HELPER WIDGETS ---\n', multiLine: true),
 ];
 
 void main() {
@@ -111,8 +99,12 @@ void main() {
     file.writeAsStringSync(content);
     final after = content.split('\n').length;
     totalAfter += after;
-    stdout.writeln('$path: $before -> $after lines (${before - after} removed)');
+    stdout.writeln(
+      '$path: $before -> $after lines (${before - after} removed)',
+    );
   }
 
-  stdout.writeln('Total: $totalBefore -> $totalAfter (${totalBefore - totalAfter} lines removed)');
+  stdout.writeln(
+    'Total: $totalBefore -> $totalAfter (${totalBefore - totalAfter} lines removed)',
+  );
 }

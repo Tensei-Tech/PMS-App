@@ -10,7 +10,8 @@ Future<void> previewInterrogationFormPdf(
 ) async {
   final bytes = await generateInterrogationFormPdf(doc);
   if (!context.mounted) return;
-  final fileName = 'Interrogation_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
+  final fileName =
+      'Interrogation_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
   try {
     if (kIsWeb) {
       await Printing.sharePdf(bytes: bytes, filename: fileName);
@@ -26,10 +27,14 @@ int? _activePart(String section) {
   final s = section.toLowerCase().trim();
   if (s.isEmpty) return null;
   if (s.contains('part v') || s.contains('additional')) return 5;
-  if (s.contains('part iv') || s.contains('crime method') || s.contains('logistics')) {
+  if (s.contains('part iv') ||
+      s.contains('crime method') ||
+      s.contains('logistics')) {
     return 4;
   }
-  if (s.contains('part iii') || s.contains('education') || s.contains('id & history')) {
+  if (s.contains('part iii') ||
+      s.contains('education') ||
+      s.contains('id & history')) {
     return 3;
   }
   if (s.contains('part ii') || s.contains('family')) return 2;
@@ -43,8 +48,16 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   final loraBold = await PdfGoogleFonts.loraBold();
 
   final body = pw.TextStyle(font: loraRegular, fontSize: 10);
-  final bold = pw.TextStyle(font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
-  final title = pw.TextStyle(font: loraBold, fontSize: 14, fontWeight: pw.FontWeight.bold);
+  final bold = pw.TextStyle(
+    font: loraBold,
+    fontSize: 11,
+    fontWeight: pw.FontWeight.bold,
+  );
+  final title = pw.TextStyle(
+    font: loraBold,
+    fontSize: 14,
+    fontWeight: pw.FontWeight.bold,
+  );
 
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
@@ -63,7 +76,9 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
 
   pw.Widget listSection(String heading, List<String> labels, String listKey) {
     final raw = doc[listKey];
-    final values = raw is List ? raw.map((e) => e?.toString() ?? '').toList() : <String>[];
+    final values = raw is List
+        ? raw.map((e) => e?.toString() ?? '').toList()
+        : <String>[];
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -128,7 +143,10 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
         margin: const pw.EdgeInsets.all(32),
         build: (_) => [
           pw.Center(
-            child: pw.Text('Interrogation Report (Chaukashi Ahaval)', style: title),
+            child: pw.Text(
+              'Interrogation Report (Chaukashi Ahaval)',
+              style: title,
+            ),
           ),
           pw.SizedBox(height: 12),
           row('Police Station', v('ps')),
@@ -140,7 +158,10 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
           row('DOB / Place / Age', v('dobPlaceAge')),
           pw.SizedBox(height: 6),
           pw.Text('Physical Description', style: bold),
-          pw.Text(v('physicalDescription').isEmpty ? '—' : v('physicalDescription'), style: body),
+          pw.Text(
+            v('physicalDescription').isEmpty ? '—' : v('physicalDescription'),
+            style: body,
+          ),
           pw.SizedBox(height: 6),
           row('Identification Marks', v('idMarks')),
           row('Address / Mobile', v('address')),
@@ -156,7 +177,9 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        build: (_) => [listSection('Family Background', familyLabels, 'familyRows')],
+        build: (_) => [
+          listSection('Family Background', familyLabels, 'familyRows'),
+        ],
       ),
     );
   }
@@ -166,7 +189,13 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        build: (_) => [listSection('Education, ID & History', idHistoryLabels, 'idHistoryRows')],
+        build: (_) => [
+          listSection(
+            'Education, ID & History',
+            idHistoryLabels,
+            'idHistoryRows',
+          ),
+        ],
       ),
     );
   }

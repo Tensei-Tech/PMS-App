@@ -22,7 +22,8 @@ class NoticeToAccusedFormView extends StatefulWidget {
   });
 
   @override
-  State<NoticeToAccusedFormView> createState() => NoticeToAccusedFormViewState();
+  State<NoticeToAccusedFormView> createState() =>
+      NoticeToAccusedFormViewState();
 }
 
 class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
@@ -85,8 +86,20 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
             Center(
               child: Column(
                 children: [
-                  Text('NOTICE TO ACCUSED', style: serif.copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('आरोपीस सूचनापत्र', style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text(
+                    'NOTICE TO ACCUSED',
+                    style: serif.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'आरोपीस सूचनापत्र',
+                    style: marathi.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -104,8 +117,20 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'CR No.', marathiLabel: 'गु.र.क्र.', controller: _fields['crNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'CR No.',
+                  marathiLabel: 'गु.र.क्र.',
+                  controller: _fields['crNo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Section',
+                  marathiLabel: 'कलम',
+                  controller: _fields['section']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             BilingualMultilineField(

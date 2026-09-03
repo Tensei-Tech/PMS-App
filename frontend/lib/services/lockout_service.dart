@@ -20,8 +20,10 @@ class LockoutStatus {
     required this.totalFailures,
   });
 
-  factory LockoutStatus.allowed(int totalFailures) =>
-      LockoutStatus._(state: LockoutState.allowed, totalFailures: totalFailures);
+  factory LockoutStatus.allowed(int totalFailures) => LockoutStatus._(
+    state: LockoutState.allowed,
+    totalFailures: totalFailures,
+  );
 
   factory LockoutStatus.locked(Duration remaining, int totalFailures) =>
       LockoutStatus._(

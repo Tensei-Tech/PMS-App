@@ -98,7 +98,8 @@ class PendingIoWiseAllCategoriesScreen extends StatelessWidget {
 
     final names = buckets.keys.toList()..sort((a, b) => a.compareTo(b));
 
-    final title = '${TranslationHelper.translate(context, 'IO Wise Pending')} — ${TranslationHelper.translate(context, 'All Categories')}';
+    final title =
+        '${TranslationHelper.translate(context, 'IO Wise Pending')} — ${TranslationHelper.translate(context, 'All Categories')}';
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -119,8 +120,11 @@ class PendingIoWiseAllCategoriesScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.navyMid,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -144,7 +148,10 @@ class PendingIoWiseAllCategoriesScreen extends StatelessWidget {
               child: names.isEmpty
                   ? Center(
                       child: Text(
-                        TranslationHelper.translate(context, 'No IO Wise pending cases'),
+                        TranslationHelper.translate(
+                          context,
+                          'No IO Wise pending cases',
+                        ),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
@@ -171,8 +178,8 @@ class PendingIoWiseAllCategoriesScreen extends StatelessWidget {
                                   AppTheme.fadeSlideRoute(
                                     page:
                                         PendingIoWiseAllCategoriesDetailScreen(
-                                      ioDisplayName: io,
-                                    ),
+                                          ioDisplayName: io,
+                                        ),
                                   ),
                                 );
                               },
@@ -180,11 +187,14 @@ class PendingIoWiseAllCategoriesScreen extends StatelessWidget {
                               child: Ink(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
-                                  border:
-                                      Border.all(color: AppColors.lightBorder),
+                                  border: Border.all(
+                                    color: AppColors.lightBorder,
+                                  ),
                                 ),
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 16),
+                                  horizontal: 14,
+                                  vertical: 16,
+                                ),
                                 child: Row(
                                   children: [
                                     Expanded(
@@ -263,8 +273,11 @@ class PendingIoWiseAllCategoriesDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.navyMid,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -298,7 +311,11 @@ class PendingIoWiseAllCategoriesDetailScreen extends StatelessWidget {
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.lg, 0, AppSpacing.lg, 24),
+                        AppSpacing.lg,
+                        0,
+                        AppSpacing.lg,
+                        24,
+                      ),
                       itemCount: mine.length,
                       itemBuilder: (_, i) =>
                           ReadOnlyModuleRecordHubCard(record: mine[i]),

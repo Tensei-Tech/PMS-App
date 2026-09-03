@@ -57,7 +57,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   void _sendOtp() {
     final email = _emailCtrl.text.trim();
     if (AppValidators.govtEmail(email) != null) {
-      _showSnack('Please enter a valid government email address.', AppColors.warningOrange);
+      _showSnack(
+        'Please enter a valid government email address.',
+        AppColors.warningOrange,
+      );
       return;
     }
 
@@ -104,13 +107,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _otpError = null;
     });
     _timer?.cancel();
-    _showSnack('Identity verified! Please set your new password or PIN.', AppColors.successGreen);
+    _showSnack(
+      'Identity verified! Please set your new password or PIN.',
+      AppColors.successGreen,
+    );
   }
 
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_emailOtpVerified) {
-      _showSnack('Please verify your email via OTP first.', AppColors.warningOrange);
+      _showSnack(
+        'Please verify your email via OTP first.',
+        AppColors.warningOrange,
+      );
       return;
     }
 
@@ -144,7 +153,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     const borderColor = Color(0xFFE2E8F0);
     const subtitleColor = Color(0xFF64748B);
 
-    final bool isEmailValid = _emailCtrl.text.contains('@') && _emailCtrl.text.contains('.');
+    final bool isEmailValid =
+        _emailCtrl.text.contains('@') && _emailCtrl.text.contains('.');
 
     return Theme(
       data: AppTheme.lightTheme(),
@@ -169,7 +179,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                         child: IconButton(
                           onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back_rounded, color: navyBrandColor, size: 20),
+                          icon: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: navyBrandColor,
+                            size: 20,
+                          ),
                           tooltip: 'Back to Login',
                         ),
                       ),
@@ -247,7 +261,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Step 1 of 2 — Verify Identity',
@@ -269,16 +284,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 ),
                                 if (_emailOtpVerified)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.successGreen.withValues(alpha: 0.12),
+                                      color: AppColors.successGreen.withValues(
+                                        alpha: 0.12,
+                                      ),
                                       borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(color: AppColors.successGreen.withValues(alpha: 0.35)),
+                                      border: Border.all(
+                                        color: AppColors.successGreen
+                                            .withValues(alpha: 0.35),
+                                      ),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.check_circle_rounded, size: 14, color: AppColors.successGreen),
+                                        const Icon(
+                                          Icons.check_circle_rounded,
+                                          size: 14,
+                                          color: AppColors.successGreen,
+                                        ),
                                         const SizedBox(width: 4),
                                         Text(
                                           'Verified',
@@ -301,26 +328,46 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               enabled: !_emailOtpVerified,
                               keyboardType: TextInputType.emailAddress,
                               onChanged: (_) => setState(() {}),
-                              style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.5,
+                                color: const Color(0xFF0F172A),
+                              ),
                               decoration: InputDecoration(
                                 hintText: 'Government Email ID',
-                                hintStyle: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF94A3B8)),
-                                prefixIcon: const Icon(Icons.mail_rounded, color: navyBrandColor, size: 19),
+                                hintStyle: GoogleFonts.poppins(
+                                  fontSize: 13.5,
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                                prefixIcon: const Icon(
+                                  Icons.mail_rounded,
+                                  color: navyBrandColor,
+                                  size: 19,
+                                ),
                                 isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 13,
+                                ),
                                 filled: true,
                                 fillColor: Colors.white,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: borderColor),
+                                  borderSide: const BorderSide(
+                                    color: borderColor,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: borderColor),
+                                  borderSide: const BorderSide(
+                                    color: borderColor,
+                                  ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: navyBrandColor, width: 1.5),
+                                  borderSide: const BorderSide(
+                                    color: navyBrandColor,
+                                    width: 1.5,
+                                  ),
                                 ),
                               ),
                               validator: AppValidators.govtEmail,
@@ -352,10 +399,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       const Spacer(),
                                       if (_otpSent && !_emailOtpVerified)
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: Colors.amber.shade100,
-                                            borderRadius: BorderRadius.circular(4),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
                                           ),
                                           child: Text(
                                             'Dev OTP: 123456',
@@ -371,7 +423,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     'For dev mode, OTP is auto-filled as 123456.',
-                                    style: GoogleFonts.poppins(fontSize: 11.5, color: subtitleColor),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11.5,
+                                      color: subtitleColor,
+                                    ),
                                   ),
                                   const SizedBox(height: 12),
 
@@ -379,18 +434,39 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   if (!_otpSent && !_emailOtpVerified) ...[
                                     ElevatedButton.icon(
                                       onPressed: isEmailValid ? _sendOtp : null,
-                                      icon: const Icon(Icons.send_rounded, size: 14),
+                                      icon: const Icon(
+                                        Icons.send_rounded,
+                                        size: 14,
+                                      ),
                                       label: Text(
                                         'Send OTP',
-                                        style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600),
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: isEmailValid ? navyBrandColor : const Color(0xFFD6DCF0),
-                                        foregroundColor: isEmailValid ? Colors.white : const Color(0xFF64748B),
-                                        disabledBackgroundColor: const Color(0xFFD6DCF0),
-                                        disabledForegroundColor: const Color(0xFF64748B),
-                                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        backgroundColor: isEmailValid
+                                            ? navyBrandColor
+                                            : const Color(0xFFD6DCF0),
+                                        foregroundColor: isEmailValid
+                                            ? Colors.white
+                                            : const Color(0xFF64748B),
+                                        disabledBackgroundColor: const Color(
+                                          0xFFD6DCF0,
+                                        ),
+                                        disabledForegroundColor: const Color(
+                                          0xFF64748B,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 18,
+                                          vertical: 10,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
                                         elevation: 0,
                                       ),
                                     ),
@@ -405,8 +481,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                             controller: _otpCtrl,
                                             keyboardType: TextInputType.number,
                                             inputFormatters: [
-                                              FilteringTextInputFormatter.digitsOnly,
-                                              LengthLimitingTextInputFormatter(6),
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                              LengthLimitingTextInputFormatter(
+                                                6,
+                                              ),
                                             ],
                                             style: GoogleFonts.poppins(
                                               fontSize: 13.5,
@@ -421,20 +500,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                                 color: const Color(0xFF94A3B8),
                                               ),
                                               isDense: true,
-                                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 10,
+                                                  ),
                                               filled: true,
-                                              fillColor: const Color(0xFFF8FAFC),
+                                              fillColor: const Color(
+                                                0xFFF8FAFC,
+                                              ),
                                               border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(8),
-                                                borderSide: const BorderSide(color: borderColor),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                borderSide: const BorderSide(
+                                                  color: borderColor,
+                                                ),
                                               ),
                                               enabledBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(8),
-                                                borderSide: const BorderSide(color: borderColor),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                borderSide: const BorderSide(
+                                                  color: borderColor,
+                                                ),
                                               ),
                                               focusedBorder: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(8),
-                                                borderSide: const BorderSide(color: navyBrandColor, width: 1.5),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                borderSide: const BorderSide(
+                                                  color: navyBrandColor,
+                                                  width: 1.5,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -445,13 +540,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: navyBrandColor,
                                             foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 11,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
                                             elevation: 0,
                                           ),
                                           child: Text(
                                             'Verify OTP',
-                                            style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600),
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -473,7 +577,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                         if (_secondsLeft > 0)
                                           Text(
                                             'Resend available in ${_secondsLeft}s',
-                                            style: GoogleFonts.poppins(fontSize: 11, color: subtitleColor),
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 11,
+                                              color: subtitleColor,
+                                            ),
                                           )
                                         else
                                           GestureDetector(
@@ -495,7 +602,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   if (_emailOtpVerified) ...[
                                     Row(
                                       children: [
-                                        const Icon(Icons.check_circle_rounded, color: AppColors.successGreen, size: 18),
+                                        const Icon(
+                                          Icons.check_circle_rounded,
+                                          color: AppColors.successGreen,
+                                          size: 18,
+                                        ),
                                         const SizedBox(width: 6),
                                         Text(
                                           'Email OTP verified successfully.',
@@ -535,7 +646,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Step 2 of 2 — Set New Password / PIN',
@@ -563,37 +675,63 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               TextFormField(
                                 controller: _newPasswordCtrl,
                                 obscureText: _obscureNew,
-                                style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.5,
+                                  color: const Color(0xFF0F172A),
+                                ),
                                 decoration: InputDecoration(
                                   hintText: 'Enter new Password / PIN',
-                                  hintStyle: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF94A3B8)),
-                                  prefixIcon: const Icon(Icons.lock_outline_rounded, color: navyBrandColor, size: 19),
+                                  hintStyle: GoogleFonts.poppins(
+                                    fontSize: 13.5,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline_rounded,
+                                    color: navyBrandColor,
+                                    size: 19,
+                                  ),
                                   suffixIcon: IconButton(
                                     icon: Icon(
-                                      _obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                      _obscureNew
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
                                       size: 18,
                                       color: subtitleColor,
                                     ),
-                                    onPressed: () => setState(() => _obscureNew = !_obscureNew),
+                                    onPressed: () => setState(
+                                      () => _obscureNew = !_obscureNew,
+                                    ),
                                   ),
                                   isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 13,
+                                  ),
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(color: borderColor),
+                                    borderSide: const BorderSide(
+                                      color: borderColor,
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(color: borderColor),
+                                    borderSide: const BorderSide(
+                                      color: borderColor,
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(color: navyBrandColor, width: 1.5),
+                                    borderSide: const BorderSide(
+                                      color: navyBrandColor,
+                                      width: 1.5,
+                                    ),
                                   ),
                                 ),
-                                validator: (v) => v == null || v.length < 6 ? 'Minimum 6 characters required' : null,
+                                validator: (v) => v == null || v.length < 6
+                                    ? 'Minimum 6 characters required'
+                                    : null,
                               ),
                               const SizedBox(height: 12),
 
@@ -601,39 +739,67 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               TextFormField(
                                 controller: _confirmPasswordCtrl,
                                 obscureText: _obscureConfirm,
-                                style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.5,
+                                  color: const Color(0xFF0F172A),
+                                ),
                                 decoration: InputDecoration(
                                   hintText: 'Confirm new Password / PIN',
-                                  hintStyle: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF94A3B8)),
-                                  prefixIcon: const Icon(Icons.lock_outline_rounded, color: navyBrandColor, size: 19),
+                                  hintStyle: GoogleFonts.poppins(
+                                    fontSize: 13.5,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline_rounded,
+                                    color: navyBrandColor,
+                                    size: 19,
+                                  ),
                                   suffixIcon: IconButton(
                                     icon: Icon(
-                                      _obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                      _obscureConfirm
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
                                       size: 18,
                                       color: subtitleColor,
                                     ),
-                                    onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                                    onPressed: () => setState(
+                                      () => _obscureConfirm = !_obscureConfirm,
+                                    ),
                                   ),
                                   isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 13,
+                                  ),
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(color: borderColor),
+                                    borderSide: const BorderSide(
+                                      color: borderColor,
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(color: borderColor),
+                                    borderSide: const BorderSide(
+                                      color: borderColor,
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(color: navyBrandColor, width: 1.5),
+                                    borderSide: const BorderSide(
+                                      color: navyBrandColor,
+                                      width: 1.5,
+                                    ),
                                   ),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.isEmpty) return 'Please confirm password';
-                                  if (v != _newPasswordCtrl.text) return 'Passwords do not match';
+                                  if (v == null || v.isEmpty) {
+                                    return 'Please confirm password';
+                                  }
+                                  if (v != _newPasswordCtrl.text) {
+                                    return 'Passwords do not match';
+                                  }
                                   return null;
                                 },
                               ),
@@ -648,18 +814,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: navyBrandColor,
                                     foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                     elevation: 0,
                                   ),
                                   child: _loading
                                       ? const SizedBox(
                                           width: 20,
                                           height: 20,
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
                                         )
                                       : Text(
                                           'Reset Password / PIN',
-                                          style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                 ),
                               ),

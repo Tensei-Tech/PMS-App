@@ -27,9 +27,13 @@ class SearchFilters {
   });
 
   SearchFilters copyWith({
-    bool? byTitle, bool? byFirNumber, bool? byDate, bool? byOfficer,
+    bool? byTitle,
+    bool? byFirNumber,
+    bool? byDate,
+    bool? byOfficer,
     bool? byLocation,
-    bool? byComplainant, bool? byAccused,
+    bool? byComplainant,
+    bool? byAccused,
   }) {
     return SearchFilters(
       byTitle: byTitle ?? this.byTitle,
@@ -43,12 +47,22 @@ class SearchFilters {
   }
 
   bool get hasAnyActive =>
-      byTitle || byFirNumber || byDate || byOfficer ||
-      byLocation || byComplainant || byAccused;
+      byTitle ||
+      byFirNumber ||
+      byDate ||
+      byOfficer ||
+      byLocation ||
+      byComplainant ||
+      byAccused;
 
   int get activeCount => [
-    byTitle, byFirNumber, byDate, byOfficer,
-    byLocation, byComplainant, byAccused,
+    byTitle,
+    byFirNumber,
+    byDate,
+    byOfficer,
+    byLocation,
+    byComplainant,
+    byAccused,
   ].where((b) => b).length;
 }
 
@@ -154,18 +168,30 @@ class UniversalSearch {
       final year = int.tryParse(match.group(3) ?? '${now.year}') ?? now.year;
 
       const months = {
-        'january': 1, 'jan': 1,
-        'february': 2, 'feb': 2,
-        'march': 3, 'mar': 3,
-        'april': 4, 'apr': 4,
+        'january': 1,
+        'jan': 1,
+        'february': 2,
+        'feb': 2,
+        'march': 3,
+        'mar': 3,
+        'april': 4,
+        'apr': 4,
         'may': 5,
-        'june': 6, 'jun': 6,
-        'july': 7, 'jul': 7,
-        'august': 8, 'aug': 8,
-        'september': 9, 'sep': 9, 'sept': 9,
-        'october': 10, 'oct': 10,
-        'november': 11, 'nov': 11,
-        'december': 12, 'dec': 12,
+        'june': 6,
+        'jun': 6,
+        'july': 7,
+        'jul': 7,
+        'august': 8,
+        'aug': 8,
+        'september': 9,
+        'sep': 9,
+        'sept': 9,
+        'october': 10,
+        'oct': 10,
+        'november': 11,
+        'nov': 11,
+        'december': 12,
+        'dec': 12,
       };
       final month = months[monthStr] ?? 1;
       return DateTime(year, month, day);
@@ -177,7 +203,8 @@ class UniversalSearch {
   /// Returns all matching records across ALL modules.
   static List<SearchResult> search({
     required String query,
-    required List<(String label, String key, List<ModuleRecord> records)> moduleSources,
+    required List<(String label, String key, List<ModuleRecord> records)>
+    moduleSources,
     required SearchFilters filters,
     DateTime? exactDate,
   }) {
@@ -192,12 +219,20 @@ class UniversalSearch {
     for (final source in moduleSources) {
       final (_, key, records) = source;
       for (final record in records) {
-        if (_matches(record, queryVariations, dateVariants, filters, exactDate)) {
-          results.add(SearchResult(
-            moduleLabel: record.firestoreCategoryDisplayName,
-            moduleKey: key,
-            record: record,
-          ));
+        if (_matches(
+          record,
+          queryVariations,
+          dateVariants,
+          filters,
+          exactDate,
+        )) {
+          results.add(
+            SearchResult(
+              moduleLabel: record.firestoreCategoryDisplayName,
+              moduleKey: key,
+              record: record,
+            ),
+          );
         }
       }
     }
@@ -208,13 +243,22 @@ class UniversalSearch {
 
   static List<String> _extractQueryVariations(String raw) {
     final list = <String>{raw};
-    
+
     // Strip common speech prefixes: "fir 45" -> "45", "fir number 102" -> "102"
     var stripped = raw;
     final prefixPatterns = [
-      RegExp(r'^(search\s+for\s+|search\s+|find\s+|show\s+|show\s+me\s+|give\s+me\s+)', caseSensitive: false),
-      RegExp(r'^(fir\s+number\s+|fir\s+no\s*[:\.\-]?\s*|fir\s+|cr\s+no\s*[:\.\-]?\s*|cr\s+|case\s+no\s*[:\.\-]?\s*|case\s+number\s+|case\s+)', caseSensitive: false),
-      RegExp(r'^(complainant\s+|accused\s+|officer\s+|location\s+|spot\s+|crime\s+spot\s+)', caseSensitive: false),
+      RegExp(
+        r'^(search\s+for\s+|search\s+|find\s+|show\s+|show\s+me\s+|give\s+me\s+)',
+        caseSensitive: false,
+      ),
+      RegExp(
+        r'^(fir\s+number\s+|fir\s+no\s*[:\.\-]?\s*|fir\s+|cr\s+no\s*[:\.\-]?\s*|cr\s+|case\s+no\s*[:\.\-]?\s*|case\s+number\s+|case\s+)',
+        caseSensitive: false,
+      ),
+      RegExp(
+        r'^(complainant\s+|accused\s+|officer\s+|location\s+|spot\s+|crime\s+spot\s+)',
+        caseSensitive: false,
+      ),
     ];
 
     for (final pat in prefixPatterns) {
@@ -237,8 +281,14 @@ class UniversalSearch {
     if (exactDate != null) {
       final rd = r.incidentDate;
       final cd = r.createdAt;
-      final matchInc = (rd.year == exactDate.year && rd.month == exactDate.month && rd.day == exactDate.day);
-      final matchCreated = (cd.year == exactDate.year && cd.month == exactDate.month && cd.day == exactDate.day);
+      final matchInc =
+          (rd.year == exactDate.year &&
+          rd.month == exactDate.month &&
+          rd.day == exactDate.day);
+      final matchCreated =
+          (cd.year == exactDate.year &&
+          cd.month == exactDate.month &&
+          cd.day == exactDate.day);
       if (!matchInc && !matchCreated) {
         return false;
       }
@@ -250,29 +300,42 @@ class UniversalSearch {
       if (q.isEmpty) continue;
 
       if (f.byFirNumber && r.caseNumber.toLowerCase().contains(q)) return true;
-      if (f.byTitle && (r.title.toLowerCase().contains(q) || (r.subCategory?.toLowerCase().contains(q) ?? false))) return true;
-      if (f.byOfficer && r.assignedOfficer.toLowerCase().contains(q)) return true;
+      if (f.byTitle &&
+          (r.title.toLowerCase().contains(q) ||
+              (r.subCategory?.toLowerCase().contains(q) ?? false))) {
+        return true;
+      }
+      if (f.byOfficer && r.assignedOfficer.toLowerCase().contains(q)) {
+        return true;
+      }
       if (f.byLocation && r.location.toLowerCase().contains(q)) return true;
-      if (f.byComplainant && r.complainant.toLowerCase().contains(q)) return true;
+      if (f.byComplainant && r.complainant.toLowerCase().contains(q)) {
+        return true;
+      }
       if (f.byAccused && r.accused.toLowerCase().contains(q)) return true;
 
       // Description & extraFields search
       if (r.description.toLowerCase().contains(q)) return true;
       for (final val in r.extraFields.values) {
-        if (val != null && val.toString().toLowerCase().contains(q)) return true;
+        if (val != null && val.toString().toLowerCase().contains(q)) {
+          return true;
+        }
       }
 
       // Check multi-word tokens (e.g. "Ramesh Theft" matches if title has Theft and complainant has Ramesh)
       final words = q.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
       if (words.length > 1) {
-        final combinedText = '${r.title} ${r.caseNumber} ${r.subCategory ?? ''} ${r.complainant} ${r.accused} ${r.location} ${r.assignedOfficer} ${r.description} ${r.extraFields.values.join(' ')}'.toLowerCase();
+        final combinedText =
+            '${r.title} ${r.caseNumber} ${r.subCategory ?? ''} ${r.complainant} ${r.accused} ${r.location} ${r.assignedOfficer} ${r.description} ${r.extraFields.values.join(' ')}'
+                .toLowerCase();
         if (words.every((w) => combinedText.contains(w))) return true;
       }
     }
 
     if (f.byDate) {
       for (final variant in dateVariants) {
-        if (_dateMatchesRecord(r.incidentDate, variant) || _dateMatchesRecord(r.createdAt, variant)) {
+        if (_dateMatchesRecord(r.incidentDate, variant) ||
+            _dateMatchesRecord(r.createdAt, variant)) {
           return true;
         }
       }
@@ -313,7 +376,9 @@ class UniversalSearch {
   }
 
   /// Groups flat results by [SearchResult.moduleKey] (Firestore module id).
-  static Map<String, List<SearchResult>> groupByModule(List<SearchResult> results) {
+  static Map<String, List<SearchResult>> groupByModule(
+    List<SearchResult> results,
+  ) {
     final grouped = <String, List<SearchResult>>{};
     for (final r in results) {
       grouped.putIfAbsent(r.moduleKey, () => []).add(r);

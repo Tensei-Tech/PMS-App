@@ -75,12 +75,17 @@ class ModuleHubReportCard extends StatelessWidget {
                 if (showSummaryButton && onSummaryTap != null)
                   ElevatedButton.icon(
                     onPressed: onSummaryTap,
-                    icon: const Icon(Icons.download_rounded,
-                        size: 16, color: Colors.white),
+                    icon: const Icon(
+                      Icons.download_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
                     label: Text(
                       TranslationHelper.translate(context, 'Summary'),
                       style: GoogleFonts.poppins(
-                          fontSize: 11, color: Colors.white),
+                        fontSize: 11,
+                        color: Colors.white,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navyMid,
@@ -106,10 +111,7 @@ class ModuleHubReportCard extends StatelessWidget {
               ),
               child: categoryButtons,
             ),
-            if (child != null) ...[
-              const SizedBox(height: 14),
-              child!,
-            ],
+            if (child != null) ...[const SizedBox(height: 14), child!],
           ],
         ),
       ),
@@ -240,8 +242,10 @@ class ModuleHubFilterDropdown<T> extends StatelessWidget {
         child: DropdownButton<T>(
           value: value,
           isExpanded: expanded,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded,
-              color: AppColors.navyMid),
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: AppColors.navyMid,
+          ),
           items: items,
           onChanged: onChanged,
         ),

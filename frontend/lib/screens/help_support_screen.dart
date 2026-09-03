@@ -10,7 +10,12 @@ import '../theme/app_theme.dart';
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
 
-  Future<void> _launchUri(BuildContext context, String uriString, String rawValue, String label) async {
+  Future<void> _launchUri(
+    BuildContext context,
+    String uriString,
+    String rawValue,
+    String label,
+  ) async {
     await Clipboard.setData(ClipboardData(text: rawValue));
 
     if (context.mounted) {
@@ -19,19 +24,29 @@ class HelpSupportScreen extends StatelessWidget {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Opening $label ($rawValue copied to clipboard)',
-                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
           ),
           backgroundColor: AppColors.navyDark,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
           margin: const EdgeInsets.all(AppSpacing.md),
           duration: const Duration(seconds: 3),
         ),
@@ -86,12 +101,15 @@ class HelpSupportScreen extends StatelessWidget {
         children: [
           // ── Fixed Top Hero Banner ──────────────────────────────────────────
           _buildHeroHeaderBanner(),
-          
+
           // ── Scrollable Body Content ────────────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.xxl),
+              padding: const EdgeInsets.only(
+                top: AppSpacing.lg,
+                bottom: AppSpacing.xxl,
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Align(
@@ -104,7 +122,8 @@ class HelpSupportScreen extends StatelessWidget {
                         // ── Support Channels Section ─────────────────────────
                         _buildSectionCard(
                           title: 'Contact Support Channels',
-                          subtitle: 'Reach out to our technical team through any channel below',
+                          subtitle:
+                              'Reach out to our technical team through any channel below',
                           icon: Icons.contact_support_rounded,
                           accentColor: AppColors.navyMid,
                           child: Column(
@@ -175,10 +194,17 @@ class HelpSupportScreen extends StatelessWidget {
                           child: Column(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.navyMid.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(AppRadius.full),
+                                  color: AppColors.navyMid.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.full,
+                                  ),
                                 ),
                                 child: Text(
                                   'Version 2.4.0 • Build 2026.08',
@@ -309,9 +335,7 @@ class HelpSupportScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: accentColor.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: accentColor.withValues(alpha: 0.12)),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -380,16 +404,17 @@ class HelpSupportScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.lightBg.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: AppColors.navyMid.withValues(alpha: 0.08),
-        ),
+        border: Border.all(color: AppColors.navyMid.withValues(alpha: 0.08)),
       ),
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: ListTile(
           onTap: onTap,
-          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 4),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: 4,
+          ),
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -411,7 +436,10 @@ class HelpSupportScreen extends StatelessWidget {
               if (badgeText != null && badgeText.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppRadius.full),

@@ -30,8 +30,11 @@ class CategoryRecordsScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.navyDark, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.navyDark,
+            size: 20,
+          ),
         ),
         title: Text(
           '$categoryName Records',
@@ -47,10 +50,14 @@ class CategoryRecordsScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 AppTheme.fadeSlideRoute(
-                    page: CaseFormScreen(categoryName: categoryName)),
+                  page: CaseFormScreen(categoryName: categoryName),
+                ),
               );
             },
-            icon: const Icon(Icons.add_circle_rounded, color: AppColors.navyMid),
+            icon: const Icon(
+              Icons.add_circle_rounded,
+              color: AppColors.navyMid,
+            ),
           ),
         ],
       ),
@@ -76,8 +83,11 @@ class CategoryRecordsScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.folder_open_rounded,
-              size: 64, color: Colors.grey.shade300),
+          Icon(
+            Icons.folder_open_rounded,
+            size: 64,
+            color: Colors.grey.shade300,
+          ),
           const SizedBox(height: 16),
           Text(
             'No records found for $categoryName',
@@ -95,10 +105,10 @@ class CategoryRecordsScreen extends StatelessWidget {
     final statusColor = record.status == 'Open'
         ? AppColors.warningOrange
         : record.status == 'Active'
-            ? AppColors.infoBlue
-            : record.status == 'Resolved'
-                ? AppColors.successGreen
-                : AppColors.lightSubText;
+        ? AppColors.infoBlue
+        : record.status == 'Resolved'
+        ? AppColors.successGreen
+        : AppColors.lightSubText;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -130,9 +140,10 @@ class CategoryRecordsScreen extends StatelessWidget {
                 child: Text(
                   record.caseNumber,
                   style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.infoBlue),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.infoBlue,
+                  ),
                 ),
               ),
               _statusBadge(record.status, statusColor),
@@ -152,9 +163,10 @@ class CategoryRecordsScreen extends StatelessWidget {
             child: Text(
               record.firestoreCategoryDisplayName,
               style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.goldPrimary),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.goldPrimary,
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -170,16 +182,27 @@ class CategoryRecordsScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Icon(Icons.person_rounded,
-                  size: 14, color: AppColors.lightSubText),
+              const Icon(
+                Icons.person_rounded,
+                size: 14,
+                color: AppColors.lightSubText,
+              ),
               const SizedBox(width: 4),
-              Text(record.assignedOfficer,
-                  style: GoogleFonts.poppins(
-                      fontSize: 11, color: AppColors.lightSubText)),
+              Text(
+                record.assignedOfficer,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: AppColors.lightSubText,
+                ),
+              ),
               const Spacer(),
-              Text(DateFormat('dd MMM yyyy').format(record.incidentDate),
-                  style: GoogleFonts.poppins(
-                      fontSize: 11, color: AppColors.lightSubText)),
+              Text(
+                DateFormat('dd MMM yyyy').format(record.incidentDate),
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: AppColors.lightSubText,
+                ),
+              ),
             ],
           ),
           const Divider(height: 24),
@@ -187,30 +210,48 @@ class CategoryRecordsScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _actionbtn(
-                  context, Icons.edit_note_rounded, 'Edit', AppColors.infoBlue,
-                  () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
+                context,
+                Icons.edit_note_rounded,
+                'Edit',
+                AppColors.infoBlue,
+                () {
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
                       page: CaseFormScreen(
-                          categoryName: categoryName, existingCase: record)),
-                );
-              }),
-              _actionbtn(context, Icons.picture_as_pdf_rounded, 'PDF',
-                  AppColors.dangerRed, () {
-                runWithPdfAuthGate(
-                  context,
-                  () => PdfHelper.generateCasePdf(record),
-                );
-              }),
-              _actionbtn(context, Icons.visibility_rounded, 'View',
-                  AppColors.goldPrimary, () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                      page: CaseDetailScreen(caseData: record)),
-                );
-              }),
+                        categoryName: categoryName,
+                        existingCase: record,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              _actionbtn(
+                context,
+                Icons.picture_as_pdf_rounded,
+                'PDF',
+                AppColors.dangerRed,
+                () {
+                  runWithPdfAuthGate(
+                    context,
+                    () => PdfHelper.generateCasePdf(record),
+                  );
+                },
+              ),
+              _actionbtn(
+                context,
+                Icons.visibility_rounded,
+                'View',
+                AppColors.goldPrimary,
+                () {
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: CaseDetailScreen(caseData: record),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ],
@@ -229,13 +270,21 @@ class CategoryRecordsScreen extends StatelessWidget {
       child: Text(
         label,
         style: GoogleFonts.poppins(
-            fontSize: 10, fontWeight: FontWeight.w700, color: color),
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
       ),
     );
   }
 
-  Widget _actionbtn(BuildContext context, IconData icon, String label,
-      Color color, VoidCallback onTap) {
+  Widget _actionbtn(
+    BuildContext context,
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.md),
@@ -248,7 +297,10 @@ class CategoryRecordsScreen extends StatelessWidget {
             Text(
               label,
               style: GoogleFonts.poppins(
-                  fontSize: 12, fontWeight: FontWeight.w600, color: color),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
             ),
           ],
         ),

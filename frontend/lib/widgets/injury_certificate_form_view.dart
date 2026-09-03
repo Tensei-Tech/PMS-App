@@ -84,28 +84,88 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
             Center(
               child: Column(
                 children: [
-                  Text('INJURY CERTIFICATE', style: serif.copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('जखम प्रमाणपत्र', style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text(
+                    'INJURY CERTIFICATE',
+                    style: serif.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'जखम प्रमाणपत्र',
+                    style: marathi.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Certificate No.', marathiLabel: 'प्रमाणपत्र क्र.', controller: _fields['certificateNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['date']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Certificate No.',
+                  marathiLabel: 'प्रमाणपत्र क्र.',
+                  controller: _fields['certificateNo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Date',
+                  marathiLabel: 'दिनांक',
+                  controller: _fields['date']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
-            BilingualField(label: 'Hospital', marathiLabel: 'रुग्णालय', controller: _fields['hospital']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualWideField(label: 'Patient name & address', marathiLabel: 'रुग्णाचे नाव व पत्ता', controller: _fields['patientName']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Hospital',
+              marathiLabel: 'रुग्णालय',
+              controller: _fields['hospital']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
+            BilingualWideField(
+              label: 'Patient name & address',
+              marathiLabel: 'रुग्णाचे नाव व पत्ता',
+              controller: _fields['patientName']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Age', marathiLabel: 'वय', controller: _fields['patientAge']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Sex', marathiLabel: 'लिंग', controller: _fields['patientSex']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Age',
+                  marathiLabel: 'वय',
+                  controller: _fields['patientAge']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Sex',
+                  marathiLabel: 'लिंग',
+                  controller: _fields['patientSex']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
-            BilingualField(label: 'Brought by', marathiLabel: 'कोणी आणले', controller: _fields['broughtBy']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Examination date & time', marathiLabel: 'तपासणी दिनांक व वेळ', controller: _fields['examDateTime']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Brought by',
+              marathiLabel: 'कोणी आणले',
+              controller: _fields['broughtBy']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
+            BilingualField(
+              label: 'Examination date & time',
+              marathiLabel: 'तपासणी दिनांक व वेळ',
+              controller: _fields['examDateTime']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             BilingualMultilineField(
               label: 'Description of injuries',
               marathiLabel: 'जखमांचे वर्णन',
@@ -114,7 +174,13 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
               serifStyle: serif,
               marathiLabelStyle: marathi,
             ),
-            BilingualField(label: 'Weapon / cause', marathiLabel: 'हत्यार / कारण', controller: _fields['weaponUsed']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Weapon / cause',
+              marathiLabel: 'हत्यार / कारण',
+              controller: _fields['weaponUsed']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             BilingualMultilineField(
               label: 'Medical opinion',
               marathiLabel: 'वैद्यकीय मत',

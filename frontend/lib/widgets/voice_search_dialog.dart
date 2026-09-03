@@ -41,9 +41,10 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
 
-    _pulseAnim = Tween<double>(begin: 1.0, end: 1.28).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
+    _pulseAnim = Tween<double>(
+      begin: 1.0,
+      end: 1.28,
+    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
 
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
@@ -186,7 +187,9 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
                         Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: AppColors.goldPrimary.withValues(alpha: 0.15),
+                            color: AppColors.goldPrimary.withValues(
+                              alpha: 0.15,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -235,7 +238,9 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: _isListening
-                                ? const Color(0xFF0072FF).withValues(alpha: 0.16)
+                                ? const Color(
+                                    0xFF0072FF,
+                                  ).withValues(alpha: 0.16)
                                 : Colors.transparent,
                           ),
                         ),
@@ -247,22 +252,30 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
                             colors: _isListening
-                                ? [const Color(0xFF0072FF), const Color(0xFF00C6FF)]
+                                ? [
+                                    const Color(0xFF0072FF),
+                                    const Color(0xFF00C6FF),
+                                  ]
                                 : [Colors.grey.shade400, Colors.grey.shade600],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: (_isListening ? const Color(0xFF0072FF) : Colors.grey)
-                                  .withValues(alpha: 0.35),
+                              color:
+                                  (_isListening
+                                          ? const Color(0xFF0072FF)
+                                          : Colors.grey)
+                                      .withValues(alpha: 0.35),
                               blurRadius: 14,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: Icon(
-                          _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                          _isListening
+                              ? Icons.mic_rounded
+                              : Icons.mic_none_rounded,
                           color: Colors.white,
                           size: 30,
                         ),
@@ -281,7 +294,9 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: _isListening ? AppColors.navyMid : AppColors.lightSubText,
+                      color: _isListening
+                          ? AppColors.navyMid
+                          : AppColors.lightSubText,
                     ),
                   ),
                 ),
@@ -293,7 +308,9 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
                     color: AppColors.lightBg,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     border: Border.all(
-                      color: hasText ? AppColors.navyMid : AppColors.lightBorder,
+                      color: hasText
+                          ? AppColors.navyMid
+                          : AppColors.lightBorder,
                       width: 1.3,
                     ),
                   ),

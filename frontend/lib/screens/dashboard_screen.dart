@@ -216,7 +216,11 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
 }
 
 Widget _buildGridIcon(
-    String label, dynamic fallback, Color color, double size) {
+  String label,
+  dynamic fallback,
+  Color color,
+  double size,
+) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
 
   if (labelTrim == 'I to V') {
@@ -537,7 +541,11 @@ Widget _buildGridIcon(
 }
 
 Widget _buildServiceIcon(
-    String label, dynamic fallback, Color color, double size) {
+  String label,
+  dynamic fallback,
+  Color color,
+  double size,
+) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
   if (labelTrim == 'Tadipar') {
     return SvgPicture.asset(
@@ -628,8 +636,9 @@ class CardsIconPainter extends CustomPainter {
     canvas.translate(w * 0.65, h * 0.45);
     canvas.rotate(0.3);
     final bgRect = RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: w * 0.55, height: h * 0.75),
-        const Radius.circular(3));
+      Rect.fromCenter(center: Offset.zero, width: w * 0.55, height: h * 0.75),
+      const Radius.circular(3),
+    );
     canvas.drawRRect(bgRect, Paint()..color = color);
     canvas.restore();
 
@@ -638,8 +647,9 @@ class CardsIconPainter extends CustomPainter {
     canvas.translate(w * 0.35, h * 0.55);
     canvas.rotate(-0.15);
     final fgRect = RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: w * 0.6, height: h * 0.8),
-        const Radius.circular(3));
+      Rect.fromCenter(center: Offset.zero, width: w * 0.6, height: h * 0.8),
+      const Radius.circular(3),
+    );
 
     canvas.drawRRect(fgRect, Paint()..color = Colors.white);
     canvas.drawRRect(fgRect, Paint()..color = color);
@@ -706,12 +716,13 @@ class JuvenileIconPainter extends CustomPainter {
     final hairPath = Path();
     hairPath.moveTo(w * 0.5, headCenterY - headRadius);
     hairPath.cubicTo(
-        w * 0.55,
-        headCenterY - headRadius - h * 0.1,
-        w * 0.4,
-        headCenterY - headRadius - h * 0.1,
-        w * 0.48,
-        headCenterY - headRadius - h * 0.03);
+      w * 0.55,
+      headCenterY - headRadius - h * 0.1,
+      w * 0.4,
+      headCenterY - headRadius - h * 0.1,
+      w * 0.48,
+      headCenterY - headRadius - h * 0.03,
+    );
     canvas.drawPath(hairPath, hairPaint);
 
     // White strokes for face features
@@ -725,21 +736,33 @@ class JuvenileIconPainter extends CustomPainter {
     final leftEyePath = Path();
     leftEyePath.moveTo(w * 0.37, headCenterY - h * 0.02);
     leftEyePath.quadraticBezierTo(
-        w * 0.42, headCenterY + h * 0.04, w * 0.47, headCenterY - h * 0.02);
+      w * 0.42,
+      headCenterY + h * 0.04,
+      w * 0.47,
+      headCenterY - h * 0.02,
+    );
     canvas.drawPath(leftEyePath, whiteStroke);
 
     // Right eye
     final rightEyePath = Path();
     rightEyePath.moveTo(w * 0.53, headCenterY - h * 0.02);
     rightEyePath.quadraticBezierTo(
-        w * 0.58, headCenterY + h * 0.04, w * 0.63, headCenterY - h * 0.02);
+      w * 0.58,
+      headCenterY + h * 0.04,
+      w * 0.63,
+      headCenterY - h * 0.02,
+    );
     canvas.drawPath(rightEyePath, whiteStroke);
 
     // Smile
     final smilePath = Path();
     smilePath.moveTo(w * 0.42, headCenterY + h * 0.07);
     smilePath.quadraticBezierTo(
-        w * 0.5, headCenterY + h * 0.12, w * 0.58, headCenterY + h * 0.07);
+      w * 0.5,
+      headCenterY + h * 0.12,
+      w * 0.58,
+      headCenterY + h * 0.07,
+    );
     canvas.drawPath(smilePath, whiteStroke);
 
     // Bottom part: Scale of Justice
@@ -748,11 +771,17 @@ class JuvenileIconPainter extends CustomPainter {
 
     // Top bar
     canvas.drawLine(
-        Offset(w * 0.25, barY), Offset(w * 0.75, barY), strokePaint);
+      Offset(w * 0.25, barY),
+      Offset(w * 0.75, barY),
+      strokePaint,
+    );
 
     // Central stand (down from bar)
-    canvas.drawLine(Offset(w * 0.5, barY),
-        Offset(w * 0.5, scaleBottom - h * 0.08), strokePaint);
+    canvas.drawLine(
+      Offset(w * 0.5, barY),
+      Offset(w * 0.5, scaleBottom - h * 0.08),
+      strokePaint,
+    );
 
     // Base (Trapezoid)
     final basePath = Path();
@@ -775,9 +804,15 @@ class JuvenileIconPainter extends CustomPainter {
 
     // Left strings
     canvas.drawLine(
-        Offset(w * 0.25, barY), Offset(w * 0.15, panY), stringPaint);
+      Offset(w * 0.25, barY),
+      Offset(w * 0.15, panY),
+      stringPaint,
+    );
     canvas.drawLine(
-        Offset(w * 0.25, barY), Offset(w * 0.35, panY), stringPaint);
+      Offset(w * 0.25, barY),
+      Offset(w * 0.35, panY),
+      stringPaint,
+    );
 
     // Left pan (semi circle)
     final leftPanPath = Path();
@@ -792,9 +827,15 @@ class JuvenileIconPainter extends CustomPainter {
 
     // Right strings
     canvas.drawLine(
-        Offset(w * 0.75, barY), Offset(w * 0.65, panY), stringPaint);
+      Offset(w * 0.75, barY),
+      Offset(w * 0.65, panY),
+      stringPaint,
+    );
     canvas.drawLine(
-        Offset(w * 0.75, barY), Offset(w * 0.85, panY), stringPaint);
+      Offset(w * 0.75, barY),
+      Offset(w * 0.85, panY),
+      stringPaint,
+    );
 
     // Right pan
     final rightPanPath = Path();
@@ -838,26 +879,50 @@ class SandTheftIconPainter extends CustomPainter {
 
     // 2. Chassis
     // Left segment
-    canvas.drawLine(Offset(w * 0.05, chassisYTop),
-        Offset(w * 0.13, chassisYTop), strokePaint);
-    canvas.drawLine(Offset(w * 0.05, chassisYBot),
-        Offset(w * 0.13, chassisYBot), strokePaint);
-    canvas.drawLine(Offset(w * 0.05, chassisYTop),
-        Offset(w * 0.05, chassisYBot), strokePaint);
+    canvas.drawLine(
+      Offset(w * 0.05, chassisYTop),
+      Offset(w * 0.13, chassisYTop),
+      strokePaint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.05, chassisYBot),
+      Offset(w * 0.13, chassisYBot),
+      strokePaint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.05, chassisYTop),
+      Offset(w * 0.05, chassisYBot),
+      strokePaint,
+    );
 
     // Middle segment
-    canvas.drawLine(Offset(w * 0.37, chassisYTop),
-        Offset(w * 0.63, chassisYTop), strokePaint);
-    canvas.drawLine(Offset(w * 0.37, chassisYBot),
-        Offset(w * 0.63, chassisYBot), strokePaint);
+    canvas.drawLine(
+      Offset(w * 0.37, chassisYTop),
+      Offset(w * 0.63, chassisYTop),
+      strokePaint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.37, chassisYBot),
+      Offset(w * 0.63, chassisYBot),
+      strokePaint,
+    );
 
     // Right segment
-    canvas.drawLine(Offset(w * 0.87, chassisYTop),
-        Offset(w * 0.95, chassisYTop), strokePaint);
-    canvas.drawLine(Offset(w * 0.87, chassisYBot),
-        Offset(w * 0.95, chassisYBot), strokePaint);
-    canvas.drawLine(Offset(w * 0.95, chassisYTop),
-        Offset(w * 0.95, chassisYBot), strokePaint);
+    canvas.drawLine(
+      Offset(w * 0.87, chassisYTop),
+      Offset(w * 0.95, chassisYTop),
+      strokePaint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.87, chassisYBot),
+      Offset(w * 0.95, chassisYBot),
+      strokePaint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.95, chassisYTop),
+      Offset(w * 0.95, chassisYBot),
+      strokePaint,
+    );
 
     // 3. Cab
     final cabPath = Path();
@@ -889,7 +954,10 @@ class SandTheftIconPainter extends CustomPainter {
 
     // 5. Hydraulic Arm
     canvas.drawLine(
-        Offset(w * 0.4, chassisYTop), Offset(w * 0.35, h * 0.6), strokePaint);
+      Offset(w * 0.4, chassisYTop),
+      Offset(w * 0.35, h * 0.6),
+      strokePaint,
+    );
 
     // 6. Sand load (wavy line)
     final sandPath = Path();
@@ -940,8 +1008,11 @@ class UndetectedIconPainter extends CustomPainter {
     final handleEndY = h * 0.85;
 
     // Draw handle
-    canvas.drawLine(Offset(handleStartX, handleStartY),
-        Offset(handleEndX, handleEndY), handlePaint);
+    canvas.drawLine(
+      Offset(handleStartX, handleStartY),
+      Offset(handleEndX, handleEndY),
+      handlePaint,
+    );
 
     // Gap
     final gapWhite = Paint()
@@ -950,27 +1021,37 @@ class UndetectedIconPainter extends CustomPainter {
       ..strokeWidth = w * 0.06
       ..strokeCap = StrokeCap.butt;
 
-    canvas.drawLine(Offset(handleStartX - w * 0.15, handleStartY - h * 0.15),
-        Offset(handleStartX + w * 0.15, handleStartY + h * 0.15), gapWhite);
+    canvas.drawLine(
+      Offset(handleStartX - w * 0.15, handleStartY - h * 0.15),
+      Offset(handleStartX + w * 0.15, handleStartY + h * 0.15),
+      gapWhite,
+    );
 
     // Draw outer circle
     canvas.drawCircle(Offset(cx, cy), r, paint);
 
     // Inner white ring
     canvas.drawCircle(
-        Offset(cx, cy),
-        r * 0.5,
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = w * 0.07);
+      Offset(cx, cy),
+      r * 0.5,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = w * 0.07,
+    );
 
     // X mark
     final xSize = r * 0.3;
-    canvas.drawLine(Offset(cx - xSize, cy - xSize),
-        Offset(cx + xSize, cy + xSize), whiteStroke);
-    canvas.drawLine(Offset(cx + xSize, cy - xSize),
-        Offset(cx - xSize, cy + xSize), whiteStroke);
+    canvas.drawLine(
+      Offset(cx - xSize, cy - xSize),
+      Offset(cx + xSize, cy + xSize),
+      whiteStroke,
+    );
+    canvas.drawLine(
+      Offset(cx + xSize, cy - xSize),
+      Offset(cx - xSize, cy + xSize),
+      whiteStroke,
+    );
   }
 
   @override
@@ -992,19 +1073,24 @@ class HurtIconPainter extends CustomPainter {
 
     // 1. Knife Handle
     canvas.drawLine(
-        Offset(w * 0.82, h * 0.15),
-        Offset(w * 0.55, h * 0.42),
-        Paint()
-          ..color = color
-          ..strokeWidth = w * 0.12
-          ..strokeCap = StrokeCap.round);
+      Offset(w * 0.82, h * 0.15),
+      Offset(w * 0.55, h * 0.42),
+      Paint()
+        ..color = color
+        ..strokeWidth = w * 0.12
+        ..strokeCap = StrokeCap.round,
+    );
 
     // 2. Knife Blade
     final blade = Path();
     blade.moveTo(w * 0.62, h * 0.3); // Top-right
     blade.lineTo(w * 0.15, h * 0.77); // Tip
     blade.quadraticBezierTo(
-        w * 0.3, h * 0.85, w * 0.52, h * 0.5); // Bottom curve
+      w * 0.3,
+      h * 0.85,
+      w * 0.52,
+      h * 0.5,
+    ); // Bottom curve
     blade.close();
     canvas.drawPath(blade, paint);
 
@@ -1016,31 +1102,68 @@ class HurtIconPainter extends CustomPainter {
       ..strokeCap = StrokeCap.butt;
 
     canvas.drawLine(
-        Offset(w * 0.58, h * 0.28), Offset(w * 0.72, h * 0.42), cutPaint);
+      Offset(w * 0.58, h * 0.28),
+      Offset(w * 0.72, h * 0.42),
+      cutPaint,
+    );
     canvas.drawLine(
-        Offset(w * 0.54, h * 0.32), Offset(w * 0.68, h * 0.46), cutPaint);
+      Offset(w * 0.54, h * 0.32),
+      Offset(w * 0.68, h * 0.46),
+      cutPaint,
+    );
 
     // 4. Blood Splat
     final splat = Path();
     splat.moveTo(w * 0.35, h * 0.5);
     splat.cubicTo(
-        w * 0.35, h * 0.4, w * 0.55, h * 0.4, w * 0.55, h * 0.5); // Top bulge
+      w * 0.35,
+      h * 0.4,
+      w * 0.55,
+      h * 0.4,
+      w * 0.55,
+      h * 0.5,
+    ); // Top bulge
     splat.cubicTo(
-        w * 0.65, h * 0.5, w * 0.65, h * 0.65, w * 0.6, h * 0.65); // Right drip
-    splat.cubicTo(w * 0.55, h * 0.65, w * 0.5, h * 0.55, w * 0.45,
-        h * 0.6); // Inner curve
+      w * 0.65,
+      h * 0.5,
+      w * 0.65,
+      h * 0.65,
+      w * 0.6,
+      h * 0.65,
+    ); // Right drip
     splat.cubicTo(
-        w * 0.4, h * 0.75, w * 0.3, h * 0.75, w * 0.3, h * 0.7); // Left drip
+      w * 0.55,
+      h * 0.65,
+      w * 0.5,
+      h * 0.55,
+      w * 0.45,
+      h * 0.6,
+    ); // Inner curve
     splat.cubicTo(
-        w * 0.3, h * 0.6, w * 0.25, h * 0.6, w * 0.35, h * 0.5); // Close
+      w * 0.4,
+      h * 0.75,
+      w * 0.3,
+      h * 0.75,
+      w * 0.3,
+      h * 0.7,
+    ); // Left drip
+    splat.cubicTo(
+      w * 0.3,
+      h * 0.6,
+      w * 0.25,
+      h * 0.6,
+      w * 0.35,
+      h * 0.5,
+    ); // Close
 
     canvas.drawPath(
-        splat,
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = w * 0.04
-          ..strokeJoin = StrokeJoin.round);
+      splat,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = w * 0.04
+        ..strokeJoin = StrokeJoin.round,
+    );
     canvas.drawPath(splat, paint);
 
     // 5. Blood Drops
@@ -1048,8 +1171,11 @@ class HurtIconPainter extends CustomPainter {
       final drop = Path();
       drop.moveTo(cx, cy - s);
       drop.quadraticBezierTo(cx + s, cy, cx + s, cy + s * 0.5);
-      drop.arcToPoint(Offset(cx - s, cy + s * 0.5),
-          radius: Radius.circular(s), clockwise: true);
+      drop.arcToPoint(
+        Offset(cx - s, cy + s * 0.5),
+        radius: Radius.circular(s),
+        clockwise: true,
+      );
       drop.quadraticBezierTo(cx - s, cy, cx, cy - s);
       canvas.drawPath(drop, paint);
 
@@ -1058,16 +1184,24 @@ class HurtIconPainter extends CustomPainter {
       final innerCy = cy + s * 0.35;
       inner.moveTo(cx, innerCy - innerS);
       inner.quadraticBezierTo(
-          cx + innerS, innerCy, cx + innerS, innerCy + innerS * 0.5);
-      inner.arcToPoint(Offset(cx - innerS, innerCy + innerS * 0.5),
-          radius: Radius.circular(innerS), clockwise: true);
+        cx + innerS,
+        innerCy,
+        cx + innerS,
+        innerCy + innerS * 0.5,
+      );
+      inner.arcToPoint(
+        Offset(cx - innerS, innerCy + innerS * 0.5),
+        radius: Radius.circular(innerS),
+        clockwise: true,
+      );
       inner.quadraticBezierTo(cx - innerS, innerCy, cx, innerCy - innerS);
       canvas.drawPath(
-          inner,
-          Paint()
-            ..color = Colors.white
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = w * 0.015);
+        inner,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = w * 0.015,
+      );
     }
 
     drawDrop(w * 0.5, h * 0.78, w * 0.06);
@@ -1109,18 +1243,25 @@ class KidnappingIconPainter extends CustomPainter {
 
     // Torso
     canvas.drawLine(
-        Offset(w * 0.75, h * 0.32),
-        Offset(w * 0.75, h * 0.62),
-        Paint()
-          ..color = color
-          ..strokeWidth = w * 0.2
-          ..strokeCap = StrokeCap.round);
+      Offset(w * 0.75, h * 0.32),
+      Offset(w * 0.75, h * 0.62),
+      Paint()
+        ..color = color
+        ..strokeWidth = w * 0.2
+        ..strokeCap = StrokeCap.round,
+    );
 
     // Legs
     canvas.drawLine(
-        Offset(w * 0.67, h * 0.6), Offset(w * 0.67, h * 0.95), pStrokePaint);
+      Offset(w * 0.67, h * 0.6),
+      Offset(w * 0.67, h * 0.95),
+      pStrokePaint,
+    );
     canvas.drawLine(
-        Offset(w * 0.83, h * 0.6), Offset(w * 0.83, h * 0.95), pStrokePaint);
+      Offset(w * 0.83, h * 0.6),
+      Offset(w * 0.83, h * 0.95),
+      pStrokePaint,
+    );
 
     // Arms
     final arms = Path();
@@ -1134,17 +1275,21 @@ class KidnappingIconPainter extends CustomPainter {
     // --- GUN ---
     // Barrel
     canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            Rect.fromLTRB(w * 0.08, h * 0.45, w * 0.48, h * 0.57),
-            Radius.circular(w * 0.02)),
-        fillPaint);
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(w * 0.08, h * 0.45, w * 0.48, h * 0.57),
+        Radius.circular(w * 0.02),
+      ),
+      fillPaint,
+    );
 
     // Sight bump
     canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            Rect.fromLTRB(w * 0.1, h * 0.41, w * 0.15, h * 0.45),
-            Radius.circular(w * 0.01)),
-        fillPaint);
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(w * 0.1, h * 0.41, w * 0.15, h * 0.45),
+        Radius.circular(w * 0.01),
+      ),
+      fillPaint,
+    );
 
     // Grip
     final grip = Path();
@@ -1165,8 +1310,11 @@ class KidnappingIconPainter extends CustomPainter {
     canvas.drawPath(guard, strokePaint..strokeWidth = w * 0.035);
 
     // Trigger
-    canvas.drawLine(Offset(w * 0.25, h * 0.57), Offset(w * 0.23, h * 0.61),
-        strokePaint..strokeWidth = w * 0.02);
+    canvas.drawLine(
+      Offset(w * 0.25, h * 0.57),
+      Offset(w * 0.23, h * 0.61),
+      strokePaint..strokeWidth = w * 0.02,
+    );
   }
 
   @override
@@ -1205,24 +1353,26 @@ class ADIconPainter extends CustomPainter {
 
     // 3. Diagonal Line
     canvas.drawLine(
-        Offset(w * 0.1, h * 0.85),
-        Offset(w * 0.7, h * 0.25),
-        Paint()
-          ..color = color
-          ..strokeWidth = w * 0.05
-          ..strokeCap = StrokeCap.round);
+      Offset(w * 0.1, h * 0.85),
+      Offset(w * 0.7, h * 0.25),
+      Paint()
+        ..color = color
+        ..strokeWidth = w * 0.05
+        ..strokeCap = StrokeCap.round,
+    );
 
     // 4. Person Head
     canvas.drawCircle(Offset(w * 0.7, h * 0.18), w * 0.08, fillPaint);
 
     // 5. Torso
     canvas.drawLine(
-        Offset(w * 0.62, h * 0.28),
-        Offset(w * 0.42, h * 0.48),
-        Paint()
-          ..color = color
-          ..strokeWidth = w * 0.13
-          ..strokeCap = StrokeCap.round);
+      Offset(w * 0.62, h * 0.28),
+      Offset(w * 0.42, h * 0.48),
+      Paint()
+        ..color = color
+        ..strokeWidth = w * 0.13
+        ..strokeCap = StrokeCap.round,
+    );
 
     // 6. Arms
     // Left arm (front)
@@ -1303,6 +1453,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     const bool isDark = false;
     final auth = context.watch<AuthProvider>();
+    context.watch<SettingsProvider>();
     final l10n = AppLocalizations.of(context)!;
 
     // ✅ Station injection removed from here — handled in main.dart globally
@@ -1346,20 +1497,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildWideLayout(
-      AuthProvider auth, AppLocalizations l10n, List<Widget> pages, int pageIndex) {
+    AuthProvider auth,
+    AppLocalizations l10n,
+    List<Widget> pages,
+    int pageIndex,
+  ) {
     return Row(
       children: [
-        _buildWebProfileSidebar(auth,
-            l10n), // Persistent profile menu on wide screens (tablet + web)
+        _buildWebProfileSidebar(
+          auth,
+          l10n,
+        ), // Persistent profile menu on wide screens (tablet + web)
         Expanded(
           child: Column(
             children: [
               _buildAppBar(auth, showHamburger: false),
               Expanded(
-                child: IndexedStack(
-                  index: pageIndex,
-                  children: pages,
-                ),
+                child: IndexedStack(index: pageIndex, children: pages),
               ),
             ],
           ),
@@ -1369,15 +1523,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildNarrowLayout(
-      AuthProvider auth, AppLocalizations l10n, List<Widget> pages, int pageIndex) {
+    AuthProvider auth,
+    AppLocalizations l10n,
+    List<Widget> pages,
+    int pageIndex,
+  ) {
     return Column(
       children: [
         _buildAppBar(auth, showHamburger: true),
         Expanded(
-          child: IndexedStack(
-            index: pageIndex,
-            children: pages,
-          ),
+          child: IndexedStack(index: pageIndex, children: pages),
         ),
       ],
     );
@@ -1385,7 +1540,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildAppBar(AuthProvider auth, {required bool showHamburger}) {
     final l10n = AppLocalizations.of(
-        context)!; // WEB FIX: reuse localized labels for top nav on web
+      context,
+    )!; // WEB FIX: reuse localized labels for top nav on web
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallPhone = screenWidth < 420;
     return Container(
@@ -1418,7 +1574,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Builder(
               builder: (ctx) {
                 final stateCode = auth.currentUser?.stateCode ?? auth.stateCode;
-                final stateBranding = StateBrandingHelper.getBranding(stateCode);
+                final stateBranding = StateBrandingHelper.getBranding(
+                  stateCode,
+                );
                 final screenWidth = MediaQuery.of(ctx).size.width;
                 final isVeryNarrow = screenWidth < 380;
                 final forceTitleText = isVeryNarrow
@@ -1429,7 +1587,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onTap: () => StatePoliceBannerDialog.show(ctx, auth),
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 2,
+                      vertical: 2,
+                    ),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
@@ -1467,17 +1628,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const SizedBox(width: 6),
                           // Dynamic State Police Badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  stateBranding.primaryColor.withValues(alpha: 0.08),
-                                  stateBranding.accentColor.withValues(alpha: 0.18),
+                                  stateBranding.primaryColor.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  stateBranding.accentColor.withValues(
+                                    alpha: 0.18,
+                                  ),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                color: stateBranding.accentColor.withValues(alpha: 0.4),
+                                color: stateBranding.accentColor.withValues(
+                                  alpha: 0.4,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -1563,12 +1733,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return InkWell(
       // WEB FIX: mouse + touch support on web
       onTap: () => _onNavTap(index), // WEB FIX: reuse existing navigation logic
-      borderRadius:
-          BorderRadius.circular(AppRadius.lg), // WEB FIX: match pill style
+      borderRadius: BorderRadius.circular(
+        AppRadius.lg,
+      ), // WEB FIX: match pill style
       child: Container(
         // WEB FIX
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // WEB FIX
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 8,
+        ), // WEB FIX
         decoration: BoxDecoration(
           // WEB FIX
           color: isActive
@@ -1605,8 +1778,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ); // WEB FIX
   }
 
-  Widget _buildDrawerHeader(AuthProvider auth, AppLocalizations l10n,
-      {double headerHeight = 180}) {
+  Widget _buildDrawerHeader(
+    AuthProvider auth,
+    AppLocalizations l10n, {
+    double headerHeight = 180,
+  }) {
     // RESPONSIVE FIX: get top padding for status bar / notch
     final topPadding = MediaQuery.of(context).padding.top;
     // Scale avatar and font sizes based on header height
@@ -1616,8 +1792,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final nameFontSize = isCompact ? 15.0 : 17.0;
     final topInset = isCompact ? (topPadding + 10) : (topPadding + 14);
 
-    final initial =
-        auth.displayName.isNotEmpty ? auth.displayName[0].toUpperCase() : 'O';
+    final initial = auth.displayName.isNotEmpty
+        ? auth.displayName[0].toUpperCase()
+        : 'O';
 
     return InkWell(
       onTap: () => Navigator.push(
@@ -1672,13 +1849,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppColors.goldPrimary.withValues(alpha: 0.6),
+                                color: AppColors.goldPrimary.withValues(
+                                  alpha: 0.6,
+                                ),
                                 width: 2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.goldPrimary
-                                      .withValues(alpha: 0.2),
+                                  color: AppColors.goldPrimary.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   blurRadius: 10,
                                   spreadRadius: 1,
                                 ),
@@ -1760,13 +1940,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 if (auth.stationName.isNotEmpty) ...[
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 7, vertical: 2),
+                                      horizontal: 7,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.1),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.15)),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                      ),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -1784,8 +1970,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               fontSize: 9.5,
                                               fontWeight: FontWeight.w700,
                                               letterSpacing: 0.4,
-                                              color: Colors.white
-                                                  .withValues(alpha: 0.9),
+                                              color: Colors.white.withValues(
+                                                alpha: 0.9,
+                                              ),
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -1798,14 +1985,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 if (auth.designation.isNotEmpty) ...[
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 7, vertical: 2),
+                                      horizontal: 7,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.goldPrimary
-                                          .withValues(alpha: 0.2),
+                                      color: AppColors.goldPrimary.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                        color: AppColors.goldPrimary
-                                            .withValues(alpha: 0.5),
+                                        color: AppColors.goldPrimary.withValues(
+                                          alpha: 0.5,
+                                        ),
                                       ),
                                     ),
                                     child: Text(
@@ -1860,7 +2051,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final activeLang = context.read<SettingsProvider>().locale.languageCode;
     final langs = [
       ('🇬🇧', 'English', 'Nagaland, Arunachal Pradesh, Meghalaya', 'en'),
-      ('🇮🇳', 'Hindi (हिंदी)', 'Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Haryana, Himachal, Jharkhand, Chhattisgarh, Uttarakhand', 'hi'),
+      (
+        '🇮🇳',
+        'Hindi (हिंदी)',
+        'Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Haryana, Himachal, Jharkhand, Chhattisgarh, Uttarakhand',
+        'hi',
+      ),
       ('🇮🇳', 'Marathi (मराठी)', 'Maharashtra', 'mr'),
       ('🇮🇳', 'Gujarati (ગુજરાતી)', 'Gujarat', 'gu'),
       ('🇮🇳', 'Bengali (বাংলা)', 'West Bengal, Tripura', 'bn'),
@@ -1888,31 +2084,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             const SizedBox(height: 12),
             Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2))),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Row(children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
                       color: AppColors.infoBlue.withValues(alpha: 0.12),
-                      shape: BoxShape.circle),
-                  child: const Icon(Icons.language_rounded,
-                      color: AppColors.infoBlue, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  TranslationHelper.translate(context, 'Select Language'),
-                  style: GoogleFonts.poppins(
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.language_rounded,
+                      color: AppColors.infoBlue,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    TranslationHelper.translate(context, 'Select Language'),
+                    style: GoogleFonts.poppins(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark),
-                ),
-              ]),
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const Divider(height: 1),
             Expanded(
@@ -1928,8 +2133,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       l.$2,
                       style: GoogleFonts.poppins(
                         fontSize: 15,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? AppColors.infoBlue : AppColors.navyDark,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.infoBlue
+                            : AppColors.navyDark,
                       ),
                     ),
                     subtitle: Text(
@@ -1940,24 +2149,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     trailing: isSelected
-                        ? const Icon(Icons.check_circle_rounded,
-                            color: AppColors.infoBlue, size: 22)
-                        : const Icon(Icons.chevron_right_rounded,
-                            color: AppColors.goldPrimary, size: 22),
+                        ? const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.infoBlue,
+                            size: 22,
+                          )
+                        : const Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppColors.goldPrimary,
+                            size: 22,
+                          ),
                     onTap: () {
                       context.read<SettingsProvider>().setLanguage(l.$4);
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(
-                          'Language set to ${l.$2}',
-                          style: GoogleFonts.poppins(color: Colors.white),
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Language set to ${l.$2}',
+                            style: GoogleFonts.poppins(color: Colors.white),
+                          ),
+                          backgroundColor: AppColors.infoBlue,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                          ),
                         ),
-                        backgroundColor: AppColors.infoBlue,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                        ),
-                      ));
+                      );
                     },
                   );
                 },
@@ -1975,10 +2192,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _StationSwitcherSheet(
-        firestore: firestore,
-        auth: auth,
-      ),
+      builder: (_) => _StationSwitcherSheet(firestore: firestore, auth: auth),
     );
   }
 
@@ -1994,7 +2208,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: SafeArea(
         top: false, // header handles its own top padding
         child: _buildProfileMenuContent(
-            auth, l10n), // WEB FIX: reuse same menu for drawer + web sidebar
+          auth,
+          l10n,
+        ), // WEB FIX: reuse same menu for drawer + web sidebar
       ),
     );
   }
@@ -2008,7 +2224,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // WEB FIX: ensure proper ink + theme on web
         color: Colors.white, // WEB FIX: keep same drawer background
         child: _buildProfileMenuContent(
-            auth, l10n), // WEB FIX: exact same menu as Android drawer
+          auth,
+          l10n,
+        ), // WEB FIX: exact same menu as Android drawer
       ),
     );
   }
@@ -2032,7 +2250,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 physics: const BouncingScrollPhysics(),
                 children: [
                   // ── ROLE-BASED UNIFIED ADMIN PANEL ──
-                  if (PoliceHierarchyHelper.hasAdminAuthority(auth.designation, auth.roleId)) ...[
+                  if (PoliceHierarchyHelper.hasAdminAuthority(
+                    auth.designation,
+                    auth.roleId,
+                  )) ...[
                     _drawerItem(
                       Icons.admin_panel_settings_rounded,
                       MenuLocalizations.get(lang, 'adminPanel'),
@@ -2040,27 +2261,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Navigator.pop(context);
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const AdminPanelScreen(),
+                          ),
                         );
                       },
                     ),
                   ],
-                  if (PoliceHierarchyHelper.canSendAlerts(auth.designation, auth.roleId) ||
-                      PoliceHierarchyHelper.canSendReminders(auth.designation, auth.roleId)) ...[
+                  if (PoliceHierarchyHelper.canSendAlerts(
+                        auth.designation,
+                        auth.roleId,
+                      ) ||
+                      PoliceHierarchyHelper.canSendReminders(
+                        auth.designation,
+                        auth.roleId,
+                      )) ...[
                     _drawerItem(
                       Icons.campaign_rounded,
-                      PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId)
+                      PoliceHierarchyHelper.isStateSuperAdmin(
+                            auth.designation,
+                            auth.roleId,
+                          )
                           ? MenuLocalizations.get(lang, 'sendAlertsState')
-                          : (PoliceHierarchyHelper.isDistrictAdmin(auth.designation, auth.roleId)
-                              ? MenuLocalizations.get(lang, 'sendAlertsDistrict')
-                              : MenuLocalizations.get(lang, 'sendReminderIO')),
+                          : (PoliceHierarchyHelper.isDistrictAdmin(
+                                  auth.designation,
+                                  auth.roleId,
+                                )
+                                ? MenuLocalizations.get(
+                                    lang,
+                                    'sendAlertsDistrict',
+                                  )
+                                : MenuLocalizations.get(
+                                    lang,
+                                    'sendReminderIO',
+                                  )),
                       () => SendBroadcastAlertDialog.show(context),
                     ),
                     const Divider(height: 1),
                   ],
                   // ── Switch Policestation (senior officers only) ──
                   if (SeniorOfficerRoles.canSwitchLocation(
-                      auth.designation)) ...[
+                    auth.designation,
+                  )) ...[
                     ListTile(
                       dense: true,
                       visualDensity: const VisualDensity(vertical: -1),
@@ -2101,12 +2343,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.dangerRed
-                                      .withValues(alpha: 0.1),
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm),
+                                  color: AppColors.dangerRed.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.sm,
+                                  ),
                                 ),
                                 child: Text(
                                   MenuLocalizations.get(lang, 'reset'),
@@ -2138,7 +2384,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const Divider(height: 1),
                   ],
-                  if (TransferRequestRoles.canApproveTransfers(auth.designation)) ...[
+                  if (TransferRequestRoles.canApproveTransfers(
+                    auth.designation,
+                  )) ...[
                     _drawerItem(
                       Icons.pending_actions_rounded,
                       TransferRequestRoles.isPiOrApi(auth.designation)
@@ -2172,7 +2420,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       () => Navigator.push(
                         context,
                         AppTheme.fadeSlideRoute(
-                            page: const AssignOfficerScreen()),
+                          page: const AssignOfficerScreen(),
+                        ),
                       ),
                     ),
                   if (TransferRequestRoles.canAssignOfficers(auth.designation))
@@ -2192,7 +2441,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     () => Navigator.push(
                       context,
                       AppTheme.fadeSlideRoute(
-                          page: const LoginSecurityScreen()),
+                        page: const LoginSecurityScreen(),
+                      ),
                     ),
                   ),
                   _drawerItem(
@@ -2234,18 +2484,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                   const Divider(height: 1),
-                  _drawerItem(
-                    Icons.logout_rounded,
-                    l10n.logout,
-                    () {
-                      context
-                          .read<SettingsProvider>()
-                          .setSkipBiometricAutoTrigger(
-                              true); // keep same logout flow
-                      auth.logout(); // keep same logout logic
-                    },
-                    color: AppColors.dangerRed,
-                  ),
+                  _drawerItem(Icons.logout_rounded, l10n.logout, () {
+                    context
+                        .read<SettingsProvider>()
+                        .setSkipBiometricAutoTrigger(
+                          true,
+                        ); // keep same logout flow
+                    auth.logout(); // keep same logout logic
+                  }, color: AppColors.dangerRed),
                 ],
               ),
             ),
@@ -2255,17 +2501,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _drawerItem(IconData icon, String label, VoidCallback onTap,
-      {Color? color}) {
+  Widget _drawerItem(
+    IconData icon,
+    String label,
+    VoidCallback onTap, {
+    Color? color,
+  }) {
     final c = color ?? AppColors.lightText;
     return ListTile(
       dense: true,
       visualDensity: const VisualDensity(
-          vertical: -1), // RESPONSIVE FIX: tighter spacing for small screens
+        vertical: -1,
+      ), // RESPONSIVE FIX: tighter spacing for small screens
       leading: Icon(icon, size: 20, color: c),
-      title: Text(label,
-          style: GoogleFonts.poppins(
-              fontSize: 13, fontWeight: FontWeight.w500, color: c)),
+      title: Text(
+        label,
+        style: GoogleFonts.poppins(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: c,
+        ),
+      ),
       onTap: onTap, // Removed Navigator.pop to keep drawer open (Persistence)
     );
   }
@@ -2276,9 +2532,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5)),
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
         ],
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -2300,13 +2557,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     boxShadow: [
                       BoxShadow(
-                          color: AppColors.navyMid.withValues(alpha: 0.5),
-                          blurRadius: 14,
-                          spreadRadius: 2),
+                        color: AppColors.navyMid.withValues(alpha: 0.5),
+                        blurRadius: 14,
+                        spreadRadius: 2,
+                      ),
                     ],
                   ),
-                  child: const Icon(Icons.add_rounded,
-                      color: Colors.white, size: 28),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
               ),
               _navItem(Icons.folder_rounded, l10n.view, 3),
@@ -2338,11 +2599,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Icon(icon, color: isActive ? activeColor : inactiveColor, size: 24),
             const SizedBox(height: 3),
-            Text(label,
-                style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                    color: isActive ? activeColor : inactiveColor)),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                color: isActive ? activeColor : inactiveColor,
+              ),
+            ),
           ],
         ),
       ),
@@ -2455,7 +2719,7 @@ class _HomeTabState extends State<_HomeTab> {
   final _searchCtrl = TextEditingController();
   Timer? _debounce;
   String _searchQuery = '';
-  final SearchFilters _searchFilters = SearchFilters();
+  SearchFilters _searchFilters = SearchFilters();
   DateTime? _explicitSearchDate;
 
   /// Memoizes live search across rebuilds triggered by unrelated widgets (e.g. news).
@@ -2501,7 +2765,8 @@ class _HomeTabState extends State<_HomeTab> {
   /// Resets dashboard search UI when the active station changes.
   void _clearSearchStateOnStationSwitch() {
     _debounce?.cancel();
-    final hadSearchState = _searchQuery.isNotEmpty ||
+    final hadSearchState =
+        _searchQuery.isNotEmpty ||
         _explicitSearchDate != null ||
         _searchCtrl.text.isNotEmpty;
     if (!hadSearchState) return;
@@ -2562,8 +2827,11 @@ class _HomeTabState extends State<_HomeTab> {
                     color: AppColors.infoBlue.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: const Icon(Icons.info_outline_rounded,
-                      size: 18, color: AppColors.infoBlue),
+                  child: const Icon(
+                    Icons.info_outline_rounded,
+                    size: 18,
+                    color: AppColors.infoBlue,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -2571,7 +2839,10 @@ class _HomeTabState extends State<_HomeTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        MenuLocalizations.get(context.read<SettingsProvider>().locale.languageCode, 'caseVisibility'),
+                        MenuLocalizations.get(
+                          context.read<SettingsProvider>().locale.languageCode,
+                          'caseVisibility',
+                        ),
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -2591,8 +2862,11 @@ class _HomeTabState extends State<_HomeTab> {
                     ],
                   ),
                 ),
-                Icon(Icons.visibility_rounded,
-                    size: 20, color: AppColors.navyMid.withValues(alpha: 0.7)),
+                Icon(
+                  Icons.visibility_rounded,
+                  size: 20,
+                  color: AppColors.navyMid.withValues(alpha: 0.7),
+                ),
               ],
             ),
             if (showAskPi) ...[
@@ -2611,7 +2885,10 @@ class _HomeTabState extends State<_HomeTab> {
                   );
                 },
                 child: Text(
-                  TranslationHelper.translate(context, 'Need full station view? Ask your PI for access.'),
+                  TranslationHelper.translate(
+                    context,
+                    'Need full station view? Ask your PI for access.',
+                  ),
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     color: AppColors.infoBlue,
@@ -2627,8 +2904,6 @@ class _HomeTabState extends State<_HomeTab> {
       ),
     );
   }
-
-
 
   String _moduleDisplayLabel(ModuleRecord record) {
     final name = record.firestoreCategoryDisplayName.trim();
@@ -2669,9 +2944,7 @@ class _HomeTabState extends State<_HomeTab> {
     BuildContext context, {
     required bool listen,
   }) {
-    List<ModuleRecord> rec<T>(
-      List<ModuleRecord> Function(T provider) select,
-    ) =>
+    List<ModuleRecord> rec<T>(List<ModuleRecord> Function(T provider) select) =>
         _providerRecords(context, select: select, listen: listen);
 
     return [
@@ -2708,7 +2981,11 @@ class _HomeTabState extends State<_HomeTab> {
       ('Victim', 'victim', rec<VictimProvider>((p) => p.records)),
       ('Accident', 'accident', rec<AccidentProvider>((p) => p.records)),
       ('Traffic', 'traffic', rec<TrafficProvider>((p) => p.records)),
-      ('Application', 'application', rec<ApplicationProvider>((p) => p.records)),
+      (
+        'Application',
+        'application',
+        rec<ApplicationProvider>((p) => p.records),
+      ),
       ('Sam Warrant', 'sam_warrant', rec<SamWarrantProvider>((p) => p.records)),
       ('Muddemal', 'muddemal', rec<MuddemalProvider>((p) => p.records)),
       ('BNSS', 'bnss', rec<BnssProvider>((p) => p.records)),
@@ -2725,23 +3002,25 @@ class _HomeTabState extends State<_HomeTab> {
   int _moduleSourcesFingerprint(
     List<(String, String, List<ModuleRecord>)> sources,
   ) {
-    return Object.hashAll(sources.map((source) {
-      final records = source.$3;
-      if (records.isEmpty) return Object.hash(source.$2, 0);
-      var bucket = records.length;
-      for (final record in records) {
-        bucket = Object.hash(
-          bucket,
-          record.id,
-          record.status,
-          record.title,
-          record.caseNumber,
-          record.complainant,
-          record.accused,
-        );
-      }
-      return Object.hash(source.$2, bucket);
-    }));
+    return Object.hashAll(
+      sources.map((source) {
+        final records = source.$3;
+        if (records.isEmpty) return Object.hash(source.$2, 0);
+        var bucket = records.length;
+        for (final record in records) {
+          bucket = Object.hash(
+            bucket,
+            record.id,
+            record.status,
+            record.title,
+            record.caseNumber,
+            record.complainant,
+            record.accused,
+          );
+        }
+        return Object.hash(source.$2, bucket);
+      }),
+    );
   }
 
   List<SearchResult> _resolveLiveSearchResults(BuildContext context) {
@@ -2781,8 +3060,9 @@ class _HomeTabState extends State<_HomeTab> {
     }
     if (mounted) setState(() => _recentRecords = []);
 
-    _recentSub =
-        _firestore.getRecentCasesStream(100, activeStation).listen((data) {
+    _recentSub = _firestore.getRecentCasesStream(100, activeStation).listen((
+      data,
+    ) {
       if (!mounted) return;
       final mode = CaseVisibility.resolveFor(widget.auth);
       final filtered = CaseVisibility.filterRecords(
@@ -2888,7 +3168,8 @@ class _HomeTabState extends State<_HomeTab> {
         if (!_hasActiveSearch) ...[
           SliverPadding(
             padding: EdgeInsets.symmetric(
-                horizontal: isWide ? AppSpacing.xl : AppSpacing.lg),
+              horizontal: isWide ? AppSpacing.xl : AppSpacing.lg,
+            ),
             sliver: SliverToBoxAdapter(
               child: _buildThreePartClassification(isWide),
             ),
@@ -2950,9 +3231,13 @@ class _HomeTabState extends State<_HomeTab> {
                     ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 10),
+                        horizontal: 28,
+                        vertical: 10,
+                      ),
                       side: const BorderSide(
-                          color: AppColors.navyDark, width: 1.5),
+                        color: AppColors.navyDark,
+                        width: 1.5,
+                      ),
                       shape: const StadiumBorder(),
                       backgroundColor: Colors.white,
                       elevation: 1,
@@ -3019,9 +3304,10 @@ class _HomeTabState extends State<_HomeTab> {
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
-              color: color.withValues(alpha: 0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 6)),
+            color: color.withValues(alpha: 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
         ],
       ),
       child: Row(
@@ -3042,32 +3328,44 @@ class _HomeTabState extends State<_HomeTab> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: Text(TranslationHelper.translate(context, item.tag),
-                      style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white)),
+                  child: Text(
+                    TranslationHelper.translate(context, item.tag),
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 6),
-                Text(TranslationHelper.translate(context, item.title),
-                    style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  TranslationHelper.translate(context, item.title),
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 4),
-                Text(TranslationHelper.translate(context, item.description),
-                    style: GoogleFonts.poppins(
-                        fontSize: 11, color: Colors.white70),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  TranslationHelper.translate(context, item.description),
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: Colors.white70,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -3086,9 +3384,10 @@ class _HomeTabState extends State<_HomeTab> {
         border: Border.all(color: AppColors.lightBorder),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4))
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: TextField(
@@ -3102,11 +3401,19 @@ class _HomeTabState extends State<_HomeTab> {
         onChanged: _onSearchChanged,
         style: GoogleFonts.poppins(color: AppColors.lightText, fontSize: 14),
         decoration: InputDecoration(
-          hintText: TranslationHelper.translate(context, 'Search cases or type module (e.g. Murder, Theft, Missing)...'),
-          hintStyle:
-              GoogleFonts.poppins(color: AppColors.lightSubText, fontSize: 13),
-          prefixIcon:
-              const Icon(Icons.search_rounded, color: AppColors.navyMid, size: 22),
+          hintText: TranslationHelper.translate(
+            context,
+            'Search cases or type module (e.g. Murder, Theft, Missing)...',
+          ),
+          hintStyle: GoogleFonts.poppins(
+            color: AppColors.lightSubText,
+            fontSize: 13,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: AppColors.navyMid,
+            size: 22,
+          ),
           suffixIcon: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -3127,9 +3434,13 @@ class _HomeTabState extends State<_HomeTab> {
                   final spoken = await VoiceSearchDialog.show(context);
                   if (spoken != null && spoken.trim().isNotEmpty) {
                     final cleanSpoken = spoken.trim();
-                    final parsedDate = UniversalSearch.tryParseNaturalDate(cleanSpoken);
+                    final parsedDate = UniversalSearch.tryParseNaturalDate(
+                      cleanSpoken,
+                    );
                     if (parsedDate != null) {
-                      final formatted = DateFormat('dd MMM yyyy').format(parsedDate);
+                      final formatted = DateFormat(
+                        'dd MMM yyyy',
+                      ).format(parsedDate);
                       setState(() {
                         _explicitSearchDate = parsedDate;
                         _searchQuery = formatted;
@@ -3144,18 +3455,32 @@ class _HomeTabState extends State<_HomeTab> {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.calendar_month_rounded,
-                    color: _explicitSearchDate != null
-                        ? AppColors.goldPrimary
-                        : AppColors.navyMid),
+                icon: Icon(
+                  Icons.calendar_month_rounded,
+                  color: _explicitSearchDate != null
+                      ? AppColors.goldPrimary
+                      : AppColors.navyMid,
+                ),
                 onPressed: () => _showSearchDatePicker(context),
                 tooltip: 'Select Custom Date',
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.tune_rounded,
+                  color: _searchFilters != SearchFilters()
+                      ? AppColors.goldPrimary
+                      : AppColors.navyMid,
+                ),
+                onPressed: () => _showFilterSheet(context),
+                tooltip: 'Search Filters',
               ),
             ],
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md, vertical: 16),
+            horizontal: AppSpacing.md,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -3168,118 +3493,263 @@ class _HomeTabState extends State<_HomeTab> {
     Classification('M.V Act', 'traffic', 'traffic'),
   ];
 
-  List<({String title, String subtext, IconData icon, VoidCallback onTap})> _matchingMenuShortcuts(String q) {
+  List<({String title, String subtext, IconData icon, VoidCallback onTap})>
+  _matchingMenuShortcuts(String q) {
     final cleanQ = q.toLowerCase().trim();
     if (cleanQ.isEmpty) return [];
 
-    final shortcuts = <({String title, String subtext, List<String> keywords, IconData icon, VoidCallback onTap})>[
-      (
-        title: 'Total Cases',
-        subtext: 'Station Cases (All)',
-        keywords: ['total cases', 'total case', 'all cases', 'all case', 'total', 'station cases'],
-        icon: Icons.folder_open_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen(initialTab: MyCasesTab.total))),
-      ),
-      (
-        title: 'Pending Cases',
-        subtext: 'Pending Investigation',
-        keywords: ['pending cases', 'pending case', 'pending investigation'],
-        icon: Icons.hourglass_top_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen(initialTab: MyCasesTab.pending))),
-      ),
-      (
-        title: 'Disposal Cases',
-        subtext: 'Resolved / Disposed',
-        keywords: ['disposal cases', 'disposal case', 'disposed cases', 'disposal', 'disposed', 'closed cases'],
-        icon: Icons.task_alt_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen(initialTab: MyCasesTab.disposal))),
-      ),
-      (
-        title: 'Pending PI Transfers',
-        subtext: 'Transfers',
-        keywords: ['pending pi transfers', 'pending transfers', 'transfer', 'transfers', 'pi transfer'],
-        icon: Icons.pending_actions_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const PendingTransfersScreen())),
-      ),
-      (
-        title: 'Assign Officer',
-        subtext: 'Team & IO',
-        keywords: ['assign officer', 'assign', 'officer assignment', 'add members'],
-        icon: Icons.person_add_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const AssignOfficerScreen())),
-      ),
-      (
-        title: 'My Cases',
-        subtext: 'Station Cases',
-        keywords: ['my cases', 'assigned cases', 'station cases', 'cases tab'],
-        icon: Icons.folder_shared_outlined,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen())),
-      ),
-      (
-        title: 'Login & Security',
-        subtext: 'Security & PIN',
-        keywords: ['login & security', 'login and security', 'security', 'password', 'change password', 'pin', 'login'],
-        icon: Icons.lock_person_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const LoginSecurityScreen())),
-      ),
-      (
-        title: 'App Settings',
-        subtext: 'Settings & Theme',
-        keywords: ['app settings', 'settings', 'dark mode', 'theme', 'language'],
-        icon: Icons.settings_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const AppSettingsScreen())),
-      ),
-      (
-        title: 'Feedback',
-        subtext: 'Feedback Form',
-        keywords: ['feedback', 'feedback form', 'suggest', 'report issue'],
-        icon: Icons.feedback_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const FeedbackFormScreen())),
-      ),
-      (
-        title: 'Help & Support',
-        subtext: 'Support & Helpline',
-        keywords: ['help & support', 'help and support', 'support', 'help', 'helpline', 'contact'],
-        icon: Icons.help_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const HelpSupportScreen())),
-      ),
-      (
-        title: 'About App',
-        subtext: 'App Info',
-        keywords: ['about app', 'about', 'about khakhi diary', 'tensei tech'],
-        icon: Icons.info_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const AboutAppScreen())),
-      ),
-      (
-        title: 'Dashboard access grants',
-        subtext: 'Grants',
-        keywords: ['dashboard access grants', 'access grants', 'station grants', 'grants'],
-        icon: Icons.dashboard_customize_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const StationAccessGrantsScreen())),
-      ),
-      (
-        title: 'Profile',
-        subtext: 'Officer Profile',
-        keywords: ['profile', 'my profile', 'user profile', 'officer profile'],
-        icon: Icons.account_circle_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const ProfileScreen())),
-      ),
-    ];
+    final shortcuts =
+        <
+          ({
+            String title,
+            String subtext,
+            List<String> keywords,
+            IconData icon,
+            VoidCallback onTap,
+          })
+        >[
+          (
+            title: 'Total Cases',
+            subtext: 'Station Cases (All)',
+            keywords: [
+              'total cases',
+              'total case',
+              'all cases',
+              'all case',
+              'total',
+              'station cases',
+            ],
+            icon: Icons.folder_open_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const MyCasesScreen(initialTab: MyCasesTab.total),
+              ),
+            ),
+          ),
+          (
+            title: 'Pending Cases',
+            subtext: 'Pending Investigation',
+            keywords: [
+              'pending cases',
+              'pending case',
+              'pending investigation',
+            ],
+            icon: Icons.hourglass_top_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const MyCasesScreen(initialTab: MyCasesTab.pending),
+              ),
+            ),
+          ),
+          (
+            title: 'Disposal Cases',
+            subtext: 'Resolved / Disposed',
+            keywords: [
+              'disposal cases',
+              'disposal case',
+              'disposed cases',
+              'disposal',
+              'disposed',
+              'closed cases',
+            ],
+            icon: Icons.task_alt_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const MyCasesScreen(initialTab: MyCasesTab.disposal),
+              ),
+            ),
+          ),
+          (
+            title: 'Pending PI Transfers',
+            subtext: 'Transfers',
+            keywords: [
+              'pending pi transfers',
+              'pending transfers',
+              'transfer',
+              'transfers',
+              'pi transfer',
+            ],
+            icon: Icons.pending_actions_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const PendingTransfersScreen()),
+            ),
+          ),
+          (
+            title: 'Assign Officer',
+            subtext: 'Team & IO',
+            keywords: [
+              'assign officer',
+              'assign',
+              'officer assignment',
+              'add members',
+            ],
+            icon: Icons.person_add_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const AssignOfficerScreen()),
+            ),
+          ),
+          (
+            title: 'My Cases',
+            subtext: 'Station Cases',
+            keywords: [
+              'my cases',
+              'assigned cases',
+              'station cases',
+              'cases tab',
+            ],
+            icon: Icons.folder_shared_outlined,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const MyCasesScreen()),
+            ),
+          ),
+          (
+            title: 'Login & Security',
+            subtext: 'Security & PIN',
+            keywords: [
+              'login & security',
+              'login and security',
+              'security',
+              'password',
+              'change password',
+              'pin',
+              'login',
+            ],
+            icon: Icons.lock_person_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const LoginSecurityScreen()),
+            ),
+          ),
+          (
+            title: 'App Settings',
+            subtext: 'Settings & Theme',
+            keywords: [
+              'app settings',
+              'settings',
+              'dark mode',
+              'theme',
+              'language',
+            ],
+            icon: Icons.settings_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const AppSettingsScreen()),
+            ),
+          ),
+          (
+            title: 'Feedback',
+            subtext: 'Feedback Form',
+            keywords: ['feedback', 'feedback form', 'suggest', 'report issue'],
+            icon: Icons.feedback_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const FeedbackFormScreen()),
+            ),
+          ),
+          (
+            title: 'Help & Support',
+            subtext: 'Support & Helpline',
+            keywords: [
+              'help & support',
+              'help and support',
+              'support',
+              'help',
+              'helpline',
+              'contact',
+            ],
+            icon: Icons.help_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const HelpSupportScreen()),
+            ),
+          ),
+          (
+            title: 'About App',
+            subtext: 'App Info',
+            keywords: [
+              'about app',
+              'about',
+              'about khakhi diary',
+              'tensei tech',
+            ],
+            icon: Icons.info_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const AboutAppScreen()),
+            ),
+          ),
+          (
+            title: 'Dashboard access grants',
+            subtext: 'Grants',
+            keywords: [
+              'dashboard access grants',
+              'access grants',
+              'station grants',
+              'grants',
+            ],
+            icon: Icons.dashboard_customize_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const StationAccessGrantsScreen()),
+            ),
+          ),
+          (
+            title: 'Profile',
+            subtext: 'Officer Profile',
+            keywords: [
+              'profile',
+              'my profile',
+              'user profile',
+              'officer profile',
+            ],
+            icon: Icons.account_circle_rounded,
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: const ProfileScreen()),
+            ),
+          ),
+        ];
 
-    return shortcuts.where((s) {
-      final t = s.title.toLowerCase();
-      final sub = s.subtext.toLowerCase();
-      final hasKeyword = s.keywords.any((k) => k.contains(cleanQ) || cleanQ.contains(k));
-      return t.contains(cleanQ) || sub.contains(cleanQ) || cleanQ.contains(t) || cleanQ.contains(sub) || hasKeyword;
-    }).map((s) => (title: s.title, subtext: s.subtext, icon: s.icon, onTap: s.onTap)).toList();
+    return shortcuts
+        .where((s) {
+          final t = s.title.toLowerCase();
+          final sub = s.subtext.toLowerCase();
+          final hasKeyword = s.keywords.any(
+            (k) => k.contains(cleanQ) || cleanQ.contains(k),
+          );
+          return t.contains(cleanQ) ||
+              sub.contains(cleanQ) ||
+              cleanQ.contains(t) ||
+              cleanQ.contains(sub) ||
+              hasKeyword;
+        })
+        .map(
+          (s) => (
+            title: s.title,
+            subtext: s.subtext,
+            icon: s.icon,
+            onTap: s.onTap,
+          ),
+        )
+        .toList();
   }
 
   int _matchingModulesCount(String query) {
     if (query.trim().isEmpty) return 0;
     final q = query.trim().toLowerCase();
-    final matchingFormIV = kFormIVCaseCategories.where((cat) => cat.toLowerCase().contains(q)).length;
+    final matchingFormIV = kFormIVCaseCategories
+        .where((cat) => cat.toLowerCase().contains(q))
+        .length;
     final allClasses = [...Classification.all, ..._extraSearchClassifications];
-    final matchingClass = allClasses.where((c) => c.name.replaceAll('\n', ' ').toLowerCase().contains(q)).length;
+    final matchingClass = allClasses
+        .where((c) => c.name.replaceAll('\n', ' ').toLowerCase().contains(q))
+        .length;
     final matchingMenu = _matchingMenuShortcuts(q).length;
     return matchingFormIV + matchingClass + matchingMenu;
   }
@@ -3300,7 +3770,9 @@ class _HomeTabState extends State<_HomeTab> {
 
     final matchingMenus = _matchingMenuShortcuts(q);
 
-    if (matchingFormIV.isEmpty && matchingClassifications.isEmpty && matchingMenus.isEmpty) {
+    if (matchingFormIV.isEmpty &&
+        matchingClassifications.isEmpty &&
+        matchingMenus.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -3310,7 +3782,10 @@ class _HomeTabState extends State<_HomeTab> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.4), width: 1.2),
+        border: Border.all(
+          color: AppColors.goldPrimary.withValues(alpha: 0.4),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.06),
@@ -3330,7 +3805,11 @@ class _HomeTabState extends State<_HomeTab> {
                   color: AppColors.goldPrimary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.flash_on_rounded, size: 16, color: AppColors.goldDark),
+                child: const Icon(
+                  Icons.flash_on_rounded,
+                  size: 16,
+                  color: AppColors.goldDark,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
@@ -3364,7 +3843,10 @@ class _HomeTabState extends State<_HomeTab> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     onTap: menu.onTap,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
@@ -3374,7 +3856,9 @@ class _HomeTabState extends State<_HomeTab> {
                         borderRadius: BorderRadius.circular(AppRadius.md),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1E3C72).withValues(alpha: 0.25),
+                            color: const Color(
+                              0xFF1E3C72,
+                            ).withValues(alpha: 0.25),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -3395,9 +3879,14 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppColors.goldPrimary.withValues(alpha: 0.35),
+                              color: AppColors.goldPrimary.withValues(
+                                alpha: 0.35,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -3430,7 +3919,10 @@ class _HomeTabState extends State<_HomeTab> {
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF2193B0), Color(0xFF6DD5ED)],
@@ -3440,7 +3932,9 @@ class _HomeTabState extends State<_HomeTab> {
                         borderRadius: BorderRadius.circular(AppRadius.md),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF2193B0).withValues(alpha: 0.25),
+                            color: const Color(
+                              0xFF2193B0,
+                            ).withValues(alpha: 0.25),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -3449,7 +3943,11 @@ class _HomeTabState extends State<_HomeTab> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.article_rounded, color: Colors.white, size: 16),
+                          const Icon(
+                            Icons.article_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             cat,
@@ -3461,7 +3959,10 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.25),
                               borderRadius: BorderRadius.circular(4),
@@ -3487,7 +3988,10 @@ class _HomeTabState extends State<_HomeTab> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     onTap: () => _openClassificationItem(context, item),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.navyDark,
                         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -3561,6 +4065,25 @@ class _HomeTabState extends State<_HomeTab> {
     }
   }
 
+  void _showFilterSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _FilterSheet(
+        isDark: widget.isDark,
+        filters: _searchFilters,
+        onApply: (f) {
+          setState(() {
+            _searchFilters = f;
+            _invalidateSearchCache();
+          });
+          if (_searchQuery.isNotEmpty) _onSearchChanged(_searchCtrl.text);
+        },
+      ),
+    );
+  }
+
   Widget _buildSearchResults(List<SearchResult> searchResults) {
     final grouped = UniversalSearch.groupByModule(searchResults);
     return Column(
@@ -3571,15 +4094,21 @@ class _HomeTabState extends State<_HomeTab> {
           child: Row(
             children: [
               Text(
-                  '${searchResults.length} result${searchResults.length == 1 ? '' : 's'}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark)),
+                '${searchResults.length} result${searchResults.length == 1 ? '' : 's'}',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark,
+                ),
+              ),
               const SizedBox(width: 6),
-              Text('for "$_searchQuery"',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12, color: AppColors.lightSubText)),
+              Text(
+                'for "$_searchQuery"',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: AppColors.lightSubText,
+                ),
+              ),
             ],
           ),
         ),
@@ -3601,12 +4130,19 @@ class _HomeTabState extends State<_HomeTab> {
     return Center(
       child: Column(
         children: [
-          const Icon(Icons.search_off_rounded,
-              size: 48, color: AppColors.lightSubText),
+          const Icon(
+            Icons.search_off_rounded,
+            size: 48,
+            color: AppColors.lightSubText,
+          ),
           const SizedBox(height: 8),
-          Text('No results found for "$_searchQuery"',
-              style: GoogleFonts.poppins(
-                  fontSize: 13, color: AppColors.lightSubText)),
+          Text(
+            'No results found for "$_searchQuery"',
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppColors.lightSubText,
+            ),
+          ),
         ],
       ),
     );
@@ -3712,8 +4248,12 @@ class _HomeTabState extends State<_HomeTab> {
     ];
     final List<List<Classification>> groups = [];
     for (int i = 0; i < displayItems.length; i += itemsPerGroup) {
-      groups.add(displayItems.sublist(
-          i, (i + itemsPerGroup).clamp(0, displayItems.length)));
+      groups.add(
+        displayItems.sublist(
+          i,
+          (i + itemsPerGroup).clamp(0, displayItems.length),
+        ),
+      );
     }
 
     return Column(
@@ -3757,9 +4297,10 @@ class _HomeTabState extends State<_HomeTab> {
                     if (!isLast) ...[
                       const SizedBox(height: 10),
                       const Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: AppColors.lightBorder),
+                        height: 1,
+                        thickness: 1,
+                        color: AppColors.lightBorder,
+                      ),
                       const SizedBox(height: 10),
                     ],
                   ],
@@ -3778,9 +4319,7 @@ class _HomeTabState extends State<_HomeTab> {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: const FormIVSelectionScreen(
-            mode: FormIVSelectionMode.browse,
-          ),
+          page: const FormIVSelectionScreen(mode: FormIVSelectionMode.browse),
         ),
       );
     } else if (item.name == 'Forms') {
@@ -3808,15 +4347,13 @@ class _HomeTabState extends State<_HomeTab> {
     } else if (item.moduleKey == 'service_tool') {
       Navigator.push(
         context,
-        AppTheme.fadeSlideRoute(
-          page: CaseFormScreen(categoryName: label),
-        ),
+        AppTheme.fadeSlideRoute(page: CaseFormScreen(categoryName: label)),
       );
     } else {
       final isStatsItem = [
         'Monthly',
         'Pending',
-        'Disposal'
+        'Disposal',
       ].contains(item.name);
       Navigator.push(
         context,
@@ -3832,7 +4369,9 @@ class _HomeTabState extends State<_HomeTab> {
   }
 
   Widget _buildClassificationGridItem(
-      BuildContext context, Classification item) {
+    BuildContext context,
+    Classification item,
+  ) {
     final label = item.name.replaceAll('\n', ' ');
     ServiceData? matchedTool;
     for (final t in ServiceData.dashboardTools) {
@@ -3855,10 +4394,11 @@ class _HomeTabState extends State<_HomeTab> {
               ),
               child: Center(
                 child: _buildGridIcon(
-                    item.name,
-                    matchedTool?.icon ?? _classIcon(item.iconName),
-                    AppColors.navyMid,
-                    24),
+                  item.name,
+                  matchedTool?.icon ?? _classIcon(item.iconName),
+                  AppColors.navyMid,
+                  24,
+                ),
               ),
             ),
           ),
@@ -3868,18 +4408,22 @@ class _HomeTabState extends State<_HomeTab> {
             textAlign: TextAlign.center,
             maxLines: 2,
             style: GoogleFonts.poppins(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w500,
-                height: 1.2,
-                color: AppColors.lightText),
+              fontSize: 9.5,
+              fontWeight: FontWeight.w500,
+              height: 1.2,
+              color: AppColors.lightText,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _sectionHeader(String title, String subtitle,
-      {VoidCallback? onViewAll}) {
+  Widget _sectionHeader(
+    String title,
+    String subtitle, {
+    VoidCallback? onViewAll,
+  }) {
     return GestureDetector(
       onTap: onViewAll,
       child: Row(
@@ -3887,20 +4431,30 @@ class _HomeTabState extends State<_HomeTab> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title,
-                  style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark)),
-              Text(subtitle,
-                  style: GoogleFonts.poppins(
-                      fontSize: 11, color: AppColors.lightSubText)),
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: AppColors.lightSubText,
+                ),
+              ),
             ],
           ),
           const Spacer(),
           if (onViewAll != null)
-            const Icon(Icons.arrow_forward_ios_rounded,
-                size: 18, color: AppColors.navyMid),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 18,
+              color: AppColors.navyMid,
+            ),
         ],
       ),
     );
@@ -3912,8 +4466,9 @@ class _HomeTabState extends State<_HomeTab> {
     final rawStatus = c['status'] as String? ?? '';
     final badgeLabel = _statusBadgeLabel(rawStatus);
     final badgeColor = _statusBadgeColor(badgeLabel);
-    final moduleLabel =
-        record != null ? _moduleDisplayLabel(record) : (c['type'] as String? ?? '');
+    final moduleLabel = record != null
+        ? _moduleDisplayLabel(record)
+        : (c['type'] as String? ?? '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -3932,13 +4487,15 @@ class _HomeTabState extends State<_HomeTab> {
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border(
-            left: BorderSide(color: badgeColor, width: 4),
-          ),
+          border: Border(left: BorderSide(color: badgeColor, width: 4)),
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, AppSpacing.md, AppSpacing.sm, AppSpacing.md),
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+          ),
           child: Row(
             children: [
               Expanded(
@@ -3948,8 +4505,11 @@ class _HomeTabState extends State<_HomeTab> {
                       Navigator.push(
                         context,
                         AppTheme.fadeSlideRoute(
-                            page: CaseDetailScreen(
-                                caseData: record, showFloatingActions: false)),
+                          page: CaseDetailScreen(
+                            caseData: record,
+                            showFloatingActions: false,
+                          ),
+                        ),
                       );
                     }
                   },
@@ -3963,10 +4523,14 @@ class _HomeTabState extends State<_HomeTab> {
                           color: iconColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(AppRadius.md),
                           border: Border.all(
-                              color: iconColor.withValues(alpha: 0.2)),
+                            color: iconColor.withValues(alpha: 0.2),
+                          ),
                         ),
-                        child: Icon(c['icon'] as IconData,
-                            color: iconColor, size: 22),
+                        child: Icon(
+                          c['icon'] as IconData,
+                          color: iconColor,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -3977,12 +4541,16 @@ class _HomeTabState extends State<_HomeTab> {
                               Container(
                                 margin: const EdgeInsets.only(bottom: 4),
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.navyMid
-                                      .withValues(alpha: 0.08),
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm),
+                                  color: AppColors.navyMid.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.sm,
+                                  ),
                                 ),
                                 child: Text(
                                   moduleLabel.toUpperCase(),
@@ -3996,30 +4564,39 @@ class _HomeTabState extends State<_HomeTab> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            Text(c['title'] as String,
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.navyDark),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis),
+                            Text(
+                              c['title'] as String,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyDark,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             const SizedBox(height: 3),
-                            Text('${c['id']} • ${c['date']}',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    color: AppColors.lightSubText)),
+                            Text(
+                              '${c['id']} • ${c['date']}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: AppColors.lightSubText,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: badgeColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(AppRadius.sm),
                           border: Border.all(
-                              color: badgeColor.withValues(alpha: 0.35)),
+                            color: badgeColor.withValues(alpha: 0.35),
+                          ),
                         ),
                         child: Text(
                           badgeLabel,
@@ -4038,9 +4615,15 @@ class _HomeTabState extends State<_HomeTab> {
                 IconButton(
                   tooltip: 'Download PDF',
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                  icon: const Icon(Icons.picture_as_pdf_outlined,
-                      color: AppColors.dangerRed, size: 22),
+                  constraints: const BoxConstraints(
+                    minWidth: 40,
+                    minHeight: 40,
+                  ),
+                  icon: const Icon(
+                    Icons.picture_as_pdf_outlined,
+                    color: AppColors.dangerRed,
+                    size: 22,
+                  ),
                   onPressed: () => runWithPdfAuthGate(
                     context,
                     () => PdfHelper.generateCasePdf(record),
@@ -4059,22 +4642,30 @@ class _HomeTabState extends State<_HomeTab> {
       width: double.infinity,
       child: Column(
         children: [
-          Icon(Icons.history_rounded,
-              size: 48,
-              color: widget.isDark
-                  ? AppColors.darkSubText.withValues(alpha: 0.3)
-                  : Colors.grey.withValues(alpha: 0.3)),
+          Icon(
+            Icons.history_rounded,
+            size: 48,
+            color: widget.isDark
+                ? AppColors.darkSubText.withValues(alpha: 0.3)
+                : Colors.grey.withValues(alpha: 0.3),
+          ),
           const SizedBox(height: 16),
-          Text('No cases registered yet',
-              style: GoogleFonts.poppins(
-                  fontSize: 14, color: AppColors.lightSubText)),
+          Text(
+            'No cases registered yet',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: AppColors.lightSubText,
+            ),
+          ),
         ],
       ),
     );
   }
 
   void _showTop10CasesModal(
-      BuildContext context, List<Map<String, dynamic>> top10) {
+    BuildContext context,
+    List<Map<String, dynamic>> top10,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -4100,14 +4691,19 @@ class _HomeTabState extends State<_HomeTab> {
               padding: const EdgeInsets.all(24),
               child: Row(
                 children: [
-                  const Icon(Icons.history_rounded,
-                      color: AppColors.goldPrimary),
+                  const Icon(
+                    Icons.history_rounded,
+                    color: AppColors.goldPrimary,
+                  ),
                   const SizedBox(width: 12),
-                  Text('Top 10 Recent Cases',
-                      style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navyDark)),
+                  Text(
+                    'Top 10 Recent Cases',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -4159,14 +4755,19 @@ class _HomeTabState extends State<_HomeTab> {
               padding: const EdgeInsets.all(24),
               child: Row(
                 children: [
-                  const Icon(Icons.description_rounded,
-                      color: AppColors.goldPrimary),
+                  const Icon(
+                    Icons.description_rounded,
+                    color: AppColors.goldPrimary,
+                  ),
                   const SizedBox(width: 12),
-                  Text('Form I-V Cases',
-                      style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navyDark)),
+                  Text(
+                    'Form I-V Cases',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -4223,35 +4824,35 @@ class _WantedTab extends StatelessWidget {
       'id': 'WNT/2024/001',
       'crime': 'Robbery & Assault',
       'reward': '₹50,000',
-      'dangerous': true
+      'dangerous': true,
     },
     {
       'name': 'Mohan Singh',
       'id': 'WNT/2024/002',
       'crime': 'Sand Theft',
       'reward': '₹25,000',
-      'dangerous': false
+      'dangerous': false,
     },
     {
       'name': 'Priya Das',
       'id': 'WNT/2024/003',
       'crime': 'Fraud & Cheating',
       'reward': '₹30,000',
-      'dangerous': false
+      'dangerous': false,
     },
     {
       'name': 'Abdul Hamid',
       'id': 'WNT/2024/004',
       'crime': 'Kidnapping',
       'reward': '₹1,00,000',
-      'dangerous': true
+      'dangerous': true,
     },
     {
       'name': 'Sunita Devi',
       'id': 'WNT/2024/005',
       'crime': 'Missing Case Suspect',
       'reward': '₹15,000',
-      'dangerous': false
+      'dangerous': false,
     },
   ];
 
@@ -4263,36 +4864,50 @@ class _WantedTab extends StatelessWidget {
         SliverToBoxAdapter(
           child: Container(
             margin: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.sm),
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.sm,
+            ),
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.dangerRed.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(AppRadius.lg),
-              border:
-                  Border.all(color: AppColors.dangerRed.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.dangerRed.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               children: [
                 const Icon(Icons.gps_fixed_rounded, color: AppColors.dangerRed),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text('Wanted List — Active warrants issued',
-                      style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.dangerRed)),
+                  child: Text(
+                    'Wanted List — Active warrants issued',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.dangerRed,
+                    ),
+                  ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                      color: AppColors.dangerRed,
-                      borderRadius: BorderRadius.circular(AppRadius.sm)),
-                  child: Text('${_wantedPersons.length}',
-                      style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13)),
+                    color: AppColors.dangerRed,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Text(
+                    '${_wantedPersons.length}',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -4300,105 +4915,133 @@ class _WantedTab extends StatelessWidget {
         ),
         SliverPadding(
           padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.sm,
+          ),
           sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, i) {
-                final p = _wantedPersons[i];
-                final dangerous = (p['dangerous'] as bool?) ?? false;
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    border: Border.all(
-                      color: dangerous
-                          ? AppColors.dangerRed.withValues(alpha: 0.4)
-                          : AppColors.lightBorder,
-                      width: dangerous ? 1.5 : 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3)),
-                    ],
+            delegate: SliverChildBuilderDelegate((context, i) {
+              final p = _wantedPersons[i];
+              final dangerous = (p['dangerous'] as bool?) ?? false;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(
+                    color: dangerous
+                        ? AppColors.dangerRed.withValues(alpha: 0.4)
+                        : AppColors.lightBorder,
+                    width: dangerous ? 1.5 : 1,
                   ),
-                  child: Row(
-                    children: [
-                      Stack(
-                        children: [
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color:
-                                  AppColors.dangerRed.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                            ),
-                            child: const Icon(Icons.person_rounded,
-                                color: AppColors.dangerRed, size: 26),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Stack(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: AppColors.dangerRed.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
-                          if (dangerous)
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: Container(
-                                width: 16,
-                                height: 16,
-                                decoration: const BoxDecoration(
-                                    color: AppColors.dangerRed,
-                                    shape: BoxShape.circle),
-                                child: const Icon(Icons.warning_rounded,
-                                    color: Colors.white, size: 10),
+                          child: const Icon(
+                            Icons.person_rounded,
+                            color: AppColors.dangerRed,
+                            size: 26,
+                          ),
+                        ),
+                        if (dangerous)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: const BoxDecoration(
+                                color: AppColors.dangerRed,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.warning_rounded,
+                                color: Colors.white,
+                                size: 10,
                               ),
                             ),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(p['name'] as String,
-                                style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.navyDark)),
-                            Text(p['crime'] as String,
-                                style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: AppColors.lightSubText)),
-                            const SizedBox(height: 4),
-                            Row(children: [
-                              const Icon(Icons.tag,
-                                  size: 12, color: AppColors.infoBlue),
-                              Text(p['id'] as String,
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 11, color: AppColors.infoBlue)),
-                            ]),
-                          ],
-                        ),
-                      ),
-                      Column(
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(p['reward'] as String,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.successGreen)),
-                          Text('Reward',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 10, color: AppColors.lightSubText)),
+                          Text(
+                            p['name'] as String,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyDark,
+                            ),
+                          ),
+                          Text(
+                            p['crime'] as String,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: AppColors.lightSubText,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.tag,
+                                size: 12,
+                                color: AppColors.infoBlue,
+                              ),
+                              Text(
+                                p['id'] as String,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: AppColors.infoBlue,
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                );
-              },
-              childCount: _wantedPersons.length,
-            ),
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          p['reward'] as String,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.successGreen,
+                          ),
+                        ),
+                        Text(
+                          'Reward',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            color: AppColors.lightSubText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }, childCount: _wantedPersons.length),
           ),
         ),
       ],
@@ -4434,9 +5077,13 @@ class _ViewTabState extends State<_ViewTab> {
   }
 
   Stream<List<ModuleRecord>> _getStream(
-      AuthProvider auth, CaseVisibilityMode mode) {
+    AuthProvider auth,
+    CaseVisibilityMode mode,
+  ) {
     if (_selectedTabIndex == 1) {
-      return _firestore.getPendingCasesStream(auth.activeStation).map(
+      return _firestore
+          .getPendingCasesStream(auth.activeStation)
+          .map(
             (records) => CaseVisibility.filterRecords(
               records,
               uid: auth.uid,
@@ -4445,7 +5092,9 @@ class _ViewTabState extends State<_ViewTab> {
             ),
           );
     } else if (_selectedTabIndex == 2) {
-      return _firestore.getDisposalCasesStream(auth.activeStation).map(
+      return _firestore
+          .getDisposalCasesStream(auth.activeStation)
+          .map(
             (records) => CaseVisibility.filterRecords(
               records,
               uid: auth.uid,
@@ -4454,7 +5103,9 @@ class _ViewTabState extends State<_ViewTab> {
             ),
           );
     }
-    return _firestore.getStationCasesStream(auth.activeStation).map(
+    return _firestore
+        .getStationCasesStream(auth.activeStation)
+        .map(
           (records) => CaseVisibility.filterRecords(
             records,
             uid: auth.uid,
@@ -4490,7 +5141,7 @@ class _ViewTabState extends State<_ViewTab> {
         final filtered = _filterRecords(allRecords);
         final isLoading =
             snapshot.connectionState == ConnectionState.waiting &&
-                !snapshot.hasData;
+            !snapshot.hasData;
 
         return CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -4500,7 +5151,9 @@ class _ViewTabState extends State<_ViewTab> {
               child: Container(
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(
-                    vertical: 10, horizontal: AppSpacing.md),
+                  vertical: 10,
+                  horizontal: AppSpacing.md,
+                ),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 820),
@@ -4524,14 +5177,16 @@ class _ViewTabState extends State<_ViewTab> {
                               borderRadius: BorderRadius.circular(AppRadius.sm),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 9),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 9,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? AppColors.navyDark
                                       : Colors.transparent,
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.sm,
+                                  ),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
@@ -4551,8 +5206,9 @@ class _ViewTabState extends State<_ViewTab> {
                                       size: 16,
                                       color: isSelected
                                           ? Colors.white
-                                          : AppColors.navyDark
-                                              .withValues(alpha: 0.7),
+                                          : AppColors.navyDark.withValues(
+                                              alpha: 0.7,
+                                            ),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
@@ -4564,8 +5220,9 @@ class _ViewTabState extends State<_ViewTab> {
                                             : FontWeight.w500,
                                         color: isSelected
                                             ? Colors.white
-                                            : AppColors.navyDark
-                                                .withValues(alpha: 0.8),
+                                            : AppColors.navyDark.withValues(
+                                                alpha: 0.8,
+                                              ),
                                       ),
                                     ),
                                   ],
@@ -4589,7 +5246,11 @@ class _ViewTabState extends State<_ViewTab> {
                   constraints: const BoxConstraints(maxWidth: 820),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md, AppSpacing.md, AppSpacing.md, 8),
+                      AppSpacing.md,
+                      AppSpacing.md,
+                      AppSpacing.md,
+                      8,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -4597,7 +5258,9 @@ class _ViewTabState extends State<_ViewTab> {
                           controller: _searchCtrl,
                           onChanged: (v) => setState(() => _query = v),
                           style: GoogleFonts.poppins(
-                              fontSize: 13.5, color: AppColors.navyDark),
+                            fontSize: 13.5,
+                            color: AppColors.navyDark,
+                          ),
                           decoration: InputDecoration(
                             hintText:
                                 'Search by FIR, title, location, category…',
@@ -4605,38 +5268,49 @@ class _ViewTabState extends State<_ViewTab> {
                               fontSize: 12.5,
                               color: AppColors.lightSubText,
                             ),
-                            prefixIcon: const Icon(Icons.search_rounded,
-                                color: AppColors.navyMid, size: 20),
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              color: AppColors.navyMid,
+                              size: 20,
+                            ),
                             suffixIcon: _searchCtrl.text.isNotEmpty
                                 ? IconButton(
                                     onPressed: () {
                                       _searchCtrl.clear();
                                       setState(() => _query = '');
                                     },
-                                    icon: const Icon(Icons.close_rounded,
-                                        color: AppColors.lightSubText,
-                                        size: 18),
+                                    icon: const Icon(
+                                      Icons.close_rounded,
+                                      color: AppColors.lightSubText,
+                                      size: 18,
+                                    ),
                                   )
                                 : null,
                             filled: true,
                             fillColor: Colors.white,
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 11),
+                              horizontal: 14,
+                              vertical: 11,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: const BorderSide(
-                                  color: AppColors.lightBorder),
+                                color: AppColors.lightBorder,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: const BorderSide(
-                                  color: AppColors.lightBorder),
+                                color: AppColors.lightBorder,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: const BorderSide(
-                                  color: AppColors.navyMid, width: 1.5),
+                                color: AppColors.navyMid,
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
@@ -4735,17 +5409,20 @@ class _ViewTabState extends State<_ViewTab> {
                         itemCount: filtered.length,
                         itemBuilder: (context, i) {
                           final c = filtered[i];
-                          final isDisposed = c.status.toLowerCase() == 'closed' ||
+                          final isDisposed =
+                              c.status.toLowerCase() == 'closed' ||
                               c.status.toLowerCase() == 'disposal' ||
                               c.status.toLowerCase() == 'resolved' ||
                               c.status.toLowerCase() == 'disposed';
-                          final displayStatus =
-                              isDisposed ? 'Disposal' : 'Pending';
-                          final accentColor = _selectedTabIndex == 2 || isDisposed
+                          final displayStatus = isDisposed
+                              ? 'Disposal'
+                              : 'Pending';
+                          final accentColor =
+                              _selectedTabIndex == 2 || isDisposed
                               ? AppColors.successGreen
                               : _selectedTabIndex == 1
-                                  ? AppColors.warningOrange
-                                  : AppColors.infoBlue;
+                              ? AppColors.warningOrange
+                              : AppColors.infoBlue;
                           final statusColor = isDisposed
                               ? AppColors.successGreen
                               : AppColors.warningOrange;
@@ -4774,8 +5451,9 @@ class _ViewTabState extends State<_ViewTab> {
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.md,
+                                ),
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -4797,8 +5475,10 @@ class _ViewTabState extends State<_ViewTab> {
                                           color: accentColor,
                                           borderRadius:
                                               const BorderRadius.horizontal(
-                                            left: Radius.circular(AppRadius.md),
-                                          ),
+                                                left: Radius.circular(
+                                                  AppRadius.md,
+                                                ),
+                                              ),
                                         ),
                                       ),
                                       Expanded(
@@ -4814,42 +5494,47 @@ class _ViewTabState extends State<_ViewTab> {
                                                   Container(
                                                     padding:
                                                         const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 3,
-                                                    ),
+                                                          horizontal: 8,
+                                                          vertical: 3,
+                                                        ),
                                                     decoration: BoxDecoration(
                                                       color: AppColors.navyMid
                                                           .withValues(
-                                                              alpha: 0.08),
+                                                            alpha: 0.08,
+                                                          ),
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              AppRadius.sm),
+                                                            AppRadius.sm,
+                                                          ),
                                                     ),
                                                     child: Text(
                                                       firLabel,
-                                                      style: GoogleFonts.poppins(
-                                                        fontSize: 11,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: AppColors
-                                                            .navyDark,
-                                                      ),
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color: AppColors
+                                                                .navyDark,
+                                                          ),
                                                     ),
                                                   ),
                                                   const Spacer(),
                                                   Container(
                                                     padding:
                                                         const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 3,
-                                                    ),
+                                                          horizontal: 8,
+                                                          vertical: 3,
+                                                        ),
                                                     decoration: BoxDecoration(
                                                       color: statusColor
                                                           .withValues(
-                                                              alpha: 0.12),
+                                                            alpha: 0.12,
+                                                          ),
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              AppRadius.full),
+                                                            AppRadius.full,
+                                                          ),
                                                     ),
                                                     child: Row(
                                                       mainAxisSize:
@@ -4860,21 +5545,26 @@ class _ViewTabState extends State<_ViewTab> {
                                                           height: 6,
                                                           decoration:
                                                               BoxDecoration(
-                                                            color: statusColor,
-                                                            shape:
-                                                                BoxShape.circle,
-                                                          ),
+                                                                color:
+                                                                    statusColor,
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                              ),
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
                                                         Text(
                                                           displayStatus,
-                                                          style: GoogleFonts
-                                                              .poppins(
-                                                            fontSize: 10.5,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            color: statusColor,
-                                                          ),
+                                                          style:
+                                                              GoogleFonts.poppins(
+                                                                fontSize: 10.5,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color:
+                                                                    statusColor,
+                                                              ),
                                                         ),
                                                       ],
                                                     ),
@@ -4898,9 +5588,9 @@ class _ViewTabState extends State<_ViewTab> {
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                  horizontal: 6,
-                                                  vertical: 2,
-                                                ),
+                                                      horizontal: 6,
+                                                      vertical: 2,
+                                                    ),
                                                 decoration: BoxDecoration(
                                                   color: AppColors.goldPrimary
                                                       .withValues(alpha: 0.12),
@@ -4936,15 +5626,17 @@ class _ViewTabState extends State<_ViewTab> {
                                                       ),
                                                       const SizedBox(width: 4),
                                                       Text(
-                                                        DateFormat('dd MMM yyyy')
-                                                            .format(
-                                                                c.incidentDate),
+                                                        DateFormat(
+                                                          'dd MMM yyyy',
+                                                        ).format(
+                                                          c.incidentDate,
+                                                        ),
                                                         style:
                                                             GoogleFonts.poppins(
-                                                          fontSize: 11,
-                                                          color: AppColors
-                                                              .lightSubText,
-                                                        ),
+                                                              fontSize: 11,
+                                                              color: AppColors
+                                                                  .lightSubText,
+                                                            ),
                                                       ),
                                                     ],
                                                   ),
@@ -4960,19 +5652,22 @@ class _ViewTabState extends State<_ViewTab> {
                                                           color: AppColors
                                                               .lightSubText,
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
                                                         Text(
                                                           c.location,
-                                                          style: GoogleFonts
-                                                              .poppins(
-                                                            fontSize: 11,
-                                                            color: AppColors
-                                                                .lightSubText,
-                                                          ),
+                                                          style:
+                                                              GoogleFonts.poppins(
+                                                                fontSize: 11,
+                                                                color: AppColors
+                                                                    .lightSubText,
+                                                              ),
                                                         ),
                                                       ],
                                                     ),
-                                                  if (c.assignedOfficer
+                                                  if (c
+                                                      .assignedOfficer
                                                       .isNotEmpty)
                                                     Row(
                                                       mainAxisSize:
@@ -4984,15 +5679,17 @@ class _ViewTabState extends State<_ViewTab> {
                                                           color: AppColors
                                                               .lightSubText,
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
                                                         Text(
                                                           c.assignedOfficer,
-                                                          style: GoogleFonts
-                                                              .poppins(
-                                                            fontSize: 11,
-                                                            color: AppColors
-                                                                .lightSubText,
-                                                          ),
+                                                          style:
+                                                              GoogleFonts.poppins(
+                                                                fontSize: 11,
+                                                                color: AppColors
+                                                                    .lightSubText,
+                                                              ),
                                                         ),
                                                       ],
                                                     ),
@@ -5001,94 +5698,103 @@ class _ViewTabState extends State<_ViewTab> {
                                               const Divider(height: 20),
 
                                               // Actions Row: Edit (Guarded), Reminder (Senior Only), PDF, View
-                                              Builder(builder: (ctx) {
-                                                final canEdit =
-                                                    PoliceRbacHelper
-                                                        .canEditRecord(c, auth);
-                                                final canSendReminder =
-                                                    PoliceRbacHelper
-                                                        .canSendReminder(auth);
+                                              Builder(
+                                                builder: (ctx) {
+                                                  final canEdit =
+                                                      PoliceRbacHelper.canEditRecord(
+                                                        c,
+                                                        auth,
+                                                      );
+                                                  final canSendReminder =
+                                                      PoliceRbacHelper.canSendReminder(
+                                                        auth,
+                                                      );
 
-                                                return Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceAround,
-                                                  children: [
-                                                    if (canEdit)
+                                                  return Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceAround,
+                                                    children: [
+                                                      if (canEdit)
+                                                        _buildCardAction(
+                                                          icon: Icons
+                                                              .edit_note_rounded,
+                                                          label: 'Edit',
+                                                          color: AppColors
+                                                              .infoBlue,
+                                                          onTap: () {
+                                                            Navigator.push(
+                                                              context,
+                                                              AppTheme.fadeSlideRoute(
+                                                                page: CommonFormScreen(
+                                                                  moduleKey: c
+                                                                      .moduleKey,
+                                                                  moduleLabel: c
+                                                                      .firestoreCategoryDisplayName,
+                                                                  existingRecord:
+                                                                      c,
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      if (canSendReminder)
+                                                        _buildCardAction(
+                                                          icon: Icons
+                                                              .notifications_active_outlined,
+                                                          label: 'Reminder',
+                                                          color: AppColors
+                                                              .warningOrange,
+                                                          onTap: () {
+                                                            SendReminderDialog.show(
+                                                              context,
+                                                              c,
+                                                            );
+                                                          },
+                                                        ),
                                                       _buildCardAction(
                                                         icon: Icons
-                                                            .edit_note_rounded,
-                                                        label: 'Edit',
+                                                            .picture_as_pdf_rounded,
+                                                        label: 'PDF',
                                                         color:
-                                                            AppColors.infoBlue,
+                                                            AppColors.dangerRed,
+                                                        onTap: () {
+                                                          runWithPdfAuthGate(
+                                                            context,
+                                                            () =>
+                                                                ModulePdfHelper.generatePdf(
+                                                                  c,
+                                                                ),
+                                                          );
+                                                        },
+                                                      ),
+                                                      _buildCardAction(
+                                                        icon: Icons
+                                                            .visibility_rounded,
+                                                        label: 'View',
+                                                        color: AppColors
+                                                            .goldPrimary,
                                                         onTap: () {
                                                           Navigator.push(
                                                             context,
-                                                            AppTheme
-                                                                .fadeSlideRoute(
+                                                            AppTheme.fadeSlideRoute(
                                                               page:
-                                                                  CommonFormScreen(
-                                                                moduleKey:
-                                                                    c.moduleKey,
-                                                                moduleLabel: c
-                                                                    .firestoreCategoryDisplayName,
-                                                                existingRecord:
-                                                                    c,
-                                                             ),
+                                                                  c.moduleKey ==
+                                                                      'ad'
+                                                                  ? AdRecordDetailScreen(
+                                                                      record: c,
+                                                                    )
+                                                                  : ModuleRecordDetailScreen(
+                                                                      record: c,
+                                                                    ),
                                                             ),
                                                           );
                                                         },
                                                       ),
-                                                    if (canSendReminder)
-                                                      _buildCardAction(
-                                                        icon: Icons
-                                                            .notifications_active_outlined,
-                                                        label: 'Reminder',
-                                                        color: AppColors
-                                                            .warningOrange,
-                                                        onTap: () {
-                                                          SendReminderDialog
-                                                              .show(context, c);
-                                                        },
-                                                      ),
-                                                    _buildCardAction(
-                                                      icon: Icons
-                                                          .picture_as_pdf_rounded,
-                                                      label: 'PDF',
-                                                      color:
-                                                          AppColors.dangerRed,
-                                                      onTap: () {
-                                                        runWithPdfAuthGate(
-                                                          context,
-                                                          () => ModulePdfHelper
-                                                              .generatePdf(c),
-                                                        );
-                                                      },
-                                                    ),
-                                                    _buildCardAction(
-                                                      icon: Icons
-                                                          .visibility_rounded,
-                                                      label: 'View',
-                                                      color:
-                                                          AppColors.goldPrimary,
-                                                      onTap: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          AppTheme
-                                                            .fadeSlideRoute(
-                                                            page: c.moduleKey ==
-                                                                    'ad'
-                                                                ? AdRecordDetailScreen(
-                                                                    record: c)
-                                                                : ModuleRecordDetailScreen(
-                                                                    record: c),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                  ],
-                                                );
-                                              }),
+                                                    ],
+                                                  );
+                                                },
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -5347,7 +6053,11 @@ class _CalendarTabState extends State<_CalendarTab> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 8),
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            8,
+          ),
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -5382,12 +6092,14 @@ class _CalendarTabState extends State<_CalendarTab> {
       'September',
       'October',
       'November',
-      'December'
+      'December',
     ];
 
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: 8,
+      ),
       child: Row(
         children: [
           Expanded(
@@ -5402,16 +6114,23 @@ class _CalendarTabState extends State<_CalendarTab> {
                 child: DropdownButton<int>(
                   value: _selectedMonth,
                   isExpanded: true,
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.navyMid),
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: AppColors.navyMid,
+                  ),
                   items: List.generate(
-                      12,
-                      (i) => DropdownMenuItem(
-                            value: i + 1,
-                            child: Text(months[i],
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13, fontWeight: FontWeight.w600)),
-                          )),
+                    12,
+                    (i) => DropdownMenuItem(
+                      value: i + 1,
+                      child: Text(
+                        months[i],
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                   onChanged: (val) {
                     if (val != null) setState(() => _selectedMonth = val);
                   },
@@ -5430,16 +6149,23 @@ class _CalendarTabState extends State<_CalendarTab> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
                 value: _selectedYear,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.navyMid),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.navyMid,
+                ),
                 items: List.generate(
-                    5,
-                    (i) => DropdownMenuItem(
-                          value: DateTime.now().year - i,
-                          child: Text('${DateTime.now().year - i}',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600)),
-                        )),
+                  5,
+                  (i) => DropdownMenuItem(
+                    value: DateTime.now().year - i,
+                    child: Text(
+                      '${DateTime.now().year - i}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedYear = val);
                 },
@@ -5488,11 +6214,14 @@ class _CalendarTabState extends State<_CalendarTab> {
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Center(
-            child: Text(label,
-                style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    color: isActive ? Colors.white : AppColors.lightSubText)),
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                color: isActive ? Colors.white : AppColors.lightSubText,
+              ),
+            ),
           ),
         ),
       ),
@@ -5500,7 +6229,9 @@ class _CalendarTabState extends State<_CalendarTab> {
   }
 
   Widget _buildRegistrationSummary(
-      BuildContext context, _CalendarTabArea area) {
+    BuildContext context,
+    _CalendarTabArea area,
+  ) {
     final allRecords = _getConsolidatedRecords(context);
     final now = DateTime.now();
 
@@ -5509,45 +6240,41 @@ class _CalendarTabState extends State<_CalendarTab> {
     String reportTitle;
 
     if (area == _CalendarTabArea.weekly) {
-      final weekStart = DateTime(now.year, now.month, now.day)
-          .subtract(Duration(days: now.weekday - 1));
+      final weekStart = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(Duration(days: now.weekday - 1));
       final weekEnd = weekStart
           .add(const Duration(days: 7))
           .subtract(const Duration(seconds: 1));
       filtered = allRecords
-          .where((r) =>
-              (r.incidentDate.isAfter(weekStart) ||
-                  r.incidentDate.isAtSameMomentAs(weekStart)) &&
-              (r.incidentDate.isBefore(weekEnd) ||
-                  r.incidentDate.isAtSameMomentAs(weekEnd)))
+          .where(
+            (r) =>
+                (r.incidentDate.isAfter(weekStart) ||
+                    r.incidentDate.isAtSameMomentAs(weekStart)) &&
+                (r.incidentDate.isBefore(weekEnd) ||
+                    r.incidentDate.isAtSameMomentAs(weekEnd)),
+          )
           .toList();
       rangeLabel =
           '${DateFormat('dd MMM').format(weekStart)} - ${DateFormat('dd MMM').format(weekEnd)}';
       reportTitle = 'WEEKLY REGISTRATION REPORT';
     } else if (area == _CalendarTabArea.monthly) {
       filtered = allRecords
-          .where((r) =>
-              r.incidentDate.month == _selectedMonth &&
-              r.incidentDate.year == _selectedYear)
+          .where(
+            (r) =>
+                r.incidentDate.month == _selectedMonth &&
+                r.incidentDate.year == _selectedYear,
+          )
           .toList();
-      rangeLabel = '${[
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ][_selectedMonth - 1]} $_selectedYear';
+      rangeLabel =
+          '${["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][_selectedMonth - 1]} $_selectedYear';
       reportTitle = 'MONTHLY REPORT';
     } else if (area == _CalendarTabArea.yearly) {
-      filtered =
-          allRecords.where((r) => r.incidentDate.year == now.year).toList();
+      filtered = allRecords
+          .where((r) => r.incidentDate.year == now.year)
+          .toList();
       rangeLabel = '${now.year}';
       reportTitle = 'YEARLY REGISTRATION REPORT';
     } else {
@@ -5555,29 +6282,44 @@ class _CalendarTabState extends State<_CalendarTab> {
         return SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(
-                vertical: 40, horizontal: AppSpacing.lg),
+              vertical: 40,
+              horizontal: AppSpacing.lg,
+            ),
             child: Center(
               child: Column(
                 children: [
-                  Icon(Icons.date_range_rounded,
-                      size: 64, color: Colors.grey.shade300),
+                  Icon(
+                    Icons.date_range_rounded,
+                    size: 64,
+                    color: Colors.grey.shade300,
+                  ),
                   const SizedBox(height: 16),
-                  Text('Custom Report not generated yet',
-                      style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.lightSubText)),
+                  Text(
+                    'Custom Report not generated yet',
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.lightSubText,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: () => _selectCustomRange(context),
-                    icon: const Icon(Icons.date_range_rounded,
-                        size: 18, color: Colors.white),
-                    label: Text('Select Date Range',
-                        style: GoogleFonts.poppins(color: Colors.white)),
+                    icon: const Icon(
+                      Icons.date_range_rounded,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      'Select Date Range',
+                      style: GoogleFonts.poppins(color: Colors.white),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navyMid,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -5587,11 +6329,15 @@ class _CalendarTabState extends State<_CalendarTab> {
         );
       }
       filtered = allRecords
-          .where((r) =>
-              r.incidentDate.isAfter(
-                  _customRange!.start.subtract(const Duration(seconds: 1))) &&
-              r.incidentDate
-                  .isBefore(_customRange!.end.add(const Duration(days: 1))))
+          .where(
+            (r) =>
+                r.incidentDate.isAfter(
+                  _customRange!.start.subtract(const Duration(seconds: 1)),
+                ) &&
+                r.incidentDate.isBefore(
+                  _customRange!.end.add(const Duration(days: 1)),
+                ),
+          )
           .toList();
       rangeLabel =
           '${DateFormat('dd MMM yyyy').format(_customRange!.start)} - ${DateFormat('dd MMM yyyy').format(_customRange!.end)}';
@@ -5605,7 +6351,11 @@ class _CalendarTabState extends State<_CalendarTab> {
       final key = '${r.moduleKey}_${sub ?? ""}';
       if (!catMeta.containsKey(key)) {
         catMeta[key] = _CalCategoryMeta(
-            label: label, moduleKey: r.moduleKey, subCategory: sub, count: 0);
+          label: label,
+          moduleKey: r.moduleKey,
+          subCategory: sub,
+          count: 0,
+        );
       }
       catMeta[key]!.count++;
     }
@@ -5626,15 +6376,17 @@ class _CalendarTabState extends State<_CalendarTab> {
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.navyDark, AppColors.navyMid]),
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppColors.navyDark, AppColors.navyMid],
+                ),
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4)),
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
               child: Column(
@@ -5664,14 +6416,23 @@ class _CalendarTabState extends State<_CalendarTab> {
                       if (area == _CalendarTabArea.custom)
                         GestureDetector(
                           onTap: () => _selectCustomRange(context),
-                          child: Row(children: [
-                            const Icon(Icons.edit_calendar_rounded,
-                                size: 14, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text('Change Range',
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.edit_calendar_rounded,
+                                size: 14,
+                                color: Colors.white70,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Change Range',
                                 style: GoogleFonts.poppins(
-                                    fontSize: 11, color: Colors.white70)),
-                          ]),
+                                  fontSize: 11,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                     ],
                   ),
@@ -5688,14 +6449,21 @@ class _CalendarTabState extends State<_CalendarTab> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Statistics Summary',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark)),
-                      Text('${filtered.length} cases registered in total',
-                          style: GoogleFonts.poppins(
-                              fontSize: 11, color: AppColors.lightSubText)),
+                      Text(
+                        'Statistics Summary',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
+                        ),
+                      ),
+                      Text(
+                        '${filtered.length} cases registered in total',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: AppColors.lightSubText,
+                        ),
+                      ),
                     ],
                   ),
                   ElevatedButton.icon(
@@ -5709,16 +6477,24 @@ class _CalendarTabState extends State<_CalendarTab> {
                         }
                       });
                     },
-                    icon: const Icon(Icons.download_rounded,
-                        size: 16, color: Colors.white),
-                    label: Text('Summary',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11, color: Colors.white)),
+                    icon: const Icon(
+                      Icons.download_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      'Summary',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: Colors.white,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navyMid,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md)),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
                     ),
                   ),
                 ],
@@ -5731,32 +6507,50 @@ class _CalendarTabState extends State<_CalendarTab> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Statistics Summary',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark)),
-                      Text('${filtered.length} cases registered in total',
-                          style: GoogleFonts.poppins(
-                              fontSize: 11, color: AppColors.lightSubText)),
+                      Text(
+                        'Statistics Summary',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
+                        ),
+                      ),
+                      Text(
+                        '${filtered.length} cases registered in total',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: AppColors.lightSubText,
+                        ),
+                      ),
                     ],
                   ),
                   ElevatedButton.icon(
                     onPressed: () => runWithPdfAuthGate(
                       context,
                       () => ModulePdfHelper.generateSummaryReportPdf(
-                          countsForPdf, reportTitle, rangeLabel),
+                        countsForPdf,
+                        reportTitle,
+                        rangeLabel,
+                      ),
                     ),
-                    icon: const Icon(Icons.download_rounded,
-                        size: 16, color: Colors.white),
-                    label: Text('Summary',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11, color: Colors.white)),
+                    icon: const Icon(
+                      Icons.download_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      'Summary',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: Colors.white,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navyMid,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md)),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
                     ),
                   ),
                 ],
@@ -5837,8 +6631,12 @@ class _CalendarTabState extends State<_CalendarTab> {
   ) {
     final List<Map<String, dynamic>> tableRows = [];
 
-    List<ModuleRecord> filter(int m, int y,
-        {bool isYearCurrent = false, bool isYearPrevious = false}) {
+    List<ModuleRecord> filter(
+      int m,
+      int y, {
+      bool isYearCurrent = false,
+      bool isYearPrevious = false,
+    }) {
       return allRecords.where((r) {
         if (isYearCurrent) {
           return r.incidentDate.year == y && r.incidentDate.month <= m;
@@ -5852,14 +6650,21 @@ class _CalendarTabState extends State<_CalendarTab> {
 
     final currentMonthRecords = filter(selectedMonth, selectedYear);
     final previousMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final previousMonthYear =
-        selectedMonth == 1 ? selectedYear - 1 : selectedYear;
+    final previousMonthYear = selectedMonth == 1
+        ? selectedYear - 1
+        : selectedYear;
     final previousMonthRecords = filter(previousMonth, previousMonthYear);
     final sameMonthLastYearRecords = filter(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords =
-        filter(selectedMonth, selectedYear, isYearCurrent: true);
-    final yearPreviousRecords =
-        filter(selectedMonth, selectedYear - 1, isYearPrevious: true);
+    final yearCurrentRecords = filter(
+      selectedMonth,
+      selectedYear,
+      isYearCurrent: true,
+    );
+    final yearPreviousRecords = filter(
+      selectedMonth,
+      selectedYear - 1,
+      isYearPrevious: true,
+    );
 
     int totalcmR = 0, totalcmD = 0;
     int totalpmR = 0, totalpmD = 0;
@@ -5950,12 +6755,15 @@ class _CalendarTabState extends State<_CalendarTab> {
 
     final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
     final prevMonthYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final cmDateLabel =
-        DateFormat('MMMM,yyyy').format(DateTime(selectedYear, selectedMonth));
-    final pmDateLabel =
-        DateFormat('MMMM,yyyy').format(DateTime(prevMonthYear, prevMonth));
-    final smlyDateLabel = DateFormat('MMMM,yyyy')
-        .format(DateTime(selectedYear - 1, selectedMonth));
+    final cmDateLabel = DateFormat(
+      'MMMM,yyyy',
+    ).format(DateTime(selectedYear, selectedMonth));
+    final pmDateLabel = DateFormat(
+      'MMMM,yyyy',
+    ).format(DateTime(prevMonthYear, prevMonth));
+    final smlyDateLabel = DateFormat(
+      'MMMM,yyyy',
+    ).format(DateTime(selectedYear - 1, selectedMonth));
     final ycDateLabel = 'Year,$selectedYear';
     final ypDateLabel = 'Year,${selectedYear - 1}';
 
@@ -5968,7 +6776,7 @@ class _CalendarTabState extends State<_CalendarTab> {
         'sr': '5',
         'label': 'Total Robery',
         'head': 'Total Robery',
-        'bold': true
+        'bold': true,
       },
       {'sr': 'a', 'label': 'Chain Robery', 'head': 'Chain Robery', 'indent': 1},
       {'sr': 'b', 'label': 'Other Robery', 'head': 'Other Robery', 'indent': 1},
@@ -5976,7 +6784,7 @@ class _CalendarTabState extends State<_CalendarTab> {
         'sr': '6',
         'label': 'Total H.B.Ts',
         'head': 'Total H B Ts',
-        'bold': true
+        'bold': true,
       },
       {'sr': 'a', 'label': 'H.B.Ts (Day)', 'head': 'H B Ts (Day)', 'indent': 1},
       {
@@ -6003,13 +6811,13 @@ class _CalendarTabState extends State<_CalendarTab> {
         'sr': 'd',
         'label': 'Mobile Thefts',
         'head': 'Mobile Thefts',
-        'indent': 1
+        'indent': 1,
       },
       {
         'sr': 'e',
         'label': 'Cattle Thefts',
         'head': 'Cattel Theft',
-        'indent': 1
+        'indent': 1,
       },
       {'sr': 'f', 'label': 'Other Thefts', 'head': 'Other Thefts', 'indent': 1},
       {'sr': '8', 'label': 'Extortion', 'head': 'Extcrtion'},
@@ -6110,10 +6918,7 @@ class _CalendarTabState extends State<_CalendarTab> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var i = 0; i < flexes.length; i++)
-              Expanded(
-                flex: flexes[i],
-                child: children[i],
-              ),
+              Expanded(flex: flexes[i], child: children[i]),
           ],
         ),
       );
@@ -6232,34 +7037,20 @@ class _CalendarTabState extends State<_CalendarTab> {
 
       return rowOfFlex(dataFlexes, [
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cText(def['sr'] as String, bold: bold),
         ),
         cBox(
           alignment: Alignment.centerLeft,
           padding: labelPad,
-          child: cText(
-            label,
-            bold: bold,
-            alignLeft: true,
-            indent: indent,
-          ),
+          child: cText(label, bold: bold, alignLeft: true, indent: indent),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(cmR, cmRecs, '$label • $cmDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(
             cmD,
             detRecs(cmRecs),
@@ -6268,17 +7059,11 @@ class _CalendarTabState extends State<_CalendarTab> {
           ),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(pmR, pmRecs, '$label • $pmDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(
             pmD,
             detRecs(pmRecs),
@@ -6287,18 +7072,16 @@ class _CalendarTabState extends State<_CalendarTab> {
           ),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
+          child: cLink(
+            smlyR,
+            smlyRecs,
+            '$label • $smlyDateLabel • R',
+            bold: bold,
           ),
-          child:
-              cLink(smlyR, smlyRecs, '$label • $smlyDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(
             smlyD,
             detRecs(smlyRecs),
@@ -6307,17 +7090,11 @@ class _CalendarTabState extends State<_CalendarTab> {
           ),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(ycR, ycRecs, '$label • $ycDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(
             ycD,
             detRecs(ycRecs),
@@ -6326,17 +7103,11 @@ class _CalendarTabState extends State<_CalendarTab> {
           ),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(ypR, ypRecs, '$label • $ypDateLabel • R', bold: bold),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cLink(
             ypD,
             detRecs(ypRecs),
@@ -6345,10 +7116,7 @@ class _CalendarTabState extends State<_CalendarTab> {
           ),
         ),
         cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
+          padding: classVCellPad(denseTop: denseTop, denseBottom: denseBottom),
           child: cText('$varVal', bold: bold),
         ),
       ]);
@@ -6359,8 +7127,8 @@ class _CalendarTabState extends State<_CalendarTab> {
         builder: (context, constraints) {
           final barW =
               constraints.hasBoundedWidth && constraints.maxWidth.isFinite
-                  ? constraints.maxWidth
-                  : MediaQuery.sizeOf(context).width;
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width;
 
           return Container(
             decoration: BoxDecoration(
@@ -6390,75 +7158,112 @@ class _CalendarTabState extends State<_CalendarTab> {
                 ),
                 rowOfFlex(headerGroupFlexes, [
                   cBox(
-                      child: cText('Sr.No',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText(
+                      'Sr.No',
+                      bold: true,
+                      fontSize: classVBodyFontSize,
+                    ),
+                  ),
                   cBox(
-                      child: cText('Types of Crime',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText(
+                      'Types of Crime',
+                      bold: true,
+                      fontSize: classVBodyFontSize,
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(cmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        cmDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(pmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        pmDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(smlyDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        smlyDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(ycDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        ycDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: Center(
-                          child: cText(ypDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                    child: Center(
+                      child: cText(
+                        ypDateLabel,
+                        bold: true,
+                        fontSize: classVBodyFontSize,
+                      ),
+                    ),
+                  ),
                   cBox(
-                      child: cText('Var.',
-                          bold: true, fontSize: classVBodyFontSize)),
+                    child: cText(
+                      'Var.',
+                      bold: true,
+                      fontSize: classVBodyFontSize,
+                    ),
+                  ),
                 ]),
                 rowOfFlex(dataFlexes, [
                   cBox(
-                      child:
-                          cText('', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('R', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('D', bold: true, fontSize: classVBodyFontSize),
+                  ),
                   cBox(
-                      child:
-                          cText('', bold: true, fontSize: classVBodyFontSize)),
+                    child: cText('', bold: true, fontSize: classVBodyFontSize),
+                  ),
                 ]),
                 for (final def in classVRowDefs) buildScreenDataRow(def),
               ],
@@ -6476,12 +7281,7 @@ class _CalendarTabState extends State<_CalendarTab> {
       double fontSize = 7,
     }) {
       return pw.Container(
-        padding: pw.EdgeInsets.fromLTRB(
-          2.0 + indentLevel * 6.0,
-          2,
-          2,
-          2,
-        ),
+        padding: pw.EdgeInsets.fromLTRB(2.0 + indentLevel * 6.0, 2, 2, 2),
         alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
         child: pw.Text(
           text,
@@ -6546,11 +7346,10 @@ class _CalendarTabState extends State<_CalendarTab> {
     Future<void> exportPdf() async {
       final doc = pw.Document();
       final body = <pw.Widget>[
-        pTableRow([
-          flexAll
-        ], [
-          pCellBox('Name of the Police Station', bold: true, fontSize: 9),
-        ]),
+        pTableRow(
+          [flexAll],
+          [pCellBox('Name of the Police Station', bold: true, fontSize: 9)],
+        ),
         pTableRow(headerGroupFlexes, [
           pCellBox('Sr.No', bold: true),
           pCellBox('Types of Crime', bold: true),
@@ -6686,33 +7485,37 @@ class _CalendarTabState extends State<_CalendarTab> {
     }
 
     Widget headText(String s) => Text(
-          s,
-          textAlign: TextAlign.center,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: FontWeight.w800,
-            color: AppColors.navyDark,
-          ),
-        );
+      s,
+      textAlign: TextAlign.center,
+      softWrap: true,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: GoogleFonts.poppins(
+        fontSize: 9.5,
+        fontWeight: FontWeight.w800,
+        color: AppColors.navyDark,
+      ),
+    );
 
     Widget labelText(String s, {bool bold = false}) => Text(
-          s,
-          textAlign: TextAlign.left,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: bold ? AppColors.navyDark : AppColors.lightText,
-          ),
-        );
+      s,
+      textAlign: TextAlign.left,
+      softWrap: true,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: GoogleFonts.poppins(
+        fontSize: 9.5,
+        fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+        color: bold ? AppColors.navyDark : AppColors.lightText,
+      ),
+    );
 
-    Widget linkText(int n, List<ModuleRecord> recs, String title,
-        {bool bold = false}) {
+    Widget linkText(
+      int n,
+      List<ModuleRecord> recs,
+      String title, {
+      bool bold = false,
+    }) {
       return InkWell(
         onTap: recs.isEmpty
             ? null
@@ -6738,65 +7541,102 @@ class _CalendarTabState extends State<_CalendarTab> {
     }
 
     Widget rowOf(List<Widget> cells) => IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: cells,
-          ),
-        );
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: cells,
+      ),
+    );
 
-    Widget dataRow5(String label, bool Function(ModuleRecord) test,
-        {bool bold = false, String detLabel = 'Detected'}) {
+    Widget dataRow5(
+      String label,
+      bool Function(ModuleRecord) test, {
+      bool bold = false,
+      String detLabel = 'Detected',
+    }) {
       final cmReg = monthRecsWhere(test);
       final cmDet = monthDetRecsWhere(test);
       final cyReg = yearRecsWhere(test);
       final cyDet = yearDetRecsWhere(test);
       return rowOf([
         cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(linkText(
-            cmReg.length, cmReg, '$label • Current Month • Registered',
-            bold: bold)),
-        cellBox(linkText(
-            cmDet.length, cmDet, '$label • Current Month • $detLabel',
-            bold: bold)),
-        cellBox(linkText(
-            cyReg.length, cyReg, '$label • Current Year • Registered',
-            bold: bold)),
-        cellBox(linkText(
-            cyDet.length, cyDet, '$label • Current Year • $detLabel',
-            bold: bold)),
+        cellBox(
+          linkText(
+            cmReg.length,
+            cmReg,
+            '$label • Current Month • Registered',
+            bold: bold,
+          ),
+        ),
+        cellBox(
+          linkText(
+            cmDet.length,
+            cmDet,
+            '$label • Current Month • $detLabel',
+            bold: bold,
+          ),
+        ),
+        cellBox(
+          linkText(
+            cyReg.length,
+            cyReg,
+            '$label • Current Year • Registered',
+            bold: bold,
+          ),
+        ),
+        cellBox(
+          linkText(
+            cyDet.length,
+            cyDet,
+            '$label • Current Year • $detLabel',
+            bold: bold,
+          ),
+        ),
       ]);
     }
 
-    Widget dataRow3(String label, bool Function(ModuleRecord) test,
-        {bool bold = false}) {
+    Widget dataRow3(
+      String label,
+      bool Function(ModuleRecord) test, {
+      bool bold = false,
+    }) {
       final cmReg = monthRecsWhere(test);
       final cyReg = yearRecsWhere(test);
       return rowOf([
         cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
         cellBox(
-            linkText(cmReg.length, cmReg, '$label • Current Month • Registered',
-                bold: bold),
-            flex: 2),
+          linkText(
+            cmReg.length,
+            cmReg,
+            '$label • Current Month • Registered',
+            bold: bold,
+          ),
+          flex: 2,
+        ),
         cellBox(
-            linkText(cyReg.length, cyReg, '$label • Current Year • Registered',
-                bold: bold),
-            flex: 2),
+          linkText(
+            cyReg.length,
+            cyReg,
+            '$label • Current Year • Registered',
+            bold: bold,
+          ),
+          flex: 2,
+        ),
       ]);
     }
 
     Widget groupHeader(String label) => rowOf([
-          cellBox(headText(label), flex: 5),
-          cellBox(headText('Current Month'), flex: 2),
-          cellBox(headText('Current Year'), flex: 2),
-        ]);
+      cellBox(headText(label), flex: 5),
+      cellBox(headText('Current Month'), flex: 2),
+      cellBox(headText('Current Year'), flex: 2),
+    ]);
 
     Widget groupSubHeader(String regLabel, String detLabel) => rowOf([
-          cellBox(headText(''), flex: 5),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-        ]);
+      cellBox(headText(''), flex: 5),
+      cellBox(headText(regLabel)),
+      cellBox(headText(detLabel)),
+      cellBox(headText(regLabel)),
+      cellBox(headText(detLabel)),
+    ]);
 
     bool isBnss(ModuleRecord r) =>
         r.moduleKey == 'bnss' || r.title.toLowerCase().contains('bnss');
@@ -6850,8 +7690,9 @@ class _CalendarTabState extends State<_CalendarTab> {
         isMpda(r);
     bool g3Total(ModuleRecord r) => isMotorVehicleAct(r) || isOtherMvAct(r);
 
-    final monthYearLabel =
-        DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
+    final monthYearLabel = DateFormat(
+      'MMMM yyyy',
+    ).format(DateTime(selectedYear, selectedMonth));
 
     // SINGLE SOURCE OF TRUTH for the Monthly Summary table.
     // Both the on-screen table and the PDF export iterate this exact list,
@@ -6877,7 +7718,7 @@ class _CalendarTabState extends State<_CalendarTab> {
         'l': 'N.C Total',
         't': g1NcTotal,
         'bold': true,
-        'dl': 'Detected'
+        'dl': 'Detected',
       },
       {'k': 'b'},
       {'k': 'h', 'l': 'Preventive'},
@@ -6898,7 +7739,7 @@ class _CalendarTabState extends State<_CalendarTab> {
         'k': 'd5',
         'l': 'Sec. 66/192 MV Act',
         't': isMotorVehicleAct,
-        'dl': 'Fine'
+        'dl': 'Fine',
       },
       {'k': 'd5', 'l': 'Other MV Act', 't': isOtherMvAct, 'dl': 'Fine'},
       {
@@ -6906,7 +7747,7 @@ class _CalendarTabState extends State<_CalendarTab> {
         'l': 'Total MV Act',
         't': g3Total,
         'bold': true,
-        'dl': 'Fine'
+        'dl': 'Fine',
       },
       {'k': 'b'},
       {'k': 'h', 'l': 'Missing'},
@@ -6918,7 +7759,7 @@ class _CalendarTabState extends State<_CalendarTab> {
         'l': 'Total missing',
         't': isMissingTotal,
         'bold': true,
-        'dl': 'Found'
+        'dl': 'Found',
       },
     ];
 
@@ -6955,8 +7796,11 @@ class _CalendarTabState extends State<_CalendarTab> {
     Future<void> exportPdf() async {
       final doc = pw.Document();
 
-      pw.Widget pCellBox(String text,
-          {bool bold = false, bool alignLeft = false}) {
+      pw.Widget pCellBox(
+        String text, {
+        bool bold = false,
+        bool alignLeft = false,
+      }) {
         return pw.Container(
           padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2),
           alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
@@ -6994,57 +7838,49 @@ class _CalendarTabState extends State<_CalendarTab> {
           case 'b':
             return pw.SizedBox(height: 4);
           case 'h':
-            return pTableRow([
-              5,
-              2,
-              2
-            ], [
-              pCellBox(r['l'] as String, bold: true),
-              pCellBox('Current Month', bold: true),
-              pCellBox('Current Year', bold: true),
-            ]);
+            return pTableRow(
+              [5, 2, 2],
+              [
+                pCellBox(r['l'] as String, bold: true),
+                pCellBox('Current Month', bold: true),
+                pCellBox('Current Year', bold: true),
+              ],
+            );
           case 's':
-            return pTableRow([
-              5,
-              1,
-              1,
-              1,
-              1
-            ], [
-              pCellBox(''),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-            ]);
+            return pTableRow(
+              [5, 1, 1, 1, 1],
+              [
+                pCellBox(''),
+                pCellBox(r['r'] as String, bold: true),
+                pCellBox(r['d'] as String, bold: true),
+                pCellBox(r['r'] as String, bold: true),
+                pCellBox(r['d'] as String, bold: true),
+              ],
+            );
           case 'd5':
             final test = r['t'] as bool Function(ModuleRecord);
             final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([
-              5,
-              1,
-              1,
-              1,
-              1
-            ], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${monthDetRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearDetRecsWhere(test).length}', bold: bold),
-            ]);
+            return pTableRow(
+              [5, 1, 1, 1, 1],
+              [
+                pCellBox(r['l'] as String, bold: bold, alignLeft: true),
+                pCellBox('${monthRecsWhere(test).length}', bold: bold),
+                pCellBox('${monthDetRecsWhere(test).length}', bold: bold),
+                pCellBox('${yearRecsWhere(test).length}', bold: bold),
+                pCellBox('${yearDetRecsWhere(test).length}', bold: bold),
+              ],
+            );
           case 'd3':
             final test = r['t'] as bool Function(ModuleRecord);
             final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([
-              5,
-              2,
-              2
-            ], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-            ]);
+            return pTableRow(
+              [5, 2, 2],
+              [
+                pCellBox(r['l'] as String, bold: bold, alignLeft: true),
+                pCellBox('${monthRecsWhere(test).length}', bold: bold),
+                pCellBox('${yearRecsWhere(test).length}', bold: bold),
+              ],
+            );
         }
         return pw.SizedBox.shrink();
       }
@@ -7114,10 +7950,7 @@ class _CalendarTabState extends State<_CalendarTab> {
               const minW = 560.0;
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: w < minW ? minW : w,
-                  child: tableWidget,
-                ),
+                child: SizedBox(width: w < minW ? minW : w, child: tableWidget),
               );
             },
           ),
@@ -7192,28 +8025,36 @@ class _CalendarTabState extends State<_CalendarTab> {
     }
 
     List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'form_6' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month == m)
+        .where(
+          (r) =>
+              r.moduleKey == 'form_6' &&
+              r.incidentDate.year == y &&
+              r.incidentDate.month == m,
+        )
         .toList();
 
     List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'form_6' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month <= m)
+        .where(
+          (r) =>
+              r.moduleKey == 'form_6' &&
+              r.incidentDate.year == y &&
+              r.incidentDate.month <= m,
+        )
         .toList();
 
     final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
     final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
     final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
     final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
+    final sameMonthLastYearRecords = filterMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
     final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
+    final yearPreviousRecords = filterYearToMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcmR = 0;
@@ -7293,33 +8134,35 @@ class _CalendarTabState extends State<_CalendarTab> {
     final ypLabel = 'Year\n${selectedYear - 1}';
 
     DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
+      label: Text(
+        label,
+        textAlign: alignLeft ? TextAlign.left : TextAlign.center,
+        style: GoogleFonts.poppins(
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          color: AppColors.navyDark,
+        ),
+      ),
+    );
 
-    DataCell cell(String text,
-            {bool alignLeft = false, bool isBold = false, Color? color}) =>
-        DataCell(
-          Align(
-            alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: color ??
-                    (isBold ? AppColors.navyDark : AppColors.lightText),
-              ),
-            ),
+    DataCell cell(
+      String text, {
+      bool alignLeft = false,
+      bool isBold = false,
+      Color? color,
+    }) => DataCell(
+      Align(
+        alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
+        child: Text(
+          text,
+          style: GoogleFonts.poppins(
+            fontSize: 10,
+            fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+            color: color ?? (isBold ? AppColors.navyDark : AppColors.lightText),
           ),
-        );
+        ),
+      ),
+    );
 
     DataCell clickableCell(
       String text,
@@ -7355,8 +8198,12 @@ class _CalendarTabState extends State<_CalendarTab> {
       );
     }
 
-    DataCell navCell(String text, List<ModuleRecord> recs, String title,
-        {bool isBold = false}) {
+    DataCell navCell(
+      String text,
+      List<ModuleRecord> recs,
+      String title, {
+      bool isBold = false,
+    }) {
       return DataCell(
         InkWell(
           onTap: recs.isEmpty
@@ -7376,8 +8223,9 @@ class _CalendarTabState extends State<_CalendarTab> {
               style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color:
-                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
+                color: recs.isEmpty
+                    ? AppColors.lightSubText
+                    : AppColors.infoBlue,
                 decoration: recs.isEmpty ? null : TextDecoration.underline,
               ),
             ),
@@ -7393,8 +8241,9 @@ class _CalendarTabState extends State<_CalendarTab> {
           builder: (context, constraints) {
             final w = constraints.maxWidth;
             // Keep the monthly report table compact like a standard data table.
-            final colSpace =
-                w < 360 ? 6.0 : (w < 600 ? 8.0 : (w < 1000 ? 12.0 : 16.0));
+            final colSpace = w < 360
+                ? 6.0
+                : (w < 600 ? 8.0 : (w < 1000 ? 12.0 : 16.0));
             final margin = w < 360 ? 6.0 : (w < 1000 ? 8.0 : 12.0);
             final headingH = w < 360 ? 40.0 : (w < 1000 ? 44.0 : 48.0);
             final rowH = w < 360 ? 32.0 : (w < 1000 ? 34.0 : 38.0);
@@ -7444,8 +8293,11 @@ class _CalendarTabState extends State<_CalendarTab> {
                             : null,
                         cells: [
                           cell(row['N'].toString(), isBold: isTotal),
-                          cell(row['Heads'].toString(),
-                              alignLeft: true, isBold: true),
+                          cell(
+                            row['Heads'].toString(),
+                            alignLeft: true,
+                            isBold: true,
+                          ),
                           navCell(
                             '${row['cm_R']}',
                             (row['cmRecords'] as List<ModuleRecord>?) ??
@@ -7490,8 +8342,8 @@ class _CalendarTabState extends State<_CalendarTab> {
                             color: (row['variation'] as int) > 0
                                 ? AppColors.dangerRed
                                 : ((row['variation'] as int) < 0
-                                    ? AppColors.successGreen
-                                    : null),
+                                      ? AppColors.successGreen
+                                      : null),
                           ),
                         ],
                       );
@@ -7507,15 +8359,19 @@ class _CalendarTabState extends State<_CalendarTab> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
+              final label = DateFormat(
+                'MMMM yyyy',
+              ).format(DateTime(selectedYear, selectedMonth));
               runWithPdfAuthGate(
                 context,
                 () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
               );
             },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
+            icon: const Icon(
+              Icons.picture_as_pdf_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             label: Text(
               'Export Table PDF',
               style: GoogleFonts.poppins(
@@ -7593,28 +8449,36 @@ class _CalendarTabState extends State<_CalendarTab> {
     }
 
     List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'preventive' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month == m)
+        .where(
+          (r) =>
+              r.moduleKey == 'preventive' &&
+              r.incidentDate.year == y &&
+              r.incidentDate.month == m,
+        )
         .toList();
 
     List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'preventive' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month <= m)
+        .where(
+          (r) =>
+              r.moduleKey == 'preventive' &&
+              r.incidentDate.year == y &&
+              r.incidentDate.month <= m,
+        )
         .toList();
 
     final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
     final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
     final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
     final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
+    final sameMonthLastYearRecords = filterMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
     final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
+    final yearPreviousRecords = filterYearToMonth(
+      selectedMonth,
+      selectedYear - 1,
+    );
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcm = 0, totalpm = 0, totalsmly = 0, totalyc = 0, totalyp = 0;
@@ -7689,16 +8553,16 @@ class _CalendarTabState extends State<_CalendarTab> {
     final ypLabel = 'Year\n${selectedYear - 1}';
 
     DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
+      label: Text(
+        label,
+        textAlign: alignLeft ? TextAlign.left : TextAlign.center,
+        style: GoogleFonts.poppins(
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          color: AppColors.navyDark,
+        ),
+      ),
+    );
 
     DataCell cell(String text, {bool alignLeft = false, bool isBold = false}) =>
         DataCell(
@@ -7715,8 +8579,12 @@ class _CalendarTabState extends State<_CalendarTab> {
           ),
         );
 
-    DataCell navCell(String text, List<ModuleRecord> recs, String title,
-        {bool isBold = false}) {
+    DataCell navCell(
+      String text,
+      List<ModuleRecord> recs,
+      String title, {
+      bool isBold = false,
+    }) {
       return DataCell(
         InkWell(
           onTap: recs.isEmpty
@@ -7736,8 +8604,9 @@ class _CalendarTabState extends State<_CalendarTab> {
               style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color:
-                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
+                color: recs.isEmpty
+                    ? AppColors.lightSubText
+                    : AppColors.infoBlue,
                 decoration: recs.isEmpty ? null : TextDecoration.underline,
               ),
             ),
@@ -7790,8 +8659,9 @@ class _CalendarTabState extends State<_CalendarTab> {
           builder: (context, constraints) {
             final w = constraints.maxWidth;
             // Keep the monthly report table compact like a standard data table.
-            final colSpace =
-                w < 360 ? 6.0 : (w < 600 ? 8.0 : (w < 1000 ? 12.0 : 16.0));
+            final colSpace = w < 360
+                ? 6.0
+                : (w < 600 ? 8.0 : (w < 1000 ? 12.0 : 16.0));
             final margin = w < 360 ? 6.0 : (w < 1000 ? 8.0 : 12.0);
             final headingH = w < 360 ? 40.0 : (w < 1000 ? 44.0 : 48.0);
             final rowH = w < 360 ? 32.0 : (w < 1000 ? 34.0 : 38.0);
@@ -7843,8 +8713,11 @@ class _CalendarTabState extends State<_CalendarTab> {
                               : null,
                           cells: [
                             cell(row['N'].toString(), isBold: isTotal),
-                            cell(row['Heads'].toString(),
-                                alignLeft: true, isBold: true),
+                            cell(
+                              row['Heads'].toString(),
+                              alignLeft: true,
+                              isBold: true,
+                            ),
                             navCell(
                               '${row['cm_R']}',
                               (row['cmRecords'] as List<ModuleRecord>?) ??
@@ -7902,15 +8775,19 @@ class _CalendarTabState extends State<_CalendarTab> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
+              final label = DateFormat(
+                'MMMM yyyy',
+              ).format(DateTime(selectedYear, selectedMonth));
               runWithPdfAuthGate(
                 context,
                 () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
               );
             },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
+            icon: const Icon(
+              Icons.picture_as_pdf_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             label: Text(
               'Export Table PDF',
               style: GoogleFonts.poppins(
@@ -7932,7 +8809,10 @@ class _CalendarTabState extends State<_CalendarTab> {
   }
 
   Widget _monthlyReportButtons(
-      List<ModuleRecord> records, String title, String range) {
+    List<ModuleRecord> records,
+    String title,
+    String range,
+  ) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -7943,51 +8823,42 @@ class _CalendarTabState extends State<_CalendarTab> {
       child: Row(
         children: [
           Expanded(
-            child: _reportBtn(
-              'Class V',
-              () {
-                setState(() {
-                  _showMonthlySummaryTable = false;
-                  _showMonthlyClassVTable = !_showMonthlyClassVTable;
-                  if (_showMonthlyClassVTable) {
-                    _showMonthlyClassVITable = false;
-                    _showMonthlyPreventiveTable = false;
-                  }
-                });
-              },
-            ),
+            child: _reportBtn('Class V', () {
+              setState(() {
+                _showMonthlySummaryTable = false;
+                _showMonthlyClassVTable = !_showMonthlyClassVTable;
+                if (_showMonthlyClassVTable) {
+                  _showMonthlyClassVITable = false;
+                  _showMonthlyPreventiveTable = false;
+                }
+              });
+            }),
           ),
           const SizedBox(width: 6),
           Expanded(
-            child: _reportBtn(
-              'Class VI',
-              () {
-                setState(() {
-                  _showMonthlySummaryTable = false;
-                  _showMonthlyClassVITable = !_showMonthlyClassVITable;
-                  if (_showMonthlyClassVITable) {
-                    _showMonthlyClassVTable = false;
-                    _showMonthlyPreventiveTable = false;
-                  }
-                });
-              },
-            ),
+            child: _reportBtn('Class VI', () {
+              setState(() {
+                _showMonthlySummaryTable = false;
+                _showMonthlyClassVITable = !_showMonthlyClassVITable;
+                if (_showMonthlyClassVITable) {
+                  _showMonthlyClassVTable = false;
+                  _showMonthlyPreventiveTable = false;
+                }
+              });
+            }),
           ),
           const SizedBox(width: 6),
           Expanded(
-            child: _reportBtn(
-              'Preventives',
-              () {
-                setState(() {
-                  _showMonthlySummaryTable = false;
-                  _showMonthlyPreventiveTable = !_showMonthlyPreventiveTable;
-                  if (_showMonthlyPreventiveTable) {
-                    _showMonthlyClassVTable = false;
-                    _showMonthlyClassVITable = false;
-                  }
-                });
-              },
-            ),
+            child: _reportBtn('Preventives', () {
+              setState(() {
+                _showMonthlySummaryTable = false;
+                _showMonthlyPreventiveTable = !_showMonthlyPreventiveTable;
+                if (_showMonthlyPreventiveTable) {
+                  _showMonthlyClassVTable = false;
+                  _showMonthlyClassVITable = false;
+                }
+              });
+            }),
           ),
         ],
       ),
@@ -8012,10 +8883,7 @@ class _CalendarTabState extends State<_CalendarTab> {
         ),
         child: Text(
           label,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-          ),
+          style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -8027,14 +8895,16 @@ class _CalendarTabState extends State<_CalendarTab> {
     return GestureDetector(
       onTap: () {
         Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: ModuleHubScreen(
+          context,
+          AppTheme.fadeSlideRoute(
+            page: ModuleHubScreen(
               moduleLabel: meta.label,
               moduleKey: meta.moduleKey,
               subCategory: meta.subCategory,
               readOnly: true,
-            )));
+            ),
+          ),
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
@@ -8045,25 +8915,34 @@ class _CalendarTabState extends State<_CalendarTab> {
           border: Border.all(color: AppColors.lightBorder),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 2)),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Row(children: [
-                Text(meta.label,
+              child: Row(
+                children: [
+                  Text(
+                    meta.label,
                     style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.lightText)),
-                const SizedBox(width: 8),
-                Icon(Icons.open_in_new_rounded,
-                    size: 14, color: AppColors.navyMid.withValues(alpha: 0.5)),
-              ]),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.lightText,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.open_in_new_rounded,
+                    size: 14,
+                    color: AppColors.navyMid.withValues(alpha: 0.5),
+                  ),
+                ],
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
@@ -8071,11 +8950,14 @@ class _CalendarTabState extends State<_CalendarTab> {
                 color: AppColors.goldPrimary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text('${meta.count}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.goldPrimary)),
+              child: Text(
+                '${meta.count}',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.goldPrimary,
+                ),
+              ),
             ),
           ],
         ),
@@ -8087,13 +8969,23 @@ class _CalendarTabState extends State<_CalendarTab> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 60),
-        child: Column(children: [
-          Icon(Icons.analytics_outlined, size: 48, color: Colors.grey.shade300),
-          const SizedBox(height: 12),
-          Text('No data available for this range',
+        child: Column(
+          children: [
+            Icon(
+              Icons.analytics_outlined,
+              size: 48,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No data available for this range',
               style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText)),
-        ]),
+                fontSize: 12,
+                color: AppColors.lightSubText,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -8260,10 +9152,7 @@ class _StationSwitcherSheet extends StatefulWidget {
   final FirestoreService firestore;
   final AuthProvider auth;
 
-  const _StationSwitcherSheet({
-    required this.firestore,
-    required this.auth,
-  });
+  const _StationSwitcherSheet({required this.firestore, required this.auth});
 
   @override
   State<_StationSwitcherSheet> createState() => _StationSwitcherSheetState();
@@ -8320,9 +9209,10 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
       if (currentArea.isEmpty) {
         return names;
       }
-      for (final station in MaharashtraPoliceStationsRepository.getStationsForDistrict(
-        currentArea,
-      )) {
+      for (final station
+          in MaharashtraPoliceStationsRepository.getStationsForDistrict(
+            currentArea,
+          )) {
         if (isCp && station.type != 'Commissionerate Police') continue;
         if (isSp && station.type != 'Superintendent of Police') continue;
         names.add(station.stationName);
@@ -8367,14 +9257,17 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
           district.toLowerCase() == currentArea.toLowerCase()) {
         return true;
       }
-      return additional.any((a) => a.trim().toLowerCase() == district.toLowerCase());
+      return additional.any(
+        (a) => a.trim().toLowerCase() == district.toLowerCase(),
+      );
     }
 
     void addDistrictStations(String district) {
       if (!districtExpanded(district)) return;
-      for (final station in MaharashtraPoliceStationsRepository.getStationsForDistrict(
-        district,
-      )) {
+      for (final station
+          in MaharashtraPoliceStationsRepository.getStationsForDistrict(
+            district,
+          )) {
         if (isCp && station.type != 'Commissionerate Police') continue;
         if (isSp && station.type != 'Superintendent of Police') continue;
         addEntry(district, station.stationName);
@@ -8396,15 +9289,16 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
     }
 
     final sortedZoneNames = zoneEntries.keys.toList()
-      ..sort(
-        (a, b) => a.toLowerCase().compareTo(b.toLowerCase()),
-      );
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
-    return sortedZoneNames.map((zoneName) {
-      final entries = zoneEntries[zoneName]!.toList()
-        ..sort(_compareSwitcherEntries);
-      return _SwitcherZone(zoneName: zoneName, entries: entries);
-    }).where((zone) => zone.entries.isNotEmpty).toList();
+    return sortedZoneNames
+        .map((zoneName) {
+          final entries = zoneEntries[zoneName]!.toList()
+            ..sort(_compareSwitcherEntries);
+          return _SwitcherZone(zoneName: zoneName, entries: entries);
+        })
+        .where((zone) => zone.entries.isNotEmpty)
+        .toList();
   }
 
   int _compareSwitcherEntries(String a, String b) {
@@ -8471,7 +9365,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
     if (asDistrict != null) return asDistrict;
 
     if (!MaharashtraPoliceStationsRepository.isLoaded) return null;
-    for (final station in MaharashtraPoliceStationsRepository.getAllStations()) {
+    for (final station
+        in MaharashtraPoliceStationsRepository.getAllStations()) {
       if (station.stationName.toLowerCase() == value.toLowerCase()) {
         return station.districtName;
       }
@@ -8522,7 +9417,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
     }
     final active = widget.auth.stationName;
     final activeArea = _resolveCurrentArea(active);
-    final isDeletingActive = active == location ||
+    final isDeletingActive =
+        active == location ||
         activeArea.toLowerCase() == location.toLowerCase();
 
     await widget.auth.removeStation(location);
@@ -8553,8 +9449,9 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
   Widget build(BuildContext context) {
     final activeStation = widget.auth.stationName;
     final homeStation = widget.auth.homeStationName;
-    final canAdd =
-        SeniorOfficerRoles.canSwitchLocation(widget.auth.designation);
+    final canAdd = SeniorOfficerRoles.canSwitchLocation(
+      widget.auth.designation,
+    );
 
     return Container(
       constraints: BoxConstraints(
@@ -8586,8 +9483,11 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
                     color: AppColors.navyMid.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.swap_horiz_rounded,
-                      color: AppColors.navyMid, size: 20),
+                  child: const Icon(
+                    Icons.swap_horiz_rounded,
+                    color: AppColors.navyMid,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -8623,13 +9523,20 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
               decoration: InputDecoration(
                 hintText: 'Search zone or station...',
                 hintStyle: GoogleFonts.poppins(
-                    fontSize: 13, color: AppColors.lightSubText),
-                prefixIcon: const Icon(Icons.search_rounded,
-                    size: 20, color: AppColors.navyMid),
+                  fontSize: 13,
+                  color: AppColors.lightSubText,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search_rounded,
+                  size: 20,
+                  color: AppColors.navyMid,
+                ),
                 filled: true,
                 fillColor: const Color(0xFFF4F6FB),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: BorderSide.none,
@@ -8649,15 +9556,20 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
               padding: const EdgeInsets.all(40),
               child: Column(
                 children: [
-                  const Icon(Icons.location_off_rounded,
-                      size: 40, color: AppColors.lightSubText),
+                  const Icon(
+                    Icons.location_off_rounded,
+                    size: 40,
+                    color: AppColors.lightSubText,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     _search.trim().isNotEmpty
                         ? 'No zones or stations match "${_search.trim()}"'
                         : 'No stations found',
                     style: GoogleFonts.poppins(
-                        fontSize: 13, color: AppColors.lightSubText),
+                      fontSize: 13,
+                      color: AppColors.lightSubText,
+                    ),
                   ),
                   if (canAdd) ...[
                     const SizedBox(height: 16),
@@ -8773,8 +9685,10 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
               children: [
                 if (isHome)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.goldPrimary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -8903,8 +9817,9 @@ class _AddLocationSheetState extends State<_AddLocationSheet> {
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.all(40),
-                      child:
-                          CircularProgressIndicator(color: AppColors.navyMid),
+                      child: CircularProgressIndicator(
+                        color: AppColors.navyMid,
+                      ),
                     ),
                   )
                 else ...[
@@ -8921,8 +9836,9 @@ class _AddLocationSheetState extends State<_AddLocationSheet> {
                   ),
                   SearchablePickerField(
                     label: widget.isCpLevel ? 'City' : 'District',
-                    hintText:
-                        widget.isCpLevel ? 'Select City' : 'Select District',
+                    hintText: widget.isCpLevel
+                        ? 'Select City'
+                        : 'Select District',
                     items: _getCities(),
                     value: _city,
                     onChanged: (v) => setState(() => _city = v),
@@ -8989,8 +9905,10 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final filteredItems = Classification.addMenuAll
-        .where((item) =>
-            item.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .where(
+          (item) =>
+              item.name.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
         .toList();
 
     return Container(
@@ -9020,15 +9938,21 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                     color: AppColors.goldPrimary.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.add_task_rounded,
-                      color: AppColors.goldPrimary, size: 24),
+                  child: const Icon(
+                    Icons.add_task_rounded,
+                    color: AppColors.goldPrimary,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: 16),
-                Text('Unified Police Entry Menu',
-                    style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.navyDark)),
+                Text(
+                  'Unified Police Entry Menu',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navyDark,
+                  ),
+                ),
               ],
             ),
           ),
@@ -9044,13 +9968,20 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                 controller: _searchCtrl,
                 onChanged: (val) => setState(() => _searchQuery = val),
                 style: GoogleFonts.poppins(
-                    fontSize: 13, color: AppColors.navyDark),
+                  fontSize: 13,
+                  color: AppColors.navyDark,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Search entry types...',
-                  hintStyle:
-                      GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      size: 18, color: Colors.grey),
+                  hintStyle: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: Colors.grey,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 11),
                 ),
@@ -9067,11 +9998,11 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: 0.82,
-                      mainAxisSpacing: 15,
-                      crossAxisSpacing: 15,
-                    ),
+                          crossAxisCount: 3,
+                          childAspectRatio: 0.82,
+                          mainAxisSpacing: 15,
+                          crossAxisSpacing: 15,
+                        ),
                     delegate: SliverChildBuilderDelegate(
                       (context, i) => _buildGridItem(context, filteredItems[i]),
                       childCount: filteredItems.length,
@@ -9093,43 +10024,43 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
         Navigator.pop(context);
         if (item.moduleKey == 'form_1_5') {
           Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                  page: const FormIVSelectionScreen(
-                mode: FormIVSelectionMode.add,
-              )));
+            context,
+            AppTheme.fadeSlideRoute(
+              page: const FormIVSelectionScreen(mode: FormIVSelectionMode.add),
+            ),
+          );
         } else if (item.moduleKey == 'nc') {
           Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                page: NcFormScreen(
-                  moduleLabel: item.name,
-                ),
-              ));
+            context,
+            AppTheme.fadeSlideRoute(page: NcFormScreen(moduleLabel: item.name)),
+          );
         } else if (item.moduleKey == 'missing') {
           Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                page: MissingFormScreen(
-                  moduleLabel: item.name,
-                ),
-              ));
+            context,
+            AppTheme.fadeSlideRoute(
+              page: MissingFormScreen(moduleLabel: item.name),
+            ),
+          );
         } else if (moduleUsesCommonCrimeForm(item.moduleKey)) {
           Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                  page: CommonFormScreen(
+            context,
+            AppTheme.fadeSlideRoute(
+              page: CommonFormScreen(
                 moduleLabel: item.name,
                 moduleKey: item.moduleKey,
-              )));
+              ),
+            ),
+          );
         } else {
           Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                  page: ModuleFormScreen(
+            context,
+            AppTheme.fadeSlideRoute(
+              page: ModuleFormScreen(
                 moduleLabel: item.name,
                 moduleKey: item.moduleKey,
-              )));
+              ),
+            ),
+          );
         }
       },
       child: Column(
@@ -9176,8 +10107,11 @@ class _FilterSheet extends StatefulWidget {
   final SearchFilters filters;
   final void Function(SearchFilters) onApply;
 
-  const _FilterSheet(
-      {required this.isDark, required this.filters, required this.onApply});
+  const _FilterSheet({
+    required this.isDark,
+    required this.filters,
+    required this.onApply,
+  });
 
   @override
   State<_FilterSheet> createState() => _FilterSheetState();
@@ -9202,8 +10136,9 @@ class _FilterSheetState extends State<_FilterSheet> {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
@@ -9219,31 +10154,42 @@ class _FilterSheetState extends State<_FilterSheet> {
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.goldPrimary.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.goldPrimary.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.tune_rounded,
+                      color: AppColors.goldPrimary,
+                      size: 20,
+                    ),
                   ),
-                  child: const Icon(Icons.tune_rounded,
-                      color: AppColors.goldPrimary, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Text('Search Filters',
+                  const SizedBox(width: 12),
+                  Text(
+                    'Search Filters',
                     style: GoogleFonts.poppins(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark)),
-                const Spacer(),
-                TextButton(
-                  onPressed: () => setState(() => _local = SearchFilters()),
-                  child: Text('Reset',
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => setState(() => _local = SearchFilters()),
+                    child: Text(
+                      'Reset',
                       style: GoogleFonts.poppins(
-                          color: AppColors.goldPrimary,
-                          fontWeight: FontWeight.w600)),
-                ),
-              ]),
+                        color: AppColors.goldPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             const Divider(color: AppColors.lightBorder, height: 1),
@@ -9252,47 +10198,59 @@ class _FilterSheetState extends State<_FilterSheet> {
                 child: Column(
                   children: [
                     _check(
-                        'Case Title / Subject',
-                        Icons.title_rounded,
-                        _local.byTitle,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byTitle: v))),
+                      'Case Title / Subject',
+                      Icons.title_rounded,
+                      _local.byTitle,
+                      (v) =>
+                          setState(() => _local = _local.copyWith(byTitle: v)),
+                    ),
                     _check(
-                        'FIR / Case Number',
-                        Icons.numbers_rounded,
-                        _local.byFirNumber,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byFirNumber: v))),
+                      'FIR / Case Number',
+                      Icons.numbers_rounded,
+                      _local.byFirNumber,
+                      (v) => setState(
+                        () => _local = _local.copyWith(byFirNumber: v),
+                      ),
+                    ),
                     _check(
-                        'Date (Incident Date)',
-                        Icons.calendar_today_rounded,
-                        _local.byDate,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byDate: v))),
+                      'Date (Incident Date)',
+                      Icons.calendar_today_rounded,
+                      _local.byDate,
+                      (v) =>
+                          setState(() => _local = _local.copyWith(byDate: v)),
+                    ),
                     _check(
-                        'Assigned Officer',
-                        Icons.badge_rounded,
-                        _local.byOfficer,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byOfficer: v))),
+                      'Assigned Officer',
+                      Icons.badge_rounded,
+                      _local.byOfficer,
+                      (v) => setState(
+                        () => _local = _local.copyWith(byOfficer: v),
+                      ),
+                    ),
                     _check(
-                        'Crime Spot',
-                        Icons.location_on_outlined,
-                        _local.byLocation,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byLocation: v))),
+                      'Crime Spot',
+                      Icons.location_on_outlined,
+                      _local.byLocation,
+                      (v) => setState(
+                        () => _local = _local.copyWith(byLocation: v),
+                      ),
+                    ),
                     _check(
-                        'Complainant Name',
-                        Icons.person_add_alt_rounded,
-                        _local.byComplainant,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byComplainant: v))),
+                      'Complainant Name',
+                      Icons.person_add_alt_rounded,
+                      _local.byComplainant,
+                      (v) => setState(
+                        () => _local = _local.copyWith(byComplainant: v),
+                      ),
+                    ),
                     _check(
-                        'Accused Name',
-                        Icons.person_off_rounded,
-                        _local.byAccused,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byAccused: v))),
+                      'Accused Name',
+                      Icons.person_off_rounded,
+                      _local.byAccused,
+                      (v) => setState(
+                        () => _local = _local.copyWith(byAccused: v),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -9310,13 +10268,17 @@ class _FilterSheetState extends State<_FilterSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.navyMid,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.lg)),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
                   ),
-                  child: Text('Apply Filters',
-                      style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white)),
+                  child: Text(
+                    'Apply Filters',
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -9327,32 +10289,43 @@ class _FilterSheetState extends State<_FilterSheet> {
   }
 
   Widget _check(
-      String label, IconData icon, bool value, void Function(bool) onChanged) {
+    String label,
+    IconData icon,
+    bool value,
+    void Function(bool) onChanged,
+  ) {
     return InkWell(
       onTap: () => onChanged(!value),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Row(children: [
-          Icon(icon,
+        child: Row(
+          children: [
+            Icon(
+              icon,
               size: 20,
-              color: value ? AppColors.goldPrimary : AppColors.lightSubText),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(label,
+              color: value ? AppColors.goldPrimary : AppColors.lightSubText,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
                 style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: value ? FontWeight.w600 : FontWeight.w400,
-                    color:
-                        value ? AppColors.navyDark : AppColors.lightSubText)),
-          ),
-          Checkbox(
-            value: value,
-            onChanged: (v) => onChanged(v ?? false),
-            activeColor: AppColors.goldPrimary,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          ),
-        ]),
+                  fontSize: 14,
+                  fontWeight: value ? FontWeight.w600 : FontWeight.w400,
+                  color: value ? AppColors.navyDark : AppColors.lightSubText,
+                ),
+              ),
+            ),
+            Checkbox(
+              value: value,
+              onChanged: (v) => onChanged(v ?? false),
+              activeColor: AppColors.goldPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -9381,56 +10354,82 @@ class _SearchModuleGroup extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: () => Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                  page: ModuleHubScreen(
-                      moduleLabel: moduleLabel, moduleKey: moduleKey))),
+            context,
+            AppTheme.fadeSlideRoute(
+              page: ModuleHubScreen(
+                moduleLabel: moduleLabel,
+                moduleKey: moduleKey,
+              ),
+            ),
+          ),
           child: Container(
             margin: const EdgeInsets.only(bottom: 8, top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: AppColors.navyMid.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
-              border:
-                  Border.all(color: AppColors.navyMid.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: AppColors.navyMid.withValues(alpha: 0.2),
+              ),
             ),
-            child: Row(children: [
-              const Icon(Icons.folder_copy_rounded,
-                  size: 15, color: AppColors.goldPrimary),
-              const SizedBox(width: 8),
-              Text(moduleLabel.toUpperCase(),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.folder_copy_rounded,
+                  size: 15,
+                  color: AppColors.goldPrimary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  moduleLabel.toUpperCase(),
                   style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                      color: AppColors.goldPrimary)),
-              const Spacer(),
-              Text('${results.length} match${results.length == 1 ? '' : 'es'}',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: AppColors.goldPrimary,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${results.length} match${results.length == 1 ? '' : 'es'}',
                   style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.lightSubText)),
-              const SizedBox(width: 4),
-              const Icon(Icons.arrow_forward_ios_rounded,
-                  size: 11, color: AppColors.goldPrimary),
-            ]),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.lightSubText,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 11,
+                  color: AppColors.goldPrimary,
+                ),
+              ],
+            ),
           ),
         ),
         ...shown.map((r) => _resultCard(context, r)),
         if (overflow > 0)
           GestureDetector(
             onTap: () => Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                    page: ModuleHubScreen(
-                        moduleLabel: moduleLabel, moduleKey: moduleKey))),
+              context,
+              AppTheme.fadeSlideRoute(
+                page: ModuleHubScreen(
+                  moduleLabel: moduleLabel,
+                  moduleKey: moduleKey,
+                ),
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.only(bottom: 12, left: 4),
-              child: Text('+ $overflow more in $moduleLabel →',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.goldPrimary)),
+              child: Text(
+                '+ $overflow more in $moduleLabel →',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.goldPrimary,
+                ),
+              ),
             ),
           ),
         const SizedBox(height: 4),
@@ -9450,49 +10449,71 @@ class _SearchModuleGroup extends StatelessWidget {
         border: Border.all(color: AppColors.lightBorder),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2))
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
-      child: Row(children: [
-        Expanded(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(record.title,
-                style: GoogleFonts.poppins(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  record.title,
+                  style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.navyDark),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 3),
-            Row(children: [
-              Text(record.caseNumber,
-                  style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: AppColors.infoBlue,
-                      fontWeight: FontWeight.w600)),
-              const SizedBox(width: 8),
-              Text('• ${DateFormat('dd MMM yyyy').format(record.incidentDate)}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 11, color: AppColors.lightSubText)),
-            ]),
-          ]),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: sc.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: sc.withValues(alpha: 0.3)),
+                    color: AppColors.navyDark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    Text(
+                      record.caseNumber,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: AppColors.infoBlue,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '• ${DateFormat('dd MMM yyyy').format(record.incidentDate)}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          child: Text(record.status,
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: sc.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: sc.withValues(alpha: 0.3)),
+            ),
+            child: Text(
+              record.status,
               style: GoogleFonts.poppins(
-                  fontSize: 10, fontWeight: FontWeight.w700, color: sc)),
-        ),
-      ]),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: sc,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

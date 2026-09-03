@@ -40,10 +40,7 @@ class CaseService {
     try {
       final response = await _api.get(
         ApiConfig.cases,
-        queryParameters: {
-          'module_key': moduleKey,
-          'station_name': stationId,
-        },
+        queryParameters: {'module_key': moduleKey, 'station_name': stationId},
       );
 
       if (response.isSuccess) {
@@ -56,17 +53,21 @@ class CaseService {
         }
 
         final records = list
-            .map((item) => ModuleRecord.fromMap(
-                  Map<String, dynamic>.from(item as Map),
-                  item['id']?.toString(),
-                ))
+            .map(
+              (item) => ModuleRecord.fromMap(
+                Map<String, dynamic>.from(item as Map),
+                item['id']?.toString(),
+              ),
+            )
             .toList();
         _casesCache[cacheKey] = records;
         _casesCacheTime[cacheKey] = DateTime.now();
         return records;
       } else {
         if (kDebugMode && response.statusCode != 401) {
-          debugPrint('[$moduleKey] CaseService.fetchCases failed: ${response.errorMessage}');
+          debugPrint(
+            '[$moduleKey] CaseService.fetchCases failed: ${response.errorMessage}',
+          );
         }
       }
     } catch (e) {
@@ -89,9 +90,7 @@ class CaseService {
     try {
       final response = await _api.get(
         ApiConfig.cases,
-        queryParameters: {
-          'station_name': stationId.trim(),
-        },
+        queryParameters: {'station_name': stationId.trim()},
       );
 
       if (response.isSuccess) {
@@ -104,10 +103,12 @@ class CaseService {
         }
 
         return list
-            .map((item) => ModuleRecord.fromMap(
-                  Map<String, dynamic>.from(item as Map),
-                  item['id']?.toString(),
-                ))
+            .map(
+              (item) => ModuleRecord.fromMap(
+                Map<String, dynamic>.from(item as Map),
+                item['id']?.toString(),
+              ),
+            )
             .toList();
       }
     } catch (e) {
@@ -119,7 +120,9 @@ class CaseService {
   }
 
   /// Fetch cases assigned to the current officer from Django backend
-  Future<List<ModuleRecord>> fetchAssignedCases({bool activeOnly = true}) async {
+  Future<List<ModuleRecord>> fetchAssignedCases({
+    bool activeOnly = true,
+  }) async {
     final token = await _api.getAuthToken();
     if (token == null || token.isEmpty || _api.isTokenExpired(token)) {
       return [];
@@ -128,9 +131,7 @@ class CaseService {
     try {
       final response = await _api.get(
         '${ApiConfig.cases}assigned-to-me/',
-        queryParameters: {
-          'active_only': activeOnly.toString(),
-        },
+        queryParameters: {'active_only': activeOnly.toString()},
       );
 
       if (response.isSuccess) {
@@ -143,10 +144,12 @@ class CaseService {
         }
 
         return list
-            .map((item) => ModuleRecord.fromMap(
-                  Map<String, dynamic>.from(item as Map),
-                  item['id']?.toString(),
-                ))
+            .map(
+              (item) => ModuleRecord.fromMap(
+                Map<String, dynamic>.from(item as Map),
+                item['id']?.toString(),
+              ),
+            )
             .toList();
       }
     } catch (e) {

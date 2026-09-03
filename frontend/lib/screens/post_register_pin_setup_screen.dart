@@ -154,8 +154,9 @@ class _PostRegisterPinSetupScreenState
                               filled: true,
                               fillColor: const Color(0xFFF8FAFF),
                               border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.md,
+                                ),
                               ),
                             ),
                             validator: _validatePin,
@@ -175,13 +176,15 @@ class _PostRegisterPinSetupScreenState
                             decoration: InputDecoration(
                               labelText: 'Confirm PIN',
                               hintText: '●●●●',
-                              prefixIcon:
-                                  const Icon(Icons.lock_outline_rounded),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline_rounded,
+                              ),
                               filled: true,
                               fillColor: const Color(0xFFF8FAFF),
                               border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.md,
+                                ),
                               ),
                             ),
                             validator: (v) {
@@ -203,8 +206,9 @@ class _PostRegisterPinSetupScreenState
                                 backgroundColor: AppColors.navyMid,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.md),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
                                 ),
                                 elevation: 0,
                               ),

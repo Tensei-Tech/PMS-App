@@ -65,7 +65,9 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
     }
 
     try {
-      final active = await _transferService.getLatestStatusRequestForUser(auth.uid);
+      final active = await _transferService.getLatestStatusRequestForUser(
+        auth.uid,
+      );
       if (!mounted) return;
       setState(() {
         _activeRequest = active;
@@ -74,8 +76,10 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showSnack('Could not load transfer status. Please try again.',
-          AppColors.dangerRed);
+      _showSnack(
+        'Could not load transfer status. Please try again.',
+        AppColors.dangerRed,
+      );
     }
   }
 
@@ -90,10 +94,7 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          'Profile refreshed.',
-          style: GoogleFonts.poppins(),
-        ),
+        content: Text('Profile refreshed.', style: GoogleFonts.poppins()),
         backgroundColor: AppColors.successGreen,
       ),
     );
@@ -111,7 +112,8 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
   List<String> _districtsForUnitType(String unitType) {
     if (_fromState == 'Maharashtra') {
       final districts = <String>{};
-      for (final station in MaharashtraPoliceStationsRepository.getAllStations()) {
+      for (final station
+          in MaharashtraPoliceStationsRepository.getAllStations()) {
         if (station.type == unitType) {
           districts.add(station.districtName);
         }
@@ -142,30 +144,37 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
         _district == null ||
         _station == null ||
         _targetDesignation == null) {
-      _showSnack('Please complete all target posting fields.',
-          AppColors.warningOrange);
+      _showSnack(
+        'Please complete all target posting fields.',
+        AppColors.warningOrange,
+      );
       return;
     }
 
     final auth = context.read<AuthProvider>();
     if (_activeRequest?.status == TransferRequestStatus.pending) {
-      _showSnack('You already have an active transfer request.',
-          AppColors.warningOrange);
+      _showSnack(
+        'You already have an active transfer request.',
+        AppColors.warningOrange,
+      );
       return;
     }
 
     setState(() => _submitting = true);
     try {
-      final activeCheck =
-          await _transferService.getActiveRequestForUser(auth.uid);
+      final activeCheck = await _transferService.getActiveRequestForUser(
+        auth.uid,
+      );
       if (activeCheck != null) {
         if (!mounted) return;
         setState(() {
           _activeRequest = activeCheck;
           _submitting = false;
         });
-        _showSnack('You already have an active transfer request.',
-            AppColors.warningOrange);
+        _showSnack(
+          'You already have an active transfer request.',
+          AppColors.warningOrange,
+        );
         return;
       }
 
@@ -189,19 +198,23 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
       );
 
       await _transferService.createRequest(request);
-      final created = await _transferService.getLatestStatusRequestForUser(auth.uid);
+      final created = await _transferService.getLatestStatusRequestForUser(
+        auth.uid,
+      );
 
       if (!mounted) return;
       setState(() {
         _activeRequest = created;
         _submitting = false;
       });
-      final approvalTarget = TransferRequestRoles.requiresSeniorTransferApproval(
-              auth.designation)
+      final approvalTarget =
+          TransferRequestRoles.requiresSeniorTransferApproval(auth.designation)
           ? 'destination SP/CP approval'
           : 'destination PI/API approval';
-      _showSnack('Transfer request submitted for $approvalTarget.',
-          AppColors.successGreen);
+      _showSnack(
+        'Transfer request submitted for $approvalTarget.',
+        AppColors.successGreen,
+      );
     } catch (e) {
       debugPrint('Transfer submit failed: $e');
       if (!mounted) return;
@@ -239,8 +252,9 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final canSubmit =
-        TransferRequestRoles.canSubmitTransferRequest(auth.designation);
+    final canSubmit = TransferRequestRoles.canSubmitTransferRequest(
+      auth.designation,
+    );
     final hasBlockingRequest =
         _activeRequest?.status == TransferRequestStatus.pending;
 
@@ -263,20 +277,20 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
               child: CircularProgressIndicator(color: AppColors.navyMid),
             )
           : !canSubmit
-              ? _buildIneligible(auth)
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (_activeRequest != null) ...[
-                        _buildStatusCard(_activeRequest!),
-                        const SizedBox(height: AppSpacing.lg),
-                      ],
-                      if (!hasBlockingRequest) _buildRequestForm(auth),
-                    ],
-                  ),
-                ),
+          ? _buildIneligible(auth)
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_activeRequest != null) ...[
+                    _buildStatusCard(_activeRequest!),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                  if (!hasBlockingRequest) _buildRequestForm(auth),
+                ],
+              ),
+            ),
     );
   }
 
@@ -286,8 +300,11 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.info_outline_rounded,
-              size: 48, color: AppColors.lightSubText),
+          const Icon(
+            Icons.info_outline_rounded,
+            size: 48,
+            color: AppColors.lightSubText,
+          ),
           const SizedBox(height: AppSpacing.md),
           Text(
             'Transfer requests are available to officers below PI/API rank, and to PI/API/Sr. PI for self-transfer.',
@@ -383,7 +400,9 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
                 onPressed: _cancelling ? null : _cancelActiveRequest,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.dangerRed,
-                  side: BorderSide(color: AppColors.dangerRed.withValues(alpha: 0.5)),
+                  side: BorderSide(
+                    color: AppColors.dangerRed.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: _cancelling
                     ? const SizedBox(
@@ -549,8 +568,9 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
                 leadingIcon: Icons.local_police_rounded,
                 value: _station,
                 items: _stationsForSelection(_district!, _unitType!),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Target station is required' : null,
+                validator: (v) => v == null || v.isEmpty
+                    ? 'Target station is required'
+                    : null,
                 onChanged: (v) => setState(() => _station = v),
               ),
           ],
@@ -558,7 +578,9 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: DropdownButtonFormField<String>(
-                key: ValueKey('target-desig-${isSelfTransfer ? 'pi' : _unitType}'),
+                key: ValueKey(
+                  'target-desig-${isSelfTransfer ? 'pi' : _unitType}',
+                ),
                 initialValue: _targetDesignation,
                 isExpanded: true,
                 decoration: InputDecoration(
@@ -579,8 +601,9 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
                     )
                     .toList(growable: false),
                 onChanged: (v) => setState(() => _targetDesignation = v),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Target designation is required' : null,
+                validator: (v) => v == null || v.isEmpty
+                    ? 'Target designation is required'
+                    : null,
               ),
             ),
           TextFormField(
@@ -644,19 +667,28 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(station,
-              style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600, color: AppColors.navyDark)),
+          Text(
+            station,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              color: AppColors.navyDark,
+            ),
+          ),
           if (district.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(district,
-                style: GoogleFonts.poppins(
-                    fontSize: 12, color: AppColors.lightSubText)),
+            Text(
+              district,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: AppColors.lightSubText,
+              ),
+            ),
           ],
           const SizedBox(height: 4),
-          Text(designation,
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.navyMid)),
+          Text(
+            designation,
+            style: GoogleFonts.poppins(fontSize: 12, color: AppColors.navyMid),
+          ),
         ],
       ),
     );
@@ -676,10 +708,7 @@ class _UnitTypeSelector extends StatelessWidget {
       children: [
         Text(
           'Target Unit Type',
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
         ),
         Row(
           children: [
@@ -693,8 +722,10 @@ class _UnitTypeSelector extends StatelessWidget {
                   if (v != null) onChanged(v);
                 },
                 contentPadding: EdgeInsets.zero,
-                title: Text('Commissionerate',
-                    style: GoogleFonts.poppins(fontSize: 13)),
+                title: Text(
+                  'Commissionerate',
+                  style: GoogleFonts.poppins(fontSize: 13),
+                ),
               ),
             ),
             Expanded(
@@ -707,8 +738,7 @@ class _UnitTypeSelector extends StatelessWidget {
                   if (v != null) onChanged(v);
                 },
                 contentPadding: EdgeInsets.zero,
-                title:
-                    Text('Rural', style: GoogleFonts.poppins(fontSize: 13)),
+                title: Text('Rural', style: GoogleFonts.poppins(fontSize: 13)),
               ),
             ),
           ],

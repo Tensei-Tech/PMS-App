@@ -13,10 +13,7 @@ import 'app_logo.dart';
 class StatePoliceBannerDialog extends StatelessWidget {
   final AuthProvider auth;
 
-  const StatePoliceBannerDialog({
-    super.key,
-    required this.auth,
-  });
+  const StatePoliceBannerDialog({super.key, required this.auth});
 
   static void show(BuildContext context, AuthProvider auth) {
     showModalBottomSheet(
@@ -32,20 +29,36 @@ class StatePoliceBannerDialog extends StatelessWidget {
     final stateCode = auth.currentUser?.stateCode ?? auth.stateCode;
     final branding = StateBrandingHelper.getBranding(stateCode);
     final user = auth.currentUser;
-    final officerName = auth.fullName.isNotEmpty ? auth.fullName : (user?.name ?? 'Officer');
-    final rawDesig = auth.designation.isNotEmpty ? auth.designation : (user?.designation ?? '');
-    final transDesig = rawDesig.isNotEmpty ? TranslationHelper.translate(context, rawDesig) : '';
-    final officerValue = transDesig.isNotEmpty ? '$officerName ($transDesig)' : officerName;
+    final officerName = auth.fullName.isNotEmpty
+        ? auth.fullName
+        : (user?.name ?? 'Officer');
+    final rawDesig = auth.designation.isNotEmpty
+        ? auth.designation
+        : (user?.designation ?? '');
+    final transDesig = rawDesig.isNotEmpty
+        ? TranslationHelper.translate(context, rawDesig)
+        : '';
+    final officerValue = transDesig.isNotEmpty
+        ? '$officerName ($transDesig)'
+        : officerName;
 
-    final rawDistrict = auth.district.isNotEmpty ? auth.district : (user?.district ?? 'Headquarters');
+    final rawDistrict = auth.district.isNotEmpty
+        ? auth.district
+        : (user?.district ?? 'Headquarters');
     final districtValue = TranslationHelper.translate(context, rawDistrict);
 
-    final rawStation = auth.homeStationName.isNotEmpty ? auth.homeStationName : (user?.stationName ?? 'State HQ');
+    final rawStation = auth.homeStationName.isNotEmpty
+        ? auth.homeStationName
+        : (user?.stationName ?? 'State HQ');
     final stationValue = TranslationHelper.translate(context, rawStation);
 
-    final mottoEnglishTrans = TranslationHelper.translate(context, branding.mottoEnglish);
+    final mottoEnglishTrans = TranslationHelper.translate(
+      context,
+      branding.mottoEnglish,
+    );
 
-    final servingMsg = '${TranslationHelper.translate(context, 'Serving')} ${branding.stateName} ${TranslationHelper.translate(context, 'State with Honor, Integrity, and Excellence. Integrated via Khakhi Diary Enterprise Portal.')}';
+    final servingMsg =
+        '${TranslationHelper.translate(context, 'Serving')} ${branding.stateName} ${TranslationHelper.translate(context, 'State with Honor, Integrity, and Excellence. Integrated via Khakhi Diary Enterprise Portal.')}';
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -84,10 +97,7 @@ class StatePoliceBannerDialog extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      branding.primaryColor,
-                      AppColors.navyDark,
-                    ],
+                    colors: [branding.primaryColor, AppColors.navyDark],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -117,93 +127,101 @@ class StatePoliceBannerDialog extends StatelessWidget {
                     // ── LINE 2: Khakhi Diary Logo + State Name (Medium Text) + State Police Logo ──
                     ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width > 500 ? 460 : MediaQuery.of(context).size.width - 40,
+                        maxWidth: MediaQuery.of(context).size.width > 500
+                            ? 460
+                            : MediaQuery.of(context).size.width - 40,
                       ),
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Khakhi Diary Logo (Bigger)
-                          AppLogo(
-                            size: 50,
-                            logoUrl: user?.departmentLogoUrl,
-                          ),
-                          const SizedBox(width: 12),
-                          // State Name (Medium Text)
-                          Text(
-                            branding.policeForceTitle.toUpperCase(),
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.6,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          // State Police Emblem Logo Badge (Bigger)
-                          if (branding.logoAssetPath != null)
-                            Container(
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: branding.accentColor,
-                                  width: 2.0,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: branding.accentColor.withValues(alpha: 0.4),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Khakhi Diary Logo (Bigger)
+                            AppLogo(size: 50, logoUrl: user?.departmentLogoUrl),
+                            const SizedBox(width: 12),
+                            // State Name (Medium Text)
+                            Text(
+                              branding.policeForceTitle.toUpperCase(),
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.6,
+                                color: Colors.white,
                               ),
-                              child: ClipOval(
-                                child: Image.asset(
-                                  branding.logoAssetPath!,
-                                  width: 52,
-                                  height: 52,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Icon(
-                                    branding.emblemIcon,
+                            ),
+                            const SizedBox(width: 12),
+                            // State Police Emblem Logo Badge (Bigger)
+                            if (branding.logoAssetPath != null)
+                              Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
                                     color: branding.accentColor,
-                                    size: 28,
+                                    width: 2.0,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: branding.accentColor.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    branding.logoAssetPath!,
+                                    width: 52,
+                                    height: 52,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Icon(
+                                      branding.emblemIcon,
+                                      color: branding.accentColor,
+                                      size: 28,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                          else
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: branding.accentColor.withValues(alpha: 0.25),
-                                shape: BoxShape.circle,
-                                border: Border.all(
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: branding.accentColor.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: branding.accentColor,
+                                    width: 2.0,
+                                  ),
+                                ),
+                                child: Icon(
+                                  branding.emblemIcon,
                                   color: branding.accentColor,
-                                  width: 2.0,
+                                  size: 28,
                                 ),
                               ),
-                              child: Icon(
-                                branding.emblemIcon,
-                                color: branding.accentColor,
-                                size: 28,
-                              ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                     const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.amber.shade400.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.amber.shade300.withValues(alpha: 0.5)),
+                        border: Border.all(
+                          color: Colors.amber.shade300.withValues(alpha: 0.5),
+                        ),
                       ),
                       child: Text(
                         '"${branding.motto}"',
@@ -278,7 +296,9 @@ class StatePoliceBannerDialog extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: branding.primaryColor.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: branding.primaryColor.withValues(alpha: 0.15)),
+                  border: Border.all(
+                    color: branding.primaryColor.withValues(alpha: 0.15),
+                  ),
                 ),
                 child: Row(
                   children: [

@@ -44,9 +44,8 @@ import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
 
 // ── Helper macro — wires AuthProvider → any BaseModuleProvider subclass ──────
-ChangeNotifierProxyProvider<AuthProvider, T> _wired<T extends BaseModuleProvider>(
-  T Function() create,
-) {
+ChangeNotifierProxyProvider<AuthProvider, T>
+_wired<T extends BaseModuleProvider>(T Function() create) {
   return ChangeNotifierProxyProvider<AuthProvider, T>(
     create: (_) => create(),
     update: (_, auth, provider) {
@@ -108,103 +107,163 @@ List<SingleChildWidget> moduleProviders = [
 // ── rest unchanged ─────────────────────────────────────────────────────────
 
 const Map<String, String> labelToModuleKey = {
-  'Form I-V'    : 'form_1_5',
-  'Form VI'     : 'form_6',
-  'NC'          : 'nc',
-  'Preventive'  : 'preventive',
-  'AD'          : 'ad',
-  'Missing'     : 'missing',
-  'Kidnapping'  : 'kidnapping',
-  'Theft'       : 'theft',
-  'Sand Theft'  : 'sand_theft',
-  'Hurt'        : 'hurt',
-  'POCSO'       : 'pocso',
+  'Form I-V': 'form_1_5',
+  'Form VI': 'form_6',
+  'NC': 'nc',
+  'Preventive': 'preventive',
+  'AD': 'ad',
+  'Missing': 'missing',
+  'Kidnapping': 'kidnapping',
+  'Theft': 'theft',
+  'Sand Theft': 'sand_theft',
+  'Hurt': 'hurt',
+  'POCSO': 'pocso',
   'Passport/PVR': 'passport',
-  'Monthly'     : 'monthly',
-  'Pending'     : 'pending',
-  'Detected'    : 'detected',
-  'Undetected'  : 'undetected',
-  'Disposal'    : 'disposal',
-  'I to V'      : 'form_1_5',
-  'Forms'       : 'form_1_5',
-  'VI'          : 'form_6',
-  'A.D'         : 'ad',
-  'Two/Four Wheeler Stolen' : 'two_four_wheeler',
-  'Kid'         : 'kidnapping',
-  'N.C'         : 'nc',
-  'Arrested'    : 'arrested',
-  'Absconded'   : 'absconded',
-  'Crime against Women' : 'crime_women',
-  'Juvenile'    : 'juvenile',
-  'Victim'      : 'victim',
-  'Accident'    : 'accident',
-  'Traffic'     : 'traffic',
-  'Application' : 'application',
-  'Sam (Summons) / Warrant' : 'sam_warrant',
-  'Muddemal'    : 'muddemal',
-  'Section 186/175/BNSS' : 'bnss',
-  'Passport /PVR / License' : 'passport',
-  'NDPS'        : 'ndps',
-  'Gowans'      : 'gowans',
-  'IT Act'      : 'it_act',
-  'MCOCA'       : 'mcoca',
-  'UAPA'        : 'uapa',
-  'MPDA'        : 'mpda',
-  'COIN'        : 'coin',
+  'Monthly': 'monthly',
+  'Pending': 'pending',
+  'Detected': 'detected',
+  'Undetected': 'undetected',
+  'Disposal': 'disposal',
+  'I to V': 'form_1_5',
+  'Forms': 'form_1_5',
+  'VI': 'form_6',
+  'A.D': 'ad',
+  'Two/Four Wheeler Stolen': 'two_four_wheeler',
+  'Kid': 'kidnapping',
+  'N.C': 'nc',
+  'Arrested': 'arrested',
+  'Absconded': 'absconded',
+  'Crime against Women': 'crime_women',
+  'Juvenile': 'juvenile',
+  'Victim': 'victim',
+  'Accident': 'accident',
+  'Traffic': 'traffic',
+  'Application': 'application',
+  'Sam (Summons) / Warrant': 'sam_warrant',
+  'Muddemal': 'muddemal',
+  'Section 186/175/BNSS': 'bnss',
+  'Passport /PVR / License': 'passport',
+  'NDPS': 'ndps',
+  'Gowans': 'gowans',
+  'IT Act': 'it_act',
+  'MCOCA': 'mcoca',
+  'UAPA': 'uapa',
+  'MPDA': 'mpda',
+  'COIN': 'coin',
 };
 
 final List<Type> allDataProviders = [
-  FormIVProvider, FormVIProvider, NcProvider, PreventiveProvider,
-  AdProvider, MissingProvider, KidnappingProvider, TheftProvider,
-  SandTheftProvider, HurtProvider, PocsoProvider, PassportProvider,
-  TwoFourWheelerProvider, ArrestedProvider, AbscondedProvider,
-  CrimeWomenProvider, JuvenileProvider, VictimProvider, AccidentProvider,
-  TrafficProvider, ApplicationProvider, SamWarrantProvider, MuddemalProvider,
-  BnssProvider, NdpsProvider, GowansProvider, ItActProvider, McocaProvider,
-  UapaProvider, MpdaProvider, CoinProvider,
+  FormIVProvider,
+  FormVIProvider,
+  NcProvider,
+  PreventiveProvider,
+  AdProvider,
+  MissingProvider,
+  KidnappingProvider,
+  TheftProvider,
+  SandTheftProvider,
+  HurtProvider,
+  PocsoProvider,
+  PassportProvider,
+  TwoFourWheelerProvider,
+  ArrestedProvider,
+  AbscondedProvider,
+  CrimeWomenProvider,
+  JuvenileProvider,
+  VictimProvider,
+  AccidentProvider,
+  TrafficProvider,
+  ApplicationProvider,
+  SamWarrantProvider,
+  MuddemalProvider,
+  BnssProvider,
+  NdpsProvider,
+  GowansProvider,
+  ItActProvider,
+  McocaProvider,
+  UapaProvider,
+  MpdaProvider,
+  CoinProvider,
 ];
 
 BaseModuleProvider getProvider(BuildContext context, String label) {
   final key = labelToModuleKey[label];
   if (key == null) return context.read<NcProvider>();
   switch (key) {
-    case 'form_1_5':     return context.read<FormIVProvider>();
-    case 'form_6':       return context.read<FormVIProvider>();
-    case 'nc':           return context.read<NcProvider>();
-    case 'preventive':   return context.read<PreventiveProvider>();
-    case 'ad':           return context.read<AdProvider>();
-    case 'missing':      return context.read<MissingProvider>();
-    case 'kidnapping':   return context.read<KidnappingProvider>();
-    case 'theft':        return context.read<TheftProvider>();
-    case 'sand_theft':   return context.read<SandTheftProvider>();
-    case 'hurt':         return context.read<HurtProvider>();
-    case 'pocso':        return context.read<PocsoProvider>();
-    case 'passport':     return context.read<PassportProvider>();
-    case 'monthly':      return context.read<MonthlyProvider>();
-    case 'pending':      return context.read<PendingProvider>();
-    case 'detected':     return context.read<DetectedProvider>();
-    case 'undetected':   return context.read<UndetectedProvider>();
-    case 'disposal':     return context.read<DisposalProvider>();
-    case 'two_four_wheeler': return context.read<TwoFourWheelerProvider>();
-    case 'arrested':     return context.read<ArrestedProvider>();
-    case 'absconded':    return context.read<AbscondedProvider>();
-    case 'crime_women':  return context.read<CrimeWomenProvider>();
-    case 'juvenile':     return context.read<JuvenileProvider>();
-    case 'victim':       return context.read<VictimProvider>();
-    case 'accident':     return context.read<AccidentProvider>();
-    case 'traffic':      return context.read<TrafficProvider>();
-    case 'application':  return context.read<ApplicationProvider>();
-    case 'sam_warrant':  return context.read<SamWarrantProvider>();
-    case 'muddemal':     return context.read<MuddemalProvider>();
-    case 'bnss':         return context.read<BnssProvider>();
-    case 'ndps':         return context.read<NdpsProvider>();
-    case 'gowans':       return context.read<GowansProvider>();
-    case 'it_act':       return context.read<ItActProvider>();
-    case 'mcoca':        return context.read<McocaProvider>();
-    case 'uapa':         return context.read<UapaProvider>();
-    case 'mpda':         return context.read<MpdaProvider>();
-    case 'coin':         return context.read<CoinProvider>();
-    default:             return context.read<NcProvider>();
+    case 'form_1_5':
+      return context.read<FormIVProvider>();
+    case 'form_6':
+      return context.read<FormVIProvider>();
+    case 'nc':
+      return context.read<NcProvider>();
+    case 'preventive':
+      return context.read<PreventiveProvider>();
+    case 'ad':
+      return context.read<AdProvider>();
+    case 'missing':
+      return context.read<MissingProvider>();
+    case 'kidnapping':
+      return context.read<KidnappingProvider>();
+    case 'theft':
+      return context.read<TheftProvider>();
+    case 'sand_theft':
+      return context.read<SandTheftProvider>();
+    case 'hurt':
+      return context.read<HurtProvider>();
+    case 'pocso':
+      return context.read<PocsoProvider>();
+    case 'passport':
+      return context.read<PassportProvider>();
+    case 'monthly':
+      return context.read<MonthlyProvider>();
+    case 'pending':
+      return context.read<PendingProvider>();
+    case 'detected':
+      return context.read<DetectedProvider>();
+    case 'undetected':
+      return context.read<UndetectedProvider>();
+    case 'disposal':
+      return context.read<DisposalProvider>();
+    case 'two_four_wheeler':
+      return context.read<TwoFourWheelerProvider>();
+    case 'arrested':
+      return context.read<ArrestedProvider>();
+    case 'absconded':
+      return context.read<AbscondedProvider>();
+    case 'crime_women':
+      return context.read<CrimeWomenProvider>();
+    case 'juvenile':
+      return context.read<JuvenileProvider>();
+    case 'victim':
+      return context.read<VictimProvider>();
+    case 'accident':
+      return context.read<AccidentProvider>();
+    case 'traffic':
+      return context.read<TrafficProvider>();
+    case 'application':
+      return context.read<ApplicationProvider>();
+    case 'sam_warrant':
+      return context.read<SamWarrantProvider>();
+    case 'muddemal':
+      return context.read<MuddemalProvider>();
+    case 'bnss':
+      return context.read<BnssProvider>();
+    case 'ndps':
+      return context.read<NdpsProvider>();
+    case 'gowans':
+      return context.read<GowansProvider>();
+    case 'it_act':
+      return context.read<ItActProvider>();
+    case 'mcoca':
+      return context.read<McocaProvider>();
+    case 'uapa':
+      return context.read<UapaProvider>();
+    case 'mpda':
+      return context.read<MpdaProvider>();
+    case 'coin':
+      return context.read<CoinProvider>();
+    default:
+      return context.read<NcProvider>();
   }
 }
 

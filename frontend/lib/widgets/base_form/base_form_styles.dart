@@ -17,50 +17,43 @@ abstract final class BaseFormStyles {
   static const Color fieldTextColor = Color(0xFF1E293B);
   static const Color accent = Color(0xFF0EA5E9);
 
-  static TextStyle get fieldTextStyle => GoogleFonts.poppins(
-        fontSize: 12,
-        color: fieldTextColor,
-      );
+  static TextStyle get fieldTextStyle =>
+      GoogleFonts.poppins(fontSize: 12, color: fieldTextColor);
 
   static TextStyle get labelStyle => GoogleFonts.poppins(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: labelColor,
-        letterSpacing: 0.3,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w700,
+    color: labelColor,
+    letterSpacing: 0.3,
+  );
 
   static InputDecoration inputDecoration(
     String label, {
     Widget? suffixIcon,
     String? hintText,
-  }) =>
-      InputDecoration(
-        labelText: label,
-        hintText: hintText,
-        labelStyle: labelStyle,
-        floatingLabelStyle: labelStyle.copyWith(
-          fontSize: 11,
-          color: accent,
-        ),
-        filled: true,
-        fillColor: inputBg,
-        isDense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: inputBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: inputBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: accent, width: 1.5),
-        ),
-      );
+  }) => InputDecoration(
+    labelText: label,
+    hintText: hintText,
+    labelStyle: labelStyle,
+    floatingLabelStyle: labelStyle.copyWith(fontSize: 11, color: accent),
+    filled: true,
+    fillColor: inputBg,
+    isDense: true,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    suffixIcon: suffixIcon,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      borderSide: const BorderSide(color: inputBorder),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      borderSide: const BorderSide(color: inputBorder),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      borderSide: const BorderSide(color: accent, width: 1.5),
+    ),
+  );
 
   static String formatDateDdMmYyyy(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';

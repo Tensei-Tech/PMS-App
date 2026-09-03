@@ -57,11 +57,18 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
     });
 
     try {
-      final res = await ApiService().get('${ApiConfig.users}station-officers/?station_name=${Uri.encodeComponent(station)}');
+      final res = await ApiService().get(
+        '${ApiConfig.users}station-officers/?station_name=${Uri.encodeComponent(station)}',
+      );
       if (!mounted) return;
       if (res.statusCode == 200 && res.data is List) {
         final users = (res.data as List)
-            .map((item) => UserModel.fromMap(item as Map<String, dynamic>, item['uid'] ?? ''))
+            .map(
+              (item) => UserModel.fromMap(
+                item as Map<String, dynamic>,
+                item['uid'] ?? '',
+              ),
+            )
             .toList();
         setState(() {
           _officers = users;
@@ -84,9 +91,11 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return _officers;
     return _officers
-        .where((o) =>
-            o.name.toLowerCase().contains(q) ||
-            o.designation.toLowerCase().contains(q))
+        .where(
+          (o) =>
+              o.name.toLowerCase().contains(q) ||
+              o.designation.toLowerCase().contains(q),
+        )
         .toList();
   }
 
@@ -97,8 +106,7 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
     return user.stationCaseViewGranted;
   }
 
-  int get _grantedCount =>
-      _officers.where((o) => _isGranted(o)).length;
+  int get _grantedCount => _officers.where((o) => _isGranted(o)).length;
 
   Future<void> _toggleGrant(UserModel user, bool value) async {
     if (!CaseVisibility.designationEligibleForGrant(user.designation)) return;
@@ -107,9 +115,10 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
     setState(() => _savingUids.add(user.uid));
 
     try {
-      await ApiService().patch('${ApiConfig.users}${user.uid}/grant-station-access/', data: {
-        'station_case_view_granted': value,
-      });
+      await ApiService().patch(
+        '${ApiConfig.users}${user.uid}/grant-station-access/',
+        data: {'station_case_view_granted': value},
+      );
       if (!mounted) return;
       setState(() {
         _officers = _officers.map((o) {
@@ -271,11 +280,15 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: const BorderSide(color: AppColors.lightBorder),
+                        borderSide: const BorderSide(
+                          color: AppColors.lightBorder,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: const BorderSide(color: AppColors.lightBorder),
+                        borderSide: const BorderSide(
+                          color: AppColors.lightBorder,
+                        ),
                       ),
                     ),
                   ),
@@ -284,36 +297,36 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
                   child: _loading
                       ? const Center(child: CircularProgressIndicator())
                       : _loadError != null
-                          ? _buildMessageState(_loadError!)
-                          : filtered.isEmpty
-                              ? _buildEmptyState()
-                              : ListView.separated(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    AppSpacing.lg,
-                                    0,
-                                    AppSpacing.lg,
-                                    AppSpacing.lg,
-                                  ),
-                                  itemCount: filtered.length,
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(height: AppSpacing.sm),
-                                  itemBuilder: (context, index) {
-                                    final officer = filtered[index];
-                                    final eligible =
-                                        CaseVisibility.designationEligibleForGrant(
-                                      officer.designation,
-                                    );
-                                    return _OfficerGrantCard(
-                                      user: officer,
-                                      granted: _isGranted(officer),
-                                      eligible: eligible,
-                                      saving: _savingUids.contains(officer.uid),
-                                      onChanged: eligible
-                                          ? (v) => _toggleGrant(officer, v)
-                                          : null,
-                                    );
-                                  },
-                                ),
+                      ? _buildMessageState(_loadError!)
+                      : filtered.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.lg,
+                            0,
+                            AppSpacing.lg,
+                            AppSpacing.lg,
+                          ),
+                          itemCount: filtered.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: AppSpacing.sm),
+                          itemBuilder: (context, index) {
+                            final officer = filtered[index];
+                            final eligible =
+                                CaseVisibility.designationEligibleForGrant(
+                                  officer.designation,
+                                );
+                            return _OfficerGrantCard(
+                              user: officer,
+                              granted: _isGranted(officer),
+                              eligible: eligible,
+                              saving: _savingUids.contains(officer.uid),
+                              onChanged: eligible
+                                  ? (v) => _toggleGrant(officer, v)
+                                  : null,
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
@@ -343,8 +356,11 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.people_outline_rounded,
-                size: 48, color: AppColors.lightSubText),
+            const Icon(
+              Icons.people_outline_rounded,
+              size: 48,
+              color: AppColors.lightSubText,
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               _query.trim().isEmpty

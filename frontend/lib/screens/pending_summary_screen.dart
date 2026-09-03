@@ -20,11 +20,7 @@ import '../utils/case_visibility.dart';
 import '../widgets/pending_cases_demo_data_table.dart';
 
 class PendingSummaryScreen extends StatelessWidget {
-  const PendingSummaryScreen({
-    super.key,
-    this.liveRows,
-    this.stationName = '',
-  });
+  const PendingSummaryScreen({super.key, this.liveRows, this.stationName = ''});
 
   /// When non-null and non-empty, summary uses only this data (skips Firestore stream).
   final List<Map<String, String>>? liveRows;
@@ -162,8 +158,11 @@ class PendingSummaryScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.navyMid,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -182,20 +181,23 @@ class PendingSummaryScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap: !anyRows
-                        ? null
-                        : () => _exportPdf(context, dataset),
+                    onTap: !anyRows ? null : () => _exportPdf(context, dataset),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.navyMid,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.download_rounded,
-                              color: Colors.white, size: 18),
+                          const Icon(
+                            Icons.download_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             'Export',
@@ -272,7 +274,8 @@ class _LivePendingSummaryLoader extends StatefulWidget {
     required List<Map<String, String>> dataset,
     required bool firedFromFirestoreExclusive,
     required bool showDemoNote,
-  }) buildContent;
+  })
+  buildContent;
 
   @override
   State<_LivePendingSummaryLoader> createState() =>
@@ -317,24 +320,26 @@ class _LivePendingSummaryLoaderState extends State<_LivePendingSummaryLoader> {
       setState(() => _initialLoad = true);
     }
 
-    _sub = _firestore.getPendingCasesStream(station).listen(
-      (data) {
-        if (!mounted) return;
-        final auth = Provider.of<AuthProvider>(context, listen: false);
-        setState(() {
-          _modules = CaseVisibility.filterForAuth(data, auth);
-          _initialLoad = false;
-          _error = null;
-        });
-      },
-      onError: (e) {
-        if (!mounted) return;
-        setState(() {
-          _error = e;
-          _initialLoad = false;
-        });
-      },
-    );
+    _sub = _firestore
+        .getPendingCasesStream(station)
+        .listen(
+          (data) {
+            if (!mounted) return;
+            final auth = Provider.of<AuthProvider>(context, listen: false);
+            setState(() {
+              _modules = CaseVisibility.filterForAuth(data, auth);
+              _initialLoad = false;
+              _error = null;
+            });
+          },
+          onError: (e) {
+            if (!mounted) return;
+            setState(() {
+              _error = e;
+              _initialLoad = false;
+            });
+          },
+        );
   }
 
   @override
@@ -383,8 +388,9 @@ class _LivePendingSummaryLoaderState extends State<_LivePendingSummaryLoader> {
 
     final exclusive = modules.isNotEmpty;
     final now = DateTime.now();
-    final dataset =
-        exclusive ? pendingTableRowsAll(modules, now) : kPendingDemoTableRows;
+    final dataset = exclusive
+        ? pendingTableRowsAll(modules, now)
+        : kPendingDemoTableRows;
     final showDemoNote = !exclusive && dataset.isNotEmpty;
 
     return widget.buildContent(
