@@ -33,8 +33,6 @@ import 'help_support_screen.dart';
 import 'about_app_screen.dart';
 import 'add_members_screen.dart';
 import 'pending_transfers_screen.dart';
-import 'pending_approvals_screen.dart';
-import 'state_admin_hierarchy_screen.dart';
 import 'admin_panel_screen.dart';
 import 'station_access_grants_screen.dart';
 import '../utils/case_visibility_ui.dart';
@@ -43,7 +41,6 @@ import 'form_i_v_selection_screen.dart';
 import '../utils/pdf_helper.dart';
 import 'case_detail_screen.dart';
 import '../utils/police_hierarchy_helper.dart';
-import '../widgets/create_sub_admin_dialog.dart';
 import '../widgets/send_broadcast_alert_dialog.dart';
 import 'ad_record_detail_screen.dart';
 import 'module_record_detail_screen.dart';
@@ -1306,7 +1303,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     const bool isDark = false;
     final auth = context.watch<AuthProvider>();
-    final settings = context.watch<SettingsProvider>();
     final l10n = AppLocalizations.of(context)!;
 
     // ✅ Station injection removed from here — handled in main.dart globally
@@ -1316,9 +1312,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final pages = [
       _HomeTab(isDark: isDark, auth: auth, onViewAll: () => _onNavTap(3)),
-      _WantedTab(isDark: isDark),
-      _ViewTab(isDark: isDark),
-      _CalendarTab(isDark: isDark),
+      const _WantedTab(isDark: isDark),
+      const _ViewTab(isDark: isDark),
+      const _CalendarTab(isDark: isDark),
     ];
 
     final int pageIndex;
@@ -1415,7 +1411,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
                 onPressed: () => Scaffold.of(ctx).openDrawer(),
-                icon: Icon(Icons.menu_rounded, color: AppColors.navyDark),
+                icon: const Icon(Icons.menu_rounded, color: AppColors.navyDark),
               ),
             ),
           Expanded(
@@ -1973,40 +1969,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _appBarBtn({
-    required IconData icon,
-    required VoidCallback onTap,
-    bool badge = false,
-    Color? iconColor,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4F6FB),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Icon(icon, color: iconColor ?? AppColors.navyDark, size: 20),
-          ),
-          if (badge)
-            Positioned(
-              right: 6,
-              top: 6,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                    color: AppColors.dangerRed, shape: BoxShape.circle),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 
   void _showStationSwitcher(BuildContext context, AuthProvider auth) {
     final firestore = FirestoreService();
@@ -2359,8 +2321,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _navItem(IconData icon, String label, int index) {
     final isActive = _currentIndex == index;
-    final activeColor = AppColors.navyMid;
-    final inactiveColor = AppColors.lightSubText;
+    const activeColor = AppColors.navyMid;
+    const inactiveColor = AppColors.lightSubText;
     return GestureDetector(
       onTap: () => _onNavTap(index),
       child: AnimatedContainer(
@@ -2494,7 +2456,7 @@ class _HomeTabState extends State<_HomeTab> {
   final _searchCtrl = TextEditingController();
   Timer? _debounce;
   String _searchQuery = '';
-  SearchFilters _searchFilters = SearchFilters();
+  final SearchFilters _searchFilters = SearchFilters();
   DateTime? _explicitSearchDate;
 
   /// Memoizes live search across rebuilds triggered by unrelated widgets (e.g. news).
@@ -3600,25 +3562,6 @@ class _HomeTabState extends State<_HomeTab> {
     }
   }
 
-  void _showFilterSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _FilterSheet(
-        isDark: widget.isDark,
-        filters: _searchFilters,
-        onApply: (f) {
-          setState(() {
-            _searchFilters = f;
-            _invalidateSearchCache();
-          });
-          if (_searchQuery.isNotEmpty) _onSearchChanged(_searchCtrl.text);
-        },
-      ),
-    );
-  }
-
   Widget _buildSearchResults(List<SearchResult> searchResults) {
     final grouped = UniversalSearch.groupByModule(searchResults);
     return Column(
@@ -3659,7 +3602,7 @@ class _HomeTabState extends State<_HomeTab> {
     return Center(
       child: Column(
         children: [
-          Icon(Icons.search_off_rounded,
+          const Icon(Icons.search_off_rounded,
               size: 48, color: AppColors.lightSubText),
           const SizedBox(height: 8),
           Text('No results found for "$_searchQuery"',
@@ -3814,7 +3757,7 @@ class _HomeTabState extends State<_HomeTab> {
                     ),
                     if (!isLast) ...[
                       const SizedBox(height: 10),
-                      Divider(
+                      const Divider(
                           height: 1,
                           thickness: 1,
                           color: AppColors.lightBorder),
@@ -3957,7 +3900,7 @@ class _HomeTabState extends State<_HomeTab> {
           ),
           const Spacer(),
           if (onViewAll != null)
-            Icon(Icons.arrow_forward_ios_rounded,
+            const Icon(Icons.arrow_forward_ios_rounded,
                 size: 18, color: AppColors.navyMid),
         ],
       ),
@@ -4097,7 +4040,7 @@ class _HomeTabState extends State<_HomeTab> {
                   tooltip: 'Download PDF',
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                  icon: Icon(Icons.picture_as_pdf_outlined,
+                  icon: const Icon(Icons.picture_as_pdf_outlined,
                       color: AppColors.dangerRed, size: 22),
                   onPressed: () => runWithPdfAuthGate(
                     context,
@@ -4139,9 +4082,9 @@ class _HomeTabState extends State<_HomeTab> {
       isScrollControlled: true,
       builder: (_) => Container(
         height: MediaQuery.of(context).size.height * 0.75,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         ),
         child: Column(
           children: [
@@ -4198,9 +4141,9 @@ class _HomeTabState extends State<_HomeTab> {
       isScrollControlled: true,
       builder: (_) => Container(
         height: MediaQuery.of(context).size.height * 0.75,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         ),
         child: Column(
           children: [
@@ -5460,7 +5403,7 @@ class _CalendarTabState extends State<_CalendarTab> {
                 child: DropdownButton<int>(
                   value: _selectedMonth,
                   isExpanded: true,
-                  icon: Icon(Icons.keyboard_arrow_down_rounded,
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded,
                       color: AppColors.navyMid),
                   items: List.generate(
                       12,
@@ -5488,7 +5431,7 @@ class _CalendarTabState extends State<_CalendarTab> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
                 value: _selectedYear,
-                icon: Icon(Icons.keyboard_arrow_down_rounded,
+                icon: const Icon(Icons.keyboard_arrow_down_rounded,
                     color: AppColors.navyMid),
                 items: List.generate(
                     5,
@@ -5534,7 +5477,7 @@ class _CalendarTabState extends State<_CalendarTab> {
 
   Widget _tabBtn(String label, _CalendarTabArea area) {
     final isActive = _activeArea == area;
-    final color = AppColors.navyMid;
+    const color = AppColors.navyMid;
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _activeArea = area),
@@ -8707,7 +8650,7 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
               padding: const EdgeInsets.all(40),
               child: Column(
                 children: [
-                  Icon(Icons.location_off_rounded,
+                  const Icon(Icons.location_off_rounded,
                       size: 40, color: AppColors.lightSubText),
                   const SizedBox(height: 8),
                   Text(
@@ -9053,9 +8996,9 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Column(
         children: [
@@ -9223,194 +9166,6 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
             overflow: TextOverflow.ellipsis,
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Search Filter Bottom Sheet ────────────────────────────────────────────────
-class _FilterSheet extends StatefulWidget {
-  final bool isDark;
-  final SearchFilters filters;
-  final void Function(SearchFilters) onApply;
-
-  const _FilterSheet(
-      {required this.isDark, required this.filters, required this.onApply});
-
-  @override
-  State<_FilterSheet> createState() => _FilterSheetState();
-}
-
-class _FilterSheetState extends State<_FilterSheet> {
-  late SearchFilters _local;
-
-  @override
-  void initState() {
-    super.initState();
-    _local = widget.filters.copyWith();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final maxH = MediaQuery.of(context).size.height * 0.85;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxH),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.goldPrimary.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.tune_rounded,
-                      color: AppColors.goldPrimary, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Text('Search Filters',
-                    style: GoogleFonts.poppins(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark)),
-                const Spacer(),
-                TextButton(
-                  onPressed: () => setState(() => _local = SearchFilters()),
-                  child: Text('Reset',
-                      style: GoogleFonts.poppins(
-                          color: AppColors.goldPrimary,
-                          fontWeight: FontWeight.w600)),
-                ),
-              ]),
-            ),
-            const SizedBox(height: 8),
-            Divider(color: AppColors.lightBorder, height: 1),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _check(
-                        'Case Title / Subject',
-                        Icons.title_rounded,
-                        _local.byTitle,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byTitle: v))),
-                    _check(
-                        'FIR / Case Number',
-                        Icons.numbers_rounded,
-                        _local.byFirNumber,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byFirNumber: v))),
-                    _check(
-                        'Date (Incident Date)',
-                        Icons.calendar_today_rounded,
-                        _local.byDate,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byDate: v))),
-                    _check(
-                        'Assigned Officer',
-                        Icons.badge_rounded,
-                        _local.byOfficer,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byOfficer: v))),
-                    _check(
-                        'Crime Spot',
-                        Icons.location_on_outlined,
-                        _local.byLocation,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byLocation: v))),
-                    _check(
-                        'Complainant Name',
-                        Icons.person_add_alt_rounded,
-                        _local.byComplainant,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byComplainant: v))),
-                    _check(
-                        'Accused Name',
-                        Icons.person_off_rounded,
-                        _local.byAccused,
-                        (v) => setState(
-                            () => _local = _local.copyWith(byAccused: v))),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    widget.onApply(_local);
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.lg)),
-                  ),
-                  child: Text('Apply Filters',
-                      style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _check(
-      String label, IconData icon, bool value, void Function(bool) onChanged) {
-    return InkWell(
-      onTap: () => onChanged(!value),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Row(children: [
-          Icon(icon,
-              size: 20,
-              color: value ? AppColors.goldPrimary : AppColors.lightSubText),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(label,
-                style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: value ? FontWeight.w600 : FontWeight.w400,
-                    color:
-                        value ? AppColors.navyDark : AppColors.lightSubText)),
-          ),
-          Checkbox(
-            value: value,
-            onChanged: (v) => onChanged(v ?? false),
-            activeColor: AppColors.goldPrimary,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          ),
-        ]),
       ),
     );
   }

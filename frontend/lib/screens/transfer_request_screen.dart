@@ -286,7 +286,7 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.info_outline_rounded,
+          const Icon(Icons.info_outline_rounded,
               size: 48, color: AppColors.lightSubText),
           const SizedBox(height: AppSpacing.md),
           Text(

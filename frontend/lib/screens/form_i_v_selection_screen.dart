@@ -289,7 +289,7 @@ class _CategoryFilterBarState extends State<_CategoryFilterBar> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.filter_alt_outlined,
                   size: 16,
                   color: AppColors.navyMid,
@@ -551,7 +551,7 @@ class _FormIVCaseCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Icon(Icons.person_rounded,
+                    const Icon(Icons.person_rounded,
                         size: 13, color: AppColors.lightSubText),
                     const SizedBox(width: 4),
                     Expanded(
@@ -567,7 +567,7 @@ class _FormIVCaseCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Icon(Icons.calendar_today_rounded,
+                    const Icon(Icons.calendar_today_rounded,
                         size: 13, color: AppColors.lightSubText),
                     const SizedBox(width: 4),
                     Text(
@@ -596,7 +596,7 @@ class _FormIVCaseCard extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.edit_note_rounded,
+                        const Icon(Icons.edit_note_rounded,
                             size: 16, color: AppColors.infoBlue),
                         const SizedBox(width: 6),
                         Text(
@@ -624,7 +624,7 @@ class _FormIVCaseCard extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.visibility_rounded,
+                        const Icon(Icons.visibility_rounded,
                             size: 16, color: AppColors.goldPrimary),
                         const SizedBox(width: 6),
                         Text(

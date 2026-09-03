@@ -220,7 +220,7 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
     );
   }
 
-  Widget _divider() => Divider(height: 1, color: AppColors.lightBorder);
+  Widget _divider() => const Divider(height: 1, color: AppColors.lightBorder);
 
   Widget _card({required List<Widget> children}) {
     return Container(

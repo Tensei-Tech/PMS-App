@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
-import 'responsive_field_row.dart';
 import '../utils/form_io_terminology.dart';
 import 'form_section_utils.dart';
 
@@ -49,10 +47,11 @@ class HousePropertySearchSeizureFormViewState
   final _psCtrl = TextEditingController();
   final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
-  final _firYearSuffixCtrl = TextEditingController(
-    text: DateTime.now().year.toString().substring(2),
-  );
+  final _firYearSuffixCtrl = TextEditingController();
   final _headerDateCtrl = TextEditingController();
+  final _headerDateDayCtrl = TextEditingController();
+  final _headerDateMonthCtrl = TextEditingController();
+  final _headerDateYearCtrl = TextEditingController();
   final _actSectionsCtrl = TextEditingController();
   final _naturePropertyCtrl = TextEditingController();
   final _accusedNameAddressCtrl = TextEditingController();
@@ -73,11 +72,16 @@ class HousePropertySearchSeizureFormViewState
   final _propertyDetailsAttachCtrl = TextEditingController();
   final _circumstancesCtrl = TextEditingController();
 
-  // Page 3
+  // Page 3 / Seizure Date & Witnesses
   final _propertyPackedCtrl = TextEditingController();
   final _seizeDateCtrl = TextEditingController();
+  final _seizeDateDayCtrl = TextEditingController();
+  final _seizeDateMonthCtrl = TextEditingController();
+  final _seizeDateYearCtrl = TextEditingController();
   final _seizeTimeFromCtrl = TextEditingController();
   final _seizeTimeToCtrl = TextEditingController();
+  final _seizeTimeHoursCtrl = TextEditingController();
+  final _seizeTimeMinutesCtrl = TextEditingController();
   final _witness1Line1Ctrl = TextEditingController();
   final _witness1Line2Ctrl = TextEditingController();
   final _witness1Line3Ctrl = TextEditingController();
@@ -86,12 +90,79 @@ class HousePropertySearchSeizureFormViewState
   final _witness2Line2Ctrl = TextEditingController();
   final _witness2Line3Ctrl = TextEditingController();
   final _witness2SigCtrl = TextEditingController();
+  final _witness1NameCtrl = TextEditingController();
+  final _witness1FatherCtrl = TextEditingController();
+  final _witness1SexCtrl = TextEditingController();
+  final _witness1AgeCtrl = TextEditingController();
+  final _witness1OccupationCtrl = TextEditingController();
+  final _witness1AddressCtrl = TextEditingController();
+  final _witness1AddressLine2Ctrl = TextEditingController();
+  final _witness2NameCtrl = TextEditingController();
+  final _witness2FatherCtrl = TextEditingController();
+  final _witness2SexCtrl = TextEditingController();
+  final _witness2AgeCtrl = TextEditingController();
+  final _witness2OccupationCtrl = TextEditingController();
+  final _witness2AddressCtrl = TextEditingController();
+  final _witness2AddressLine2Ctrl = TextEditingController();
   final _sealSampleDateCtrl = TextEditingController();
   final _seizedPersonSigCtrl = TextEditingController();
   final _ioNameCtrl = TextEditingController();
   final _ioRankCtrl = TextEditingController();
   final _ioNoCtrl = TextEditingController();
   final _ioPostingCtrl = TextEditingController();
+
+  String get _headerDateCombined {
+    final d = _headerDateDayCtrl.text.trim();
+    final m = _headerDateMonthCtrl.text.trim();
+    final y = _headerDateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _headerDateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
+  String get _seizeDateCombined {
+    final d = _seizeDateDayCtrl.text.trim();
+    final m = _seizeDateMonthCtrl.text.trim();
+    final y = _seizeDateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _seizeDateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
+  String get _seizeTimeCombined {
+    final h = _seizeTimeHoursCtrl.text.trim();
+    final m = _seizeTimeMinutesCtrl.text.trim();
+    if (h.isEmpty && m.isEmpty) {
+      return _seizeTimeFromCtrl.text.trim();
+    }
+    return '$h/$m';
+  }
+
+  Widget _buildDashedDivider() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const dashWidth = 4.0;
+        const dashSpace = 2.0;
+        final count = (constraints.maxWidth / (dashWidth + dashSpace)).floor();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(count, (_) {
+            return const SizedBox(
+              width: dashWidth,
+              height: 1,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: Colors.black87),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -109,6 +180,9 @@ class HousePropertySearchSeizureFormViewState
     _firNoCtrl.dispose();
     _firYearSuffixCtrl.dispose();
     _headerDateCtrl.dispose();
+    _headerDateDayCtrl.dispose();
+    _headerDateMonthCtrl.dispose();
+    _headerDateYearCtrl.dispose();
     _actSectionsCtrl.dispose();
     _naturePropertyCtrl.dispose();
     _accusedNameAddressCtrl.dispose();
@@ -130,8 +204,13 @@ class HousePropertySearchSeizureFormViewState
     _circumstancesCtrl.dispose();
     _propertyPackedCtrl.dispose();
     _seizeDateCtrl.dispose();
+    _seizeDateDayCtrl.dispose();
+    _seizeDateMonthCtrl.dispose();
+    _seizeDateYearCtrl.dispose();
     _seizeTimeFromCtrl.dispose();
     _seizeTimeToCtrl.dispose();
+    _seizeTimeHoursCtrl.dispose();
+    _seizeTimeMinutesCtrl.dispose();
     _witness1Line1Ctrl.dispose();
     _witness1Line2Ctrl.dispose();
     _witness1Line3Ctrl.dispose();
@@ -140,6 +219,20 @@ class HousePropertySearchSeizureFormViewState
     _witness2Line2Ctrl.dispose();
     _witness2Line3Ctrl.dispose();
     _witness2SigCtrl.dispose();
+    _witness1NameCtrl.dispose();
+    _witness1FatherCtrl.dispose();
+    _witness1SexCtrl.dispose();
+    _witness1AgeCtrl.dispose();
+    _witness1OccupationCtrl.dispose();
+    _witness1AddressCtrl.dispose();
+    _witness1AddressLine2Ctrl.dispose();
+    _witness2NameCtrl.dispose();
+    _witness2FatherCtrl.dispose();
+    _witness2SexCtrl.dispose();
+    _witness2AgeCtrl.dispose();
+    _witness2OccupationCtrl.dispose();
+    _witness2AddressCtrl.dispose();
+    _witness2AddressLine2Ctrl.dispose();
     _sealSampleDateCtrl.dispose();
     _seizedPersonSigCtrl.dispose();
     _ioNameCtrl.dispose();
@@ -160,6 +253,19 @@ class HousePropertySearchSeizureFormViewState
       set(_firNoCtrl, 'firNo');
       set(_firYearSuffixCtrl, 'firYearSuffix');
       set(_headerDateCtrl, 'headerDate');
+      set(_headerDateDayCtrl, 'headerDateDay');
+      set(_headerDateMonthCtrl, 'headerDateMonth');
+      set(_headerDateYearCtrl, 'headerDateYear');
+      if (_headerDateDayCtrl.text.isEmpty && _headerDateCtrl.text.isNotEmpty) {
+        final parts = _headerDateCtrl.text.split(RegExp(r'[/.-]'));
+        if (parts.length >= 3) {
+          _headerDateDayCtrl.text = parts[0].trim();
+          _headerDateMonthCtrl.text = parts[1].trim();
+          var yr = parts[2].trim();
+          if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
+          _headerDateYearCtrl.text = yr;
+        }
+      }
       set(_actSectionsCtrl, 'actSections');
       set(_naturePropertyCtrl, 'natureProperty');
       set(_accusedNameAddressCtrl, 'accusedNameAddress');
@@ -181,8 +287,30 @@ class HousePropertySearchSeizureFormViewState
       set(_circumstancesCtrl, 'circumstances');
       set(_propertyPackedCtrl, 'propertyPacked');
       set(_seizeDateCtrl, 'seizeDate');
+      set(_seizeDateDayCtrl, 'seizeDateDay');
+      set(_seizeDateMonthCtrl, 'seizeDateMonth');
+      set(_seizeDateYearCtrl, 'seizeDateYear');
+      if (_seizeDateDayCtrl.text.isEmpty && _seizeDateCtrl.text.isNotEmpty) {
+        final parts = _seizeDateCtrl.text.split(RegExp(r'[/.-]'));
+        if (parts.length >= 3) {
+          _seizeDateDayCtrl.text = parts[0].trim();
+          _seizeDateMonthCtrl.text = parts[1].trim();
+          var yr = parts[2].trim();
+          if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
+          _seizeDateYearCtrl.text = yr;
+        }
+      }
       set(_seizeTimeFromCtrl, 'seizeTimeFrom');
       set(_seizeTimeToCtrl, 'seizeTimeTo');
+      set(_seizeTimeHoursCtrl, 'seizeTimeHours');
+      set(_seizeTimeMinutesCtrl, 'seizeTimeMinutes');
+      if (_seizeTimeHoursCtrl.text.isEmpty && _seizeTimeFromCtrl.text.isNotEmpty) {
+        final parts = _seizeTimeFromCtrl.text.split(RegExp(r'[/.:]'));
+        if (parts.length >= 2) {
+          _seizeTimeHoursCtrl.text = parts[0].trim();
+          _seizeTimeMinutesCtrl.text = parts[1].trim();
+        }
+      }
       set(_witness1Line1Ctrl, 'witness1Line1');
       set(_witness1Line2Ctrl, 'witness1Line2');
       set(_witness1Line3Ctrl, 'witness1Line3');
@@ -191,6 +319,20 @@ class HousePropertySearchSeizureFormViewState
       set(_witness2Line2Ctrl, 'witness2Line2');
       set(_witness2Line3Ctrl, 'witness2Line3');
       set(_witness2SigCtrl, 'witness2Sig');
+      set(_witness1NameCtrl, 'witness1Name');
+      set(_witness1FatherCtrl, 'witness1Father');
+      set(_witness1SexCtrl, 'witness1Sex');
+      set(_witness1AgeCtrl, 'witness1Age');
+      set(_witness1OccupationCtrl, 'witness1Occupation');
+      set(_witness1AddressCtrl, 'witness1Address');
+      set(_witness1AddressLine2Ctrl, 'witness1AddressLine2');
+      set(_witness2NameCtrl, 'witness2Name');
+      set(_witness2FatherCtrl, 'witness2Father');
+      set(_witness2SexCtrl, 'witness2Sex');
+      set(_witness2AgeCtrl, 'witness2Age');
+      set(_witness2OccupationCtrl, 'witness2Occupation');
+      set(_witness2AddressCtrl, 'witness2Address');
+      set(_witness2AddressLine2Ctrl, 'witness2AddressLine2');
       set(_sealSampleDateCtrl, 'sealSampleDate');
       set(_seizedPersonSigCtrl, 'seizedPersonSig');
       set(_ioNameCtrl, 'ioName');
@@ -207,7 +349,10 @@ class HousePropertySearchSeizureFormViewState
       'year': _yearCtrl.text.trim(),
       'firNo': _firNoCtrl.text.trim(),
       'firYearSuffix': _firYearSuffixCtrl.text.trim(),
-      'headerDate': _headerDateCtrl.text.trim(),
+      'headerDate': _headerDateCombined,
+      'headerDateDay': _headerDateDayCtrl.text.trim(),
+      'headerDateMonth': _headerDateMonthCtrl.text.trim(),
+      'headerDateYear': _headerDateYearCtrl.text.trim(),
       'actSections': _actSectionsCtrl.text.trim(),
       'natureProperty': _naturePropertyCtrl.text.trim(),
       'accusedNameAddress': _accusedNameAddressCtrl.text.trim(),
@@ -221,6 +366,20 @@ class HousePropertySearchSeizureFormViewState
       'personOccupation': _personOccupationCtrl.text.trim(),
       'personAddress': _personAddressCtrl.text.trim(),
       'personAddressLine2': _personAddressLine2Ctrl.text.trim(),
+      'witness1Name': _witness1NameCtrl.text.trim(),
+      'witness1Father': _witness1FatherCtrl.text.trim(),
+      'witness1Sex': _witness1SexCtrl.text.trim(),
+      'witness1Age': _witness1AgeCtrl.text.trim(),
+      'witness1Occupation': _witness1OccupationCtrl.text.trim(),
+      'witness1Address': _witness1AddressCtrl.text.trim(),
+      'witness1AddressLine2': _witness1AddressLine2Ctrl.text.trim(),
+      'witness2Name': _witness2NameCtrl.text.trim(),
+      'witness2Father': _witness2FatherCtrl.text.trim(),
+      'witness2Sex': _witness2SexCtrl.text.trim(),
+      'witness2Age': _witness2AgeCtrl.text.trim(),
+      'witness2Occupation': _witness2OccupationCtrl.text.trim(),
+      'witness2Address': _witness2AddressCtrl.text.trim(),
+      'witness2AddressLine2': _witness2AddressLine2Ctrl.text.trim(),
       'perishableDisposal': _perishableDisposalCtrl.text.trim(),
       'valuableKeeping': _valuableKeepingCtrl.text.trim(),
       'identificationRequired': _identificationRequiredCtrl.text.trim(),
@@ -228,7 +387,13 @@ class HousePropertySearchSeizureFormViewState
       'propertyDetailsAttach': _propertyDetailsAttachCtrl.text.trim(),
       'circumstances': _circumstancesCtrl.text.trim(),
       'propertyPacked': _propertyPackedCtrl.text.trim(),
-      'seizeDate': _seizeDateCtrl.text.trim(),
+      'seizeDate': _seizeDateCombined,
+      'seizeDateDay': _seizeDateDayCtrl.text.trim(),
+      'seizeDateMonth': _seizeDateMonthCtrl.text.trim(),
+      'seizeDateYear': _seizeDateYearCtrl.text.trim(),
+      'seizeTime': _seizeTimeCombined,
+      'seizeTimeHours': _seizeTimeHoursCtrl.text.trim(),
+      'seizeTimeMinutes': _seizeTimeMinutesCtrl.text.trim(),
       'seizeTimeFrom': _seizeTimeFromCtrl.text.trim(),
       'seizeTimeTo': _seizeTimeToCtrl.text.trim(),
       'witness1Line1': _witness1Line1Ctrl.text.trim(),
@@ -295,213 +460,636 @@ class HousePropertySearchSeizureFormViewState
       children: [
         if (_shows(kSearchForm)) ...[
               FormPaperPage(
-                formLabel: widget.pageRange ?? 'Page 5',
-                children: [
-                  SizedBox(
-                    height: 280,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'HOUSE/PROPERTY SEARCH',
-                            style: serifStyle.copyWith(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          Text(
-                            '& SEIZURI FORM',
-                            style: serifStyle.copyWith(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'घरझडती पंचनामा/ मालमत्ता शोध व जप्तीचा पंचनामा',
-                            style: GoogleFonts.notoSansDevanagari(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  FormMrwFooter(serifStyle: serifStyle),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // PAGE 2 — sections 1–10
-              FormPaperPage(
                 children: [
                   Center(
                     child: Column(
                       children: [
                         Text(
-                          'HOUSE/PROPERTY SEARCH & SEIZURI FORM',
+                          'PROPERTY SEACH & SEIZURE FORM',
                           style: serifStyle.copyWith(
                             fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'मालमत्ता शोध व जप्तीचा नमुना',
+                          style: marathiLabelStyle.copyWith(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '(Search/ Production/ Recovery u/s 185 B.N.S.S)',
+                          style: serifStyle.copyWith(
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
-                          'घरझडती पंचनामा/ मालमत्ता शोध व जप्तीचा पंचनामा',
-                          style: marathiLabelStyle.copyWith(fontSize: 12),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '(Search/Production/Recovery U/s 185 B.N.S.S. 2023)',
-                          style: serifStyle.copyWith(fontSize: 11, fontWeight: FontWeight.w600),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          '(कलम १८५ भारतीय नागरी संरक्षण अधिनियम २०२३ अन्वये झडती/हजर करणे/परत मिळविणे)',
-                          style: marathiLabelStyle.copyWith(fontSize: 10),
+                          '(कलम १८५ भारतीय नागरिक सुरक्षा संहिता २०२३ अन्वये झडती/हजर करणे/परत मिळविणे)',
+                          style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  ResponsiveFieldRow(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 8),
+                  _buildDashedDivider(),
+                  const SizedBox(height: 10),
+
+                  // १) जिल्हा, पोलीस ठाणे, वर्ष, पहिली खबर क्र/कार्यवाही, दि.
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.end,
+                    spacing: 8,
+                    runSpacing: 6,
                     children: [
-                      Expanded(child: BilingualField(label: '1.Dist : ', marathiLabel: 'जिल्हा', controller: _distCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle)),
-                      const SizedBox(width: 8),
-                      Expanded(child: BilingualField(label: 'P.S: ', marathiLabel: 'पोलीस स्टेशन', controller: _psCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle)),
-                      const SizedBox(width: 8),
-                      Expanded(child: BilingualField(label: 'Year : ', marathiLabel: 'वर्ष', controller: _yearCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(child: BilingualField(label: 'FIR No : ', marathiLabel: 'पहिली खबर क्र.', controller: _firNoCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle)),
-                            Padding(padding: const EdgeInsets.only(top: 2), child: Text('/20', style: serifStyle)),
-                            SizedBox(width: 35, child: BilingualSimpleUnderlineInput(controller: _firYearSuffixCtrl, serifStyle: serifStyle)),
-                          ],
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('१) *जिल्हा:', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 70,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _distCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(child: BilingualField(label: 'Date : ', marathiLabel: 'तारीख', controller: _headerDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle)),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('*पोलीस ठाणे:', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 90,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _psCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('वर्ष:', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 50,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _yearCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('*पहिली खबर क्र/कार्यवाही', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 50,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _firNoCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text('/', style: serifStyle),
+                          ),
+                          SizedBox(
+                            width: 35,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _firYearSuffixCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('*दि.', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _headerDateDayCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'DD',
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text('/', style: serifStyle),
+                          ),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _headerDateMonthCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'MM',
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text('/२०', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          ),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _headerDateYearCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  BilingualWideField(label: '2. Act and Section : ', marathiLabel: 'अधिनियम व कलमे', controller: _actSectionsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  const SizedBox(height: 12),
-                  BilingualMultilineField(
-                    label: '3. Nature of property seized/Recover: Stolen/Unclaimed/Unlawful procession/Involved/Intestate.',
-                    marathiLabel: 'जप्त केलेल्या / मिळालेल्या मालमत्तेचे स्वरूप',
-                    controller: _naturePropertyCtrl,
-                    minLines: 2,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 10),
+
+                  // २) अधिनियम व कलमे
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('२) अधिनियम व कलमे : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _actSectionsCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  BilingualWideField(label: '4. Name And Address of accused : ', marathiLabel: 'आरोपीचे नांव व पत्ता', controller: _accusedNameAddressCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  const SizedBox(height: 8),
-                  BilingualWideField(label: '(a) Place from where seized/recovered :- ', marathiLabel: 'जेथुन जप्त केली / परत मिळवली ती जागा', controller: _placeSeizedCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  const SizedBox(height: 8),
-                  BilingualMultilineField(
-                    label: '(b) Description of the place of seizure/recovery : ',
-                    marathiLabel: 'जप्तीच्या परत मिळवल्याच्या जागेचे वर्णन /चतु सिमा',
-                    controller: _placeDescriptionCtrl,
-                    minLines: 2,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 10),
+
+                  // ३) जप्त केलेले/मिळालेल्या मालमत्तेचे स्वरूप
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '३) *जप्त केलेले/मिळालेल्या मालमत्तेचे स्वरूप : चोरीला गेलेली/बेवारशी/बेकायदेशीर ताबा/अंतर्भूत/मृत्यू पत्राशिवाय.',
+                        style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      BilingualSimpleUnderlineInput(
+                        controller: _naturePropertyCtrl,
+                        serifStyle: serifStyle,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  BilingualSectionHeader(
-                    label: '5. Person form whom seized :-',
-                    marathiLabel: 'कोणाकडून जप्त केली',
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 10),
+
+                  // ४) जप्त केलेली मालमत्ता
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.end,
+                        spacing: 12,
+                        runSpacing: 6,
+                        children: [
+                          Text('४) जप्त केलेली मालमत्ता :', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('(अ) तारीख : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                              SizedBox(
+                                width: 32,
+                                child: BilingualSimpleUnderlineInput(
+                                  controller: _seizeDateDayCtrl,
+                                  serifStyle: serifStyle,
+                                  hintText: 'DD',
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 2),
+                                child: Text('/', style: serifStyle),
+                              ),
+                              SizedBox(
+                                width: 32,
+                                child: BilingualSimpleUnderlineInput(
+                                  controller: _seizeDateMonthCtrl,
+                                  serifStyle: serifStyle,
+                                  hintText: 'MM',
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 2),
+                                child: Text('/२०', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                              ),
+                              SizedBox(
+                                width: 32,
+                                child: BilingualSimpleUnderlineInput(
+                                  controller: _seizeDateYearCtrl,
+                                  serifStyle: serifStyle,
+                                  hintText: 'YY',
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('(ब) वेळ : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                              SizedBox(
+                                width: 32,
+                                child: BilingualSimpleUnderlineInput(
+                                  controller: _seizeTimeHoursCtrl,
+                                  serifStyle: serifStyle,
+                                  hintText: 'HH',
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 2),
+                                child: Text('/', style: serifStyle),
+                              ),
+                              SizedBox(
+                                width: 32,
+                                child: BilingualSimpleUnderlineInput(
+                                  controller: _seizeTimeMinutesCtrl,
+                                  serifStyle: serifStyle,
+                                  hintText: 'MM',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('(क) जेथून जप्त केली/परत मिळवली ती जागा : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _placeSeizedCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text('(ड) जप्तींच्या/परत मिळवल्याच्या जागेचे वर्णन:', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      BilingualDynamicLinedTextField(
+                        controller: _placeDescriptionCtrl,
+                        minLines: 2,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  BilingualField(
-                    label: 'Professional Receiver of Stolen Property: - Yes/No.',
-                    marathiLabel: 'चोरीचा माल घेणारा धंदेवाईक :- होय/ नाही',
-                    controller: _profReceiverCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 10),
+
+                  // ५) कोणाकडून जप्त केली
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('५) कोणाकडून जप्त केली : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _accusedNameAddressCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('*चोरीचा माल घेणारा धंदेवाईक : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 90,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _profReceiverCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'होय/नाही',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('नाव : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            flex: 4,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _personNameCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('पित्याचे/पतीचे नाव : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            flex: 4,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _personFatherCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('लिंग : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 50,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _personSexCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('वय : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 45,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _personAgeCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('व्यवसाय : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 100,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _personOccupationCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('पत्ता : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _personAddressCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      BilingualSimpleUnderlineInput(
+                        controller: _personAddressLine2Ctrl,
+                        serifStyle: serifStyle,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  BilingualFieldRow(fields: [
-                    BilingualField(label: 'Name : - ', marathiLabel: 'नांव', controller: _personNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'Father\'s/Husband\'s Name : ', marathiLabel: 'वडील/ पतीचे नांव', controller: _personFatherCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'Sex- ', marathiLabel: 'लिंग', controller: _personSexCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  ]),
-                  const SizedBox(height: 8),
-                  BilingualFieldRow(fields: [
-                    BilingualField(label: 'Age : ', marathiLabel: 'वय', controller: _personAgeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'Occupation : ', marathiLabel: 'व्यवसाय', controller: _personOccupationCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'Address : ', marathiLabel: 'पत्ता', controller: _personAddressCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  ]),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: BilingualSimpleUnderlineInput(controller: _personAddressLine2Ctrl, serifStyle: serifStyle),
+                  const SizedBox(height: 10),
+
+                  // ६) साक्षदार
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('६) साक्षदार', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 6),
+                      // Witness 1
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('(i) नाव : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            flex: 4,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness1NameCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('पित्याचे/पतीचे नाव : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            flex: 4,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness1FatherCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('लिंग : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 50,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness1SexCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('वय : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 45,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness1AgeCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('व्यवसाय : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 100,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness1OccupationCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('पत्ता : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness1AddressCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      BilingualSimpleUnderlineInput(
+                        controller: _witness1AddressLine2Ctrl,
+                        serifStyle: serifStyle,
+                      ),
+                      const SizedBox(height: 12),
+                      // Witness 2
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('(ii) नाव : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            flex: 4,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness2NameCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('पित्याचे/पतीचे नाव : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            flex: 4,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness2FatherCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('लिंग : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 50,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness2SexCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('वय : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 45,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness2AgeCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('व्यवसाय : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 100,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness2OccupationCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('पत्ता : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _witness2AddressCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      BilingualSimpleUnderlineInput(
+                        controller: _witness2AddressLine2Ctrl,
+                        serifStyle: serifStyle,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  BilingualMultilineField(
-                    label: '6. Action taken/recommended for disposal of perishable property: -',
-                    marathiLabel: 'नाशवंत मालमत्तेच्या विल्हेवाटीसाठी केलेली शिफारस / केलेली कार्यवाही',
-                    controller: _perishableDisposalCtrl,
-                    minLines: 2,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 10),
+
+                  // ७) नाशवंत मालमत्ता
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('७) नाशवंत मालमत्तेच्या विल्हेवाटीसाठी केलेली शिफारस/केलेली कार्यवाही : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _perishableDisposalCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  BilingualMultilineField(
-                    label: '7. Action taken/recommended for keeping of valuable property :-',
-                    marathiLabel: 'मौल्यवान मालमत्ता ठेवण्यासाठी केलेली शिफारस / केलेली कार्यवाही',
-                    controller: _valuableKeepingCtrl,
-                    minLines: 2,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 10),
+
+                  // ८) मौल्यवान मालमत्ता
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('८) मौल्यवान मालमत्ता ठेवण्यासाठी केलेली शिफारस/केलेली कार्यवाही : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _valuableKeepingCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  BilingualField(
-                    label: '8. Identification repuired :- Yes / No.',
-                    marathiLabel: 'ओळख पटवावी लागली काय :- होय/ नाही',
-                    controller: _identificationRequiredCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 10),
+
+                  // ९) ओळख पटवावी लागली काय
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('९) ओळख पटवावी लागली काय : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 90,
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _identificationRequiredCtrl,
+                          serifStyle: serifStyle,
+                          hintText: 'होय/नाही',
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  BilingualWideField(
-                    label: '9. Details of property seized/recovered (Use prescribed form (8) and attach): ',
-                    marathiLabel: 'जप्त केलेल्या / परत मिळालेल्या मालाचे वर्णन',
-                    controller: _propertyDetailsCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 10),
+
+                  // १०) जप्त केलेल्या/परत मिळालेल्या मालाचे वर्णन
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('१०) जप्त केलेल्या/परत मिळालेल्या मालाचे वर्णन (योग्य नमुन्यात माहिती भरा व जोडा )', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      BilingualDynamicLinedTextField(
+                        controller: _propertyDetailsCtrl,
+                        minLines: 2,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  BilingualWideField(
-                    label: '(1) (Attach separate sheet, if required) :- ',
-                    marathiLabel: 'आवश्यक असल्यास स्वतंत्र कागद जोडा',
-                    controller: _propertyDetailsAttachCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 12),
-                  BilingualMultilineField(
-                    label: '10. Circumstances/Grounds for seizures :-',
-                    marathiLabel: 'जप्तीची परिस्थिती/ कारणे',
-                    controller: _circumstancesCtrl,
-                    minLines: 3,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 10),
+
+                  // ११) जप्तीची परिस्थिती/कारणे
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('११) जप्तीची परिस्थिती/कारणे : ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      BilingualDynamicLinedTextField(
+                        controller: _circumstancesCtrl,
+                        minLines: 3,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   FormMrwFooter(serifStyle: serifStyle),

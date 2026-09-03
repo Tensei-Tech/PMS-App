@@ -216,39 +216,8 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
     );
   }
 
-  // PAGE 1 — Title
+  // Sections 1–10
   if (showsSection('Search Seizure Form')) {
-  pdf.addPage(
-    pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(40),
-      build: (_) => pw.Column(
-        children: [
-          pw.Spacer(flex: 2),
-          pw.Center(
-            child: pw.Column(
-              children: [
-                pw.Text('HOUSE/PROPERTY SEARCH', style: headerStyle),
-                pw.Text('& SEIZURI FORM', style: headerStyle),
-                pw.SizedBox(height: 8),
-                cache.has('title_mr')
-                    ? cache.img('title_mr')
-                    : pw.Text('घरझडती पंचनामा/ मालमत्ता शोध व जप्तीचा पंचनामा',
-                        style: englishStyle),
-              ],
-            ),
-          ),
-          pw.Spacer(flex: 3),
-          pw.Align(
-            alignment: pw.Alignment.bottomRight,
-            child: pw.Text('M.R.W', style: englishBold),
-          ),
-        ],
-      ),
-    ),
-  );
-
-  // PAGE 2 — Sections 1–10
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,

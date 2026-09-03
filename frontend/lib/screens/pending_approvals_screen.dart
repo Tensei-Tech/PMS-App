@@ -219,7 +219,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
               Navigator.of(context).pushReplacementNamed('/dashboard');
             }
           },
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.navyDark, size: 20),
         ),
         title: Column(
@@ -282,7 +282,6 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
 
                                 // Extract clean Officer Name and Designation
                                 String officerTitle = req['name']?.toString() ?? '';
-                                String desig = req['designation']?.toString() ?? '';
                                 if (officerTitle.isEmpty) {
                                   if (body.startsWith('Officer ')) {
                                     final parts = body.replaceFirst('Officer ', '').split(' registered');
@@ -462,51 +461,6 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
                               },
                             ),
             ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: AppColors.lightSubText),
-        const SizedBox(width: 8),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: AppColors.lightSubText,
-              ),
-              children: [
-                TextSpan(
-                  text: '$label: ',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                TextSpan(
-                  text: value,
-                  style: TextStyle(
-                    color: AppColors.navyDark.withValues(alpha: 0.85),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

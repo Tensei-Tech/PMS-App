@@ -250,7 +250,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           ),
         );
         if (maxH.isFinite) return inner;
-        final estimatedRowPx = 44.0;
+        const estimatedRowPx = 44.0;
         final estHeight =
             estimatedRowPx * (rows.isEmpty ? 2 : rows.length + 1) + 16;
         return SizedBox(height: estHeight, child: inner);

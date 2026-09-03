@@ -276,13 +276,6 @@ final List<FormsListEntry> kFormsHierarchyMock = [
     title: 'Panchanama, Forms & Notices (BNSS)',
     subCategory: 'BNSS Forms Compendium',
     subSections: [
-      _sub('Crime Detail Form', 'Pages 1–4', subCategoryOverride: 'Crime Detail Form'),
-      _sub('House/Property Search & Seizure', 'Pages 5, 29', subCategoryOverride: 'House/Property Search & Seizure'),
-      _sub('Property Seizure Panchanama', 'Pages 6, 30', subCategoryOverride: 'Property & Seizure Form'),
-      _sub('Crimespot Seizure Panchanama', 'Page 7', subCategoryOverride: 'Crimespot Seizure Panchanama'),
-      _sub('Form E', 'Page 8', subCategoryOverride: 'Form E'),
-      _sub('Arrest/Court Surrender Form', 'Pages 9–11', subCategoryOverride: 'Arrest/Court Surrender Form'),
-      _sub('Inquest Panchanama — Main (u/s 194)', 'Pages 12–15', sectionId: 'Inquest Main', subCategoryOverride: 'Inquest Panchanama'),
       _sub('Police Report to Civil Surgeon', 'Pages 16–17', sectionId: 'Civil Surgeon PM Report', subCategoryOverride: 'Inquest Panchanama'),
       _sub('PM Request Application (विनंती अर्ज)', 'Page 18', sectionId: 'Vinanti Arj', subCategoryOverride: 'Inquest Panchanama'),
       _sub('Relative Summons — Section 179', 'Page 19', sectionId: 'Relative Summons 179', subCategoryOverride: 'Inquest Panchanama'),
@@ -496,7 +489,7 @@ class _StandaloneFormRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
             children: [
-              Icon(Icons.description_outlined,
+              const Icon(Icons.description_outlined,
                   size: 20, color: AppColors.navyMid),
               const SizedBox(width: 12),
               Expanded(
@@ -561,7 +554,7 @@ class _ParentFormRow extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
               child: Row(
                 children: [
-                  Icon(Icons.folder_outlined,
+                  const Icon(Icons.folder_outlined,
                       size: 20, color: AppColors.navyMid),
                   const SizedBox(width: 12),
                   Expanded(
@@ -610,7 +603,7 @@ class _ParentFormRow extends StatelessWidget {
                   AnimatedRotation(
                     turns: expanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(
+                    child: const Icon(
                       Icons.keyboard_arrow_down_rounded,
                       color: AppColors.navyMid,
                     ),
@@ -631,7 +624,7 @@ class _ParentFormRow extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 bottom: Radius.circular(AppRadius.md),
               ),
-              border: Border(
+              border: const Border(
                 top: BorderSide(color: AppColors.lightBorder),
               ),
             ),
@@ -648,8 +641,8 @@ class _ParentFormRow extends StatelessWidget {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 1),
+                            const Padding(
+                              padding: EdgeInsets.only(top: 1),
                               child: Icon(
                                 Icons.layers_outlined,
                                 size: 18,
@@ -677,7 +670,7 @@ class _ParentFormRow extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Divider(
+                  const Divider(
                     height: 1,
                     indent: 44,
                     color: AppColors.lightBorder,
@@ -685,7 +678,7 @@ class _ParentFormRow extends StatelessWidget {
                 ],
                 for (var i = 0; i < entry.subSections.length; i++) ...[
                   if (i > 0)
-                    Divider(
+                    const Divider(
                       height: 1,
                       indent: 44,
                       color: AppColors.lightBorder,

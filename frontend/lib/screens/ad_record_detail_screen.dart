@@ -460,7 +460,7 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.delete_forever_rounded,
+            const Icon(Icons.delete_forever_rounded,
                 size: 64, color: AppColors.lightSubText),
             const SizedBox(height: 16),
             Text(

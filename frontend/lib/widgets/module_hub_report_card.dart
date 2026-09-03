@@ -143,8 +143,8 @@ class ModuleHubCategoryButton extends StatelessWidget {
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          minimumSize: Size(double.infinity, height),
-          maximumSize: Size(double.infinity, height),
+          minimumSize: const Size(double.infinity, height),
+          maximumSize: const Size(double.infinity, height),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -240,7 +240,7 @@ class ModuleHubFilterDropdown<T> extends StatelessWidget {
         child: DropdownButton<T>(
           value: value,
           isExpanded: expanded,
-          icon: Icon(Icons.keyboard_arrow_down_rounded,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
               color: AppColors.navyMid),
           items: items,
           onChanged: onChanged,
