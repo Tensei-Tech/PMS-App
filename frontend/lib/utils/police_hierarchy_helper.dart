@@ -1,5 +1,6 @@
 /// Police Hierarchy & Role Access Helper based on Official Government Platform Matrix Standards.
 library;
+
 ///
 /// Official Designations & Administrative Matrix Mapping Rules:
 ///
