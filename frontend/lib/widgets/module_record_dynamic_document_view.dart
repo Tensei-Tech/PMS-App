@@ -504,6 +504,7 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
               CommonFormDocumentView(
                 commonMap: commonFormMap,
                 extraMap: extraSansCommon,
+                record: record,
               ),
             ] else if (extra.isNotEmpty) ...[
               _extraFieldsSection(extra, desktop: desktop),

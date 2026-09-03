@@ -327,6 +327,40 @@ class CommonFormState extends State<CommonForm> {
       _deceasedCaste ??= TextEditingController();
   TextEditingController get _dPan => _deceasedPan ??= TextEditingController();
 
+  // ── §5c Injured KYC ────────────────────────────────────────────────────────
+  TextEditingController? _injuredName;
+  TextEditingController? _injuredAge;
+  String? _injuredGender;
+  TextEditingController? _injuredOcc;
+  TextEditingController? _injuredMobile;
+  TextEditingController? _injuredAadhaar;
+  TextEditingController? _injuredReligion;
+  TextEditingController? _injuredCaste;
+  TextEditingController? _injuredPan;
+  bool _injIsDied = false;
+  TextEditingController? _injuredDeathDate;
+  TextEditingController? _injuredDeathTime;
+
+  TextEditingController get _injName =>
+      _injuredName ??= TextEditingController();
+  TextEditingController get _injAge => _injuredAge ??= TextEditingController();
+  String get _injGender => _injuredGender ??= 'Male';
+  set _injGender(String v) => _injuredGender = v;
+  TextEditingController get _injOcc => _injuredOcc ??= TextEditingController();
+  TextEditingController get _injMobile =>
+      _injuredMobile ??= TextEditingController();
+  TextEditingController get _injAadhaar =>
+      _injuredAadhaar ??= TextEditingController();
+  TextEditingController get _injReligion =>
+      _injuredReligion ??= TextEditingController();
+  TextEditingController get _injCaste =>
+      _injuredCaste ??= TextEditingController();
+  TextEditingController get _injPan => _injuredPan ??= TextEditingController();
+  TextEditingController get _injDeathDate =>
+      _injuredDeathDate ??= TextEditingController();
+  TextEditingController get _injDeathTime =>
+      _injuredDeathTime ??= TextEditingController();
+
   bool get _isMurderCase {
     if (widget.isMurder == true) return true;
     final sub = (widget.subCategory ?? '').toLowerCase();
@@ -552,6 +586,16 @@ class CommonFormState extends State<CommonForm> {
       _dReligion,
       _dCaste,
       _dPan,
+      _injName,
+      _injAge,
+      _injOcc,
+      _injMobile,
+      _injAadhaar,
+      _injReligion,
+      _injCaste,
+      _injPan,
+      _injDeathDate,
+      _injDeathTime,
       _unidAge,
       _unidSkin,
       _unidHeight,
@@ -963,6 +1007,16 @@ class CommonFormState extends State<CommonForm> {
       _dReligion,
       _dCaste,
       _dPan,
+      _injName,
+      _injAge,
+      _injOcc,
+      _injMobile,
+      _injAadhaar,
+      _injReligion,
+      _injCaste,
+      _injPan,
+      _injDeathDate,
+      _injDeathTime,
       _unidAge,
       _unidSkin,
       _unidHeight,
@@ -1009,6 +1063,8 @@ class CommonFormState extends State<CommonForm> {
     _compGender = 'Male';
     _vGender = 'Male';
     _dGender = 'Male';
+    _injGender = 'Male';
+    _injIsDied = false;
     _unidGender = 'Male';
     _ioDesig = 'PSI';
     _regDesig = 'HC';
@@ -1100,6 +1156,20 @@ class CommonFormState extends State<CommonForm> {
         'religion': _dReligion.text,
         'caste': _dCaste.text,
         'pan': _dPan.text,
+      },
+      'injured': {
+        'name': _injName.text,
+        'age': _injAge.text,
+        'gender': _injGender,
+        'occ': _injOcc.text,
+        'mobile': _injMobile.text,
+        'aadhaar': _injAadhaar.text,
+        'religion': _injReligion.text,
+        'caste': _injCaste.text,
+        'pan': _injPan.text,
+        'isDied': _injIsDied,
+        'deathDate': _injDeathDate.text,
+        'deathTime': _injDeathTime.text,
       },
       'isUnknownUntraced': _isUnknown,
       'accused': pplRows(_accused),
@@ -1271,6 +1341,23 @@ class CommonFormState extends State<CommonForm> {
       _dReligion.text = _s(deceased['religion']);
       _dCaste.text = _s(deceased['caste']);
       _dPan.text = _s(deceased['pan']);
+    }
+
+    final inj = m['injured'] as Map?;
+    if (inj != null) {
+      _injName.text = _s(inj['name']);
+      _injAge.text = _s(inj['age']);
+      final g = inj['gender']?.toString();
+      if (g != null && _kGenders.contains(g)) _injGender = g;
+      _injOcc.text = _s(inj['occ']);
+      _injMobile.text = _s(inj['mobile']);
+      _injAadhaar.text = _s(inj['aadhaar']);
+      _injReligion.text = _s(inj['religion']);
+      _injCaste.text = _s(inj['caste']);
+      _injPan.text = _s(inj['pan']);
+      _injIsDied = inj['isDied'] == true;
+      _injDeathDate.text = _s(inj['deathDate']);
+      _injDeathTime.text = _s(inj['deathTime']);
     }
 
     _isUnknown = m['isUnknownUntraced'] == true;
@@ -1822,6 +1909,54 @@ class CommonFormState extends State<CommonForm> {
     );
   }
 
+  Future<void> _pickTimeOnly(
+    TextEditingController ctrl, {
+    void Function(String)? onChanged,
+  }) async {
+    final now = TimeOfDay.now();
+    final picked = await showTimePicker(context: context, initialTime: now);
+    if (!mounted || picked == null) return;
+    setState(() {
+      final hh = picked.hour.toString().padLeft(2, '0');
+      final mm = picked.minute.toString().padLeft(2, '0');
+      ctrl.text = '$hh:$mm';
+      onChanged?.call(ctrl.text);
+    });
+  }
+
+  Widget _timeField(
+    String label,
+    TextEditingController ctrl, {
+    void Function(String)? onChanged,
+  }) {
+    return TextFormField(
+      controller: ctrl,
+      readOnly: true,
+      style: _tsBody,
+      decoration: _d(label).copyWith(
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.access_time_rounded, size: 16, color: _kTeal),
+          tooltip: 'Pick time',
+          onPressed: () => _pickTimeOnly(ctrl, onChanged: onChanged),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(
+            minHeight: 36,
+            minWidth: 36,
+            maxHeight: 36,
+            maxWidth: 36,
+          ),
+        ),
+        suffixIconConstraints: const BoxConstraints(
+          minHeight: 36,
+          minWidth: 36,
+          maxHeight: 36,
+          maxWidth: 36,
+        ),
+      ),
+      onTap: () => _pickTimeOnly(ctrl, onChanged: onChanged),
+    );
+  }
+
   String _formatDateTimeDdMmYyyyHhMm(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} '
       '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
@@ -2112,6 +2247,27 @@ class CommonFormState extends State<CommonForm> {
                             ),
                           _card(
                             _isMurderCase ? 7 : 6,
+                            'Injured KYC',
+                            _sInjured(),
+                            headerAction: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _headerBtn(
+                                  'Same as Complainant',
+                                  _copyComplainantToInjured,
+                                  icon: Icons.copy_rounded,
+                                ),
+                                const SizedBox(width: 6),
+                                _headerBtn(
+                                  'Same as Victim',
+                                  _copyVictimToInjured,
+                                  icon: Icons.copy_rounded,
+                                ),
+                              ],
+                            ),
+                          ),
+                          _card(
+                            _isMurderCase ? 8 : 7,
                             'Accused Details',
                             _s5(),
                             headerAction: !_isUnknown
@@ -2139,7 +2295,7 @@ class CommonFormState extends State<CommonForm> {
                                 : null,
                           ),
                           _card(
-                            _isMurderCase ? 8 : 7,
+                            _isMurderCase ? 9 : 8,
                             'Suspected Accused',
                             _s6(),
                             headerAction: !_isUnknown
@@ -2168,27 +2324,27 @@ class CommonFormState extends State<CommonForm> {
                           ),
                           if (_isUnknown)
                             _card(
-                              _isMurderCase ? 9 : 8,
+                              _isMurderCase ? 10 : 9,
                               'Unidentified Criminal Description',
                               _s7(),
                             ),
                           _card(
-                            _isMurderCase ? 10 : 9,
+                            _isMurderCase ? 11 : 10,
                             'Case Responsibility',
                             _s8(),
                           ),
                           _card(
-                            _isMurderCase ? 11 : 10,
+                            _isMurderCase ? 12 : 11,
                             'Arrest & Release Status',
                             _s9(),
                           ),
                           _card(
-                            _isMurderCase ? 12 : 11,
+                            _isMurderCase ? 13 : 12,
                             'Procedural Details',
                             _s10(),
                           ),
                           _card(
-                            _isMurderCase ? 13 : 12,
+                            _isMurderCase ? 14 : 13,
                             'Seizure Records',
                             _s11(),
                             headerAction: _headerBtn(
@@ -2197,32 +2353,32 @@ class CommonFormState extends State<CommonForm> {
                             ),
                           ),
                           _card(
-                            _isMurderCase ? 14 : 13,
+                            _isMurderCase ? 15 : 14,
                             'Technical & Custody',
                             _s12(),
                           ),
                           _card(
-                            _isMurderCase ? 15 : 14,
+                            _isMurderCase ? 16 : 15,
                             'Preventive & Bonds',
                             _s13(),
                           ),
                           _card(
-                            _isMurderCase ? 16 : 15,
+                            _isMurderCase ? 17 : 16,
                             'Discharge Status',
                             _s14(),
                           ),
                           _card(
-                            _isMurderCase ? 17 : 16,
+                            _isMurderCase ? 18 : 17,
                             'Court Filing',
                             _s15(),
                           ),
                           _card(
-                            _isMurderCase ? 18 : 17,
+                            _isMurderCase ? 19 : 18,
                             'Final Verdict',
                             _s16(),
                           ),
                           _card(
-                            _isMurderCase ? 19 : 18,
+                            _isMurderCase ? 20 : 19,
                             'Case Scrutiny Pipeline',
                             _s17(),
                           ),
@@ -2816,6 +2972,189 @@ class CommonFormState extends State<CommonForm> {
         ),
       ]),
       _row([_tf('Religion', _dReligion), _tf('Caste', _dCaste)]),
+    ],
+  );
+
+  void _copyComplainantToInjured() {
+    setState(() {
+      _injName.value = TextEditingValue(
+        text: _compName.text,
+        selection: TextSelection.collapsed(offset: _compName.text.length),
+      );
+      _injAge.value = TextEditingValue(
+        text: _compAge.text,
+        selection: TextSelection.collapsed(offset: _compAge.text.length),
+      );
+      _injGender = _compGender.isNotEmpty ? _compGender : 'Male';
+      _injOcc.value = TextEditingValue(
+        text: _compOcc.text,
+        selection: TextSelection.collapsed(offset: _compOcc.text.length),
+      );
+      _injMobile.value = TextEditingValue(
+        text: _compMobile.text,
+        selection: TextSelection.collapsed(offset: _compMobile.text.length),
+      );
+      _injAadhaar.value = TextEditingValue(
+        text: _compAadhaar.text,
+        selection: TextSelection.collapsed(offset: _compAadhaar.text.length),
+      );
+      _injReligion.value = TextEditingValue(
+        text: _compReligion.text,
+        selection: TextSelection.collapsed(offset: _compReligion.text.length),
+      );
+      _injCaste.value = TextEditingValue(
+        text: _compCaste.text,
+        selection: TextSelection.collapsed(offset: _compCaste.text.length),
+      );
+      _injPan.value = TextEditingValue(
+        text: _compPan.text,
+        selection: TextSelection.collapsed(offset: _compPan.text.length),
+      );
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          TranslationHelper.translate(
+            context,
+            'Copied Complainant details to Injured KYC',
+          ),
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: _kTeal,
+      ),
+    );
+  }
+
+  void _copyVictimToInjured() {
+    setState(() {
+      _injName.value = TextEditingValue(
+        text: _vName.text,
+        selection: TextSelection.collapsed(offset: _vName.text.length),
+      );
+      _injAge.value = TextEditingValue(
+        text: _vAge.text,
+        selection: TextSelection.collapsed(offset: _vAge.text.length),
+      );
+      _injGender = _vGender.isNotEmpty ? _vGender : 'Male';
+      _injOcc.value = TextEditingValue(
+        text: _vOcc.text,
+        selection: TextSelection.collapsed(offset: _vOcc.text.length),
+      );
+      _injMobile.value = TextEditingValue(
+        text: _vMobile.text,
+        selection: TextSelection.collapsed(offset: _vMobile.text.length),
+      );
+      _injAadhaar.value = TextEditingValue(
+        text: _vAadhaar.text,
+        selection: TextSelection.collapsed(offset: _vAadhaar.text.length),
+      );
+      _injReligion.value = TextEditingValue(
+        text: _vReligion.text,
+        selection: TextSelection.collapsed(offset: _vReligion.text.length),
+      );
+      _injCaste.value = TextEditingValue(
+        text: _vCaste.text,
+        selection: TextSelection.collapsed(offset: _vCaste.text.length),
+      );
+      _injPan.value = TextEditingValue(
+        text: _vPan.text,
+        selection: TextSelection.collapsed(offset: _vPan.text.length),
+      );
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          TranslationHelper.translate(
+            context,
+            'Copied Victim details to Injured KYC',
+          ),
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: _kTeal,
+      ),
+    );
+  }
+
+  // ── Injured KYC ────────────────────────────────────────────────────────────
+  Widget _sInjured() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _row([
+        _tf('Name', _injName),
+        _tf('Age', _injAge, keyboardType: TextInputType.number),
+      ]),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: _chipSelector(
+          label: 'Gender',
+          items: _kGenders,
+          selected: _injGender,
+          onSelect: (v) => setState(() => _injGender = v),
+        ),
+      ),
+      _row([
+        _tf('Occupation', _injOcc),
+        _tf(
+          'Mobile Number',
+          _injMobile,
+          keyboardType: TextInputType.phone,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+          ],
+          validator: (v) => AppValidators.indianMobile(v, required: false),
+        ),
+      ]),
+      _row([
+        _tf(
+          'Aadhaar Number',
+          _injAadhaar,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(12),
+          ],
+          validator: AppValidators.aadhaar,
+        ),
+        _tf(
+          'PAN Number',
+          _injPan,
+          inputFormatters: [
+            UpperCaseTextFormatter(),
+            LengthLimitingTextInputFormatter(10),
+          ],
+          validator: AppValidators.pan,
+        ),
+      ]),
+      _row([_tf('Religion', _injReligion), _tf('Caste', _injCaste)]),
+      const SizedBox(height: 14),
+      _subHeader('DEATH STATUS / मृत्यू स्थिती'),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: _chipSelector(
+          label: 'Person Died / Deceased? (मयत / मृत्यू झाला आहे का?)',
+          items: const ['Yes', 'No'],
+          selected: _injIsDied ? 'Yes' : 'No',
+          onSelect: (val) {
+            setState(() {
+              _injIsDied = val == 'Yes';
+              if (!_injIsDied) {
+                _injDeathDate.clear();
+                _injDeathTime.clear();
+              }
+            });
+          },
+        ),
+      ),
+      if (_injIsDied) ...[
+        const SizedBox(height: 4),
+        _row([
+          _dateField('Date of Death (dd/mm/yyyy)', _injDeathDate),
+          _timeField('Time of Death (hh:mm)', _injDeathTime),
+        ]),
+      ],
     ],
   );
 

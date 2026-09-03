@@ -1334,6 +1334,180 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       incDate = _parseRegDate(doc['regDate']?.toString() ?? '');
     }
 
+    final court = (doc['court'] is Map) ? doc['court'] as Map : null;
+    final csNum =
+        court?['chargeSheetNumber']?.toString().trim() ??
+        doc['chargeSheetNumber']?.toString().trim() ??
+        '';
+    final csDate =
+        court?['chargeSheetDate']?.toString().trim() ??
+        doc['chargeSheetDate']?.toString().trim() ??
+        '';
+
+    String targetStatus = _isEdit ? widget.existingRecord!.status : 'Open';
+
+    if (csNum.isNotEmpty &&
+        csDate.isNotEmpty &&
+        targetStatus.toLowerCase() != 'disposal' &&
+        targetStatus.toLowerCase() != 'disposed') {
+      final bool? moveToDisposal = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogCtx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.navyMid.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.gavel_rounded,
+                  color: AppColors.navyMid,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  TranslationHelper.translate(
+                    dialogCtx,
+                    'Move Case to Disposal?',
+                  ),
+                  style: GoogleFonts.poppins(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                TranslationHelper.translate(
+                  dialogCtx,
+                  'Charge Sheet details have been entered for this case:',
+                ),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          '${TranslationHelper.translate(dialogCtx, 'Charge Sheet No.')}: ',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            csNum,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyMid,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Text(
+                          '${TranslationHelper.translate(dialogCtx, 'Charge Sheet Date')}: ',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            csDate,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyMid,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                TranslationHelper.translate(
+                  dialogCtx,
+                  'Submitting a Charge Sheet closes the police investigation. Do you want to mark this case as Disposed and move it to the Disposal tab?',
+                ),
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  color: AppColors.navyDark,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, false),
+              child: Text(
+                TranslationHelper.translate(dialogCtx, 'Keep as Pending'),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogCtx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.successGreen,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                TranslationHelper.translate(dialogCtx, 'Move to Disposal'),
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (moveToDisposal == null) return;
+      if (moveToDisposal == true) {
+        targetStatus = 'Disposal';
+      }
+    }
+
     final record = ModuleRecord(
       id: _isEdit
           ? widget.existingRecord!.id
@@ -1366,7 +1540,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       location: loc,
       incidentDate: incDate,
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
-      status: _isEdit ? widget.existingRecord!.status : 'Open',
+      status: targetStatus,
       assignedOfficer: _isEdit
           ? widget.existingRecord!.assignedOfficer
           : auth.displayName,
@@ -1394,9 +1568,11 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _isEdit
-                ? '${widget.moduleLabel} record updated!'
-                : '${widget.moduleLabel} case registered!',
+            targetStatus.toLowerCase() == 'disposal'
+                ? '${widget.moduleLabel} case moved to Disposal!'
+                : (_isEdit
+                      ? '${widget.moduleLabel} record updated!'
+                      : '${widget.moduleLabel} case registered!'),
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.successGreen,
