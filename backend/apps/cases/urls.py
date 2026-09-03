@@ -14,20 +14,14 @@ router = DefaultRouter()
 router.register(r'', CaseRecordViewSet, basename='cases')
 
 urlpatterns = [
-    # Crime Type & Raw SQL Case Endpoints (before router to avoid pk pattern shadowing)
-    path('api/crime-types/', CrimeTypeListView.as_view()),
-    path('api/crime-types/<str:crime_type>/cases/', CasesByCrimeTypeView.as_view()),
-    path('api/crime-types/<str:crime_type>/sections/', SectionsByCrimeTypeView.as_view()),
-    path('api/cases/create/', CreateCaseView.as_view()),
+    # Crime Type & Raw SQL Case Endpoints (placed before router to avoid pk shadowing)
+    path('crime-types/', CrimeTypeListView.as_view(), name='crime-type-list'),
+    path('crime-types/<str:crime_type>/cases/', CasesByCrimeTypeView.as_view(), name='cases-by-crime-type'),
+    path('crime-types/<str:crime_type>/sections/', SectionsByCrimeTypeView.as_view(), name='sections-by-crime-type'),
+    path('create/', CreateCaseView.as_view(), name='case-create'),
+    path('pending/', PendingCasesView.as_view(), name='pending-cases'),
+    path('disposal/', DisposalCasesView.as_view(), name='disposal-cases'),
 
-    # Relative path aliases
-    path('crime-types/', CrimeTypeListView.as_view()),
-    path('crime-types/<str:crime_type>/cases/', CasesByCrimeTypeView.as_view()),
-    path('crime-types/<str:crime_type>/sections/', SectionsByCrimeTypeView.as_view()),
-    path('create/', CreateCaseView.as_view()),
-    path('pending/', PendingCasesView.as_view()),
-    path('disposal/', DisposalCasesView.as_view()),
-
-    # Existing CaseRecordViewSet router
+    # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),
 ]

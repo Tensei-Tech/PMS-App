@@ -70,8 +70,8 @@ class HierarchyAvailabilityEngine:
                         for r in cursor.fetchall():
                             if r[0]:
                                 active_district_names.add(r[0].strip().lower())
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"[HierarchyAvailability] Failed querying district admins from users_officerprofile: {e}")
 
                     # Query district_admins table if exists
                     try:
@@ -83,8 +83,8 @@ class HierarchyAvailabilityEngine:
                         for r in cursor.fetchall():
                             if r[0]:
                                 active_district_names.add(r[0].strip().lower())
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"[HierarchyAvailability] Failed querying district_admins table: {e}")
 
                     # Query active station heads
                     try:
@@ -96,8 +96,8 @@ class HierarchyAvailabilityEngine:
                         for r in cursor.fetchall():
                             if r[0]:
                                 active_station_names.add(r[0].strip().lower())
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"[HierarchyAvailability] Failed querying station heads from users_officerprofile: {e}")
         except Exception as e:
             logger.warning(f"[HierarchyAvailability] Exception reading tenant schema tables: {e}")
 

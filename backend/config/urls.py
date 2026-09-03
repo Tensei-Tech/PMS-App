@@ -23,7 +23,6 @@ urlpatterns = [
     path('api/master/', include('apps.public_master.urls')),
     path('api/users/', include('apps.users.urls')),
     path('api/stations/', include('apps.stations.urls')),
-    path('', include('apps.cases.urls')),
     path('api/cases/', include('apps.cases.urls')),
     path('api/core/', include('apps.core.urls')),
 ]
