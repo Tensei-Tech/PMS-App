@@ -93,7 +93,7 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
       (status, message) {
         if (!mounted) return;
         setState(() {
-          _statusMessage = message ?? '';
+          _statusMessage = message;
           if (status == 'listening') {
             _isListening = true;
           } else if (status == 'ended' || status == 'error') {
