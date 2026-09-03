@@ -65,8 +65,7 @@ class _TransferStatusScreenState extends State<TransferStatusScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final request = _request;
-    final isApproved =
-        request?.status == TransferRequestStatus.approved;
+    final isApproved = request?.status == TransferRequestStatus.approved;
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -105,8 +104,10 @@ class _TransferStatusScreenState extends State<TransferStatusScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.info_outline_rounded,
-                                color: AppColors.infoBlue),
+                            const Icon(
+                              Icons.info_outline_rounded,
+                              color: AppColors.infoBlue,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               isApproved
@@ -124,8 +125,8 @@ class _TransferStatusScreenState extends State<TransferStatusScreen> {
                         Text(
                           isApproved
                               ? 'Your transfer has been approved. Your existing account has '
-                                  'been updated to your new posting — no new registration '
-                                  'or invite link is required.'
+                                    'been updated to your new posting — no new registration '
+                                    'or invite link is required.'
                               : 'View the latest status of your transfer request below.',
                           style: GoogleFonts.poppins(
                             fontSize: 14,

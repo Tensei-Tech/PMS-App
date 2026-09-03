@@ -11,10 +11,6 @@ class PdfUnicodeFonts {
     final base = await PdfGoogleFonts.openSansRegular();
     final bold = await PdfGoogleFonts.openSansBold();
     final italic = await PdfGoogleFonts.openSansItalic();
-    return pw.ThemeData.withFont(
-      base: base,
-      bold: bold,
-      italic: italic,
-    );
+    return pw.ThemeData.withFont(base: base, bold: bold, italic: italic);
   }
 }

@@ -264,10 +264,7 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: _inputBorder),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: child,
-      ),
+      child: Padding(padding: const EdgeInsets.all(20), child: child),
     );
   }
 
@@ -309,9 +306,15 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             );
       return selected
           ? ElevatedButton(
-              onPressed: onPressed, style: style, child: Text(text))
+              onPressed: onPressed,
+              style: style,
+              child: Text(text),
+            )
           : OutlinedButton(
-              onPressed: onPressed, style: style, child: Text(text));
+              onPressed: onPressed,
+              style: style,
+              child: Text(text),
+            );
     }
 
     return Row(
@@ -395,10 +398,7 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
 
   Future<void> _pickTime(TextEditingController controller) async {
     final initial = _parseTime(controller.text) ?? TimeOfDay.now();
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initial,
-    );
+    final picked = await showTimePicker(context: context, initialTime: initial);
     if (picked != null) {
       setState(() => controller.text = _formatTime(picked));
     }
@@ -409,9 +409,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
       controller: controller,
       readOnly: true,
       style: GoogleFonts.poppins(),
-      decoration: _inputDecoration(label).copyWith(
-        suffixIcon: const Icon(Icons.calendar_today_outlined),
-      ),
+      decoration: _inputDecoration(
+        label,
+      ).copyWith(suffixIcon: const Icon(Icons.calendar_today_outlined)),
       onTap: () => _pickDate(controller),
     );
   }
@@ -421,9 +421,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
       controller: controller,
       readOnly: true,
       style: GoogleFonts.poppins(),
-      decoration: _inputDecoration(label).copyWith(
-        suffixIcon: const Icon(Icons.access_time_rounded),
-      ),
+      decoration: _inputDecoration(
+        label,
+      ).copyWith(suffixIcon: const Icon(Icons.access_time_rounded)),
       onTap: () => _pickTime(controller),
     );
   }
@@ -435,13 +435,7 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
   }) {
     final width = MediaQuery.sizeOf(context).width;
     if (width < 400) {
-      return Column(
-        children: [
-          first,
-          const SizedBox(height: 12),
-          second,
-        ],
-      );
+      return Column(children: [first, const SizedBox(height: 12), second]);
     }
     return Row(
       children: [
@@ -469,8 +463,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
         children: [
           _sectionCard(
             Theme(
-              data:
-                  Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              data: Theme.of(
+                context,
+              ).copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
                 title: _sectionTitle('Kidnapped Person KYC'),
                 initiallyExpanded: false,
@@ -495,8 +490,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   _responsiveTwoFieldRow(
                     context: context,
                     first: DropdownButtonFormField<String>(
-                      key:
-                          ValueKey('kidnappedGender_${_kidnappedGender ?? ''}'),
+                      key: ValueKey(
+                        'kidnappedGender_${_kidnappedGender ?? ''}',
+                      ),
                       initialValue: _kidnappedGender,
                       decoration: _inputDecoration('Gender'),
                       style: GoogleFonts.poppins(color: _dark),
@@ -580,8 +576,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                       TextFormField(
                         controller: _foundSdNo,
                         style: GoogleFonts.poppins(),
-                        decoration:
-                            _inputDecoration('SD No. / Station Diary No.'),
+                        decoration: _inputDecoration(
+                          'SD No. / Station Diary No.',
+                        ),
                       ),
                       const SizedBox(height: 14),
                       Text(
@@ -605,10 +602,14 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                           children: [
                             _responsiveTwoFieldRow(
                               context: context,
-                              first:
-                                  _dateField('Statement Date', _statementDate),
-                              second:
-                                  _timeField('Statement Time', _statementTime),
+                              first: _dateField(
+                                'Statement Date',
+                                _statementDate,
+                              ),
+                              second: _timeField(
+                                'Statement Time',
+                                _statementTime,
+                              ),
                             ),
                             const SizedBox(height: 12),
                           ],
@@ -619,20 +620,24 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                         initialValue: _custodyTo,
                         decoration: _inputDecoration('Custody Given To'),
                         style: GoogleFonts.poppins(color: _dark),
-                        items: const [
-                          'Parents',
-                          'Relative',
-                          'Friend',
-                          'Shelter Home',
-                          'Other',
-                        ]
-                            .map(
-                              (e) => DropdownMenuItem<String>(
-                                value: e,
-                                child: Text(e, style: GoogleFonts.poppins()),
-                              ),
-                            )
-                            .toList(),
+                        items:
+                            const [
+                                  'Parents',
+                                  'Relative',
+                                  'Friend',
+                                  'Shelter Home',
+                                  'Other',
+                                ]
+                                .map(
+                                  (e) => DropdownMenuItem<String>(
+                                    value: e,
+                                    child: Text(
+                                      e,
+                                      style: GoogleFonts.poppins(),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (v) => setState(() => _custodyTo = v),
                       ),
                       const SizedBox(height: 12),
@@ -659,10 +664,7 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _sectionTitle(
-                                _custodyKycTitle(),
-                                fontSize: 12,
-                              ),
+                              _sectionTitle(_custodyKycTitle(), fontSize: 12),
                               const SizedBox(height: 12),
                               _responsiveTwoFieldRow(
                                 context: context,
@@ -715,8 +717,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 first: TextFormField(
                                   controller: _custodyAadhaar,
                                   style: GoogleFonts.poppins(),
-                                  decoration:
-                                      _inputDecoration('Aadhaar Number'),
+                                  decoration: _inputDecoration(
+                                    'Aadhaar Number',
+                                  ),
                                 ),
                                 second: TextFormField(
                                   controller: _custodyRelation,
@@ -828,8 +831,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   _responsiveTwoFieldRow(
                     context: context,
                     first: _dateField('Medical Examination Date', _medicalDate),
-                    second:
-                        _timeField('Medical Examination Time', _medicalTime),
+                    second: _timeField(
+                      'Medical Examination Time',
+                      _medicalTime,
+                    ),
                   ),
                 ),
               ],
@@ -859,10 +864,14 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   _inCameraRecorded,
                   _responsiveTwoFieldRow(
                     context: context,
-                    first:
-                        _dateField('In-Camera Statement Date', _inCameraDate),
-                    second:
-                        _timeField('In-Camera Statement Time', _inCameraTime),
+                    first: _dateField(
+                      'In-Camera Statement Date',
+                      _inCameraDate,
+                    ),
+                    second: _timeField(
+                      'In-Camera Statement Time',
+                      _inCameraTime,
+                    ),
                   ),
                 ),
               ],

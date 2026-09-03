@@ -27,8 +27,7 @@ Future<void> previewAccusedMemorandumPdf(
   }
 }
 
-Future<Uint8List> generateAccusedMemorandumPdf(
-    Map<String, dynamic> doc) async {
+Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
   final loraRegular = await PdfGoogleFonts.loraRegular();
   final loraBold = await PdfGoogleFonts.loraBold();
@@ -38,10 +37,10 @@ Future<Uint8List> generateAccusedMemorandumPdf(
   final activeSection = doc['formSection']?.toString();
 
   bool showsSection(String sectionId) => showsFormSection(
-        activeSection: activeSection,
-        sectionId: sectionId,
-        knownSectionIds: knownSectionIds,
-      );
+    activeSection: activeSection,
+    sectionId: sectionId,
+    knownSectionIds: knownSectionIds,
+  );
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -88,8 +87,12 @@ Future<Uint8List> generateAccusedMemorandumPdf(
     return pw.SizedBox();
   }
 
-  pw.Widget underlineField(String valKey, String fallback,
-      {double? width, bool expanded = false}) {
+  pw.Widget underlineField(
+    String valKey,
+    String fallback, {
+    double? width,
+    bool expanded = false,
+  }) {
     final child = pw.Container(
       width: expanded ? null : (width ?? 60),
       padding: const pw.EdgeInsets.only(left: 4, right: 4, bottom: 2),
@@ -101,9 +104,13 @@ Future<Uint8List> generateAccusedMemorandumPdf(
     return expanded ? pw.Expanded(child: child) : child;
   }
 
-  pw.Widget inlineField(String enLabel, String mKey, String valKey,
-      String fallback,
-      {double? width}) {
+  pw.Widget inlineField(
+    String enLabel,
+    String mKey,
+    String valKey,
+    String fallback, {
+    double? width,
+  }) {
     return pw.Row(
       mainAxisSize: pw.MainAxisSize.min,
       crossAxisAlignment: pw.CrossAxisAlignment.end,
@@ -177,8 +184,7 @@ Future<Uint8List> generateAccusedMemorandumPdf(
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('Signature of Investigation Officer :-',
-            style: englishBold),
+        pw.Text('Signature of Investigation Officer :-', style: englishBold),
         mLbl('lbl_io_header'),
         pw.SizedBox(height: 4),
         pw.Row(
@@ -186,20 +192,31 @@ Future<Uint8List> generateAccusedMemorandumPdf(
           children: [
             pw.Text('Name :- ', style: englishBold),
             mLbl('lbl_io_name'),
-            underlineField('val_ioName', doc['ioName']?.toString() ?? '',
-                expanded: true),
+            underlineField(
+              'val_ioName',
+              doc['ioName']?.toString() ?? '',
+              expanded: true,
+            ),
           ],
         ),
         pw.SizedBox(height: 4),
         pw.Row(
           children: [
-            inlineField('Rank :- ', 'lbl_io_rank', 'val_ioRank',
-                doc['ioRank']?.toString() ?? '',
-                width: 80),
+            inlineField(
+              'Rank :- ',
+              'lbl_io_rank',
+              'val_ioRank',
+              doc['ioRank']?.toString() ?? '',
+              width: 80,
+            ),
             pw.SizedBox(width: 12),
-            inlineField('Number if any :- ', 'lbl_io_no', 'val_ioNo',
-                doc['ioNo']?.toString() ?? '',
-                width: 80),
+            inlineField(
+              'Number if any :- ',
+              'lbl_io_no',
+              'val_ioNo',
+              doc['ioNo']?.toString() ?? '',
+              width: 80,
+            ),
           ],
         ),
         pw.SizedBox(height: 4),
@@ -208,8 +225,11 @@ Future<Uint8List> generateAccusedMemorandumPdf(
           children: [
             pw.Text('Posting and Address :- ', style: englishBold),
             mLbl('lbl_io_posting'),
-            underlineField('val_ioPosting', doc['ioPosting']?.toString() ?? '',
-                expanded: true),
+            underlineField(
+              'val_ioPosting',
+              doc['ioPosting']?.toString() ?? '',
+              expanded: true,
+            ),
           ],
         ),
       ],
@@ -218,370 +238,473 @@ Future<Uint8List> generateAccusedMemorandumPdf(
 
   // PAGE 1 — Title
   if (showsSection('Accused Part I')) {
-  pdf.addPage(
-    pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(40),
-      build: (pw.Context context) {
-        return pw.Column(
-          children: [
-            pw.Spacer(flex: 2),
-            pw.Center(
-              child: pw.Column(
-                children: [
-                  pw.Text('Accused Memorandum Form', style: headerEnglishStyle),
-                  pw.SizedBox(height: 8),
-                  cache.has('title_marathi')
-                      ? cache.img('title_marathi')
-                      : pw.Text('(आरोपीचे निवेदन पंचनामा)',
-                          style: englishStyle),
-                ],
-              ),
-            ),
-            pw.Spacer(flex: 3),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold.copyWith(fontSize: 9)),
-            ),
-          ],
-        );
-      },
-    ),
-  );
-
-  // PAGE 2 — Sections 1–7
-  pdf.addPage(
-    pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(32),
-      build: (pw.Context context) {
-        return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Center(
-              child: pw.Column(
-                children: [
-                  pw.Text(
-                    '( Panchanama u/s 23 (2) Bhartiya Saksh Adhiniyam, 2023',
-                    style: englishBold,
-                    textAlign: pw.TextAlign.center,
-                  ),
-                  mLbl('lbl_statute'),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 12),
-            pw.Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              crossAxisAlignment: pw.WrapCrossAlignment.end,
-              children: [
-                inlineField('1) District: ', 'lbl_dist', 'val_dist',
-                    doc['dist']?.toString() ?? '',
-                    width: 70),
-                inlineField('P.S.: ', 'lbl_ps', 'val_ps',
-                    doc['ps']?.toString() ?? '',
-                    width: 70),
-                inlineField('Year: ', 'lbl_year', 'val_year',
-                    doc['year']?.toString() ?? '',
-                    width: 40),
-                pw.Row(
-                  mainAxisSize: pw.MainAxisSize.min,
-                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        build: (pw.Context context) {
+          return pw.Column(
+            children: [
+              pw.Spacer(flex: 2),
+              pw.Center(
+                child: pw.Column(
                   children: [
-                    inlineField('FIR No: ', 'lbl_fir', 'val_firNo',
-                        doc['firNo']?.toString() ?? '',
-                        width: 50),
-                    pw.Text('/20', style: englishBold),
-                    underlineField('val_firYearSuffix',
-                        doc['firYearSuffix']?.toString() ?? '',
-                        width: 25),
+                    pw.Text(
+                      'Accused Memorandum Form',
+                      style: headerEnglishStyle,
+                    ),
+                    pw.SizedBox(height: 8),
+                    cache.has('title_marathi')
+                        ? cache.img('title_marathi')
+                        : pw.Text(
+                            '(आरोपीचे निवेदन पंचनामा)',
+                            style: englishStyle,
+                          ),
                   ],
                 ),
-                inlineField('Date: ', 'lbl_header_date', 'val_headerDate',
+              ),
+              pw.Spacer(flex: 3),
+              pw.Align(
+                alignment: pw.Alignment.bottomRight,
+                child: pw.Text(
+                  'M.R.W',
+                  style: englishBold.copyWith(fontSize: 9),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    // PAGE 2 — Sections 1–7
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Center(
+                child: pw.Column(
+                  children: [
+                    pw.Text(
+                      '( Panchanama u/s 23 (2) Bhartiya Saksh Adhiniyam, 2023',
+                      style: englishBold,
+                      textAlign: pw.TextAlign.center,
+                    ),
+                    mLbl('lbl_statute'),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 12),
+              pw.Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: pw.WrapCrossAlignment.end,
+                children: [
+                  inlineField(
+                    '1) District: ',
+                    'lbl_dist',
+                    'val_dist',
+                    doc['dist']?.toString() ?? '',
+                    width: 70,
+                  ),
+                  inlineField(
+                    'P.S.: ',
+                    'lbl_ps',
+                    'val_ps',
+                    doc['ps']?.toString() ?? '',
+                    width: 70,
+                  ),
+                  inlineField(
+                    'Year: ',
+                    'lbl_year',
+                    'val_year',
+                    doc['year']?.toString() ?? '',
+                    width: 40,
+                  ),
+                  pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      inlineField(
+                        'FIR No: ',
+                        'lbl_fir',
+                        'val_firNo',
+                        doc['firNo']?.toString() ?? '',
+                        width: 50,
+                      ),
+                      pw.Text('/20', style: englishBold),
+                      underlineField(
+                        'val_firYearSuffix',
+                        doc['firYearSuffix']?.toString() ?? '',
+                        width: 25,
+                      ),
+                    ],
+                  ),
+                  inlineField(
+                    'Date: ',
+                    'lbl_header_date',
+                    'val_headerDate',
                     doc['headerDate']?.toString() ?? '',
-                    width: 70),
-              ],
-            ),
-            pw.SizedBox(height: 10),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                pw.Text('2) Name Of Accused: ', style: englishBold),
-                mLbl('lbl_accused_name'),
-                underlineField('val_accusedName',
+                    width: 70,
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 10),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  pw.Text('2) Name Of Accused: ', style: englishBold),
+                  mLbl('lbl_accused_name'),
+                  underlineField(
+                    'val_accusedName',
                     doc['accusedName']?.toString() ?? '',
-                    expanded: true),
-              ],
-            ),
-            pw.SizedBox(height: 4),
-            pw.Row(
-              children: [
-                inlineField('Age: ', 'lbl_age', 'val_accusedAge',
+                    expanded: true,
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 4),
+              pw.Row(
+                children: [
+                  inlineField(
+                    'Age: ',
+                    'lbl_age',
+                    'val_accusedAge',
                     doc['accusedAge']?.toString() ?? '',
-                    width: 50),
-                pw.SizedBox(width: 16),
-                inlineField('Sex: ', 'lbl_sex', 'val_accusedSex',
+                    width: 50,
+                  ),
+                  pw.SizedBox(width: 16),
+                  inlineField(
+                    'Sex: ',
+                    'lbl_sex',
+                    'val_accusedSex',
                     doc['accusedSex']?.toString() ?? '',
-                    width: 50),
-              ],
-            ),
-            pw.SizedBox(height: 8),
-            pw.Text('3) Date and Time of Arrest :-', style: englishBold),
-            mLbl('lbl_arrest_header'),
-            pw.SizedBox(height: 2),
-            pw.Row(
-              children: [
-                inlineField('Date: ', 'lbl_arrest_date', 'val_arrestDate',
+                    width: 50,
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 8),
+              pw.Text('3) Date and Time of Arrest :-', style: englishBold),
+              mLbl('lbl_arrest_header'),
+              pw.SizedBox(height: 2),
+              pw.Row(
+                children: [
+                  inlineField(
+                    'Date: ',
+                    'lbl_arrest_date',
+                    'val_arrestDate',
                     doc['arrestDate']?.toString() ?? '',
-                    width: 70),
-                pw.SizedBox(width: 12),
-                inlineField('Time: ', 'lbl_arrest_time', 'val_arrestTime',
+                    width: 70,
+                  ),
+                  pw.SizedBox(width: 12),
+                  inlineField(
+                    'Time: ',
+                    'lbl_arrest_time',
+                    'val_arrestTime',
                     doc['arrestTime']?.toString() ?? '',
-                    width: 70),
-              ],
-            ),
-            pw.SizedBox(height: 8),
-            pw.Text('4) Memorandum made by Accused :-', style: englishBold),
-            mLbl('lbl_memorandum_header'),
-            pw.SizedBox(height: 4),
-            linedBlock('mem', doc['memorandum']?.toString() ?? '', minLines: 14),
-            pw.SizedBox(height: 8),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                pw.Text('5) Place of Memorandum: ', style: englishBold),
-                mLbl('lbl_mem_place'),
-                underlineField('val_memPlace', doc['memPlace']?.toString() ?? '',
-                    expanded: true),
-              ],
-            ),
-            pw.SizedBox(height: 4),
-            pw.Row(
-              children: [
-                inlineField('Date: ', 'lbl_mem_date', 'val_memDate',
+                    width: 70,
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 8),
+              pw.Text('4) Memorandum made by Accused :-', style: englishBold),
+              mLbl('lbl_memorandum_header'),
+              pw.SizedBox(height: 4),
+              linedBlock(
+                'mem',
+                doc['memorandum']?.toString() ?? '',
+                minLines: 14,
+              ),
+              pw.SizedBox(height: 8),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  pw.Text('5) Place of Memorandum: ', style: englishBold),
+                  mLbl('lbl_mem_place'),
+                  underlineField(
+                    'val_memPlace',
+                    doc['memPlace']?.toString() ?? '',
+                    expanded: true,
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 4),
+              pw.Row(
+                children: [
+                  inlineField(
+                    'Date: ',
+                    'lbl_mem_date',
+                    'val_memDate',
                     doc['memDate']?.toString() ?? '',
-                    width: 60),
-                pw.SizedBox(width: 8),
-                inlineField('Time: ', 'lbl_mem_time_from', 'val_memTimeFrom',
+                    width: 60,
+                  ),
+                  pw.SizedBox(width: 8),
+                  inlineField(
+                    'Time: ',
+                    'lbl_mem_time_from',
+                    'val_memTimeFrom',
                     doc['memTimeFrom']?.toString() ?? '',
-                    width: 50),
-                pw.SizedBox(width: 8),
-                inlineField('To: ', 'lbl_mem_time_to', 'val_memTimeTo',
+                    width: 50,
+                  ),
+                  pw.SizedBox(width: 8),
+                  inlineField(
+                    'To: ',
+                    'lbl_mem_time_to',
+                    'val_memTimeTo',
                     doc['memTimeTo']?.toString() ?? '',
-                    width: 50),
-              ],
-            ),
-            pw.SizedBox(height: 8),
-            pw.Text('6)', style: englishBold),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Name and Address of Panchas:-',
-                          style: englishBold),
-                      mLbl('lbl_panch_header'),
-                      pw.SizedBox(height: 4),
-                      panchAddressBlock(
-                        prefix: '1',
-                        l1Key: 'panch1Line1',
-                        l2Key: 'panch1Line2',
-                      ),
-                      pw.SizedBox(height: 4),
-                      panchAddressBlock(
-                        prefix: '2',
-                        l1Key: 'panch2Line1',
-                        l2Key: 'panch2Line2',
-                      ),
-                    ],
+                    width: 50,
                   ),
-                ),
-                pw.SizedBox(width: 16),
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Signature :-', style: englishBold),
-                      mLbl('lbl_sig_header'),
-                      pw.SizedBox(height: 4),
-                      pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.end,
-                        children: [
-                          pw.Text('1) ', style: englishBold),
-                          underlineField('val_panch1Sig',
+                ],
+              ),
+              pw.SizedBox(height: 8),
+              pw.Text('6)', style: englishBold),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          'Name and Address of Panchas:-',
+                          style: englishBold,
+                        ),
+                        mLbl('lbl_panch_header'),
+                        pw.SizedBox(height: 4),
+                        panchAddressBlock(
+                          prefix: '1',
+                          l1Key: 'panch1Line1',
+                          l2Key: 'panch1Line2',
+                        ),
+                        pw.SizedBox(height: 4),
+                        panchAddressBlock(
+                          prefix: '2',
+                          l1Key: 'panch2Line1',
+                          l2Key: 'panch2Line2',
+                        ),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(width: 16),
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('Signature :-', style: englishBold),
+                        mLbl('lbl_sig_header'),
+                        pw.SizedBox(height: 4),
+                        pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
+                          children: [
+                            pw.Text('1) ', style: englishBold),
+                            underlineField(
+                              'val_panch1Sig',
                               doc['panch1Sig']?.toString() ?? '',
-                              expanded: true),
-                        ],
-                      ),
-                      pw.SizedBox(height: 8),
-                      pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.end,
-                        children: [
-                          pw.Text('2) ', style: englishBold),
-                          underlineField('val_panch2Sig',
+                              expanded: true,
+                            ),
+                          ],
+                        ),
+                        pw.SizedBox(height: 8),
+                        pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
+                          children: [
+                            pw.Text('2) ', style: englishBold),
+                            underlineField(
+                              'val_panch2Sig',
                               doc['panch2Sig']?.toString() ?? '',
-                              expanded: true),
-                        ],
-                      ),
-                    ],
+                              expanded: true,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 8),
-            pw.Text('7)', style: englishBold),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Accused Signature and Thump',
-                          style: englishBold),
-                      mLbl('lbl_accused_sig'),
-                    ],
+                ],
+              ),
+              pw.SizedBox(height: 8),
+              pw.Text('7)', style: englishBold),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          'Accused Signature and Thump',
+                          style: englishBold,
+                        ),
+                        mLbl('lbl_accused_sig'),
+                      ],
+                    ),
                   ),
+                  pw.SizedBox(width: 12),
+                  pw.Expanded(child: ioBlock()),
+                ],
+              ),
+              pw.Spacer(),
+              pw.Align(
+                alignment: pw.Alignment.bottomRight,
+                child: pw.Text(
+                  'M.R.W',
+                  style: englishBold.copyWith(fontSize: 9),
                 ),
-                pw.SizedBox(width: 12),
-                pw.Expanded(child: ioBlock()),
-              ],
-            ),
-            pw.Spacer(),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold.copyWith(fontSize: 9)),
-            ),
-          ],
-        );
-      },
-    ),
-  );
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   // PAGE 3 — Sections 8–10
   if (showsSection('Accused Part II')) {
-  pdf.addPage(
-    pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(32),
-      build: (pw.Context context) {
-        return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text('8) Details of Further Panchanama:-', style: englishBold),
-            mLbl('lbl_further_header'),
-            pw.SizedBox(height: 4),
-            linedBlock('further', doc['furtherPanchanama']?.toString() ?? '',
-                minLines: 16),
-            pw.SizedBox(height: 6),
-            pw.Row(
-              children: [
-                inlineField('Date: ', 'lbl_further_date', 'val_furtherDate',
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('8) Details of Further Panchanama:-', style: englishBold),
+              mLbl('lbl_further_header'),
+              pw.SizedBox(height: 4),
+              linedBlock(
+                'further',
+                doc['furtherPanchanama']?.toString() ?? '',
+                minLines: 16,
+              ),
+              pw.SizedBox(height: 6),
+              pw.Row(
+                children: [
+                  inlineField(
+                    'Date: ',
+                    'lbl_further_date',
+                    'val_furtherDate',
                     doc['furtherDate']?.toString() ?? '',
-                    width: 60),
-                pw.SizedBox(width: 8),
-                inlineField('Time: ', 'lbl_further_time_from',
+                    width: 60,
+                  ),
+                  pw.SizedBox(width: 8),
+                  inlineField(
+                    'Time: ',
+                    'lbl_further_time_from',
                     'val_furtherTimeFrom',
                     doc['furtherTimeFrom']?.toString() ?? '',
-                    width: 50),
-                pw.SizedBox(width: 8),
-                inlineField('To: ', 'lbl_further_time_to', 'val_furtherTimeTo',
+                    width: 50,
+                  ),
+                  pw.SizedBox(width: 8),
+                  inlineField(
+                    'To: ',
+                    'lbl_further_time_to',
+                    'val_furtherTimeTo',
                     doc['furtherTimeTo']?.toString() ?? '',
-                    width: 50),
-              ],
-            ),
-            pw.SizedBox(height: 10),
-            pw.Text('9)', style: englishBold),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Name and Address of Panchas:-',
-                          style: englishBold),
-                      mLbl('lbl_panch_header'),
-                      pw.SizedBox(height: 4),
-                      panchAddressBlock(
-                        prefix: '1',
-                        l1Key: 'furtherPanch1Line1',
-                        l2Key: 'furtherPanch1Line2',
-                      ),
-                      pw.SizedBox(height: 4),
-                      panchAddressBlock(
-                        prefix: '2',
-                        l1Key: 'furtherPanch2Line1',
-                        l2Key: 'furtherPanch2Line2',
-                      ),
-                    ],
+                    width: 50,
                   ),
-                ),
-                pw.SizedBox(width: 16),
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Signature :-', style: englishBold),
-                      mLbl('lbl_sig_header'),
-                      pw.SizedBox(height: 4),
-                      pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.end,
-                        children: [
-                          pw.Text('1) ', style: englishBold),
-                          underlineField('val_furtherPanch1Sig',
+                ],
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('9)', style: englishBold),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          'Name and Address of Panchas:-',
+                          style: englishBold,
+                        ),
+                        mLbl('lbl_panch_header'),
+                        pw.SizedBox(height: 4),
+                        panchAddressBlock(
+                          prefix: '1',
+                          l1Key: 'furtherPanch1Line1',
+                          l2Key: 'furtherPanch1Line2',
+                        ),
+                        pw.SizedBox(height: 4),
+                        panchAddressBlock(
+                          prefix: '2',
+                          l1Key: 'furtherPanch2Line1',
+                          l2Key: 'furtherPanch2Line2',
+                        ),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(width: 16),
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('Signature :-', style: englishBold),
+                        mLbl('lbl_sig_header'),
+                        pw.SizedBox(height: 4),
+                        pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
+                          children: [
+                            pw.Text('1) ', style: englishBold),
+                            underlineField(
+                              'val_furtherPanch1Sig',
                               doc['furtherPanch1Sig']?.toString() ?? '',
-                              expanded: true),
-                        ],
-                      ),
-                      pw.SizedBox(height: 8),
-                      pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.end,
-                        children: [
-                          pw.Text('2) ', style: englishBold),
-                          underlineField('val_furtherPanch2Sig',
+                              expanded: true,
+                            ),
+                          ],
+                        ),
+                        pw.SizedBox(height: 8),
+                        pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
+                          children: [
+                            pw.Text('2) ', style: englishBold),
+                            underlineField(
+                              'val_furtherPanch2Sig',
                               doc['furtherPanch2Sig']?.toString() ?? '',
-                              expanded: true),
-                        ],
-                      ),
-                    ],
+                              expanded: true,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 10),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('10) Accused Signature and Thump',
-                          style: englishBold),
-                      mLbl('lbl_accused_sig'),
-                      pw.SizedBox(height: 40),
-                    ],
+                ],
+              ),
+              pw.SizedBox(height: 10),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Expanded(
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          '10) Accused Signature and Thump',
+                          style: englishBold,
+                        ),
+                        mLbl('lbl_accused_sig'),
+                        pw.SizedBox(height: 40),
+                      ],
+                    ),
                   ),
+                  pw.SizedBox(width: 12),
+                  pw.Expanded(child: ioBlock()),
+                ],
+              ),
+              pw.Spacer(),
+              pw.Align(
+                alignment: pw.Alignment.bottomRight,
+                child: pw.Text(
+                  'M.R.W',
+                  style: englishBold.copyWith(fontSize: 9),
                 ),
-                pw.SizedBox(width: 12),
-                pw.Expanded(child: ioBlock()),
-              ],
-            ),
-            pw.Spacer(),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold.copyWith(fontSize: 9)),
-            ),
-          ],
-        );
-      },
-    ),
-  );
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   return pdf.save();
@@ -616,8 +739,7 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
   return result;
 }
 
-Future<MarathiImageCache> _preRenderAllMarathi(
-    Map<String, dynamic> doc) async {
+Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final cache = MarathiImageCache();
 
   final marathiLabelStyle = GoogleFonts.notoSansDevanagari(
@@ -634,8 +756,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(
 
   await GoogleFonts.pendingFonts();
 
-  Future<void> addLbl(String key, String text,
-      {double maxWidth = 500}) async {
+  Future<void> addLbl(String key, String text, {double maxWidth = 500}) async {
     await cache.add(key, text, marathiLabelStyle, maxWidth: maxWidth);
   }
 

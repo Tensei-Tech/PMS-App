@@ -12,10 +12,12 @@ class DistrictAdminHierarchyScreen extends StatefulWidget {
   const DistrictAdminHierarchyScreen({super.key});
 
   @override
-  State<DistrictAdminHierarchyScreen> createState() => _DistrictAdminHierarchyScreenState();
+  State<DistrictAdminHierarchyScreen> createState() =>
+      _DistrictAdminHierarchyScreenState();
 }
 
-class _DistrictAdminHierarchyScreenState extends State<DistrictAdminHierarchyScreen> {
+class _DistrictAdminHierarchyScreenState
+    extends State<DistrictAdminHierarchyScreen> {
   final ApiService _apiService = ApiService();
 
   bool _isLoading = true;
@@ -51,15 +53,19 @@ class _DistrictAdminHierarchyScreenState extends State<DistrictAdminHierarchyScr
       if (response.isSuccess && response.data is Map) {
         final data = response.data as Map<String, dynamic>;
         setState(() {
-          _stations = (data['stations'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-          _assignedDistrictName = data['assigned_district']?.toString() ??
+          _stations =
+              (data['stations'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+          _assignedDistrictName =
+              data['assigned_district']?.toString() ??
               data['assigned_division']?.toString() ??
               'District Range';
           _isLoading = false;
         });
       } else {
         setState(() {
-          _errorMessage = response.errorMessage ?? 'Failed to load district hierarchy directory';
+          _errorMessage =
+              response.errorMessage ??
+              'Failed to load district hierarchy directory';
           _isLoading = false;
         });
       }
@@ -109,105 +115,146 @@ class _DistrictAdminHierarchyScreenState extends State<DistrictAdminHierarchyScr
         elevation: 0,
         toolbarHeight: 52,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 18,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.goldLight, size: 20),
+            icon: const Icon(
+              Icons.refresh_rounded,
+              color: AppColors.goldLight,
+              size: 20,
+            ),
             onPressed: _fetchDistrictHierarchyDirectory,
             tooltip: 'Refresh Directory',
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.navyDark))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.navyDark),
+            )
           : _errorMessage != null
-              ? _buildErrorView()
-              : Column(
-                  children: [
-                    // Station Search Bar
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: (val) => setState(() => _searchQuery = val),
-                        style: GoogleFonts.poppins(fontSize: 12.5, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          hintText: 'Search police stations in $_assignedDistrictName...',
-                          hintStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500),
-                          prefixIcon: const Icon(Icons.search_rounded, size: 18, color: AppColors.navyDark),
-                          suffixIcon: _searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear_rounded, size: 16),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() => _searchQuery = '');
-                                  },
-                                )
-                              : null,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                          ),
-                        ),
+          ? _buildErrorView()
+          : Column(
+              children: [
+                // Station Search Bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      color: AppColors.navyDark,
+                    ),
+                    decoration: InputDecoration(
+                      hintText:
+                          'Search police stations in $_assignedDistrictName...',
+                      hintStyle: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        size: 18,
+                        color: AppColors.navyDark,
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded, size: 16),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
+                          : null,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 12,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
                     ),
-                    Expanded(
-                      child: filteredStations.isEmpty
-                          ? _buildEmptyState(_searchQuery.isEmpty
-                              ? 'No police stations found in $_assignedDistrictName.'
-                              : 'No stations match "$_searchQuery".')
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(12),
-                              itemCount: filteredStations.length,
-                              itemBuilder: (ctx, idx) {
-                                final st = filteredStations[idx];
-                                final name = st['name'] ?? 'Police Station';
-                                final head = st['head'] as Map<String, dynamic>?;
-
-                                return Card(
-                                  elevation: 1,
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    side: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  ),
-                                  child: ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                    leading: CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: Colors.teal.shade50,
-                                      child: Icon(Icons.local_police_rounded, color: Colors.teal.shade700, size: 18),
-                                    ),
-                                    title: Text(
-                                      name,
-                                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.navyDark),
-                                    ),
-                                    subtitle: Text(
-                                      head != null
-                                          ? 'Station Head (SHO): ${head['name']} (${head['designation']})'
-                                          : 'Station Head: Unassigned (Pending SHO)',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: head != null ? AppColors.navyDark : Colors.orange.shade800,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
+                  ),
                 ),
+                Expanded(
+                  child: filteredStations.isEmpty
+                      ? _buildEmptyState(
+                          _searchQuery.isEmpty
+                              ? 'No police stations found in $_assignedDistrictName.'
+                              : 'No stations match "$_searchQuery".',
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: filteredStations.length,
+                          itemBuilder: (ctx, idx) {
+                            final st = filteredStations[idx];
+                            final name = st['name'] ?? 'Police Station';
+                            final head = st['head'] as Map<String, dynamic>?;
+
+                            return Card(
+                              elevation: 1,
+                              margin: const EdgeInsets.only(bottom: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                leading: CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: Colors.teal.shade50,
+                                  child: Icon(
+                                    Icons.local_police_rounded,
+                                    color: Colors.teal.shade700,
+                                    size: 18,
+                                  ),
+                                ),
+                                title: Text(
+                                  name,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.navyDark,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  head != null
+                                      ? 'Station Head (SHO): ${head['name']} (${head['designation']})'
+                                      : 'Station Head: Unassigned (Pending SHO)',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: head != null
+                                        ? AppColors.navyDark
+                                        : Colors.orange.shade800,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -218,12 +265,20 @@ class _DistrictAdminHierarchyScreenState extends State<DistrictAdminHierarchyScr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.folder_open_rounded, size: 44, color: Colors.grey.shade400),
+            Icon(
+              Icons.folder_open_rounded,
+              size: 44,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 12),
             Text(
               msg,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -238,12 +293,19 @@ class _DistrictAdminHierarchyScreenState extends State<DistrictAdminHierarchyScr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded, size: 44, color: Colors.redAccent),
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 44,
+              color: Colors.redAccent,
+            ),
             const SizedBox(height: 12),
             Text(
               _errorMessage!,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppColors.navyDark,
+              ),
             ),
             const SizedBox(height: 14),
             ElevatedButton.icon(

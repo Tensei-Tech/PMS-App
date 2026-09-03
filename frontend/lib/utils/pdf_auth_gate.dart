@@ -23,7 +23,8 @@ Future<void> runWithPdfAuthGate(
 
   isPdfDownloadAuthGateActive = true;
   try {
-    final ok = await showDialog<bool>(
+    final ok =
+        await showDialog<bool>(
           context: context,
           barrierDismissible: true,
           builder: (dialogContext) => _PdfExportPinDialog(auth: auth),
@@ -63,7 +64,9 @@ class _PdfExportPinDialogState extends State<_PdfExportPinDialog> {
   String? _validate(String? v) {
     if (v == null || v.isEmpty) return 'PIN is required';
     if (v.length < 4 || v.length > 6) return 'PIN must be 4-6 digits';
-    if (!RegExp(r'^\d{4,6}$').hasMatch(v)) return 'PIN must contain only digits';
+    if (!RegExp(r'^\d{4,6}$').hasMatch(v)) {
+      return 'PIN must contain only digits';
+    }
     return null;
   }
 
@@ -139,7 +142,10 @@ class _PdfExportPinDialogState extends State<_PdfExportPinDialog> {
                 decoration: InputDecoration(
                   labelText: 'Enter PIN',
                   hintText: '●●●●',
-                  prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.navyMid),
+                  prefixIcon: const Icon(
+                    Icons.lock_rounded,
+                    color: AppColors.navyMid,
+                  ),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFF),
                   border: OutlineInputBorder(
@@ -157,7 +163,10 @@ class _PdfExportPinDialogState extends State<_PdfExportPinDialog> {
       actions: [
         TextButton(
           onPressed: _verifying ? null : _cancel,
-          child: Text('Cancel', style: GoogleFonts.poppins(color: AppColors.lightSubText)),
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.poppins(color: AppColors.lightSubText),
+          ),
         ),
         ElevatedButton(
           onPressed: _verifying ? null : _submit,
@@ -178,7 +187,10 @@ class _PdfExportPinDialogState extends State<_PdfExportPinDialog> {
                     color: Colors.white,
                   ),
                 )
-              : Text('Verify', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+              : Text(
+                  'Verify',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+                ),
         ),
       ],
     );

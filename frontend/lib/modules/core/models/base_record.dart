@@ -4,7 +4,7 @@
 
 class ModuleRecord {
   final String id;
-  final String moduleKey;  // unique per module e.g. 'nc', 'theft', 'pocso'
+  final String moduleKey; // unique per module e.g. 'nc', 'theft', 'pocso'
   final String title;
   final String caseNumber;
   final String description;
@@ -16,13 +16,15 @@ class ModuleRecord {
   final String status;
   final String assignedOfficer;
   final DateTime createdAt;
-  final String? subCategory; // for Forms like I-V that have sub-types e.g. 'Murder'
+  final String?
+  subCategory; // for Forms like I-V that have sub-types e.g. 'Murder'
   // Module-specific fields stored without polluting the common schema
   final Map<String, dynamic> extraFields;
   // Station-level isolation & audit fields
-  final String createdBy;   // Firebase Auth UID of the creating officer
+  final String createdBy; // Firebase Auth UID of the creating officer
   final String? assignedOfficerUid; // Firebase UID of assigned I.O., when known
-  final String stationName; // Station name — all officers in the same station share data
+  final String
+  stationName; // Station name — all officers in the same station share data
 
   ModuleRecord({
     required this.id,
@@ -43,8 +45,8 @@ class ModuleRecord {
     this.createdBy = '',
     this.assignedOfficerUid,
     this.stationName = '',
-  })  : createdAt = createdAt ?? DateTime.now(),
-        extraFields = extraFields ?? {};
+  }) : createdAt = createdAt ?? DateTime.now(),
+       extraFields = extraFields ?? {};
 
   Map<String, dynamic> toMap() {
     return {
@@ -119,12 +121,13 @@ class ModuleRecord {
       extraFields: map['extraFields'] != null
           ? Map<String, dynamic>.from(map['extraFields'])
           : (map['extra_fields'] != null
-              ? Map<String, dynamic>.from(map['extra_fields'])
-              : {}),
+                ? Map<String, dynamic>.from(map['extra_fields'])
+                : {}),
       createdBy: map['createdBy'] ?? map['created_by'] ?? '',
       assignedOfficerUid:
           (map['assignedOfficerUid'] ?? map['assigned_officer_uid']) as String?,
-      stationName: map['stationName'] ?? map['station_name'] ?? map['stationId'] ?? '',
+      stationName:
+          map['stationName'] ?? map['station_name'] ?? map['stationId'] ?? '',
     );
   }
 

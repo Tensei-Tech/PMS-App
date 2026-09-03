@@ -35,21 +35,30 @@ class PdfHelper {
               amberSubtitle: '$moduleDisplay - Official Case Report',
             ),
             pw.SizedBox(height: 20),
-            pw.Row(children: [
-              pw.Expanded(
-                child: DynamicMapPdf.summaryStatBox(
-                    'Case Number', caseData.caseNumber),
-              ),
-              pw.SizedBox(width: 12),
-              pw.Expanded(
-                child: DynamicMapPdf.summaryStatBox('Status', caseData.status),
-              ),
-              pw.SizedBox(width: 12),
-              pw.Expanded(
-                child:
-                    DynamicMapPdf.summaryStatBox('Priority', caseData.priority),
-              ),
-            ]),
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: DynamicMapPdf.summaryStatBox(
+                    'Case Number',
+                    caseData.caseNumber,
+                  ),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: DynamicMapPdf.summaryStatBox(
+                    'Status',
+                    caseData.status,
+                  ),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: DynamicMapPdf.summaryStatBox(
+                    'Priority',
+                    caseData.priority,
+                  ),
+                ),
+              ],
+            ),
             pw.SizedBox(height: 16),
             ...DynamicMapPdf.buildModuleRecordPdfBody(caseData, moduleDisplay),
             pw.SizedBox(height: 24),
@@ -62,19 +71,25 @@ class PdfHelper {
                     pw.Text(
                       'Reference: ${caseData.id}',
                       style: const pw.TextStyle(
-                          fontSize: 10, color: PdfColors.grey600),
+                        fontSize: 10,
+                        color: PdfColors.grey600,
+                      ),
                     ),
                   ],
                 ),
                 pw.Column(
                   children: [
                     pw.Container(
-                        width: 120,
-                        decoration: const pw.BoxDecoration(
-                            border: pw.Border(bottom: pw.BorderSide()))),
+                      width: 120,
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(bottom: pw.BorderSide()),
+                      ),
+                    ),
                     pw.SizedBox(height: 4),
-                    pw.Text('Authorized Signature',
-                        style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text(
+                      'Authorized Signature',
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
                   ],
                 ),
               ],

@@ -1,37 +1,36 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
-
 import 'dart:async';
-import 'dart:html' as html;
+import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:web/web.dart' as web;
 import 'evidence_geotag_service.dart';
 
 Future<GeotagLocation?> getWebCurrentLocation() async {
   try {
     final completer = Completer<GeotagLocation?>();
-    if (html.window.navigator.geolocation != null) {
-      html.window.navigator.geolocation.getCurrentPosition(
-        enableHighAccuracy: true,
-        timeout: const Duration(seconds: 10),
-      ).then((pos) {
+    final options = web.PositionOptions(
+      enableHighAccuracy: true,
+      timeout: 10000,
+    );
+
+    web.window.navigator.geolocation.getCurrentPosition(
+      (web.GeolocationPosition pos) {
         final coords = pos.coords;
-        if (coords != null) {
-          final loc = GeotagLocation(
-            latitude: coords.latitude?.toDouble() ?? 0.0,
-            longitude: coords.longitude?.toDouble() ?? 0.0,
-            accuracy: coords.accuracy?.toDouble(),
-            timestamp: DateFormat('dd-MMM-yyyy HH:mm:ss').format(DateTime.now()),
-          );
-          completer.complete(loc);
-        } else {
-          completer.complete(null);
-        }
-      }).catchError((err) {
-        debugPrint('Geolocation error: $err');
+        final loc = GeotagLocation(
+          latitude: coords.latitude.toDouble(),
+          longitude: coords.longitude.toDouble(),
+          accuracy: coords.accuracy.toDouble(),
+          timestamp: DateFormat('dd-MMM-yyyy HH:mm:ss').format(DateTime.now()),
+        );
+        completer.complete(loc);
+      }.toJS,
+      (web.GeolocationPositionError err) {
+        debugPrint('Geolocation error: ${err.message}');
         completer.complete(null);
-      });
-      return await completer.future;
-    }
+      }.toJS,
+      options,
+    );
+    return await completer.future;
   } catch (e) {
     debugPrint('Web Geolocation exception: $e');
   }

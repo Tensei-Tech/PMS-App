@@ -87,27 +87,81 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
             Center(
               child: Column(
                 children: [
-                  Text('NIL HOUSE SEARCH PANCHANAMA', style: serif.copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('घर शोध पंचनामा — निरर्थक', style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text(
+                    'NIL HOUSE SEARCH PANCHANAMA',
+                    style: serif.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'घर शोध पंचनामा — निरर्थक',
+                    style: marathi.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Camp No.', marathiLabel: 'कंप क्र.', controller: _fields['campNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['date']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Camp No.',
+                  marathiLabel: 'कंप क्र.',
+                  controller: _fields['campNo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Date',
+                  marathiLabel: 'दिनांक',
+                  controller: _fields['date']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
-            BilingualField(label: 'Police Station', marathiLabel: 'पोलीस स्टेशन', controller: _fields['policeStation']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Police Station',
+              marathiLabel: 'पोलीस स्टेशन',
+              controller: _fields['policeStation']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'CR No.', marathiLabel: 'गु.र.क्र.', controller: _fields['crNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'CR No.',
+                  marathiLabel: 'गु.र.क्र.',
+                  controller: _fields['crNo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Section',
+                  marathiLabel: 'कलम',
+                  controller: _fields['section']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
-            BilingualWideField(label: 'Search address', marathiLabel: 'शोध घेतलेले ठिकाण', controller: _fields['searchAddress']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Owner / occupant', marathiLabel: 'मालक / भोगवटादार', controller: _fields['ownerName']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualWideField(
+              label: 'Search address',
+              marathiLabel: 'शोध घेतलेले ठिकाण',
+              controller: _fields['searchAddress']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
+            BilingualField(
+              label: 'Owner / occupant',
+              marathiLabel: 'मालक / भोगवटादार',
+              controller: _fields['ownerName']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             BilingualMultilineField(
               label: 'Panchanama body — nothing found',
               marathiLabel: 'पंचनामा — काही सापडले नाही',

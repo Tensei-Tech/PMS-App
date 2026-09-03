@@ -1,20 +1,15 @@
 // lib/screens/notification_screen.dart
 // Full-page notification history — lists all received FCM notifications.
 
-import 'package:flutter/foundation.dart';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
-import '../utils/police_rbac_helper.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -36,8 +31,10 @@ class NotificationScreen extends StatelessWidget {
           surfaceTintColor: Colors.transparent,
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
-            icon:
-                const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: AppColors.navyDark,
+            ),
           ),
           title: Text(
             'Notifications & Reminders',
@@ -72,21 +69,23 @@ class NotificationScreen extends StatelessWidget {
           children: [
             // ── TAB 1: Live Case Reminders from Firestore ──────────────────
             StreamBuilder<List<Map<String, dynamic>>>(
-              stream: SeniorOfficerRoles.isCpLevel(auth.designation) ||
+              stream:
+                  SeniorOfficerRoles.isCpLevel(auth.designation) ||
                       SeniorOfficerRoles.isSpLevel(auth.designation)
                   ? firestore.getAllRemindersStream()
                   : (auth.isSupervisor || auth.isAdmin)
-                      ? firestore.getSentRemindersStream(auth.uid)
-                      : (auth.stationName.isNotEmpty
-                          ? firestore.getStationRemindersStream(auth.stationName)
-                          : firestore.getIoRemindersStream(auth.uid)),
+                  ? firestore.getSentRemindersStream(auth.uid)
+                  : (auth.stationName.isNotEmpty
+                        ? firestore.getStationRemindersStream(auth.stationName)
+                        : firestore.getIoRemindersStream(auth.uid)),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 final reminders = snapshot.data ?? [];
-                final isSenior = SeniorOfficerRoles.isCpLevel(auth.designation) ||
+                final isSenior =
+                    SeniorOfficerRoles.isCpLevel(auth.designation) ||
                     SeniorOfficerRoles.isSpLevel(auth.designation) ||
                     auth.isSupervisor;
 
@@ -190,7 +189,10 @@ class NotificationScreen extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.warningOrange.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppRadius.full),
@@ -317,7 +319,9 @@ class NotificationScreen extends StatelessWidget {
   Widget _buildList(List<NotificationItem> items) {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.md),
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
@@ -392,8 +396,9 @@ class _NotificationCard extends StatelessWidget {
                         item.title,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
-                          fontWeight:
-                              isUnread ? FontWeight.w700 : FontWeight.w600,
+                          fontWeight: isUnread
+                              ? FontWeight.w700
+                              : FontWeight.w600,
                           color: AppColors.navyDark,
                         ),
                         maxLines: 2,
@@ -428,9 +433,11 @@ class _NotificationCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(Icons.access_time_rounded,
-                        size: 13,
-                        color: AppColors.lightSubText.withValues(alpha: 0.7)),
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 13,
+                      color: AppColors.lightSubText.withValues(alpha: 0.7),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       timeStr,

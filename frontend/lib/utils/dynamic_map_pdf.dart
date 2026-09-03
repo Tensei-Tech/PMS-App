@@ -50,7 +50,8 @@ class DynamicMapPdf {
             (t.contains('T') || RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(t))) {
           final d = DateTime.parse(t).toLocal();
           final datePart = DateFormat('dd MMMM yyyy').format(d);
-          final hasTime = t.contains('T') &&
+          final hasTime =
+              t.contains('T') &&
               (d.hour != 0 || d.minute != 0 || d.second != 0);
           if (hasTime) {
             return '$datePart, ${DateFormat('hh:mm a').format(d)}';
@@ -64,10 +65,8 @@ class DynamicMapPdf {
     return s.isEmpty ? emptyDisplay : s;
   }
 
-  static pw.TableBorder get _tableBorder => pw.TableBorder.all(
-        color: PdfColors.grey500,
-        width: 0.5,
-      );
+  static pw.TableBorder get _tableBorder =>
+      pw.TableBorder.all(color: PdfColors.grey500, width: 0.5);
 
   /// Quick summary chips (case no., status, priority) — shared by module / dashboard PDFs.
   static pw.Widget summaryStatBox(String label, String value) {
@@ -87,10 +86,7 @@ class DynamicMapPdf {
           pw.SizedBox(height: 4),
           pw.Text(
             value,
-            style: pw.TextStyle(
-              fontSize: 12,
-              fontWeight: pw.FontWeight.bold,
-            ),
+            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
           ),
         ],
       ),
@@ -105,8 +101,7 @@ class DynamicMapPdf {
     return pw.Container(
       width: double.infinity,
       padding: const pw.EdgeInsets.all(20),
-      decoration:
-          const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1A2A4A)),
+      decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1A2A4A)),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -237,10 +232,7 @@ class DynamicMapPdf {
   static pw.TableRow _kvTableRow(String label, String value) {
     return pw.TableRow(
       verticalAlignment: pw.TableCellVerticalAlignment.top,
-      children: [
-        _labelCell(label),
-        _valueCell(value),
-      ],
+      children: [_labelCell(label), _valueCell(value)],
     );
   }
 
@@ -293,8 +285,12 @@ class DynamicMapPdf {
         if (item.isEmpty) {
           out.add(_singleKv('(empty)', emptyDisplay));
         } else {
-          out.addAll(_professionalListItems(item,
-              hubInsertionNestedMaps: hubInsertionNestedMaps));
+          out.addAll(
+            _professionalListItems(
+              item,
+              hubInsertionNestedMaps: hubInsertionNestedMaps,
+            ),
+          );
         }
       } else {
         out.add(subSectionBanner(title));
@@ -331,7 +327,8 @@ class DynamicMapPdf {
           out.add(_singleKv('(empty)', emptyDisplay));
         } else {
           out.addAll(
-              _professionalListItems(list, hubInsertionNestedMaps: true));
+            _professionalListItems(list, hubInsertionNestedMaps: true),
+          );
         }
       } else {
         out.add(_singleKv(label, disp(v)));
@@ -354,18 +351,22 @@ class DynamicMapPdf {
         if (m.isEmpty) {
           out.add(_singleKv('(empty)', emptyDisplay));
         } else {
-          final keys =
-              orderedKeysForAdListItemMap(listFieldKey: listFieldKey, m: m);
+          final keys = orderedKeysForAdListItemMap(
+            listFieldKey: listFieldKey,
+            m: m,
+          );
           out.addAll(
-              _buildAdFormKeyedMap(m, keys, parentFieldKey: listFieldKey));
+            _buildAdFormKeyedMap(m, keys, parentFieldKey: listFieldKey),
+          );
         }
       } else if (item is List) {
         out.add(subSectionBanner(title));
         if (item.isEmpty) {
           out.add(_singleKv('(empty)', emptyDisplay));
         } else {
-          out.addAll(_professionalListItemsAd(item,
-              listFieldKey: listFieldKey));
+          out.addAll(
+            _professionalListItemsAd(item, listFieldKey: listFieldKey),
+          );
         }
       } else {
         out.add(subSectionBanner(title));
@@ -401,13 +402,18 @@ class DynamicMapPdf {
         if (m.isEmpty) {
           out.add(_singleKv('(empty)', emptyDisplay));
         } else {
-          final kind =
-              adNestedMapKindFor(parentFieldKey: parentFieldKey, m: m);
+          final kind = adNestedMapKindFor(parentFieldKey: parentFieldKey, m: m);
           final childKeys = orderedKeysForAdNestedMap(kind: kind, m: m);
-          final parentForNestedValues =
-              kind == AdNestedMapKind.chargeDataSlots ? 'chargeData' : parentFieldKey;
-          out.addAll(_buildAdFormKeyedMap(m, childKeys,
-              parentFieldKey: parentForNestedValues));
+          final parentForNestedValues = kind == AdNestedMapKind.chargeDataSlots
+              ? 'chargeData'
+              : parentFieldKey;
+          out.addAll(
+            _buildAdFormKeyedMap(
+              m,
+              childKeys,
+              parentFieldKey: parentForNestedValues,
+            ),
+          );
         }
       } else if (v is List) {
         flush();
@@ -439,19 +445,14 @@ class DynamicMapPdf {
 
     final children = <pw.Widget>[
       mainSectionBanner('Module'),
-      _twoColumnTable([
-        _kvTableRow('Dashboard module', moduleDisplayName),
-      ]),
+      _twoColumnTable([_kvTableRow('Dashboard module', moduleDisplayName)]),
       mainSectionBanner('All saved case fields'),
       ..._buildHubKeyedMap(raw, orderedModuleHubScalarKeys(raw)),
     ];
 
     if (extra.isNotEmpty) {
       children.add(mainSectionBanner('Extended & additional fields'));
-      children.addAll(_buildHubKeyedMap(
-        extra,
-        _insertionKeys(extra),
-      ));
+      children.addAll(_buildHubKeyedMap(extra, _insertionKeys(extra)));
     }
 
     return children;
@@ -554,7 +555,9 @@ class DynamicMapPdf {
                 pw.TableRow(
                   children: [
                     if (prependSerial) _landscapeHeaderCell('Sr. No.'),
-                    ...sortedKeys.map((k) => _landscapeHeaderCell(pdfLabelForKey(k))),
+                    ...sortedKeys.map(
+                      (k) => _landscapeHeaderCell(pdfLabelForKey(k)),
+                    ),
                   ],
                 ),
                 for (var i = 0; i < rows.length; i++)

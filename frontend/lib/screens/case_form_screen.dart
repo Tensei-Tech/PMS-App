@@ -2,17 +2,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../theme/app_theme.dart';
+
+import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
 import '../providers/module_registry.dart';
-import '../modules/core/models/base_record.dart';
+import '../theme/app_theme.dart';
 import '../utils/translation_helper.dart';
 
 class CaseFormScreen extends StatefulWidget {
   final String categoryName;
   final ModuleRecord? existingCase;
 
-  const CaseFormScreen({super.key, required this.categoryName, this.existingCase});
+  const CaseFormScreen({
+    super.key,
+    required this.categoryName,
+    this.existingCase,
+  });
 
   @override
   State<CaseFormScreen> createState() => _CaseFormScreenState();
@@ -61,7 +66,6 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: AppBar(
@@ -69,11 +73,14 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.navyDark, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.navyDark,
+            size: 20,
+          ),
         ),
         title: Text(
-          isEdit 
+          isEdit
               ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, widget.categoryName)}'
               : '${TranslationHelper.translate(context, widget.categoryName)} ${TranslationHelper.translate(context, 'Form')}',
           style: GoogleFonts.poppins(
@@ -89,7 +96,9 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
             decoration: BoxDecoration(
               color: AppColors.goldPrimary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(AppRadius.sm),
-              border: Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.goldPrimary.withValues(alpha: 0.3),
+              ),
             ),
             child: Center(
               child: Text(
@@ -107,7 +116,9 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
       body: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width > 900 ? 800 : double.infinity,
+            maxWidth: MediaQuery.of(context).size.width > 900
+                ? 800
+                : double.infinity,
           ),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -116,37 +127,73 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('General Information', Icons.info_outline_rounded),
+                  _buildSectionTitle(
+                    'General Information',
+                    Icons.info_outline_rounded,
+                  ),
                   _buildCard([
-                    _buildTextField('Case / FIR Number', _caseNoCtrl, Icons.numbers_rounded, hint: 'e.g. FIR/2024/102'),
+                    _buildTextField(
+                      'Case / FIR Number',
+                      _caseNoCtrl,
+                      Icons.numbers_rounded,
+                      hint: 'e.g. FIR/2024/102',
+                    ),
                     const SizedBox(height: AppSpacing.md),
-                    _buildTextField('Subject / Case Title', _titleCtrl, Icons.title_rounded, hint: 'Short title of the incident'),
+                    _buildTextField(
+                      'Subject / Case Title',
+                      _titleCtrl,
+                      Icons.title_rounded,
+                      hint: 'Short title of the incident',
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     _buildDatePicker(),
                   ]),
-                  
                   const SizedBox(height: AppSpacing.lg),
-                  _buildSectionTitle('Incident Details', Icons.location_on_outlined),
+                  _buildSectionTitle(
+                    'Incident Details',
+                    Icons.location_on_outlined,
+                  ),
                   _buildCard([
-                    _buildTextField('Location', _locationCtrl, Icons.map_rounded, hint: 'Place of occurrence'),
+                    _buildTextField(
+                      'Location',
+                      _locationCtrl,
+                      Icons.map_rounded,
+                      hint: 'Place of occurrence',
+                    ),
                     const SizedBox(height: AppSpacing.md),
-                    _buildTextField('Description', _descCtrl, Icons.description_outlined, hint: 'Detailed explanation...', maxLines: 4),
+                    _buildTextField(
+                      'Description',
+                      _descCtrl,
+                      Icons.description_outlined,
+                      hint: 'Detailed explanation...',
+                      maxLines: 4,
+                    ),
                   ]),
-    
                   const SizedBox(height: AppSpacing.lg),
-                  _buildSectionTitle('Parties Involved', Icons.people_outline_rounded),
+                  _buildSectionTitle(
+                    'Parties Involved',
+                    Icons.people_outline_rounded,
+                  ),
                   _buildCard([
-                    _buildTextField('Complainant Name', _complainantCtrl, Icons.person_add_alt_rounded),
+                    _buildTextField(
+                      'Complainant Name',
+                      _complainantCtrl,
+                      Icons.person_add_alt_rounded,
+                    ),
                     const SizedBox(height: AppSpacing.md),
-                    _buildTextField('Accused Name / Description', _accusedCtrl, Icons.person_off_rounded, hint: 'Leave empty if unknown'),
+                    _buildTextField(
+                      'Accused Name / Description',
+                      _accusedCtrl,
+                      Icons.person_off_rounded,
+                      hint: 'Leave empty if unknown',
+                    ),
                   ]),
-    
                   const SizedBox(height: AppSpacing.lg),
-                  _buildSectionTitle('Priority & Status', Icons.priority_high_rounded),
-                  _buildCard([
-                    _buildPriorityDropdown(),
-                  ]),
-    
+                  _buildSectionTitle(
+                    'Priority & Status',
+                    Icons.priority_high_rounded,
+                  ),
+                  _buildCard([_buildPriorityDropdown()]),
                   const SizedBox(height: 32),
                   _buildSubmitButton(),
                   const SizedBox(height: 48),
@@ -193,15 +240,19 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(
-          color: AppColors.lightBorder,
-        ),
+        border: Border.all(color: AppColors.lightBorder),
       ),
       child: Column(children: children),
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController ctrl, IconData icon, {String? hint, int maxLines = 1}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController ctrl,
+    IconData icon, {
+    String? hint,
+    int maxLines = 1,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -217,12 +268,11 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
         TextFormField(
           controller: ctrl,
           maxLines: maxLines,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: AppColors.lightText,
-          ),
+          style: GoogleFonts.poppins(fontSize: 14, color: AppColors.lightText),
           decoration: InputDecoration(
-            hintText: hint != null ? TranslationHelper.translate(context, hint) : null,
+            hintText: hint != null
+                ? TranslationHelper.translate(context, hint)
+                : null,
             hintStyle: GoogleFonts.poppins(
               fontSize: 14,
               color: AppColors.lightSubText,
@@ -234,7 +284,10 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
               borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: BorderSide.none,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
           ),
         ),
       ],
@@ -272,7 +325,11 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.calendar_today_rounded, size: 20, color: AppColors.goldPrimary),
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 20,
+                  color: AppColors.goldPrimary,
+                ),
                 const SizedBox(width: 12),
                 Text(
                   '${_incidentDate.day}/${_incidentDate.month}/${_incidentDate.year}',
@@ -282,7 +339,11 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.edit_calendar_rounded, size: 18, color: AppColors.lightSubText),
+                const Icon(
+                  Icons.edit_calendar_rounded,
+                  size: 18,
+                  color: AppColors.lightSubText,
+                ),
               ],
             ),
           ),
@@ -315,13 +376,20 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
               value: _priority,
               isExpanded: true,
               dropdownColor: Colors.white,
-              items: ['Low', 'Medium', 'High'].map((p) => DropdownMenuItem(
-                value: p,
-                child: Text(
-                  TranslationHelper.translate(context, p),
-                  style: GoogleFonts.poppins(fontSize: 14, color: AppColors.lightText),
-                ),
-              )).toList(),
+              items: ['Low', 'Medium', 'High']
+                  .map(
+                    (p) => DropdownMenuItem(
+                      value: p,
+                      child: Text(
+                        TranslationHelper.translate(context, p),
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: AppColors.lightText,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
               onChanged: (v) => setState(() => _priority = v!),
             ),
           ),
@@ -353,7 +421,9 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
             final moduleKey = labelToModuleKey[widget.categoryName] ?? 'nc';
 
             final record = ModuleRecord(
-              id: isEdit ? widget.existingCase!.id : DateTime.now().millisecondsSinceEpoch.toString(),
+              id: isEdit
+                  ? widget.existingCase!.id
+                  : DateTime.now().millisecondsSinceEpoch.toString(),
               moduleKey: isEdit ? widget.existingCase!.moduleKey : moduleKey,
               title: _titleCtrl.text,
               description: _descCtrl.text,
@@ -364,13 +434,19 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
               incidentDate: _incidentDate,
               priority: _priority,
               status: isEdit ? widget.existingCase!.status : 'Open',
-              assignedOfficer: isEdit ? widget.existingCase!.assignedOfficer : auth.displayName,
-              createdAt: isEdit ? widget.existingCase!.createdAt : DateTime.now(),
+              assignedOfficer: isEdit
+                  ? widget.existingCase!.assignedOfficer
+                  : auth.displayName,
+              createdAt: isEdit
+                  ? widget.existingCase!.createdAt
+                  : DateTime.now(),
               // Added critical audit & isolation fields
               createdBy: isEdit && widget.existingCase!.createdBy.isNotEmpty
                   ? widget.existingCase!.createdBy
                   : auth.uid,
-              assignedOfficerUid: isEdit && (widget.existingCase!.assignedOfficerUid ?? '').isNotEmpty
+              assignedOfficerUid:
+                  isEdit &&
+                      (widget.existingCase!.assignedOfficerUid ?? '').isNotEmpty
                   ? widget.existingCase!.assignedOfficerUid
                   : auth.uid,
               stationName: isEdit && widget.existingCase!.stationName.isNotEmpty
@@ -395,7 +471,9 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  isEdit ? 'Record Updated Successfully!' : '${widget.categoryName} Form Submitted Successfully!',
+                  isEdit
+                      ? 'Record Updated Successfully!'
+                      : '${widget.categoryName} Form Submitted Successfully!',
                   style: GoogleFonts.poppins(),
                 ),
                 backgroundColor: AppColors.successGreen,
@@ -407,10 +485,15 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
         ),
         child: Text(
-          TranslationHelper.translate(context, isEdit ? 'Update Details' : 'Submit Application'),
+          TranslationHelper.translate(
+            context,
+            isEdit ? 'Update Details' : 'Submit Application',
+          ),
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w700,

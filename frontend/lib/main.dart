@@ -49,9 +49,7 @@ import 'dart:ui';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Ensure Firebase is initialized for background isolate.
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('[FCM] Background message: ${message.notification?.title}');
 }
 
@@ -70,14 +68,14 @@ void main() async {
   };
 
   try {
-    if (kIsWeb) usePathUrlStrategy(); // PLATFORM FIX: enable clean URLs on web without hash
+    if (kIsWeb) {
+      usePathUrlStrategy(); // PLATFORM FIX: enable clean URLs on web without hash
+    }
 
     // Initialize Firebase (Supports all platforms including Web)
     try {
       await Future.any([
-        Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
+        Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
         Future.delayed(const Duration(seconds: 5)).then((_) {
           throw TimeoutException('Firebase initialization timed out');
         }),
@@ -89,7 +87,9 @@ void main() async {
     // Register FCM background message handler (must be called before runApp).
     // PLATFORM FIX: Background messaging is NOT supported on web.
     if (!kIsWeb) {
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
     }
 
     // System chrome setup (fast, no await needed)
@@ -132,12 +132,14 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => NewsProvider()),
         ChangeNotifierProvider(create: (_) => CaseProvider()),
-        ChangeNotifierProvider(create: (_) {
-          final np = NotificationProvider();
-          // Start listening to FCM stream after provider is created.
-          np.startListening();
-          return np;
-        }),
+        ChangeNotifierProvider(
+          create: (_) {
+            final np = NotificationProvider();
+            // Start listening to FCM stream after provider is created.
+            np.startListening();
+            return np;
+          },
+        ),
         // Lazy-loaded module providers (initialized but not pre-fetching data)
         ...moduleProviders,
       ],
@@ -175,9 +177,7 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
     WidgetsBinding.instance.addObserver(this);
     // AppLifecycleListener.onResume only fires on transition to
     // AppLifecycleState.resumed — never on inactive/paused.
-    _lifecycleListener = AppLifecycleListener(
-      onResume: _handleAppResume,
-    );
+    _lifecycleListener = AppLifecycleListener(onResume: _handleAppResume);
   }
 
   @override
@@ -258,9 +258,7 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
 
     late final OverlayEntry entry;
     entry = OverlayEntry(
-      builder: (_) => PinReauthScreen(
-        onAuthSuccess: _removeLockOverlay,
-      ),
+      builder: (_) => PinReauthScreen(onAuthSuccess: _removeLockOverlay),
     );
     _lockOverlay = entry;
     overlay.insert(entry);
@@ -330,7 +328,6 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
         AppRoutes.stationAccessGrants: (_) => const StationAccessGrantsScreen(),
         AppRoutes.loginSecurity: (_) => const LoginSecurityScreen(),
         AppRoutes.appSettings: (_) => const AppSettingsScreen(),
-
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.registerPinSetup) {
@@ -357,9 +354,9 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
         final settings = context.watch<SettingsProvider>();
         // User interaction ping for inactivity timer + global font scaler.
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(settings.fontScale),
-          ),
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(settings.fontScale)),
           child: Listener(
             behavior: HitTestBehavior.translucent,
             onPointerDown: (_) =>
@@ -368,10 +365,7 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
                 context.read<AuthProvider>().onUserInteraction(),
             onPointerSignal: (_) =>
                 context.read<AuthProvider>().onUserInteraction(),
-            child: _AppLockNavigator(
-              navigatorKey: _navKey,
-              child: child,
-            ),
+            child: _AppLockNavigator(navigatorKey: _navKey, child: child),
           ),
         );
       },
@@ -400,10 +394,7 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
 class _AppLockNavigator extends StatefulWidget {
   final GlobalKey<NavigatorState> navigatorKey;
   final Widget? child;
-  const _AppLockNavigator({
-    required this.navigatorKey,
-    this.child,
-  });
+  const _AppLockNavigator({required this.navigatorKey, this.child});
 
   @override
   State<_AppLockNavigator> createState() => _AppLockNavigatorState();
@@ -427,13 +418,13 @@ class _AppLockNavigatorState extends State<_AppLockNavigator> {
         // Use navigatorKey instead of Navigator.of(context) to avoid context issues
         // Schedule navigation after build completes
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && auth.isInitialized && !auth.isSessionActive && auth.isRegistered) {
+          if (mounted &&
+              auth.isInitialized &&
+              !auth.isSessionActive &&
+              auth.isRegistered) {
             final nav = widget.navigatorKey.currentState;
             if (nav != null) {
-              nav.pushNamedAndRemoveUntil(
-                AppRoutes.login,
-                (route) => false,
-              );
+              nav.pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
             }
           }
         });

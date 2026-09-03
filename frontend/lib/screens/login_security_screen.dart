@@ -70,12 +70,16 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
         }
 
         final bool authenticated = await _biometricService.authenticate(
-          localizedReason: 'Scan fingerprint to verify biometric setup for your account ($userEmail)',
+          localizedReason:
+              'Scan fingerprint to verify biometric setup for your account ($userEmail)',
         );
 
         if (!authenticated) {
           if (mounted) {
-            _snack('Biometric verification cancelled or failed. Setup aborted.', AppColors.warningOrange);
+            _snack(
+              'Biometric verification cancelled or failed. Setup aborted.',
+              AppColors.warningOrange,
+            );
           }
           return;
         }
@@ -83,13 +87,19 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
         await _biometricService.setBiometricConfiguredForUser(userEmail, true);
         await settings.setBiometricEnabled(true);
         if (mounted) {
-          _snack('Biometric authentication verified and enabled for your profile.', AppColors.successGreen);
+          _snack(
+            'Biometric authentication verified and enabled for your profile.',
+            AppColors.successGreen,
+          );
         }
       } else {
         await _biometricService.setBiometricConfiguredForUser(userEmail, false);
         await settings.setBiometricEnabled(false);
         if (mounted) {
-          _snack('Biometric login disabled for your profile.', AppColors.navyDark);
+          _snack(
+            'Biometric login disabled for your profile.',
+            AppColors.navyDark,
+          );
         }
       }
     } catch (e) {
@@ -111,15 +121,24 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
       return;
     }
     if (newPassword.length < 6) {
-      _snack('New password must be at least 6 characters.', AppColors.warningOrange);
+      _snack(
+        'New password must be at least 6 characters.',
+        AppColors.warningOrange,
+      );
       return;
     }
     if (oldPassword == newPassword) {
-      _snack('New password cannot be the same as current password.', AppColors.warningOrange);
+      _snack(
+        'New password cannot be the same as current password.',
+        AppColors.warningOrange,
+      );
       return;
     }
     if (newPassword != confirmPassword) {
-      _snack('New password and confirm password do not match.', AppColors.warningOrange);
+      _snack(
+        'New password and confirm password do not match.',
+        AppColors.warningOrange,
+      );
       return;
     }
 
@@ -143,11 +162,18 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
   void _snack(String msg, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500)),
+        content: Text(
+          msg,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md)),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
         margin: const EdgeInsets.all(AppSpacing.md),
       ),
     );
@@ -178,7 +204,10 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.xxl),
+              padding: const EdgeInsets.only(
+                top: AppSpacing.lg,
+                bottom: AppSpacing.xxl,
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Align(
@@ -326,14 +355,17 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
                 hintText: 'Re-enter new password',
                 controller: _confirmPasswordCtrl,
                 isObscured: !_showConfirmPassword,
-                onToggleVisibility: () =>
-                    setState(() => _showConfirmPassword = !_showConfirmPassword),
+                onToggleVisibility: () => setState(
+                  () => _showConfirmPassword = !_showConfirmPassword,
+                ),
               ),
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _isChangingPassword ? null : () => _changePassword(auth),
+                  onPressed: _isChangingPassword
+                      ? null
+                      : () => _changePassword(auth),
                   icon: _isChangingPassword
                       ? const SizedBox(
                           width: 18,
@@ -343,9 +375,14 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.check_circle_outline_rounded, size: 20),
+                      : const Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 20,
+                        ),
                   label: Text(
-                    _isChangingPassword ? 'Updating Password...' : 'Update Password',
+                    _isChangingPassword
+                        ? 'Updating Password...'
+                        : 'Update Password',
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
@@ -396,7 +433,9 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
           enableSuggestions: !disableAutofill,
           autocorrect: false,
           enableInteractiveSelection: true,
-          autofillHints: disableAutofill ? null : const [AutofillHints.newPassword],
+          autofillHints: disableAutofill
+              ? null
+              : const [AutofillHints.newPassword],
           style: GoogleFonts.poppins(
             color: AppColors.navyDark,
             fontSize: 14,
@@ -415,7 +454,9 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
             ),
             suffixIcon: IconButton(
               icon: Icon(
-                isObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                isObscured
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 color: AppColors.lightSubText,
                 size: 20,
               ),
@@ -423,15 +464,21 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
             ),
             filled: true,
             fillColor: const Color(0xFFF8FAFF),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: BorderSide(color: AppColors.navyMid.withValues(alpha: 0.15)),
+              borderSide: BorderSide(
+                color: AppColors.navyMid.withValues(alpha: 0.15),
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: BorderSide(color: AppColors.navyMid.withValues(alpha: 0.15)),
+              borderSide: BorderSide(
+                color: AppColors.navyMid.withValues(alpha: 0.15),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -447,7 +494,10 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Biometric Authentication', Icons.fingerprint_rounded),
+        _buildSectionTitle(
+          'Biometric Authentication',
+          Icons.fingerprint_rounded,
+        ),
         const SizedBox(height: AppSpacing.sm),
         Container(
           decoration: _cardDecoration(),
@@ -476,7 +526,9 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
                           ),
                           child: Icon(
                             Icons.fingerprint_rounded,
-                            color: isEnabled ? AppColors.successGreen : AppColors.navyMid,
+                            color: isEnabled
+                                ? AppColors.successGreen
+                                : AppColors.navyMid,
                             size: 24,
                           ),
                         ),
@@ -514,8 +566,9 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
                         Switch(
                           value: isEnabled,
                           activeThumbColor: AppColors.successGreen,
-                          activeTrackColor:
-                              AppColors.successGreen.withValues(alpha: 0.3),
+                          activeTrackColor: AppColors.successGreen.withValues(
+                            alpha: 0.3,
+                          ),
                           onChanged: _isProcessingBiometric
                               ? null
                               : (val) => _toggleBiometric(val, settings),
@@ -537,19 +590,13 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
       decoration: BoxDecoration(
         color: AppColors.navyMid.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: AppColors.navyMid.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: AppColors.navyMid.withValues(alpha: 0.12)),
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.shield_outlined,
-            color: AppColors.navyMid,
-            size: 20,
-          ),
+          const Icon(Icons.shield_outlined, color: AppColors.navyMid, size: 20),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(

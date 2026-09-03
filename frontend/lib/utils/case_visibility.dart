@@ -5,10 +5,7 @@ import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
 import 'app_constants.dart';
 
-enum CaseVisibilityMode {
-  ownCasesOnly,
-  stationWide,
-}
+enum CaseVisibilityMode { ownCasesOnly, stationWide }
 
 class CaseVisibility {
   CaseVisibility._();
@@ -96,12 +93,14 @@ class CaseVisibility {
   }) {
     if (mode == CaseVisibilityMode.stationWide) return records;
     return records
-        .where((r) => isRecordVisible(
-              record: r,
-              uid: uid,
-              officerName: officerName,
-              mode: mode,
-            ))
+        .where(
+          (r) => isRecordVisible(
+            record: r,
+            uid: uid,
+            officerName: officerName,
+            mode: mode,
+          ),
+        )
         .toList();
   }
 

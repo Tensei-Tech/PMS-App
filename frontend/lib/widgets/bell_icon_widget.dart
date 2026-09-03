@@ -76,7 +76,7 @@ class _BellIconWidgetState extends State<BellIconWidget>
                 color: const Color(0xFFF4F6FB),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.notifications_rounded,
                 color: AppColors.navyDark,
                 size: 20,
@@ -92,7 +92,9 @@ class _BellIconWidgetState extends State<BellIconWidget>
                   scale: _bounceAnim,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 5, vertical: 1),
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
                     constraints: const BoxConstraints(
                       minWidth: 18,
                       minHeight: 18,

@@ -84,12 +84,9 @@ class AppRadius {
   static const double xxl = 28.0;
   static const double full = 100.0;
 
-  static BorderRadius get cardRadius =>
-      BorderRadius.circular(lg);
-  static BorderRadius get buttonRadius =>
-      BorderRadius.circular(md);
-  static BorderRadius get inputRadius =>
-      BorderRadius.circular(md);
+  static BorderRadius get cardRadius => BorderRadius.circular(lg);
+  static BorderRadius get buttonRadius => BorderRadius.circular(md);
+  static BorderRadius get inputRadius => BorderRadius.circular(md);
 }
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -112,7 +109,11 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: AppColors.lightBg,
       fontFamily: GoogleFonts.poppins().fontFamily,
-      textTheme: _buildTextTheme(AppColors.lightText, AppColors.lightSubText, fontScale),
+      textTheme: _buildTextTheme(
+        AppColors.lightText,
+        AppColors.lightSubText,
+        fontScale,
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.lightSurface,
         elevation: 0,
@@ -134,9 +135,12 @@ class AppTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md)),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
           textStyle: GoogleFonts.poppins(
-              fontSize: 15, fontWeight: FontWeight.w600),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -145,9 +149,12 @@ class AppTheme {
           side: const BorderSide(color: AppColors.navyMid),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md)),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
           textStyle: GoogleFonts.poppins(
-              fontSize: 15, fontWeight: FontWeight.w600),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       inputDecorationTheme: _buildInputTheme(
@@ -167,56 +174,107 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         margin: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
       ),
       dividerTheme: const DividerThemeData(
-          color: AppColors.lightBorder, thickness: 1),
+        color: AppColors.lightBorder,
+        thickness: 1,
+      ),
       switchTheme: SwitchThemeData(
-        thumbColor:
-            WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected)
-                ? AppColors.navyMid
-                : Colors.grey.shade400),
-        trackColor:
-            WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected)
-                ? AppColors.navyMid.withValues(alpha: 0.4)
-                : Colors.grey.shade300),
+        thumbColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected)
+              ? AppColors.navyMid
+              : Colors.grey.shade400,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected)
+              ? AppColors.navyMid.withValues(alpha: 0.4)
+              : Colors.grey.shade300,
+        ),
       ),
       listTileTheme: ListTileThemeData(
         iconColor: AppColors.navyMid,
         titleTextStyle: GoogleFonts.poppins(
-            fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.lightText),
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: AppColors.lightText,
+        ),
         subtitleTextStyle: GoogleFonts.poppins(
-            fontSize: 12, color: AppColors.lightSubText),
+          fontSize: 12,
+          color: AppColors.lightSubText,
+        ),
       ),
     );
   }
 
-  static TextTheme _buildTextTheme(Color primary, Color secondary, double scale) {
+  static TextTheme _buildTextTheme(
+    Color primary,
+    Color secondary,
+    double scale,
+  ) {
     return TextTheme(
       displayLarge: GoogleFonts.poppins(
-          fontSize: 32 * scale, fontWeight: FontWeight.w800, color: primary),
+        fontSize: 32 * scale,
+        fontWeight: FontWeight.w800,
+        color: primary,
+      ),
       displayMedium: GoogleFonts.poppins(
-          fontSize: 28 * scale, fontWeight: FontWeight.w700, color: primary),
+        fontSize: 28 * scale,
+        fontWeight: FontWeight.w700,
+        color: primary,
+      ),
       headlineLarge: GoogleFonts.poppins(
-          fontSize: 24 * scale, fontWeight: FontWeight.w700, color: primary),
+        fontSize: 24 * scale,
+        fontWeight: FontWeight.w700,
+        color: primary,
+      ),
       headlineMedium: GoogleFonts.poppins(
-          fontSize: 20 * scale, fontWeight: FontWeight.w600, color: primary),
+        fontSize: 20 * scale,
+        fontWeight: FontWeight.w600,
+        color: primary,
+      ),
       headlineSmall: GoogleFonts.poppins(
-          fontSize: 18 * scale, fontWeight: FontWeight.w600, color: primary),
+        fontSize: 18 * scale,
+        fontWeight: FontWeight.w600,
+        color: primary,
+      ),
       titleLarge: GoogleFonts.poppins(
-          fontSize: 16 * scale, fontWeight: FontWeight.w600, color: primary),
+        fontSize: 16 * scale,
+        fontWeight: FontWeight.w600,
+        color: primary,
+      ),
       titleMedium: GoogleFonts.poppins(
-          fontSize: 14 * scale, fontWeight: FontWeight.w500, color: primary),
+        fontSize: 14 * scale,
+        fontWeight: FontWeight.w500,
+        color: primary,
+      ),
       titleSmall: GoogleFonts.poppins(
-          fontSize: 13 * scale, fontWeight: FontWeight.w500, color: secondary),
+        fontSize: 13 * scale,
+        fontWeight: FontWeight.w500,
+        color: secondary,
+      ),
       bodyLarge: GoogleFonts.poppins(
-          fontSize: 15 * scale, fontWeight: FontWeight.w400, color: primary),
+        fontSize: 15 * scale,
+        fontWeight: FontWeight.w400,
+        color: primary,
+      ),
       bodyMedium: GoogleFonts.poppins(
-          fontSize: 13 * scale, fontWeight: FontWeight.w400, color: secondary),
+        fontSize: 13 * scale,
+        fontWeight: FontWeight.w400,
+        color: secondary,
+      ),
       bodySmall: GoogleFonts.poppins(
-          fontSize: 11 * scale, fontWeight: FontWeight.w400, color: secondary),
+        fontSize: 11 * scale,
+        fontWeight: FontWeight.w400,
+        color: secondary,
+      ),
       labelLarge: GoogleFonts.poppins(
-          fontSize: 14 * scale, fontWeight: FontWeight.w600, color: Colors.white),
+        fontSize: 14 * scale,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
     );
   }
 
@@ -231,8 +289,7 @@ class AppTheme {
     return InputDecorationTheme(
       filled: true,
       fillColor: fillColor,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
         borderSide: BorderSide(color: borderColor),
@@ -254,10 +311,16 @@ class AppTheme {
         borderSide: const BorderSide(color: AppColors.dangerRed, width: 2),
       ),
       hintStyle: GoogleFonts.poppins(color: hintColor, fontSize: 14),
-      labelStyle:
-          GoogleFonts.poppins(color: labelColor, fontSize: 14, fontWeight: FontWeight.w500),
+      labelStyle: GoogleFonts.poppins(
+        color: labelColor,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
       errorStyle: GoogleFonts.poppins(
-          color: AppColors.dangerRed, fontSize: 12, fontWeight: FontWeight.w500),
+        color: AppColors.dangerRed,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
       prefixIconColor: labelColor,
       suffixIconColor: hintColor,
     );
@@ -271,10 +334,14 @@ class AppTheme {
         const begin = Offset(0.0, 0.05);
         const end = Offset.zero;
         const curve = Curves.easeOutCubic;
-        final tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-        final fadeTween = Tween<double>(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeIn));
+        final tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: curve));
+        final fadeTween = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeIn));
         return SlideTransition(
           position: animation.drive(tween),
           child: FadeTransition(

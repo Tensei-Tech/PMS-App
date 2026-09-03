@@ -1,7 +1,6 @@
 // lib/services/lockout_service.dart
 // Brute-force protection: tracks failed PIN attempts and enforces time-based lockouts.
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'secure_storage.dart';
 
 enum LockoutState { allowed, locked }
@@ -21,8 +20,10 @@ class LockoutStatus {
     required this.totalFailures,
   });
 
-  factory LockoutStatus.allowed(int totalFailures) =>
-      LockoutStatus._(state: LockoutState.allowed, totalFailures: totalFailures);
+  factory LockoutStatus.allowed(int totalFailures) => LockoutStatus._(
+    state: LockoutState.allowed,
+    totalFailures: totalFailures,
+  );
 
   factory LockoutStatus.locked(Duration remaining, int totalFailures) =>
       LockoutStatus._(
@@ -51,13 +52,6 @@ class LockoutService {
   static const _keyFailedAttempts = 'lockout_failed_attempts';
   static const _keyLockoutUntil = 'lockout_until_epoch_ms';
   static const _keyTotalFailures = 'lockout_total_failures';
-
-  // Lockout tiers (number of consecutive failures → lockout duration in minutes)
-  static const _tiers = <int, int>{
-    5: 15,   // 5 failures  → 15 minutes
-    8: 30,   // 8 failures  → 30 minutes
-    10: 60,  // 10 failures → 60 minutes
-  };
 
   // After this many total lifetime failures, require full Firebase re-auth
   static const int fullReauthThreshold = 20;
