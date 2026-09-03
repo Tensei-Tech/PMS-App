@@ -7,7 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import 'package:provider/provider.dart';
+
+import '../modules/core/models/base_record.dart';
+import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/common_form_module.dart';
+import '../utils/translation_helper.dart';
 import 'ad_form_dynamic_document_view.dart' show humanizeFieldKey;
 
 /// Matches PDF / form: plain string with fallback.
@@ -105,10 +111,18 @@ class CommonFormDocumentView extends StatelessWidget {
     super.key,
     required this.commonMap,
     this.extraMap = const {},
+    this.record,
+    this.readOnly = false,
+    this.onChargeSheetSubmitted,
+    this.onEditChargeSheet,
   });
 
   final Map<String, dynamic> commonMap;
   final Map<String, dynamic> extraMap;
+  final ModuleRecord? record;
+  final bool readOnly;
+  final VoidCallback? onChargeSheetSubmitted;
+  final VoidCallback? onEditChargeSheet;
 
   Widget _sectionTitle(String title, IconData icon, Color accent) {
     return Row(
@@ -325,11 +339,19 @@ class CommonFormDocumentView extends StatelessWidget {
     Color accent,
     List<Widget> body, {
     IconData icon = Icons.article_outlined,
+    Widget? headerAction,
   }) {
     return _surfaceCard([
-      idx > 0
-          ? _numSectionHeader(idx, title, accent)
-          : _sectionTitle(title, icon, accent),
+      Row(
+        children: [
+          Expanded(
+            child: idx > 0
+                ? _numSectionHeader(idx, title, accent)
+                : _sectionTitle(title, icon, accent),
+          ),
+          if (headerAction != null) headerAction,
+        ],
+      ),
       _divider(),
       ...body,
     ]);
@@ -834,6 +856,12 @@ class CommonFormDocumentView extends StatelessWidget {
     final comp = m['complainant'] as Map? ?? {};
     final victim = m['victim'] as Map? ?? {};
     final deceased = m['deceased'] as Map? ?? {};
+    final inj = m['injured'] as Map? ?? {};
+    final hasInj = inj.isNotEmpty &&
+        (inj['name']?.toString().trim().isNotEmpty == true ||
+            inj['mobile']?.toString().trim().isNotEmpty == true ||
+            inj['aadhaar']?.toString().trim().isNotEmpty == true ||
+            inj['age']?.toString().trim().isNotEmpty == true);
     final u = m['unidentified'] as Map? ?? {};
     final cr8 = m['caseResponsibility'] as Map? ?? {};
     final procChecks = m['proceduralChecks'] as Map? ?? {};
@@ -842,7 +870,7 @@ class CommonFormDocumentView extends StatelessWidget {
     final prev = m['preventive'] as Map? ?? {};
     final discharge = (m['dischargeByAccused'] as Map?) ?? {};
     final disDetails = (m['dischargeDetails'] as Map?) ?? {};
-    final court = m['court'] as Map? ?? {};
+    final court = Map<String, dynamic>.from(m['court'] as Map? ?? {});
     final verdict = m['verdict'] as Map? ?? {};
     final acquitted =
         (verdict['acquitted'] as List?)?.map((x) => x.toString()).toList() ??
@@ -985,6 +1013,43 @@ class CommonFormDocumentView extends StatelessWidget {
             (label: 'PAN Number', value: _v(deceased['pan']), fullWidth: false),
           ]),
         ]),
+      if (hasInj)
+        _sectionShell(
+          deceased.isNotEmpty ? 7 : 6,
+          'INJURED PERSON KYC',
+          accent,
+          [
+            ..._pairedSimpleFields(context, [
+              (label: 'Name', value: _v(inj['name']), fullWidth: false),
+              (label: 'Age', value: _v(inj['age']), fullWidth: false),
+              (label: 'Gender', value: _v(inj['gender']), fullWidth: false),
+              (label: 'Occupation', value: _v(inj['occ']), fullWidth: false),
+              (label: 'Mobile', value: _v(inj['mobile']), fullWidth: false),
+              (label: 'Aadhaar', value: _v(inj['aadhaar']), fullWidth: false),
+              (label: 'Religion', value: _v(inj['religion']), fullWidth: false),
+              (label: 'Caste', value: _v(inj['caste']), fullWidth: false),
+              (label: 'PAN Number', value: _v(inj['pan']), fullWidth: false),
+              (
+                label: 'Person Died / Deceased',
+                value:
+                    inj['isDied'] == true ? 'Yes (Died / मयत)' : 'No (Alive)',
+                fullWidth: false,
+              ),
+              if (inj['isDied'] == true) ...[
+                (
+                  label: 'Date of Death',
+                  value: _v(inj['deathDate']),
+                  fullWidth: false,
+                ),
+                (
+                  label: 'Time of Death',
+                  value: _v(inj['deathTime']),
+                  fullWidth: false,
+                ),
+              ],
+            ]),
+          ],
+        ),
       _sectionShell(5, 'ACCUSED DETAILS', accent, [
         if (isUnknown)
           _mutedNote('Unknown / Untraced — accused list suppressed in form.'),
@@ -1396,18 +1461,14 @@ class CommonFormDocumentView extends StatelessWidget {
         15,
         'COURT FILING',
         accent,
-        _pairedSimpleFields(context, [
-          (
-            label: 'Charge Sheet No.',
-            value: _v(court['chargeSheetNumber']),
-            fullWidth: false,
+        [
+          _CourtFilingEditableSection(
+            court: court,
+            record: record,
+            readOnly: readOnly,
+            onSubmitted: onChargeSheetSubmitted,
           ),
-          (
-            label: 'Charge Sheet Date',
-            value: _v(court['chargeSheetDate']),
-            fullWidth: false,
-          ),
-        ]),
+        ],
       ),
       _sectionShell(16, 'FINAL VERDICT', accent, [
         ..._pairedSimpleFields(context, [
@@ -1484,6 +1545,588 @@ class CommonFormDocumentView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: children,
+    );
+  }
+}
+
+class _CourtFilingEditableSection extends StatefulWidget {
+  final Map court;
+  final ModuleRecord? record;
+  final bool readOnly;
+  final VoidCallback? onSubmitted;
+
+  const _CourtFilingEditableSection({
+    required this.court,
+    this.record,
+    this.readOnly = false,
+    this.onSubmitted,
+  });
+
+  @override
+  State<_CourtFilingEditableSection> createState() =>
+      _CourtFilingEditableSectionState();
+}
+
+class _CourtFilingEditableSectionState
+    extends State<_CourtFilingEditableSection> {
+  late final TextEditingController _numCtrl;
+  late final TextEditingController _dateCtrl;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialNum = widget.court['chargeSheetNumber']?.toString().trim() ??
+        widget.record?.extraFields['court']?['chargeSheetNumber']
+            ?.toString()
+            .trim() ??
+        '';
+    final initialDate = widget.court['chargeSheetDate']?.toString().trim() ??
+        widget.record?.extraFields['court']?['chargeSheetDate']
+            ?.toString()
+            .trim() ??
+        '';
+    _numCtrl = TextEditingController(text: initialNum);
+    _dateCtrl = TextEditingController(text: initialDate);
+  }
+
+  @override
+  void dispose() {
+    _numCtrl.dispose();
+    _dateCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    DateTime initial = now;
+    if (_dateCtrl.text.isNotEmpty) {
+      try {
+        final p = _dateCtrl.text.split('/');
+        if (p.length == 3) {
+          initial = DateTime(
+            int.parse(p[2]),
+            int.parse(p[1]),
+            int.parse(p[0]),
+          );
+        }
+      } catch (_) {}
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(now.year + 2),
+    );
+    if (picked != null) {
+      final formatted =
+          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      setState(() {
+        _dateCtrl.text = formatted;
+      });
+    }
+  }
+
+  Future<void> _submitChargeSheet() async {
+    final numVal = _numCtrl.text.trim();
+    final dateVal = _dateCtrl.text.trim();
+
+    if (numVal.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            TranslationHelper.translate(
+              context,
+              'Please enter a Charge Sheet Number',
+            ),
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: AppColors.dangerRed,
+        ),
+      );
+      return;
+    }
+
+    if (dateVal.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            TranslationHelper.translate(
+              context,
+              'Please select a Charge Sheet Date',
+            ),
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: AppColors.dangerRed,
+        ),
+      );
+      return;
+    }
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (promptCtx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.successGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.check_circle_outline_rounded,
+                  color: AppColors.successGreen,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  TranslationHelper.translate(
+                    promptCtx,
+                    'Confirm Move to Disposal',
+                  ),
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                TranslationHelper.translate(
+                  promptCtx,
+                  'Submitting Charge Sheet will mark the case as Disposed and move it to the Disposal tab. Do you want to proceed?',
+                ),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: AppColors.navyDark,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          '${TranslationHelper.translate(promptCtx, 'Charge Sheet No.')}: ',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            numVal,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyMid,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          '${TranslationHelper.translate(promptCtx, 'Charge Sheet Date')}: ',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            dateVal,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyMid,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(promptCtx, false),
+              child: Text(
+                TranslationHelper.translate(promptCtx, 'Cancel'),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(promptCtx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.successGreen,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                TranslationHelper.translate(
+                  promptCtx,
+                  'Move to Disposal',
+                ),
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+    if (!mounted) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      widget.court['chargeSheetNumber'] = numVal;
+      widget.court['chargeSheetDate'] = dateVal;
+
+      final currentRecord = widget.record;
+      if (currentRecord != null) {
+        final newCourt = Map<String, dynamic>.from(
+          (currentRecord.extraFields['court'] is Map)
+              ? currentRecord.extraFields['court'] as Map
+              : {},
+        );
+        newCourt['chargeSheetNumber'] = numVal;
+        newCourt['chargeSheetDate'] = dateVal;
+
+        final newExtra = Map<String, dynamic>.from(currentRecord.extraFields);
+        newExtra['court'] = newCourt;
+
+        if (newExtra[kCommonFormExtraFieldsKey] is Map) {
+          final nested = Map<String, dynamic>.from(
+            newExtra[kCommonFormExtraFieldsKey] as Map,
+          );
+          final nestedCourt = Map<String, dynamic>.from(
+            (nested['court'] is Map) ? nested['court'] as Map : {},
+          );
+          nestedCourt['chargeSheetNumber'] = numVal;
+          nestedCourt['chargeSheetDate'] = dateVal;
+          nested['court'] = nestedCourt;
+          newExtra[kCommonFormExtraFieldsKey] = nested;
+        }
+
+        final updatedRecord = currentRecord.copyWith(
+          status: 'Disposal',
+          extraFields: newExtra,
+        );
+
+        if (!mounted) return;
+        await context.read<FormIVProvider>().updateRecord(updatedRecord);
+        if (!mounted) return;
+        widget.onSubmitted?.call();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${TranslationHelper.translate(context, 'Case moved to Disposal with Charge Sheet No.')} $numVal',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: AppColors.successGreen,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to update charge sheet: $e',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: AppColors.dangerRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.readOnly) {
+      return Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _compactDisplayField(
+                  TranslationHelper.translate(context, 'Charge Sheet No.'),
+                  _numCtrl.text.trim().isEmpty ? '—' : _numCtrl.text.trim(),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _compactDisplayField(
+                  TranslationHelper.translate(context, 'Charge Sheet Date'),
+                  _dateCtrl.text.trim().isEmpty ? '—' : _dateCtrl.text.trim(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    final isDesktop = MediaQuery.of(context).size.width >= 600;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isDesktop)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  label: TranslationHelper.translate(context, 'Charge Sheet Number'),
+                  hint: 'e.g. 104/2026',
+                  controller: _numCtrl,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildDateField(
+                  label: TranslationHelper.translate(context, 'Charge Sheet Date'),
+                  hint: 'DD/MM/YYYY',
+                  controller: _dateCtrl,
+                  onTap: _pickDate,
+                ),
+              ),
+            ],
+          )
+        else ...[
+          _buildTextField(
+            label: TranslationHelper.translate(context, 'Charge Sheet Number'),
+            hint: 'e.g. 104/2026',
+            controller: _numCtrl,
+          ),
+          const SizedBox(height: 12),
+          _buildDateField(
+            label: TranslationHelper.translate(context, 'Charge Sheet Date'),
+            hint: 'DD/MM/YYYY',
+            controller: _dateCtrl,
+            onTap: _pickDate,
+          ),
+        ],
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            ElevatedButton(
+              onPressed: _isSubmitting ? null : _submitChargeSheet,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isSubmitting) ...[
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ] else ...[
+                    const Icon(Icons.check_circle_outline_rounded, size: 16),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    TranslationHelper.translate(context, 'Submit'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                TranslationHelper.translate(
+                  context,
+                  'Submitting will mark the case as Disposed & move to Disposal tab.',
+                ),
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _compactDisplayField(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: GoogleFonts.poppins(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: AppColors.lightSubText,
+            letterSpacing: 0.4,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.lightText,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: AppColors.navyDark,
+          ),
+        ),
+        const SizedBox(height: 5),
+        SizedBox(
+          height: 40,
+          child: TextField(
+            controller: controller,
+            style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: AppColors.lightSubText),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: AppColors.navyDark,
+          ),
+        ),
+        const SizedBox(height: 5),
+        SizedBox(
+          height: 40,
+          child: TextField(
+            controller: controller,
+            readOnly: true,
+            onTap: onTap,
+            style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: AppColors.lightSubText),
+              suffixIcon: const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.navyMid),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

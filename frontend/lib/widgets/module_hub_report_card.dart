@@ -252,9 +252,6 @@ class ModuleHubFilterDropdown<T> extends StatelessWidget {
       ),
     );
 
-    if (expanded) {
-      return Expanded(child: dropdown);
-    }
     return dropdown;
   }
 }

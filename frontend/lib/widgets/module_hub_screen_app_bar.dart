@@ -11,6 +11,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
   final String subtitle;
   final String badgeLabel;
   final VoidCallback? onAddPressed;
+  final VoidCallback? onBackPressed;
   final Color? backgroundColor;
 
   const ModuleHubScreenAppBar({
@@ -19,6 +20,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
     required this.subtitle,
     required this.badgeLabel,
     this.onAddPressed,
+    this.onBackPressed,
     this.backgroundColor,
   });
 
@@ -41,7 +43,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
       backgroundColor: bg,
       elevation: 0,
       leading: IconButton(
-        onPressed: () => Navigator.pop(context),
+        onPressed: onBackPressed ?? () => Navigator.pop(context),
         icon: Icon(
           Icons.arrow_back_ios_new_rounded,
           color: iconColor,

@@ -328,6 +328,40 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     );
   }
 
+  // ── Injured Person KYC ─────────────────────────────────────────────────────
+  final inj = m['injured'] as Map? ?? {};
+  final hasInj = inj.isNotEmpty &&
+      (inj['name']?.toString().trim().isNotEmpty == true ||
+          inj['mobile']?.toString().trim().isNotEmpty == true ||
+          inj['aadhaar']?.toString().trim().isNotEmpty == true ||
+          inj['age']?.toString().trim().isNotEmpty == true);
+  if (hasInj) {
+    final isDied = inj['isDied'] == true;
+    sections.add(
+      _card(
+        deceased.isNotEmpty ? 7 : 6,
+        'INJURED PERSON KYC',
+        _teal,
+        _grid2([
+          _f('Name', _v(inj['name'])),
+          _f('Age', _v(inj['age'])),
+          _f('Gender', _v(inj['gender'])),
+          _f('Occupation', _v(inj['occ'])),
+          _f('Mobile', _v(inj['mobile'])),
+          _f('Aadhaar', _v(inj['aadhaar'])),
+          _f('Religion', _v(inj['religion'])),
+          _f('Caste', _v(inj['caste'])),
+          _f('PAN Number', _v(inj['pan'])),
+          _f('Person Status', isDied ? 'Died / Deceased (मयत)' : 'Alive'),
+          if (isDied) ...[
+            _f('Date of Death', _v(inj['deathDate'])),
+            _f('Time of Death', _v(inj['deathTime'])),
+          ],
+        ]),
+      ),
+    );
+  }
+
   // ── §5 Accused Details ────────────────────────────────────────────────────
   final accusedList = (m['accused'] as List?) ?? [];
   sections.add(
