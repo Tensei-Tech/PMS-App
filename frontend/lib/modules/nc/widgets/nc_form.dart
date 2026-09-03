@@ -896,7 +896,7 @@ class NcFormState extends State<NcForm> {
                   fontSize: 10, color: _kAmber, fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 8),
-            Text('Section(s) — tap to add', style: _tsLabel),
+            const Text('Section(s) — tap to add', style: _tsLabel),
             const SizedBox(height: 4),
             _NcSectionSearchPicker(
               actKey: actKey,
@@ -1191,7 +1191,7 @@ class NcFormState extends State<NcForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('First Information Content / हकीकत', style: _tsLabel),
+              const Text('First Information Content / हकीकत', style: _tsLabel),
               VoiceDictationButton(
                 controller: _fic,
                 label: 'बोलून लिहा (Voice)',
@@ -1449,7 +1449,7 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: isSelected ? _kTeal.withValues(alpha: 0.07) : null,
-                      border: Border(
+                      border: const Border(
                           bottom: BorderSide(color: _kBorder, width: 0.5)),
                     ),
                     child: Row(

@@ -171,7 +171,7 @@ class CommonFormDocumentView extends StatelessWidget {
   }
 
   Widget _divider() =>
-      Divider(height: 1, thickness: 0.5, color: AppColors.lightBorder);
+      const Divider(height: 1, thickness: 0.5, color: AppColors.lightBorder);
 
   Widget _row(String label, String value, {bool fullWidth = false}) {
     return Padding(
@@ -820,7 +820,7 @@ class CommonFormDocumentView extends StatelessWidget {
     final suspectedList = (m['suspectedAccused'] as List?) ?? [];
     final arrests = (m['arrestRelease'] as List?) ?? [];
 
-    final accent = AppColors.infoBlue;
+    const accent = AppColors.infoBlue;
 
     final children = <Widget>[
       _sectionTitle(

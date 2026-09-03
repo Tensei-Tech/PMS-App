@@ -1337,7 +1337,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.navyDark, size: 20),
         ),
         title: Text(
@@ -1449,6 +1449,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                         : _isGroundOfArrestForm
                                                             ? GroundOfArrestFormView(
                                                                 key: _groundOfArrestKey,
+                                                                existingRecord: widget.existingRecord?.extraFields[kCommonFormExtraFieldsKey],
                                                                 readOnly: widget.readOnly == true,
                                                                 formSection: widget.formSection,
                                                                 pageRange: widget.pageRange,
@@ -1518,7 +1519,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                 child: OutlinedButton(
                   onPressed: _exportPdf,
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: AppColors.navyMid, width: 1.5),
+                    side: const BorderSide(color: AppColors.navyMid, width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
@@ -1528,7 +1529,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.picture_as_pdf_outlined,
+                      const Icon(Icons.picture_as_pdf_outlined,
                           color: AppColors.navyMid, size: 16),
                       const SizedBox(width: 4),
                       Text(
@@ -1564,7 +1565,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                       );
                     },
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.navyMid, width: 1.5),
+                      side: const BorderSide(color: AppColors.navyMid, width: 1.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
@@ -1574,7 +1575,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.history_rounded,
+                        const Icon(Icons.history_rounded,
                             color: AppColors.navyMid, size: 16),
                         const SizedBox(width: 4),
                         Text(

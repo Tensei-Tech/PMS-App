@@ -28,7 +28,7 @@ class ReportCaseListScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.navyDark, size: 20),
         ),
         title: Column(
@@ -154,7 +154,7 @@ class ReportCaseListScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Icon(Icons.location_on_rounded,
+                    const Icon(Icons.location_on_rounded,
                         size: 13, color: AppColors.lightSubText),
                     const SizedBox(width: 4),
                     Expanded(
@@ -164,7 +164,7 @@ class ReportCaseListScreen extends StatelessWidget {
                           style: GoogleFonts.poppins(
                               fontSize: 11, color: AppColors.lightSubText)),
                     ),
-                    Icon(Icons.calendar_today_rounded,
+                    const Icon(Icons.calendar_today_rounded,
                         size: 13, color: AppColors.lightSubText),
                     const SizedBox(width: 4),
                     Text(DateFormat('dd MMM yyyy').format(record.incidentDate),

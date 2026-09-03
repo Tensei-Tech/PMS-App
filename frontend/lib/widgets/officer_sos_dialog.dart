@@ -50,8 +50,6 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
   int _countdown = 3;
   Timer? _timer;
   bool _isTriggered = false;
-  bool _isBroadcasting = false;
-  String? _alertId;
 
   @override
   void initState() {
@@ -91,30 +89,19 @@ class _OfficerSosDialogState extends State<OfficerSosDialog>
   Future<void> _broadcastSos() async {
     _timer?.cancel();
     setState(() {
-      _isBroadcasting = true;
       _isTriggered = true;
     });
 
     try {
-      final alertId = await OfficerSosService().triggerEmergencySos(
+      await OfficerSosService().triggerEmergencySos(
         officerName: widget.officerName,
         sevaNumber: widget.sevaNumber,
         designation: widget.designation,
         stationName: widget.stationName,
         contactNumber: widget.contactNumber,
       );
-
-      if (mounted) {
-        setState(() {
-          _isBroadcasting = false;
-          _alertId = alertId;
-        });
-      }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isBroadcasting = false;
-        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to broadcast SOS: $e'), backgroundColor: Colors.red),
         );

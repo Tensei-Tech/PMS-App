@@ -25,11 +25,10 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
     with SingleTickerProviderStateMixin {
   bool _isListening = false;
   String _selectedLang = 'mr-IN'; // Default to Marathi for Maharashtra Police
-  String _statusMessage = '';
   String _preSpeechText = '';
   late AnimationController _pulseAnim;
 
-  final Map<String, String> _languages = {
+  static const Map<String, String> _languages = {
     'mr-IN': 'मराठी (Marathi)',
     'hi-IN': 'हिंदी (Hindi)',
     'en-IN': 'English (India)',
@@ -64,7 +63,6 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
   void _startListening() {
     setState(() {
       _isListening = true;
-      _statusMessage = 'Listening in ${_languages[_selectedLang]}...';
       _preSpeechText = widget.controller.text;
     });
 
@@ -86,7 +84,6 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
           );
 
           if (isFinal) {
-            _statusMessage = 'Dictated successfully!';
             widget.onSpeechCompleted?.call();
           }
         });
@@ -96,12 +93,10 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
         if (status == 'listening') {
           setState(() {
             _isListening = true;
-            _statusMessage = '🎙️ Listening... Speak now';
           });
         } else if (status == 'ended' || status == 'error') {
           setState(() {
             _isListening = false;
-            _statusMessage = message.isNotEmpty ? message : 'Dictation ended';
           });
         }
       },
@@ -113,7 +108,6 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
     stopWebVoiceRecognition();
     setState(() {
       _isListening = false;
-      _statusMessage = 'Dictation stopped';
     });
     widget.onSpeechCompleted?.call();
   }
@@ -132,11 +126,11 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
-                    const Icon(Icons.translate, color: Color(0xFF1E3A8A)),
-                    const SizedBox(width: 8),
-                    const Text(
+                    Icon(Icons.translate, color: Color(0xFF1E3A8A)),
+                    SizedBox(width: 8),
+                    Text(
                       'Select Dictation Language / भाषा निवडा',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),

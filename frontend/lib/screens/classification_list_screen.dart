@@ -82,13 +82,13 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
           ],
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded,
+          icon: const Icon(Icons.arrow_back_rounded,
               color: AppColors.navyDark),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.filter_list_rounded,
+            icon: const Icon(Icons.filter_list_rounded,
                 color: AppColors.navyMid),
             onPressed: () {},
           ),
@@ -202,7 +202,7 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.folder_open_rounded,
+                        const Icon(Icons.folder_open_rounded,
                             size: 64,
                             color: AppColors.lightSubText),
                         const SizedBox(height: AppSpacing.md),
@@ -257,7 +257,7 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
                               borderRadius:
                                   BorderRadius.circular(AppRadius.md),
                             ),
-                            child: Icon(Icons.folder_rounded,
+                            child: const Icon(Icons.folder_rounded,
                                 color: AppColors.navyMid,
                                 size: 22),
                           ),

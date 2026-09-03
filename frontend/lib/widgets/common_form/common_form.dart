@@ -1775,7 +1775,7 @@ class CommonFormState extends State<CommonForm> {
             ),
             const SizedBox(height: 8),
             // Section search list
-            Text('Section(s) — tap to add', style: _tsLabel),
+            const Text('Section(s) — tap to add', style: _tsLabel),
             const SizedBox(height: 4),
             _SectionSearchPicker(
               actKey: actKey,
@@ -2395,7 +2395,7 @@ class CommonFormState extends State<CommonForm> {
                   fontSize: 11, fontWeight: FontWeight.w800, color: color)),
           const SizedBox(height: 6),
           if (names.isEmpty)
-            Text('None', style: _tsMuted)
+            const Text('None', style: _tsMuted)
           else
             ...names.map((n) => Padding(
                   padding: const EdgeInsets.only(bottom: 4),
@@ -2715,7 +2715,7 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: isSelected ? _kTeal.withValues(alpha: 0.07) : null,
-                      border: Border(
+                      border: const Border(
                           bottom: BorderSide(color: _kBorder, width: 0.5)),
                     ),
                     child: Row(

@@ -148,7 +148,7 @@ class ReadOnlyModuleRecordHubCard extends StatelessWidget {
               ],
               const SizedBox(height: 10),
               Row(children: [
-                Icon(Icons.person_rounded,
+                const Icon(Icons.person_rounded,
                     size: 13, color: AppColors.lightSubText),
                 const SizedBox(width: 4),
                 Expanded(
@@ -158,7 +158,7 @@ class ReadOnlyModuleRecordHubCard extends StatelessWidget {
                       style: GoogleFonts.poppins(
                           fontSize: 11, color: AppColors.lightSubText)),
                 ),
-                Icon(Icons.calendar_today_rounded,
+                const Icon(Icons.calendar_today_rounded,
                     size: 13, color: AppColors.lightSubText),
                 const SizedBox(width: 4),
                 Text(DateFormat('dd MMM yyyy').format(record.incidentDate),

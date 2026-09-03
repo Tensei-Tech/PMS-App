@@ -485,7 +485,7 @@ class _VisibilityCasesTabState extends State<_VisibilityCasesTab> {
         }
 
         if (snapshot.hasError) {
-          return _EmptyState(
+          return const _EmptyState(
             icon: Icons.cloud_off_rounded,
             iconColor: AppColors.dangerRed,
             title: 'Unable to load cases',

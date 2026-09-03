@@ -268,7 +268,7 @@ class _NcFormScreenState extends State<NcFormScreen> {
         IconButton(
           tooltip: 'Generate PDF',
           onPressed: _exportPdf,
-          icon: Icon(Icons.picture_as_pdf_outlined,
+          icon: const Icon(Icons.picture_as_pdf_outlined,
               color: AppColors.navyMid, size: 24),
         ),
         TextButton(

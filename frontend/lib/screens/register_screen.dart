@@ -14,7 +14,6 @@ import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../utils/state_language_helper.dart';
 import '../services/api_config.dart';
-import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
 import '../utils/validators.dart';
@@ -181,8 +180,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  List<String> _onboardedStates = ['Maharashtra', 'Gujarat'];
-
   List<Map<String, String>> _dynamicStates = [];
   List<String> _dynamicDivisions = [];
   List<String> _dynamicDistricts = [];
@@ -195,10 +192,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _selectedDivision;
   String? _selectedDistrict;
   String? _selectedStation;
-
-  bool _loadingDivisions = false;
-  bool _loadingDistricts = false;
-  bool _loadingStations = false;
 
   Future<void> _fetchRankConfigs() async {
     setState(() => _loadingRankConfigs = true);
@@ -217,19 +210,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _rankConfigs = list;
             _loadingRankConfigs = false;
           });
-          if (_designation != null && _designation!.isNotEmpty) {
-            _onDesignationChanged(_designation);
-          }
         }
         return;
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('[RegisterScreen] Failed to load rank configs: $e');
+      if (kDebugMode) debugPrint('Error loading rank configs: $e');
     }
     if (mounted) setState(() => _loadingRankConfigs = false);
   }
 
   Future<void> _bootstrapLocationData() async {
+    await _fetchDynamicStates();
+    final stCode = _selectedStateCode ?? 'MH';
+    await _fetchDynamicDivisions(stCode);
+    await _fetchDynamicDistricts(stCode);
+  }
+
+  Future<void> _fetchDynamicStates() async {
     try {
       final response = await http.get(Uri.parse(ApiConfig.masterStates));
       if (response.statusCode == 200) {
@@ -245,21 +242,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
           }
         }
         if (states.isNotEmpty) {
-          _dynamicStates = states;
-          final mhState = states.firstWhere((s) => s['code'] == 'MH', orElse: () => states.first);
-          _selectedStateCode = mhState['code'];
-          _selectedState = mhState['name']!;
+          setState(() {
+            _dynamicStates = states;
+            final mhState = states.firstWhere((s) => s['code'] == 'MH', orElse: () => states.first);
+            _selectedStateCode = mhState['code'];
+            _selectedState = mhState['name']!;
+          });
         }
       }
     } catch (_) {}
-
-    final stCode = _selectedStateCode ?? 'MH';
-    await _fetchDynamicDivisions(stCode);
-    await _fetchDynamicDistricts(stCode);
   }
 
   Future<void> _fetchDynamicDivisions(String stateCode) async {
-    setState(() => _loadingDivisions = true);
     try {
       final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/master/hierarchy/divisions/?state_code=$stateCode'));
       if (response.statusCode == 200) {
@@ -273,7 +267,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (mounted) {
           setState(() {
             _dynamicDivisions = divisions;
-            _loadingDivisions = false;
           });
         }
         return;
@@ -281,11 +274,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       if (kDebugMode) debugPrint('Error fetching divisions: $e');
     }
-    if (mounted) setState(() => _loadingDivisions = false);
   }
 
   Future<void> _fetchDynamicDistricts(String stateCode) async {
-    setState(() => _loadingDistricts = true);
     try {
       final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/master/hierarchy/districts/?state_code=$stateCode'));
       if (response.statusCode == 200) {
@@ -299,7 +290,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (mounted) {
           setState(() {
             _dynamicDistricts = districts;
-            _loadingDistricts = false;
           });
         }
         return;
@@ -307,12 +297,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       if (kDebugMode) debugPrint('Error fetching districts: $e');
     }
-    if (mounted) setState(() => _loadingDistricts = false);
   }
 
   Future<void> _fetchDynamicStations(String districtName) async {
     if (districtName.trim().isEmpty) return;
-    setState(() => _loadingStations = true);
     try {
       final encodedDist = Uri.encodeComponent(districtName.trim());
       final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/master/hierarchy/stations/?district=$encodedDist'));
@@ -327,7 +315,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (mounted) {
           setState(() {
             _dynamicStations = stations;
-            _loadingStations = false;
           });
         }
         return;
@@ -335,44 +322,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       if (kDebugMode) debugPrint('Error fetching stations: $e');
     }
-    if (mounted) setState(() => _loadingStations = false);
   }
 
-  List<String> _divisionsForSelection() => _dynamicDivisions ?? [];
-  List<String> _districtsForSelection() => _dynamicDistricts ?? [];
-  List<String> _stationsForSelection() => _dynamicStations ?? [];
-
-  String _buildStationAddress() {
-    final dist = _selectedDistrict?.trim() ?? '';
-    final state = _selectedState.trim();
-    final unit = _selectedUnitType?.trim() ?? '';
-    return '$dist, $state • $unit';
-  }
-
-  bool get _unitTypeLockedByDesignation =>
-      SeniorOfficerRoles.impliedUnitType(_designation) != null;
+  List<String> _divisionsForSelection() => _dynamicDivisions;
+  List<String> _districtsForSelection() => _dynamicDistricts;
+  List<String> _stationsForSelection() => _dynamicStations;
 
   void _clearLocationSelection() {
     _selectedDistrict = null;
     _selectedStation = null;
   }
 
-  void _onUnitTypeChanged(String unitType) {
-    setState(() {
-      if (_unitTypeLockedByDesignation) return;
-      if (_selectedUnitType != unitType) {
-        _selectedUnitType = unitType;
-        _clearLocationSelection();
-      }
-      if (_designation != null) {
-        final allowed = (PoliceDesignations.forRegistration(unitType) ?? [])
-            .map((e) => e.abbreviation)
-            .toSet();
-        if (!allowed.contains(_designation)) {
-          _designation = null;
-        }
-      }
-    });
+  String _buildStationAddress() {
+    final dist = _selectedDistrict?.trim() ?? '';
+    final state = _selectedState.trim();
+    return '$dist, $state';
   }
 
   void _showSnack(String msg, Color color) {
@@ -1523,7 +1487,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? navyBrandColor.withOpacity(0.06) : Colors.white,
+          color: isSelected ? navyBrandColor.withValues(alpha: 0.06) : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected ? navyBrandColor : borderColor,
@@ -1646,7 +1610,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SearchablePickerField(
             key: ValueKey('div-$_selectedState'),
             label: 'Division / Range',
-            hintText: (_dynamicDivisions != null && _dynamicDivisions.isNotEmpty)
+            hintText: _dynamicDivisions.isNotEmpty
                 ? 'Select Division / Range'
                 : 'Loading Divisions...',
             leadingIcon: Icons.map_rounded,
@@ -1665,8 +1629,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // District Dropdown (Visible if required)
         if (needsDistrict) ...[
           SearchablePickerField(
-            key: ValueKey('dist-$_selectedState-$_selectedDivision-$_selectedUnitType'),
-            label: 'District / Commissionerate (${_dynamicDistricts?.length ?? 0} Active)',
+            key: ValueKey('dist-$_selectedState-$_selectedDivision'),
+            label: 'District / Commissionerate (${_dynamicDistricts.length} Active)',
             hintText: _selectedDivision != null || !needsDivision
                 ? 'Search district'
                 : 'Select Division / Range first',
@@ -1678,7 +1642,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 _selectedDistrict = v;
                 _selectedStation = null;
               });
-              if (v != null) {
+              if (v.trim().isNotEmpty) {
                 _fetchDynamicStations(v);
               }
             },
@@ -1690,8 +1654,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // Police Station Dropdown (Visible if required)
         if (needsStation) ...[
           SearchablePickerField(
-            key: ValueKey('stn-$_selectedDistrict-$_selectedDivision-$_selectedUnitType'),
-            label: 'Police Station (${_dynamicStations?.length ?? 0} Available)',
+            key: ValueKey('stn-$_selectedDistrict-$_selectedDivision'),
+            label: 'Police Station (${_dynamicStations.length} Available)',
             hintText: _selectedDistrict != null
                 ? 'Search police station'
                 : 'Select District first to view stations',
@@ -1744,7 +1708,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     const borderColor = Color(0xFFE2E8F0);
 
     return DropdownButtonFormField<String>(
-      value: _selectedState,
+      initialValue: _selectedState,
       isExpanded: true,
       menuMaxHeight: 360,
       icon: const Icon(Icons.search, color: Color(0xFF64748B), size: 18),
@@ -1770,7 +1734,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           borderSide: const BorderSide(color: navyBrandColor, width: 1.5),
         ),
       ),
-      items: ((_dynamicStates != null && _dynamicStates.isNotEmpty)
+      items: (_dynamicStates.isNotEmpty
               ? _dynamicStates.map((s) => s['name']!).toList()
               : ['Maharashtra', 'Gujarat'])
           .map((st) {
@@ -1801,68 +1765,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context.read<SettingsProvider>().setLanguage(langCode);
         }
       },
-    );
-  }
-
-  Widget _buildUnitCard({
-    required String title,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    const navyBrandColor = Color(0xFF1E2968);
-    const borderColor = Color(0xFFE2E8F0);
-
-    return InkWell(
-      onTap: _unitTypeLockedByDesignation ? null : onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected ? navyBrandColor : borderColor,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Icon(icon, size: 16, color: navyBrandColor),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: const Color(0xFF0F172A),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? navyBrandColor : const Color(0xFFCBD5E1),
-                  width: isSelected ? 4.5 : 1.5,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

@@ -60,7 +60,6 @@ import '../widgets/forms_accordion_list.dart';
 import '../utils/pending_io_wise_logic.dart';
 import 'pending_summary_screen.dart';
 import 'pending_io_wise_screens.dart';
-import 'pending_io_wise_all_categories_screen.dart';
 import 'pending_demo_table_screen.dart';
 import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
@@ -584,7 +583,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   Widget _tabControl(String label, bool active, VoidCallback onTap) {
-    final color = AppColors.navyMid;
+    const color = AppColors.navyMid;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -727,47 +726,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
     final transTimeRange = TranslationHelper.translate(context, _pendingTimeRange!);
     return '$transCategory — $transTimeRange';
-  }
-
-  void _onPendingCategorySelected(String label) {
-    if (label == 'IO Wise') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const PendingIoWiseAllCategoriesScreen(),
-        ),
-      );
-      return;
-    }
-    setState(() {
-      _pendingCategory = label;
-      _pendingTimeRange = null;
-    });
-  }
-
-  void _onPendingTimeRangeSelected(String label) {
-    final category = _pendingCategory;
-    if (category == null) return;
-    if (label == 'IO Wise') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: PendingIoWiseByCategoryScreen(category: category),
-        ),
-      );
-      return;
-    }
-    final auth = context.read<AuthProvider>();
-    Navigator.push(
-      context,
-      AppTheme.fadeSlideRoute(
-        page: PendingDemoTableScreen(
-          stationName: auth.stationName,
-          category: category,
-          timeRange: label,
-        ),
-      ),
-    );
   }
 
   Widget _buildPendingModuleReportOnly(BuildContext context) {
@@ -964,7 +922,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   Widget _buildMonthlyModuleReportOnly(
       BuildContext context, List<ModuleRecord> allRecords) {
-    final months = const [
+    const months = [
       'January',
       'February',
       'March',
@@ -1071,7 +1029,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       child: DropdownButton<int>(
                         value: _reportMonth,
                         isExpanded: true,
-                        icon: Icon(Icons.keyboard_arrow_down_rounded,
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
                             color: AppColors.navyMid),
                         items: List.generate(
                           12,
@@ -1101,7 +1059,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<int>(
                       value: _reportYear,
-                      icon: Icon(Icons.keyboard_arrow_down_rounded,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
                           color: AppColors.navyMid),
                       items: List.generate(
                         5,
@@ -3471,7 +3429,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           const SizedBox(width: 8),
           _statCard('Closed', closed, const Color(0xFF607D8B), 'Closed'),
           const SizedBox(width: 8),
-          Expanded(child: const SizedBox()),
+          const Expanded(child: SizedBox()),
         ]),
       ],
     );
@@ -3520,7 +3478,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (isSelected) ...[
-                    Icon(Icons.check_circle_rounded, size: 10, color: color),
+                    const Icon(Icons.check_circle_rounded, size: 10, color: Colors.blue),
                     const SizedBox(width: 3),
                   ],
                   Text(
@@ -3568,10 +3526,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 color: AppColors.navyMid.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.folder_special_rounded,
                 size: 40,
-                color: AppColors.navyMid,
+                color: Color(0xFF263238),
               ),
             ),
             const SizedBox(height: 12),
@@ -3610,7 +3568,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     if (isDetailFormHistory) {
       return Center(
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 480),
+          constraints: const BoxConstraints(maxWidth: 420),
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -3626,12 +3584,20 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              Container(
+                padding: const EdgeInsets.all(14),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.goldPrimary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.description_rounded,
+                          color: Color(0xFFFFC107), size: 24),
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       record.title,
                       textAlign: TextAlign.center,
@@ -3645,8 +3611,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.calendar_today_rounded,
-                            size: 13, color: AppColors.lightSubText),
+                        const Icon(Icons.calendar_today_rounded,
+                            size: 13, color: Color(0xFF757575)),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat('dd MMM yyyy').format(record.incidentDate),
@@ -3657,8 +3623,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Icon(Icons.access_time_rounded,
-                            size: 13, color: AppColors.lightSubText),
+                        const Icon(Icons.access_time_rounded,
+                            size: 13, color: Color(0xFF757575)),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat('hh:mm a').format(record.createdAt),
@@ -3819,8 +3785,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               ],
               const SizedBox(height: 10),
               Row(children: [
-                Icon(Icons.person_rounded,
-                    size: 13, color: AppColors.lightSubText),
+                const Icon(Icons.person_rounded,
+                    size: 13, color: Color(0xFF757575)),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(record.assignedOfficer,
@@ -3829,8 +3795,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       style: GoogleFonts.poppins(
                           fontSize: 11, color: AppColors.lightSubText)),
                 ),
-                Icon(Icons.calendar_today_rounded,
-                    size: 13, color: AppColors.lightSubText),
+                const Icon(Icons.calendar_today_rounded,
+                    size: 13, color: Color(0xFF757575)),
                 const SizedBox(width: 4),
                 Text(DateFormat('dd MMM yyyy').format(record.incidentDate),
                     style: GoogleFonts.poppins(

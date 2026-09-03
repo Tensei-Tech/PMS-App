@@ -69,7 +69,7 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.navyDark, size: 20),
         ),
         title: Text(
@@ -282,7 +282,7 @@ class _CaseFormScreenState extends State<CaseFormScreen> {
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.edit_calendar_rounded, size: 18, color: AppColors.lightSubText),
+                const Icon(Icons.edit_calendar_rounded, size: 18, color: AppColors.lightSubText),
               ],
             ),
           ),

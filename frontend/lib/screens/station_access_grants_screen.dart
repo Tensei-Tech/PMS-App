@@ -271,11 +271,11 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide(color: AppColors.lightBorder),
+                        borderSide: const BorderSide(color: AppColors.lightBorder),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide(color: AppColors.lightBorder),
+                        borderSide: const BorderSide(color: AppColors.lightBorder),
                       ),
                     ),
                   ),
@@ -343,7 +343,7 @@ class _StationAccessGrantsScreenState extends State<StationAccessGrantsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.people_outline_rounded,
+            const Icon(Icons.people_outline_rounded,
                 size: 48, color: AppColors.lightSubText),
             const SizedBox(height: AppSpacing.md),
             Text(

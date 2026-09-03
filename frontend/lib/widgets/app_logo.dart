@@ -22,7 +22,7 @@ class AppLogo extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -47,9 +47,9 @@ class AppLogo extends StatelessWidget {
       width: size,
       height: size,
       child: CustomPaint(
-        painter: _ShieldLogoPainter(
-          primaryColor: const Color(0xFF1A3A6B), // Deep Navy
-          accentColor: const Color(0xFFC8A951), // Khaki Gold
+        painter: const _ShieldLogoPainter(
+          primaryColor: Color(0xFF1A3A6B), // Deep Navy
+          accentColor: Color(0xFFC8A951), // Khaki Gold
         ),
         child: Center(
           child: Column(
@@ -78,7 +78,7 @@ class _ShieldLogoPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
 
-  _ShieldLogoPainter({
+  const _ShieldLogoPainter({
     required this.primaryColor,
     required this.accentColor,
   });

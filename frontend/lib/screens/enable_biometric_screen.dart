@@ -130,7 +130,7 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = AppColors.navyMid;
+    const primaryColor = AppColors.navyMid;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),

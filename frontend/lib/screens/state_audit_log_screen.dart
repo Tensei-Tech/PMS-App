@@ -239,7 +239,6 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
     final category = log['category']?.toString() ?? 'general';
     final station = log['station_name']?.toString() ?? '';
     final district = log['district_name']?.toString() ?? '';
-    final ip = log['ip_address']?.toString() ?? '127.0.0.1';
     final createdAt = log['created_at']?.toString() ?? '';
 
     String formattedDate = '';
