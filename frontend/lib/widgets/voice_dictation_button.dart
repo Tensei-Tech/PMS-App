@@ -26,6 +26,7 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
   bool _isListening = false;
   String _selectedLang = 'mr-IN'; // Default to Marathi for Maharashtra Police
   String _preSpeechText = '';
+  String _statusMessage = '';
   late AnimationController _pulseAnim;
 
   static const Map<String, String> _languages = {
@@ -91,15 +92,14 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
       },
       (status, message) {
         if (!mounted) return;
-        if (status == 'listening') {
-          setState(() {
+        setState(() {
+          _statusMessage = message ?? '';
+          if (status == 'listening') {
             _isListening = true;
-          });
-        } else if (status == 'ended' || status == 'error') {
-          setState(() {
+          } else if (status == 'ended' || status == 'error') {
             _isListening = false;
-          });
-        }
+          }
+        });
       },
       lang: _selectedLang,
     );
