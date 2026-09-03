@@ -330,7 +330,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── Injured Person KYC ─────────────────────────────────────────────────────
   final inj = m['injured'] as Map? ?? {};
-  final hasInj = inj.isNotEmpty &&
+  final hasInj =
+      inj.isNotEmpty &&
       (inj['name']?.toString().trim().isNotEmpty == true ||
           inj['mobile']?.toString().trim().isNotEmpty == true ||
           inj['aadhaar']?.toString().trim().isNotEmpty == true ||

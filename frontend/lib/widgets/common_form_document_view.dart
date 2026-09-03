@@ -857,7 +857,8 @@ class CommonFormDocumentView extends StatelessWidget {
     final victim = m['victim'] as Map? ?? {};
     final deceased = m['deceased'] as Map? ?? {};
     final inj = m['injured'] as Map? ?? {};
-    final hasInj = inj.isNotEmpty &&
+    final hasInj =
+        inj.isNotEmpty &&
         (inj['name']?.toString().trim().isNotEmpty == true ||
             inj['mobile']?.toString().trim().isNotEmpty == true ||
             inj['aadhaar']?.toString().trim().isNotEmpty == true ||
@@ -1031,8 +1032,9 @@ class CommonFormDocumentView extends StatelessWidget {
               (label: 'PAN Number', value: _v(inj['pan']), fullWidth: false),
               (
                 label: 'Person Died / Deceased',
-                value:
-                    inj['isDied'] == true ? 'Yes (Died / मयत)' : 'No (Alive)',
+                value: inj['isDied'] == true
+                    ? 'Yes (Died / मयत)'
+                    : 'No (Alive)',
                 fullWidth: false,
               ),
               if (inj['isDied'] == true) ...[
@@ -1457,19 +1459,14 @@ class CommonFormDocumentView extends StatelessWidget {
             );
           }),
       ]),
-      _sectionShell(
-        15,
-        'COURT FILING',
-        accent,
-        [
-          _CourtFilingEditableSection(
-            court: court,
-            record: record,
-            readOnly: readOnly,
-            onSubmitted: onChargeSheetSubmitted,
-          ),
-        ],
-      ),
+      _sectionShell(15, 'COURT FILING', accent, [
+        _CourtFilingEditableSection(
+          court: court,
+          record: record,
+          readOnly: readOnly,
+          onSubmitted: onChargeSheetSubmitted,
+        ),
+      ]),
       _sectionShell(16, 'FINAL VERDICT', accent, [
         ..._pairedSimpleFields(context, [
           (
@@ -1576,12 +1573,14 @@ class _CourtFilingEditableSectionState
   @override
   void initState() {
     super.initState();
-    final initialNum = widget.court['chargeSheetNumber']?.toString().trim() ??
+    final initialNum =
+        widget.court['chargeSheetNumber']?.toString().trim() ??
         widget.record?.extraFields['court']?['chargeSheetNumber']
             ?.toString()
             .trim() ??
         '';
-    final initialDate = widget.court['chargeSheetDate']?.toString().trim() ??
+    final initialDate =
+        widget.court['chargeSheetDate']?.toString().trim() ??
         widget.record?.extraFields['court']?['chargeSheetDate']
             ?.toString()
             .trim() ??
@@ -1604,11 +1603,7 @@ class _CourtFilingEditableSectionState
       try {
         final p = _dateCtrl.text.split('/');
         if (p.length == 3) {
-          initial = DateTime(
-            int.parse(p[2]),
-            int.parse(p[1]),
-            int.parse(p[0]),
-          );
+          initial = DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
         }
       } catch (_) {}
     }
@@ -1797,10 +1792,7 @@ class _CourtFilingEditableSectionState
                 ),
               ),
               child: Text(
-                TranslationHelper.translate(
-                  promptCtx,
-                  'Move to Disposal',
-                ),
+                TranslationHelper.translate(promptCtx, 'Move to Disposal'),
                 style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
               ),
             ),
@@ -1920,7 +1912,10 @@ class _CourtFilingEditableSectionState
             children: [
               Expanded(
                 child: _buildTextField(
-                  label: TranslationHelper.translate(context, 'Charge Sheet Number'),
+                  label: TranslationHelper.translate(
+                    context,
+                    'Charge Sheet Number',
+                  ),
                   hint: 'e.g. 104/2026',
                   controller: _numCtrl,
                 ),
@@ -1928,7 +1923,10 @@ class _CourtFilingEditableSectionState
               const SizedBox(width: 16),
               Expanded(
                 child: _buildDateField(
-                  label: TranslationHelper.translate(context, 'Charge Sheet Date'),
+                  label: TranslationHelper.translate(
+                    context,
+                    'Charge Sheet Date',
+                  ),
                   hint: 'DD/MM/YYYY',
                   controller: _dateCtrl,
                   onTap: _pickDate,
@@ -1958,7 +1956,10 @@ class _CourtFilingEditableSectionState
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.navyMid,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -2060,8 +2061,14 @@ class _CourtFilingEditableSectionState
             style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: AppColors.lightSubText),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 12.5,
+                color: AppColors.lightSubText,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -2072,7 +2079,10 @@ class _CourtFilingEditableSectionState
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+                borderSide: const BorderSide(
+                  color: AppColors.navyMid,
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -2108,9 +2118,19 @@ class _CourtFilingEditableSectionState
             style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: AppColors.lightSubText),
-              suffixIcon: const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.navyMid),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 12.5,
+                color: AppColors.lightSubText,
+              ),
+              suffixIcon: const Icon(
+                Icons.calendar_today_rounded,
+                size: 16,
+                color: AppColors.navyMid,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -2121,7 +2141,10 @@ class _CourtFilingEditableSectionState
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+                borderSide: const BorderSide(
+                  color: AppColors.navyMid,
+                  width: 1.5,
+                ),
               ),
             ),
           ),

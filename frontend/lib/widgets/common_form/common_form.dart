@@ -341,7 +341,8 @@ class CommonFormState extends State<CommonForm> {
   TextEditingController? _injuredDeathDate;
   TextEditingController? _injuredDeathTime;
 
-  TextEditingController get _injName => _injuredName ??= TextEditingController();
+  TextEditingController get _injName =>
+      _injuredName ??= TextEditingController();
   TextEditingController get _injAge => _injuredAge ??= TextEditingController();
   String get _injGender => _injuredGender ??= 'Male';
   set _injGender(String v) => _injuredGender = v;
@@ -1913,10 +1914,7 @@ class CommonFormState extends State<CommonForm> {
     void Function(String)? onChanged,
   }) async {
     final now = TimeOfDay.now();
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: now,
-    );
+    final picked = await showTimePicker(context: context, initialTime: now);
     if (!mounted || picked == null) return;
     setState(() {
       final hh = picked.hour.toString().padLeft(2, '0');
@@ -1937,11 +1935,7 @@ class CommonFormState extends State<CommonForm> {
       style: _tsBody,
       decoration: _d(label).copyWith(
         suffixIcon: IconButton(
-          icon: const Icon(
-            Icons.access_time_rounded,
-            size: 16,
-            color: _kTeal,
-          ),
+          icon: const Icon(Icons.access_time_rounded, size: 16, color: _kTeal),
           tooltip: 'Pick time',
           onPressed: () => _pickTimeOnly(ctrl, onChanged: onChanged),
           padding: EdgeInsets.zero,

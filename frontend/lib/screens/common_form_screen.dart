@@ -1335,10 +1335,12 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     }
 
     final court = (doc['court'] is Map) ? doc['court'] as Map : null;
-    final csNum = court?['chargeSheetNumber']?.toString().trim() ??
+    final csNum =
+        court?['chargeSheetNumber']?.toString().trim() ??
         doc['chargeSheetNumber']?.toString().trim() ??
         '';
-    final csDate = court?['chargeSheetDate']?.toString().trim() ??
+    final csDate =
+        court?['chargeSheetDate']?.toString().trim() ??
         doc['chargeSheetDate']?.toString().trim() ??
         '';
 
@@ -1371,7 +1373,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  TranslationHelper.translate(dialogCtx, 'Move Case to Disposal?'),
+                  TranslationHelper.translate(
+                    dialogCtx,
+                    'Move Case to Disposal?',
+                  ),
                   style: GoogleFonts.poppins(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
@@ -1566,8 +1571,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
             targetStatus.toLowerCase() == 'disposal'
                 ? '${widget.moduleLabel} case moved to Disposal!'
                 : (_isEdit
-                    ? '${widget.moduleLabel} record updated!'
-                    : '${widget.moduleLabel} case registered!'),
+                      ? '${widget.moduleLabel} record updated!'
+                      : '${widget.moduleLabel} case registered!'),
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.successGreen,
