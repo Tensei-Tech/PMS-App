@@ -378,9 +378,10 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             DropdownButtonFormField<String>(
                               initialValue: _getValidValue(allowedRoles, _selectedRole),
                               isExpanded: true,
-                              items: (allowedRoles ?? [])
-                                  .map((r) => DropdownMenuItem(value: r, child: Text(r, style: GoogleFonts.poppins(fontSize: 12.5))))
-                                  .toList(),
+                              
+items: allowedRoles
+    .map((r) => DropdownMenuItem(value: r, child: Text(r, style: GoogleFonts.poppins(fontSize: 12.5))))
+    .toList(),
                               onChanged: (val) {
                                 if (val != null) {
                                   setState(() {
@@ -417,9 +418,9 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                               DropdownButtonFormField<String>(
                                 initialValue: _getValidValue(_dbDistricts, _selectedDistrict),
                                 isExpanded: true,
-                                items: (_dbDistricts ?? [])
-                                    .map((d) => DropdownMenuItem(value: d, child: Text(d, style: GoogleFonts.poppins(fontSize: 12.5))))
-                                    .toList(),
+                               items: _dbDistricts
+    .map((d) => DropdownMenuItem(value: d, child: Text(d, style: GoogleFonts.poppins(fontSize: 12.5))))
+    .toList(),
                                 onChanged: (val) {
                                   if (val != null) {
                                     setState(() => _selectedDistrict = val);
@@ -436,9 +437,9 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                               DropdownButtonFormField<String>(
                                 initialValue: _getValidValue(_dbDivisions, _selectedDivision),
                                 isExpanded: true,
-                                items: (_dbDivisions ?? [])
-                                    .map((div) => DropdownMenuItem(value: div, child: Text(div, style: GoogleFonts.poppins(fontSize: 12.5))))
-                                    .toList(),
+                               items: _dbDivisions
+    .map((div) => DropdownMenuItem(value: div, child: Text(div, style: GoogleFonts.poppins(fontSize: 12.5))))
+    .toList(),
                                 onChanged: (val) => setState(() => _selectedDivision = val),
                                 decoration: _buildInputDecoration(prefixIcon: Icons.hub_outlined),
                               ),
@@ -447,9 +448,9 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                               DropdownButtonFormField<String>(
                                 initialValue: _getValidValue(_dbStations, _selectedStation),
                                 isExpanded: true,
-                                items: (_dbStations ?? [])
-                                    .map((stn) => DropdownMenuItem(value: stn, child: Text(stn, style: GoogleFonts.poppins(fontSize: 12.5))))
-                                    .toList(),
+                               items: _dbStations
+    .map((stn) => DropdownMenuItem(value: stn, child: Text(stn, style: GoogleFonts.poppins(fontSize: 12.5))))
+    .toList(),
                                 onChanged: (val) => setState(() => _selectedStation = val),
                                 decoration: _buildInputDecoration(prefixIcon: Icons.local_police_outlined),
                               ),
