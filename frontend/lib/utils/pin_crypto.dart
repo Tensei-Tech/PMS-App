@@ -8,8 +8,10 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
 class PinCrypto {
-  // PBKDF2 iteration count — optimized for UI responsiveness on Web (runs in milliseconds)
-  static const int _iterations = 1000;
+  // PBKDF2 iteration count — 100,000 iterations is the cryptographic standard
+  // (NIST SP 800-132 / OWASP) required to protect short 4-6 digit numeric PINs
+  // against offline dictionary and brute-force GPU cracking attacks.
+  static const int _iterations = 100000;
   static const int _saltLengthBytes = 32;
   static const int _keyLengthBytes = 32;
 

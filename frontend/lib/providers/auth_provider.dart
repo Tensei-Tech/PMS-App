@@ -706,21 +706,21 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
 
-    // Try first with optimized 1,000 iterations
+    // Try first with standard 100,000 iterations
     var isValid = await PinCrypto.verifyPinAsync(
       pin.trim(),
       storedHash,
       storedSalt,
-      1000,
+      100000,
     );
 
-    // Fallback to legacy 100,000 iterations
+    // Fallback to legacy/regression 1,000 iterations and migrate to 100,000
     if (!isValid) {
       isValid = await PinCrypto.verifyPinAsync(
         pin.trim(),
         storedHash,
         storedSalt,
-        100000,
+        1000,
       );
       if (isValid) {
         final newSalt = PinCrypto.generateSalt();
@@ -728,7 +728,7 @@ class AuthProvider extends ChangeNotifier {
         await _secure.write(key: StorageKeys.pinHash, value: newHash);
         await _secure.write(key: StorageKeys.pinSalt, value: newSalt);
         _secureLog(
-          'verifyPin: migrated hash from 100,000 to 1,000 iterations successfully',
+          'verifyPin: migrated hash from 1,000 to 100,000 iterations successfully',
         );
       }
     }
@@ -775,14 +775,14 @@ class AuthProvider extends ChangeNotifier {
       oldPin.trim(),
       storedHash,
       storedSalt,
-      1000,
+      100000,
     );
     if (!isOldPinValid) {
       isOldPinValid = await PinCrypto.verifyPinAsync(
         oldPin.trim(),
         storedHash,
         storedSalt,
-        100000,
+        1000,
       );
     }
     if (!isOldPinValid) {
