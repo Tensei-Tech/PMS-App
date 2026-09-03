@@ -39,25 +39,25 @@ class RegistrationResult {
   factory RegistrationResult.failure(String code, String message) =>
       RegistrationResult._(success: false, errorCode: code, errorMessage: message);
 
-  factory RegistrationResult.networkError() => RegistrationResult._(
+  factory RegistrationResult.networkError() => const RegistrationResult._(
         success: false,
         errorCode: 'network-request-failed',
         errorMessage: 'Network connection failed. Please check your internet connection.',
       );
 
-  factory RegistrationResult.emailInUse() => RegistrationResult._(
+  factory RegistrationResult.emailInUse() => const RegistrationResult._(
         success: false,
         errorCode: 'email-already-in-use',
         errorMessage: 'This Government ID is already registered. Please login instead.',
       );
 
-  factory RegistrationResult.weakPassword() => RegistrationResult._(
+  factory RegistrationResult.weakPassword() => const RegistrationResult._(
         success: false,
         errorCode: 'weak-password',
         errorMessage: 'PIN does not meet security requirements. Please try again.',
       );
 
-  factory RegistrationResult.invalidEmail() => RegistrationResult._(
+  factory RegistrationResult.invalidEmail() => const RegistrationResult._(
         success: false,
         errorCode: 'invalid-email',
         errorMessage: 'Invalid email format. Please enter a valid Government Email.',

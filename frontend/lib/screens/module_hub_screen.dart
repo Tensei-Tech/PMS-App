@@ -584,7 +584,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   Widget _tabControl(String label, bool active, VoidCallback onTap) {
-    final color = AppColors.navyMid;
+    const color = AppColors.navyMid;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -964,7 +964,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   Widget _buildMonthlyModuleReportOnly(
       BuildContext context, List<ModuleRecord> allRecords) {
-    final months = const [
+    const months = [
       'January',
       'February',
       'March',
@@ -1071,7 +1071,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       child: DropdownButton<int>(
                         value: _reportMonth,
                         isExpanded: true,
-                        icon: Icon(Icons.keyboard_arrow_down_rounded,
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
                             color: AppColors.navyMid),
                         items: List.generate(
                           12,
@@ -1101,7 +1101,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<int>(
                       value: _reportYear,
-                      icon: Icon(Icons.keyboard_arrow_down_rounded,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
                           color: AppColors.navyMid),
                       items: List.generate(
                         5,
@@ -3471,7 +3471,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           const SizedBox(width: 8),
           _statCard('Closed', closed, const Color(0xFF607D8B), 'Closed'),
           const SizedBox(width: 8),
-          Expanded(child: const SizedBox()),
+          const Expanded(child: SizedBox()),
         ]),
       ],
     );
@@ -3568,7 +3568,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 color: AppColors.navyMid.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.folder_special_rounded,
                 size: 40,
                 color: AppColors.navyMid,
@@ -3645,7 +3645,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.calendar_today_rounded,
+                        const Icon(Icons.calendar_today_rounded,
                             size: 13, color: AppColors.lightSubText),
                         const SizedBox(width: 4),
                         Text(
@@ -3657,7 +3657,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Icon(Icons.access_time_rounded,
+                        const Icon(Icons.access_time_rounded,
                             size: 13, color: AppColors.lightSubText),
                         const SizedBox(width: 4),
                         Text(
@@ -3819,7 +3819,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               ],
               const SizedBox(height: 10),
               Row(children: [
-                Icon(Icons.person_rounded,
+                const Icon(Icons.person_rounded,
                     size: 13, color: AppColors.lightSubText),
                 const SizedBox(width: 4),
                 Expanded(
@@ -3829,7 +3829,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       style: GoogleFonts.poppins(
                           fontSize: 11, color: AppColors.lightSubText)),
                 ),
-                Icon(Icons.calendar_today_rounded,
+                const Icon(Icons.calendar_today_rounded,
                     size: 13, color: AppColors.lightSubText),
                 const SizedBox(width: 4),
                 Text(DateFormat('dd MMM yyyy').format(record.incidentDate),

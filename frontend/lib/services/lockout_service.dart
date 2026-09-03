@@ -1,7 +1,6 @@
 // lib/services/lockout_service.dart
 // Brute-force protection: tracks failed PIN attempts and enforces time-based lockouts.
 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'secure_storage.dart';
 
 enum LockoutState { allowed, locked }

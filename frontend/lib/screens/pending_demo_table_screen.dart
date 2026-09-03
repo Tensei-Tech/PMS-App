@@ -99,7 +99,7 @@ class PendingDemoTableScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Icon(Icons.arrow_back_rounded,
+                      child: const Icon(Icons.arrow_back_rounded,
                           color: AppColors.navyMid, size: 20),
                     ),
                   ),
@@ -294,9 +294,9 @@ class _LivePendingTableLoaderState extends State<_LivePendingTableLoader> {
     }
 
     if (_initialLoad && modules.isEmpty) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppColors.lightBg,
-        body: const SafeArea(
+        body: SafeArea(
           child: Center(
             child: CircularProgressIndicator(color: AppColors.navyMid),
           ),

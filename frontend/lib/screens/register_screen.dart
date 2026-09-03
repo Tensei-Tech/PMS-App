@@ -14,7 +14,6 @@ import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../utils/state_language_helper.dart';
 import '../services/api_config.dart';
-import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
 import '../utils/validators.dart';
@@ -181,7 +180,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  List<String> _onboardedStates = ['Maharashtra', 'Gujarat'];
+  final List<String> _onboardedStates = ['Maharashtra', 'Gujarat'];
 
   List<Map<String, String>> _dynamicStates = [];
   List<String> _dynamicDivisions = [];
@@ -1523,7 +1522,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? navyBrandColor.withOpacity(0.06) : Colors.white,
+          color: isSelected ? navyBrandColor.withValues(alpha: 0.06) : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected ? navyBrandColor : borderColor,
@@ -1646,7 +1645,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SearchablePickerField(
             key: ValueKey('div-$_selectedState'),
             label: 'Division / Range',
-            hintText: (_dynamicDivisions != null && _dynamicDivisions.isNotEmpty)
+            hintText: (_dynamicDivisions.isNotEmpty)
                 ? 'Select Division / Range'
                 : 'Loading Divisions...',
             leadingIcon: Icons.map_rounded,
@@ -1666,7 +1665,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (needsDistrict) ...[
           SearchablePickerField(
             key: ValueKey('dist-$_selectedState-$_selectedDivision-$_selectedUnitType'),
-            label: 'District / Commissionerate (${_dynamicDistricts?.length ?? 0} Active)',
+            label: 'District / Commissionerate (${_dynamicDistricts.length ?? 0} Active)',
             hintText: _selectedDivision != null || !needsDivision
                 ? 'Search district'
                 : 'Select Division / Range first',
@@ -1678,9 +1677,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 _selectedDistrict = v;
                 _selectedStation = null;
               });
-              if (v != null) {
-                _fetchDynamicStations(v);
-              }
+              _fetchDynamicStations(v);
             },
             validator: (v) => v == null || v.trim().isEmpty ? 'District is required' : null,
           ),
@@ -1691,7 +1688,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (needsStation) ...[
           SearchablePickerField(
             key: ValueKey('stn-$_selectedDistrict-$_selectedDivision-$_selectedUnitType'),
-            label: 'Police Station (${_dynamicStations?.length ?? 0} Available)',
+            label: 'Police Station (${_dynamicStations.length ?? 0} Available)',
             hintText: _selectedDistrict != null
                 ? 'Search police station'
                 : 'Select District first to view stations',
@@ -1744,7 +1741,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     const borderColor = Color(0xFFE2E8F0);
 
     return DropdownButtonFormField<String>(
-      value: _selectedState,
+      initialValue: _selectedState,
       isExpanded: true,
       menuMaxHeight: 360,
       icon: const Icon(Icons.search, color: Color(0xFF64748B), size: 18),
@@ -1770,7 +1767,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           borderSide: const BorderSide(color: navyBrandColor, width: 1.5),
         ),
       ),
-      items: ((_dynamicStates != null && _dynamicStates.isNotEmpty)
+      items: ((_dynamicStates.isNotEmpty)
               ? _dynamicStates.map((s) => s['name']!).toList()
               : ['Maharashtra', 'Gujarat'])
           .map((st) {

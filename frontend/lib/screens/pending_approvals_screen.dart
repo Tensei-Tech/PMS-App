@@ -219,7 +219,7 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
               Navigator.of(context).pushReplacementNamed('/dashboard');
             }
           },
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.navyDark, size: 20),
         ),
         title: Column(

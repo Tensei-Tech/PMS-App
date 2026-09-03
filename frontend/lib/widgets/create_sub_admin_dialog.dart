@@ -376,7 +376,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             // Role Level
                             _buildInputLabel('Admin Role Level'),
                             DropdownButtonFormField<String>(
-                              value: _getValidValue(allowedRoles, _selectedRole),
+                              initialValue: _getValidValue(allowedRoles, _selectedRole),
                               isExpanded: true,
                               items: (allowedRoles ?? [])
                                   .map((r) => DropdownMenuItem(value: r, child: Text(r, style: GoogleFonts.poppins(fontSize: 12.5))))
@@ -396,7 +396,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             // Police Rank / Designation
                             _buildInputLabel('Police Rank / Designation'),
                             DropdownButtonFormField<String>(
-                              value: _getValidValue(_getDesignationOptionsForRole(_selectedRole), _selectedDesignation),
+                              initialValue: _getValidValue(_getDesignationOptionsForRole(_selectedRole), _selectedDesignation),
                               isExpanded: true,
                               items: _getDesignationOptionsForRole(_selectedRole)
                                   .map((d) => DropdownMenuItem(value: d, child: Text(d, style: GoogleFonts.poppins(fontSize: 12.5))))
@@ -415,7 +415,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                               )
                             else
                               DropdownButtonFormField<String>(
-                                value: _getValidValue(_dbDistricts, _selectedDistrict),
+                                initialValue: _getValidValue(_dbDistricts, _selectedDistrict),
                                 isExpanded: true,
                                 items: (_dbDistricts ?? [])
                                     .map((d) => DropdownMenuItem(value: d, child: Text(d, style: GoogleFonts.poppins(fontSize: 12.5))))
@@ -434,7 +434,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             if (_selectedRole == 'Division Admin') ...[
                               _buildInputLabel('Assigned Division / Zone (DB)'),
                               DropdownButtonFormField<String>(
-                                value: _getValidValue(_dbDivisions, _selectedDivision),
+                                initialValue: _getValidValue(_dbDivisions, _selectedDivision),
                                 isExpanded: true,
                                 items: (_dbDivisions ?? [])
                                     .map((div) => DropdownMenuItem(value: div, child: Text(div, style: GoogleFonts.poppins(fontSize: 12.5))))
@@ -445,7 +445,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             ] else if (_selectedRole == 'Station Head') ...[
                               _buildInputLabel('Assigned Police Station (DB)'),
                               DropdownButtonFormField<String>(
-                                value: _getValidValue(_dbStations, _selectedStation),
+                                initialValue: _getValidValue(_dbStations, _selectedStation),
                                 isExpanded: true,
                                 items: (_dbStations ?? [])
                                     .map((stn) => DropdownMenuItem(value: stn, child: Text(stn, style: GoogleFonts.poppins(fontSize: 12.5))))

@@ -132,11 +132,11 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
-                    const Icon(Icons.translate, color: Color(0xFF1E3A8A)),
-                    const SizedBox(width: 8),
-                    const Text(
+                    Icon(Icons.translate, color: Color(0xFF1E3A8A)),
+                    SizedBox(width: 8),
+                    Text(
                       'Select Dictation Language / भाषा निवडा',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),

@@ -30,7 +30,7 @@ class CategoryRecordsScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppColors.navyDark, size: 20),
         ),
         title: Text(
@@ -50,7 +50,7 @@ class CategoryRecordsScreen extends StatelessWidget {
                     page: CaseFormScreen(categoryName: categoryName)),
               );
             },
-            icon: Icon(Icons.add_circle_rounded, color: AppColors.navyMid),
+            icon: const Icon(Icons.add_circle_rounded, color: AppColors.navyMid),
           ),
         ],
       ),
@@ -170,7 +170,7 @@ class CategoryRecordsScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              Icon(Icons.person_rounded,
+              const Icon(Icons.person_rounded,
                   size: 14, color: AppColors.lightSubText),
               const SizedBox(width: 4),
               Text(record.assignedOfficer,

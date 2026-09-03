@@ -1,20 +1,16 @@
 // lib/screens/notification_screen.dart
 // Full-page notification history — lists all received FCM notifications.
 
-import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
-import '../utils/police_rbac_helper.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});

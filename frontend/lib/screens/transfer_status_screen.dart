@@ -105,7 +105,7 @@ class _TransferStatusScreenState extends State<TransferStatusScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.info_outline_rounded,
+                            const Icon(Icons.info_outline_rounded,
                                 color: AppColors.infoBlue),
                             const SizedBox(width: 8),
                             Text(

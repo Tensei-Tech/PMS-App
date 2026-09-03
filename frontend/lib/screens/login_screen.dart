@@ -294,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen>
                             borderRadius: BorderRadius.circular(AppRadius.xl),
                             side: isCompact
                                 ? BorderSide.none
-                                : BorderSide(
+                                : const BorderSide(
                                     color: AppColors.lightBorder, width: 1),
                           ),
                           color: Colors.white,
@@ -419,7 +419,7 @@ class _LoginScreenState extends State<LoginScreen>
                     borderRadius: BorderRadius.circular(AppRadius.md)),
                 enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
-                    borderSide: BorderSide(color: AppColors.lightBorder)),
+                    borderSide: const BorderSide(color: AppColors.lightBorder)),
                 focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     borderSide:
@@ -458,7 +458,7 @@ class _LoginScreenState extends State<LoginScreen>
                     borderRadius: BorderRadius.circular(AppRadius.md)),
                 enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
-                    borderSide: BorderSide(color: AppColors.lightBorder)),
+                    borderSide: const BorderSide(color: AppColors.lightBorder)),
                 focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     borderSide:

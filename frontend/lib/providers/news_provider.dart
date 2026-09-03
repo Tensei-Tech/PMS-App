@@ -262,7 +262,7 @@ class NewsProvider extends ChangeNotifier {
   /// Master Admin deletes an announcement
   Future<void> deleteAnnouncement(String id) async {
     try {
-      await ApiService().delete('${ApiConfig.announcements}${id}/');
+      await ApiService().delete('${ApiConfig.announcements}$id/');
       await fetchAnnouncements();
     } catch (e) {
       debugPrint('[NewsProvider] Error deleting announcement: $e');

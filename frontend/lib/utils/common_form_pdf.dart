@@ -146,7 +146,7 @@ pw.Widget _header(pw.Context ctx, String title, String subtitle) =>
           ),
           pw.Text(
             'Generated: ${_now()}',
-            style: pw.TextStyle(fontSize: 8, color: _muted),
+            style: const pw.TextStyle(fontSize: 8, color: _muted),
           ),
         ],
       ),
@@ -165,11 +165,11 @@ pw.Widget _footer(pw.Context ctx) => pw.Container(
         children: [
           pw.Text(
             'KHAKHI DIARY - Maharashtra Police',
-            style: pw.TextStyle(fontSize: 7, color: _muted),
+            style: const pw.TextStyle(fontSize: 7, color: _muted),
           ),
           pw.Text(
             'Page ${ctx.pageNumber} of ${ctx.pagesCount}',
-            style: pw.TextStyle(fontSize: 7, color: _muted),
+            style: const pw.TextStyle(fontSize: 7, color: _muted),
           ),
         ],
       ),
@@ -480,7 +480,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                     padding: const pw.EdgeInsets.only(left: 18, top: 2),
                     child: pw.Text(
                       'Date (proceduralDates.${e.key}): $dateLine',
-                      style: pw.TextStyle(fontSize: 9, color: _sec),
+                      style: const pw.TextStyle(fontSize: 9, color: _sec),
                     ),
                   ),
                 ],
@@ -915,7 +915,7 @@ pw.Widget _buildAnyMap(Map<dynamic, dynamic> m) {
                           width: 4,
                           height: 4,
                           margin: const pw.EdgeInsets.only(right: 6),
-                          decoration: pw.BoxDecoration(
+                          decoration: const pw.BoxDecoration(
                             color: _amber,
                             shape: pw.BoxShape.circle,
                           ),
@@ -923,7 +923,7 @@ pw.Widget _buildAnyMap(Map<dynamic, dynamic> m) {
                         pw.Expanded(
                           child: pw.Text(
                             _anyToString(item.value),
-                            style: pw.TextStyle(fontSize: 10, color: _dark),
+                            style: const pw.TextStyle(fontSize: 10, color: _dark),
                           ),
                         ),
                       ],
@@ -1030,9 +1030,9 @@ pw.Widget _card(int num, String title, PdfColor accent, pw.Widget body) =>
               pw.Container(
                 padding:
                     const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: pw.BoxDecoration(
+                decoration: const pw.BoxDecoration(
                   color: _dark,
-                  borderRadius: const pw.BorderRadius.only(
+                  borderRadius: pw.BorderRadius.only(
                     topLeft: pw.Radius.circular(7),
                     topRight: pw.Radius.circular(7),
                   ),
@@ -1317,7 +1317,7 @@ pw.Widget _verdictCol(String title, List<String> names, PdfColor color) =>
                               pw.Expanded(
                                 child: pw.Text(
                                   n,
-                                  style: pw.TextStyle(
+                                  style: const pw.TextStyle(
                                     fontSize: 10,
                                     color: _dark,
                                   ),
