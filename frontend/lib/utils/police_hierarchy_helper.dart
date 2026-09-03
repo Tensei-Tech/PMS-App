@@ -1,4 +1,6 @@
 /// Police Hierarchy & Role Access Helper based on Official Government Platform Matrix Standards.
+library;
+
 ///
 /// Official Designations & Administrative Matrix Mapping Rules:
 ///
@@ -25,7 +27,6 @@
 /// - MUST: Normally suitable as the primary designation for that admin level.
 /// - OPTIONAL: Can be allowed when officer's posting/responsibility supports it.
 /// - NEVER: Should not normally receive that level of administrative role.
-library;
 
 enum AdminLevelRule { must, optional, never }
 

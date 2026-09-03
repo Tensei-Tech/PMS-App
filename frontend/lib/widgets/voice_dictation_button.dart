@@ -25,11 +25,11 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
     with SingleTickerProviderStateMixin {
   bool _isListening = false;
   String _selectedLang = 'mr-IN'; // Default to Marathi for Maharashtra Police
-  String _statusMessage = '';
   String _preSpeechText = '';
+  String _statusMessage = '';
   late AnimationController _pulseAnim;
 
-  final Map<String, String> _languages = {
+  static const Map<String, String> _languages = {
     'mr-IN': 'मराठी (Marathi)',
     'hi-IN': 'हिंदी (Hindi)',
     'en-IN': 'English (India)',
@@ -64,7 +64,6 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
   void _startListening() {
     setState(() {
       _isListening = true;
-      _statusMessage = 'Listening in ${_languages[_selectedLang]}...';
       _preSpeechText = widget.controller.text;
     });
 
@@ -87,24 +86,20 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
           );
 
           if (isFinal) {
-            _statusMessage = 'Dictated successfully!';
             widget.onSpeechCompleted?.call();
           }
         });
       },
       (status, message) {
         if (!mounted) return;
-        if (status == 'listening') {
-          setState(() {
+        setState(() {
+          _statusMessage = message;
+          if (status == 'listening') {
             _isListening = true;
-            _statusMessage = '🎙️ Listening... Speak now';
-          });
-        } else if (status == 'ended' || status == 'error') {
-          setState(() {
+          } else if (status == 'ended' || status == 'error') {
             _isListening = false;
-            _statusMessage = message.isNotEmpty ? message : 'Dictation ended';
-          });
-        }
+          }
+        });
       },
       lang: _selectedLang,
     );
@@ -114,7 +109,6 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
     stopWebVoiceRecognition();
     setState(() {
       _isListening = false;
-      _statusMessage = 'Dictation stopped';
     });
     widget.onSpeechCompleted?.call();
   }
