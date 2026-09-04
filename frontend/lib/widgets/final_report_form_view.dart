@@ -34,15 +34,15 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   static const _knownSectionIds = {kPartI, kPartII, kPartIII};
 
   bool _shows(String sectionId) => showsFormSection(
-    activeSection: widget.formSection,
-    sectionId: sectionId,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        sectionId: sectionId,
+        knownSectionIds: _knownSectionIds,
+      );
 
   bool get _showAll => showsAllFormSections(
-    activeSection: widget.formSection,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        knownSectionIds: _knownSectionIds,
+      );
   // Page 1 — sections 1–10
   final _distCtrl = TextEditingController();
   final _psCtrl = TextEditingController();
@@ -72,8 +72,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   final _complainantNameCtrl = TextEditingController();
   final _complainantFatherCtrl = TextEditingController();
 
-  static const _propertyRowCount = 2;
-  static const _witnessRowCount = 7;
+  int _propertyRowCount = 2;
+  int _witnessRowCount = 7;
 
   late final List<TextEditingController> _propDescCtrls;
   late final List<TextEditingController> _propValueCtrls;
@@ -144,42 +144,24 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   @override
   void initState() {
     super.initState();
-    _propDescCtrls = List.generate(
-      _propertyRowCount,
-      (_) => TextEditingController(),
-    );
-    _propValueCtrls = List.generate(
-      _propertyRowCount,
-      (_) => TextEditingController(),
-    );
-    _propRegCtrls = List.generate(
-      _propertyRowCount,
-      (_) => TextEditingController(),
-    );
-    _propFromCtrls = List.generate(
-      _propertyRowCount,
-      (_) => TextEditingController(),
-    );
-    _propDisposalCtrls = List.generate(
-      _propertyRowCount,
-      (_) => TextEditingController(),
-    );
-    _witnessNameCtrls = List.generate(
-      _witnessRowCount,
-      (_) => TextEditingController(),
-    );
-    _witnessAgeCtrls = List.generate(
-      _witnessRowCount,
-      (_) => TextEditingController(),
-    );
-    _witnessOccupationCtrls = List.generate(
-      _witnessRowCount,
-      (_) => TextEditingController(),
-    );
-    _witnessAddressCtrls = List.generate(
-      _witnessRowCount,
-      (_) => TextEditingController(),
-    );
+    _propDescCtrls =
+        List.generate(_propertyRowCount, (_) => TextEditingController());
+    _propValueCtrls =
+        List.generate(_propertyRowCount, (_) => TextEditingController());
+    _propRegCtrls =
+        List.generate(_propertyRowCount, (_) => TextEditingController());
+    _propFromCtrls =
+        List.generate(_propertyRowCount, (_) => TextEditingController());
+    _propDisposalCtrls =
+        List.generate(_propertyRowCount, (_) => TextEditingController());
+    _witnessNameCtrls =
+        List.generate(_witnessRowCount, (_) => TextEditingController());
+    _witnessAgeCtrls =
+        List.generate(_witnessRowCount, (_) => TextEditingController());
+    _witnessOccupationCtrls =
+        List.generate(_witnessRowCount, (_) => TextEditingController());
+    _witnessAddressCtrls =
+        List.generate(_witnessRowCount, (_) => TextEditingController());
     if (widget.existingRecord != null) {
       hydrateFrom(widget.existingRecord!);
     }
@@ -261,7 +243,33 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
     _submitIoNameCtrl.dispose();
     _submitIoRankCtrl.dispose();
     _submitIoNoCtrl.dispose();
-    _submitIoPsCtrl.dispose();
+    for (final c in _propDescCtrls) {
+      c.dispose();
+    }
+    for (final c in _propValueCtrls) {
+      c.dispose();
+    }
+    for (final c in _propRegCtrls) {
+      c.dispose();
+    }
+    for (final c in _propFromCtrls) {
+      c.dispose();
+    }
+    for (final c in _propDisposalCtrls) {
+      c.dispose();
+    }
+    for (final c in _witnessNameCtrls) {
+      c.dispose();
+    }
+    for (final c in _witnessAgeCtrls) {
+      c.dispose();
+    }
+    for (final c in _witnessOccupationCtrls) {
+      c.dispose();
+    }
+    for (final c in _witnessAddressCtrls) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -291,6 +299,30 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
       _ioPsCtrl.text = data['ioPs']?.toString() ?? '';
       _complainantNameCtrl.text = data['complainantName']?.toString() ?? '';
       _complainantFatherCtrl.text = data['complainantFather']?.toString() ?? '';
+
+      final savedPropCount =
+          int.tryParse(data['propertyRowCount']?.toString() ?? '');
+      if (savedPropCount != null && savedPropCount > _propertyRowCount) {
+        while (_propertyRowCount < savedPropCount) {
+          _propertyRowCount++;
+          _propDescCtrls.add(TextEditingController());
+          _propValueCtrls.add(TextEditingController());
+          _propRegCtrls.add(TextEditingController());
+          _propFromCtrls.add(TextEditingController());
+          _propDisposalCtrls.add(TextEditingController());
+        }
+      }
+      final savedWitnessCount =
+          int.tryParse(data['witnessRowCount']?.toString() ?? '');
+      if (savedWitnessCount != null && savedWitnessCount > _witnessRowCount) {
+        while (_witnessRowCount < savedWitnessCount) {
+          _witnessRowCount++;
+          _witnessNameCtrls.add(TextEditingController());
+          _witnessAgeCtrls.add(TextEditingController());
+          _witnessOccupationCtrls.add(TextEditingController());
+          _witnessAddressCtrls.add(TextEditingController());
+        }
+      }
 
       for (var i = 0; i < _propertyRowCount; i++) {
         final n = '${i + 1}';
@@ -421,6 +453,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
       'submitIoPs': _submitIoPsCtrl.text.trim(),
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
+      'propertyRowCount': _propertyRowCount,
+      'witnessRowCount': _witnessRowCount,
     };
     for (var i = 0; i < _propertyRowCount; i++) {
       final n = '${i + 1}';
@@ -487,104 +521,86 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     Text(
                       '( UNDER SECTION 193 B.N.S.S.2023 )',
                       style: serifStyle.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                          fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              BilingualFieldRow(
-                fields: [
-                  BilingualWideField(
-                    label: 'IN THE COURT OF : ',
-                    marathiLabel:
-                        'मा.वि.न्यायदंडाधिकारी प्रथम श्रेणी, न्यायालय',
-                    controller: _courtCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Dist : ',
-                    marathiLabel: 'जिल्हा',
-                    controller: _courtDistCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+              BilingualFieldRow(fields: [
+                BilingualWideField(
+                  label: 'IN THE COURT OF : ',
+                  marathiLabel: 'मा.वि.न्यायदंडाधिकारी प्रथम श्रेणी, न्यायालय',
+                  controller: _courtCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle,
+                ),
+                BilingualField(
+                  label: 'Dist : ',
+                  marathiLabel: 'जिल्हा',
+                  controller: _courtDistCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle,
+                ),
+              ]),
               const SizedBox(height: 16),
               ResponsiveFieldRow(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: BilingualField(
-                      label: '1.Dist : ',
-                      marathiLabel: 'जिल्हा',
-                      controller: _distCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                    ),
-                  ),
+                      child: BilingualField(
+                          label: '1.Dist : ',
+                          marathiLabel: 'जिल्हा',
+                          controller: _distCtrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle)),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: BilingualField(
-                      label: 'P.S: ',
-                      marathiLabel: 'पोलीस ठाणे',
-                      controller: _psCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                    ),
-                  ),
+                      child: BilingualField(
+                          label: 'P.S: ',
+                          marathiLabel: 'पोलीस ठाणे',
+                          controller: _psCtrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle)),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: BilingualField(
-                      label: 'Year : ',
-                      marathiLabel: 'वर्ष',
-                      controller: _yearCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                    ),
-                  ),
+                      child: BilingualField(
+                          label: 'Year : ',
+                          marathiLabel: 'वर्ष',
+                          controller: _yearCtrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: ResponsiveFieldRow(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: BilingualField(
-                            label: 'FIR No : ',
-                            marathiLabel: 'पहिली खबर क्र.',
-                            controller: _firNoCtrl,
-                            serifStyle: serifStyle,
-                            marathiLabelStyle: marathiLabelStyle,
-                          ),
-                        ),
+                            child: BilingualField(
+                                label: 'FIR No : ',
+                                marathiLabel: 'पहिली खबर क्र.',
+                                controller: _firNoCtrl,
+                                serifStyle: serifStyle,
+                                marathiLabelStyle: marathiLabelStyle)),
                         Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text('/20', style: serifStyle),
-                        ),
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text('/20', style: serifStyle)),
                         SizedBox(
-                          width: 35,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _firYearSuffixCtrl,
-                            serifStyle: serifStyle,
-                          ),
-                        ),
+                            width: 35,
+                            child: BilingualSimpleUnderlineInput(
+                                controller: _firYearSuffixCtrl,
+                                serifStyle: serifStyle)),
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: BilingualField(
-                      label: 'Date : ',
-                      marathiLabel: 'तारीख',
-                      controller: _headerDateCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                    ),
-                  ),
+                      child: BilingualField(
+                          label: 'Date : ',
+                          marathiLabel: 'तारीख',
+                          controller: _headerDateCtrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -594,53 +610,44 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   Expanded(
                     flex: 3,
                     child: BilingualField(
-                      label: '2. Final Report/Charge Sheet No. ',
-                      marathiLabel: 'अंतिम अहवाल / आरोप पत्र क्र.',
-                      controller: _reportNoCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                    ),
+                        label: '2. Final Report/Charge Sheet No. ',
+                        marathiLabel: 'अंतिम अहवाल / आरोप पत्र क्र.',
+                        controller: _reportNoCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text('/20', style: serifStyle),
-                  ),
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text('/20', style: serifStyle)),
                   SizedBox(
-                    width: 40,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _reportYearSuffixCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
+                      width: 40,
+                      child: BilingualSimpleUnderlineInput(
+                          controller: _reportYearSuffixCtrl,
+                          serifStyle: serifStyle)),
                 ],
               ),
               const SizedBox(height: 12),
               BilingualField(
-                label: '3. Date: ',
-                marathiLabel: 'दिनांक',
-                controller: _reportDateCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '3. Date: ',
+                  marathiLabel: 'दिनांक',
+                  controller: _reportDateCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 12),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: '4. Act : ',
                     marathiLabel: 'भारतीय न्याय संहिता २०२३',
                     controller: _actCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: 'Section: ',
                     marathiLabel: 'कलम',
                     controller: _sectionCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
               const SizedBox(height: 12),
               BilingualMultilineField(
                 label: '5. Type of Final Form / Report :',
@@ -660,78 +667,64 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                 marathiLabelStyle: marathiLabelStyle,
               ),
               const SizedBox(height: 12),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: '7. If Charge Sheeted : ',
                     marathiLabel: 'जर आरोपपत्र ठेवले',
                     controller: _chargeSheetedCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: 'Original / Supplementary : ',
                     marathiLabel: 'मुळ/पुरवणी',
                     controller: _originalSupplementaryCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
               const SizedBox(height: 12),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: '8. Name of the I.O : ',
                     marathiLabel:
                         '${FormIoTerminology.officer} — ${FormIoTerminology.name}',
                     controller: _ioNameCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: 'Rank : ',
                     marathiLabel: FormIoTerminology.rank,
                     controller: _ioRankCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: 'No. : ',
                     marathiLabel: 'बक्कल नंबर',
                     controller: _ioNoCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: 'P.S. : ',
                     marathiLabel: 'पोलीस स्टेशन',
                     controller: _ioPsCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
               const SizedBox(height: 12),
               BilingualWideField(
-                label: '9. (a) Name of Complainant/Informant : ',
-                marathiLabel: 'तक्रारदाराचे / खबरिचे नांव',
-                controller: _complainantNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '9. (a) Name of Complainant/Informant : ',
+                  marathiLabel: 'तक्रारदाराचे / खबरिचे नांव',
+                  controller: _complainantNameCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(b) Father\'s/Husband\'s Name : ',
-                marathiLabel: 'पित्याचे / पतीचे नांव',
-                controller: _complainantFatherCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(b) Father\'s/Husband\'s Name : ',
+                  marathiLabel: 'पित्याचे / पतीचे नांव',
+                  controller: _complainantFatherCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 16),
               BilingualSectionHeader(
                 label:
@@ -757,15 +750,11 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     children: [
                       _tableHeader('Sr.No\nअ.क्र', serifStyle),
                       _tableHeader(
-                        'Property Description\nमालमत्तेचे वर्णन',
-                        serifStyle,
-                      ),
+                          'Property Description\nमालमत्तेचे वर्णन', serifStyle),
                       _tableHeader('Estimated Value\n(Rs.)', serifStyle),
                       _tableHeader('P.S. Property\nRegister No.', serifStyle),
                       _tableHeader(
-                        'From whom/where\nRecovered or Seized',
-                        serifStyle,
-                      ),
+                          'From whom/where\nRecovered or Seized', serifStyle),
                       _tableHeader('Disposal\nविल्हेवाट', serifStyle),
                     ],
                   ),
@@ -774,12 +763,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8),
-                          child: Text(
-                            '${i + 1}.',
-                            style: serifStyle.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: Text('${i + 1}.',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                         ),
                         _tableCellInput(_propDescCtrls[i], serifStyle),
                         _tableCellInput(_propValueCtrls[i], serifStyle),
@@ -790,6 +776,77 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                 ],
               ),
+              if (!widget.readOnly) ...[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _propertyRowCount++;
+                          _propDescCtrls.add(TextEditingController());
+                          _propValueCtrls.add(TextEditingController());
+                          _propRegCtrls.add(TextEditingController());
+                          _propFromCtrls.add(TextEditingController());
+                          _propDisposalCtrls.add(TextEditingController());
+                        });
+                      },
+                      icon: const Icon(Icons.add,
+                          size: 16, color: Color(0xFF1E3A8A)),
+                      label: Text(
+                        'Add Row (ओळ जोडा)',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1E3A8A),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEFF4FA),
+                        side: const BorderSide(
+                            color: Color(0xFFD6E4F0), width: 1),
+                        shape: const StadiumBorder(),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                      ),
+                    ),
+                    if (_propertyRowCount > 1) ...[
+                      const SizedBox(width: 8),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _propertyRowCount--;
+                            _propDescCtrls.removeLast().dispose();
+                            _propValueCtrls.removeLast().dispose();
+                            _propRegCtrls.removeLast().dispose();
+                            _propFromCtrls.removeLast().dispose();
+                            _propDisposalCtrls.removeLast().dispose();
+                          });
+                        },
+                        icon: const Icon(Icons.remove,
+                            size: 16, color: Color(0xFFB91C1C)),
+                        label: Text(
+                          'Remove Row (ओळ काढा)',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFB91C1C),
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFEEFEE),
+                          side: const BorderSide(
+                              color: Color(0xFFFCDADA), width: 1),
+                          shape: const StadiumBorder(),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
               FormMrwFooter(serifStyle: serifStyle),
             ],
@@ -811,211 +868,177 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                 marathiLabelStyle: marathiLabelStyle,
               ),
               const SizedBox(height: 12),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: '(i) Name : ',
                     marathiLabel: 'नाव',
                     controller: _accNameCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: 'Where verified : ',
                     marathiLabel: 'पडताळले किंवा काय',
                     controller: _accNameVerifiedCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(ii) Father\'s/Husband\'s Name : ',
-                marathiLabel: 'पित्याचे/पतीचे नाव',
-                controller: _accFatherCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(ii) Father\'s/Husband\'s Name : ',
+                  marathiLabel: 'पित्याचे/पतीचे नाव',
+                  controller: _accFatherCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: '(iii) Date/Year of Birth : ',
                     marathiLabel: 'जन्मतारीख',
                     controller: _accDobCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: 'Age : ',
                     marathiLabel: 'वय',
                     controller: _accAgeCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
               const SizedBox(height: 8),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: '(iv) Sex : ',
                     marathiLabel: 'लिंग',
                     controller: _accSexCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: '(v) Nationality : ',
                     marathiLabel: 'राष्ट्रीयत्व',
                     controller: _accNationalityCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
               const SizedBox(height: 8),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: '(vi) Passport No. : ',
                     marathiLabel: 'पारपत्र क्र.',
                     controller: _accPassportCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: 'Date of issue : ',
                     marathiLabel: 'दिल्याची तारीख',
                     controller: _accPassportDateCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: 'Place of Issue : ',
                     marathiLabel: 'दिल्याचे ठिकाण',
                     controller: _accPassportPlaceCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
               const SizedBox(height: 8),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: '(vii) Religion : ',
                     marathiLabel: 'धर्म',
                     controller: _accReligionCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: '(viii) Whether SC/ST : ',
                     marathiLabel: 'अनुसूचित जातीचा/जमातीचा आहे का',
                     controller: _accScStCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(ix) Occupation : ',
-                marathiLabel: 'व्यवसाय',
-                controller: _accOccupationCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(ix) Occupation : ',
+                  marathiLabel: 'व्यवसाय',
+                  controller: _accOccupationCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(x) Address : ',
-                marathiLabel: 'पत्ता',
-                controller: _accAddressCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(x) Address : ',
+                  marathiLabel: 'पत्ता',
+                  controller: _accAddressCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualField(
-                label: 'Whether verified : ',
-                marathiLabel: 'पडताळला किंवा काय',
-                controller: _accAddressVerifiedCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: 'Whether verified : ',
+                  marathiLabel: 'पडताळला किंवा काय',
+                  controller: _accAddressVerifiedCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(xi) Provisional Criminal No. : ',
-                marathiLabel: 'तात्पुरता गुन्हेगार क्र.',
-                controller: _accProvCriminalNoCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(xi) Provisional Criminal No. : ',
+                  marathiLabel: 'तात्पुरता गुन्हेगार क्र.',
+                  controller: _accProvCriminalNoCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(xii) Regular Criminal No. (if known) : ',
-                marathiLabel: 'नियमित गुन्हेगार क्र. ( माहीत असल्यास )',
-                controller: _accRegularCriminalNoCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(xii) Regular Criminal No. (if known) : ',
+                  marathiLabel: 'नियमित गुन्हेगार क्र. ( माहीत असल्यास )',
+                  controller: _accRegularCriminalNoCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(xiii) Date of Arrest : ',
-                marathiLabel: 'अटकेची तारीख',
-                controller: _accArrestDateCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(xiii) Date of Arrest : ',
+                  marathiLabel: 'अटकेची तारीख',
+                  controller: _accArrestDateCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(xiv) Date of release on bail : ',
-                marathiLabel: 'जामीनावर सोडल्याची तारीख',
-                controller: _accBailDateCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(xiv) Date of release on bail : ',
+                  marathiLabel: 'जामीनावर सोडल्याची तारीख',
+                  controller: _accBailDateCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(xv) Date on which forwarded to court : ',
-                marathiLabel: 'न्यायालयात पाठविल्याची तारीख',
-                controller: _accForwardedCourtCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(xv) Date on which forwarded to court : ',
+                  marathiLabel: 'न्यायालयात पाठविल्याची तारीख',
+                  controller: _accForwardedCourtCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(xvi) Under Acts & Section : ',
-                marathiLabel: 'कोणत्या अधिनियमाखाली व कलमाखाली',
-                controller: _accActsSectionsCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(xvi) Under Acts & Section : ',
+                  marathiLabel: 'कोणत्या अधिनियमाखाली व कलमाखाली',
+                  controller: _accActsSectionsCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(xvii) Name(s) of bailers/sureties and Address : ',
-                marathiLabel: 'जामीनदारांची नावे व पत्ते',
-                controller: _accBailersCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(xvii) Name(s) of bailers/sureties and Address : ',
+                  marathiLabel: 'जामीनदारांची नावे व पत्ते',
+                  controller: _accBailersCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(xviii) Previous convictions with case reference : ',
-                marathiLabel: 'प्रकरणाच्या संदर्भासह पूर्वीची अपराधसिध्दी',
-                controller: _accPrevConvictionsCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(xviii) Previous convictions with case reference : ',
+                  marathiLabel: 'प्रकरणाच्या संदर्भासह पूर्वीची अपराधसिध्दी',
+                  controller: _accPrevConvictionsCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               BilingualWideField(
-                label: '(xix) Status of the accused : ',
-                marathiLabel: 'आरोपीची स्थिती',
-                controller: _accStatusCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '(xix) Status of the accused : ',
+                  marathiLabel: 'आरोपीची स्थिती',
+                  controller: _accStatusCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 8),
               Text(
                 'Forwarded / Bailed by Police / In Police Custody / Bailed by Court / In Judicial Custody / Absconding / Proclaimed Offender',
@@ -1054,11 +1077,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               ),
               const SizedBox(height: 4),
               Center(
-                child: Text(
-                  'List of Witnesses / साक्षीदारांची यादी',
-                  style: serifStyle.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
+                  child: Text('List of Witnesses / साक्षीदारांची यादी',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold))),
               const SizedBox(height: 8),
               Table(
                 border: TableBorder.all(color: Colors.black87),
@@ -1075,16 +1095,13 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     children: [
                       _tableHeader('Sr.No\nअ.क्र', serifStyle),
                       _tableHeader(
-                        'Name of Witness\nसाक्षीदारांचे नांव',
-                        serifStyle,
-                      ),
+                          'Name of Witness\nसाक्षीदारांचे नांव', serifStyle),
                       _tableHeader('Age\nवय', serifStyle),
                       _tableHeader('Occupation\nव्यवसाय', serifStyle),
                       _tableHeader('Address\nराहण्याचा पत्ता', serifStyle),
                       _tableHeader(
-                        'Type of evidence\nसादर करावयाच्या पुराव्याचा प्रकार',
-                        serifStyle,
-                      ),
+                          'Type of evidence\nसादर करावयाच्या पुराव्याचा प्रकार',
+                          serifStyle),
                     ],
                   ),
                   for (var i = 0; i < _witnessRowCount; i++)
@@ -1092,12 +1109,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8),
-                          child: Text(
-                            '${i + 1}',
-                            style: serifStyle.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: Text('${i + 1}',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                         ),
                         _tableCellInput(_witnessNameCtrls[i], serifStyle),
                         _tableCellInput(_witnessAgeCtrls[i], serifStyle),
@@ -1106,7 +1120,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         Padding(
                           padding: const EdgeInsets.all(6),
                           child: Text(
-                            _witnessEvidenceLabels[i],
+                            i < _witnessEvidenceLabels.length
+                                ? _witnessEvidenceLabels[i]
+                                : 'इतर साक्षीदार',
                             style: marathiLabelStyle.copyWith(fontSize: 9),
                           ),
                         ),
@@ -1114,6 +1130,75 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                 ],
               ),
+              if (!widget.readOnly) ...[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _witnessRowCount++;
+                          _witnessNameCtrls.add(TextEditingController());
+                          _witnessAgeCtrls.add(TextEditingController());
+                          _witnessOccupationCtrls.add(TextEditingController());
+                          _witnessAddressCtrls.add(TextEditingController());
+                        });
+                      },
+                      icon: const Icon(Icons.add,
+                          size: 16, color: Color(0xFF1E3A8A)),
+                      label: Text(
+                        'Add Row (ओळ जोडा)',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1E3A8A),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEFF4FA),
+                        side: const BorderSide(
+                            color: Color(0xFFD6E4F0), width: 1),
+                        shape: const StadiumBorder(),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                      ),
+                    ),
+                    if (_witnessRowCount > 1) ...[
+                      const SizedBox(width: 8),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _witnessRowCount--;
+                            _witnessNameCtrls.removeLast().dispose();
+                            _witnessAgeCtrls.removeLast().dispose();
+                            _witnessOccupationCtrls.removeLast().dispose();
+                            _witnessAddressCtrls.removeLast().dispose();
+                          });
+                        },
+                        icon: const Icon(Icons.remove,
+                            size: 16, color: Color(0xFFB91C1C)),
+                        label: Text(
+                          'Remove Row (ओळ काढा)',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFB91C1C),
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFEEFEE),
+                          side: const BorderSide(
+                              color: Color(0xFFFCDADA), width: 1),
+                          shape: const StadiumBorder(),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
               const SizedBox(height: 16),
               BilingualMultilineField(
                 label:
@@ -1145,32 +1230,27 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                 marathiLabelStyle: marathiLabelStyle,
               ),
               const SizedBox(height: 16),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
+              BilingualFieldRow(fields: [
+                BilingualField(
                     label: '17. Refer Notice Served : ',
                     marathiLabel: 'Acknowledgement to be placed',
                     controller: _referNoticeServedCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
+                    marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
                     label: 'Date : ',
                     marathiLabel: 'तारीख',
                     controller: _referNoticeDateCtrl,
                     serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+                    marathiLabelStyle: marathiLabelStyle),
+              ]),
               const SizedBox(height: 12),
               BilingualField(
-                label: '18. Dispatched on : ',
-                marathiLabel: 'पाठविल्याची तारीख',
-                controller: _dispatchedOnCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
+                  label: '18. Dispatched on : ',
+                  marathiLabel: 'पाठविल्याची तारीख',
+                  controller: _dispatchedOnCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle),
               const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1188,33 +1268,29 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                         const SizedBox(height: 8),
                         BilingualField(
-                          label: 'Name : ',
-                          marathiLabel: 'नांव',
-                          controller: _shoNameCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
+                            label: 'Name : ',
+                            marathiLabel: 'नांव',
+                            controller: _shoNameCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle),
                         BilingualField(
-                          label: 'Rank : ',
-                          marathiLabel: 'पद',
-                          controller: _shoRankCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
+                            label: 'Rank : ',
+                            marathiLabel: 'पद',
+                            controller: _shoRankCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle),
                         BilingualField(
-                          label: 'No : ',
-                          marathiLabel: 'बक्कल नंबर',
-                          controller: _shoNoCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
+                            label: 'No : ',
+                            marathiLabel: 'बक्कल नंबर',
+                            controller: _shoNoCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle),
                         BilingualField(
-                          label: 'Police Station : ',
-                          marathiLabel: 'पोलीस स्टेशन',
-                          controller: _shoPsCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
+                            label: 'Police Station : ',
+                            marathiLabel: 'पोलीस स्टेशन',
+                            controller: _shoPsCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle),
                       ],
                     ),
                   ),
@@ -1233,33 +1309,29 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                         const SizedBox(height: 8),
                         BilingualField(
-                          label: 'Name : ',
-                          marathiLabel: FormIoTerminology.name,
-                          controller: _submitIoNameCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
+                            label: 'Name : ',
+                            marathiLabel: FormIoTerminology.name,
+                            controller: _submitIoNameCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle),
                         BilingualField(
-                          label: 'Rank : ',
-                          marathiLabel: FormIoTerminology.rank,
-                          controller: _submitIoRankCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
+                            label: 'Rank : ',
+                            marathiLabel: FormIoTerminology.rank,
+                            controller: _submitIoRankCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle),
                         BilingualField(
-                          label: 'No. : ',
-                          marathiLabel: FormIoTerminology.badgeNo,
-                          controller: _submitIoNoCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
+                            label: 'No. : ',
+                            marathiLabel: FormIoTerminology.badgeNo,
+                            controller: _submitIoNoCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle),
                         BilingualField(
-                          label: 'Police Station : ',
-                          marathiLabel: 'पोलीस स्टेशन',
-                          controller: _submitIoPsCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
+                            label: 'Police Station : ',
+                            marathiLabel: 'पोलीस स्टेशन',
+                            controller: _submitIoPsCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle),
                       ],
                     ),
                   ),

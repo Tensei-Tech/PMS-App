@@ -27,7 +27,10 @@ import 'module_form_screen.dart';
 class ModuleRecordDetailScreen extends StatefulWidget {
   final ModuleRecord record;
 
-  const ModuleRecordDetailScreen({super.key, required this.record});
+  const ModuleRecordDetailScreen({
+    super.key,
+    required this.record,
+  });
 
   @override
   State<ModuleRecordDetailScreen> createState() =>
@@ -52,23 +55,21 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
     final id = _record.id;
     if (id.isEmpty) return;
     _subscription?.cancel();
-    _subscription = _firestore
-        .watchCaseById(id)
-        .listen(
-          (next) {
-            if (!mounted) return;
-            if (next != null) {
-              setState(() {
-                _recordDeleted = false;
-                _accessDenied = false;
-                _record = next;
-              });
-            }
-          },
-          onError: (_) {
-            // Keep showing local record if stream errors
-          },
-        );
+    _subscription = _firestore.watchCaseById(id).listen(
+      (next) {
+        if (!mounted) return;
+        if (next != null) {
+          setState(() {
+            _recordDeleted = false;
+            _accessDenied = false;
+            _record = next;
+          });
+        }
+      },
+      onError: (_) {
+        // Keep showing local record if stream errors
+      },
+    );
   }
 
   @override
@@ -95,10 +96,9 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
             SliverFillRemaining(
               hasScrollBody: false,
               child: AccessDeniedView(
-                message:
-                    CaseVisibility.showAskPiHint(
-                      CaseVisibility.resolveFor(auth),
-                    )
+                message: CaseVisibility.showAskPiHint(
+                  CaseVisibility.resolveFor(auth),
+                )
                     ? 'Ask your PI or API for station-wide dashboard access to view this record.'
                     : null,
               ),
@@ -136,94 +136,77 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
             ),
       floatingActionButton: _recordDeleted || !showContent
           ? null
-          : Builder(
-              builder: (ctx) {
-                final auth = context.watch<AuthProvider>();
-                final canEdit = PoliceRbacHelper.canEditRecord(_record, auth);
-                final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
+          : Builder(builder: (ctx) {
+              final auth = context.watch<AuthProvider>();
+              final canEdit = PoliceRbacHelper.canEditRecord(_record, auth);
+              final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
 
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloatingActionButton.extended(
+                    heroTag: 'pdf_module_btn',
+                    onPressed: () => runWithPdfAuthGate(
+                      context,
+                      () => ModulePdfHelper.generatePdf(_record),
+                    ),
+                    backgroundColor: AppColors.dangerRed,
+                    icon: const Icon(Icons.picture_as_pdf_rounded,
+                        color: Colors.white),
+                    label: Text(
+                      'Download PDF',
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600, color: Colors.white),
+                    ),
+                  ),
+                  if (canSendReminder) ...[
+                    const SizedBox(height: 12),
                     FloatingActionButton.extended(
-                      heroTag: 'pdf_module_btn',
-                      onPressed: () => runWithPdfAuthGate(
-                        context,
-                        () => ModulePdfHelper.generatePdf(_record),
-                      ),
-                      backgroundColor: AppColors.dangerRed,
-                      icon: const Icon(
-                        Icons.picture_as_pdf_rounded,
-                        color: Colors.white,
-                      ),
+                      heroTag: 'reminder_module_btn',
+                      onPressed: () =>
+                          SendReminderDialog.show(context, _record),
+                      backgroundColor: AppColors.warningOrange,
+                      icon: const Icon(Icons.notifications_active_rounded,
+                          color: Colors.white),
                       label: Text(
-                        'Download PDF',
+                        'Send Reminder to IO',
                         style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                            fontWeight: FontWeight.w600, color: Colors.white),
                       ),
                     ),
-                    if (canSendReminder) ...[
-                      const SizedBox(height: 12),
-                      FloatingActionButton.extended(
-                        heroTag: 'reminder_module_btn',
-                        onPressed: () =>
-                            SendReminderDialog.show(context, _record),
-                        backgroundColor: AppColors.warningOrange,
-                        icon: const Icon(
-                          Icons.notifications_active_rounded,
-                          color: Colors.white,
-                        ),
-                        label: Text(
-                          'Send Reminder to IO',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (canEdit) ...[
-                      const SizedBox(height: 12),
-                      FloatingActionButton.extended(
-                        heroTag: 'edit_module_btn',
-                        onPressed: () => _openEdit(context, moduleLabel),
-                        backgroundColor: AppColors.goldPrimary,
-                        icon: const Icon(
-                          Icons.edit_note_rounded,
-                          color: AppColors.navyDark,
-                        ),
-                        label: Text(
-                          'Edit Record',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      FloatingActionButton.extended(
-                        heroTag: 'delete_module_btn',
-                        onPressed: () => _confirmDeleteRecord(),
-                        backgroundColor: AppColors.dangerRed,
-                        icon: const Icon(
-                          Icons.delete_outline_rounded,
-                          color: Colors.white,
-                        ),
-                        label: Text(
-                          'Delete',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
-                );
-              },
-            ),
+                  if (canEdit) ...[
+                    const SizedBox(height: 12),
+                    FloatingActionButton.extended(
+                      heroTag: 'edit_module_btn',
+                      onPressed: () => _openEdit(context, moduleLabel),
+                      backgroundColor: AppColors.goldPrimary,
+                      icon: const Icon(Icons.edit_note_rounded,
+                          color: AppColors.navyDark),
+                      label: Text(
+                        'Edit Record',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyDark),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    FloatingActionButton.extended(
+                      heroTag: 'delete_module_btn',
+                      onPressed: () => _confirmDeleteRecord(),
+                      backgroundColor: AppColors.dangerRed,
+                      icon: const Icon(Icons.delete_outline_rounded,
+                          color: Colors.white),
+                      label: Text(
+                        'Delete',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            }),
     );
   }
 
@@ -233,19 +216,12 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
       builder: (dialogCtx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
-        title: Text(
-          'Delete Record',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w700,
-            color: AppColors.dangerRed,
-          ),
-        ),
-        content: Text(
-          'Delete "${_record.title}"? This cannot be undone.',
-          style: GoogleFonts.poppins(fontSize: 13),
-        ),
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text('Delete Record',
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700, color: AppColors.dangerRed)),
+        content: Text('Delete "${_record.title}"? This cannot be undone.',
+            style: GoogleFonts.poppins(fontSize: 13)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
@@ -255,47 +231,31 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
             onPressed: () async {
               Navigator.pop(dialogCtx);
               try {
-                await _firestore.deleteCase(
-                  _record.id,
-                  moduleKey: _record.moduleKey,
-                );
+                await _firestore.deleteCase(_record.id,
+                    moduleKey: _record.moduleKey);
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Record deleted',
-                      style: GoogleFonts.poppins(),
-                    ),
-                    backgroundColor: AppColors.successGreen,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Record deleted', style: GoogleFonts.poppins()),
+                  backgroundColor: AppColors.successGreen,
+                ));
                 Navigator.pop(context);
               } catch (e) {
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Failed to delete record: $e',
-                      style: GoogleFonts.poppins(),
-                    ),
-                    backgroundColor: AppColors.dangerRed,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Failed to delete record: $e',
+                      style: GoogleFonts.poppins()),
+                  backgroundColor: AppColors.dangerRed,
+                ));
               }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.dangerRed,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
+                  borderRadius: BorderRadius.circular(AppRadius.md)),
             ),
-            child: Text(
-              'Delete',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: Text('Delete',
+                style: GoogleFonts.poppins(
+                    color: Colors.white, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -307,7 +267,10 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: ADFormScreen(existingRecord: _record, popCountAfterSubmit: 2),
+          page: ADFormScreen(
+            existingRecord: _record,
+            popCountAfterSubmit: 2,
+          ),
         ),
       );
       return;
@@ -381,11 +344,8 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.delete_forever_rounded,
-                    size: 64,
-                    color: AppColors.lightSubText,
-                  ),
+                  const Icon(Icons.delete_forever_rounded,
+                      size: 64, color: AppColors.lightSubText),
                   const SizedBox(height: 16),
                   Text(
                     'This record no longer exists',
@@ -414,17 +374,13 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
     );
   }
 
-  Widget _buildAppBar(
-    BuildContext context,
-    bool isDark,
-    Color statusColor,
-    String moduleLabel,
-  ) {
+  Widget _buildAppBar(BuildContext context, bool isDark, Color statusColor,
+      String moduleLabel) {
     final titleText = _record.caseNumber.trim().isNotEmpty
         ? _record.caseNumber.trim()
         : (_record.title.trim().isNotEmpty
-              ? _record.title.trim()
-              : moduleLabel);
+            ? _record.title.trim()
+            : moduleLabel);
 
     final showSubtitle =
         titleText.toLowerCase() != moduleLabel.trim().toLowerCase();
@@ -435,11 +391,8 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
       backgroundColor: AppColors.navyDark,
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: Colors.white,
-          size: 20,
-        ),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded,
+            color: Colors.white, size: 20),
       ),
       title: Column(
         mainAxisSize: MainAxisSize.min,
@@ -448,20 +401,16 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           Text(
             titleText,
             style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-              fontSize: 15,
-            ),
+                fontWeight: FontWeight.w600, color: Colors.white, fontSize: 15),
           ),
           if (showSubtitle)
             Text(
               moduleLabel.toUpperCase(),
               style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                color: AppColors.goldPrimary,
-                fontSize: 10,
-                letterSpacing: 0.5,
-              ),
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.goldPrimary,
+                  fontSize: 10,
+                  letterSpacing: 0.5),
             ),
         ],
       ),
@@ -487,68 +436,42 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: statusColor.withValues(alpha: 0.35)),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.assignment_turned_in_rounded,
-              color: Colors.white,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Case Status',
-                  style: GoogleFonts.poppins(
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+          child: const Icon(Icons.assignment_turned_in_rounded,
+              color: Colors.white, size: 18),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Case Status',
+                style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: statusColor,
-                  ),
-                ),
-                Text(
-                  _record.status.toUpperCase(),
-                  style: GoogleFonts.poppins(
+                    color: statusColor)),
+            Text(_record.status.toUpperCase(),
+                style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: statusColor,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'Priority',
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  color: AppColors.lightSubText,
-                ),
-              ),
-              Text(
-                _record.priority,
-                style: GoogleFonts.poppins(
+                    letterSpacing: 1.2)),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text('Priority',
+              style: GoogleFonts.poppins(
+                  fontSize: 10, color: AppColors.lightSubText)),
+          Text(_record.priority,
+              style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.navyDark,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+                  color: AppColors.navyDark)),
+        ]),
+      ]),
     );
   }
 

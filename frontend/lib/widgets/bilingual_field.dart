@@ -138,20 +138,22 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
     this.marathiLabelStyle,
   });
 
+  static const double _lineHeight = 26.0;
+
   @override
   Widget build(BuildContext context) {
+    final TextStyle textStyle = serifStyle.copyWith(
+      fontSize: 14,
+      height: _lineHeight / 14.0,
+      color: Colors.blue.shade900,
+      fontWeight: FontWeight.bold,
+    );
+
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: controller,
       builder: (context, value, child) {
         return LayoutBuilder(
           builder: (context, constraints) {
-            final TextStyle textStyle = serifStyle.copyWith(
-              fontSize: 14,
-              height: 1.71,
-              color: Colors.blue.shade900,
-              fontWeight: FontWeight.bold,
-            );
-
             final textWidth = constraints.maxWidth - 8;
 
             int lines = minLines;
@@ -159,55 +161,99 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
               final textPainter = TextPainter(
                 text: TextSpan(text: value.text, style: textStyle),
                 textDirection: TextDirection.ltr,
+                strutStyle: const StrutStyle(
+                  fontSize: 14,
+                  height: _lineHeight / 14.0,
+                  forceStrutHeight: true,
+                ),
               );
-              textPainter.layout(maxWidth: textWidth);
+              textPainter.layout(maxWidth: textWidth > 0 ? textWidth : 100);
               final count = textPainter.computeLineMetrics().length;
-              if (count > minLines) {
-                lines = count;
+              final newlineCount = '\n'.allMatches(value.text).length + 1;
+              final detected = count > newlineCount ? count : newlineCount;
+              if (detected > minLines) {
+                lines = detected;
               }
             }
 
-            return Stack(
-              children: [
-                Column(
-                  children: List.generate(
-                    lines,
-                    (index) => Container(
-                      height: 24,
-                      decoration: const BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(color: Colors.black87, width: 1),
-                        ),
-                      ),
+            final totalHeight = lines * _lineHeight;
+
+            return SizedBox(
+              height: totalHeight,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CustomPaint(
+                    size: Size(constraints.maxWidth, totalHeight),
+                    painter: _LinedBackgroundPainter(
+                      lines: lines,
+                      lineHeight: _lineHeight,
                     ),
                   ),
-                ),
-                TextField(
-                  controller: controller,
-                  textAlign: TextAlign.start,
-                  maxLines: null,
-                  keyboardType: TextInputType.multiline,
-                  style: textStyle,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 0,
+                  TextField(
+                    controller: controller,
+                    textAlign: TextAlign.start,
+                    textAlignVertical: TextAlignVertical.top,
+                    minLines: lines,
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    strutStyle: const StrutStyle(
+                      fontSize: 14,
+                      height: _lineHeight / 14.0,
+                      forceStrutHeight: true,
                     ),
-                    fillColor: Colors.transparent,
-                    filled: true,
+                    style: textStyle,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      isCollapsed: true,
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                      fillColor: Colors.transparent,
+                      filled: true,
+                      hoverColor: Colors.transparent,
+                      focusColor: Colors.transparent,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         );
       },
     );
+  }
+}
+
+class _LinedBackgroundPainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+
+  const _LinedBackgroundPainter({
+    required this.lines,
+    required this.lineHeight,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black87
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = (i * lineHeight) - 0.5;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _LinedBackgroundPainter oldDelegate) {
+    return oldDelegate.lines != lines || oldDelegate.lineHeight != lineHeight;
   }
 }
 
@@ -237,18 +283,14 @@ class BilingualMultilineField extends StatelessWidget {
         if (label.isNotEmpty)
           Text(
             label,
-            style: serifStyle.copyWith(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
+            style:
+                serifStyle.copyWith(fontSize: 14, fontWeight: FontWeight.bold),
           ),
         if (marathiLabel.isNotEmpty)
           Text(
             marathiLabel,
             style: marathiLabelStyle.copyWith(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
+                fontSize: 12, fontWeight: FontWeight.bold),
           ),
         const SizedBox(height: 8),
         BilingualDynamicLinedTextField(
@@ -287,9 +329,7 @@ class BilingualSectionHeader extends StatelessWidget {
           Text(
             marathiLabel,
             style: marathiLabelStyle.copyWith(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
+                fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -300,7 +340,10 @@ class BilingualSectionHeader extends StatelessWidget {
 class BilingualFieldRow extends StatelessWidget {
   final List<Widget> fields;
 
-  const BilingualFieldRow({super.key, required this.fields});
+  const BilingualFieldRow({
+    super.key,
+    required this.fields,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -226,9 +226,8 @@ class _SendReminderDialogState extends State<SendReminderDialog> {
                         p,
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w500,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
                           color: isSelected ? Colors.white : AppColors.navyDark,
                         ),
                       ),
@@ -289,9 +288,8 @@ class _SendReminderDialogState extends State<SendReminderDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _isSubmitting
-                        ? null
-                        : () => Navigator.pop(context),
+                    onPressed:
+                        _isSubmitting ? null : () => Navigator.pop(context),
                     child: Text(
                       'Cancel',
                       style: GoogleFonts.poppins(

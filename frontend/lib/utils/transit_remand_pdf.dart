@@ -52,8 +52,7 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
     );
   }
 
-  final isEnglish =
-      v('variant') == 'english' ||
+  final isEnglish = v('variant') == 'english' ||
       v('formSection').toLowerCase().contains('english');
 
   if (isEnglish) {
@@ -90,11 +89,9 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
     );
   } else {
     final section = v('formSection').toLowerCase();
-    final showP1 =
-        section.isEmpty ||
+    final showP1 = section.isEmpty ||
         (!section.contains('page 2') && !section.contains('police assist'));
-    final showP2 =
-        section.isEmpty ||
+    final showP2 = section.isEmpty ||
         section.contains('page 2') ||
         section.contains('police assist');
 

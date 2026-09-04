@@ -47,10 +47,8 @@ class RankRoleConfig {
   });
 
   factory RankRoleConfig.fromJson(Map<String, dynamic> json) {
-    List<String> parseStringList(
-      dynamic raw, {
-      List<String> fallback = const [],
-    }) {
+    List<String> parseStringList(dynamic raw,
+        {List<String> fallback = const []}) {
       dynamic value = raw;
       if (value is String) {
         final trimmed = value.trim();
@@ -71,17 +69,14 @@ class RankRoleConfig {
       return fallback;
     }
 
-    final cats = parseStringList(
-      json['allowed_categories'],
-      fallback: ['field_officer'],
-    );
+    final cats = parseStringList(json['allowed_categories'],
+        fallback: ['field_officer']);
     final roles = parseStringList(json['allowed_admin_roles']);
 
     return RankRoleConfig(
       code: json['code']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
-      displayName:
-          json['display_name']?.toString() ??
+      displayName: json['display_name']?.toString() ??
           json['title']?.toString() ??
           json['code']?.toString() ??
           '',
@@ -209,19 +204,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _loadingRankConfigs = true);
     try {
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/master/hierarchy/rank-configs/'),
-      );
+          Uri.parse('${ApiConfig.baseUrl}/master/hierarchy/rank-configs/'));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         final List data = (decoded is List)
             ? decoded
             : ((decoded is Map && decoded.containsKey('results'))
-                  ? decoded['results'] as List
-                  : []);
+                ? decoded['results'] as List
+                : []);
         final list = data
             .map(
-              (item) => RankRoleConfig.fromJson(item as Map<String, dynamic>),
-            )
+                (item) => RankRoleConfig.fromJson(item as Map<String, dynamic>))
             .toList();
         if (mounted) {
           setState(() {
@@ -261,10 +254,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
         if (states.isNotEmpty) {
           _dynamicStates = states;
-          final mhState = states.firstWhere(
-            (s) => s['code'] == 'MH',
-            orElse: () => states.first,
-          );
+          final mhState = states.firstWhere((s) => s['code'] == 'MH',
+              orElse: () => states.first);
           _selectedStateCode = mhState['code'];
           _selectedState = mhState['name']!;
         }
@@ -278,26 +269,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _fetchDynamicDivisions(String stateCode) async {
     try {
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}/master/hierarchy/divisions/?state_code=$stateCode',
-        ),
-      );
+      final response = await http.get(Uri.parse(
+          '${ApiConfig.baseUrl}/master/hierarchy/divisions/?state_code=$stateCode'));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         final List data = (decoded is List)
             ? decoded
             : ((decoded is Map && decoded.containsKey('results'))
-                  ? decoded['results'] as List
-                  : []);
-        final divisions =
-            data
-                .map(
-                  (e) => (e is Map ? (e['name'] ?? '') : e).toString().trim(),
-                )
-                .where((s) => s.isNotEmpty && s != 'null')
-                .toList()
-              ..sort();
+                ? decoded['results'] as List
+                : []);
+        final divisions = data
+            .map((e) => (e is Map ? (e['name'] ?? '') : e).toString().trim())
+            .where((s) => s.isNotEmpty && s != 'null')
+            .toList()
+          ..sort();
         if (mounted) {
           setState(() {
             _dynamicDivisions = divisions;
@@ -312,26 +297,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _fetchDynamicDistricts(String stateCode) async {
     try {
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}/master/hierarchy/districts/?state_code=$stateCode',
-        ),
-      );
+      final response = await http.get(Uri.parse(
+          '${ApiConfig.baseUrl}/master/hierarchy/districts/?state_code=$stateCode'));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         final List data = (decoded is List)
             ? decoded
             : ((decoded is Map && decoded.containsKey('results'))
-                  ? decoded['results'] as List
-                  : []);
-        final districts =
-            data
-                .map(
-                  (e) => (e is Map ? (e['name'] ?? '') : e).toString().trim(),
-                )
-                .where((s) => s.isNotEmpty && s != 'null')
-                .toList()
-              ..sort();
+                ? decoded['results'] as List
+                : []);
+        final districts = data
+            .map((e) => (e is Map ? (e['name'] ?? '') : e).toString().trim())
+            .where((s) => s.isNotEmpty && s != 'null')
+            .toList()
+          ..sort();
         if (mounted) {
           setState(() {
             _dynamicDistricts = districts;
@@ -348,28 +327,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (districtName.trim().isEmpty) return;
     try {
       final encodedDist = Uri.encodeComponent(districtName.trim());
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}/master/hierarchy/stations/?district=$encodedDist',
-        ),
-      );
+      final response = await http.get(Uri.parse(
+          '${ApiConfig.baseUrl}/master/hierarchy/stations/?district=$encodedDist'));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         final List data = (decoded is List)
             ? decoded
             : ((decoded is Map && decoded.containsKey('results'))
-                  ? decoded['results'] as List
-                  : []);
-        final stations =
-            data
-                .map(
-                  (e) => (e is Map ? (e['name'] ?? e['station_name'] ?? '') : e)
-                      .toString()
-                      .trim(),
-                )
-                .where((s) => s.isNotEmpty && s != 'null')
-                .toList()
-              ..sort();
+                ? decoded['results'] as List
+                : []);
+        final stations = data
+            .map((e) => (e is Map ? (e['name'] ?? e['station_name'] ?? '') : e)
+                .toString()
+                .trim())
+            .where((s) => s.isNotEmpty && s != 'null')
+            .toList()
+          ..sort();
         if (mounted) {
           setState(() {
             _dynamicStations = stations;
@@ -412,10 +385,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _sendMobileOtp() {
     final mobile = _mobileCtrl.text.replaceAll(RegExp(r'\D'), '');
     if (mobile.length != 10) {
-      _showSnack(
-        'Please enter a valid 10-digit mobile number.',
-        AppColors.warningOrange,
-      );
+      _showSnack('Please enter a valid 10-digit mobile number.',
+          AppColors.warningOrange);
       return;
     }
 
@@ -444,9 +415,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     _showSnack(
-      'OTP sent to +91 $mobile (Dev Mode: 123456)',
-      AppColors.infoBlue,
-    );
+        'OTP sent to +91 $mobile (Dev Mode: 123456)', AppColors.infoBlue);
   }
 
   void _verifyMobileOtp() {
@@ -472,10 +441,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _sendEmailOtp() {
     final email = _emailCtrl.text.trim().toLowerCase();
     if (!email.contains('@') || !email.contains('.')) {
-      _showSnack(
-        'Please enter a valid government email address.',
-        AppColors.warningOrange,
-      );
+      _showSnack('Please enter a valid government email address.',
+          AppColors.warningOrange);
       return;
     }
 
@@ -566,25 +533,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) {
       _showSnack(
-        'Please correct the highlighted errors.',
-        AppColors.warningOrange,
-      );
+          'Please correct the highlighted errors.', AppColors.warningOrange);
       return;
     }
 
     if (!_mobileVerified) {
-      _showSnack(
-        'Please verify your Mobile Number with OTP first.',
-        AppColors.warningOrange,
-      );
+      _showSnack('Please verify your Mobile Number with OTP first.',
+          AppColors.warningOrange);
       return;
     }
 
     if (!_emailVerified) {
-      _showSnack(
-        'Please verify your Government Email with OTP first.',
-        AppColors.warningOrange,
-      );
+      _showSnack('Please verify your Government Email with OTP first.',
+          AppColors.warningOrange);
       return;
     }
 
@@ -626,10 +587,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
 
-      _showSnack(
-        'Registration submitted successfully for approval.',
-        AppColors.successGreen,
-      );
+      _showSnack('Registration submitted successfully for approval.',
+          AppColors.successGreen);
 
       await Future.delayed(const Duration(milliseconds: 400));
       if (!mounted) return;
@@ -686,16 +645,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   Navigator.pop(context);
                                 } else {
                                   Navigator.pushReplacementNamed(
-                                    context,
-                                    AppRoutes.login,
-                                  );
+                                      context, AppRoutes.login);
                                 }
                               },
-                              icon: const Icon(
-                                Icons.arrow_back_rounded,
-                                color: navyBrandColor,
-                                size: 20,
-                              ),
+                              icon: const Icon(Icons.arrow_back_rounded,
+                                  color: navyBrandColor, size: 20),
                               tooltip: 'Back to Login',
                             ),
                           ),
@@ -774,8 +728,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onChanged: (_) => setState(() {}),
                             suffixIcon: _buildOtpFieldSuffix(
                               isVerified: _mobileVerified,
-                              isEligible:
-                                  _mobileCtrl.text
+                              isEligible: _mobileCtrl.text
                                       .replaceAll(RegExp(r'\D'), '')
                                       .length ==
                                   10,
@@ -807,8 +760,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onChanged: (_) => setState(() {}),
                             suffixIcon: _buildOtpFieldSuffix(
                               isVerified: _emailVerified,
-                              isEligible:
-                                  _emailCtrl.text.contains('@') &&
+                              isEligible: _emailCtrl.text.contains('@') &&
                                   _emailCtrl.text.contains('.'),
                               onGetOtp: _sendEmailOtp,
                             ),
@@ -846,17 +798,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: const Color(0xFFE2E8F0),
-                                ),
+                                border:
+                                    Border.all(color: const Color(0xFFE2E8F0)),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(
-                                    Icons.info_outline_rounded,
-                                    color: Color(0xFF64748B),
-                                    size: 20,
-                                  ),
+                                  const Icon(Icons.info_outline_rounded,
+                                      color: Color(0xFF64748B), size: 20),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
@@ -878,17 +826,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF0FDF4),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: const Color(0xFFBBF7D0),
-                                ),
+                                border:
+                                    Border.all(color: const Color(0xFFBBF7D0)),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(
-                                    Icons.shield_rounded,
-                                    color: Color(0xFF16A34A),
-                                    size: 20,
-                                  ),
+                                  const Icon(Icons.shield_rounded,
+                                      color: Color(0xFF16A34A), size: 20),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
@@ -921,7 +865,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           title: 'Posting & Location Hierarchy',
                           subtitle:
                               'Select your administrative jurisdiction scope.',
-                          children: [_buildDynamicLocationSection()],
+                          children: [
+                            _buildDynamicLocationSection(),
+                          ],
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -947,8 +893,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 color: subtitleColor,
                               ),
                               onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
+                                  () => _obscurePassword = !_obscurePassword),
                             ),
                             validator: (v) => v == null || v.length < 6
                                 ? 'Password must be at least 6 characters'
@@ -968,10 +913,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 size: 18,
                                 color: subtitleColor,
                               ),
-                              onPressed: () => setState(
-                                () => _obscureConfirmPassword =
-                                    !_obscureConfirmPassword,
-                              ),
+                              onPressed: () => setState(() =>
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword),
                             ),
                             validator: (v) {
                               if (v == null || v.isEmpty) {
@@ -1007,9 +951,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Text(
                             'Clear photo or scan of your official department ID card',
                             style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: subtitleColor,
-                            ),
+                                fontSize: 12, color: subtitleColor),
                           ),
                           const SizedBox(height: 8),
                           _buildUploadBox(
@@ -1032,9 +974,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Text(
                             'Recent portrait photo for profile verification',
                             style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: subtitleColor,
-                            ),
+                                fontSize: 12, color: subtitleColor),
                           ),
                           const SizedBox(height: 8),
                           _buildUploadBox(
@@ -1065,9 +1005,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
+                                      strokeWidth: 2, color: Colors.white),
                                 )
                               : Text(
                                   'Register',
@@ -1100,9 +1038,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   Navigator.pop(context);
                                 } else {
                                   Navigator.pushReplacementNamed(
-                                    context,
-                                    AppRoutes.login,
-                                  );
+                                      context, AppRoutes.login);
                                 }
                               },
                               child: Text(
@@ -1143,18 +1079,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: BoxDecoration(
           color: AppColors.successGreen.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.successGreen.withValues(alpha: 0.35),
-          ),
+          border:
+              Border.all(color: AppColors.successGreen.withValues(alpha: 0.35)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              size: 14,
-              color: AppColors.successGreen,
-            ),
+            const Icon(Icons.check_circle_rounded,
+                size: 14, color: AppColors.successGreen),
             const SizedBox(width: 4),
             Text(
               'Verified',
@@ -1174,9 +1106,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: TextButton(
         onPressed: onGetOtp,
         style: TextButton.styleFrom(
-          foregroundColor: isEligible
-              ? navyBrandColor
-              : const Color(0xFF94A3B8),
+          foregroundColor:
+              isEligible ? navyBrandColor : const Color(0xFF94A3B8),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1220,19 +1151,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.lock_clock_outlined,
-                size: 16,
-                color: navyBrandColor,
-              ),
+              const Icon(Icons.lock_clock_outlined,
+                  size: 16, color: navyBrandColor),
               const SizedBox(width: 6),
               Text(
                 title,
                 style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF0F172A),
-                ),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF0F172A)),
               ),
               const Spacer(),
               Container(
@@ -1244,10 +1171,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Text(
                   'Dev OTP: 123456',
                   style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.brown.shade800,
-                  ),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.brown.shade800),
                 ),
               ),
             ],
@@ -1264,22 +1190,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     LengthLimitingTextInputFormatter(6),
                   ],
                   style: GoogleFonts.poppins(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 2,
-                  ),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 2),
                   decoration: InputDecoration(
                     hintText: '• • • • • •',
                     hintStyle: GoogleFonts.poppins(
-                      fontSize: 13.5,
-                      letterSpacing: 2,
-                      color: const Color(0xFF94A3B8),
-                    ),
+                        fontSize: 13.5,
+                        letterSpacing: 2,
+                        color: const Color(0xFF94A3B8)),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
+                        horizontal: 12, vertical: 10),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -1292,10 +1214,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: navyBrandColor,
-                        width: 1.5,
-                      ),
+                      borderSide:
+                          const BorderSide(color: navyBrandColor, width: 1.5),
                     ),
                   ),
                 ),
@@ -1306,22 +1226,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: navyBrandColor,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 11,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                      borderRadius: BorderRadius.circular(8)),
                   elevation: 0,
                 ),
-                child: Text(
-                  'Verify OTP',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: Text('Verify OTP',
+                    style: GoogleFonts.poppins(
+                        fontSize: 12, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -1330,10 +1243,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Text(
               errorMessage,
               style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: AppColors.dangerRed,
-                fontWeight: FontWeight.w500,
-              ),
+                  fontSize: 11,
+                  color: AppColors.dangerRed,
+                  fontWeight: FontWeight.w500),
             ),
           ],
           const SizedBox(height: 6),
@@ -1343,9 +1255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(
                   'Resend available in ${secondsLeft}s',
                   style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: const Color(0xFF64748B),
-                  ),
+                      fontSize: 11, color: const Color(0xFF64748B)),
                 )
               else
                 GestureDetector(
@@ -1353,10 +1263,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Text(
                     'Resend OTP',
                     style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: navyBrandColor,
-                      fontWeight: FontWeight.w700,
-                    ),
+                        fontSize: 11,
+                        color: navyBrandColor,
+                        fontWeight: FontWeight.w700),
                   ),
                 ),
             ],
@@ -1446,23 +1355,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       inputFormatters: inputFormatters,
       validator: validator,
       onChanged: onChanged,
-      style: GoogleFonts.poppins(
-        fontSize: 13.5,
-        color: const Color(0xFF0F172A),
-      ),
+      style:
+          GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: GoogleFonts.poppins(
-          fontSize: 13.5,
-          color: const Color(0xFF94A3B8),
-        ),
+        hintStyle:
+            GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF94A3B8)),
         prefixIcon: Icon(icon, color: navyBrandColor, size: 19),
         suffixIcon: suffixIcon,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 13,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -1551,18 +1454,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Row(
           children: [
             const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2)),
             const SizedBox(width: 10),
-            Text(
-              'Loading designations from database...',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: const Color(0xFF64748B),
-              ),
-            ),
+            Text('Loading designations from database...',
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: const Color(0xFF64748B))),
           ],
         ),
       );
@@ -1571,34 +1469,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final items = _rankConfigs;
     final safeValue =
         (_designation != null && items.any((d) => d.code == _designation))
-        ? _designation
-        : null;
+            ? _designation
+            : null;
 
     return DropdownButtonFormField<String>(
       initialValue: safeValue,
       isExpanded: true,
       menuMaxHeight: 360,
       icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF64748B)),
-      style: GoogleFonts.poppins(
-        fontSize: 13.5,
-        color: const Color(0xFF0F172A),
-      ),
+      style:
+          GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
       decoration: InputDecoration(
         hintText: 'Designation / Official Rank *',
-        hintStyle: GoogleFonts.poppins(
-          fontSize: 13.5,
-          color: const Color(0xFF94A3B8),
-        ),
-        prefixIcon: const Icon(
-          Icons.badge_outlined,
-          color: navyBrandColor,
-          size: 19,
-        ),
+        hintStyle:
+            GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF94A3B8)),
+        prefixIcon:
+            const Icon(Icons.badge_outlined, color: navyBrandColor, size: 19),
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 13,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -1656,8 +1545,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildCategorySelectorCard() {
-    final allowed =
-        _currentRankConfig?.allowedCategories ??
+    final allowed = _currentRankConfig?.allowedCategories ??
         ['field_officer', 'admin_officer'];
 
     return Column(
@@ -1741,11 +1629,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: isSelected ? navyBrandColor : const Color(0xFF64748B),
-              size: 22,
-            ),
+            Icon(icon,
+                color: isSelected ? navyBrandColor : const Color(0xFF64748B),
+                size: 22),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -1756,9 +1642,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? navyBrandColor
-                          : const Color(0xFF1E293B),
+                      color:
+                          isSelected ? navyBrandColor : const Color(0xFF1E293B),
                     ),
                   ),
                   Text(
@@ -1801,23 +1686,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           runSpacing: 8,
           children: [
             if (allowed.contains('division_admin'))
-              _buildRolePill(
-                'division_admin',
-                'Division Admin (Range)',
-                Icons.map_rounded,
-              ),
+              _buildRolePill('division_admin', 'Division Admin (Range)',
+                  Icons.map_rounded),
             if (allowed.contains('district_admin'))
-              _buildRolePill(
-                'district_admin',
-                'District Admin (SP/CP)',
-                Icons.location_city_rounded,
-              ),
+              _buildRolePill('district_admin', 'District Admin (SP/CP)',
+                  Icons.location_city_rounded),
             if (allowed.contains('station_admin'))
-              _buildRolePill(
-                'station_admin',
-                'Station Admin (SHO)',
-                Icons.local_police_rounded,
-              ),
+              _buildRolePill('station_admin', 'Station Admin (SHO)',
+                  Icons.local_police_rounded),
           ],
         ),
       ],
@@ -1829,11 +1705,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isSelected = _selectedAdminRole == roleKey;
 
     return ChoiceChip(
-      avatar: Icon(
-        icon,
-        size: 16,
-        color: isSelected ? Colors.white : navyBrandColor,
-      ),
+      avatar: Icon(icon,
+          size: 16, color: isSelected ? Colors.white : navyBrandColor),
       label: Text(
         label,
         style: GoogleFonts.poppins(
@@ -1848,8 +1721,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: isSelected ? navyBrandColor : const Color(0xFFCBD5E1),
-        ),
+            color: isSelected ? navyBrandColor : const Color(0xFFCBD5E1)),
       ),
       onSelected: (selected) {
         if (selected) {
@@ -1879,7 +1751,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SearchablePickerField(
             key: ValueKey('div-$_selectedState'),
             label: 'Division / Range',
-            hintText: (_dynamicDivisions.isNotEmpty)
+            hintText: _dynamicDivisions.isNotEmpty
                 ? 'Select Division / Range'
                 : 'Loading Divisions...',
             leadingIcon: Icons.map_rounded,
@@ -1901,8 +1773,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (needsDistrict) ...[
           SearchablePickerField(
             key: ValueKey(
-              'dist-$_selectedState-$_selectedDivision-$_selectedUnitType',
-            ),
+                'dist-$_selectedState-$_selectedDivision-$_selectedUnitType'),
             label:
                 'District / Commissionerate (${_dynamicDistricts.length} Active)',
             hintText: _selectedDivision != null || !needsDivision
@@ -1928,8 +1799,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (needsStation) ...[
           SearchablePickerField(
             key: ValueKey(
-              'stn-$_selectedDistrict-$_selectedDivision-$_selectedUnitType',
-            ),
+                'stn-$_selectedDistrict-$_selectedDivision-$_selectedUnitType'),
             label: 'Police Station (${_dynamicStations.length} Available)',
             hintText: _selectedDistrict != null
                 ? 'Search police station'
@@ -1956,18 +1826,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.info_outline_rounded,
-                  color: Color(0xFF1D4ED8),
-                  size: 20,
-                ),
+                const Icon(Icons.info_outline_rounded,
+                    color: Color(0xFF1D4ED8), size: 20),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     !needsDistrict
                         ? (!needsDivision
-                              ? 'State Super Admin registration scope covers all divisions & districts statewide.'
-                              : 'Division Admin registration scope covers all districts under selected division.')
+                            ? 'State Super Admin registration scope covers all divisions & districts statewide.'
+                            : 'Division Admin registration scope covers all districts under selected division.')
                         : 'District Admin registration scope covers all police stations under selected district.',
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
@@ -1993,26 +1860,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       isExpanded: true,
       menuMaxHeight: 360,
       icon: const Icon(Icons.search, color: Color(0xFF64748B), size: 18),
-      style: GoogleFonts.poppins(
-        fontSize: 13.5,
-        color: const Color(0xFF0F172A),
-      ),
+      style:
+          GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF0F172A)),
       decoration: InputDecoration(
         labelText: 'State',
-        labelStyle: GoogleFonts.poppins(
-          fontSize: 12,
-          color: const Color(0xFF64748B),
-        ),
-        prefixIcon: const Icon(
-          Icons.menu_book_outlined,
-          color: navyBrandColor,
-          size: 19,
-        ),
+        labelStyle:
+            GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF64748B)),
+        prefixIcon: const Icon(Icons.menu_book_outlined,
+            color: navyBrandColor, size: 19),
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 10,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -2028,17 +1886,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
           borderSide: const BorderSide(color: navyBrandColor, width: 1.5),
         ),
       ),
-      items:
-          ((_dynamicStates.isNotEmpty)
-                  ? _dynamicStates.map((s) => s['name']!).toList()
-                  : ['Maharashtra', 'Gujarat'])
-              .map((st) {
-                return DropdownMenuItem<String>(
-                  value: st,
-                  child: Text(st, overflow: TextOverflow.ellipsis),
-                );
-              })
-              .toList(),
+      items: (_dynamicStates.isNotEmpty
+              ? _dynamicStates.map((s) => s['name']!).toList()
+              : ['Maharashtra', 'Gujarat'])
+          .map((st) {
+        return DropdownMenuItem<String>(
+          value: st,
+          child: Text(st, overflow: TextOverflow.ellipsis),
+        );
+      }).toList(),
       onChanged: (v) {
         if (v != null) {
           final match = _dynamicStates.firstWhere(
@@ -2079,9 +1935,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: AppColors.successGreen.withValues(alpha: 0.6),
-            width: 1.5,
-          ),
+              color: AppColors.successGreen.withValues(alpha: 0.6), width: 1.5),
         ),
         child: Stack(
           fit: StackFit.expand,
@@ -2099,17 +1953,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
+                  icon: const Icon(Icons.close_rounded,
+                      color: Colors.white, size: 16),
                   onPressed: () => _clearImage(isIdCard: isIdCard),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 28,
-                    minHeight: 28,
-                  ),
+                  constraints:
+                      const BoxConstraints(minWidth: 28, minHeight: 28),
                 ),
               ),
             ),
@@ -2128,9 +1977,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: const Color(0xFFCBD5E1),
-            style: BorderStyle.solid,
-          ),
+              color: const Color(0xFFCBD5E1), style: BorderStyle.solid),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -2141,11 +1988,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: navyBrandColor,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
-                Icons.cloud_upload_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
+              child: const Icon(Icons.cloud_upload_rounded,
+                  color: Colors.white, size: 18),
             ),
             const SizedBox(height: 6),
             Text(

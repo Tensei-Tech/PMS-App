@@ -22,11 +22,12 @@ class StandaloneFormLayout extends StatelessWidget {
     required List<Widget> children,
     double maxWidth = BaseFormStyles.maxContentWidth,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.stretch,
-  }) => BaseFormContent.scrollSections(
-    children: children,
-    maxWidth: maxWidth,
-    crossAxisAlignment: crossAxisAlignment,
-  );
+  }) =>
+      BaseFormContent.scrollSections(
+        children: children,
+        maxWidth: maxWidth,
+        crossAxisAlignment: crossAxisAlignment,
+      );
 
   @override
   Widget build(BuildContext context) {

@@ -33,10 +33,10 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
   static const _knownSectionIds = {kMain, kContinuation};
 
   bool _shows(String id) => showsFormSection(
-    activeSection: widget.formSection,
-    sectionId: id,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        sectionId: id,
+        knownSectionIds: _knownSectionIds,
+      );
 
   late final Map<String, TextEditingController> _fields;
 

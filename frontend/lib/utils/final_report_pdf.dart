@@ -40,10 +40,10 @@ Future<Uint8List> generateFinalReportPdf(Map<String, dynamic> doc) async {
   final activeSection = doc['formSection']?.toString();
 
   bool showsSection(String sectionId) => showsFormSection(
-    activeSection: activeSection,
-    sectionId: sectionId,
-    knownSectionIds: knownSectionIds,
-  );
+        activeSection: activeSection,
+        sectionId: sectionId,
+        knownSectionIds: knownSectionIds,
+      );
 
   final englishStyle = pw.TextStyle(
     font: loraRegular,

@@ -32,28 +32,26 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
   static const _knownSectionIds = {kMemoBody, kSignatures};
 
   bool _shows(String sectionId) => showsFormSection(
-    activeSection: widget.formSection,
-    sectionId: sectionId,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        sectionId: sectionId,
+        knownSectionIds: _knownSectionIds,
+      );
 
   bool get _showAll => showsAllFormSections(
-    activeSection: widget.formSection,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        knownSectionIds: _knownSectionIds,
+      );
   // Page 1 Header fields (1)
   final _districtCtrl = TextEditingController();
   final _psCtrl = TextEditingController();
-  final _yearCtrl = TextEditingController(text: DateTime.now().year.toString());
+  final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
-  final _firYearSuffixCtrl = TextEditingController(
-    text: DateTime.now().year.toString().substring(2),
-  );
+  final _firYearSuffixCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
-  final _dateYearCtrl = TextEditingController(
-    text: DateTime.now().year.toString().substring(2),
-  );
+  final _dateYearCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
 
   final _actSectionCtrl = TextEditingController();
 
@@ -61,10 +59,11 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
   String _natureOfProperty = 'चोरीला गेलेली';
   final _seizureDateDayCtrl = TextEditingController();
   final _seizureDateMonthCtrl = TextEditingController();
-  final _seizureDateYearCtrl = TextEditingController(
-    text: DateTime.now().year.toString().substring(2),
-  );
+  final _seizureDateYearCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
   final _seizureTimeCtrl = TextEditingController();
+  final _seizureTimeHoursCtrl = TextEditingController();
+  final _seizureTimeMinutesCtrl = TextEditingController();
   final _seizurePlaceCtrl = TextEditingController();
   final _seizurePlaceDescCtrl = TextEditingController();
 
@@ -77,6 +76,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
   final _personAgeCtrl = TextEditingController();
   final _personOccupationCtrl = TextEditingController();
   final _personAddressCtrl = TextEditingController();
+  final _personAddressLine2Ctrl = TextEditingController();
 
   // Witnesses (x2)
   final _w1NameCtrl = TextEditingController();
@@ -85,6 +85,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
   final _w1AgeCtrl = TextEditingController();
   final _w1OccupationCtrl = TextEditingController();
   final _w1AddressCtrl = TextEditingController();
+  final _w1AddressLine2Ctrl = TextEditingController();
 
   final _w2NameCtrl = TextEditingController();
   final _w2FatherCtrl = TextEditingController();
@@ -98,9 +99,18 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
   final _perishableDisposalCtrl = TextEditingController();
   final _valuableKeepingCtrl = TextEditingController();
   String _identificationRequired = 'नाही';
+  final _identificationRequiredCtrl = TextEditingController();
+  final _propertyDetailsCtrl = TextEditingController();
   final _circumstancesCtrl = TextEditingController();
   final _circumstancesLine2Ctrl = TextEditingController();
   final _circumstancesLine3Ctrl = TextEditingController();
+
+  String get _seizureTimeCombined {
+    final h = _seizureTimeHoursCtrl.text.trim();
+    final m = _seizureTimeMinutesCtrl.text.trim();
+    if (h.isEmpty && m.isEmpty) return _seizureTimeCtrl.text.trim();
+    return '$h:$m';
+  }
 
   // Pancha & IO Signature
   final _pancha1NameCtrl = TextEditingController();
@@ -145,6 +155,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
     _seizureDateMonthCtrl.dispose();
     _seizureDateYearCtrl.dispose();
     _seizureTimeCtrl.dispose();
+    _seizureTimeHoursCtrl.dispose();
+    _seizureTimeMinutesCtrl.dispose();
     _seizurePlaceCtrl.dispose();
     _seizurePlaceDescCtrl.dispose();
     _seizedFromCtrl.dispose();
@@ -154,12 +166,14 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
     _personAgeCtrl.dispose();
     _personOccupationCtrl.dispose();
     _personAddressCtrl.dispose();
+    _personAddressLine2Ctrl.dispose();
     _w1NameCtrl.dispose();
     _w1FatherCtrl.dispose();
     _w1SexCtrl.dispose();
     _w1AgeCtrl.dispose();
     _w1OccupationCtrl.dispose();
     _w1AddressCtrl.dispose();
+    _w1AddressLine2Ctrl.dispose();
     _w2NameCtrl.dispose();
     _w2FatherCtrl.dispose();
     _w2SexCtrl.dispose();
@@ -169,6 +183,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
     _w2AddressLine2Ctrl.dispose();
     _perishableDisposalCtrl.dispose();
     _valuableKeepingCtrl.dispose();
+    _identificationRequiredCtrl.dispose();
+    _propertyDetailsCtrl.dispose();
     _circumstancesCtrl.dispose();
     _circumstancesLine2Ctrl.dispose();
     _circumstancesLine3Ctrl.dispose();
@@ -215,7 +231,9 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       'seizureDateDay': _seizureDateDayCtrl.text.trim(),
       'seizureDateMonth': _seizureDateMonthCtrl.text.trim(),
       'seizureDateYear': _seizureDateYearCtrl.text.trim(),
-      'seizureTime': _seizureTimeCtrl.text.trim(),
+      'seizureTime': _seizureTimeCombined,
+      'seizureTimeHours': _seizureTimeHoursCtrl.text.trim(),
+      'seizureTimeMinutes': _seizureTimeMinutesCtrl.text.trim(),
       'seizurePlace': _seizurePlaceCtrl.text.trim(),
       'seizurePlaceDesc': _seizurePlaceDescCtrl.text.trim(),
       'seizedFrom': _seizedFromCtrl.text.trim(),
@@ -226,12 +244,14 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       'personAge': _personAgeCtrl.text.trim(),
       'personOccupation': _personOccupationCtrl.text.trim(),
       'personAddress': _personAddressCtrl.text.trim(),
+      'personAddressLine2': _personAddressLine2Ctrl.text.trim(),
       'w1Name': _w1NameCtrl.text.trim(),
       'w1Father': _w1FatherCtrl.text.trim(),
       'w1Sex': _w1SexCtrl.text.trim(),
       'w1Age': _w1AgeCtrl.text.trim(),
       'w1Occupation': _w1OccupationCtrl.text.trim(),
       'w1Address': _w1AddressCtrl.text.trim(),
+      'w1AddressLine2': _w1AddressLine2Ctrl.text.trim(),
       'w2Name': _w2NameCtrl.text.trim(),
       'w2Father': _w2FatherCtrl.text.trim(),
       'w2Sex': _w2SexCtrl.text.trim(),
@@ -242,6 +262,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       'perishableDisposal': _perishableDisposalCtrl.text.trim(),
       'valuableKeeping': _valuableKeepingCtrl.text.trim(),
       'identificationRequired': _identificationRequired,
+      'identificationRequiredText': _identificationRequiredCtrl.text.trim(),
+      'propertyDetails': _propertyDetailsCtrl.text.trim(),
       'circumstances': _circumstancesCtrl.text.trim(),
       'circumstancesLine2': _circumstancesLine2Ctrl.text.trim(),
       'circumstancesLine3': _circumstancesLine3Ctrl.text.trim(),
@@ -286,6 +308,16 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       _seizureDateMonthCtrl.text = data['seizureDateMonth']?.toString() ?? '';
       _seizureDateYearCtrl.text = data['seizureDateYear']?.toString() ?? '';
       _seizureTimeCtrl.text = data['seizureTime']?.toString() ?? '';
+      _seizureTimeHoursCtrl.text = data['seizureTimeHours']?.toString() ?? '';
+      _seizureTimeMinutesCtrl.text =
+          data['seizureTimeMinutes']?.toString() ?? '';
+      if (_seizureTimeHoursCtrl.text.isEmpty &&
+          _seizureTimeMinutesCtrl.text.isEmpty &&
+          _seizureTimeCtrl.text.isNotEmpty) {
+        final parts = _seizureTimeCtrl.text.split(RegExp(r'[:/]'));
+        if (parts.isNotEmpty) _seizureTimeHoursCtrl.text = parts[0].trim();
+        if (parts.length > 1) _seizureTimeMinutesCtrl.text = parts[1].trim();
+      }
       _seizurePlaceCtrl.text = data['seizurePlace']?.toString() ?? '';
       _seizurePlaceDescCtrl.text = data['seizurePlaceDesc']?.toString() ?? '';
       _seizedFromCtrl.text = data['seizedFrom']?.toString() ?? '';
@@ -297,12 +329,15 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       _personAgeCtrl.text = data['personAge']?.toString() ?? '';
       _personOccupationCtrl.text = data['personOccupation']?.toString() ?? '';
       _personAddressCtrl.text = data['personAddress']?.toString() ?? '';
+      _personAddressLine2Ctrl.text =
+          data['personAddressLine2']?.toString() ?? '';
       _w1NameCtrl.text = data['w1Name']?.toString() ?? '';
       _w1FatherCtrl.text = data['w1Father']?.toString() ?? '';
       _w1SexCtrl.text = data['w1Sex']?.toString() ?? '';
       _w1AgeCtrl.text = data['w1Age']?.toString() ?? '';
       _w1OccupationCtrl.text = data['w1Occupation']?.toString() ?? '';
       _w1AddressCtrl.text = data['w1Address']?.toString() ?? '';
+      _w1AddressLine2Ctrl.text = data['w1AddressLine2']?.toString() ?? '';
       _w2NameCtrl.text = data['w2Name']?.toString() ?? '';
       _w2FatherCtrl.text = data['w2Father']?.toString() ?? '';
       _w2SexCtrl.text = data['w2Sex']?.toString() ?? '';
@@ -546,10 +581,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 spacing: 4,
                 runSpacing: 8,
                 children: [
-                  Text(
-                    '४) जप्त केलेली मालमत्ता : (अ) तारीख :',
-                    style: marathiStyle,
-                  ),
+                  Text('४) जप्त केलेली मालमत्ता : (अ) तारीख :',
+                      style: marathiStyle),
                   SizedBox(
                     width: 35,
                     child: BilingualSimpleUnderlineInput(
@@ -587,10 +620,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               ResponsiveFieldRow(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    '(क) जेथून जप्त केली/परत मिळवली ती जागा : ',
-                    style: marathiStyle,
-                  ),
+                  Text('(क) जेथून जप्त केली/परत मिळवली ती जागा : ',
+                      style: marathiStyle),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _seizurePlaceCtrl,
@@ -603,10 +634,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               ResponsiveFieldRow(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    '(ड) जप्तीच्या/परत मिळवल्याची जागेचे वर्णन: ',
-                    style: marathiStyle,
-                  ),
+                  Text('(ड) जप्तीच्या/परत मिळवल्याची जागेचे वर्णन: ',
+                      style: marathiStyle),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _seizurePlaceDescCtrl,
@@ -633,10 +662,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Text(
-                    '*चोरीचा माल घेणारा धंदेवाईक : होय/नाही',
-                    style: marathiStyle,
-                  ),
+                  Text('*चोरीचा माल घेणारा धंदेवाईक : होय/नाही',
+                      style: marathiStyle),
                   const SizedBox(width: 8),
                   _chipSelector(
                     items: ['होय', 'नाही'],
@@ -921,10 +948,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 children: [
                   if (!widget.readOnly)
                     IconButton(
-                      icon: const Icon(
-                        Icons.add_circle_outline,
-                        color: Colors.blue,
-                      ),
+                      icon: const Icon(Icons.add_circle_outline,
+                          color: Colors.blue),
                       onPressed: () {
                         setState(() {
                           _propertyRows.add(PropertyRow());
@@ -950,11 +975,9 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                     children: [
                       _buildHeaderCell("Sr. No.\nअ. क."),
                       _buildHeaderCell(
-                        "Property Description\nमालमत्तेचे वर्णन",
-                      ),
+                          "Property Description\nमालमत्तेचे वर्णन"),
                       _buildHeaderCell(
-                        "Estimated Value (Rs)\nअंदाजे किंमत (रु.)",
-                      ),
+                          "Estimated Value (Rs)\nअंदाजे किंमत (रु.)"),
                       _buildHeaderCell("Action"),
                     ],
                   ),
@@ -964,24 +987,19 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                       children: [
                         FormTableSrNoCell(index: index, style: serifStyle),
                         _buildTableInputCell(
-                          controller: row.descriptionCtrl,
-                          style: serifStyle,
-                          hintText: 'Description',
-                        ),
+                            controller: row.descriptionCtrl,
+                            style: serifStyle,
+                            hintText: 'Description'),
                         _buildTableInputCell(
-                          controller: row.estimatedValueCtrl,
-                          style: serifStyle,
-                          hintText: 'Value in Rs.',
-                        ),
+                            controller: row.estimatedValueCtrl,
+                            style: serifStyle,
+                            hintText: 'Value in Rs.'),
                         Center(
                           child: widget.readOnly
                               ? const SizedBox(width: 0, height: 40)
                               : IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red,
-                                    size: 18,
-                                  ),
+                                  icon: const Icon(Icons.delete_outline,
+                                      color: Colors.red, size: 18),
                                   onPressed: () {
                                     if (_propertyRows.length > 1) {
                                       setState(() {
@@ -1086,10 +1104,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 children: [
                   if (!widget.readOnly)
                     IconButton(
-                      icon: const Icon(
-                        Icons.add_circle_outline,
-                        color: Colors.blue,
-                      ),
+                      icon: const Icon(Icons.add_circle_outline,
+                          color: Colors.blue),
                       onPressed: () {
                         setState(() {
                           _sealPropertyRows.add(SealPropertyRow());
@@ -1114,8 +1130,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                       _buildHeaderCell('अ क्र\n(१)'),
                       _buildHeaderCell('मालमत्ता\n(२)'),
                       _buildHeaderCell(
-                        'पुडक्यावर किंवा मालमत्तेवर सही घेण्यात आली.\n(३)',
-                      ),
+                          'पुडक्यावर किंवा मालमत्तेवर सही घेण्यात आली.\n(३)'),
                       _buildHeaderCell('Action'),
                     ],
                   ),
@@ -1136,11 +1151,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                           child: widget.readOnly
                               ? const SizedBox(width: 0, height: 40)
                               : IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red,
-                                    size: 18,
-                                  ),
+                                  icon: const Icon(Icons.delete_outline,
+                                      color: Colors.red, size: 18),
                                   onPressed: () {
                                     if (_sealPropertyRows.length > 1) {
                                       setState(() {

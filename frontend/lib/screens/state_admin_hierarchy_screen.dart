@@ -148,15 +148,15 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
               child: CircularProgressIndicator(color: AppColors.navyDark),
             )
           : _errorMessage != null
-          ? _buildErrorView()
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildDivisionsTab(),
-                _buildDistrictsTab(),
-                _buildStationsTab(),
-              ],
-            ),
+              ? _buildErrorView()
+              : TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildDivisionsTab(),
+                    _buildDistrictsTab(),
+                    _buildStationsTab(),
+                  ],
+                ),
     );
   }
 

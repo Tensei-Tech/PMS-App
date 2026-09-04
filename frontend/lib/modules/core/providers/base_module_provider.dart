@@ -159,8 +159,7 @@ class BaseModuleProvider extends ChangeNotifier {
     final enriched = record.copyWith(
       stationName: record.stationName.isEmpty ? _stationId : record.stationName,
       createdBy: record.createdBy.isEmpty ? _uid : record.createdBy,
-      assignedOfficerUid:
-          record.assignedOfficerUid ??
+      assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
     await _caseService.saveCase(enriched, isCreate: true);
@@ -176,8 +175,7 @@ class BaseModuleProvider extends ChangeNotifier {
     final enriched = record.copyWith(
       stationName: record.stationName.isEmpty ? _stationId : record.stationName,
       createdBy: record.createdBy.isEmpty ? _uid : record.createdBy,
-      assignedOfficerUid:
-          record.assignedOfficerUid ??
+      assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
     await _caseService.saveCase(enriched, isCreate: false);

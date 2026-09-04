@@ -78,10 +78,10 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
   final activeSection = data['formSection']?.toString();
 
   bool showsSection(String sectionId) => showsFormSection(
-    activeSection: activeSection,
-    sectionId: sectionId,
-    knownSectionIds: knownSectionIds,
-  );
+        activeSection: activeSection,
+        sectionId: sectionId,
+        knownSectionIds: knownSectionIds,
+      );
 
   pw.Widget renderText(String key, String? val) {
     final text = val?.trim() ?? '';
@@ -98,62 +98,62 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
   pw.Widget mImg(String key) => cache.has(key) ? cache.img(key) : pw.SizedBox();
 
   pw.Widget sectionTitle(String title) => pw.Padding(
-    padding: const pw.EdgeInsets.only(top: 12, bottom: 6),
-    child: pw.Text(title, style: sectionStyle),
-  );
+        padding: const pw.EdgeInsets.only(top: 12, bottom: 6),
+        child: pw.Text(title, style: sectionStyle),
+      );
 
   pw.Widget pageBreakLabel(String label) => pw.Column(
-    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-    children: [
-      pw.NewPage(),
-      pw.Align(
-        alignment: pw.Alignment.centerRight,
-        child: pw.Text(label, style: englishBold.copyWith(fontSize: 8)),
-      ),
-      pw.Divider(thickness: 0.5),
-      pw.SizedBox(height: 8),
-    ],
-  );
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+        children: [
+          pw.NewPage(),
+          pw.Align(
+            alignment: pw.Alignment.centerRight,
+            child: pw.Text(label, style: englishBold.copyWith(fontSize: 8)),
+          ),
+          pw.Divider(thickness: 0.5),
+          pw.SizedBox(height: 8),
+        ],
+      );
 
   pw.Widget field(String label, String key) => pw.Padding(
-    padding: const pw.EdgeInsets.only(bottom: 3),
-    child: pw.Row(
-      crossAxisAlignment: pw.CrossAxisAlignment.end,
-      children: [
-        pw.Expanded(flex: 2, child: pw.Text(label, style: englishBold)),
-        pw.SizedBox(width: 4),
-        pw.Expanded(
-          flex: 3,
-          child: pw.Container(
-            decoration: const pw.BoxDecoration(
-              border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+        padding: const pw.EdgeInsets.only(bottom: 3),
+        child: pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            pw.Expanded(flex: 2, child: pw.Text(label, style: englishBold)),
+            pw.SizedBox(width: 4),
+            pw.Expanded(
+              flex: 3,
+              child: pw.Container(
+                decoration: const pw.BoxDecoration(
+                  border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+                ),
+                padding: const pw.EdgeInsets.only(bottom: 2),
+                child: renderText('val_$key', str(data[key])),
+              ),
             ),
-            padding: const pw.EdgeInsets.only(bottom: 2),
-            child: renderText('val_$key', str(data[key])),
-          ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   pw.Widget wideField(String label, String key, {int lines = 1}) => pw.Padding(
-    padding: const pw.EdgeInsets.only(bottom: 4),
-    child: pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(label, style: englishBold),
-        pw.Container(
-          width: double.infinity,
-          constraints: pw.BoxConstraints(minHeight: lines * 12.0),
-          decoration: const pw.BoxDecoration(
-            border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-          ),
-          padding: const pw.EdgeInsets.only(bottom: 2),
-          child: renderText('val_$key', str(data[key])),
+        padding: const pw.EdgeInsets.only(bottom: 4),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(label, style: englishBold),
+            pw.Container(
+              width: double.infinity,
+              constraints: pw.BoxConstraints(minHeight: lines * 12.0),
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+              ),
+              padding: const pw.EdgeInsets.only(bottom: 2),
+              child: renderText('val_$key', str(data[key])),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   pw.TableRow csRow(String question, String key, {int lines = 1}) =>
       pw.TableRow(
@@ -173,36 +173,36 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
       );
 
   pw.Widget csTable(List<pw.TableRow> rows) => pw.Table(
-    border: pw.TableBorder.all(width: 0.5),
-    columnWidths: {
-      0: const pw.FlexColumnWidth(4),
-      1: const pw.FlexColumnWidth(6),
-    },
-    children: [
-      pw.TableRow(
-        decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+        border: pw.TableBorder.all(width: 0.5),
+        columnWidths: {
+          0: const pw.FlexColumnWidth(4),
+          1: const pw.FlexColumnWidth(6),
+        },
         children: [
-          pw.Padding(
-            padding: const pw.EdgeInsets.all(4),
-            child: pw.Text(
-              'Question (प्रश्न)',
-              style: englishBold,
-              textAlign: pw.TextAlign.center,
-            ),
+          pw.TableRow(
+            decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+            children: [
+              pw.Padding(
+                padding: const pw.EdgeInsets.all(4),
+                child: pw.Text(
+                  'Question (प्रश्न)',
+                  style: englishBold,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.all(4),
+                child: pw.Text(
+                  'Answer (उत्तर)',
+                  style: englishBold,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+            ],
           ),
-          pw.Padding(
-            padding: const pw.EdgeInsets.all(4),
-            child: pw.Text(
-              'Answer (उत्तर)',
-              style: englishBold,
-              textAlign: pw.TextAlign.center,
-            ),
-          ),
+          ...rows,
         ],
-      ),
-      ...rows,
-    ],
-  );
+      );
 
   pdf.addPage(
     pw.MultiPage(
@@ -362,7 +362,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
           ),
           field('Posting and Address:', 'ioPosting'),
         ],
-
         if (showsSection('Civil Surgeon PM Report')) ...[
           // ── PM REFERRAL / CIVIL SURGEON ──
           pageBreakLabel('Civil Surgeon Report (1)'),
@@ -425,7 +424,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
           ),
           field('Posting:', 'csIoPosting'),
         ],
-
         if (showsSection('Vinanti Arj')) ...[
           // ── VINANTI ARJ ──
           pageBreakLabel('विनंती अर्ज'),
@@ -485,7 +483,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ],
           ),
         ],
-
         if (showsSection('Relative Summons 179')) ...[
           // ── SUMMONS TO RELATIVES ──
           pageBreakLabel('नातेवाईकांना समन्स'),
@@ -524,7 +521,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ],
           ),
         ],
-
         if (showsSection('Pancha Summons 195')) ...[
           // ── SUMMONS TO PANCHAS ──
           pageBreakLabel('पंचांचा समन्स'),
@@ -563,7 +559,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ],
           ),
         ],
-
         if (showsSection('Marananveshan Panchanama')) ...[
           // ── MARAN ANVESHAN ──
           pageBreakLabel('मरणान्वेषण पंचनामा'),
@@ -638,7 +633,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ],
           ),
         ],
-
         if (showsSection('14 Kalmi Form')) ...[
           // ── 14-KALAMI FORM ──
           pageBreakLabel('१४ कलमी फॉर्म (1)'),
@@ -689,7 +683,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ],
           ),
         ],
-
         if (showsSection('Dead Body Handover')) ...[
           // ── BODY CUSTODY RECEIPT ──
           pageBreakLabel('प्रेत ताबा पावती'),
@@ -731,7 +724,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ],
           ),
         ],
-
         if (showsSection('Duty Pass')) ...[
           // ── DUTY PASS ──
           pageBreakLabel('ड्युटी पास'),

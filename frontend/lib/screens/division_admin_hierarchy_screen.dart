@@ -65,8 +65,7 @@ class _DivisionAdminHierarchyScreenState
         });
       } else {
         setState(() {
-          _errorMessage =
-              response.errorMessage ??
+          _errorMessage = response.errorMessage ??
               'Failed to load division hierarchy directory';
           _isLoading = false;
         });
@@ -157,11 +156,11 @@ class _DivisionAdminHierarchyScreenState
               child: CircularProgressIndicator(color: AppColors.navyDark),
             )
           : _errorMessage != null
-          ? _buildErrorView()
-          : TabBarView(
-              controller: _tabController,
-              children: [_buildDistrictsTab(), _buildStationsTab()],
-            ),
+              ? _buildErrorView()
+              : TabBarView(
+                  controller: _tabController,
+                  children: [_buildDistrictsTab(), _buildStationsTab()],
+                ),
     );
   }
 
@@ -226,10 +225,10 @@ class _DivisionAdminHierarchyScreenState
                     ),
                   ]
                 : admins
-                      .map(
-                        (adm) => _buildOfficerListTile(adm, 'District Admin'),
-                      )
-                      .toList(),
+                    .map(
+                      (adm) => _buildOfficerListTile(adm, 'District Admin'),
+                    )
+                    .toList(),
           ),
         );
       },

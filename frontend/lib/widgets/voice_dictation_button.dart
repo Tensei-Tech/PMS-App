@@ -26,10 +26,9 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
   bool _isListening = false;
   String _selectedLang = 'mr-IN'; // Default to Marathi for Maharashtra Police
   String _preSpeechText = '';
-  String _statusMessage = '';
   late AnimationController _pulseAnim;
 
-  static const Map<String, String> _languages = {
+  final Map<String, String> _languages = {
     'mr-IN': 'मराठी (Marathi)',
     'hi-IN': 'हिंदी (Hindi)',
     'en-IN': 'English (India)',
@@ -74,8 +73,8 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
           if (widget.appendMode && _preSpeechText.isNotEmpty) {
             final prefix =
                 _preSpeechText.endsWith(' ') || _preSpeechText.endsWith('\n')
-                ? _preSpeechText
-                : '$_preSpeechText ';
+                    ? _preSpeechText
+                    : '$_preSpeechText ';
             widget.controller.text = '$prefix$text';
           } else {
             widget.controller.text = text;
@@ -92,14 +91,15 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
       },
       (status, message) {
         if (!mounted) return;
-        setState(() {
-          _statusMessage = message;
-          if (status == 'listening') {
+        if (status == 'listening') {
+          setState(() {
             _isListening = true;
-          } else if (status == 'ended' || status == 'error') {
+          });
+        } else if (status == 'ended' || status == 'error') {
+          setState(() {
             _isListening = false;
-          }
-        });
+          });
+        }
       },
       lang: _selectedLang,
     );
@@ -122,10 +122,8 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 16.0,
-              horizontal: 20.0,
-            ),
+            padding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,10 +134,8 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
                     SizedBox(width: 8),
                     Text(
                       'Select Dictation Language / भाषा निवडा',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -157,9 +153,8 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
                     title: Text(
                       entry.value,
                       style: TextStyle(
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                         color: isSelected
                             ? const Color(0xFF1E3A8A)
                             : Colors.black87,
@@ -198,63 +193,56 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
           mainAxisSize: MainAxisSize.min,
           children: [
             // Dictate Button
-            Tooltip(
-              message: _statusMessage.isNotEmpty
-                  ? _statusMessage
-                  : 'Voice dictation',
-              child: InkWell(
-                onTap: _toggleDictation,
-                borderRadius: BorderRadius.circular(20),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
+            InkWell(
+              onTap: _toggleDictation,
+              borderRadius: BorderRadius.circular(20),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: _isListening
+                      ? Colors.red.shade50
+                      : const Color(0xFF1E3A8A).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
                     color: _isListening
-                        ? Colors.red.shade50
-                        : const Color(0xFF1E3A8A).withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
+                        ? Colors.redAccent
+                        : const Color(0xFF1E3A8A).withValues(alpha: 0.3),
+                    width: _isListening ? 1.5 : 1.0,
+                  ),
+                  boxShadow: _isListening
+                      ? [
+                          BoxShadow(
+                            color: glowColor,
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          )
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _isListening ? Icons.mic : Icons.mic_none,
+                      size: 16,
                       color: _isListening
                           ? Colors.redAccent
-                          : const Color(0xFF1E3A8A).withValues(alpha: 0.3),
-                      width: _isListening ? 1.5 : 1.0,
+                          : const Color(0xFF1E3A8A),
                     ),
-                    boxShadow: _isListening
-                        ? [
-                            BoxShadow(
-                              color: glowColor,
-                              blurRadius: 8,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _isListening ? Icons.mic : Icons.mic_none,
-                        size: 16,
+                    const SizedBox(width: 4),
+                    Text(
+                      _isListening ? 'Listening...' : widget.label,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
                         color: _isListening
                             ? Colors.redAccent
                             : const Color(0xFF1E3A8A),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _isListening ? 'Listening...' : widget.label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _isListening
-                              ? Colors.redAccent
-                              : const Color(0xFF1E3A8A),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -280,11 +268,8 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
                         color: Colors.grey.shade800,
                       ),
                     ),
-                    const Icon(
-                      Icons.arrow_drop_down,
-                      size: 14,
-                      color: Colors.grey,
-                    ),
+                    const Icon(Icons.arrow_drop_down,
+                        size: 14, color: Colors.grey),
                   ],
                 ),
               ),

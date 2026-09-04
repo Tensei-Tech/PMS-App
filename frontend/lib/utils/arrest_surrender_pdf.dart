@@ -41,10 +41,10 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
   final activeSection = doc['formSection']?.toString();
 
   bool showsSection(String sectionId) => showsFormSection(
-    activeSection: activeSection,
-    sectionId: sectionId,
-    knownSectionIds: knownSectionIds,
-  );
+        activeSection: activeSection,
+        sectionId: sectionId,
+        knownSectionIds: knownSectionIds,
+      );
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -1054,7 +1054,6 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                       ],
                     ),
                     pw.SizedBox(height: 12),
-
                     pw.Row(
                       children: [
                         buildInlineFieldWithMLbl(
@@ -1075,14 +1074,12 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                       ],
                     ),
                     pw.SizedBox(height: 12),
-
                     pw.Text(
                       '(d) Income Group ( उत्पन्न गट ) :-',
                       style: englishBold,
                     ),
                     mLbl('lbl_11d_m1'),
                     pw.SizedBox(height: 4),
-
                     check(
                       '(i) Lower Income (Below Rs. 25000 P.Y.) = कमी उत्पन्न ( द.सा.रू २५००० पेक्ष कमी )',
                       doc['incomeLower'] == true,
@@ -1389,9 +1386,8 @@ pw.Widget _buildPdfTable({
   required pw.TextStyle englishStyle,
   required pw.TextStyle englishBold,
 }) {
-  final Map<String, dynamic> pt = doc['physTable'] is Map
-      ? doc['physTable'] as Map<String, dynamic>
-      : {};
+  final Map<String, dynamic> pt =
+      doc['physTable'] is Map ? doc['physTable'] as Map<String, dynamic> : {};
 
   return pw.Table(
     border: pw.TableBorder.all(width: 1),
@@ -1443,8 +1439,8 @@ pw.Widget _buildPdfTable({
             padding: const pw.EdgeInsets.all(2),
             child: containsDevanagari(val)
                 ? (cache.has('tbl_v_${colIndices[i]}')
-                      ? cache.img('tbl_v_${colIndices[i]}')
-                      : pw.SizedBox())
+                    ? cache.img('tbl_v_${colIndices[i]}')
+                    : pw.SizedBox())
                 : pw.Text(val, style: englishStyle.copyWith(fontSize: 8)),
           );
         }),

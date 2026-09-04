@@ -86,8 +86,7 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
   final section = v('formSection').toLowerCase();
   final showA =
       section.isEmpty || section.contains('main') || section.contains('form a');
-  final showB =
-      section.isEmpty ||
+  final showB = section.isEmpty ||
       section.contains('continuation') ||
       section.contains('form b');
 

@@ -66,23 +66,45 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
   final _dharmaCtrl = TextEditingController();
   final _jatiCtrl = TextEditingController();
 
+  static const _physicalFeatures = [
+    'उंची',
+    'बांधा',
+    'केस',
+    'भुवया',
+    'कपाळ',
+    'डोळे',
+    'दृष्टी',
+    'नाक',
+    'ओट',
+    'छाती',
+    'बोटे',
+    'हनुवटी',
+    'कान',
+    'चेहरा',
+    'वर्ण',
+    'दाढी',
+    'मिशा',
+    'भाषा',
+    'गाल',
+    'पोशाख',
+    'व्यसन',
+  ];
+
+  late final Map<String, TextEditingController> _physicalTableCtrls = {
+    for (final feature in _physicalFeatures) feature: TextEditingController(),
+  };
+
   // Part II — Pages 2–3 (rows 11–21)
-  late final List<TextEditingController> _familyRows = List.generate(
-    11,
-    (_) => TextEditingController(),
-  );
+  late final List<TextEditingController> _familyRows =
+      List.generate(11, (_) => TextEditingController());
 
   // Part III — Page 4 (rows 22–30)
-  late final List<TextEditingController> _idHistoryRows = List.generate(
-    9,
-    (_) => TextEditingController(),
-  );
+  late final List<TextEditingController> _idHistoryRows =
+      List.generate(9, (_) => TextEditingController());
 
   // Part IV — Pages 5–6 (rows 31–40)
-  late final List<TextEditingController> _crimeRows = List.generate(
-    10,
-    (_) => TextEditingController(),
-  );
+  late final List<TextEditingController> _crimeRows =
+      List.generate(10, (_) => TextEditingController());
   final _ioSigNameCtrl = TextEditingController();
   final _ioSigRankCtrl = TextEditingController();
   final _ioSigCodeCtrl = TextEditingController();
@@ -153,10 +175,22 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       ..._familyRows,
       ..._idHistoryRows,
       ..._crimeRows,
+      ..._physicalTableCtrls.values,
     ]) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  String get _physicalDescriptionSummary {
+    final parts = <String>[];
+    for (final key in _physicalFeatures) {
+      final val = _physicalTableCtrls[key]?.text.trim() ?? '';
+      if (val.isNotEmpty) {
+        parts.add('$key: $val');
+      }
+    }
+    return parts.join(', ');
   }
 
   Map<String, dynamic> collectData() {
@@ -170,7 +204,13 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       'accusedName': _accusedCtrl.text.trim(),
       'arrestDateTime': _arrestDtCtrl.text.trim(),
       'dobPlaceAge': _dobPlaceAgeCtrl.text.trim(),
-      'physicalDescription': _physicalCtrl.text.trim(),
+      'physicalDescription': _physicalDescriptionSummary.isNotEmpty
+          ? _physicalDescriptionSummary
+          : _physicalCtrl.text.trim(),
+      'physicalTable': {
+        for (final entry in _physicalTableCtrls.entries)
+          entry.key: entry.value.text.trim(),
+      },
       'idMarks': _idMarksCtrl.text.trim(),
       'address': _addressCtrl.text.trim(),
       'dharma': _dharmaCtrl.text.trim(),
@@ -210,6 +250,34 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       set(_ioSigPostingCtrl, 'ioSigPosting');
       set(_additional37Ctrl, 'additionalPoint37');
 
+      if (data['physicalTable'] is Map) {
+        final tableData =
+            Map<String, dynamic>.from(data['physicalTable'] as Map);
+        for (final entry in _physicalTableCtrls.entries) {
+          entry.value.text = tableData[entry.key]?.toString() ??
+              (entry.key == 'ओट' ? (tableData['ओठ']?.toString() ?? '') : '');
+        }
+      } else if (data['physicalDescription'] != null) {
+        final raw = data['physicalDescription'].toString();
+        if (raw.contains(':')) {
+          final pairs = raw.split(',');
+          for (final pair in pairs) {
+            final parts = pair.split(':');
+            if (parts.length == 2) {
+              final k = parts[0].trim();
+              final v = parts[1].trim();
+              if (_physicalTableCtrls.containsKey(k)) {
+                _physicalTableCtrls[k]!.text = v;
+              } else if (k == 'ओठ' && _physicalTableCtrls.containsKey('ओट')) {
+                _physicalTableCtrls['ओट']!.text = v;
+              }
+            }
+          }
+        } else {
+          _physicalCtrl.text = raw;
+        }
+      }
+
       _hydrateList(data['familyRows'], _familyRows);
       _hydrateList(data['idHistoryRows'], _idHistoryRows);
       _hydrateList(data['crimeRows'], _crimeRows);
@@ -224,10 +292,10 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
   }
 
   TextStyle _marathiLabel() => GoogleFonts.notoSansDevanagari(
-    fontSize: 11,
-    fontWeight: FontWeight.w600,
-    color: Colors.black87,
-  );
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: Colors.black87,
+      );
 
   Widget _sectionTitle(String text, TextStyle serif) {
     return Padding(
@@ -273,6 +341,223 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
     );
   }
 
+  Widget _buildCheharePattiTable(TextStyle serif, TextStyle marathi) {
+    const borderColor = Colors.black87;
+    const borderWidth = 1.0;
+    const borderSide = BorderSide(color: borderColor, width: borderWidth);
+
+    Widget labelCell(String text) {
+      return SizedBox(
+        height: 28,
+        child: Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: marathi.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget valueCell(TextEditingController ctrl) {
+      return SizedBox(
+        height: 28,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Center(
+            child: TextField(
+              controller: ctrl,
+              minLines: 1,
+              maxLines: 1,
+              textAlign: TextAlign.start,
+              style: serif.copyWith(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue.shade900,
+              ),
+              decoration: const InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget emptyCell() {
+      return const SizedBox(height: 28);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 10),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: borderColor, width: borderWidth),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Top row with '७' and 'चेहरे पट्टी माहिती'
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 28,
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        right: borderSide,
+                        bottom: borderSide,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '७',
+                      style: marathi.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: borderSide,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'चेहरे पट्टी माहिती',
+                        style: marathi.copyWith(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Table with 6 rows of 4 (label, value) pairs
+            Table(
+              border: const TableBorder(
+                horizontalInside: borderSide,
+                verticalInside: borderSide,
+              ),
+              columnWidths: const {
+                0: FixedColumnWidth(38),
+                1: FlexColumnWidth(1.0),
+                2: FlexColumnWidth(1.4),
+                3: FlexColumnWidth(1.0),
+                4: FlexColumnWidth(1.4),
+                5: FlexColumnWidth(1.0),
+                6: FlexColumnWidth(1.4),
+                7: FlexColumnWidth(1.0),
+                8: FlexColumnWidth(1.4),
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                TableRow(
+                  children: [
+                    emptyCell(),
+                    labelCell('उंची'),
+                    valueCell(_physicalTableCtrls['उंची']!),
+                    labelCell('बांधा'),
+                    valueCell(_physicalTableCtrls['बांधा']!),
+                    labelCell('केस'),
+                    valueCell(_physicalTableCtrls['केस']!),
+                    labelCell('भुवया'),
+                    valueCell(_physicalTableCtrls['भुवया']!),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    emptyCell(),
+                    labelCell('कपाळ'),
+                    valueCell(_physicalTableCtrls['कपाळ']!),
+                    labelCell('डोळे'),
+                    valueCell(_physicalTableCtrls['डोळे']!),
+                    labelCell('दृष्टी'),
+                    valueCell(_physicalTableCtrls['दृष्टी']!),
+                    labelCell('नाक'),
+                    valueCell(_physicalTableCtrls['नाक']!),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    emptyCell(),
+                    labelCell('ओट'),
+                    valueCell(_physicalTableCtrls['ओट']!),
+                    labelCell('छाती'),
+                    valueCell(_physicalTableCtrls['छाती']!),
+                    labelCell('बोटे'),
+                    valueCell(_physicalTableCtrls['बोटे']!),
+                    labelCell('हनुवटी'),
+                    valueCell(_physicalTableCtrls['हनुवटी']!),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    emptyCell(),
+                    labelCell('कान'),
+                    valueCell(_physicalTableCtrls['कान']!),
+                    labelCell('चेहरा'),
+                    valueCell(_physicalTableCtrls['चेहरा']!),
+                    labelCell('वर्ण'),
+                    valueCell(_physicalTableCtrls['वर्ण']!),
+                    labelCell('दाढी'),
+                    valueCell(_physicalTableCtrls['दाढी']!),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    emptyCell(),
+                    labelCell('मिशा'),
+                    valueCell(_physicalTableCtrls['मिशा']!),
+                    labelCell('भाषा'),
+                    valueCell(_physicalTableCtrls['भाषा']!),
+                    labelCell('गाल'),
+                    valueCell(_physicalTableCtrls['गाल']!),
+                    labelCell('पोशाख'),
+                    valueCell(_physicalTableCtrls['पोशाख']!),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    emptyCell(),
+                    labelCell('व्यसन'),
+                    valueCell(_physicalTableCtrls['व्यसन']!),
+                    emptyCell(),
+                    emptyCell(),
+                    emptyCell(),
+                    emptyCell(),
+                    emptyCell(),
+                    emptyCell(),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPartI(TextStyle serif, TextStyle marathi) {
     return FormPaperPage(
       formLabel: 'Part I — Pages 1–2',
@@ -300,95 +585,38 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
-              child: _labeledField(
-                '१. पोलीस ठाणे',
-                _psCtrl,
-                serif,
-                labelStyle: marathi,
-              ),
-            ),
+                child: _labeledField('१. पोलीस ठाणे', _psCtrl, serif,
+                    labelStyle: marathi)),
             Expanded(
-              child: _labeledField(
-                'गुरनं',
-                _gurNoCtrl,
-                serif,
-                labelStyle: marathi,
-              ),
-            ),
+                child: _labeledField('गुरनं', _gurNoCtrl, serif,
+                    labelStyle: marathi)),
             Expanded(
-              child: _labeledField(
-                'कलम',
-                _kalamCtrl,
-                serif,
-                labelStyle: marathi,
-              ),
-            ),
+                child: _labeledField('कलम', _kalamCtrl, serif,
+                    labelStyle: marathi)),
           ],
         ),
-        _labeledField(
-          '३. तपासी अधिकाऱ्याचे नांव व हुद्दा',
-          _ioCtrl,
-          serif,
-          labelStyle: marathi,
-        ),
-        _labeledField(
-          '४. गुन्हेगाराचे नांव व टोपण नांव',
-          _accusedCtrl,
-          serif,
-          labelStyle: marathi,
-        ),
-        _labeledField(
-          '५. अटक तारीख व वेळ',
-          _arrestDtCtrl,
-          serif,
-          labelStyle: marathi,
-        ),
-        _labeledField(
-          '६. जन्म तारीख, जन्मठिकाण, वय',
-          _dobPlaceAgeCtrl,
-          serif,
-          labelStyle: marathi,
-        ),
-        _sectionTitle('७. चेहरे पट्टी माहिती', serif),
-        _labeledField(
-          'उंची, बांधा, केस, भुवया, कपाळ, डोळे, दृष्टी, नाक, ओठ, छाती, बोटे, हनुवटी, कान, चेहरा, वर्ण, दाढी, मिशा, भाषा, गाल, पोशाख, व्यसन',
-          _physicalCtrl,
-          serif,
-          minLines: 6,
-          labelStyle: marathi,
-        ),
-        _labeledField(
-          '८. ओळखीच्या खुणा (तीळ, मार, जखम, गोंदण, अपंगत्व)',
-          _idMarksCtrl,
-          serif,
-          minLines: 2,
-          labelStyle: marathi,
-        ),
-        _labeledField(
-          '९. सध्याचा/मुळ पत्ता, मोबाईल नंबर',
-          _addressCtrl,
-          serif,
-          minLines: 3,
-          labelStyle: marathi,
-        ),
+        _labeledField('३. तपासी अधिकाऱ्याचे नांव व हुद्दा', _ioCtrl, serif,
+            labelStyle: marathi),
+        _labeledField('४. गुन्हेगाराचे नांव व टोपण नांव', _accusedCtrl, serif,
+            labelStyle: marathi),
+        _labeledField('५. अटक तारीख व वेळ', _arrestDtCtrl, serif,
+            labelStyle: marathi),
+        _labeledField('६. जन्म तारीख, जन्मठिकाण, वय', _dobPlaceAgeCtrl, serif,
+            labelStyle: marathi),
+        _buildCheharePattiTable(serif, marathi),
+        _labeledField('८. ओळखीच्या खुणा (तीळ, मार, जखम, गोंदण, अपंगत्व)',
+            _idMarksCtrl, serif,
+            minLines: 2, labelStyle: marathi),
+        _labeledField('९. सध्याचा/मुळ पत्ता, मोबाईल नंबर', _addressCtrl, serif,
+            minLines: 3, labelStyle: marathi),
         ResponsiveFieldRow(
           children: [
             Expanded(
-              child: _labeledField(
-                '१०. धर्म',
-                _dharmaCtrl,
-                serif,
-                labelStyle: marathi,
-              ),
-            ),
+                child: _labeledField('१०. धर्म', _dharmaCtrl, serif,
+                    labelStyle: marathi)),
             Expanded(
-              child: _labeledField(
-                'जात',
-                _jatiCtrl,
-                serif,
-                labelStyle: marathi,
-              ),
-            ),
+                child: _labeledField('जात', _jatiCtrl, serif,
+                    labelStyle: marathi)),
           ],
         ),
       ],
@@ -401,13 +629,8 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       children: [
         _sectionTitle('कुटुंबीय माहिती (१२–२१)', serif),
         for (var i = 0; i < _familyLabels.length; i++)
-          _labeledField(
-            _familyLabels[i],
-            _familyRows[i],
-            serif,
-            minLines: i == 0 ? 2 : 4,
-            labelStyle: marathi,
-          ),
+          _labeledField(_familyLabels[i], _familyRows[i], serif,
+              minLines: i == 0 ? 2 : 4, labelStyle: marathi),
       ],
     );
   }
@@ -435,56 +658,34 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       children: [
         _sectionTitle('गुन्ह्याची पद्धत व तपशील (३१–४०)', serif),
         for (var i = 0; i < _crimeLabels.length; i++)
-          _labeledField(
-            _crimeLabels[i],
-            _crimeRows[i],
-            serif,
-            minLines: 4,
-            labelStyle: marathi,
-          ),
+          _labeledField(_crimeLabels[i], _crimeRows[i], serif,
+              minLines: 4, labelStyle: marathi),
         const SizedBox(height: 16),
         _sectionTitle(
-          '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
-          serif,
-        ),
+            '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
+            serif),
         ResponsiveFieldRow(
           children: [
             Expanded(
-              child: _labeledField(
-                FormIoTerminology.name,
-                _ioSigNameCtrl,
-                serif,
-                labelStyle: marathi,
-              ),
-            ),
+                child: _labeledField(
+                    FormIoTerminology.name, _ioSigNameCtrl, serif,
+                    labelStyle: marathi)),
             Expanded(
-              child: _labeledField(
-                FormIoTerminology.rank,
-                _ioSigRankCtrl,
-                serif,
-                labelStyle: marathi,
-              ),
-            ),
+                child: _labeledField(
+                    FormIoTerminology.rank, _ioSigRankCtrl, serif,
+                    labelStyle: marathi)),
           ],
         ),
         ResponsiveFieldRow(
           children: [
             Expanded(
-              child: _labeledField(
-                FormIoTerminology.badgeNo,
-                _ioSigCodeCtrl,
-                serif,
-                labelStyle: marathi,
-              ),
-            ),
+                child: _labeledField(
+                    FormIoTerminology.badgeNo, _ioSigCodeCtrl, serif,
+                    labelStyle: marathi)),
             Expanded(
-              child: _labeledField(
-                FormIoTerminology.posting,
-                _ioSigPostingCtrl,
-                serif,
-                labelStyle: marathi,
-              ),
-            ),
+                child: _labeledField(
+                    FormIoTerminology.posting, _ioSigPostingCtrl, serif,
+                    labelStyle: marathi)),
           ],
         ),
         FormMrwFooter(serifStyle: serif, fontSize: 10),

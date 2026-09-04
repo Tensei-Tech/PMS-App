@@ -45,7 +45,7 @@ import '../modules/coin/providers/coin_provider.dart';
 
 // ── Helper macro — wires AuthProvider → any BaseModuleProvider subclass ──────
 ChangeNotifierProxyProvider<AuthProvider, T>
-_wired<T extends BaseModuleProvider>(T Function() create) {
+    _wired<T extends BaseModuleProvider>(T Function() create) {
   return ChangeNotifierProxyProvider<AuthProvider, T>(
     create: (_) => create(),
     update: (_, auth, provider) {

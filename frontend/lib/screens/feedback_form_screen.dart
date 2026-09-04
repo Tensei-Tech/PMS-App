@@ -402,8 +402,8 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
                                         strokeWidth: 2.5,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
+                                          Colors.white,
+                                        ),
                                       ),
                                     )
                                   : Row(
@@ -634,9 +634,8 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
             ? Icon(suffixIcon, color: AppColors.lightSubText, size: 18)
             : null,
         filled: true,
-        fillColor: readOnly
-            ? AppColors.lightBg.withValues(alpha: 0.6)
-            : Colors.white,
+        fillColor:
+            readOnly ? AppColors.lightBg.withValues(alpha: 0.6) : Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.lightBorder),

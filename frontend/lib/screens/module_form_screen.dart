@@ -94,8 +94,7 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
       _date = r.incidentDate;
       _priority = r.priority;
       if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
-        _status =
-            (r.status == 'Disposal' ||
+        _status = (r.status == 'Disposal' ||
                 r.status == 'Closed' ||
                 r.status == 'Resolved')
             ? 'Disposal'
@@ -228,8 +227,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
     final stationName = _isEdit && widget.existingRecord!.stationName.isNotEmpty
         ? widget.existingRecord!.stationName
         : auth.stationName.isNotEmpty
-        ? auth.stationName
-        : provider.stationId; // fallback to what provider already knows
+            ? auth.stationName
+            : provider.stationId; // fallback to what provider already knows
 
     final createdBy = _isEdit && widget.existingRecord!.createdBy.isNotEmpty
         ? widget.existingRecord!.createdBy
@@ -270,19 +269,16 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
       incidentDate: _date,
       priority: _priority,
       status: _status,
-      assignedOfficer: _isEdit
-          ? widget.existingRecord!.assignedOfficer
-          : auth.displayName,
-      subCategory: _isEdit
-          ? widget.existingRecord!.subCategory
-          : widget.subCategory,
+      assignedOfficer:
+          _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
+      subCategory:
+          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       // ✅ Always populated — never empty
       stationName: stationName,
       createdBy: createdBy,
-      assignedOfficerUid: _isEdit
-          ? widget.existingRecord!.assignedOfficerUid
-          : auth.uid,
+      assignedOfficerUid:
+          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
     );
 
     try {
@@ -324,8 +320,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
   Widget build(BuildContext context) {
     final statusItems =
         (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected')
-        ? ['Pending', 'Disposal']
-        : ['Open', 'Active', 'Resolved', 'Closed'];
+            ? ['Pending', 'Disposal']
+            : ['Open', 'Active', 'Resolved', 'Closed'];
 
     return BaseFormLayout(
       title: _isEdit
@@ -428,11 +424,15 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
               const SizedBox(height: AppSpacing.lg),
               _sectionTitle('Priority & Status', Icons.priority_high_rounded),
               _card([
-                _dropdown('Priority', _priority, [
-                  'Low',
-                  'Medium',
-                  'High',
-                ], (v) => setState(() => _priority = v!)),
+                _dropdown(
+                    'Priority',
+                    _priority,
+                    [
+                      'Low',
+                      'Medium',
+                      'High',
+                    ],
+                    (v) => setState(() => _priority = v!)),
                 const SizedBox(height: AppSpacing.md),
                 _dropdown(
                   'Status',
@@ -449,40 +449,40 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
   }
 
   Widget _sectionTitle(String title, IconData icon) => Padding(
-    padding: const EdgeInsets.only(left: 4, bottom: 12),
-    child: Row(
-      children: [
-        Icon(icon, size: 18, color: AppColors.goldPrimary),
-        const SizedBox(width: 8),
-        Text(
-          title.toUpperCase(),
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-            color: AppColors.lightSubText,
-          ),
+        padding: const EdgeInsets.only(left: 4, bottom: 12),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.goldPrimary),
+            const SizedBox(width: 8),
+            Text(
+              title.toUpperCase(),
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+                color: AppColors.lightSubText,
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   Widget _card(List<Widget> children) => Container(
-    padding: const EdgeInsets.all(AppSpacing.md),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.05),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(color: AppColors.lightBorder),
         ),
-      ],
-      border: Border.all(color: AppColors.lightBorder),
-    ),
-    child: Column(children: children),
-  );
+        child: Column(children: children),
+      );
 
   Widget _dropdown(
     String label,

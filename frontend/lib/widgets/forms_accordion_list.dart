@@ -67,83 +67,64 @@ FormsSubSection _sub(
   String pageRange, {
   String? sectionId,
   String? subCategoryOverride,
-}) => FormsSubSection(
-  label: label,
-  pageRange: pageRange,
-  sectionId: sectionId,
-  subCategoryOverride: subCategoryOverride,
-);
+}) =>
+    FormsSubSection(
+      label: label,
+      pageRange: pageRange,
+      sectionId: sectionId,
+      subCategoryOverride: subCategoryOverride,
+    );
 
 /// Mock hierarchy — sub-section boundaries align with I.O./official signature endings.
 final List<FormsListEntry> kFormsHierarchyMock = [
   FormsListEntry(
     title: 'Crime Detail Form',
     subSections: [
-      _sub(
-        'Form 2-A — Case & Occurrence',
-        '§§1–4 (no I.O. block)',
-        sectionId: 'Form 2-A',
-      ),
-      _sub(
-        'Form 2-B — Victims & Property',
-        '§§5–8 (no I.O. block)',
-        sectionId: 'Form 2-B',
-      ),
-      _sub(
-        'Form 2-C — Place, Map & Evidence',
-        'Ends at I.O. signature',
-        sectionId: 'Form 2-C',
-      ),
+      _sub('Form 2-A — Case & Occurrence', '§§1–4 (no I.O. block)',
+          sectionId: 'Form 2-A'),
+      _sub('Form 2-B — Victims & Property', '§§5–8 (no I.O. block)',
+          sectionId: 'Form 2-B'),
+      _sub('Form 2-C — Place, Map & Evidence', 'Ends at I.O. signature',
+          sectionId: 'Form 2-C'),
     ],
   ),
   FormsListEntry(
     title: 'Property & Seizure Form',
     subSections: [
-      _sub(
-        'Seizure Panchanama Memo',
-        '§§1–11 body',
-        sectionId: 'Seizure Memo Body',
-      ),
-      _sub(
-        'Seizure Memo — Signatures',
-        'Ends at I.O. signature',
-        sectionId: 'Seizure Memo Signatures',
-      ),
+      _sub('Seizure Panchanama Memo', '§§1–11 body',
+          sectionId: 'Seizure Memo Body'),
+      _sub('Seizure Memo — Signatures', 'Ends at I.O. signature',
+          sectionId: 'Seizure Memo Signatures'),
     ],
   ),
   FormsListEntry(
     title: 'House/Property Search & Seizure',
     subSections: [
       _sub('Search & Seizure Form', '§§1–10', sectionId: 'Search Seizure Form'),
-      _sub(
-        'Search & Seizure Panchanama',
-        'Ends at I.O. signature',
-        sectionId: 'Search Seizure Panchanama',
-      ),
+      _sub('Search & Seizure Panchanama', 'Ends at I.O. signature',
+          sectionId: 'Search Seizure Panchanama'),
     ],
   ),
   FormsListEntry(
     title: 'Crimespot Seizure Panchanama',
-    subSections: [_sub('घटनास्थळ जप्ती पंचनामा', 'Ends at I.O. signature')],
+    subSections: [
+      _sub('घटनास्थळ जप्ती पंचनामा', 'Ends at I.O. signature'),
+    ],
   ),
   FormsListEntry(
     title: 'Form E',
-    subSections: [_sub('Modus Operandi Bureau Info', 'Ends at I.O. signature')],
+    subSections: [
+      _sub('Modus Operandi Bureau Info', 'Ends at I.O. signature'),
+    ],
   ),
   FormsListEntry(
     title: 'Arrest/Court Surrender Form',
     subSections: [
       _sub('Form 3-A — Arrest Particulars', '§§1–7', sectionId: 'Form 3-A'),
-      _sub(
-        'Form 3-B — Custody & Physical Features',
-        '§§8–9',
-        sectionId: 'Form 3-B',
-      ),
-      _sub(
-        'Form 3-C — Profile & Signatures',
-        'Ends at I.O. signature',
-        sectionId: 'Form 3-C',
-      ),
+      _sub('Form 3-B — Custody & Physical Features', '§§8–9',
+          sectionId: 'Form 3-B'),
+      _sub('Form 3-C — Profile & Signatures', 'Ends at I.O. signature',
+          sectionId: 'Form 3-C'),
     ],
   ),
   FormsListEntry(
@@ -190,42 +171,32 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         'Ends at I.O. & receiver signatures',
         sectionId: 'Dead Body Handover',
       ),
-      _sub('Duty Pass', 'Ends at I.O. signature', sectionId: 'Duty Pass'),
+      _sub(
+        'Duty Pass',
+        'Ends at I.O. signature',
+        sectionId: 'Duty Pass',
+      ),
     ],
   ),
   FormsListEntry(
     title: 'Accused Memorandum Form',
     subSections: [
-      _sub(
-        'Part I — Personal Info & Memorandum',
-        'Ends at I.O. signature',
-        sectionId: 'Accused Part I',
-      ),
-      _sub(
-        'Part II — Further Panchanama',
-        'Ends at I.O. signature',
-        sectionId: 'Accused Part II',
-      ),
+      _sub('Part I — Personal Info & Memorandum', 'Ends at I.O. signature',
+          sectionId: 'Accused Part I'),
+      _sub('Part II — Further Panchanama', 'Ends at I.O. signature',
+          sectionId: 'Accused Part II'),
     ],
   ),
   FormsListEntry(
     title: 'Final Report Form',
     subSections: [
-      _sub(
-        'Part I — Header & Classification',
-        '§§1–10',
-        sectionId: 'Final Report Part I',
-      ),
-      _sub(
-        'Part II — Accused Particulars',
-        '§§11–12',
-        sectionId: 'Final Report Part II',
-      ),
-      _sub(
-        'Part III — Witnesses & Dispatch',
-        'Ends at I.O. submitting signature',
-        sectionId: 'Final Report Part III',
-      ),
+      _sub('Part I — Header & Classification', '§§1–10',
+          sectionId: 'Final Report Part I'),
+      _sub('Part II — Accused Particulars', '§§11–12',
+          sectionId: 'Final Report Part II'),
+      _sub('Part III — Witnesses & Dispatch',
+          'Ends at I.O. submitting signature',
+          sectionId: 'Final Report Part III'),
     ],
   ),
 
@@ -287,16 +258,10 @@ final List<FormsListEntry> kFormsHierarchyMock = [
   FormsListEntry(
     title: 'Transit Remand',
     subSections: [
-      _sub(
-        'Marathi — Transit Remand',
-        'Pages 1–2',
-        sectionId: 'Transit Remand Marathi',
-      ),
-      _sub(
-        'English — Requisition to Transit Remand',
-        'Page 1',
-        sectionId: 'Transit Remand English',
-      ),
+      _sub('Marathi — Transit Remand', 'Pages 1–2',
+          sectionId: 'Transit Remand Marathi'),
+      _sub('English — Requisition to Transit Remand', 'Page 1',
+          sectionId: 'Transit Remand English'),
     ],
   ),
 
@@ -305,21 +270,12 @@ final List<FormsListEntry> kFormsHierarchyMock = [
     title: 'Order Section 47 & 48',
     subCategory: 'Order Section 47 & 48',
     subSections: [
-      _sub(
-        'Administrative Order',
-        'Ends at SHO signature',
-        sectionId: 'Order Main',
-      ),
-      _sub(
-        'Notice BNSS 47(1)',
-        'Ends at accused & I.O. signatures',
-        sectionId: 'Notice BNSS 47(1)',
-      ),
-      _sub(
-        'Notice BNSS 48',
-        'Ends at relative & I.O. signatures',
-        sectionId: 'Notice BNSS 48',
-      ),
+      _sub('Administrative Order', 'Ends at SHO signature',
+          sectionId: 'Order Main'),
+      _sub('Notice BNSS 47(1)', 'Ends at accused & I.O. signatures',
+          sectionId: 'Notice BNSS 47(1)'),
+      _sub('Notice BNSS 48', 'Ends at relative & I.O. signatures',
+          sectionId: 'Notice BNSS 48'),
     ],
   ),
 
@@ -338,86 +294,28 @@ final List<FormsListEntry> kFormsHierarchyMock = [
     title: 'Panchanama, Forms & Notices (BNSS)',
     subCategory: 'BNSS Forms Compendium',
     subSections: [
-      _sub(
-        'Crime Detail Form',
-        'Pages 1–4',
-        subCategoryOverride: 'Crime Detail Form',
-      ),
-      _sub(
-        'House/Property Search & Seizure',
-        'Pages 5, 29',
-        subCategoryOverride: 'House/Property Search & Seizure',
-      ),
-      _sub(
-        'Property Seizure Panchanama',
-        'Pages 6, 30',
-        subCategoryOverride: 'Property & Seizure Form',
-      ),
-      _sub(
-        'Crimespot Seizure Panchanama',
-        'Page 7',
-        subCategoryOverride: 'Crimespot Seizure Panchanama',
-      ),
-      _sub('Form E', 'Page 8', subCategoryOverride: 'Form E'),
-      _sub(
-        'Arrest/Court Surrender Form',
-        'Pages 9–11',
-        subCategoryOverride: 'Arrest/Court Surrender Form',
-      ),
-      _sub(
-        'Inquest Panchanama — Main (u/s 194)',
-        'Pages 12–15',
-        sectionId: 'Inquest Main',
-        subCategoryOverride: 'Inquest Panchanama',
-      ),
-      _sub(
-        'Police Report to Civil Surgeon',
-        'Pages 16–17',
-        sectionId: 'Civil Surgeon PM Report',
-        subCategoryOverride: 'Inquest Panchanama',
-      ),
-      _sub(
-        'PM Request Application (विनंती अर्ज)',
-        'Page 18',
-        sectionId: 'Vinanti Arj',
-        subCategoryOverride: 'Inquest Panchanama',
-      ),
-      _sub(
-        'Relative Summons — Section 179',
-        'Page 19',
-        sectionId: 'Relative Summons 179',
-        subCategoryOverride: 'Inquest Panchanama',
-      ),
-      _sub(
-        'Pancha Summons — Section 195',
-        'Page 20',
-        sectionId: 'Pancha Summons 195',
-        subCategoryOverride: 'Inquest Panchanama',
-      ),
-      _sub(
-        'Marananveshan Panchanama (मरणान्वेषण)',
-        'Pages 21–22',
-        sectionId: 'Marananveshan Panchanama',
-        subCategoryOverride: 'Inquest Panchanama',
-      ),
-      _sub(
-        '14-Point Medical Officer Form',
-        'Page 23',
-        sectionId: '14 Kalmi Form',
-        subCategoryOverride: 'Inquest Panchanama',
-      ),
-      _sub(
-        'Pret Taba Pavti (प्रेत ताबा पावती)',
-        'Page 25',
-        sectionId: 'Dead Body Handover',
-        subCategoryOverride: 'Inquest Panchanama',
-      ),
-      _sub(
-        'Duty Pass (ड्युटी पास)',
-        'Ends at I.O. signature',
-        sectionId: 'Duty Pass',
-        subCategoryOverride: 'Inquest Panchanama',
-      ),
+      _sub('Police Report to Civil Surgeon', 'Pages 16–17',
+          sectionId: 'Civil Surgeon PM Report',
+          subCategoryOverride: 'Inquest Panchanama'),
+      _sub('PM Request Application (विनंती अर्ज)', 'Page 18',
+          sectionId: 'Vinanti Arj', subCategoryOverride: 'Inquest Panchanama'),
+      _sub('Relative Summons — Section 179', 'Page 19',
+          sectionId: 'Relative Summons 179',
+          subCategoryOverride: 'Inquest Panchanama'),
+      _sub('Pancha Summons — Section 195', 'Page 20',
+          sectionId: 'Pancha Summons 195',
+          subCategoryOverride: 'Inquest Panchanama'),
+      _sub('Marananveshan Panchanama (मरणान्वेषण)', 'Pages 21–22',
+          sectionId: 'Marananveshan Panchanama',
+          subCategoryOverride: 'Inquest Panchanama'),
+      _sub('14-Point Medical Officer Form', 'Page 23',
+          sectionId: '14 Kalmi Form',
+          subCategoryOverride: 'Inquest Panchanama'),
+      _sub('Pret Taba Pavti (प्रेत ताबा पावती)', 'Page 25',
+          sectionId: 'Dead Body Handover',
+          subCategoryOverride: 'Inquest Panchanama'),
+      _sub('Duty Pass (ड्युटी पास)', 'Ends at I.O. signature',
+          sectionId: 'Duty Pass', subCategoryOverride: 'Inquest Panchanama'),
       _sub(
         'Panchanama Continuation',
         'Ends at I.O. signature',
@@ -496,11 +394,8 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         sectionId: 'Mobile Seal Label',
         subCategoryOverride: 'Mobile Seal Label',
       ),
-      _sub(
-        'Accused Interrogation / Memorandum',
-        'Pages 47–64',
-        subCategoryOverride: 'Accused Memorandum Form',
-      ),
+      _sub('Accused Interrogation / Memorandum', 'Pages 47–64',
+          subCategoryOverride: 'Accused Memorandum Form'),
       _sub(
         'Juvenile Social — Part I (Personal)',
         'Personal particulars',
@@ -531,17 +426,16 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         sectionId: 'Juvenile Social Part V',
         subCategoryOverride: 'Juvenile Social Background Report',
       ),
-      _sub(
-        'Final Report Form',
-        'Pages 70–73',
-        subCategoryOverride: 'Final Report Form',
-      ),
+      _sub('Final Report Form', 'Pages 70–73',
+          subCategoryOverride: 'Final Report Form'),
     ],
   ),
 ];
 
-typedef FormsAccordionSelectCallback =
-    void Function(FormsListEntry entry, {FormsSubSection? subSection});
+typedef FormsAccordionSelectCallback = void Function(
+  FormsListEntry entry, {
+  FormsSubSection? subSection,
+});
 
 /// Accordion-style forms list with dual-action parent rows.
 class FormsAccordionList extends StatefulWidget {
@@ -592,9 +486,8 @@ class _FormsAccordionListState extends State<FormsAccordionList> {
             entry: entry,
             expanded: _expandedIndices.contains(index),
             onHeaderTap: () => _toggleExpanded(index),
-            onOpenFullForm: entry.allowCompleteForm
-                ? () => widget.onSelect(entry)
-                : null,
+            onOpenFullForm:
+                entry.allowCompleteForm ? () => widget.onSelect(entry) : null,
             onChildTap: (section) =>
                 widget.onSelect(entry, subSection: section),
           );
@@ -612,7 +505,10 @@ class _StandaloneFormRow extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const _StandaloneFormRow({required this.title, required this.onTap});
+  const _StandaloneFormRow({
+    required this.title,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -626,11 +522,8 @@ class _StandaloneFormRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
             children: [
-              const Icon(
-                Icons.description_outlined,
-                size: 20,
-                color: AppColors.navyMid,
-              ),
+              const Icon(Icons.description_outlined,
+                  size: 20, color: AppColors.navyMid),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -642,10 +535,8 @@ class _StandaloneFormRow extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.navyMid.withValues(alpha: 0.5),
-              ),
+              Icon(Icons.chevron_right_rounded,
+                  color: AppColors.navyMid.withValues(alpha: 0.5)),
             ],
           ),
         ),
@@ -680,27 +571,22 @@ class _ParentFormRow extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(
             top: const Radius.circular(AppRadius.md),
-            bottom: expanded
-                ? Radius.zero
-                : const Radius.circular(AppRadius.md),
+            bottom:
+                expanded ? Radius.zero : const Radius.circular(AppRadius.md),
           ),
           child: InkWell(
             onTap: onHeaderTap,
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.md),
-              bottom: expanded
-                  ? Radius.zero
-                  : const Radius.circular(AppRadius.md),
+              bottom:
+                  expanded ? Radius.zero : const Radius.circular(AppRadius.md),
             ),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.folder_outlined,
-                    size: 20,
-                    color: AppColors.navyMid,
-                  ),
+                  const Icon(Icons.folder_outlined,
+                      size: 20, color: AppColors.navyMid),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -782,12 +668,8 @@ class _ParentFormRow extends StatelessWidget {
                           child: InkWell(
                             onTap: onOpenFullForm,
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                44,
-                                12,
-                                14,
-                                12,
-                              ),
+                              padding:
+                                  const EdgeInsets.fromLTRB(44, 12, 14, 12),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -802,10 +684,8 @@ class _ParentFormRow extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      TranslationHelper.translate(
-                                        context,
-                                        'Complete form (all sections)',
-                                      ),
+                                      TranslationHelper.translate(context,
+                                          'Complete form (all sections)'),
                                       style: GoogleFonts.poppins(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
@@ -814,13 +694,10 @@ class _ParentFormRow extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  Icon(
-                                    Icons.chevron_right_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid.withValues(
-                                      alpha: 0.4,
-                                    ),
-                                  ),
+                                  Icon(Icons.chevron_right_rounded,
+                                      size: 18,
+                                      color: AppColors.navyMid
+                                          .withValues(alpha: 0.4)),
                                 ],
                               ),
                             ),
@@ -844,12 +721,8 @@ class _ParentFormRow extends StatelessWidget {
                           child: InkWell(
                             onTap: () => onChildTap(entry.subSections[i]),
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                44,
-                                12,
-                                14,
-                                12,
-                              ),
+                              padding:
+                                  const EdgeInsets.fromLTRB(44, 12, 14, 12),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -858,9 +731,8 @@ class _ParentFormRow extends StatelessWidget {
                                     child: Icon(
                                       Icons.subdirectory_arrow_right_rounded,
                                       size: 18,
-                                      color: AppColors.navyMid.withValues(
-                                        alpha: 0.7,
-                                      ),
+                                      color: AppColors.navyMid
+                                          .withValues(alpha: 0.7),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -876,13 +748,10 @@ class _ParentFormRow extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  Icon(
-                                    Icons.chevron_right_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid.withValues(
-                                      alpha: 0.4,
-                                    ),
-                                  ),
+                                  Icon(Icons.chevron_right_rounded,
+                                      size: 18,
+                                      color: AppColors.navyMid
+                                          .withValues(alpha: 0.4)),
                                 ],
                               ),
                             ),

@@ -37,10 +37,10 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
   final activeSection = doc['formSection']?.toString();
 
   bool showsSection(String sectionId) => showsFormSection(
-    activeSection: activeSection,
-    sectionId: sectionId,
-    knownSectionIds: knownSectionIds,
-  );
+        activeSection: activeSection,
+        sectionId: sectionId,
+        knownSectionIds: knownSectionIds,
+      );
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,

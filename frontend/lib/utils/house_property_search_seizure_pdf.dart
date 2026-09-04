@@ -39,10 +39,10 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
   final activeSection = doc['formSection']?.toString();
 
   bool showsSection(String sectionId) => showsFormSection(
-    activeSection: activeSection,
-    sectionId: sectionId,
-    knownSectionIds: knownSectionIds,
-  );
+        activeSection: activeSection,
+        sectionId: sectionId,
+        knownSectionIds: knownSectionIds,
+      );
 
   final englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -296,7 +296,7 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
     );
   }
 
-  // PAGE 1 — Title
+  // Sections 1–10
   if (showsSection('Search Seizure Form')) {
     pdf.addPage(
       pw.Page(
@@ -315,8 +315,7 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                       ? cache.img('title_mr')
                       : pw.Text(
                           'घरझडती पंचनामा/ मालमत्ता शोध व जप्तीचा पंचनामा',
-                          style: englishStyle,
-                        ),
+                          style: englishStyle),
                 ],
               ),
             ),
@@ -600,22 +599,17 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                       padding: const pw.EdgeInsets.all(4),
                       child: pw.Column(
                         children: [
-                          pw.Text(
-                            'Sr.No.',
-                            style: englishBold,
-                            textAlign: pw.TextAlign.center,
-                          ),
+                          pw.Text('Sr.No.',
+                              style: englishBold,
+                              textAlign: pw.TextAlign.center),
                           mLbl('lbl_sr_no'),
                         ],
                       ),
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(4),
-                      child: pw.Text(
-                        'Property/ मालमत्ता',
-                        style: englishBold,
-                        textAlign: pw.TextAlign.center,
-                      ),
+                      child: pw.Text('Property/ मालमत्ता',
+                          style: englishBold, textAlign: pw.TextAlign.center),
                     ),
                   ],
                 ),
@@ -628,11 +622,10 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(4),
                       child: _linedPropertyCell(
-                        cache,
-                        doc['propertyPacked']?.toString() ?? '',
-                        valueStyle,
-                        englishStyle,
-                      ),
+                          cache,
+                          doc['propertyPacked']?.toString() ?? '',
+                          valueStyle,
+                          englishStyle),
                     ),
                   ],
                 ),
@@ -751,13 +744,15 @@ pw.Widget _linedPropertyCell(
   MarathiImageCache cache,
   String text,
   pw.TextStyle valueStyle,
-  pw.TextStyle englishStyle,
-) {
+  pw.TextStyle englishStyle, {
+  String keyPrefix = 'propertyPacked',
+}) {
   final lines = _splitTextIntoLines(text, 85);
-  final count = lines.length > 6 ? lines.length : 6;
+  final count = lines.length > 1 ? lines.length : 1;
   return pw.Column(
     children: List.generate(count, (i) {
       final line = i < lines.length ? lines[i] : '';
+      final cacheKey = '${keyPrefix}_$i';
       return pw.Container(
         width: double.infinity,
         margin: const pw.EdgeInsets.only(bottom: 2),
@@ -766,9 +761,12 @@ pw.Widget _linedPropertyCell(
           border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
         ),
         child: line.isNotEmpty
-            ? (containsDevanagari(line) && cache.has('propertyPacked_$i')
-                  ? cache.img('propertyPacked_$i')
-                  : pw.Text(line, style: valueStyle))
+            ? (containsDevanagari(line) &&
+                    (cache.has(cacheKey) || cache.has('propertyPacked_$i'))
+                ? (cache.has(cacheKey)
+                    ? cache.img(cacheKey)
+                    : cache.img('propertyPacked_$i'))
+                : pw.Text(line, style: valueStyle))
             : pw.SizedBox(height: 10),
       );
     }),
@@ -953,6 +951,23 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     for (var i = 0; i < lines.length; i++) {
       if (containsDevanagari(lines[i])) {
         await cache.add('${entry.$1}_$i', lines[i], valueStyle, maxWidth: 480);
+      }
+    }
+  }
+
+  final rawPackedList = doc['propertyPackedList'];
+  final List<String> packedList =
+      (rawPackedList is List && rawPackedList.isNotEmpty)
+          ? rawPackedList.map((e) => e?.toString() ?? '').toList()
+          : (doc['propertyPacked']?.toString().contains('\n---\n') ?? false)
+              ? doc['propertyPacked']!.toString().split('\n---\n')
+              : [doc['propertyPacked']?.toString() ?? ''];
+  for (var r = 0; r < packedList.length; r++) {
+    final lines = _splitTextIntoLines(packedList[r], 85);
+    for (var i = 0; i < lines.length; i++) {
+      if (containsDevanagari(lines[i])) {
+        await cache.add('propertyPacked_${r}_$i', lines[i], valueStyle,
+            maxWidth: 480);
       }
     }
   }

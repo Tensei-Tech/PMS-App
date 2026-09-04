@@ -8,13 +8,10 @@ import 'evidence_geotag_service.dart';
 Future<GeotagLocation?> getWebCurrentLocation() async {
   try {
     final completer = Completer<GeotagLocation?>();
-    final options = web.PositionOptions(
-      enableHighAccuracy: true,
-      timeout: 10000,
-    );
+    final geolocation = web.window.navigator.geolocation;
 
-    web.window.navigator.geolocation.getCurrentPosition(
-      (web.GeolocationPosition pos) {
+    geolocation.getCurrentPosition(
+      ((web.GeolocationPosition pos) {
         final coords = pos.coords;
         final loc = GeotagLocation(
           latitude: coords.latitude.toDouble(),
@@ -22,13 +19,20 @@ Future<GeotagLocation?> getWebCurrentLocation() async {
           accuracy: coords.accuracy.toDouble(),
           timestamp: DateFormat('dd-MMM-yyyy HH:mm:ss').format(DateTime.now()),
         );
-        completer.complete(loc);
-      }.toJS,
-      (web.GeolocationPositionError err) {
+        if (!completer.isCompleted) {
+          completer.complete(loc);
+        }
+      }).toJS,
+      ((web.GeolocationPositionError err) {
         debugPrint('Geolocation error: ${err.message}');
-        completer.complete(null);
-      }.toJS,
-      options,
+        if (!completer.isCompleted) {
+          completer.complete(null);
+        }
+      }).toJS,
+      web.PositionOptions(
+        enableHighAccuracy: true,
+        timeout: 10000,
+      ),
     );
     return await completer.future;
   } catch (e) {

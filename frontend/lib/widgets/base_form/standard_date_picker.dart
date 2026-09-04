@@ -34,16 +34,15 @@ class StandardDatePicker extends StatelessWidget {
     final parsed = BaseFormStyles.parseDateDdMmYyyy(controller.text);
     final initial =
         parsed != null && !parsed.isBefore(min) && !parsed.isAfter(max)
-        ? parsed
-        : (max.isBefore(now) ? max : now);
+            ? parsed
+            : (max.isBefore(now) ? max : now);
 
     final picked = await showDatePicker(
       context: context,
       firstDate: min,
       lastDate: max,
-      initialDate: initial.isBefore(min)
-          ? min
-          : (initial.isAfter(max) ? max : initial),
+      initialDate:
+          initial.isBefore(min) ? min : (initial.isAfter(max) ? max : initial),
     );
     if (picked == null) return;
     controller.text = _format(picked);

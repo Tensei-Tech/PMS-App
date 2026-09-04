@@ -69,15 +69,15 @@ class NotificationScreen extends StatelessWidget {
           children: [
             // ── TAB 1: Live Case Reminders from Firestore ──────────────────
             StreamBuilder<List<Map<String, dynamic>>>(
-              stream:
-                  SeniorOfficerRoles.isCpLevel(auth.designation) ||
+              stream: SeniorOfficerRoles.isCpLevel(auth.designation) ||
                       SeniorOfficerRoles.isSpLevel(auth.designation)
                   ? firestore.getAllRemindersStream()
                   : (auth.isSupervisor || auth.isAdmin)
-                  ? firestore.getSentRemindersStream(auth.uid)
-                  : (auth.stationName.isNotEmpty
-                        ? firestore.getStationRemindersStream(auth.stationName)
-                        : firestore.getIoRemindersStream(auth.uid)),
+                      ? firestore.getSentRemindersStream(auth.uid)
+                      : (auth.stationName.isNotEmpty
+                          ? firestore
+                              .getStationRemindersStream(auth.stationName)
+                          : firestore.getIoRemindersStream(auth.uid)),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -86,8 +86,8 @@ class NotificationScreen extends StatelessWidget {
                 final reminders = snapshot.data ?? [];
                 final isSenior =
                     SeniorOfficerRoles.isCpLevel(auth.designation) ||
-                    SeniorOfficerRoles.isSpLevel(auth.designation) ||
-                    auth.isSupervisor;
+                        SeniorOfficerRoles.isSpLevel(auth.designation) ||
+                        auth.isSupervisor;
 
                 if (reminders.isEmpty) {
                   return _buildEmptyRemindersState(isSenior: isSenior);
@@ -396,9 +396,8 @@ class _NotificationCard extends StatelessWidget {
                         item.title,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
-                          fontWeight: isUnread
-                              ? FontWeight.w700
-                              : FontWeight.w600,
+                          fontWeight:
+                              isUnread ? FontWeight.w700 : FontWeight.w600,
                           color: AppColors.navyDark,
                         ),
                         maxLines: 2,

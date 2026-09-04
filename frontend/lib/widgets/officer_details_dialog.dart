@@ -39,28 +39,23 @@ class OfficerDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final uid =
-        officerData['registration_uid']?.toString() ??
+    final uid = officerData['registration_uid']?.toString() ??
         officerData['uid']?.toString() ??
         '';
-    final name =
-        officerData['name']?.toString() ??
+    final name = officerData['name']?.toString() ??
         officerData['title']?.toString() ??
         'Officer';
     final desig = officerData['designation']?.toString() ?? '';
     final email = officerData['email']?.toString() ?? '';
     final phone = officerData['phone']?.toString() ?? '';
-    final badge =
-        officerData['badge_number']?.toString() ??
+    final badge = officerData['badge_number']?.toString() ??
         officerData['govt_id']?.toString() ??
         '';
     final roleId = officerData['role_id']?.toString() ?? '';
-    final station =
-        officerData['target_station']?.toString() ??
+    final station = officerData['target_station']?.toString() ??
         officerData['station_name']?.toString() ??
         '';
-    final district =
-        officerData['target_district']?.toString() ??
+    final district = officerData['target_district']?.toString() ??
         officerData['district']?.toString() ??
         '';
     final divName = officerData['division_name']?.toString() ?? '';
@@ -68,14 +63,12 @@ class OfficerDetailsDialog extends StatelessWidget {
     final idCardUrl = officerData['id_card_url']?.toString() ?? '';
 
     // Smart logic for Station/Division applicability based on role
-    final isStateLevel =
-        roleId.contains('state') ||
+    final isStateLevel = roleId.contains('state') ||
         roleId.contains('dgp') ||
         roleId.contains('master') ||
         desig.toLowerCase().contains('ig') ||
         desig.toLowerCase().contains('cp');
-    final isDivLevel =
-        roleId.contains('div') ||
+    final isDivLevel = roleId.contains('div') ||
         desig.toLowerCase().contains('dig') ||
         desig.toLowerCase().contains('sp');
 
@@ -245,24 +238,24 @@ class OfficerDetailsDialog extends StatelessWidget {
                       divName.isNotEmpty
                           ? divName
                           : (isStateLevel
-                                ? 'Not Applicable (State Admin)'
-                                : ''),
+                              ? 'Not Applicable (State Admin)'
+                              : ''),
                     ),
                     _detailRow(
                       'District Range',
                       district.isNotEmpty
                           ? district
                           : (isStateLevel
-                                ? 'Not Applicable (State Admin)'
-                                : ''),
+                              ? 'Not Applicable (State Admin)'
+                              : ''),
                     ),
                     _detailRow(
                       'Police Station',
                       station.isNotEmpty
                           ? station
                           : ((isStateLevel || isDivLevel)
-                                ? 'Not Applicable (High Rank / Command)'
-                                : ''),
+                              ? 'Not Applicable (High Rank / Command)'
+                              : ''),
                     ),
 
                     const SizedBox(height: 16),
@@ -442,33 +435,33 @@ class OfficerDetailsDialog extends StatelessWidget {
                     ),
                   )
                 : isEmpty
-                ? Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 1.5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'Not Submitted',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade600,
-                        fontStyle: FontStyle.italic,
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Not Submitted',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade600,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        value,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyDark,
+                        ),
                       ),
-                    ),
-                  )
-                : Text(
-                    value,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.navyDark,
-                    ),
-                  ),
           ),
         ],
       ),

@@ -57,8 +57,8 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
 
       if (response.isSuccess && response.data is List) {
         setState(() {
-          _pendingRequests = (response.data as List)
-              .cast<Map<String, dynamic>>();
+          _pendingRequests =
+              (response.data as List).cast<Map<String, dynamic>>();
           _isLoading = false;
         });
       } else {
@@ -81,21 +81,17 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
     setState(() => _processingUids.add(uid));
 
     try {
-      final response = await _apiService.approveOrRejectOfficer(
-        uid,
-        action: 'approve',
-      );
+      final response =
+          await _apiService.approveOrRejectOfficer(uid, action: 'approve');
       if (!mounted) return;
 
       if (response.isSuccess) {
         setState(() {
-          _pendingRequests.removeWhere(
-            (r) =>
-                r['registration_uid'] == uid ||
-                r['id'] == uid ||
-                r['id'] == 'off-$uid' ||
-                r['id'] == 'pub-$uid',
-          );
+          _pendingRequests.removeWhere((r) =>
+              r['registration_uid'] == uid ||
+              r['id'] == uid ||
+              r['id'] == 'off-$uid' ||
+              r['id'] == 'pub-$uid');
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -122,7 +118,10 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Approval error: $e', style: GoogleFonts.poppins()),
+          content: Text(
+            'Approval error: $e',
+            style: GoogleFonts.poppins(),
+          ),
           backgroundColor: AppColors.dangerRed,
         ),
       );
@@ -152,7 +151,9 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.dangerRed),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.dangerRed,
+            ),
             child: const Text('Reject'),
           ),
         ],
@@ -162,25 +163,24 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
 
     setState(() => _processingUids.add(uid));
     try {
-      final response = await _apiService.approveOrRejectOfficer(
-        uid,
-        action: 'reject',
-      );
+      final response =
+          await _apiService.approveOrRejectOfficer(uid, action: 'reject');
       if (!mounted) return;
 
       if (response.isSuccess) {
         setState(() {
-          _pendingRequests.removeWhere(
-            (r) =>
-                r['registration_uid'] == uid ||
-                r['id'] == uid ||
-                r['id'] == 'off-$uid' ||
-                r['id'] == 'pub-$uid',
-          );
+          _pendingRequests.removeWhere((r) =>
+              r['registration_uid'] == uid ||
+              r['id'] == uid ||
+              r['id'] == 'off-$uid' ||
+              r['id'] == 'pub-$uid');
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('$name rejected.', style: GoogleFonts.poppins()),
+            content: Text(
+              '$name rejected.',
+              style: GoogleFonts.poppins(),
+            ),
             backgroundColor: AppColors.warningOrange,
           ),
         );
@@ -200,7 +200,10 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Rejection error: $e', style: GoogleFonts.poppins()),
+          content: Text(
+            'Rejection error: $e',
+            style: GoogleFonts.poppins(),
+          ),
           backgroundColor: AppColors.dangerRed,
         ),
       );
@@ -227,11 +230,8 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
               Navigator.of(context).pushReplacementNamed('/dashboard');
             }
           },
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.navyDark,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppColors.navyDark, size: 20),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,295 +261,311 @@ class _PendingApprovalsScreenState extends State<PendingApprovalsScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _errorMessage != null
-                  ? _EmptyState(
-                      icon: _errorMessage!.contains('Authentication')
-                          ? Icons.lock_outline_rounded
-                          : Icons.error_outline_rounded,
-                      title: _errorMessage!.contains('Authentication')
-                          ? 'Sign In Required'
-                          : 'Could not load requests',
-                      subtitle: _errorMessage!.contains('Authentication')
-                          ? 'Please sign in with your officer credentials to view pending registration approvals.'
-                          : _errorMessage!,
-                    )
-                  : _pendingRequests.isEmpty
-                  ? const _EmptyState(
-                      icon: Icons.check_circle_outline_rounded,
-                      title: 'No pending approvals',
-                      subtitle:
-                          'Registration requests in your jurisdiction will appear here.',
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      itemCount: _pendingRequests.length,
-                      itemBuilder: (context, index) {
-                        final req = _pendingRequests[index];
-                        final uid =
-                            req['registration_uid']?.toString() ??
-                            req['id']?.toString() ??
-                            '';
-                        final rawTitle =
-                            req['title']?.toString() ?? 'Registration Request';
-                        final body = req['body']?.toString() ?? '';
-                        final station =
-                            req['target_station']?.toString() ??
-                            req['station_name']?.toString() ??
-                            '';
-                        final district =
-                            req['target_district']?.toString() ??
-                            req['district']?.toString() ??
-                            '';
-                        final busy = _processingUids.contains(uid);
-
-                        // Extract clean Officer Name and Designation
-                        String officerTitle = req['name']?.toString() ?? '';
-                        if (officerTitle.isEmpty) {
-                          if (body.startsWith('Officer ')) {
-                            final parts = body
-                                .replaceFirst('Officer ', '')
-                                .split(' registered');
-                            officerTitle = parts[0];
-                          } else {
-                            officerTitle = rawTitle
-                                .replaceAll('New Officer System-Wide ', '')
-                                .replaceAll(' Registration Pending', '');
-                          }
-                        }
-
-                        String locationTag = '';
-                        if (station.isNotEmpty && district.isNotEmpty) {
-                          locationTag = '$station • $district';
-                        } else if (station.isNotEmpty) {
-                          locationTag = station;
-                        } else if (district.isNotEmpty) {
-                          locationTag = 'District: $district';
-                        } else {
-                          locationTag = 'State Jurisdiction Request';
-                        }
-
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          elevation: 1,
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: const BorderSide(color: Color(0xFFE2E8F0)),
-                          ),
-                          child: InkWell(
-                            onTap: () => OfficerDetailsDialog.show(
-                              context,
-                              officerData: req,
-                              onApprove: _approve,
-                              onReject: _reject,
-                              isBusy: busy,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            child: Padding(
+                      ? _EmptyState(
+                          icon: _errorMessage!.contains('Authentication')
+                              ? Icons.lock_outline_rounded
+                              : Icons.error_outline_rounded,
+                          title: _errorMessage!.contains('Authentication')
+                              ? 'Sign In Required'
+                              : 'Could not load requests',
+                          subtitle: _errorMessage!.contains('Authentication')
+                              ? 'Please sign in with your officer credentials to view pending registration approvals.'
+                              : _errorMessage!,
+                        )
+                      : _pendingRequests.isEmpty
+                          ? const _EmptyState(
+                              icon: Icons.check_circle_outline_rounded,
+                              title: 'No pending approvals',
+                              subtitle:
+                                  'Registration requests in your jurisdiction will appear here.',
+                            )
+                          : ListView.builder(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 16,
-                                        backgroundColor: AppColors.navyDark
-                                            .withValues(alpha: 0.08),
-                                        child: const Icon(
-                                          Icons.person_rounded,
-                                          color: AppColors.navyDark,
-                                          size: 18,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              officerTitle,
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w700,
-                                                color: AppColors.navyDark,
+                                  horizontal: 12, vertical: 10),
+                              itemCount: _pendingRequests.length,
+                              itemBuilder: (context, index) {
+                                final req = _pendingRequests[index];
+                                final uid =
+                                    req['registration_uid']?.toString() ??
+                                        req['id']?.toString() ??
+                                        '';
+                                final rawTitle = req['title']?.toString() ??
+                                    'Registration Request';
+                                final body = req['body']?.toString() ?? '';
+                                final station =
+                                    req['target_station']?.toString() ??
+                                        req['station_name']?.toString() ??
+                                        '';
+                                final district =
+                                    req['target_district']?.toString() ??
+                                        req['district']?.toString() ??
+                                        '';
+                                final busy = _processingUids.contains(uid);
+
+                                // Extract clean Officer Name and Designation
+                                String officerTitle =
+                                    req['name']?.toString() ?? '';
+                                if (officerTitle.isEmpty) {
+                                  if (body.startsWith('Officer ')) {
+                                    final parts = body
+                                        .replaceFirst('Officer ', '')
+                                        .split(' registered');
+                                    officerTitle = parts[0];
+                                  } else {
+                                    officerTitle = rawTitle
+                                        .replaceAll(
+                                            'New Officer System-Wide ', '')
+                                        .replaceAll(
+                                            ' Registration Pending', '');
+                                  }
+                                }
+
+                                String locationTag = '';
+                                if (station.isNotEmpty && district.isNotEmpty) {
+                                  locationTag = '$station • $district';
+                                } else if (station.isNotEmpty) {
+                                  locationTag = station;
+                                } else if (district.isNotEmpty) {
+                                  locationTag = 'District: $district';
+                                } else {
+                                  locationTag = 'State Jurisdiction Request';
+                                }
+
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  elevation: 1,
+                                  color: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: const BorderSide(
+                                        color: Color(0xFFE2E8F0)),
+                                  ),
+                                  child: InkWell(
+                                    onTap: () => OfficerDetailsDialog.show(
+                                      context,
+                                      officerData: req,
+                                      onApprove: _approve,
+                                      onReject: _reject,
+                                      isBusy: busy,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 10),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 16,
+                                                backgroundColor: AppColors
+                                                    .navyDark
+                                                    .withValues(alpha: 0.08),
+                                                child: const Icon(
+                                                    Icons.person_rounded,
+                                                    color: AppColors.navyDark,
+                                                    size: 18),
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 1),
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.location_on_rounded,
-                                                  size: 12,
-                                                  color: Colors.grey.shade600,
-                                                ),
-                                                const SizedBox(width: 3),
-                                                Expanded(
-                                                  child: Text(
-                                                    locationTag,
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize: 11,
-                                                      color:
-                                                          Colors.grey.shade700,
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      officerTitle,
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color:
+                                                            AppColors.navyDark,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    const SizedBox(height: 1),
+                                                    Row(
+                                                      children: [
+                                                        Icon(
+                                                            Icons
+                                                                .location_on_rounded,
+                                                            size: 12,
+                                                            color: Colors
+                                                                .grey.shade600),
+                                                        const SizedBox(
+                                                            width: 3),
+                                                        Expanded(
+                                                          child: Text(
+                                                            locationTag,
+                                                            style: GoogleFonts
+                                                                .poppins(
+                                                              fontSize: 11,
+                                                              color: Colors.grey
+                                                                  .shade700,
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              IconButton(
+                                                icon: const Icon(
+                                                    Icons.visibility_rounded,
+                                                    size: 18,
+                                                    color: AppColors.navyDark),
+                                                tooltip:
+                                                    'View Officer Registration Details',
+                                                padding: EdgeInsets.zero,
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        minWidth: 28,
+                                                        minHeight: 28),
+                                                onPressed: () =>
+                                                    OfficerDetailsDialog.show(
+                                                  context,
+                                                  officerData: req,
+                                                  onApprove: _approve,
+                                                  onReject: _reject,
+                                                  isBusy: busy,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                        vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.orange.shade700
+                                                      .withValues(alpha: 0.12),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Text(
+                                                  'Pending',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w700,
+                                                    color:
+                                                        Colors.orange.shade800,
                                                   ),
                                                 ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.visibility_rounded,
-                                          size: 18,
-                                          color: AppColors.navyDark,
-                                        ),
-                                        tooltip:
-                                            'View Officer Registration Details',
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(
-                                          minWidth: 28,
-                                          minHeight: 28,
-                                        ),
-                                        onPressed: () =>
-                                            OfficerDetailsDialog.show(
-                                              context,
-                                              officerData: req,
-                                              onApprove: _approve,
-                                              onReject: _reject,
-                                              isBusy: busy,
-                                            ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 7,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange.shade700
-                                              .withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                        child: Text(
-                                          'Pending',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.orange.shade800,
+                                          const SizedBox(height: 10),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: SizedBox(
+                                                  height: 32,
+                                                  child: OutlinedButton.icon(
+                                                    onPressed: busy
+                                                        ? null
+                                                        : () => _reject(
+                                                            uid, officerTitle),
+                                                    icon: const Icon(
+                                                        Icons.close_rounded,
+                                                        size: 14),
+                                                    label: Text(
+                                                      'Reject',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontSize: 11.5),
+                                                    ),
+                                                    style: OutlinedButton
+                                                        .styleFrom(
+                                                      foregroundColor:
+                                                          AppColors.dangerRed,
+                                                      side: BorderSide(
+                                                        color: AppColors
+                                                            .dangerRed
+                                                            .withValues(
+                                                                alpha: 0.4),
+                                                      ),
+                                                      padding: EdgeInsets.zero,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          6)),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: SizedBox(
+                                                  height: 32,
+                                                  child: FilledButton.icon(
+                                                    onPressed: busy
+                                                        ? null
+                                                        : () => _approve(
+                                                            uid, officerTitle),
+                                                    icon: busy
+                                                        ? const SizedBox(
+                                                            width: 14,
+                                                            height: 14,
+                                                            child:
+                                                                CircularProgressIndicator(
+                                                              strokeWidth: 2,
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                          )
+                                                        : const Icon(
+                                                            Icons.check_rounded,
+                                                            size: 14),
+                                                    label: Text(
+                                                      'Approve',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontSize: 11.5),
+                                                    ),
+                                                    style:
+                                                        FilledButton.styleFrom(
+                                                      backgroundColor: AppColors
+                                                          .successGreen,
+                                                      foregroundColor:
+                                                          Colors.white,
+                                                      padding: EdgeInsets.zero,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          6)),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: SizedBox(
-                                          height: 32,
-                                          child: OutlinedButton.icon(
-                                            onPressed: busy
-                                                ? null
-                                                : () => _reject(
-                                                    uid,
-                                                    officerTitle,
-                                                  ),
-                                            icon: const Icon(
-                                              Icons.close_rounded,
-                                              size: 14,
-                                            ),
-                                            label: Text(
-                                              'Reject',
-                                              style: GoogleFonts.poppins(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 11.5,
-                                              ),
-                                            ),
-                                            style: OutlinedButton.styleFrom(
-                                              foregroundColor:
-                                                  AppColors.dangerRed,
-                                              side: BorderSide(
-                                                color: AppColors.dangerRed
-                                                    .withValues(alpha: 0.4),
-                                              ),
-                                              padding: EdgeInsets.zero,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: SizedBox(
-                                          height: 32,
-                                          child: FilledButton.icon(
-                                            onPressed: busy
-                                                ? null
-                                                : () => _approve(
-                                                    uid,
-                                                    officerTitle,
-                                                  ),
-                                            icon: busy
-                                                ? const SizedBox(
-                                                    width: 14,
-                                                    height: 14,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          strokeWidth: 2,
-                                                          color: Colors.white,
-                                                        ),
-                                                  )
-                                                : const Icon(
-                                                    Icons.check_rounded,
-                                                    size: 14,
-                                                  ),
-                                            label: Text(
-                                              'Approve',
-                                              style: GoogleFonts.poppins(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 11.5,
-                                              ),
-                                            ),
-                                            style: FilledButton.styleFrom(
-                                              backgroundColor:
-                                                  AppColors.successGreen,
-                                              foregroundColor: Colors.white,
-                                              padding: EdgeInsets.zero,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
-                          ),
-                        );
-                      },
-                    ),
             ),
     );
   }

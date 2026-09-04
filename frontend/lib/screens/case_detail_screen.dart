@@ -51,26 +51,24 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final id = _record.id;
     if (id.isEmpty) return;
     _subscription?.cancel();
-    _subscription = _firestore
-        .watchCaseById(id)
-        .listen(
-          (next) {
-            if (!mounted) return;
-            setState(() {
-              if (next == null) {
-                _recordDeleted = true;
-              } else {
-                _recordDeleted = false;
-                _accessDenied = false;
-                _record = next;
-              }
-            });
-          },
-          onError: (_) {
-            if (!mounted) return;
-            setState(() => _accessDenied = true);
-          },
-        );
+    _subscription = _firestore.watchCaseById(id).listen(
+      (next) {
+        if (!mounted) return;
+        setState(() {
+          if (next == null) {
+            _recordDeleted = true;
+          } else {
+            _recordDeleted = false;
+            _accessDenied = false;
+            _record = next;
+          }
+        });
+      },
+      onError: (_) {
+        if (!mounted) return;
+        setState(() => _accessDenied = true);
+      },
+    );
   }
 
   @override
@@ -90,89 +88,76 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       body: _accessDenied || !canView
           ? _buildAccessDeniedBody(context)
           : _recordDeleted
-          ? _buildDeletedBody()
-          : _buildLiveBody(context),
+              ? _buildDeletedBody()
+              : _buildLiveBody(context),
       floatingActionButton: widget.showFloatingActions && showContent
-          ? Builder(
-              builder: (ctx) {
-                final canEdit = PoliceRbacHelper.canEditRecord(_record, auth);
-                final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
+          ? Builder(builder: (ctx) {
+              final canEdit = PoliceRbacHelper.canEditRecord(_record, auth);
+              final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
 
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloatingActionButton.extended(
+                    heroTag: 'pdf_btn',
+                    onPressed: () => runWithPdfAuthGate(
+                      context,
+                      () => PdfHelper.generateCasePdf(_record),
+                    ),
+                    backgroundColor: AppColors.dangerRed,
+                    icon: const Icon(Icons.picture_as_pdf_rounded,
+                        color: Colors.white),
+                    label: Text(
+                      'Download PDF',
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600, color: Colors.white),
+                    ),
+                  ),
+                  if (canSendReminder) ...[
+                    const SizedBox(height: 12),
                     FloatingActionButton.extended(
-                      heroTag: 'pdf_btn',
-                      onPressed: () => runWithPdfAuthGate(
-                        context,
-                        () => PdfHelper.generateCasePdf(_record),
-                      ),
-                      backgroundColor: AppColors.dangerRed,
-                      icon: const Icon(
-                        Icons.picture_as_pdf_rounded,
-                        color: Colors.white,
-                      ),
+                      heroTag: 'reminder_btn',
+                      onPressed: () =>
+                          SendReminderDialog.show(context, _record),
+                      backgroundColor: AppColors.warningOrange,
+                      icon: const Icon(Icons.notifications_active_rounded,
+                          color: Colors.white),
                       label: Text(
-                        'Download PDF',
+                        'Send Reminder to IO',
                         style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                            fontWeight: FontWeight.w600, color: Colors.white),
                       ),
                     ),
-                    if (canSendReminder) ...[
-                      const SizedBox(height: 12),
-                      FloatingActionButton.extended(
-                        heroTag: 'reminder_btn',
-                        onPressed: () =>
-                            SendReminderDialog.show(context, _record),
-                        backgroundColor: AppColors.warningOrange,
-                        icon: const Icon(
-                          Icons.notifications_active_rounded,
-                          color: Colors.white,
-                        ),
-                        label: Text(
-                          'Send Reminder to IO',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (canEdit) ...[
-                      const SizedBox(height: 12),
-                      FloatingActionButton.extended(
-                        heroTag: 'edit_btn',
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            AppTheme.fadeSlideRoute(
-                              page: CaseFormScreen(
-                                categoryName: _record.category,
-                                existingCase: _record,
-                              ),
-                            ),
-                          );
-                        },
-                        backgroundColor: AppColors.goldPrimary,
-                        icon: const Icon(
-                          Icons.edit_note_rounded,
-                          color: AppColors.navyDark,
-                        ),
-                        label: Text(
-                          'Edit Record',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark,
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
-                );
-              },
-            )
+                  if (canEdit) ...[
+                    const SizedBox(height: 12),
+                    FloatingActionButton.extended(
+                      heroTag: 'edit_btn',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          AppTheme.fadeSlideRoute(
+                            page: CaseFormScreen(
+                              categoryName: _record.category,
+                              existingCase: _record,
+                            ),
+                          ),
+                        );
+                      },
+                      backgroundColor: AppColors.goldPrimary,
+                      icon: const Icon(Icons.edit_note_rounded,
+                          color: AppColors.navyDark),
+                      label: Text(
+                        'Edit Record',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyDark),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            })
           : null,
     );
   }
@@ -184,10 +169,9 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
         SliverFillRemaining(
           hasScrollBody: false,
           child: AccessDeniedView(
-            message:
-                CaseVisibility.showAskPiHint(
-                  CaseVisibility.resolveFor(context.read<AuthProvider>()),
-                )
+            message: CaseVisibility.showAskPiHint(CaseVisibility.resolveFor(
+              context.read<AuthProvider>(),
+            ))
                 ? 'Ask your PI or API for station-wide dashboard access to view this record.'
                 : null,
           ),
@@ -208,11 +192,8 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.delete_forever_rounded,
-                    size: 64,
-                    color: AppColors.lightSubText,
-                  ),
+                  const Icon(Icons.delete_forever_rounded,
+                      size: 64, color: AppColors.lightSubText),
                   const SizedBox(height: 16),
                   Text(
                     'This record no longer exists',
@@ -272,19 +253,13 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       backgroundColor: AppColors.navyDark,
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: Colors.white,
-          size: 20,
-        ),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded,
+            color: Colors.white, size: 20),
       ),
       title: Text(
         _record.caseNumber,
         style: GoogleFonts.poppins(
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-          fontSize: 15,
-        ),
+            fontWeight: FontWeight.w600, color: Colors.white, fontSize: 15),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -304,10 +279,10 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final statusColor = _record.status == 'Open'
         ? AppColors.warningOrange
         : _record.status == 'Active'
-        ? AppColors.infoBlue
-        : _record.status == 'Resolved'
-        ? AppColors.successGreen
-        : AppColors.lightSubText;
+            ? AppColors.infoBlue
+            : _record.status == 'Resolved'
+                ? AppColors.successGreen
+                : AppColors.lightSubText;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -320,37 +295,28 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.assignment_turned_in_rounded,
-              color: Colors.white,
-              size: 20,
-            ),
+            decoration:
+                BoxDecoration(color: statusColor, shape: BoxShape.circle),
+            child: const Icon(Icons.assignment_turned_in_rounded,
+                color: Colors.white, size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Case Status',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: statusColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text('Case Status',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: statusColor,
+                        fontWeight: FontWeight.w600)),
                 Text(
                   _record.status.toUpperCase(),
                   style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: statusColor,
-                    letterSpacing: 1.1,
-                  ),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: statusColor,
+                      letterSpacing: 1.1),
                 ),
               ],
             ),

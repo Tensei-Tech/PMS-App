@@ -37,37 +37,35 @@ class RegistrationResult {
 
   factory RegistrationResult.failure(String code, String message) =>
       RegistrationResult._(
-        success: false,
-        errorCode: code,
-        errorMessage: message,
-      );
+          success: false, errorCode: code, errorMessage: message);
 
   factory RegistrationResult.networkError() => const RegistrationResult._(
-    success: false,
-    errorCode: 'network-request-failed',
-    errorMessage:
-        'Network connection failed. Please check your internet connection.',
-  );
+        success: false,
+        errorCode: 'network-request-failed',
+        errorMessage:
+            'Network connection failed. Please check your internet connection.',
+      );
 
   factory RegistrationResult.emailInUse() => const RegistrationResult._(
-    success: false,
-    errorCode: 'email-already-in-use',
-    errorMessage:
-        'This Government ID is already registered. Please login instead.',
-  );
+        success: false,
+        errorCode: 'email-already-in-use',
+        errorMessage:
+            'This Government ID is already registered. Please login instead.',
+      );
 
   factory RegistrationResult.weakPassword() => const RegistrationResult._(
-    success: false,
-    errorCode: 'weak-password',
-    errorMessage: 'PIN does not meet security requirements. Please try again.',
-  );
+        success: false,
+        errorCode: 'weak-password',
+        errorMessage:
+            'PIN does not meet security requirements. Please try again.',
+      );
 
   factory RegistrationResult.invalidEmail() => const RegistrationResult._(
-    success: false,
-    errorCode: 'invalid-email',
-    errorMessage:
-        'Invalid email format. Please enter a valid Government Email.',
-  );
+        success: false,
+        errorCode: 'invalid-email',
+        errorMessage:
+            'Invalid email format. Please enter a valid Government Email.',
+      );
 
   factory RegistrationResult.unknownError(String message) =>
       RegistrationResult._(
@@ -76,17 +74,15 @@ class RegistrationResult {
         errorMessage: 'Registration failed: $message',
       );
 
-  factory RegistrationResult.firestoreError(
-    String authUid, {
-    String? message,
-  }) => RegistrationResult._(
-    success: false,
-    errorCode: 'backend-error',
-    errorMessage:
-        message ??
-        'Could not save your profile to the database. Please try again or contact support.',
-    userId: authUid,
-  );
+  factory RegistrationResult.firestoreError(String authUid,
+          {String? message}) =>
+      RegistrationResult._(
+        success: false,
+        errorCode: 'backend-error',
+        errorMessage: message ??
+            'Could not save your profile to the database. Please try again or contact support.',
+        userId: authUid,
+      );
 }
 
 class AuthProvider extends ChangeNotifier {
@@ -207,11 +203,8 @@ class AuthProvider extends ChangeNotifier {
     switch (permissionCode) {
       case 'alert:send':
       case 'reminder:send':
-        return [
-          'master_admin',
-          'state_super_admin',
-          'district_admin',
-        ].contains(normRole);
+        return ['master_admin', 'state_super_admin', 'district_admin']
+            .contains(normRole);
       case 'reminder:to_io':
         return [
           'master_admin',
@@ -219,7 +212,7 @@ class AuthProvider extends ChangeNotifier {
           'district_admin',
           'supervisor',
           'division_admin',
-          'station_admin',
+          'station_admin'
         ].contains(normRole);
       case 'district:view_data':
         return [
@@ -227,7 +220,7 @@ class AuthProvider extends ChangeNotifier {
           'state_super_admin',
           'district_admin',
           'supervisor',
-          'division_admin',
+          'division_admin'
         ].contains(normRole);
       case 'station:view_data':
         return true;
@@ -238,7 +231,7 @@ class AuthProvider extends ChangeNotifier {
           'state_super_admin',
           'district_admin',
           'supervisor',
-          'division_admin',
+          'division_admin'
         ].contains(normRole);
       case 'case:edit_station':
         return [
@@ -247,7 +240,7 @@ class AuthProvider extends ChangeNotifier {
           'district_admin',
           'supervisor',
           'division_admin',
-          'station_admin',
+          'station_admin'
         ].contains(normRole);
       case 'case:edit_own':
         return true;
@@ -295,10 +288,7 @@ class AuthProvider extends ChangeNotifier {
     // Persist to Firestore
     try {
       await _firestore.updateUserField(
-        uid,
-        'additionalStations',
-        _additionalStations,
-      );
+          uid, 'additionalStations', _additionalStations);
     } catch (e) {
       _secureLog('addStation: Firestore persist failed');
     }
@@ -316,10 +306,7 @@ class AuthProvider extends ChangeNotifier {
     // Persist to Firestore
     try {
       await _firestore.updateUserField(
-        uid,
-        'additionalStations',
-        _additionalStations,
-      );
+          uid, 'additionalStations', _additionalStations);
     } catch (e) {
       _secureLog('removeStation: Firestore persist failed');
     }
@@ -444,7 +431,10 @@ class AuthProvider extends ChangeNotifier {
       final response = await http.post(
         Uri.parse(ApiConfig.authCheckExists),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': sanitizedEmail, 'phone': sanitizedPhone}),
+        body: json.encode({
+          'email': sanitizedEmail,
+          'phone': sanitizedPhone,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -502,9 +492,7 @@ class AuthProvider extends ChangeNotifier {
 
       if (!response.isSuccess) {
         return RegistrationResult.failure(
-          'backend_error',
-          response.errorMessage ?? 'Registration failed.',
-        );
+            'backend_error', response.errorMessage ?? 'Registration failed.');
       }
 
       final data = response.data is Map<String, dynamic>
@@ -521,9 +509,7 @@ class AuthProvider extends ChangeNotifier {
       await _secure.write(key: StorageKeys.pinHash, value: pinHash);
       await _secure.write(key: StorageKeys.pinSalt, value: salt);
       await _secure.write(
-        key: 'user_profile_json',
-        value: json.encode(userJson),
-      );
+          key: 'user_profile_json', value: json.encode(userJson));
 
       final accountStatus =
           data['account_status']?.toString() ?? 'pending_approval';
@@ -532,16 +518,14 @@ class AuthProvider extends ChangeNotifier {
           data['tokens'] is Map) {
         final tokens = data['tokens'] as Map<String, dynamic>;
         final access = (tokens['access_token'] ?? tokens['access'])?.toString();
-        final refresh = (tokens['refresh_token'] ?? tokens['refresh'])
-            ?.toString();
+        final refresh =
+            (tokens['refresh_token'] ?? tokens['refresh'])?.toString();
         if (access != null && access.isNotEmpty) {
           await ApiService().setAuthToken(access);
         }
         if (refresh != null && refresh.isNotEmpty) {
           await _secure.write(
-            key: ApiConstants.jwtRefreshTokenKey,
-            value: refresh,
-          );
+              key: ApiConstants.jwtRefreshTokenKey, value: refresh);
         }
         _isSessionActive = true;
       } else {
@@ -578,8 +562,8 @@ class AuthProvider extends ChangeNotifier {
       return 'Account locked. Try again in ${lockoutStatus.remainingLabel}.';
     }
 
-    final storedHash = (await _secure.read(key: StorageKeys.pinHash) ?? '')
-        .trim();
+    final storedHash =
+        (await _secure.read(key: StorageKeys.pinHash) ?? '').trim();
     if (storedHash.isEmpty) {
       return 'No credentials found on device. Please login with PIN.';
     }
@@ -624,7 +608,10 @@ class AuthProvider extends ChangeNotifier {
       final response = await http.post(
         Uri.parse(ApiConfig.authLogin),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': sanitizedEmail, 'password': sanitizedPin}),
+        body: json.encode({
+          'email': sanitizedEmail,
+          'password': sanitizedPin,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -638,25 +625,21 @@ class AuthProvider extends ChangeNotifier {
         await _secure.write(key: StorageKeys.pinHash, value: pinHash);
         await _secure.write(key: StorageKeys.pinSalt, value: salt);
         await _secure.write(
-          key: 'user_profile_json',
-          value: json.encode(userJson),
-        );
+            key: 'user_profile_json', value: json.encode(userJson));
 
         // Store JWT authentication tokens for backend API requests
         if (data['tokens'] != null && data['tokens'] is Map) {
           final tokens = data['tokens'] as Map<String, dynamic>;
-          final access = (tokens['access_token'] ?? tokens['access'])
-              ?.toString();
-          final refresh = (tokens['refresh_token'] ?? tokens['refresh'])
-              ?.toString();
+          final access =
+              (tokens['access_token'] ?? tokens['access'])?.toString();
+          final refresh =
+              (tokens['refresh_token'] ?? tokens['refresh'])?.toString();
           if (access != null && access.isNotEmpty) {
             await ApiService().setAuthToken(access);
           }
           if (refresh != null && refresh.isNotEmpty) {
             await _secure.write(
-              key: ApiConstants.jwtRefreshTokenKey,
-              value: refresh,
-            );
+                key: ApiConstants.jwtRefreshTokenKey, value: refresh);
           }
         }
 
@@ -696,40 +679,31 @@ class AuthProvider extends ChangeNotifier {
     final lockoutStatus = await _lockout.checkStatus();
     if (lockoutStatus.isLocked) return false;
 
-    final storedHash = (await _secure.read(key: StorageKeys.pinHash) ?? '')
-        .trim();
-    final storedSalt = (await _secure.read(key: StorageKeys.pinSalt) ?? '')
-        .trim();
+    final storedHash =
+        (await _secure.read(key: StorageKeys.pinHash) ?? '').trim();
+    final storedSalt =
+        (await _secure.read(key: StorageKeys.pinSalt) ?? '').trim();
 
     if (storedHash.isEmpty || storedSalt.isEmpty) {
       _secureLog('verifyPin: no stored hash/salt found');
       return false;
     }
 
-    // Try first with standard 100,000 iterations
+    // Try first with optimized 1,000 iterations
     var isValid = await PinCrypto.verifyPinAsync(
-      pin.trim(),
-      storedHash,
-      storedSalt,
-      100000,
-    );
+        pin.trim(), storedHash, storedSalt, 1000);
 
-    // Fallback to legacy/regression 1,000 iterations and migrate to 100,000
+    // Fallback to legacy 100,000 iterations
     if (!isValid) {
       isValid = await PinCrypto.verifyPinAsync(
-        pin.trim(),
-        storedHash,
-        storedSalt,
-        1000,
-      );
+          pin.trim(), storedHash, storedSalt, 100000);
       if (isValid) {
         final newSalt = PinCrypto.generateSalt();
         final newHash = await PinCrypto.hashPinAsync(pin.trim(), newSalt);
         await _secure.write(key: StorageKeys.pinHash, value: newHash);
         await _secure.write(key: StorageKeys.pinSalt, value: newSalt);
         _secureLog(
-          'verifyPin: migrated hash from 1,000 to 100,000 iterations successfully',
-        );
+            'verifyPin: migrated hash from 100,000 to 1,000 iterations successfully');
       }
     }
 
@@ -775,14 +749,14 @@ class AuthProvider extends ChangeNotifier {
       oldPin.trim(),
       storedHash,
       storedSalt,
-      100000,
+      1000,
     );
     if (!isOldPinValid) {
       isOldPinValid = await PinCrypto.verifyPinAsync(
         oldPin.trim(),
         storedHash,
         storedSalt,
-        1000,
+        100000,
       );
     }
     if (!isOldPinValid) {
@@ -892,9 +866,7 @@ class AuthProvider extends ChangeNotifier {
       accountStatus: _accountStatus,
     );
     await _secure.write(
-      key: 'user_profile_json',
-      value: json.encode(user.toMap()),
-    );
+        key: 'user_profile_json', value: json.encode(user.toMap()));
 
     notifyListeners();
   }

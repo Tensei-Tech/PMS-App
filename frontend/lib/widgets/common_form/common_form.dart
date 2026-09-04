@@ -15,15 +15,12 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../modules/core/models/base_record.dart';
 import '../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../utils/app_constants.dart';
-import '../../utils/crime_detail_pdf.dart';
 import '../../utils/translation_helper.dart';
-import '../../utils/validators.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const Color _kDark = Color(0xFF0f172a);
@@ -41,17 +38,15 @@ const Color _kPageBg = Color(0xFFf4f7f9);
 
 // ── Text styles (compact) ─────────────────────────────────────────────────────
 const _tsLabel = TextStyle(
-  fontSize: 11,
-  fontWeight: FontWeight.w600,
-  color: _kDark,
-  letterSpacing: 0.3,
-);
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    color: _kDark,
+    letterSpacing: 0.3);
 const _tsSection = TextStyle(
-  fontSize: 12,
-  fontWeight: FontWeight.w800,
-  color: _kDark,
-  letterSpacing: 0.5,
-);
+    fontSize: 12,
+    fontWeight: FontWeight.w800,
+    color: _kDark,
+    letterSpacing: 0.5);
 const _tsMuted = TextStyle(fontSize: 11, color: _kMuted);
 const _tsBody = TextStyle(fontSize: 12, color: _kDark);
 
@@ -77,8 +72,7 @@ class WarningTrianglePainter extends CustomPainter {
       ..close();
 
     final outerPaint = Paint()
-      ..color =
-          const Color(0xFFFFD54F) // Bright yellow border
+      ..color = const Color(0xFFFFD54F) // Bright yellow border
       ..style = PaintingStyle.fill;
     canvas.drawPath(outerPath, outerPaint);
 
@@ -90,8 +84,7 @@ class WarningTrianglePainter extends CustomPainter {
       ..close();
 
     final innerPaint = Paint()
-      ..color =
-          const Color(0xFFF59E0B) // Warm golden amber
+      ..color = const Color(0xFFF59E0B) // Warm golden amber
       ..style = PaintingStyle.fill;
     canvas.drawPath(innerPath, innerPaint);
 
@@ -124,14 +117,16 @@ class WarningTriangleIcon extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: const CustomPaint(painter: WarningTrianglePainter()),
+      child: const CustomPaint(
+        painter: WarningTrianglePainter(),
+      ),
     );
   }
 }
 
 const _kProceduralKeys = {
-  'chkPanchSpot': 'Spot Panchanama ',
   'chkMemo': 'Memorandum Panchanama',
+  'chkPanchSpot': 'Panchanama Spot',
   'chkInquest': 'Inquest',
   'chkIdent': 'Identification',
   'chkSearch': 'Search',
@@ -146,7 +141,7 @@ const _kFinalSummaryItems = [
   'C – Mistake of fact',
   'Abeted Summary',
 ];
-const _kPreventiveItems = ['BNSS 126', 'BNSS 129', 'Bond Cancellation'];
+const _kPreventiveItems = ['107 CrPC', '110 CrPC', 'MPDA', 'MCOCA'];
 const _kReleaseTypes = ['Anticipatory', 'Regular'];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -164,7 +159,6 @@ class CommonForm extends StatefulWidget {
     this.onCleared,
     this.scrollController,
     this.padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-    this.isMurder,
   });
 
   final String? moduleKey;
@@ -176,7 +170,6 @@ class CommonForm extends StatefulWidget {
   final VoidCallback? onCleared;
   final ScrollController? scrollController;
   final EdgeInsets padding;
-  final bool? isMurder;
 
   @override
   State<CommonForm> createState() => CommonFormState();
@@ -195,38 +188,11 @@ class CommonFormState extends State<CommonForm> {
   bool get _hasSexualOffenceAct {
     const sexualSections = {
       // BNS, 2023 - Rape & sexual offences
-      '63',
-      '64',
-      '65',
-      '66',
-      '67',
-      '68',
-      '69',
-      '70',
-      '71',
-      '72',
-      '74',
-      '75',
-      '76',
-      '77',
-      '78',
-      '79',
+      '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '74', '75',
+      '76', '77', '78', '79',
       // IPC, 1860 - Rape & sexual offences
-      '376',
-      '376A',
-      '376AB',
-      '376B',
-      '376C',
-      '376D',
-      '376DA',
-      '376DB',
-      '376E',
-      '354',
-      '354A',
-      '354B',
-      '354C',
-      '354D',
-      '509',
+      '376', '376A', '376AB', '376B', '376C', '376D', '376DA', '376DB', '376E',
+      '354', '354A', '354B', '354C', '354D', '509',
       // POCSO Act
       '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
     };
@@ -276,168 +242,7 @@ class CommonFormState extends State<CommonForm> {
   final _compCaste = TextEditingController();
   final _compPan = TextEditingController();
 
-  // ── §5 Victim KYC ─────────────────────────────────────────────────────────
-  TextEditingController? _victimName;
-  TextEditingController? _victimAge;
-  String? _victimGender;
-  TextEditingController? _victimOcc;
-  TextEditingController? _victimMobile;
-  TextEditingController? _victimAadhaar;
-  TextEditingController? _victimReligion;
-  TextEditingController? _victimCaste;
-  TextEditingController? _victimPan;
-
-  TextEditingController get _vName => _victimName ??= TextEditingController();
-  TextEditingController get _vAge => _victimAge ??= TextEditingController();
-  String get _vGender => _victimGender ??= 'Male';
-  set _vGender(String v) => _victimGender = v;
-  TextEditingController get _vOcc => _victimOcc ??= TextEditingController();
-  TextEditingController get _vMobile =>
-      _victimMobile ??= TextEditingController();
-  TextEditingController get _vAadhaar =>
-      _victimAadhaar ??= TextEditingController();
-  TextEditingController get _vReligion =>
-      _victimReligion ??= TextEditingController();
-  TextEditingController get _vCaste => _victimCaste ??= TextEditingController();
-  TextEditingController get _vPan => _victimPan ??= TextEditingController();
-
-  // ── §5b Deceased KYC (Murder cases) ───────────────────────────────────────
-  TextEditingController? _deceasedName;
-  TextEditingController? _deceasedAge;
-  String? _deceasedGender;
-  TextEditingController? _deceasedOcc;
-  TextEditingController? _deceasedMobile;
-  TextEditingController? _deceasedAadhaar;
-  TextEditingController? _deceasedReligion;
-  TextEditingController? _deceasedCaste;
-  TextEditingController? _deceasedPan;
-
-  TextEditingController get _dName => _deceasedName ??= TextEditingController();
-  TextEditingController get _dAge => _deceasedAge ??= TextEditingController();
-  String get _dGender => _deceasedGender ??= 'Male';
-  set _dGender(String v) => _deceasedGender = v;
-  TextEditingController get _dOcc => _deceasedOcc ??= TextEditingController();
-  TextEditingController get _dMobile =>
-      _deceasedMobile ??= TextEditingController();
-  TextEditingController get _dAadhaar =>
-      _deceasedAadhaar ??= TextEditingController();
-  TextEditingController get _dReligion =>
-      _deceasedReligion ??= TextEditingController();
-  TextEditingController get _dCaste =>
-      _deceasedCaste ??= TextEditingController();
-  TextEditingController get _dPan => _deceasedPan ??= TextEditingController();
-
-  // ── §5c Injured KYC ────────────────────────────────────────────────────────
-  TextEditingController? _injuredName;
-  TextEditingController? _injuredAge;
-  String? _injuredGender;
-  TextEditingController? _injuredOcc;
-  TextEditingController? _injuredMobile;
-  TextEditingController? _injuredAadhaar;
-  TextEditingController? _injuredReligion;
-  TextEditingController? _injuredCaste;
-  TextEditingController? _injuredPan;
-  bool _injIsDied = false;
-  TextEditingController? _injuredDeathDate;
-  TextEditingController? _injuredDeathTime;
-
-  TextEditingController get _injName =>
-      _injuredName ??= TextEditingController();
-  TextEditingController get _injAge => _injuredAge ??= TextEditingController();
-  String get _injGender => _injuredGender ??= 'Male';
-  set _injGender(String v) => _injuredGender = v;
-  TextEditingController get _injOcc => _injuredOcc ??= TextEditingController();
-  TextEditingController get _injMobile =>
-      _injuredMobile ??= TextEditingController();
-  TextEditingController get _injAadhaar =>
-      _injuredAadhaar ??= TextEditingController();
-  TextEditingController get _injReligion =>
-      _injuredReligion ??= TextEditingController();
-  TextEditingController get _injCaste =>
-      _injuredCaste ??= TextEditingController();
-  TextEditingController get _injPan => _injuredPan ??= TextEditingController();
-  TextEditingController get _injDeathDate =>
-      _injuredDeathDate ??= TextEditingController();
-  TextEditingController get _injDeathTime =>
-      _injuredDeathTime ??= TextEditingController();
-
-  bool get _isMurderCase {
-    if (widget.isMurder == true) return true;
-    final sub = (widget.subCategory ?? '').toLowerCase();
-    final mod = (widget.moduleKey ?? '').toLowerCase();
-    if (sub.contains('murder') || mod.contains('murder')) {
-      if (!sub.contains('attempt') && !mod.contains('attempt')) return true;
-    }
-
-    for (final charge in _chargeData.values) {
-      final act = charge['act']?.toString() ?? '';
-      final secs = (charge['sections'] as Set<String>?) ?? {};
-      for (final s in secs) {
-        if (s == '101' ||
-            s == '103' ||
-            s == '104' ||
-            s == '105' ||
-            s == '300' ||
-            s == '302' ||
-            s == '303' ||
-            s == '304') {
-          return true;
-        }
-        final label = _secLabel(act, s).toLowerCase();
-        if ((label.contains('murder') && !label.contains('attempt')) ||
-            label.contains('culpable homicide') ||
-            label.contains('death by negligence') ||
-            label.contains('dowry death')) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  bool get _isRapeCase {
-    final sub = (widget.subCategory ?? '').toLowerCase();
-    final mod = (widget.moduleKey ?? '').toLowerCase();
-    if (sub.contains('rape') ||
-        mod.contains('rape') ||
-        sub.contains('376') ||
-        mod.contains('376')) {
-      return true;
-    }
-
-    for (final charge in _chargeData.values) {
-      final act = charge['act']?.toString().toLowerCase() ?? '';
-      final secs = (charge['sections'] as Set<String>?) ?? {};
-      if (act.contains('rape')) return true;
-      for (final s in secs) {
-        final secLower = s.toLowerCase();
-        // IPC 376 series (Rape)
-        if (secLower.startsWith('376')) {
-          return true;
-        }
-        // BNS 64, 65, 66, 67, 68, 70, 71 (Rape & Gang Rape sections)
-        if (secLower == '64' ||
-            secLower == '65' ||
-            secLower == '66' ||
-            secLower == '67' ||
-            secLower == '68' ||
-            secLower == '70' ||
-            secLower == '71') {
-          return true;
-        }
-        final label = _secLabel(
-          charge['act']?.toString() ?? '',
-          s,
-        ).toLowerCase();
-        if (label.contains('rape')) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  // ── §6 Accused ────────────────────────────────────────────────────────────
+  // ── §5 Accused ────────────────────────────────────────────────────────────
   bool _isUnknown = false;
   final List<Map<String, dynamic>> _accused = [];
   final List<Map<String, dynamic>> _suspected = [];
@@ -465,18 +270,12 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §10 Procedural ────────────────────────────────────────────────────────
   final Map<String, bool> _procChecks = {
-    for (final k in _kProceduralKeys.keys) k: false,
+    for (final k in _kProceduralKeys.keys) k: false
   };
   final Map<String, TextEditingController> _procDates = {
-    for (final k in _kProceduralKeys.keys) k: TextEditingController(),
+    for (final k in _kProceduralKeys.keys) k: TextEditingController()
   };
   String? _eshaksh;
-  TextEditingController? _eshakshDt;
-  TextEditingController? _eshakshReason;
-
-  TextEditingController get _eDt => _eshakshDt ??= TextEditingController();
-  TextEditingController get _eReason =>
-      _eshakshReason ??= TextEditingController();
 
   // ── §11 Seizure ───────────────────────────────────────────────────────────
   final List<Map<String, dynamic>> _seizures = [];
@@ -488,37 +287,16 @@ class CommonFormState extends State<CommonForm> {
   final _mcrDays = TextEditingController();
 
   // ── §13 Preventive & Bonds ────────────────────────────────────────────────
-  String? _prevBondsVal = 'no';
+  String? _prevAction;
   final _outward = TextEditingController();
   final _bondDate = TextEditingController();
   final _bondCancel = TextEditingController();
-  TextEditingController? _bondReason;
-  TextEditingController get _bReason => _bondReason ??= TextEditingController();
-  String? _prevAction = 'BNSS 129';
-  TextEditingController? _prevActionDateCtrl;
-  TextEditingController get _prevActionDt =>
-      _prevActionDateCtrl ??= TextEditingController();
 
   // ── §14 Discharge ─────────────────────────────────────────────────────────
-  Map<String, bool>? _dischargeMap;
-  Map<String, bool> get _discharge => _dischargeMap ??= {};
-  Map<String, TextEditingController>? _dischargeDatesMap;
-  Map<String, TextEditingController> get _dischargeDates =>
-      _dischargeDatesMap ??= {};
-  Map<String, TextEditingController>? _dischargeReasonsMap;
-  Map<String, TextEditingController> get _dischargeReasons =>
-      _dischargeReasonsMap ??= {};
-
-  TextEditingController _getDischargeDateCtrl(String name) =>
-      _dischargeDates.putIfAbsent(name, () => TextEditingController());
-
-  TextEditingController _getDischargeReasonCtrl(String name) =>
-      _dischargeReasons.putIfAbsent(name, () => TextEditingController());
+  final Map<String, bool> _discharge = {};
 
   // ── §15 Court Filing ──────────────────────────────────────────────────────
   final _csNumber = TextEditingController();
-  TextEditingController? _csDateCtrl;
-  TextEditingController get _csDate => _csDateCtrl ??= TextEditingController();
   final _ccStNumber = TextEditingController();
   String? _finalSummary;
   final _quashDate = TextEditingController();
@@ -570,32 +348,7 @@ class CommonFormState extends State<CommonForm> {
       _compAadhaar,
       _compReligion,
       _compCaste,
-      _vName,
-      _vAge,
-      _vOcc,
-      _vMobile,
-      _vAadhaar,
-      _vReligion,
-      _vCaste,
-      _vPan,
-      _dName,
-      _dAge,
-      _dOcc,
-      _dMobile,
-      _dAadhaar,
-      _dReligion,
-      _dCaste,
-      _dPan,
-      _injName,
-      _injAge,
-      _injOcc,
-      _injMobile,
-      _injAadhaar,
-      _injReligion,
-      _injCaste,
-      _injPan,
-      _injDeathDate,
-      _injDeathTime,
+      _compPan,
       _unidAge,
       _unidSkin,
       _unidHeight,
@@ -606,19 +359,14 @@ class CommonFormState extends State<CommonForm> {
       _ioName,
       _regName,
       _cctvDt,
-      _eDt,
-      _eReason,
       _cdrSent,
       _cdrRecv,
       _pcrDays,
       _mcrDays,
       _outward,
-      _prevActionDt,
       _bondDate,
-      _bReason,
       _bondCancel,
       _csNumber,
-      _csDate,
       _ccStNumber,
       _quashDate,
       _sdpoSend,
@@ -639,12 +387,6 @@ class CommonFormState extends State<CommonForm> {
       _disposeMap(s);
     }
     for (final c in _procDates.values) {
-      c.dispose();
-    }
-    for (final c in _dischargeDates.values) {
-      c.dispose();
-    }
-    for (final c in _dischargeReasons.values) {
       c.dispose();
     }
   }
@@ -681,10 +423,12 @@ class CommonFormState extends State<CommonForm> {
   }
 
   void _syncNames() {
-    final names = [..._accused, ..._suspected]
+    final names = [
+      ..._accused,
+      ..._suspected,
+    ]
         .map((p) => (p['name'] as TextEditingController).text.trim())
         .where((n) => n.isNotEmpty)
-        .toSet()
         .toList();
 
     if (!listEquals(names, allAccusedNames)) {
@@ -696,9 +440,8 @@ class CommonFormState extends State<CommonForm> {
         for (final s in _seizures) {
           final fw = s['fromWhom'] as String?;
           if (fw != null && !allAccusedNames.contains(fw)) {
-            s['fromWhom'] = allAccusedNames.isEmpty
-                ? null
-                : allAccusedNames.first;
+            s['fromWhom'] =
+                allAccusedNames.isEmpty ? null : allAccusedNames.first;
           }
         }
       });
@@ -738,16 +481,16 @@ class CommonFormState extends State<CommonForm> {
 
   // ─── person factory ────────────────────────────────────────────────────────
   Map<String, dynamic> _newPerson() => {
-    'name': TextEditingController()..addListener(_debouncedSync),
-    'age': TextEditingController(),
-    'gender': 'Male',
-    'occ': TextEditingController(),
-    'mobile': TextEditingController(),
-    'aadhaar': TextEditingController(),
-    'religion': TextEditingController(),
-    'caste': TextEditingController(),
-    'pan': TextEditingController(),
-  };
+        'name': TextEditingController()..addListener(_debouncedSync),
+        'age': TextEditingController(),
+        'gender': 'Male',
+        'occ': TextEditingController(),
+        'mobile': TextEditingController(),
+        'aadhaar': TextEditingController(),
+        'religion': TextEditingController(),
+        'caste': TextEditingController(),
+        'pan': TextEditingController(),
+      };
 
   // ─── charge helpers ────────────────────────────────────────────────────────
   void addChargeRow() {
@@ -807,99 +550,13 @@ class CommonFormState extends State<CommonForm> {
     _syncNames();
   }
 
-  void _copyPersonData(Map<String, dynamic> src, Map<String, dynamic> dst) {
-    setState(() {
-      (dst['name'] as TextEditingController).text =
-          (src['name'] as TextEditingController?)?.text ?? '';
-      (dst['age'] as TextEditingController).text =
-          (src['age'] as TextEditingController?)?.text ?? '';
-      dst['gender'] = src['gender'] ?? 'Male';
-      (dst['occ'] as TextEditingController).text =
-          (src['occ'] as TextEditingController?)?.text ?? '';
-      (dst['mobile'] as TextEditingController).text =
-          (src['mobile'] as TextEditingController?)?.text ?? '';
-      (dst['aadhaar'] as TextEditingController).text =
-          (src['aadhaar'] as TextEditingController?)?.text ?? '';
-      (dst['religion'] as TextEditingController).text =
-          (src['religion'] as TextEditingController?)?.text ?? '';
-      (dst['caste'] as TextEditingController).text =
-          (src['caste'] as TextEditingController?)?.text ?? '';
-      (dst['pan'] as TextEditingController).text =
-          (src['pan'] as TextEditingController?)?.text ?? '';
-    });
-    _syncNames();
-  }
-
-  void _checkAndAutoFillPerson(
-    Map<String, dynamic> row,
-    List<Map<String, dynamic>> sourceList,
-  ) {
-    final name = (row['name'] as TextEditingController?)?.text.trim() ?? '';
-    if (name.isEmpty) return;
-
-    for (final src in sourceList) {
-      final srcName =
-          (src['name'] as TextEditingController?)?.text.trim() ?? '';
-      if (srcName.isNotEmpty && srcName.toLowerCase() == name.toLowerCase()) {
-        final ageCtrl = row['age'] as TextEditingController?;
-        final occCtrl = row['occ'] as TextEditingController?;
-        final mobCtrl = row['mobile'] as TextEditingController?;
-        final aadhCtrl = row['aadhaar'] as TextEditingController?;
-        final relCtrl = row['religion'] as TextEditingController?;
-        final casteCtrl = row['caste'] as TextEditingController?;
-        final panCtrl = row['pan'] as TextEditingController?;
-
-        final srcAge = (src['age'] as TextEditingController?)?.text ?? '';
-        final srcOcc = (src['occ'] as TextEditingController?)?.text ?? '';
-        final srcMob = (src['mobile'] as TextEditingController?)?.text ?? '';
-        final srcAadh = (src['aadhaar'] as TextEditingController?)?.text ?? '';
-        final srcRel = (src['religion'] as TextEditingController?)?.text ?? '';
-        final srcCaste = (src['caste'] as TextEditingController?)?.text ?? '';
-        final srcPan = (src['pan'] as TextEditingController?)?.text ?? '';
-
-        setState(() {
-          if (ageCtrl != null && ageCtrl.text.isEmpty && srcAge.isNotEmpty) {
-            ageCtrl.text = srcAge;
-          }
-          if ((row['gender'] == null || row['gender'] == 'Male') &&
-              src['gender'] != null) {
-            row['gender'] = src['gender'];
-          }
-          if (occCtrl != null && occCtrl.text.isEmpty && srcOcc.isNotEmpty) {
-            occCtrl.text = srcOcc;
-          }
-          if (mobCtrl != null && mobCtrl.text.isEmpty && srcMob.isNotEmpty) {
-            mobCtrl.text = srcMob;
-          }
-          if (aadhCtrl != null && aadhCtrl.text.isEmpty && srcAadh.isNotEmpty) {
-            aadhCtrl.text = srcAadh;
-          }
-          if (relCtrl != null && relCtrl.text.isEmpty && srcRel.isNotEmpty) {
-            relCtrl.text = srcRel;
-          }
-          if (casteCtrl != null &&
-              casteCtrl.text.isEmpty &&
-              srcCaste.isNotEmpty) {
-            casteCtrl.text = srcCaste;
-          }
-          if (panCtrl != null && panCtrl.text.isEmpty && srcPan.isNotEmpty) {
-            panCtrl.text = srcPan;
-          }
-        });
-        break;
-      }
-    }
-  }
-
   // ─── seizure helpers ───────────────────────────────────────────────────────
   void addSeizure() {
-    setState(
-      () => _seizures.add({
-        'desc': TextEditingController(),
-        'fromWhom': allAccusedNames.isEmpty ? null : allAccusedNames.first,
-        'otherName': TextEditingController(),
-      }),
-    );
+    setState(() => _seizures.add({
+          'desc': TextEditingController(),
+          'fromWhom': allAccusedNames.isEmpty ? null : allAccusedNames.first,
+          'otherName': TextEditingController(),
+        }));
   }
 
   void removeSeizure(int i) {
@@ -958,8 +615,7 @@ class CommonFormState extends State<CommonForm> {
   void saveDraft() {
     final m = buildDocumentMap();
     setState(
-      () => saveBarText = 'Draft saved · ${TimeOfDay.now().format(context)}',
-    );
+        () => saveBarText = 'Draft saved · ${TimeOfDay.now().format(context)}');
     widget.onDraftSaved?.call(m);
   }
 
@@ -991,32 +647,6 @@ class CommonFormState extends State<CommonForm> {
       _compReligion,
       _compCaste,
       _compPan,
-      _vName,
-      _vAge,
-      _vOcc,
-      _vMobile,
-      _vAadhaar,
-      _vReligion,
-      _vCaste,
-      _vPan,
-      _dName,
-      _dAge,
-      _dOcc,
-      _dMobile,
-      _dAadhaar,
-      _dReligion,
-      _dCaste,
-      _dPan,
-      _injName,
-      _injAge,
-      _injOcc,
-      _injMobile,
-      _injAadhaar,
-      _injReligion,
-      _injCaste,
-      _injPan,
-      _injDeathDate,
-      _injDeathTime,
       _unidAge,
       _unidSkin,
       _unidHeight,
@@ -1027,19 +657,14 @@ class CommonFormState extends State<CommonForm> {
       _ioName,
       _regName,
       _cctvDt,
-      _eDt,
-      _eReason,
       _cdrSent,
       _cdrRecv,
       _pcrDays,
       _mcrDays,
       _outward,
-      _prevActionDt,
       _bondDate,
-      _bReason,
       _bondCancel,
       _csNumber,
-      _csDate,
       _ccStNumber,
       _quashDate,
       _sdpoSend,
@@ -1061,25 +686,14 @@ class CommonFormState extends State<CommonForm> {
     _firPath = null;
     _isUnknown = false;
     _compGender = 'Male';
-    _vGender = 'Male';
-    _dGender = 'Male';
-    _injGender = 'Male';
-    _injIsDied = false;
     _unidGender = 'Male';
     _ioDesig = 'PSI';
     _regDesig = 'HC';
     _cctvVal = null;
     _eshaksh = null;
-    _prevAction = 'BNSS 129';
-    _prevBondsVal = 'no';
+    _prevAction = null;
     _finalSummary = null;
     _discharge.clear();
-    for (final c in _dischargeDates.values) {
-      c.clear();
-    }
-    for (final c in _dischargeReasons.values) {
-      c.clear();
-    }
     _acquitted.clear();
     _convicted.clear();
     allAccusedNames = [];
@@ -1093,31 +707,27 @@ class CommonFormState extends State<CommonForm> {
   // ─── buildDocumentMap ──────────────────────────────────────────────────────
   Map<String, dynamic> buildDocumentMap() {
     List<Map<String, dynamic>> pplRows(List<Map<String, dynamic>> src) => src
-        .map(
-          (p) => {
-            'name': (p['name'] as TextEditingController).text,
-            'age': (p['age'] as TextEditingController).text,
-            'gender': p['gender'],
-            'occ': (p['occ'] as TextEditingController).text,
-            'mobile': (p['mobile'] as TextEditingController).text,
-            'aadhaar': (p['aadhaar'] as TextEditingController).text,
-            'religion': (p['religion'] as TextEditingController).text,
-            'caste': (p['caste'] as TextEditingController).text,
-            'pan': (p['pan'] as TextEditingController).text,
-          },
-        )
+        .map((p) => {
+              'name': (p['name'] as TextEditingController).text,
+              'age': (p['age'] as TextEditingController).text,
+              'gender': p['gender'],
+              'occ': (p['occ'] as TextEditingController).text,
+              'mobile': (p['mobile'] as TextEditingController).text,
+              'aadhaar': (p['aadhaar'] as TextEditingController).text,
+              'religion': (p['religion'] as TextEditingController).text,
+              'caste': (p['caste'] as TextEditingController).text,
+              'pan': (p['pan'] as TextEditingController).text,
+            })
         .toList();
 
     return {
       'crNo': _crNo.text,
       'regDate': _regDate.text,
       'firCopyPath': _firPath,
-      'charges': _chargeData.map(
-        (k, v) => MapEntry(k, {
-          'act': v['act'],
-          'sections': (v['sections'] as Set<String>).toList(),
-        }),
-      ),
+      'charges': _chargeData.map((k, v) => MapEntry(k, {
+            'act': v['act'],
+            'sections': (v['sections'] as Set<String>).toList(),
+          })),
       'spotVillage': _spotVillage.text,
       'spotArea': _spotArea.text,
       'spotAddress': _spotAddress.text,
@@ -1134,42 +744,6 @@ class CommonFormState extends State<CommonForm> {
         'religion': _compReligion.text,
         'caste': _compCaste.text,
         'pan': _compPan.text,
-      },
-      'victim': {
-        'name': _vName.text,
-        'age': _vAge.text,
-        'gender': _vGender,
-        'occ': _vOcc.text,
-        'mobile': _vMobile.text,
-        'aadhaar': _vAadhaar.text,
-        'religion': _vReligion.text,
-        'caste': _vCaste.text,
-        'pan': _vPan.text,
-      },
-      'deceased': {
-        'name': _dName.text,
-        'age': _dAge.text,
-        'gender': _dGender,
-        'occ': _dOcc.text,
-        'mobile': _dMobile.text,
-        'aadhaar': _dAadhaar.text,
-        'religion': _dReligion.text,
-        'caste': _dCaste.text,
-        'pan': _dPan.text,
-      },
-      'injured': {
-        'name': _injName.text,
-        'age': _injAge.text,
-        'gender': _injGender,
-        'occ': _injOcc.text,
-        'mobile': _injMobile.text,
-        'aadhaar': _injAadhaar.text,
-        'religion': _injReligion.text,
-        'caste': _injCaste.text,
-        'pan': _injPan.text,
-        'isDied': _injIsDied,
-        'deathDate': _injDeathDate.text,
-        'deathTime': _injDeathTime.text,
       },
       'isUnknownUntraced': _isUnknown,
       'accused': pplRows(_accused),
@@ -1193,54 +767,36 @@ class CommonFormState extends State<CommonForm> {
         'cctvDateTime': _cctvDt.text,
       },
       'arrestRelease': _arrestRows
-          .map(
-            (r) => {
-              'accusedName': r['accusedName'],
-              'arrestDt': (r['arrestDt'] as TextEditingController).text,
-              'releaseType': r['releaseType'],
-              'releaseDt': (r['releaseDt'] as TextEditingController).text,
-            },
-          )
+          .map((r) => {
+                'accusedName': r['accusedName'],
+                'arrestDt': (r['arrestDt'] as TextEditingController).text,
+                'releaseType': r['releaseType'],
+                'releaseDt': (r['releaseDt'] as TextEditingController).text,
+              })
           .toList(),
       'proceduralChecks': Map<String, bool>.from(_procChecks),
       'proceduralDates': _procDates.map((k, v) => MapEntry(k, v.text)),
       'eshakshValue': _eshaksh,
-      'eshakshDt': _eDt.text,
-      'eshakshReason': _eReason.text,
       'seizures': _seizures
-          .map(
-            (s) => {
-              'desc': (s['desc'] as TextEditingController).text,
-              'fromWhom': s['fromWhom'],
-              'otherName': (s['otherName'] as TextEditingController).text,
-            },
-          )
+          .map((s) => {
+                'desc': (s['desc'] as TextEditingController).text,
+                'fromWhom': s['fromWhom'],
+                'otherName': (s['otherName'] as TextEditingController).text,
+              })
           .toList(),
       'cdrSent': _cdrSent.text,
       'cdrRecv': _cdrRecv.text,
       'pcrDays': _pcrDays.text,
       'mcrDays': _mcrDays.text,
       'preventive': {
-        'preventiveBonds': _prevBondsVal,
         'action': _prevAction,
-        'actionDate': _prevActionDt.text,
         'outwardNumber': _outward.text,
         'bondDate': _bondDate.text,
-        'bondReason': _bReason.text,
         'bondCancellation': _bondCancel.text,
       },
       'dischargeByAccused': Map<String, bool>.from(_discharge),
-      'dischargeDetails': {
-        for (final n in allAccusedNames)
-          if (_discharge[n] == true)
-            n: {
-              'date': _dischargeDates[n]?.text ?? '',
-              'reason': _dischargeReasons[n]?.text ?? '',
-            },
-      },
       'court': {
         'chargeSheetNumber': _csNumber.text,
-        'chargeSheetDate': _csDate.text,
         'ccStNumber': _ccStNumber.text,
         'finalSummary': _finalSummary,
         'quashedHighCourt': _quashDate.text,
@@ -1315,51 +871,6 @@ class CommonFormState extends State<CommonForm> {
       _compPan.text = _s(comp['pan']);
     }
 
-    final victim = m['victim'] as Map?;
-    if (victim != null) {
-      _vName.text = _s(victim['name']);
-      _vAge.text = _s(victim['age']);
-      final g = victim['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) _vGender = g;
-      _vOcc.text = _s(victim['occ']);
-      _vMobile.text = _s(victim['mobile']);
-      _vAadhaar.text = _s(victim['aadhaar']);
-      _vReligion.text = _s(victim['religion']);
-      _vCaste.text = _s(victim['caste']);
-      _vPan.text = _s(victim['pan']);
-    }
-
-    final deceased = m['deceased'] as Map?;
-    if (deceased != null) {
-      _dName.text = _s(deceased['name']);
-      _dAge.text = _s(deceased['age']);
-      final g = deceased['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) _dGender = g;
-      _dOcc.text = _s(deceased['occ']);
-      _dMobile.text = _s(deceased['mobile']);
-      _dAadhaar.text = _s(deceased['aadhaar']);
-      _dReligion.text = _s(deceased['religion']);
-      _dCaste.text = _s(deceased['caste']);
-      _dPan.text = _s(deceased['pan']);
-    }
-
-    final inj = m['injured'] as Map?;
-    if (inj != null) {
-      _injName.text = _s(inj['name']);
-      _injAge.text = _s(inj['age']);
-      final g = inj['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) _injGender = g;
-      _injOcc.text = _s(inj['occ']);
-      _injMobile.text = _s(inj['mobile']);
-      _injAadhaar.text = _s(inj['aadhaar']);
-      _injReligion.text = _s(inj['religion']);
-      _injCaste.text = _s(inj['caste']);
-      _injPan.text = _s(inj['pan']);
-      _injIsDied = inj['isDied'] == true;
-      _injDeathDate.text = _s(inj['deathDate']);
-      _injDeathTime.text = _s(inj['deathTime']);
-    }
-
     _isUnknown = m['isUnknownUntraced'] == true;
 
     void applyPerson(Map<String, dynamic> row, Map raw) {
@@ -1405,7 +916,7 @@ class CommonFormState extends State<CommonForm> {
     final cr = m['caseResponsibility'] as Map?;
     if (cr != null) {
       final iod = cr['ioDesig']?.toString();
-      if (iod != null && PoliceDesignations.ioDesignations.contains(iod)) {
+      if (iod != null && PoliceDesignations.formIoAndReg.contains(iod)) {
         _ioDesig = iod;
       }
       _ioName.text = _s(cr['ioName']);
@@ -1449,8 +960,6 @@ class CommonFormState extends State<CommonForm> {
       }
     }
     _eshaksh = m['eshakshValue'] as String?;
-    _eDt.text = _s(m['eshakshDt']);
-    _eReason.text = _s(m['eshakshReason']);
 
     for (final s0 in (m['seizures'] as List? ?? [])) {
       if (s0 is! Map) continue;
@@ -1468,13 +977,9 @@ class CommonFormState extends State<CommonForm> {
 
     final pr = m['preventive'] as Map?;
     if (pr != null) {
-      _prevBondsVal =
-          (pr['preventiveBonds'] ?? pr['prBond']) as String? ?? 'no';
-      _prevAction = pr['action'] as String? ?? 'BNSS 129';
-      _prevActionDt.text = _s(pr['actionDate']);
+      _prevAction = pr['action'] as String?;
       _outward.text = _s(pr['outwardNumber']);
       _bondDate.text = _s(pr['bondDate']);
-      _bReason.text = _s(pr['bondReason']);
       _bondCancel.text = _s(pr['bondCancellation']);
     }
 
@@ -1484,22 +989,10 @@ class CommonFormState extends State<CommonForm> {
         _discharge[e.key.toString()] = e.value == true;
       }
     }
-    final disDet = m['dischargeDetails'] as Map?;
-    if (disDet != null) {
-      for (final e in disDet.entries) {
-        final k = e.key.toString();
-        if (e.value is Map) {
-          final dm = e.value as Map;
-          _getDischargeDateCtrl(k).text = _s(dm['date']);
-          _getDischargeReasonCtrl(k).text = _s(dm['reason']);
-        }
-      }
-    }
 
     final ct = m['court'] as Map?;
     if (ct != null) {
       _csNumber.text = _s(ct['chargeSheetNumber']);
-      _csDate.text = _s(ct['chargeSheetDate']);
       _ccStNumber.text = _s(ct['ccStNumber']);
       _finalSummary = ct['finalSummary'] as String?;
       _quashDate.text = _s(ct['quashedHighCourt']);
@@ -1509,15 +1002,13 @@ class CommonFormState extends State<CommonForm> {
     if (ver != null) {
       final aq = ver['acquitted'] as List?;
       if (aq != null) {
-        _acquitted.addAll(
-          aq.map((x) => x.toString()).where((s) => s.isNotEmpty),
-        );
+        _acquitted
+            .addAll(aq.map((x) => x.toString()).where((s) => s.isNotEmpty));
       }
       final cv = ver['convicted'] as List?;
       if (cv != null) {
-        _convicted.addAll(
-          cv.map((x) => x.toString()).where((s) => s.isNotEmpty),
-        );
+        _convicted
+            .addAll(cv.map((x) => x.toString()).where((s) => s.isNotEmpty));
       }
     }
 
@@ -1559,35 +1050,28 @@ class CommonFormState extends State<CommonForm> {
 
   // ─── shared decorations ────────────────────────────────────────────────────
   InputDecoration _d(String label) => InputDecoration(
-    labelText: TranslationHelper.translate(context, label),
-    labelStyle: _tsLabel,
-    floatingLabelStyle: _tsLabel.copyWith(color: _kTeal),
-    isDense: true,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-    filled: true,
-    fillColor: _kInputBg,
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: _kBorder),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: _kBorder),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: _kTeal, width: 1.5),
-    ),
-  );
+        labelText: TranslationHelper.translate(context, label),
+        labelStyle: _tsLabel,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        filled: true,
+        fillColor: _kInputBg,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _kBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _kBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: _kTeal, width: 1.5),
+        ),
+      );
 
   // ─── section card ──────────────────────────────────────────────────────────
-  Widget _card(
-    int idx,
-    String title,
-    Widget body, {
-    bool startOpen = false,
-    Widget? headerAction,
-  }) {
+  Widget _card(int idx, String title, Widget body, {bool startOpen = false}) {
     final trailing = widget.trailingSlotsBySection?[idx];
     final leadingBadge = Container(
       width: 22,
@@ -1597,43 +1081,44 @@ class CommonFormState extends State<CommonForm> {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Center(
-        child: Text(
-          '$idx',
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
+        child: Text('$idx',
+            style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: Colors.white)),
       ),
     );
+    final themed = Theme.of(context).copyWith(dividerColor: Colors.transparent);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      color: _kCardBg,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: _kBorder),
-      ),
-      child: Column(
+    Widget inner;
+    if (idx == 4) {
+      inner = ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+        initiallyExpanded: startOpen,
+        leading: leadingBadge,
+        title: Text(TranslationHelper.translate(context, title),
+            style: _tsSection),
+        children: [
+          body,
+          if (trailing != null) ...trailing,
+        ],
+      );
+    } else {
+      inner = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 leadingBadge,
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    TranslationHelper.translate(context, title),
-                    style: _tsSection,
-                  ),
-                ),
-                if (headerAction != null) headerAction,
+                    child: Text(TranslationHelper.translate(context, title),
+                        style: _tsSection)),
               ],
             ),
           ),
@@ -1642,10 +1127,27 @@ class CommonFormState extends State<CommonForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
-              children: [body, if (trailing != null) ...trailing],
+              children: [
+                body,
+                if (trailing != null) ...trailing,
+              ],
             ),
           ),
         ],
+      );
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      color: _kCardBg,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: _kBorder),
+      ),
+      child: Theme(
+        data: themed,
+        child: inner,
       ),
     );
   }
@@ -1662,7 +1164,7 @@ class CommonFormState extends State<CommonForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(TranslationHelper.translate(context, label), style: _tsLabel),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -1674,10 +1176,8 @@ class CommonFormState extends State<CommonForm> {
                   onTap: () => onSelect(item),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 140),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: active
                           ? activeColor.withValues(alpha: 0.1)
@@ -1712,11 +1212,11 @@ class CommonFormState extends State<CommonForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(TranslationHelper.translate(context, label), style: _tsLabel),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Row(
           children: [
             _yesNoChip('Yes', val == 'yes', _kGreen, () => onPick('yes')),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             _yesNoChip('No', val == 'no', _kRed, () => onPick('no')),
           ],
         ),
@@ -1725,11 +1225,7 @@ class CommonFormState extends State<CommonForm> {
   }
 
   Widget _yesNoChip(
-    String label,
-    bool active,
-    Color color,
-    VoidCallback onTap,
-  ) {
+      String label, bool active, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -1739,9 +1235,7 @@ class CommonFormState extends State<CommonForm> {
           color: active ? color.withValues(alpha: 0.1) : _kInputBg,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: active ? color : _kBorder,
-            width: active ? 1.5 : 1,
-          ),
+              color: active ? color : _kBorder, width: active ? 1.5 : 1),
         ),
         child: Text(
           TranslationHelper.translate(context, label),
@@ -1757,19 +1251,19 @@ class CommonFormState extends State<CommonForm> {
 
   // ─── compact field row ─────────────────────────────────────────────────────
   Widget _row(List<Widget> children) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: children.length == 1
-        ? children.first
-        : Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var i = 0; i < children.length; i++) ...[
-                if (i > 0) const SizedBox(width: 12),
-                Expanded(child: children[i]),
-              ],
-            ],
-          ),
-  );
+        padding: const EdgeInsets.only(bottom: 8),
+        child: children.length == 1
+            ? children.first
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var i = 0; i < children.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 16),
+                    Expanded(child: children[i]),
+                  ],
+                ],
+              ),
+      );
 
   Widget _tf(
     String label,
@@ -1777,52 +1271,14 @@ class CommonFormState extends State<CommonForm> {
     int? maxLines,
     TextInputType keyboardType = TextInputType.text,
     void Function(String)? onChanged,
-    bool enabled = true,
-    String? hintText,
-    String? helperText,
-    Color? helperColor,
-    List<TextInputFormatter>? inputFormatters,
-    String? Function(String?)? validator,
-    AutovalidateMode? autovalidateMode,
   }) {
     return TextFormField(
       controller: ctrl,
       keyboardType: keyboardType,
       maxLines: maxLines ?? 1,
-      enabled: enabled,
-      inputFormatters: inputFormatters,
-      validator: validator != null
-          ? (v) {
-              final res = validator(v);
-              if (res != null) {
-                return TranslationHelper.translate(context, res);
-              }
-              return null;
-            }
-          : null,
-      autovalidateMode: autovalidateMode ?? AutovalidateMode.onUserInteraction,
-      style: enabled
-          ? _tsBody
-          : _tsBody.copyWith(color: _kSec, fontStyle: FontStyle.italic),
+      style: _tsBody,
       onChanged: onChanged,
-      decoration: _d(label).copyWith(
-        hintText: hintText != null
-            ? TranslationHelper.translate(context, hintText)
-            : null,
-        helperText: helperText != null
-            ? TranslationHelper.translate(context, helperText)
-            : null,
-        helperMaxLines: 2,
-        errorMaxLines: 2,
-        helperStyle: helperText != null
-            ? TextStyle(
-                fontSize: 10,
-                color: helperColor ?? _kAmber,
-                fontWeight: FontWeight.w600,
-              )
-            : null,
-        fillColor: enabled ? _kInputBg : _kBorder.withValues(alpha: 0.35),
-      ),
+      decoration: _d(label),
     );
   }
 
@@ -1853,8 +1309,7 @@ class CommonFormState extends State<CommonForm> {
   }) async {
     final now = DateTime.now();
     final parsed = _parseDateDdMmYyyy(ctrl.text);
-    final initial =
-        parsed != null &&
+    final initial = parsed != null &&
             !parsed.isBefore(DateTime(2000)) &&
             !parsed.isAfter(now)
         ? parsed
@@ -1883,77 +1338,15 @@ class CommonFormState extends State<CommonForm> {
       style: _tsBody,
       decoration: _d(label).copyWith(
         suffixIcon: IconButton(
-          icon: const Icon(
-            Icons.calendar_today_rounded,
-            size: 16,
-            color: _kTeal,
-          ),
+          icon:
+              const Icon(Icons.calendar_today_rounded, size: 18, color: _kTeal),
           tooltip: 'Pick date',
           onPressed: () => _pickDateOnly(ctrl, onChanged: onChanged),
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(
-            minHeight: 36,
-            minWidth: 36,
-            maxHeight: 36,
-            maxWidth: 36,
-          ),
-        ),
-        suffixIconConstraints: const BoxConstraints(
-          minHeight: 36,
-          minWidth: 36,
-          maxHeight: 36,
-          maxWidth: 36,
+          constraints: const BoxConstraints(minHeight: 32, minWidth: 36),
         ),
       ),
       onTap: () => _pickDateOnly(ctrl, onChanged: onChanged),
-    );
-  }
-
-  Future<void> _pickTimeOnly(
-    TextEditingController ctrl, {
-    void Function(String)? onChanged,
-  }) async {
-    final now = TimeOfDay.now();
-    final picked = await showTimePicker(context: context, initialTime: now);
-    if (!mounted || picked == null) return;
-    setState(() {
-      final hh = picked.hour.toString().padLeft(2, '0');
-      final mm = picked.minute.toString().padLeft(2, '0');
-      ctrl.text = '$hh:$mm';
-      onChanged?.call(ctrl.text);
-    });
-  }
-
-  Widget _timeField(
-    String label,
-    TextEditingController ctrl, {
-    void Function(String)? onChanged,
-  }) {
-    return TextFormField(
-      controller: ctrl,
-      readOnly: true,
-      style: _tsBody,
-      decoration: _d(label).copyWith(
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.access_time_rounded, size: 16, color: _kTeal),
-          tooltip: 'Pick time',
-          onPressed: () => _pickTimeOnly(ctrl, onChanged: onChanged),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(
-            minHeight: 36,
-            minWidth: 36,
-            maxHeight: 36,
-            maxWidth: 36,
-          ),
-        ),
-        suffixIconConstraints: const BoxConstraints(
-          minHeight: 36,
-          minWidth: 36,
-          maxHeight: 36,
-          maxWidth: 36,
-        ),
-      ),
-      onTap: () => _pickTimeOnly(ctrl, onChanged: onChanged),
     );
   }
 
@@ -1963,9 +1356,8 @@ class CommonFormState extends State<CommonForm> {
 
   DateTime? _parseDateTimeDdMmYyyyHhMm(String raw) {
     final s = raw.trim();
-    final m = RegExp(
-      r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$',
-    ).firstMatch(s);
+    final m =
+        RegExp(r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$').firstMatch(s);
     if (m == null) return null;
     final dd = int.tryParse(m.group(1)!);
     final mo = int.tryParse(m.group(2)!);
@@ -2009,8 +1401,7 @@ class CommonFormState extends State<CommonForm> {
     if (!mounted || pickedDate == null) return;
 
     final p0 = _parseDateTimeDdMmYyyyHhMm(ctrl.text);
-    final initialTod =
-        p0 != null &&
+    final initialTod = p0 != null &&
             p0.year == pickedDate.year &&
             p0.month == pickedDate.month &&
             p0.day == pickedDate.day
@@ -2039,7 +1430,6 @@ class CommonFormState extends State<CommonForm> {
   Widget _dateTimeField(
     String label,
     TextEditingController ctrl, {
-    String? hintText,
     void Function(String)? onChanged,
   }) {
     return TextFormField(
@@ -2047,30 +1437,13 @@ class CommonFormState extends State<CommonForm> {
       readOnly: true,
       style: _tsBody,
       decoration: _d(label).copyWith(
-        hintText: hintText,
-        hintStyle: const TextStyle(fontSize: 12, color: _kSec),
-        floatingLabelBehavior: FloatingLabelBehavior.always,
         suffixIcon: IconButton(
-          icon: const Icon(
-            Icons.calendar_today_outlined,
-            size: 16,
-            color: Color(0xFF0284C7),
-          ),
+          icon:
+              const Icon(Icons.calendar_today_rounded, size: 18, color: _kTeal),
           tooltip: 'Pick date & time',
           onPressed: () => _pickDateTimeFor(ctrl, onChanged: onChanged),
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(
-            minHeight: 36,
-            minWidth: 36,
-            maxHeight: 36,
-            maxWidth: 36,
-          ),
-        ),
-        suffixIconConstraints: const BoxConstraints(
-          minHeight: 36,
-          minWidth: 36,
-          maxHeight: 36,
-          maxWidth: 36,
+          constraints: const BoxConstraints(minHeight: 32, minWidth: 36),
         ),
       ),
       onTap: () => _pickDateTimeFor(ctrl, onChanged: onChanged),
@@ -2079,70 +1452,49 @@ class CommonFormState extends State<CommonForm> {
 
   // ─── section header (inside content) ──────────────────────────────────────
   Widget _subHeader(String t) => Padding(
-    padding: const EdgeInsets.only(top: 8, bottom: 8),
-    child: Text(
-      t,
-      style: const TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.w800,
-        color: _kSec,
-        letterSpacing: 1,
-        textBaseline: TextBaseline.alphabetic,
-      ),
-    ),
-  );
+        padding: const EdgeInsets.only(top: 10, bottom: 6),
+        child: Text(t,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: _kSec,
+              letterSpacing: 1,
+              textBaseline: TextBaseline.alphabetic,
+            )),
+      );
 
   Widget _divider() =>
-      const Divider(height: 20, thickness: 0.5, color: _kBorder);
+      const Divider(height: 16, thickness: 0.5, color: _kBorder);
 
-  // ─── header action button ──────────────────────────────────────────────────
-  Widget _headerBtn(
-    String label,
-    VoidCallback onTap, {
-    IconData icon = Icons.add,
-  }) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(6),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: _kTeal.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: _kTeal.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: _kTeal),
-          const SizedBox(width: 4),
-          Text(
-            TranslationHelper.translate(context, label),
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: _kTeal,
-            ),
+  // ─── add button ────────────────────────────────────────────────────────────
+  Widget _addBtn(String label, VoidCallback onTap) => Align(
+        alignment: Alignment.centerRight,
+        child: TextButton.icon(
+          onPressed: onTap,
+          icon: const Icon(Icons.add, size: 14),
+          label: Text(TranslationHelper.translate(context, label),
+              style: const TextStyle(fontSize: 11)),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            foregroundColor: _kTeal,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 
   // ─── empty hint ────────────────────────────────────────────────────────────
   Widget _emptyBox(String t) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-    decoration: BoxDecoration(
-      color: _kInputBg,
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: _kBorder, style: BorderStyle.solid),
-    ),
-    child: Text(
-      TranslationHelper.translate(context, t),
-      textAlign: TextAlign.center,
-      style: _tsMuted,
-    ),
-  );
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(top: 4),
+        decoration: BoxDecoration(
+          color: _kInputBg,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _kBorder, style: BorderStyle.solid),
+        ),
+        child: Text(TranslationHelper.translate(context, t),
+            textAlign: TextAlign.center, style: _tsMuted),
+      );
 
   // ══════════════════════════════════════════════════════════════════════════
   // ROOT BUILD
@@ -2182,13 +1534,6 @@ class CommonFormState extends State<CommonForm> {
                   _barBtn('Clear', Icons.refresh_outlined, clearForm, _kRed),
                   const SizedBox(width: 6),
                   _barBtn('Save Draft', Icons.save_outlined, saveDraft, _kTeal),
-                  const SizedBox(width: 6),
-                  _barBtn(
-                    'Generate Crime Detail Form PDF',
-                    Icons.picture_as_pdf_outlined,
-                    _generateCrimeDetailPdf,
-                    const Color(0xFF0284C7),
-                  ),
                 ],
               ),
             ),
@@ -2205,183 +1550,28 @@ class CommonFormState extends State<CommonForm> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _card(
-                            1,
-                            'Crime Registration Info',
-                            _s1(),
-                            startOpen: true,
-                          ),
-                          _card(
-                            2,
-                            'Acts & Sections Filed',
-                            _s2(),
-                            startOpen: true,
-                            headerAction: _headerBtn(
-                              'Add Charge',
-                              addChargeRow,
-                            ),
-                          ),
+                          _card(1, 'Crime Registration Info', _s1(),
+                              startOpen: true),
+                          _card(2, 'Acts & Sections Filed', _s2(),
+                              startOpen: true),
                           _card(3, 'Crime Spot', _s3()),
                           if (widget.middleSlot != null) widget.middleSlot!,
                           _card(4, 'Complainant KYC', _s4()),
-                          _card(
-                            5,
-                            'Victim KYC',
-                            _sVictim(),
-                            headerAction: _headerBtn(
-                              'Same as Complainant',
-                              _copyComplainantToVictim,
-                              icon: Icons.copy_rounded,
-                            ),
-                          ),
-                          if (_isMurderCase)
-                            _card(
-                              6,
-                              'Deceased KYC',
-                              _sDeceased(),
-                              headerAction: _headerBtn(
-                                'Same as Victim',
-                                _copyVictimToDeceased,
-                                icon: Icons.copy_rounded,
-                              ),
-                            ),
-                          _card(
-                            _isMurderCase ? 7 : 6,
-                            'Injured KYC',
-                            _sInjured(),
-                            headerAction: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _headerBtn(
-                                  'Same as Complainant',
-                                  _copyComplainantToInjured,
-                                  icon: Icons.copy_rounded,
-                                ),
-                                const SizedBox(width: 6),
-                                _headerBtn(
-                                  'Same as Victim',
-                                  _copyVictimToInjured,
-                                  icon: Icons.copy_rounded,
-                                ),
-                              ],
-                            ),
-                          ),
-                          _card(
-                            _isMurderCase ? 8 : 7,
-                            'Accused Details',
-                            _s5(),
-                            headerAction: !_isUnknown
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (_suspected.isNotEmpty) ...[
-                                        _headerBtn('Same as Suspected', () {
-                                          if (_accused.isEmpty) {
-                                            addPersonAccused();
-                                          }
-                                          _copyPersonData(
-                                            _suspected.first,
-                                            _accused.last,
-                                          );
-                                        }, icon: Icons.copy_rounded),
-                                        const SizedBox(width: 6),
-                                      ],
-                                      _headerBtn(
-                                        'Add Accused',
-                                        addPersonAccused,
-                                      ),
-                                    ],
-                                  )
-                                : null,
-                          ),
-                          _card(
-                            _isMurderCase ? 9 : 8,
-                            'Suspected Accused',
-                            _s6(),
-                            headerAction: !_isUnknown
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (_accused.isNotEmpty) ...[
-                                        _headerBtn('Same as Accused', () {
-                                          if (_suspected.isEmpty) {
-                                            addPersonSuspected();
-                                          }
-                                          _copyPersonData(
-                                            _accused.first,
-                                            _suspected.last,
-                                          );
-                                        }, icon: Icons.copy_rounded),
-                                        const SizedBox(width: 6),
-                                      ],
-                                      _headerBtn(
-                                        'Add Suspected',
-                                        addPersonSuspected,
-                                      ),
-                                    ],
-                                  )
-                                : null,
-                          ),
+                          _card(5, 'Accused Details', _s5()),
+                          _card(6, 'Suspected Accused', _s6()),
                           if (_isUnknown)
                             _card(
-                              _isMurderCase ? 10 : 9,
-                              'Unidentified Criminal Description',
-                              _s7(),
-                            ),
-                          _card(
-                            _isMurderCase ? 11 : 10,
-                            'Case Responsibility',
-                            _s8(),
-                          ),
-                          _card(
-                            _isMurderCase ? 12 : 11,
-                            'Arrest & Release Status',
-                            _s9(),
-                          ),
-                          _card(
-                            _isMurderCase ? 13 : 12,
-                            'Procedural Details',
-                            _s10(),
-                          ),
-                          _card(
-                            _isMurderCase ? 14 : 13,
-                            'Seizure Records',
-                            _s11(),
-                            headerAction: _headerBtn(
-                              'Add Seized Property',
-                              addSeizure,
-                            ),
-                          ),
-                          _card(
-                            _isMurderCase ? 15 : 14,
-                            'Technical & Custody',
-                            _s12(),
-                          ),
-                          _card(
-                            _isMurderCase ? 16 : 15,
-                            'Preventive & Bonds',
-                            _s13(),
-                          ),
-                          _card(
-                            _isMurderCase ? 17 : 16,
-                            'Discharge Status',
-                            _s14(),
-                          ),
-                          _card(
-                            _isMurderCase ? 18 : 17,
-                            'Court Filing',
-                            _s15(),
-                          ),
-                          _card(
-                            _isMurderCase ? 19 : 18,
-                            'Final Verdict',
-                            _s16(),
-                          ),
-                          _card(
-                            _isMurderCase ? 20 : 19,
-                            'Case Scrutiny Pipeline',
-                            _s17(),
-                          ),
+                                7, 'Unidentified Criminal Description', _s7()),
+                          _card(8, 'Case Responsibility', _s8()),
+                          _card(9, 'Arrest & Release Status', _s9()),
+                          _card(10, 'Procedural Details', _s10()),
+                          _card(11, 'Seizure Records', _s11()),
+                          _card(12, 'Technical & Custody', _s12()),
+                          _card(13, 'Preventive & Bonds', _s13()),
+                          _card(14, 'Discharge Status', _s14()),
+                          _card(15, 'Court Filing', _s15()),
+                          _card(16, 'Final Verdict', _s16()),
+                          _card(17, 'Case Scrutiny Pipeline', _s17()),
                           const SizedBox(height: 80),
                         ],
                       ),
@@ -2394,21 +1584,6 @@ class CommonFormState extends State<CommonForm> {
         ),
       ),
     );
-  }
-
-  Future<void> _generateCrimeDetailPdf() async {
-    try {
-      final doc = buildDocumentMap();
-      await previewCrimeDetailPdf(context, doc);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to generate PDF: $e'),
-          backgroundColor: _kRed,
-        ),
-      );
-    }
   }
 
   Widget _barBtn(String label, IconData icon, VoidCallback onTap, Color color) {
@@ -2426,14 +1601,9 @@ class CommonFormState extends State<CommonForm> {
           children: [
             Icon(icon, size: 13, color: color),
             const SizedBox(width: 4),
-            Text(
-              TranslationHelper.translate(context, label),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
+            Text(TranslationHelper.translate(context, label),
+                style: TextStyle(
+                    fontSize: 11, fontWeight: FontWeight.w600, color: color)),
           ],
         ),
       ),
@@ -2446,133 +1616,118 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §1 Crime Registration Info ─────────────────────────────────────────────
   Widget _s1() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _row([
-        _tf('Cr. No.', _crNo),
-        _dateField('Registered Date (dd/mm/yyyy)', _regDate),
-      ]),
-      GestureDetector(
-        onTap: pickFirCopy,
-        child: Container(
-          height: 42,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: _kInputBg,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _kBorder),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.upload_file_outlined, size: 16, color: _kTeal),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _firPath == null
-                      ? TranslationHelper.translate(
-                          context,
-                          'Upload FIR Copy (tap to select)',
-                        )
-                      : '${TranslationHelper.translate(context, 'FIR')}: $_firPath',
-                  style: _tsBody.copyWith(
-                    color: _firPath == null ? _kSec : _kDark,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _row([
+            _tf('Cr. No.', _crNo),
+            _dateField('Registered Date (dd/mm/yyyy)', _regDate),
+          ]),
+          GestureDetector(
+            onTap: pickFirCopy,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+              decoration: BoxDecoration(
+                color: _kInputBg,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: _kBorder),
               ),
-            ],
+              child: Row(
+                children: [
+                  const Icon(Icons.upload_file_outlined,
+                      size: 16, color: _kTeal),
+                  const SizedBox(width: 8),
+                  Expanded(
+                      child: Text(
+                    _firPath == null
+                        ? TranslationHelper.translate(
+                            context, 'Upload FIR Copy (tap to select)')
+                        : '${TranslationHelper.translate(context, 'FIR')}: $_firPath',
+                    style: _tsBody.copyWith(
+                        color: _firPath == null ? _kSec : _kDark),
+                    overflow: TextOverflow.ellipsis,
+                  )),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-    ],
-  );
+        ],
+      );
 
   // ── §2 Acts & Sections Filed ───────────────────────────────────────────────
   Widget _s2() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (_chargeData.isEmpty)
-        _emptyBox('No charges. Tap + Add Charge to begin.')
-      else ...[
-        ..._chargeData.entries.toList().asMap().entries.map((e) {
-          final id = e.value.key;
-          final data = e.value.value;
-          final num = e.key + 1;
-          return _chargeCard(id, num, data);
-        }),
-        _divider(),
-        _subHeader('CHARGE SUMMARY'),
-        ..._chargeData.entries.toList().asMap().entries.map((e) {
-          final num = e.key + 1;
-          final data = e.value.value;
-          final act = data['act']?.toString() ?? '';
-          final secs = (data['sections'] as Set<String>?) ?? {};
-          final actLabel = act.isNotEmpty
-              ? (ACT_DATA[act]?['label'] as String? ?? act)
-              : '—';
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 2, right: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _kDark,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '#$num',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        actLabel,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: _kDark,
-                        ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _addBtn('+ Add Charge', addChargeRow),
+          if (_chargeData.isEmpty)
+            _emptyBox('No charges. Tap + Add Charge to begin.')
+          else ...[
+            ..._chargeData.entries.toList().asMap().entries.map((e) {
+              final id = e.value.key;
+              final data = e.value.value;
+              final num = e.key + 1;
+              return _chargeCard(id, num, data);
+            }),
+            _divider(),
+            _subHeader('CHARGE SUMMARY'),
+            ..._chargeData.entries.toList().asMap().entries.map((e) {
+              final num = e.key + 1;
+              final data = e.value.value;
+              final act = data['act']?.toString() ?? '';
+              final secs = (data['sections'] as Set<String>?) ?? {};
+              final actLabel = act.isNotEmpty
+                  ? (ACT_DATA[act]?['label'] as String? ?? act)
+                  : '—';
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 2, right: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _kDark,
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      if (secs.isEmpty)
-                        const Text('No sections selected', style: _tsMuted)
-                      else
-                        Wrap(
-                          spacing: 4,
-                          children: secs
-                              .map(
-                                (v) => Text(
-                                  _secLabel(act, v),
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: _kTeal,
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                    ],
-                  ),
+                      child: Text('#$num',
+                          style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(actLabel,
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: _kDark)),
+                          if (secs.isEmpty)
+                            const Text('No sections selected', style: _tsMuted)
+                          else
+                            Wrap(
+                              spacing: 4,
+                              children: secs
+                                  .map((v) => Text(
+                                        _secLabel(act, v),
+                                        style: const TextStyle(
+                                            fontSize: 10, color: _kTeal),
+                                      ))
+                                  .toList(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        }),
-      ],
-    ],
-  );
+              );
+            }),
+          ],
+        ],
+      );
 
   String _secLabel(String actKey, String val) {
     final secs = ACT_DATA[actKey]?['sections'] as List<dynamic>? ?? [];
@@ -2589,10 +1744,9 @@ class CommonFormState extends State<CommonForm> {
     final secs = (data['sections'] as Set<String>?) ?? {};
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: _kInputBg.withValues(alpha: 0.5),
         border: Border.all(color: _kBorder),
         borderRadius: BorderRadius.circular(10),
       ),
@@ -2602,18 +1756,15 @@ class CommonFormState extends State<CommonForm> {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  'Charge #$num',
-                  style: _tsSection.copyWith(fontSize: 11),
-                ),
-              ),
+                  child: Text('Charge #$num',
+                      style: _tsSection.copyWith(fontSize: 11))),
               GestureDetector(
                 onTap: () => _removeCharge(id),
                 child: const Icon(Icons.close, size: 16, color: _kRed),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           // Act selector — horizontal scrollable chips
           _chipSelector(
             label: 'Act / Law',
@@ -2630,19 +1781,16 @@ class CommonFormState extends State<CommonForm> {
           ),
           // Act hint
           if (hasAct) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               ACT_DATA[actKey]?['hint'] as String? ?? '',
               style: const TextStyle(
-                fontSize: 10,
-                color: _kAmber,
-                fontStyle: FontStyle.italic,
-              ),
+                  fontSize: 10, color: _kAmber, fontStyle: FontStyle.italic),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             // Section search list
             const Text('Section(s) — tap to add', style: _tsLabel),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             _SectionSearchPicker(
               actKey: actKey,
               selected: secs,
@@ -2657,578 +1805,160 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §3 Crime Spot ─────────────────────────────────────────────────────────
   Widget _s3() => Column(
-    children: [
-      _row([_tf('Village/Town', _spotVillage), _tf('Area Name', _spotArea)]),
-      _tf('Full Address', _spotAddress, maxLines: 3),
-    ],
-  );
-
-  Widget _victimIdentityProtectionWarning(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: _kRed.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: _kRed.withValues(alpha: 0.3)),
-      ),
-      child: Row(
         children: [
-          const Icon(Icons.info_outline_rounded, size: 15, color: _kRed),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              TranslationHelper.translate(
-                context,
-                'You cannot enter victim details in sexual offence',
-              ),
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: _kRed,
-              ),
-            ),
+          _row(
+              [_tf('Village/Town', _spotVillage), _tf('Area Name', _spotArea)]),
+          _row([_tf('Full Address', _spotAddress, maxLines: 3)]),
+        ],
+      );
+
+  Widget _protectedVictimNameField() {
+    final fieldLabel =
+        TranslationHelper.translate(context, 'You cannot enter victim name');
+    final tooltipMsg = TranslationHelper.translate(context,
+        'You cannot enter victim details in sexual offence against female');
+    return Tooltip(
+      message: tooltipMsg,
+      preferBelow: true,
+      verticalOffset: 22,
+      waitDuration: Duration.zero,
+      showDuration: const Duration(seconds: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      textStyle: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(6),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, 2),
           ),
         ],
+      ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.forbidden,
+        child: Container(
+          height: 38,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFBEB),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.7),
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            children: [
+              const WarningTriangleIcon(size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  fieldLabel,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFB45309),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   // ── §4 Complainant KYC ────────────────────────────────────────────────────
-  Widget _s4() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (_isRapeCase) _victimIdentityProtectionWarning(context),
-      _row([
-        _tf(
-          'Name',
-          _compName,
-          enabled: !_isRapeCase,
-          hintText: _isRapeCase ? 'Identity Protected by Law' : null,
-        ),
-        _tf('Age', _compAge, keyboardType: TextInputType.number),
-      ]),
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: _chipSelector(
-          label: 'Gender',
-          items: _kGenders,
-          selected: _compGender,
-          onSelect: (v) => setState(() => _compGender = v),
-        ),
-      ),
-      _row([
-        _tf('Occupation', _compOcc),
-        _tf(
-          'Mobile Number',
-          _compMobile,
-          keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-          ],
-          validator: (v) => AppValidators.indianMobile(v, required: true),
-        ),
-      ]),
-      _row([
-        _tf(
-          'Aadhaar Number',
-          _compAadhaar,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(12),
-          ],
-          validator: AppValidators.aadhaar,
-        ),
-        _tf(
-          'PAN Number',
-          _compPan,
-          inputFormatters: [
-            UpperCaseTextFormatter(),
-            LengthLimitingTextInputFormatter(10),
-          ],
-          validator: AppValidators.pan,
-        ),
-      ]),
-      _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
-    ],
-  );
-
-  void _copyComplainantToVictim() {
-    setState(() {
-      if (!_isRapeCase) {
-        _vName.value = TextEditingValue(
-          text: _compName.text,
-          selection: TextSelection.collapsed(offset: _compName.text.length),
-        );
-      }
-      _vAge.value = TextEditingValue(
-        text: _compAge.text,
-        selection: TextSelection.collapsed(offset: _compAge.text.length),
-      );
-      _vGender = _compGender.isNotEmpty ? _compGender : 'Female';
-      _vOcc.value = TextEditingValue(
-        text: _compOcc.text,
-        selection: TextSelection.collapsed(offset: _compOcc.text.length),
-      );
-      _vMobile.value = TextEditingValue(
-        text: _compMobile.text,
-        selection: TextSelection.collapsed(offset: _compMobile.text.length),
-      );
-      _vAadhaar.value = TextEditingValue(
-        text: _compAadhaar.text,
-        selection: TextSelection.collapsed(offset: _compAadhaar.text.length),
-      );
-      _vReligion.value = TextEditingValue(
-        text: _compReligion.text,
-        selection: TextSelection.collapsed(offset: _compReligion.text.length),
-      );
-      _vCaste.value = TextEditingValue(
-        text: _compCaste.text,
-        selection: TextSelection.collapsed(offset: _compCaste.text.length),
-      );
-      _vPan.value = TextEditingValue(
-        text: _compPan.text,
-        selection: TextSelection.collapsed(offset: _compPan.text.length),
-      );
-    });
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          TranslationHelper.translate(
-            context,
-            'Copied Complainant details to Victim KYC',
-          ),
-        ),
-        duration: const Duration(seconds: 2),
-        backgroundColor: _kTeal,
-      ),
-    );
-  }
-
-  // ── §5 Victim KYC ──────────────────────────────────────────────────────────
-  Widget _sVictim() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (_isRapeCase) _victimIdentityProtectionWarning(context),
-      _row([
-        _tf(
-          'Name',
-          _vName,
-          enabled: !_isRapeCase,
-          hintText: _isRapeCase ? 'Identity Protected by Law' : null,
-        ),
-        _tf('Age', _vAge, keyboardType: TextInputType.number),
-      ]),
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: _chipSelector(
-          label: 'Gender',
-          items: _kGenders,
-          selected: _vGender,
-          onSelect: (v) => setState(() => _vGender = v),
-        ),
-      ),
-      _row([
-        _tf('Occupation', _vOcc),
-        _tf(
-          'Mobile Number',
-          _vMobile,
-          keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-          ],
-          validator: (v) => AppValidators.indianMobile(v, required: true),
-        ),
-      ]),
-      _row([
-        _tf(
-          'Aadhaar Number',
-          _vAadhaar,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(12),
-          ],
-          validator: AppValidators.aadhaar,
-        ),
-        _tf(
-          'PAN Number',
-          _vPan,
-          inputFormatters: [
-            UpperCaseTextFormatter(),
-            LengthLimitingTextInputFormatter(10),
-          ],
-          validator: AppValidators.pan,
-        ),
-      ]),
-      _row([_tf('Religion', _vReligion), _tf('Caste', _vCaste)]),
-    ],
-  );
-
-  void _copyVictimToDeceased() {
-    setState(() {
-      _dName.value = TextEditingValue(
-        text: _vName.text,
-        selection: TextSelection.collapsed(offset: _vName.text.length),
-      );
-      _dAge.value = TextEditingValue(
-        text: _vAge.text,
-        selection: TextSelection.collapsed(offset: _vAge.text.length),
-      );
-      _dGender = _vGender.isNotEmpty ? _vGender : 'Male';
-      _dOcc.value = TextEditingValue(
-        text: _vOcc.text,
-        selection: TextSelection.collapsed(offset: _vOcc.text.length),
-      );
-      _dMobile.value = TextEditingValue(
-        text: _vMobile.text,
-        selection: TextSelection.collapsed(offset: _vMobile.text.length),
-      );
-      _dAadhaar.value = TextEditingValue(
-        text: _vAadhaar.text,
-        selection: TextSelection.collapsed(offset: _vAadhaar.text.length),
-      );
-      _dReligion.value = TextEditingValue(
-        text: _vReligion.text,
-        selection: TextSelection.collapsed(offset: _vReligion.text.length),
-      );
-      _dCaste.value = TextEditingValue(
-        text: _vCaste.text,
-        selection: TextSelection.collapsed(offset: _vCaste.text.length),
-      );
-      _dPan.value = TextEditingValue(
-        text: _vPan.text,
-        selection: TextSelection.collapsed(offset: _vPan.text.length),
-      );
-    });
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          TranslationHelper.translate(
-            context,
-            'Copied Victim details to Deceased KYC',
-          ),
-        ),
-        duration: const Duration(seconds: 2),
-        backgroundColor: _kTeal,
-      ),
-    );
-  }
-
-  // ── Deceased KYC (Murder Cases) ───────────────────────────────────────────
-  Widget _sDeceased() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _row([
-        _tf('Name', _dName),
-        _tf('Age', _dAge, keyboardType: TextInputType.number),
-      ]),
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: _chipSelector(
-          label: 'Gender',
-          items: _kGenders,
-          selected: _dGender,
-          onSelect: (v) => setState(() => _dGender = v),
-        ),
-      ),
-      _row([
-        _tf('Occupation', _dOcc),
-        _tf(
-          'Mobile Number',
-          _dMobile,
-          keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-          ],
-          validator: (v) => AppValidators.indianMobile(v, required: false),
-        ),
-      ]),
-      _row([
-        _tf(
-          'Aadhaar Number',
-          _dAadhaar,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(12),
-          ],
-          validator: AppValidators.aadhaar,
-        ),
-        _tf(
-          'PAN Number',
-          _dPan,
-          inputFormatters: [
-            UpperCaseTextFormatter(),
-            LengthLimitingTextInputFormatter(10),
-          ],
-          validator: AppValidators.pan,
-        ),
-      ]),
-      _row([_tf('Religion', _dReligion), _tf('Caste', _dCaste)]),
-    ],
-  );
-
-  void _copyComplainantToInjured() {
-    setState(() {
-      _injName.value = TextEditingValue(
-        text: _compName.text,
-        selection: TextSelection.collapsed(offset: _compName.text.length),
-      );
-      _injAge.value = TextEditingValue(
-        text: _compAge.text,
-        selection: TextSelection.collapsed(offset: _compAge.text.length),
-      );
-      _injGender = _compGender.isNotEmpty ? _compGender : 'Male';
-      _injOcc.value = TextEditingValue(
-        text: _compOcc.text,
-        selection: TextSelection.collapsed(offset: _compOcc.text.length),
-      );
-      _injMobile.value = TextEditingValue(
-        text: _compMobile.text,
-        selection: TextSelection.collapsed(offset: _compMobile.text.length),
-      );
-      _injAadhaar.value = TextEditingValue(
-        text: _compAadhaar.text,
-        selection: TextSelection.collapsed(offset: _compAadhaar.text.length),
-      );
-      _injReligion.value = TextEditingValue(
-        text: _compReligion.text,
-        selection: TextSelection.collapsed(offset: _compReligion.text.length),
-      );
-      _injCaste.value = TextEditingValue(
-        text: _compCaste.text,
-        selection: TextSelection.collapsed(offset: _compCaste.text.length),
-      );
-      _injPan.value = TextEditingValue(
-        text: _compPan.text,
-        selection: TextSelection.collapsed(offset: _compPan.text.length),
-      );
-    });
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          TranslationHelper.translate(
-            context,
-            'Copied Complainant details to Injured KYC',
-          ),
-        ),
-        duration: const Duration(seconds: 2),
-        backgroundColor: _kTeal,
-      ),
-    );
-  }
-
-  void _copyVictimToInjured() {
-    setState(() {
-      _injName.value = TextEditingValue(
-        text: _vName.text,
-        selection: TextSelection.collapsed(offset: _vName.text.length),
-      );
-      _injAge.value = TextEditingValue(
-        text: _vAge.text,
-        selection: TextSelection.collapsed(offset: _vAge.text.length),
-      );
-      _injGender = _vGender.isNotEmpty ? _vGender : 'Male';
-      _injOcc.value = TextEditingValue(
-        text: _vOcc.text,
-        selection: TextSelection.collapsed(offset: _vOcc.text.length),
-      );
-      _injMobile.value = TextEditingValue(
-        text: _vMobile.text,
-        selection: TextSelection.collapsed(offset: _vMobile.text.length),
-      );
-      _injAadhaar.value = TextEditingValue(
-        text: _vAadhaar.text,
-        selection: TextSelection.collapsed(offset: _vAadhaar.text.length),
-      );
-      _injReligion.value = TextEditingValue(
-        text: _vReligion.text,
-        selection: TextSelection.collapsed(offset: _vReligion.text.length),
-      );
-      _injCaste.value = TextEditingValue(
-        text: _vCaste.text,
-        selection: TextSelection.collapsed(offset: _vCaste.text.length),
-      );
-      _injPan.value = TextEditingValue(
-        text: _vPan.text,
-        selection: TextSelection.collapsed(offset: _vPan.text.length),
-      );
-    });
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          TranslationHelper.translate(
-            context,
-            'Copied Victim details to Injured KYC',
-          ),
-        ),
-        duration: const Duration(seconds: 2),
-        backgroundColor: _kTeal,
-      ),
-    );
-  }
-
-  // ── Injured KYC ────────────────────────────────────────────────────────────
-  Widget _sInjured() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _row([
-        _tf('Name', _injName),
-        _tf('Age', _injAge, keyboardType: TextInputType.number),
-      ]),
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: _chipSelector(
-          label: 'Gender',
-          items: _kGenders,
-          selected: _injGender,
-          onSelect: (v) => setState(() => _injGender = v),
-        ),
-      ),
-      _row([
-        _tf('Occupation', _injOcc),
-        _tf(
-          'Mobile Number',
-          _injMobile,
-          keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-          ],
-          validator: (v) => AppValidators.indianMobile(v, required: false),
-        ),
-      ]),
-      _row([
-        _tf(
-          'Aadhaar Number',
-          _injAadhaar,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(12),
-          ],
-          validator: AppValidators.aadhaar,
-        ),
-        _tf(
-          'PAN Number',
-          _injPan,
-          inputFormatters: [
-            UpperCaseTextFormatter(),
-            LengthLimitingTextInputFormatter(10),
-          ],
-          validator: AppValidators.pan,
-        ),
-      ]),
-      _row([_tf('Religion', _injReligion), _tf('Caste', _injCaste)]),
-      const SizedBox(height: 14),
-      _subHeader('DEATH STATUS / मृत्यू स्थिती'),
-      Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: _chipSelector(
-          label: 'Person Died / Deceased? (मयत / मृत्यू झाला आहे का?)',
-          items: const ['Yes', 'No'],
-          selected: _injIsDied ? 'Yes' : 'No',
-          onSelect: (val) {
-            setState(() {
-              _injIsDied = val == 'Yes';
-              if (!_injIsDied) {
-                _injDeathDate.clear();
-                _injDeathTime.clear();
-              }
-            });
-          },
-        ),
-      ),
-      if (_injIsDied) ...[
+  Widget _s4() {
+    final bool isProtectedVictim = _hasSexualOffenceAct;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _row([
+          if (isProtectedVictim)
+            _protectedVictimNameField()
+          else
+            _tf('Name', _compName),
+          _tf('Age', _compAge, keyboardType: TextInputType.number),
+        ]),
+        _row([
+          _chipSelector(
+              label: 'Gender',
+              items: _kGenders,
+              selected: _compGender,
+              onSelect: (v) => setState(() => _compGender = v)),
+        ]),
         const SizedBox(height: 4),
         _row([
-          _dateField('Date of Death (dd/mm/yyyy)', _injDeathDate),
-          _timeField('Time of Death (hh:mm)', _injDeathTime),
+          _tf('Occupation', _compOcc),
+          _tf('Mobile Number', _compMobile, keyboardType: TextInputType.phone),
         ]),
+        _row([
+          _tf('Aadhaar Number', _compAadhaar),
+          _tf('PAN Number', _compPan),
+        ]),
+        _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
       ],
-    ],
-  );
+    );
+  }
 
-  // ── §6 Accused Details ────────────────────────────────────────────────────
+  // ── §5 Accused Details ────────────────────────────────────────────────────
   Widget _s5() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Unknown/Untraced toggle
-      _UnknownToggle(value: _isUnknown, onChanged: toggleUnknownUntraced),
-      if (!_isUnknown) ...[
-        if (_accused.isEmpty)
-          _emptyBox('No accused added.')
-        else
-          ..._accused.asMap().entries.map(
-            (e) => _personCard(
-              title: 'Accused #${e.key + 1}',
-              row: e.value,
-              onRemove: () => removePersonAccused(e.key),
-              otherList: _suspected,
-              otherLabel: 'Suspected',
-            ),
-          ),
-      ],
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Unknown/Untraced toggle
+          _UnknownToggle(value: _isUnknown, onChanged: toggleUnknownUntraced),
+          if (!_isUnknown) ...[
+            _addBtn('+ Add Accused', addPersonAccused),
+            if (_accused.isEmpty)
+              _emptyBox('No accused added.')
+            else
+              ..._accused.asMap().entries.map((e) => _personCard(
+                    title: 'Accused #${e.key + 1}',
+                    row: e.value,
+                    onRemove: () => removePersonAccused(e.key),
+                  )),
+          ],
+        ],
+      );
 
   // ── §6 Suspected Accused ──────────────────────────────────────────────────
   Widget _s6() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (_isUnknown)
-        _emptyBox('Suspected accused hidden while Unknown/Untraced is ON.')
-      else ...[
-        if (_suspected.isEmpty)
-          _emptyBox('No suspected accused added.')
-        else
-          ..._suspected.asMap().entries.map(
-            (e) => _personCard(
-              title: 'Suspected #${e.key + 1}',
-              row: e.value,
-              onRemove: () => removePersonSuspected(e.key),
-              otherList: _accused,
-              otherLabel: 'Accused',
-            ),
-          ),
-      ],
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_isUnknown)
+            const Text('Suspected accused hidden while Unknown/Untraced is ON.',
+                style: _tsMuted)
+          else ...[
+            _addBtn('+ Add Suspected', addPersonSuspected),
+            if (_suspected.isEmpty)
+              _emptyBox('No suspected accused added.')
+            else
+              ..._suspected.asMap().entries.map((e) => _personCard(
+                    title: 'Suspected #${e.key + 1}',
+                    row: e.value,
+                    onRemove: () => removePersonSuspected(e.key),
+                  )),
+          ],
+        ],
+      );
 
   // ─── person card (used in §5 & §6) ────────────────────────────────────────
   Widget _personCard({
     required String title,
     required Map<String, dynamic> row,
     required VoidCallback onRemove,
-    List<Map<String, dynamic>>? otherList,
-    String? otherLabel,
   }) {
-    final availableOthers = (otherList ?? [])
-        .where(
-          (src) =>
-              (src['name'] as TextEditingController?)?.text.trim().isNotEmpty ==
-                  true ||
-              (src['age'] as TextEditingController?)?.text.trim().isNotEmpty ==
-                  true ||
-              (src['mobile'] as TextEditingController?)?.text
-                      .trim()
-                      .isNotEmpty ==
-                  true,
-        )
-        .toList();
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: _kTeal.withValues(alpha: 0.3)),
@@ -3239,196 +1969,43 @@ class CommonFormState extends State<CommonForm> {
           Row(
             children: [
               Expanded(
-                child: Text(title, style: _tsSection.copyWith(fontSize: 11)),
-              ),
-              if (availableOthers.isNotEmpty && otherLabel != null) ...[
-                if (availableOthers.length == 1)
-                  InkWell(
-                    onTap: () => _copyPersonData(availableOthers.first, row),
-                    borderRadius: BorderRadius.circular(4),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: _kTeal.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: _kTeal.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.copy_rounded,
-                            size: 11,
-                            color: _kTeal,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            TranslationHelper.translate(
-                              context,
-                              'Same as $otherLabel',
-                            ),
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: _kTeal,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  PopupMenuButton<int>(
-                    tooltip: 'Copy details from $otherLabel',
-                    onSelected: (idx) =>
-                        _copyPersonData(availableOthers[idx], row),
-                    itemBuilder: (ctx) => availableOthers.asMap().entries.map((
-                      entry,
-                    ) {
-                      final n =
-                          (entry.value['name'] as TextEditingController?)?.text
-                              .trim() ??
-                          '';
-                      final displayName = n.isNotEmpty
-                          ? n
-                          : '$otherLabel #${entry.key + 1}';
-                      return PopupMenuItem<int>(
-                        value: entry.key,
-                        child: Text(
-                          '${TranslationHelper.translate(ctx, 'Copy from')} $displayName',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      );
-                    }).toList(),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: _kTeal.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: _kTeal.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.copy_rounded,
-                            size: 11,
-                            color: _kTeal,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            TranslationHelper.translate(
-                              context,
-                              'Copy from $otherLabel',
-                            ),
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: _kTeal,
-                            ),
-                          ),
-                          const Icon(
-                            Icons.arrow_drop_down,
-                            size: 14,
-                            color: _kTeal,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
+                  child: Text(title, style: _tsSection.copyWith(fontSize: 11))),
               TextButton(
                 onPressed: onRemove,
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  minimumSize: Size.zero,
                   foregroundColor: _kRed,
                 ),
-                child: const Text(
-                  '✕ Remove',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                ),
+                child: const Text('✕ Remove', style: TextStyle(fontSize: 11)),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           _row([
-            _tf(
-              'Name',
-              row['name'] as TextEditingController,
-              onChanged: (val) {
-                _debouncedSync();
-                if (otherList != null && otherList.isNotEmpty) {
-                  _checkAndAutoFillPerson(row, otherList);
-                }
-              },
-            ),
-            _tf(
-              'Age',
-              row['age'] as TextEditingController,
-              keyboardType: TextInputType.number,
-            ),
+            _tf('Name', row['name'] as TextEditingController,
+                onChanged: (_) => _debouncedSync()),
+            _tf('Age', row['age'] as TextEditingController,
+                keyboardType: TextInputType.number),
           ]),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _chipSelector(
-              label: 'Gender',
-              items: _kGenders,
-              selected: row['gender'] as String?,
-              onSelect: (v) => setState(() => row['gender'] = v),
-            ),
+          _chipSelector(
+            label: 'Gender',
+            items: _kGenders,
+            selected: row['gender'] as String?,
+            onSelect: (v) => setState(() => row['gender'] = v),
           ),
+          const SizedBox(height: 8),
+          _row([_tf('Occupation', row['occ'] as TextEditingController)]),
           _row([
-            _tf('Occupation', row['occ'] as TextEditingController),
-            _tf(
-              'Mobile',
-              row['mobile'] as TextEditingController,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(10),
-              ],
-              validator: (v) => AppValidators.indianMobile(v, required: false),
-            ),
-          ]),
-          _row([
-            _tf(
-              'Aadhaar',
-              row['aadhaar'] as TextEditingController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(12),
-              ],
-              validator: AppValidators.aadhaar,
-            ),
-            _tf(
-              'PAN Number',
-              row['pan'] as TextEditingController,
-              inputFormatters: [
-                UpperCaseTextFormatter(),
-                LengthLimitingTextInputFormatter(10),
-              ],
-              validator: AppValidators.pan,
-            ),
+            _tf('Mobile', row['mobile'] as TextEditingController,
+                keyboardType: TextInputType.phone),
+            _tf('Aadhaar', row['aadhaar'] as TextEditingController),
           ]),
           _row([
             _tf('Religion', row['religion'] as TextEditingController),
             _tf('Caste', row['caste'] as TextEditingController),
           ]),
+          _row([_tf('PAN Number', row['pan'] as TextEditingController)]),
         ],
       ),
     );
@@ -3436,91 +2013,73 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §7 Unidentified Criminal Description ──────────────────────────────────
   Widget _s7() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: _chipSelector(
-          label: 'Gender',
-          items: _kGenders,
-          selected: _unidGender,
-          onSelect: (v) => setState(() => _unidGender = v),
-        ),
-      ),
-      _row([
-        _tf('Approx Age', _unidAge, keyboardType: TextInputType.number),
-        _tf('Approx Height', _unidHeight),
-      ]),
-      _row([
-        _tf('Skin Color', _unidSkin),
-        _tf(
-          'Mobile (if known)',
-          _unidMobile,
-          keyboardType: TextInputType.phone,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(10),
-          ],
-          validator: (v) => AppValidators.indianMobile(v, required: false),
-        ),
-      ]),
-      _row([
-        _tf('Occupation (possible)', _unidOcc),
-        _tf('Last Known Address', _unidAddress),
-      ]),
-      _tf('Other Physical Markers', _unidMarkers, maxLines: 3),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _chipSelector(
+              label: 'Gender',
+              items: _kGenders,
+              selected: _unidGender,
+              onSelect: (v) => setState(() => _unidGender = v)),
+          const SizedBox(height: 8),
+          _row([
+            _tf('Approx Age', _unidAge, keyboardType: TextInputType.number),
+            _tf('Approx Height', _unidHeight)
+          ]),
+          _row([
+            _tf('Skin Color', _unidSkin),
+            _tf('Mobile (if known)', _unidMobile,
+                keyboardType: TextInputType.phone)
+          ]),
+          _row([_tf('Occupation (possible)', _unidOcc)]),
+          _row([_tf('Last Known Address', _unidAddress)]),
+          _row([_tf('Other Physical Markers', _unidMarkers, maxLines: 3)]),
+        ],
+      );
 
   // ── §8 Case Responsibility ─────────────────────────────────────────────────
   Widget _s8() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _subHeader('INVESTIGATING OFFICER'),
-      Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: _chipSelector(
-          label: 'IO Designation',
-          items: PoliceDesignations.ioDesignations,
-          selected: _ioDesig,
-          onSelect: (v) => setState(() => _ioDesig = v),
-        ),
-      ),
-      _row([_tf('IO Name', _ioName)]),
-      _divider(),
-      _subHeader('REGISTRAR'),
-      Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: _chipSelector(
-          label: 'Registered By Designation',
-          items: PoliceDesignations.formIoAndReg,
-          selected: _regDesig,
-          onSelect: (v) => setState(() => _regDesig = v),
-        ),
-      ),
-      _row([_tf('Registrar Name', _regName)]),
-      _divider(),
-      _yesNo('CCTV', _cctvVal, (v) => setState(() => _cctvVal = v)),
-      if (_cctvVal == 'yes') ...[
-        const SizedBox(height: 10),
-        _dateTimeField('CCTV Date & Time (dd/mm/yyyy hh:mm)', _cctvDt),
-      ],
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _subHeader('INVESTIGATING OFFICER'),
+          _chipSelector(
+              label: 'IO Designation',
+              items: PoliceDesignations.formIoAndReg,
+              selected: _ioDesig,
+              onSelect: (v) => setState(() => _ioDesig = v)),
+          const SizedBox(height: 8),
+          _row([_tf('IO Name', _ioName)]),
+          _divider(),
+          _subHeader('REGISTRAR'),
+          _chipSelector(
+              label: 'Registered By Designation',
+              items: PoliceDesignations.formIoAndReg,
+              selected: _regDesig,
+              onSelect: (v) => setState(() => _regDesig = v)),
+          const SizedBox(height: 8),
+          _row([_tf('Registrar Name', _regName)]),
+          _divider(),
+          _yesNo('CCTV', _cctvVal, (v) => setState(() => _cctvVal = v)),
+          if (_cctvVal == 'yes') ...[
+            const SizedBox(height: 8),
+            _row([
+              _dateTimeField('CCTV Date & Time (dd/mm/yyyy hh:mm)', _cctvDt),
+            ]),
+          ],
+        ],
+      );
 
   // ── §9 Arrest & Release Status ────────────────────────────────────────────
   Widget _s9() {
     if (allAccusedNames.isEmpty) {
       return _emptyBox(
-        'Add accused/suspected names above to see arrest fields.',
-      );
+          'Add accused/suspected names above to see arrest fields.');
     }
     return Column(
       children: _arrestRows.map((r) {
         final name = r['accusedName'] as String;
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: _kBorder),
@@ -3529,17 +2088,14 @@ class CommonFormState extends State<CommonForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(name, style: _tsSection.copyWith(fontSize: 11)),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
               _row([
-                _dateTimeField(
-                  'Arrest Date & Time (dd/mm/yyyy hh:mm)',
-                  r['arrestDt'] as TextEditingController,
-                ),
+                _dateTimeField('Arrest Date & Time (dd/mm/yyyy hh:mm)',
+                    r['arrestDt'] as TextEditingController),
                 _dateField(
-                  'Release Date',
-                  r['releaseDt'] as TextEditingController,
-                ),
+                    'Release Date', r['releaseDt'] as TextEditingController),
               ]),
+              const SizedBox(height: 8),
               _chipSelector(
                 label: 'Release Type',
                 items: _kReleaseTypes,
@@ -3555,249 +2111,171 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §10 Procedural Details ────────────────────────────────────────────────
   Widget _s10() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _subHeader('SELECT TO ADD DATE/TIME'),
-      ..._kProceduralKeys.entries.map((e) {
-        final on = _procChecks[e.key] ?? false;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: on ? _kTeal.withValues(alpha: 0.04) : _kInputBg,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: on ? _kTeal : _kBorder,
-                width: on ? 1.5 : 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                InkWell(
-                  onTap: () => toggleProcedural(e.key, !on),
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      children: [
-                        Icon(
-                          on ? Icons.check_box : Icons.check_box_outline_blank,
-                          size: 18,
-                          color: on ? _kTeal : _kSec,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            e.value,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: on
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              color: on ? _kDark : _kSec,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (on) ...[
-                  const SizedBox(height: 8),
-                  _dateTimeField(
-                    'Date & Time — ${e.value}',
-                    _procDates[e.key]!,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        );
-      }),
-      _divider(),
-      _yesNo('E-Shakshya', _eshaksh, (v) => setState(() => _eshaksh = v)),
-      if (_eshaksh == 'yes') ...[
-        const SizedBox(height: 10),
-        _dateTimeField('E-Shakshya Date & Time', _eDt),
-      ] else if (_eshaksh == 'no') ...[
-        const SizedBox(height: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _tf(
-              'Reason for No E-Shakshya (minimum 30 words)',
-              _eReason,
-              maxLines: 3,
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 4),
-            Builder(
-              builder: (ctx) {
-                final words = _countWords(_eReason.text);
-                final isComplete = words >= 30;
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      isComplete
-                          ? TranslationHelper.translate(
-                              ctx,
-                              'Word requirement met',
-                            )
-                          : '${TranslationHelper.translate(ctx, 'Minimum 30 words required')} (${30 - words} ${TranslationHelper.translate(ctx, 'more needed')})',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: isComplete ? _kGreen : _kRed,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _subHeader('SELECT TO ADD DATE/TIME'),
+          ..._kProceduralKeys.entries.map((e) {
+            final on = _procChecks[e.key] ?? false;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () => toggleProcedural(e.key, !on),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: on ? _kTeal.withValues(alpha: 0.07) : _kInputBg,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                            color: on ? _kTeal : _kBorder, width: on ? 1.5 : 1),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                              on
+                                  ? Icons.check_box
+                                  : Icons.check_box_outline_blank,
+                              size: 16,
+                              color: on ? _kTeal : _kSec),
+                          const SizedBox(width: 8),
+                          Text(e.value,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight:
+                                    on ? FontWeight.w700 : FontWeight.w400,
+                                color: on ? _kDark : _kSec,
+                              )),
+                        ],
                       ),
                     ),
-                    Text(
-                      '$words / 30 ${TranslationHelper.translate(ctx, 'words')}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: isComplete ? _kGreen : _kRed,
-                      ),
-                    ),
+                  ),
+                  if (on) ...[
+                    const SizedBox(height: 6),
+                    _row([
+                      _dateTimeField(
+                          'Date & Time — ${e.value}', _procDates[e.key]!),
+                    ]),
                   ],
-                );
-              },
-            ),
-          ],
-        ),
-      ],
-    ],
-  );
-
-  int _countWords(String text) {
-    final trimmed = text.trim();
-    if (trimmed.isEmpty) return 0;
-    return trimmed.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
-  }
+                ],
+              ),
+            );
+          }),
+          _divider(),
+          _yesNo('E-shaksh', _eshaksh, (v) => setState(() => _eshaksh = v)),
+        ],
+      );
 
   // ── §11 Seizure Records ────────────────────────────────────────────────────
   Widget _s11() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (_seizures.isEmpty)
-        _emptyBox('No seizure records added.')
-      else
-        ..._seizures.asMap().entries.map((e) {
-          final s = e.value;
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: _kBorder),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _addBtn('+ Add Seized Property', addSeizure),
+          if (_seizures.isEmpty)
+            _emptyBox('No seizure records added.')
+          else
+            ..._seizures.asMap().entries.map((e) {
+              final s = e.value;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  border: Border.all(color: _kBorder),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        'Seizure #${e.key + 1}',
-                        style: _tsSection.copyWith(fontSize: 11),
+                    Row(
+                      children: [
+                        Expanded(
+                            child: Text('Seizure #${e.key + 1}',
+                                style: _tsSection.copyWith(fontSize: 11))),
+                        GestureDetector(
+                          onTap: () => removeSeizure(e.key),
+                          child:
+                              const Icon(Icons.close, size: 16, color: _kRed),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    _row([
+                      _tf('Property Description',
+                          s['desc'] as TextEditingController,
+                          maxLines: 2)
+                    ]),
+                    // Seized from — chip selector of accused names
+                    if (allAccusedNames.isEmpty)
+                      const Text('Add accused names to populate "Seized From"',
+                          style: _tsMuted)
+                    else ...[
+                      _chipSelector(
+                        label: 'Seized From (Accused)',
+                        items: allAccusedNames,
+                        selected: s['fromWhom'] as String?,
+                        onSelect: (v) => setState(() => s['fromWhom'] = v),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () => removeSeizure(e.key),
-                      child: const Icon(Icons.close, size: 16, color: _kRed),
-                    ),
+                      const SizedBox(height: 8),
+                    ],
+                    _row([
+                      _tf('Other Name (if not in list)',
+                          s['otherName'] as TextEditingController)
+                    ]),
                   ],
                 ),
-                const SizedBox(height: 10),
-                _row([
-                  _tf(
-                    'Property Description',
-                    s['desc'] as TextEditingController,
-                    maxLines: 2,
-                  ),
-                ]),
-                if (allAccusedNames.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      'Add accused names to populate "Seized From"',
-                      style: _tsMuted,
-                    ),
-                  )
-                else
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _chipSelector(
-                      label: 'Seized From (Accused)',
-                      items: allAccusedNames,
-                      selected: s['fromWhom'] as String?,
-                      onSelect: (v) => setState(() => s['fromWhom'] = v),
-                    ),
-                  ),
-                _tf(
-                  'Other Name (if not in list)',
-                  s['otherName'] as TextEditingController,
-                ),
-              ],
-            ),
-          );
-        }),
-    ],
-  );
+              );
+            }),
+        ],
+      );
 
   // ── §12 Technical & Custody ────────────────────────────────────────────────
   Widget _s12() => Column(
-    children: [
-      _row([
-        _dateField('CDR Sent Date', _cdrSent),
-        _dateField('CDR Received Date', _cdrRecv),
-      ]),
-      _row([
-        _tf('PCR (Days)', _pcrDays, keyboardType: TextInputType.number),
-        _tf('MCR (Days)', _mcrDays, keyboardType: TextInputType.number),
-      ]),
-    ],
-  );
+        children: [
+          _row([
+            _dateField('CDR Sent Date', _cdrSent),
+            _dateField('CDR Received Date', _cdrRecv),
+          ]),
+          _row([
+            _tf('PCR (Days)', _pcrDays, keyboardType: TextInputType.number),
+            _tf('MCR (Days)', _mcrDays, keyboardType: TextInputType.number)
+          ]),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: _kBorder),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                textStyle: const TextStyle(fontSize: 11),
+              ),
+              child: const Text('Request PR Bond'),
+            ),
+          ),
+        ],
+      );
 
   // ── §13 Preventive & Bonds ─────────────────────────────────────────────────
   Widget _s13() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _subHeader('PREVENTIVE BONDS'),
-      _yesNo(
-        'Preventive Bonds',
-        _prevBondsVal ?? 'no',
-        (v) => setState(() => _prevBondsVal = v),
-      ),
-      if (_prevBondsVal == 'yes') ...[
-        const SizedBox(height: 10),
-        _row([
-          _dateField('PR Bond Date', _bondDate),
-          _dateField('Bond Cancellation Date', _bondCancel),
-        ]),
-        _row([_tf('Reason for PR Bond', _bReason)]),
-      ],
-      const SizedBox(height: 14),
-      _subHeader('PREVENTIVE ACTIONS'),
-      _chipSelector(
-        label: 'Action Type',
-        items: _kPreventiveItems,
-        selected: _prevAction ?? 'BNSS 129',
-        onSelect: (v) => setState(() => _prevAction = v),
-        activeColor: const Color(0xFF0284C7),
-      ),
-      const SizedBox(height: 10),
-      _row([
-        _dateTimeField(
-          '${_prevAction ?? 'BNSS 129'} Date & Time',
-          _prevActionDt,
-          hintText: 'dd/mm/yyyy hh:mm',
-        ),
-      ]),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _chipSelector(
+              label: 'Preventive Action',
+              items: _kPreventiveItems,
+              selected: _prevAction,
+              onSelect: (v) => setState(() => _prevAction = v)),
+          const SizedBox(height: 8),
+          _row([_tf('Outward Number (Optional)', _outward)]),
+          _row([
+            _dateField('Bond Date', _bondDate),
+            _dateField('Bond Cancellation Date', _bondCancel),
+          ]),
+        ],
+      );
 
   // ── §14 Discharge Status ───────────────────────────────────────────────────
   Widget _s14() {
@@ -3805,95 +2283,21 @@ class CommonFormState extends State<CommonForm> {
       return _emptyBox('Add accused/suspected names to manage discharge.');
     }
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: allAccusedNames.map((n) {
         final v = _discharge[n] ?? false;
-        final dateCtrl = _getDischargeDateCtrl(n);
-        final reasonCtrl = _getDischargeReasonCtrl(n);
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: v ? _kTeal.withValues(alpha: 0.04) : _kInputBg,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: v ? _kTeal.withValues(alpha: 0.4) : _kBorder,
-              width: 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              InkWell(
-                onTap: () => setState(() => _discharge[n] = !v),
-                borderRadius: BorderRadius.circular(6),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      Icon(
-                        v ? Icons.check_box : Icons.check_box_outline_blank,
-                        size: 20,
-                        color: v ? _kTeal : _kSec,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          '$n ${TranslationHelper.translate(context, '(Discharged)')}',
-                          style: _tsBody.copyWith(
-                            fontWeight: v ? FontWeight.w700 : FontWeight.w500,
-                            color: v ? _kTeal : _kDark,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (v) ...[
-                const SizedBox(height: 10),
-                _row([_dateField('Discharge Date', dateCtrl)]),
-                _tf(
-                  'Reason for Discharge (minimum 20 words)',
-                  reasonCtrl,
-                  maxLines: 3,
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: 4),
-                Builder(
-                  builder: (ctx) {
-                    final words = _countWords(reasonCtrl.text);
-                    final isComplete = words >= 20;
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          isComplete
-                              ? TranslationHelper.translate(
-                                  ctx,
-                                  'Word requirement met',
-                                )
-                              : '${TranslationHelper.translate(ctx, 'Minimum 20 words required')} (${20 - words} ${TranslationHelper.translate(ctx, 'more needed')})',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isComplete ? _kGreen : _kRed,
-                          ),
-                        ),
-                        Text(
-                          '$words / 20 ${TranslationHelper.translate(ctx, 'words')}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: isComplete ? _kGreen : _kRed,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+        return InkWell(
+          onTap: () => setState(() => _discharge[n] = !v),
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Icon(v ? Icons.check_box : Icons.check_box_outline_blank,
+                    size: 18, color: v ? _kTeal : _kSec),
+                const SizedBox(width: 8),
+                Expanded(child: Text('$n (Discharged)', style: _tsBody)),
               ],
-            ],
+            ),
           ),
         );
       }).toList(),
@@ -3902,17 +2306,30 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §15 Court Filing ───────────────────────────────────────────────────────
   Widget _s15() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _row([
-        _tf('Charge Sheet Number', _csNumber),
-        _dateField('Charge Sheet Date', _csDate),
-      ]),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _row([
+            _tf('Charge Sheet Number', _csNumber),
+            _tf('CC Number / ST Number', _ccStNumber)
+          ]),
+          _chipSelector(
+            label: 'Final Summary',
+            items: _kFinalSummaryItems,
+            selected: _finalSummary,
+            onSelect: (v) => setState(() => _finalSummary = v),
+          ),
+          const SizedBox(height: 8),
+          _row([
+            _dateField('Quashed by High Court Date', _quashDate),
+          ]),
+        ],
+      );
 
   // ── §16 Final Verdict ──────────────────────────────────────────────────────
   Widget _s16() {
+    if (allAccusedNames.isEmpty) {
+      return _emptyBox('Add accused/suspected names above.');
+    }
     final unAssigned = allAccusedNames
         .where((n) => !_acquitted.contains(n) && !_convicted.contains(n))
         .toList();
@@ -3920,85 +2337,44 @@ class CommonFormState extends State<CommonForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _row([
-          _tf('CC Number / ST Number', _ccStNumber),
-          _dateField('Quashed by High Court Date', _quashDate),
-        ]),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _chipSelector(
-            label: 'Final Summary',
-            items: _kFinalSummaryItems,
-            selected: _finalSummary,
-            onSelect: (v) => setState(() => _finalSummary = v),
-          ),
-        ),
-        if (allAccusedNames.isEmpty)
-          _emptyBox('Add accused/suspected names above to classify verdict.')
-        else ...[
-          if (unAssigned.isNotEmpty) ...[
-            _subHeader('UNASSIGNED — TAP TO CLASSIFY'),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: unAssigned
-                  .map(
-                    (n) => Row(
+        if (unAssigned.isNotEmpty) ...[
+          _subHeader('UNASSIGNED — TAP TO CLASSIFY'),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: unAssigned
+                .map((n) => Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _verdictChip(
-                          n,
-                          'Acquitted',
-                          _kGreen,
-                          () => addToVerdictAcquitted(n),
-                        ),
+                        _verdictChip(n, 'Acquitted', _kGreen,
+                            () => addToVerdictAcquitted(n)),
                         const SizedBox(width: 4),
-                        _verdictChip(
-                          n,
-                          'Convicted',
-                          _kRed,
-                          () => addToVerdictConvicted(n),
-                        ),
+                        _verdictChip(n, 'Convicted', _kRed,
+                            () => addToVerdictConvicted(n)),
                       ],
-                    ),
-                  )
-                  .toList(),
-            ),
-            _divider(),
-          ],
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _verdictCol(
-                  '✓ Acquitted',
-                  _acquitted,
-                  _kGreen,
-                  removeFromVerdictAcquitted,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _verdictCol(
-                  '✗ Convicted',
-                  _convicted,
-                  _kRed,
-                  removeFromVerdictConvicted,
-                ),
-              ),
-            ],
+                    ))
+                .toList(),
           ),
+          _divider(),
         ],
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+                child: _verdictCol('✓ Acquitted', _acquitted, _kGreen,
+                    removeFromVerdictAcquitted)),
+            const SizedBox(width: 8),
+            Expanded(
+                child: _verdictCol('✗ Convicted', _convicted, _kRed,
+                    removeFromVerdictConvicted)),
+          ],
+        ),
       ],
     );
   }
 
   Widget _verdictChip(
-    String name,
-    String label,
-    Color color,
-    VoidCallback onTap,
-  ) {
+      String name, String label, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -4011,21 +2387,14 @@ class CommonFormState extends State<CommonForm> {
         child: Text(
           '$name → $label',
           style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: color,
-          ),
+              fontSize: 10, fontWeight: FontWeight.w600, color: color),
         ),
       ),
     );
   }
 
-  Widget _verdictCol(
-    String title,
-    List<String> names,
-    Color color,
-    void Function(String) onRemove,
-  ) {
+  Widget _verdictCol(String title, List<String> names, Color color,
+      void Function(String) onRemove) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -4035,37 +2404,28 @@ class CommonFormState extends State<CommonForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
+          Text(title,
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w800, color: color)),
           const SizedBox(height: 6),
           if (names.isEmpty)
             const Text('None', style: _tsMuted)
           else
-            ...names.map(
-              (n) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        n,
-                        style: const TextStyle(fontSize: 11, color: _kDark),
+            ...names.map((n) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Text(n,
+                              style: const TextStyle(
+                                  fontSize: 11, color: _kDark))),
+                      GestureDetector(
+                        onTap: () => onRemove(n),
+                        child: Icon(Icons.close, size: 14, color: color),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () => onRemove(n),
-                      child: Icon(Icons.close, size: 14, color: color),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                    ],
+                  ),
+                )),
         ],
       ),
     );
@@ -4073,35 +2433,35 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §17 Case Scrutiny Pipeline ─────────────────────────────────────────────
   Widget _s17() => Column(
-    children: [
-      _scrutinyStep(
-        step: 1,
-        title: 'SDPO / ACP Approval',
-        active: true,
-        sendCtrl: _sdpoSend,
-        grantCtrl: _sdpoGrant,
-        onSendChanged: (_) => _checkScrutiny(),
-      ),
-      _scrutinyStep(
-        step: 2,
-        title: 'APP Scrutiny',
-        active: _stepApp,
-        sendCtrl: _appSend,
-        grantCtrl: _appGrant,
-        onSendChanged: (_) => _checkScrutiny(),
-        lockedMsg: 'Unlocks when SDPO Send Date is filled',
-      ),
-      _scrutinyStep(
-        step: 3,
-        title: 'Addl SP / DCP / Addl CP',
-        active: _stepDcp,
-        sendCtrl: _dcpSend,
-        grantCtrl: _dcpGrant,
-        lockedMsg: 'Unlocks when APP Send Date is filled',
-        isLast: true,
-      ),
-    ],
-  );
+        children: [
+          _scrutinyStep(
+            step: 1,
+            title: 'SDPO / ACP Approval',
+            active: true,
+            sendCtrl: _sdpoSend,
+            grantCtrl: _sdpoGrant,
+            onSendChanged: (_) => _checkScrutiny(),
+          ),
+          _scrutinyStep(
+            step: 2,
+            title: 'APP Scrutiny',
+            active: _stepApp,
+            sendCtrl: _appSend,
+            grantCtrl: _appGrant,
+            onSendChanged: (_) => _checkScrutiny(),
+            lockedMsg: 'Unlocks when SDPO Send Date is filled',
+          ),
+          _scrutinyStep(
+            step: 3,
+            title: 'Addl SP / DCP / Addl CP',
+            active: _stepDcp,
+            sendCtrl: _dcpSend,
+            grantCtrl: _dcpGrant,
+            lockedMsg: 'Unlocks when APP Send Date is filled',
+            isLast: true,
+          ),
+        ],
+      );
 
   Widget _scrutinyStep({
     required int step,
@@ -4127,23 +2487,18 @@ class CommonFormState extends State<CommonForm> {
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                  child: Text(
-                    '$step',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                    child: Text('$step',
+                        style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white))),
               ),
               if (!isLast)
                 Expanded(
-                  child: Container(
-                    width: 2,
-                    color: active ? _kTeal.withValues(alpha: 0.3) : _kBorder,
-                  ),
-                ),
+                    child: Container(
+                        width: 2,
+                        color:
+                            active ? _kTeal.withValues(alpha: 0.3) : _kBorder)),
             ],
           ),
           const SizedBox(width: 10),
@@ -4158,26 +2513,19 @@ class CommonFormState extends State<CommonForm> {
                   if (!active && lockedMsg != null)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 5,
-                      ),
+                          horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
                         color: _kInputBg,
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: _kBorder,
-                          style: BorderStyle.solid,
-                        ),
+                            color: _kBorder, style: BorderStyle.solid),
                       ),
                       child: Text(lockedMsg, style: _tsMuted),
                     )
                   else ...[
                     _row([
-                      _dateField(
-                        'Send Date',
-                        sendCtrl,
-                        onChanged: onSendChanged,
-                      ),
+                      _dateField('Send Date', sendCtrl,
+                          onChanged: onSendChanged),
                       _dateField('Grant Date', grantCtrl),
                     ]),
                   ],
@@ -4211,9 +2559,7 @@ class _UnknownToggle extends StatelessWidget {
           color: value ? _kAmber.withValues(alpha: 0.1) : _kInputBg,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: value ? _kAmber : _kBorder,
-            width: value ? 1.5 : 1,
-          ),
+              color: value ? _kAmber : _kBorder, width: value ? 1.5 : 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -4294,17 +2640,13 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
             spacing: 4,
             runSpacing: 4,
             children: widget.selected.map((v) {
-              final sec = sections.firstWhere(
-                (s) => s['val'] == v,
-                orElse: () => {'val': v, 'label': v, 'cat': ''},
-              );
+              final sec = sections.firstWhere((s) => s['val'] == v,
+                  orElse: () => {'val': v, 'label': v, 'cat': ''});
               return InputChip(
                 label: Text(
                   '§${sec['val']}',
                   style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
+                      fontSize: 10, fontWeight: FontWeight.w700),
                 ),
                 tooltip: sec['label'] as String? ?? v,
                 onDeleted: () => widget.onRemove(v),
@@ -4326,24 +2668,19 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
             hintText: 'Search sections…',
             hintStyle: _tsMuted,
             isDense: true,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 8,
-            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             filled: true,
             fillColor: _kInputBg,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _kBorder),
-            ),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: _kBorder)),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _kBorder),
-            ),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: _kBorder)),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _kTeal, width: 1.5),
-            ),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: _kTeal, width: 1.5)),
             prefixIcon: const Icon(Icons.search, size: 15, color: _kSec),
           ),
           onChanged: (v) => setState(() {
@@ -4363,10 +2700,9 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
               border: Border.all(color: _kBorder),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4))
               ],
             ),
             child: ListView.builder(
@@ -4389,15 +2725,12 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
                           });
                         },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: isSelected ? _kTeal.withValues(alpha: 0.07) : null,
                       border: const Border(
-                        bottom: BorderSide(color: _kBorder, width: 0.5),
-                      ),
+                          bottom: BorderSide(color: _kBorder, width: 0.5)),
                     ),
                     child: Row(
                       children: [

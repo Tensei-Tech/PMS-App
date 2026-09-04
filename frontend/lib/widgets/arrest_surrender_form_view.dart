@@ -33,15 +33,15 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
   static const _knownSectionIds = {kForm3A, kForm3B, kForm3C};
 
   bool _shows(String sectionId) => showsFormSection(
-    activeSection: widget.formSection,
-    sectionId: sectionId,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        sectionId: sectionId,
+        knownSectionIds: _knownSectionIds,
+      );
 
   bool get _showAll => showsAllFormSections(
-    activeSection: widget.formSection,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        knownSectionIds: _knownSectionIds,
+      );
   // Page 1
   final _distCtrl = TextEditingController();
   final _psCtrl = TextEditingController();

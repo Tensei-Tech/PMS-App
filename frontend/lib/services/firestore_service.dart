@@ -34,22 +34,26 @@ class FirestoreService {
   Stream<Map<String, dynamic>?> watchDocumentData(
     String collection,
     String docId,
-  ) => Stream.value(null);
+  ) =>
+      Stream.value(null);
 
   Stream<List<ModuleRecord>> getCasesStream(
     String moduleKey,
     String stationId,
-  ) => Stream.value(const []);
+  ) =>
+      Stream.value(const []);
 
   Stream<List<ModuleRecord>> watchAssignedCasesStream(
     String officerUid, {
     required bool activeOnly,
-  }) => Stream.value(const []);
+  }) =>
+      Stream.value(const []);
 
   Stream<List<ModuleRecord>> getRecentCasesStream(
     int limit,
     String stationId,
-  ) => Stream.value(const []);
+  ) =>
+      Stream.value(const []);
 
   Stream<List<ModuleRecord>> getStationCasesStream(String stationId) =>
       Stream.value(const []);
@@ -96,7 +100,8 @@ class FirestoreService {
     required String message,
     String category = 'General',
     String? clientTimestampIso,
-  }) async => null;
+  }) async =>
+      null;
 
   Stream<List<UserModel>> watchPendingRegistrationRequests({
     required bool isSuperAdmin,
@@ -104,7 +109,8 @@ class FirestoreService {
     required String approverDesignation,
     required String approverZone,
     required String approverStation,
-  }) => Stream.value(const []);
+  }) =>
+      Stream.value(const []);
 
   Future<void> approveUserRegistration(String uid) async {}
 
@@ -129,7 +135,8 @@ class FirestoreService {
 
   Stream<List<Map<String, dynamic>>> getStationRemindersStream(
     String stationName,
-  ) => Stream.value(const []);
+  ) =>
+      Stream.value(const []);
 
   Stream<List<Map<String, dynamic>>> getSentRemindersStream(String sentByUid) =>
       Stream.value(const []);

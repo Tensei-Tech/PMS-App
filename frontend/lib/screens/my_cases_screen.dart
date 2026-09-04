@@ -278,9 +278,7 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
     AuthProvider auth,
     CaseVisibilityMode mode,
   ) {
-    return _firestore
-        .getStationCasesStream(auth.activeStation)
-        .map(
+    return _firestore.getStationCasesStream(auth.activeStation).map(
           (records) => CaseVisibility.filterRecords(
             records,
             uid: auth.uid,
@@ -294,9 +292,7 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
     AuthProvider auth,
     CaseVisibilityMode mode,
   ) {
-    return _firestore
-        .getPendingCasesStream(auth.activeStation)
-        .map(
+    return _firestore.getPendingCasesStream(auth.activeStation).map(
           (records) => CaseVisibility.filterRecords(
             records,
             uid: auth.uid,
@@ -310,9 +306,7 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
     AuthProvider auth,
     CaseVisibilityMode mode,
   ) {
-    return _firestore
-        .getDisposalCasesStream(auth.activeStation)
-        .map(
+    return _firestore.getDisposalCasesStream(auth.activeStation).map(
           (records) => CaseVisibility.filterRecords(
             records,
             uid: auth.uid,
@@ -384,9 +378,8 @@ class _HoverTabItemState extends State<_HoverTabItem> {
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
-                    fontWeight: widget.isSelected
-                        ? FontWeight.w600
-                        : FontWeight.w500,
+                    fontWeight:
+                        widget.isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: fg,
                   ),
                 ),
@@ -860,9 +853,7 @@ class _CaseCardState extends State<_CaseCard> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (widget
-                              .record
-                              .firestoreCategoryDisplayName
+                          if (widget.record.firestoreCategoryDisplayName
                               .isNotEmpty) ...[
                             const SizedBox(height: 6),
                             Container(

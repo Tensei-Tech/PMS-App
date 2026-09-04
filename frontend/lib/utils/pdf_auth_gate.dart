@@ -23,8 +23,7 @@ Future<void> runWithPdfAuthGate(
 
   isPdfDownloadAuthGateActive = true;
   try {
-    final ok =
-        await showDialog<bool>(
+    final ok = await showDialog<bool>(
           context: context,
           barrierDismissible: true,
           builder: (dialogContext) => _PdfExportPinDialog(auth: auth),

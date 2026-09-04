@@ -51,10 +51,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   };
 
   bool _shows(String sectionId) => showsFormSection(
-    activeSection: widget.formSection,
-    sectionId: sectionId,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        sectionId: sectionId,
+        knownSectionIds: _knownSectionIds,
+      );
 
   // Part 1: Inquest Panchanama Controllers (Pages 1-4)
   final _distCtrl = TextEditingController();
@@ -3208,7 +3208,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           ),
         ),
         const SizedBox(height: 12),
-
         BilingualMultilineField(
           label: '13) Injuries / marks on the body of the deceased :-',
           marathiLabel: '१३) मृतकाच्या शरीरावरील मार, जखमा इत्यादी :',
@@ -3263,7 +3262,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           marathiLabelStyle: marathiLabelStyle,
         ),
         const SizedBox(height: 16),
-
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -3424,7 +3422,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           ),
         ),
         const SizedBox(height: 12),
-
         BilingualField(
           label: '1) Name and age of deceased :-',
           marathiLabel: '१) मृतकाचे नांव व वय :',
@@ -3473,7 +3470,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           serifStyle: serifStyle,
           marathiLabelStyle: marathiLabelStyle,
         ),
-
         BilingualFieldRow(
           fields: [
             BilingualField(
@@ -3493,7 +3489,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           ],
         ),
         const SizedBox(height: 8),
-
         _buildHabitRow(
           label:
               '7) Did the deceased smoke cigarettes? If yes, since how many days?',
@@ -3583,7 +3578,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           ),
         ),
         const SizedBox(height: 12),
-
         Text(
           '11) In case of vehicle accident :-',
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13),
@@ -3627,7 +3621,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           marathiLabelStyle: marathiLabelStyle,
         ),
         const SizedBox(height: 8),
-
         BilingualMultilineField(
           label: '12) If death was due to fall, give details :-',
           marathiLabel: '१२) मृत्यू हा पडून झाला असल्यास त्याबाबत माहिती :',
@@ -3672,7 +3665,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           marathiLabelStyle: marathiLabelStyle,
         ),
         const SizedBox(height: 20),
-
         Align(
           alignment: Alignment.centerRight,
           child: Column(
@@ -3760,7 +3752,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           ),
         ),
         const SizedBox(height: 16),
-
         Align(
           alignment: Alignment.centerRight,
           child: SizedBox(
@@ -3793,7 +3784,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           ),
         ),
         const SizedBox(height: 16),
-
         const Text(
           'I hereby give this body custody receipt that on the date mentioned below, I have received custody of the dead body for post-mortem and final rites. I confirm the body is of the deceased named below. I have taken custody as heir/representative and have no objection.',
           style: TextStyle(fontSize: 13),
@@ -3804,7 +3794,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           style: TextStyle(fontSize: 11, color: Colors.black87),
         ),
         const SizedBox(height: 12),
-
         BilingualField(
           label: 'I (Receiver name) :-',
           marathiLabel: 'मी (प्रेत ताब्यात घेणाऱ्याचे नांव) :',
@@ -3883,7 +3872,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         ),
         Text('करीता प्रेत ताबा पावती लिहून देत आहे.', style: marathiLabelStyle),
         const SizedBox(height: 24),
-
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -4001,7 +3989,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           ),
         ),
         const SizedBox(height: 16),
-
         Align(
           alignment: Alignment.centerRight,
           child: SizedBox(
@@ -4034,7 +4021,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           ),
         ),
         const SizedBox(height: 12),
-
         BilingualField(
           label: 'Name of Police Constable :-',
           marathiLabel: 'पो अंमलदाराचे नांव :',
@@ -4064,7 +4050,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           marathiLabelStyle: marathiLabelStyle,
         ),
         const SizedBox(height: 12),
-
         const Text(
           'You are hereby ordered to take the dead body along with you and produce it before the Medical Officer for post-mortem examination.',
           style: TextStyle(fontSize: 13),
@@ -4075,7 +4060,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           style: TextStyle(fontSize: 11, color: Colors.black87),
         ),
         const SizedBox(height: 12),
-
         BilingualFieldRow(
           fields: [
             BilingualField(
@@ -4150,7 +4134,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           style: marathiLabelStyle,
         ),
         const SizedBox(height: 24),
-
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

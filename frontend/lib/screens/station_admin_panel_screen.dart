@@ -53,9 +53,8 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final stationName = auth.stationName.isNotEmpty
-        ? auth.stationName
-        : 'Police Station';
+    final stationName =
+        auth.stationName.isNotEmpty ? auth.stationName : 'Police Station';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),

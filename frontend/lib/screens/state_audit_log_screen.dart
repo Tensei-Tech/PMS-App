@@ -93,8 +93,7 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
     final auth = context.watch<AuthProvider>();
     final role = (auth.roleId).toLowerCase();
 
-    final isStateAdmin =
-        PoliceHierarchyHelper.isStateSuperAdmin(
+    final isStateAdmin = PoliceHierarchyHelper.isStateSuperAdmin(
           auth.designation,
           auth.roleId,
         ) ||
@@ -109,18 +108,18 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
     final screenTitle = isStateAdmin
         ? 'State Audit Trail & Logs'
         : isDivAdmin
-        ? 'Division Audit Trail & Logs'
-        : isDistrictAdmin
-        ? 'District Audit Trail & Logs'
-        : 'Station Audit Trail & Logs';
+            ? 'Division Audit Trail & Logs'
+            : isDistrictAdmin
+                ? 'District Audit Trail & Logs'
+                : 'Station Audit Trail & Logs';
 
     final screenSubtitle = isStateAdmin
         ? 'State-wide security event stream (Maharashtra Police HQ)'
         : isDivAdmin
-        ? 'Division security stream (${auth.divisionName.isNotEmpty ? auth.divisionName : 'Division Range'})'
-        : isDistrictAdmin
-        ? 'District security stream (${auth.district.isNotEmpty ? auth.district : 'District Range'})'
-        : 'Station security stream (${auth.stationName.isNotEmpty ? auth.stationName : 'Police Station'})';
+            ? 'Division security stream (${auth.divisionName.isNotEmpty ? auth.divisionName : 'Division Range'})'
+            : isDistrictAdmin
+                ? 'District security stream (${auth.district.isNotEmpty ? auth.district : 'District Range'})'
+                : 'Station security stream (${auth.stationName.isNotEmpty ? auth.stationName : 'Police Station'})';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
@@ -239,12 +238,10 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
                           selected: isSelected,
                           labelStyle: GoogleFonts.poppins(
                             fontSize: 10.5,
-                            fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.navyDark,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color:
+                                isSelected ? Colors.white : AppColors.navyDark,
                           ),
                           selectedColor: AppColors.navyDark,
                           backgroundColor: const Color(0xFFF1F5F9),
@@ -270,16 +267,17 @@ class _StateAuditLogScreenState extends State<StateAuditLogScreen> {
                     child: CircularProgressIndicator(color: AppColors.navyDark),
                   )
                 : _errorMessage != null
-                ? _buildErrorView()
-                : _logs.isEmpty
-                ? _buildEmptyState(
-                    'No audit log records match your current filters.',
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: _logs.length,
-                    itemBuilder: (ctx, idx) => _buildAuditCard(_logs[idx]),
-                  ),
+                    ? _buildErrorView()
+                    : _logs.isEmpty
+                        ? _buildEmptyState(
+                            'No audit log records match your current filters.',
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(12),
+                            itemCount: _logs.length,
+                            itemBuilder: (ctx, idx) =>
+                                _buildAuditCard(_logs[idx]),
+                          ),
           ),
         ],
       ),

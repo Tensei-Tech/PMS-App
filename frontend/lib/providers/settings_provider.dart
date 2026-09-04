@@ -65,8 +65,8 @@ class SettingsProvider extends ChangeNotifier {
       _fontSize = fs == 'small'
           ? FontSize.small
           : fs == 'large'
-          ? FontSize.large
-          : FontSize.medium;
+              ? FontSize.large
+              : FontSize.medium;
 
       final langCode = prefs.getString(StorageKeys.language) ?? 'en';
       _locale = Locale(langCode);
@@ -86,8 +86,8 @@ class SettingsProvider extends ChangeNotifier {
       size == FontSize.small
           ? 'small'
           : size == FontSize.large
-          ? 'large'
-          : 'medium',
+              ? 'large'
+              : 'medium',
     );
     notifyListeners();
   }

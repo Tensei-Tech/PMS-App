@@ -29,7 +29,7 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
   ];
 
   static const List<({String name, IconData icon, String label})>
-  _availableIcons = [
+      _availableIcons = [
     (name: 'gavel', icon: Icons.gavel_rounded, label: 'Legal / Gavel'),
     (name: 'shield', icon: Icons.shield_rounded, label: 'Shield / Safety'),
     (name: 'videocam', icon: Icons.videocam_rounded, label: 'Body Camera'),
@@ -419,9 +419,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                               color: Color(theme.hexColor),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isSel
-                                    ? Colors.white
-                                    : Colors.transparent,
+                                color:
+                                    isSel ? Colors.white : Colors.transparent,
                                 width: 2.5,
                               ),
                               boxShadow: [
@@ -471,8 +470,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                         isSaving
                             ? 'Saving...'
                             : (isEditing
-                                  ? 'Update Announcement'
-                                  : 'Publish Announcement'),
+                                ? 'Update Announcement'
+                                : 'Publish Announcement'),
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,

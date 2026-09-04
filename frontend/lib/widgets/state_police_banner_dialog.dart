@@ -29,18 +29,16 @@ class StatePoliceBannerDialog extends StatelessWidget {
     final stateCode = auth.currentUser?.stateCode ?? auth.stateCode;
     final branding = StateBrandingHelper.getBranding(stateCode);
     final user = auth.currentUser;
-    final officerName = auth.fullName.isNotEmpty
-        ? auth.fullName
-        : (user?.name ?? 'Officer');
+    final officerName =
+        auth.fullName.isNotEmpty ? auth.fullName : (user?.name ?? 'Officer');
     final rawDesig = auth.designation.isNotEmpty
         ? auth.designation
         : (user?.designation ?? '');
     final transDesig = rawDesig.isNotEmpty
         ? TranslationHelper.translate(context, rawDesig)
         : '';
-    final officerValue = transDesig.isNotEmpty
-        ? '$officerName ($transDesig)'
-        : officerName;
+    final officerValue =
+        transDesig.isNotEmpty ? '$officerName ($transDesig)' : officerName;
 
     final rawDistrict = auth.district.isNotEmpty
         ? auth.district

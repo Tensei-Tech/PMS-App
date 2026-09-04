@@ -35,28 +35,26 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
   static const _knownSectionIds = {kForm2A, kForm2B, kForm2C};
 
   bool _shows(String sectionId) => showsFormSection(
-    activeSection: widget.formSection,
-    sectionId: sectionId,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        sectionId: sectionId,
+        knownSectionIds: _knownSectionIds,
+      );
 
   bool get _showAll => showsAllFormSections(
-    activeSection: widget.formSection,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        knownSectionIds: _knownSectionIds,
+      );
   // Text Editing Controllers for all blank fields in Form 2-A
   final _districtCtrl = TextEditingController();
   final _psCtrl = TextEditingController();
-  final _yearCtrl = TextEditingController(text: DateTime.now().year.toString());
+  final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
-  final _firYearSuffixCtrl = TextEditingController(
-    text: DateTime.now().year.toString().substring(2),
-  );
+  final _firYearSuffixCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
-  final _dateYearCtrl = TextEditingController(
-    text: DateTime.now().year.toString().substring(2),
-  );
+  final _dateYearCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
 
   final _actSectionCtrl = TextEditingController();
 
@@ -88,6 +86,38 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
   // Signature Block Controllers for Card 4 (Form 2-D)
   final _panchnamaDateCtrl = TextEditingController();
   final _panchnamaTimeCtrl = TextEditingController();
+  final _panchnamaDateDayCtrl = TextEditingController();
+  final _panchnamaDateMonthCtrl = TextEditingController();
+  final _panchnamaDateYearCtrl = TextEditingController();
+  final _panchnamaTimeFromHoursCtrl = TextEditingController();
+  final _panchnamaTimeFromMinutesCtrl = TextEditingController();
+  final _panchnamaTimeToHoursCtrl = TextEditingController();
+  final _panchnamaTimeToMinutesCtrl = TextEditingController();
+
+  String get _panchnamaDateCombined {
+    final d = _panchnamaDateDayCtrl.text.trim();
+    final m = _panchnamaDateMonthCtrl.text.trim();
+    final y = _panchnamaDateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _panchnamaDateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
+  String get _panchnamaTimeCombined {
+    final fh = _panchnamaTimeFromHoursCtrl.text.trim();
+    final fm = _panchnamaTimeFromMinutesCtrl.text.trim();
+    final th = _panchnamaTimeToHoursCtrl.text.trim();
+    final tm = _panchnamaTimeToMinutesCtrl.text.trim();
+    if (fh.isEmpty && fm.isEmpty && th.isEmpty && tm.isEmpty) {
+      return _panchnamaTimeCtrl.text.trim();
+    }
+    final from = fm.isNotEmpty ? '$fh/$fm' : fh;
+    final to = tm.isNotEmpty ? '$th/$tm' : th;
+    return '$from ते $to पर्यंत'.trim();
+  }
+
   final _pancha1NameCtrl = TextEditingController();
   final _pancha1AddressCtrl = TextEditingController();
   final _pancha2NameCtrl = TextEditingController();
@@ -163,6 +193,13 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
     __physicalEvidenceCtrl?.dispose();
     _panchnamaDateCtrl.dispose();
     _panchnamaTimeCtrl.dispose();
+    _panchnamaDateDayCtrl.dispose();
+    _panchnamaDateMonthCtrl.dispose();
+    _panchnamaDateYearCtrl.dispose();
+    _panchnamaTimeFromHoursCtrl.dispose();
+    _panchnamaTimeFromMinutesCtrl.dispose();
+    _panchnamaTimeToHoursCtrl.dispose();
+    _panchnamaTimeToMinutesCtrl.dispose();
     _pancha1NameCtrl.dispose();
     _pancha1AddressCtrl.dispose();
     _pancha2NameCtrl.dispose();
@@ -221,8 +258,15 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       'placeDescriptionCont': _placeDescriptionContCtrl.text.trim(),
       'mapImagePath': _mapImagePath,
       'physicalEvidence': _physicalEvidenceCtrl.text.trim(),
-      'panchnamaDate': _panchnamaDateCtrl.text.trim(),
-      'panchnamaTime': _panchnamaTimeCtrl.text.trim(),
+      'panchnamaDate': _panchnamaDateCombined,
+      'panchnamaDateDay': _panchnamaDateDayCtrl.text.trim(),
+      'panchnamaDateMonth': _panchnamaDateMonthCtrl.text.trim(),
+      'panchnamaDateYear': _panchnamaDateYearCtrl.text.trim(),
+      'panchnamaTime': _panchnamaTimeCombined,
+      'panchnamaTimeFromHours': _panchnamaTimeFromHoursCtrl.text.trim(),
+      'panchnamaTimeFromMinutes': _panchnamaTimeFromMinutesCtrl.text.trim(),
+      'panchnamaTimeToHours': _panchnamaTimeToHoursCtrl.text.trim(),
+      'panchnamaTimeToMinutes': _panchnamaTimeToMinutesCtrl.text.trim(),
       'pancha1Name': _pancha1NameCtrl.text.trim(),
       'pancha1Address': _pancha1AddressCtrl.text.trim(),
       'pancha2Name': _pancha2NameCtrl.text.trim(),
@@ -283,6 +327,31 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       _physicalEvidenceCtrl.text = data['physicalEvidence']?.toString() ?? '';
       _panchnamaDateCtrl.text = data['panchnamaDate']?.toString() ?? '';
       _panchnamaTimeCtrl.text = data['panchnamaTime']?.toString() ?? '';
+      _panchnamaDateDayCtrl.text = data['panchnamaDateDay']?.toString() ?? '';
+      _panchnamaDateMonthCtrl.text =
+          data['panchnamaDateMonth']?.toString() ?? '';
+      _panchnamaDateYearCtrl.text = data['panchnamaDateYear']?.toString() ?? '';
+      _panchnamaTimeFromHoursCtrl.text =
+          data['panchnamaTimeFromHours']?.toString() ?? '';
+      _panchnamaTimeFromMinutesCtrl.text =
+          data['panchnamaTimeFromMinutes']?.toString() ?? '';
+      _panchnamaTimeToHoursCtrl.text =
+          data['panchnamaTimeToHours']?.toString() ?? '';
+      _panchnamaTimeToMinutesCtrl.text =
+          data['panchnamaTimeToMinutes']?.toString() ?? '';
+
+      // Legacy fallback for panchnamaDate:
+      if (_panchnamaDateDayCtrl.text.isEmpty &&
+          _panchnamaDateCtrl.text.isNotEmpty) {
+        final parts = _panchnamaDateCtrl.text.split(RegExp(r'[/.-]'));
+        if (parts.length >= 3) {
+          _panchnamaDateDayCtrl.text = parts[0].trim();
+          _panchnamaDateMonthCtrl.text = parts[1].trim();
+          var yr = parts[2].trim();
+          if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
+          _panchnamaDateYearCtrl.text = yr;
+        }
+      }
       _pancha1NameCtrl.text = data['pancha1Name']?.toString() ?? '';
       _pancha1AddressCtrl.text = data['pancha1Address']?.toString() ?? '';
       _pancha2NameCtrl.text = data['pancha2Name']?.toString() ?? '';
@@ -418,10 +487,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(
-                            top: 2.0,
-                            left: 2,
-                            right: 2,
-                          ),
+                              top: 2.0, left: 2, right: 2),
                           child: Text('/20', style: serifStyle),
                         ),
                         SizedBox(
@@ -726,7 +792,6 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
           ),
         if (_shows(kForm2A) && (_shows(kForm2B) || _showAll))
           const SizedBox(height: 24),
-
         if (_shows(kForm2B))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Page 2',
@@ -874,9 +939,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                     label: Text(
                       'Add Row (ओळ जोडा)',
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                          fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                   ),
                   if (_victimRows.length > 1) ...[
@@ -893,9 +956,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       label: Text(
                         'Remove Row (ओळ काढा)',
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                            fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -962,7 +1023,6 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
           ),
         if (_shows(kForm2B) && (_shows(kForm2C) || _showAll))
           const SizedBox(height: 32),
-
         if (_shows(kForm2C)) ...[
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Pages 3–4',
@@ -1097,16 +1157,12 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
               Text(
                 '(10) Description of physical evidence from the science of crime for the property recovered / seized for the purpose of investigation:',
                 style: serifStyle.copyWith(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
+                    fontSize: 14, fontWeight: FontWeight.bold),
               ),
               Text(
                 'तपासकामी प्रत्यक्ष पुरावा म्हणून गुन्ह्याच्या जागेवरून मिळविलेल्या / जप्त केलेल्या मालमत्तेचे वर्णन :',
                 style: marathiLabelStyle.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
+                    fontSize: 12, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               BilingualDynamicLinedTextField(
@@ -1126,16 +1182,11 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Date and Time of panchnama:',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Text(
-                          'घटनास्थळ पंचनाम्याची दिनांक :',
-                          style: marathiLabelStyle,
-                        ),
+                        Text('Date and Time of panchnama:',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        Text('घटनास्थळ पंचनाम्याची दिनांक :',
+                            style: marathiLabelStyle),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _panchnamaDateCtrl,
@@ -1146,17 +1197,13 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                         const SizedBox(height: 20),
                         Text(
                           'Name of panchas: / पंचाची नांवे :',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          '(1)',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('(1)',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _pancha1NameCtrl,
@@ -1165,12 +1212,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           marathiLabelStyle: marathiLabelStyle,
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          'Full Address: / पत्ता',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('Full Address: / पत्ता',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _pancha1AddressCtrl,
@@ -1179,12 +1223,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           marathiLabelStyle: marathiLabelStyle,
                         ),
                         const SizedBox(height: 20),
-                        Text(
-                          '(2)',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('(2)',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _pancha2NameCtrl,
@@ -1193,12 +1234,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           marathiLabelStyle: marathiLabelStyle,
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          'Full Address: / पत्ता',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('Full Address: / पत्ता',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _pancha2AddressCtrl,
@@ -1207,12 +1245,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           marathiLabelStyle: marathiLabelStyle,
                         ),
                         const SizedBox(height: 20),
-                        Text(
-                          'Date: / दिनांक',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('Date: / दिनांक',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _panchnamaFormDateCtrl,
@@ -1229,12 +1264,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Time:',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('Time:',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         Text('वेळ :', style: marathiLabelStyle),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
@@ -1246,17 +1278,13 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                         const SizedBox(height: 20),
                         Text(
                           'Signature of Panchas: / पंचाच्या सह्या :',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          '1)',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('1)',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _pancha1SigCtrl,
@@ -1265,12 +1293,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           marathiLabelStyle: marathiLabelStyle,
                         ),
                         const SizedBox(height: 20),
-                        Text(
-                          '2)',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('2)',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _pancha2SigCtrl,
@@ -1281,17 +1306,13 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                         const SizedBox(height: 20),
                         Text(
                           'Name and Signature of Investigation Officer: / ${FormIoTerminology.amaldarSignatureHeader} :',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          'Name: / ${FormIoTerminology.name} :',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('Name: / ${FormIoTerminology.name} :',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _ioNameCtrl,
@@ -1300,12 +1321,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           marathiLabelStyle: marathiLabelStyle,
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          'Rank: / ${FormIoTerminology.rank} :',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('Rank: / ${FormIoTerminology.rank} :',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _ioRankCtrl,
@@ -1314,12 +1332,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           marathiLabelStyle: marathiLabelStyle,
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          'B.No. if any: / बक्कल नंबर :',
-                          style: serifStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text('B.No. if any: / बक्कल नंबर :',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(height: 6),
                         BilingualDynamicLinedTextField(
                           controller: _ioBuckleNoCtrl,

@@ -28,30 +28,20 @@ class ReportCaseListScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.navyDark,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppColors.navyDark, size: 20),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.navyDark,
-              ),
-            ),
-            Text(
-              '${records.length} records found',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: AppColors.lightSubText,
-              ),
-            ),
+            Text(title,
+                style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark)),
+            Text('${records.length} records found',
+                style: GoogleFonts.poppins(
+                    fontSize: 11, color: AppColors.lightSubText)),
           ],
         ),
       ),
@@ -70,20 +60,14 @@ class ReportCaseListScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.folder_open_rounded,
-            size: 64,
-            color: Colors.grey.shade300,
-          ),
+          Icon(Icons.folder_open_rounded,
+              size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          Text(
-            'No records found for this category',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.lightSubText,
-            ),
-          ),
+          Text('No records found for this category',
+              style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.lightSubText)),
         ],
       ),
     );
@@ -102,7 +86,7 @@ class ReportCaseListScreen extends StatelessWidget {
             color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 3),
-          ),
+          )
         ],
       ),
       child: Column(
@@ -116,55 +100,40 @@ class ReportCaseListScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.infoBlue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        record.caseNumber,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.infoBlue,
-                        ),
-                      ),
+                          color: AppColors.infoBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4)),
+                      child: Text(record.caseNumber,
+                          style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.infoBlue)),
                     ),
                     const Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3,
-                      ),
+                          horizontal: 10, vertical: 3),
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: statusColor.withValues(alpha: 0.3),
-                        ),
+                            color: statusColor.withValues(alpha: 0.3)),
                       ),
-                      child: Text(
-                        record.status,
-                        style: GoogleFonts.poppins(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: statusColor,
-                        ),
-                      ),
+                      child: Text(record.status,
+                          style: GoogleFonts.poppins(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: statusColor)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  record.title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyDark,
-                  ),
-                ),
+                Text(record.title,
+                    style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark)),
                 const SizedBox(height: 4),
                 Text(
                   record.firestoreCategoryDisplayName,
@@ -178,49 +147,31 @@ class ReportCaseListScreen extends StatelessWidget {
                 ),
                 if (record.description.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    record.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: AppColors.lightSubText,
-                    ),
-                  ),
+                  Text(record.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                          fontSize: 12, color: AppColors.lightSubText)),
                 ],
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    const Icon(
-                      Icons.location_on_rounded,
-                      size: 13,
-                      color: AppColors.lightSubText,
-                    ),
+                    const Icon(Icons.location_on_rounded,
+                        size: 13, color: AppColors.lightSubText),
                     const SizedBox(width: 4),
                     Expanded(
-                      child: Text(
-                        record.location,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          color: AppColors.lightSubText,
-                        ),
-                      ),
+                      child: Text(record.location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                              fontSize: 11, color: AppColors.lightSubText)),
                     ),
-                    const Icon(
-                      Icons.calendar_today_rounded,
-                      size: 13,
-                      color: AppColors.lightSubText,
-                    ),
+                    const Icon(Icons.calendar_today_rounded,
+                        size: 13, color: AppColors.lightSubText),
                     const SizedBox(width: 4),
-                    Text(
-                      DateFormat('dd MMM yyyy').format(record.incidentDate),
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: AppColors.lightSubText,
-                      ),
-                    ),
+                    Text(DateFormat('dd MMM yyyy').format(record.incidentDate),
+                        style: GoogleFonts.poppins(
+                            fontSize: 11, color: AppColors.lightSubText)),
                   ],
                 ),
               ],
@@ -232,35 +183,28 @@ class ReportCaseListScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _actionBtn(
-                  context,
-                  Icons.visibility_rounded,
-                  'View',
-                  AppColors.goldPrimary,
-                  () {
-                    Navigator.push(
+                _actionBtn(context, Icons.visibility_rounded, 'View',
+                    AppColors.goldPrimary, () {
+                  Navigator.push(
                       context,
                       AppTheme.fadeSlideRoute(
                         page: record.moduleKey == 'ad'
-                            ? AdRecordDetailScreen(record: record)
-                            : ModuleRecordDetailScreen(record: record),
-                      ),
-                    );
-                  },
-                ),
+                            ? AdRecordDetailScreen(
+                                record: record,
+                              )
+                            : ModuleRecordDetailScreen(
+                                record: record,
+                              ),
+                      ));
+                }),
                 Container(width: 1, height: 20, color: AppColors.lightBorder),
-                _actionBtn(
-                  context,
-                  Icons.picture_as_pdf_rounded,
-                  'PDF',
-                  AppColors.dangerRed,
-                  () {
-                    runWithPdfAuthGate(
-                      context,
-                      () => ModulePdfHelper.generatePdf(record),
-                    );
-                  },
-                ),
+                _actionBtn(context, Icons.picture_as_pdf_rounded, 'PDF',
+                    AppColors.dangerRed, () {
+                  runWithPdfAuthGate(
+                    context,
+                    () => ModulePdfHelper.generatePdf(record),
+                  );
+                }),
               ],
             ),
           ),
@@ -269,13 +213,8 @@ class ReportCaseListScreen extends StatelessWidget {
     );
   }
 
-  Widget _actionBtn(
-    BuildContext context,
-    IconData icon,
-    String label,
-    Color color,
-    VoidCallback onTap,
-  ) {
+  Widget _actionBtn(BuildContext context, IconData icon, String label,
+      Color color, VoidCallback onTap) {
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -286,14 +225,9 @@ class ReportCaseListScreen extends StatelessWidget {
             children: [
               Icon(icon, size: 14, color: color),
               const SizedBox(width: 4),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
+              Text(label,
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, fontWeight: FontWeight.w600, color: color)),
             ],
           ),
         ),

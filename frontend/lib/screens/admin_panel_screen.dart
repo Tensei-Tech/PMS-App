@@ -62,8 +62,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final auth = context.watch<AuthProvider>();
     final role = (auth.roleId).toLowerCase();
 
-    final isStateAdmin =
-        PoliceHierarchyHelper.isStateSuperAdmin(
+    final isStateAdmin = PoliceHierarchyHelper.isStateSuperAdmin(
           auth.designation,
           auth.roleId,
         ) ||
@@ -75,8 +74,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         !isStateAdmin && (role == 'division_admin' || role == 'supervisor');
     final isDistrictAdmin =
         !isStateAdmin && !isDivAdmin && (role == 'district_admin');
-    final isStationAdmin =
-        !isStateAdmin &&
+    final isStationAdmin = !isStateAdmin &&
         !isDivAdmin &&
         !isDistrictAdmin &&
         (role == 'station_head' || role == 'station_admin');
@@ -89,44 +87,44 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final headerTitle = isStateAdmin
         ? 'State Command & Control Center'
         : isDivAdmin
-        ? 'Division Command & Control Center'
-        : 'District Command & Control Center';
+            ? 'Division Command & Control Center'
+            : 'District Command & Control Center';
 
     final headerSubtitle = isStateAdmin
         ? 'Manage registration approvals, sub-admin creation, and state hierarchy directory.'
         : isDivAdmin
-        ? 'Manage officer approvals, station head creation, and districts/stations in your division.'
-        : 'Manage station head creation and police stations inside your district.';
+            ? 'Manage officer approvals, station head creation, and districts/stations in your division.'
+            : 'Manage station head creation and police stations inside your district.';
 
     final createAdminTitle = isStateAdmin
         ? 'Create Sub-Admin (District / Div / Station)'
         : isDivAdmin
-        ? 'Create Station Head / Sub-Admin'
-        : 'Create Station Head (SHO / PI)';
+            ? 'Create Station Head / Sub-Admin'
+            : 'Create Station Head (SHO / PI)';
 
     final createAdminSubtitle = isStateAdmin
         ? 'Provision District Admins, Division Admins, or Station Heads with administrative grants.'
         : isDivAdmin
-        ? 'Provision Station Heads (SHO/PI) and sub-division admins inside your assigned division.'
-        : 'Provision Station Heads (SHO/PI) across police stations in your assigned district.';
+            ? 'Provision Station Heads (SHO/PI) and sub-division admins inside your assigned division.'
+            : 'Provision Station Heads (SHO/PI) across police stations in your assigned district.';
 
     final hierarchyTitle = isStateAdmin
         ? 'State Admin Hierarchy & Directory'
         : isDivAdmin
-        ? 'Division Hierarchy & Directory'
-        : 'District Stations & Directory';
+            ? 'Division Hierarchy & Directory'
+            : 'District Stations & Directory';
 
     final hierarchySubtitle = isStateAdmin
         ? 'View all 6 Divisions, Districts, and Station Heads across Maharashtra Police.'
         : isDivAdmin
-        ? 'View districts and police stations assigned under your division range.'
-        : 'View police stations and Station Heads (SHO) assigned under your district.';
+            ? 'View districts and police stations assigned under your division range.'
+            : 'View police stations and Station Heads (SHO) assigned under your district.';
 
     final panelTitle = isStateAdmin
         ? 'State Admin Panel'
         : isDivAdmin
-        ? 'Division Admin Panel'
-        : 'District Admin Panel';
+            ? 'Division Admin Panel'
+            : 'District Admin Panel';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
@@ -281,8 +279,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     builder: (_) => isStateAdmin
                         ? const StateAdminHierarchyScreen()
                         : isDivAdmin
-                        ? const DivisionAdminHierarchyScreen()
-                        : const DistrictAdminHierarchyScreen(),
+                            ? const DivisionAdminHierarchyScreen()
+                            : const DistrictAdminHierarchyScreen(),
                   ),
                 );
               },
@@ -295,8 +293,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               subtitle: isStateAdmin
                   ? 'View state-wide security events, logins, and system activity with live search.'
                   : isDivAdmin
-                  ? 'View security events and officer actions across your division.'
-                  : 'View security events and officer actions inside your district.',
+                      ? 'View security events and officer actions across your division.'
+                      : 'View security events and officer actions inside your district.',
               icon: Icons.manage_search_rounded,
               color: Colors.purple.shade700,
               onTap: () {
@@ -306,8 +304,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     builder: (_) => isStateAdmin
                         ? const StateAuditLogScreen()
                         : isDivAdmin
-                        ? const DivisionAuditLogScreen()
-                        : const DistrictAuditLogScreen(),
+                            ? const DivisionAuditLogScreen()
+                            : const DistrictAuditLogScreen(),
                   ),
                 );
               },

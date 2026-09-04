@@ -55,18 +55,15 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
       final isSuper = PoliceHierarchyHelper.isStateSuperAdmin(
-        auth.designation,
-        auth.roleId,
-      );
+          auth.designation, auth.roleId);
       setState(() {
         if (isSuper) {
           _selectedRole = 'District Admin';
         } else {
           _selectedRole = 'Division Admin';
         }
-        _selectedDesignation = _getDesignationOptionsForRole(
-          _selectedRole,
-        ).first;
+        _selectedDesignation =
+            _getDesignationOptionsForRole(_selectedRole).first;
       });
       _fetchDistrictsFromDB();
     });
@@ -123,9 +120,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
   /// Fetch dynamic Districts list from PostgreSQL DB
   Future<void> _fetchDistrictsFromDB() async {
     try {
-      final res = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/stations/districts/'),
-      );
+      final res =
+          await http.get(Uri.parse('${ApiConfig.baseUrl}/stations/districts/'));
       if (res.statusCode == 200) {
         final decoded = json.decode(res.body);
         final list = _safeParseStringList(decoded);
@@ -139,7 +135,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                   'Thane',
                   'Nagpur',
                   'Nashik',
-                  'Chhatrapati Sambhajinagar',
+                  'Chhatrapati Sambhajinagar'
                 ];
           _selectedDistrict = _dbDistricts.first;
           _isLoadingLocations = false;
@@ -156,7 +152,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
         'Thane',
         'Nagpur',
         'Nashik',
-        'Chhatrapati Sambhajinagar',
+        'Chhatrapati Sambhajinagar'
       ];
       _selectedDistrict = 'Pune';
       _isLoadingLocations = false;
@@ -168,22 +164,16 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
   Future<void> _fetchDivisionsAndStations(String district) async {
     try {
       // Fetch Divisions
-      final divRes = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}/stations/divisions/?district=${Uri.encodeComponent(district)}',
-        ),
-      );
+      final divRes = await http.get(Uri.parse(
+          '${ApiConfig.baseUrl}/stations/divisions/?district=${Uri.encodeComponent(district)}'));
       List<String> divs = [];
       if (divRes.statusCode == 200) {
         divs = _safeParseStringList(json.decode(divRes.body));
       }
 
       // Fetch Stations
-      final stRes = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}/stations/?district=${Uri.encodeComponent(district)}',
-        ),
-      );
+      final stRes = await http.get(Uri.parse(
+          '${ApiConfig.baseUrl}/stations/?district=${Uri.encodeComponent(district)}'));
       List<String> stns = [];
       if (stRes.statusCode == 200) {
         stns = _safeParseStationsList(json.decode(stRes.body));
@@ -196,7 +186,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
             : [
                 '$district Division 1',
                 '$district Division 2',
-                '$district Central Division',
+                '$district Central Division'
               ];
         _selectedDivision = _dbDivisions.first;
 
@@ -205,7 +195,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
             : [
                 '$district Police Station',
                 'Shivajinagar Police Station',
-                'Hadapsar Police Station',
+                'Hadapsar Police Station'
               ];
         _selectedStation = _dbStations.first;
       });
@@ -216,7 +206,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
         _selectedDivision = _dbDivisions.first;
         _dbStations = [
           'Shivajinagar Police Station',
-          'Hadapsar Police Station',
+          'Hadapsar Police Station'
         ];
         _selectedStation = _dbStations.first;
       });
@@ -283,8 +273,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Successfully onboarded ${_nameCtrl.text.trim()} as $_selectedRole!',
-            ),
+                'Successfully onboarded ${_nameCtrl.text.trim()} as $_selectedRole!'),
             backgroundColor: AppColors.successGreen,
           ),
         );
@@ -315,10 +304,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isSuper = PoliceHierarchyHelper.isStateSuperAdmin(
-      auth.designation,
-      auth.roleId,
-    );
+    final isSuper =
+        PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId);
     final allowedRoles = _getAllowedRoleOptions(isSuper);
 
     return Dialog(
@@ -326,7 +313,9 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
       elevation: 12,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 780),
+        constraints: const BoxConstraints(
+          maxWidth: 780,
+        ),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -357,11 +346,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.admin_panel_settings_rounded,
-                            color: Colors.white,
-                            size: 22,
-                          ),
+                          child: const Icon(Icons.admin_panel_settings_rounded,
+                              color: Colors.white, size: 22),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -410,33 +396,27 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                     if (_errorMessage != null) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+                            horizontal: 12, vertical: 8),
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
                           color: AppColors.dangerRed.withValues(alpha: 0.08),
                           border: Border.all(
-                            color: AppColors.dangerRed.withValues(alpha: 0.3),
-                          ),
+                              color:
+                                  AppColors.dangerRed.withValues(alpha: 0.3)),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.error_outline_rounded,
-                              size: 16,
-                              color: AppColors.dangerRed,
-                            ),
+                            const Icon(Icons.error_outline_rounded,
+                                size: 16, color: AppColors.dangerRed),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _errorMessage!,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: AppColors.dangerRed,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                    fontSize: 12,
+                                    color: AppColors.dangerRed,
+                                    fontWeight: FontWeight.w500),
                               ),
                             ),
                           ],
@@ -452,47 +432,35 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                         final leftColumn = Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSectionHeader(
-                              Icons.account_tree_outlined,
-                              'Jurisdiction & Hierarchy',
-                            ),
+                            _buildSectionHeader(Icons.account_tree_outlined,
+                                'Jurisdiction & Hierarchy'),
                             const SizedBox(height: 10),
 
                             // Role Level
                             _buildInputLabel('Admin Role Level'),
                             DropdownButtonFormField<String>(
-                              initialValue: _getValidValue(
-                                allowedRoles,
-                                _selectedRole,
-                              ),
+                              initialValue:
+                                  _getValidValue(allowedRoles, _selectedRole),
                               isExpanded: true,
                               items: allowedRoles
-                                  .map(
-                                    (r) => DropdownMenuItem(
+                                  .map((r) => DropdownMenuItem(
                                       value: r,
-                                      child: Text(
-                                        r,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12.5,
-                                        ),
-                                      ),
-                                    ),
-                                  )
+                                      child: Text(r,
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 12.5))))
                                   .toList(),
                               onChanged: (val) {
                                 if (val != null) {
                                   setState(() {
                                     _selectedRole = val;
                                     _selectedDesignation =
-                                        _getDesignationOptionsForRole(
-                                          val,
-                                        ).first;
+                                        _getDesignationOptionsForRole(val)
+                                            .first;
                                   });
                                 }
                               },
                               decoration: _buildInputDecoration(
-                                prefixIcon: Icons.military_tech_outlined,
-                              ),
+                                  prefixIcon: Icons.military_tech_outlined),
                             ),
                             const SizedBox(height: 10),
 
@@ -500,69 +468,49 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             _buildInputLabel('Police Rank / Designation'),
                             DropdownButtonFormField<String>(
                               initialValue: _getValidValue(
-                                _getDesignationOptionsForRole(_selectedRole),
-                                _selectedDesignation,
-                              ),
+                                  _getDesignationOptionsForRole(_selectedRole),
+                                  _selectedDesignation),
                               isExpanded: true,
                               items:
                                   _getDesignationOptionsForRole(_selectedRole)
-                                      .map(
-                                        (d) => DropdownMenuItem(
+                                      .map((d) => DropdownMenuItem(
                                           value: d,
-                                          child: Text(
-                                            d,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 12.5,
-                                            ),
-                                          ),
-                                        ),
-                                      )
+                                          child: Text(d,
+                                              style: GoogleFonts.poppins(
+                                                  fontSize: 12.5))))
                                       .toList(),
                               onChanged: (val) =>
                                   setState(() => _selectedDesignation = val),
                               decoration: _buildInputDecoration(
-                                prefixIcon: Icons.badge_outlined,
-                              ),
+                                  prefixIcon: Icons.badge_outlined),
                             ),
                             const SizedBox(height: 10),
 
                             // District Jurisdiction
                             _buildInputLabel(
-                              'Assigned District Jurisdiction (DB)',
-                            ),
+                                'Assigned District Jurisdiction (DB)'),
                             if (_isLoadingLocations)
                               const SizedBox(
                                 height: 42,
                                 child: Center(
-                                  child: SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.navyDark,
-                                    ),
-                                  ),
-                                ),
+                                    child: SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: AppColors.navyDark))),
                               )
                             else
                               DropdownButtonFormField<String>(
                                 initialValue: _getValidValue(
-                                  _dbDistricts,
-                                  _selectedDistrict,
-                                ),
+                                    _dbDistricts, _selectedDistrict),
                                 isExpanded: true,
                                 items: _dbDistricts
-                                    .map(
-                                      (d) => DropdownMenuItem(
+                                    .map((d) => DropdownMenuItem(
                                         value: d,
-                                        child: Text(
-                                          d,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12.5,
-                                          ),
-                                        ),
-                                      ),
-                                    )
+                                        child: Text(d,
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12.5))))
                                     .toList(),
                                 onChanged: (val) {
                                   if (val != null) {
@@ -571,8 +519,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                   }
                                 },
                                 decoration: _buildInputDecoration(
-                                  prefixIcon: Icons.location_city_outlined,
-                                ),
+                                    prefixIcon: Icons.location_city_outlined),
                               ),
                             const SizedBox(height: 10),
 
@@ -581,88 +528,62 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                               _buildInputLabel('Assigned Division / Zone (DB)'),
                               DropdownButtonFormField<String>(
                                 initialValue: _getValidValue(
-                                  _dbDivisions,
-                                  _selectedDivision,
-                                ),
+                                    _dbDivisions, _selectedDivision),
                                 isExpanded: true,
                                 items: _dbDivisions
-                                    .map(
-                                      (div) => DropdownMenuItem(
+                                    .map((div) => DropdownMenuItem(
                                         value: div,
-                                        child: Text(
-                                          div,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12.5,
-                                          ),
-                                        ),
-                                      ),
-                                    )
+                                        child: Text(div,
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12.5))))
                                     .toList(),
                                 onChanged: (val) =>
                                     setState(() => _selectedDivision = val),
                                 decoration: _buildInputDecoration(
-                                  prefixIcon: Icons.hub_outlined,
-                                ),
+                                    prefixIcon: Icons.hub_outlined),
                               ),
                             ] else if (_selectedRole == 'Station Head') ...[
                               _buildInputLabel('Assigned Police Station (DB)'),
                               DropdownButtonFormField<String>(
                                 initialValue: _getValidValue(
-                                  _dbStations,
-                                  _selectedStation,
-                                ),
+                                    _dbStations, _selectedStation),
                                 isExpanded: true,
                                 items: _dbStations
-                                    .map(
-                                      (stn) => DropdownMenuItem(
+                                    .map((stn) => DropdownMenuItem(
                                         value: stn,
-                                        child: Text(
-                                          stn,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12.5,
-                                          ),
-                                        ),
-                                      ),
-                                    )
+                                        child: Text(stn,
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12.5))))
                                     .toList(),
                                 onChanged: (val) =>
                                     setState(() => _selectedStation = val),
                                 decoration: _buildInputDecoration(
-                                  prefixIcon: Icons.local_police_outlined,
-                                ),
+                                    prefixIcon: Icons.local_police_outlined),
                               ),
                             ] else ...[
                               _buildInputLabel('Jurisdiction Scope'),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
+                                    horizontal: 12, vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: AppColors.navyDark.withValues(
-                                    alpha: 0.04,
-                                  ),
+                                  color: AppColors.navyDark
+                                      .withValues(alpha: 0.04),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: Colors.blueGrey.shade100,
-                                  ),
+                                      color: Colors.blueGrey.shade100),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(
-                                      Icons.verified_user_outlined,
-                                      size: 18,
-                                      color: AppColors.navyMid,
-                                    ),
+                                    const Icon(Icons.verified_user_outlined,
+                                        size: 18, color: AppColors.navyMid),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         'Full District Command: Supervises all divisions & stations',
                                         style: GoogleFonts.poppins(
-                                          fontSize: 11.5,
-                                          color: AppColors.navyDark,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                            fontSize: 11.5,
+                                            color: AppColors.navyDark,
+                                            fontWeight: FontWeight.w500),
                                       ),
                                     ),
                                   ],
@@ -675,10 +596,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                         final rightColumn = Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSectionHeader(
-                              Icons.person_outline_rounded,
-                              'Officer Identity & Credentials',
-                            ),
+                            _buildSectionHeader(Icons.person_outline_rounded,
+                                'Officer Identity & Credentials'),
                             const SizedBox(height: 10),
 
                             // Officer Full Name
@@ -709,13 +628,12 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                       TextFormField(
                                         controller: _mobileCtrl,
                                         keyboardType: TextInputType.phone,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12.5,
-                                        ),
+                                        style:
+                                            GoogleFonts.poppins(fontSize: 12.5),
                                         inputFormatters: [
                                           FilteringTextInputFormatter
                                               .digitsOnly,
-                                          LengthLimitingTextInputFormatter(10),
+                                          LengthLimitingTextInputFormatter(10)
                                         ],
                                         decoration: _buildInputDecoration(
                                           hintText: '10-digit number',
@@ -724,8 +642,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                         ),
                                         validator: (v) =>
                                             v == null || v.length != 10
-                                            ? 'Enter 10-digits'
-                                            : null,
+                                                ? 'Enter 10-digits'
+                                                : null,
                                       ),
                                     ],
                                   ),
@@ -740,9 +658,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                       _buildInputLabel('Badge / Buckle No.'),
                                       TextFormField(
                                         controller: _badgeCtrl,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12.5,
-                                        ),
+                                        style:
+                                            GoogleFonts.poppins(fontSize: 12.5),
                                         decoration: _buildInputDecoration(
                                           hintText: 'e.g. MH-1244',
                                           prefixIcon: Icons.pin_outlined,
@@ -788,9 +705,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                     size: 18,
                                     color: AppColors.lightSubText,
                                   ),
-                                  onPressed: () => setState(
-                                    () => _obscurePassword = !_obscurePassword,
-                                  ),
+                                  onPressed: () => setState(() =>
+                                      _obscurePassword = !_obscurePassword),
                                 ),
                               ),
                               validator: (v) => v == null || v.length < 6
@@ -840,32 +756,22 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             foregroundColor: AppColors.lightSubText,
                             side: BorderSide(color: Colors.grey.shade300),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 11,
-                            ),
+                                horizontal: 18, vertical: 11),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                                borderRadius: BorderRadius.circular(8)),
                           ),
-                          child: Text(
-                            'Cancel',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          child: Text('Cancel',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w600)),
                         ),
                         ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.navyDark,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 22,
-                              vertical: 11,
-                            ),
+                                horizontal: 22, vertical: 11),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                                borderRadius: BorderRadius.circular(8)),
                             elevation: 2,
                           ),
                           onPressed: _isSubmitting ? null : _submitOnboarding,
@@ -874,24 +780,17 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                   width: 16,
                                   height: 16,
                                   child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.check_circle_rounded,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
+                                      strokeWidth: 2, color: Colors.white))
+                              : const Icon(Icons.check_circle_rounded,
+                                  color: Colors.white, size: 18),
                           label: Text(
                             _isSubmitting
                                 ? 'Provisioning...'
                                 : 'Create & Provision Account',
                             style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              color: Colors.white,
-                            ),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: Colors.white),
                           ),
                         ),
                       ],
@@ -938,22 +837,16 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     );
   }
 
-  InputDecoration _buildInputDecoration({
-    String? hintText,
-    IconData? prefixIcon,
-    Widget? suffixIcon,
-  }) {
+  InputDecoration _buildInputDecoration(
+      {String? hintText, IconData? prefixIcon, Widget? suffixIcon}) {
     return InputDecoration(
       hintText: hintText,
       hintStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400),
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       prefixIcon: prefixIcon != null
-          ? Icon(
-              prefixIcon,
-              size: 17,
-              color: AppColors.navyMid.withValues(alpha: 0.8),
-            )
+          ? Icon(prefixIcon,
+              size: 17, color: AppColors.navyMid.withValues(alpha: 0.8))
           : null,
       suffixIcon: suffixIcon,
       fillColor: const Color(0xFFF8FAFC),

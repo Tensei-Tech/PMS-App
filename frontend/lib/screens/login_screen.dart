@@ -48,18 +48,13 @@ class _LoginScreenState extends State<LoginScreen>
   void initState() {
     super.initState();
     _fadeCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
+        vsync: this, duration: const Duration(milliseconds: 900));
     _slideCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
+        vsync: this, duration: const Duration(milliseconds: 800));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeIn);
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.08),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOutCubic));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
+        .animate(
+            CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOutCubic));
     _fadeCtrl.forward();
     _slideCtrl.forward();
     WidgetsBinding.instance.addObserver(this);
@@ -120,10 +115,8 @@ class _LoginScreenState extends State<LoginScreen>
     if (_isLockedOut) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Account locked. Try again in $_lockoutCountdown.',
-            style: GoogleFonts.poppins(),
-          ),
+          content: Text('Account locked. Try again in $_lockoutCountdown.',
+              style: GoogleFonts.poppins()),
           backgroundColor: AppColors.dangerRed,
         ),
       );
@@ -137,10 +130,8 @@ class _LoginScreenState extends State<LoginScreen>
     final email = _govtEmailCtrl.text.trim();
     final password = _passwordCtrl.text.trim();
 
-    final loginError = await auth.loginByEmailAndPin(
-      email: email,
-      pin: password,
-    );
+    final loginError =
+        await auth.loginByEmailAndPin(email: email, pin: password);
     if (loginError != null) await _checkLockout();
 
     if (!mounted) return;
@@ -174,8 +165,8 @@ class _LoginScreenState extends State<LoginScreen>
       return;
     }
 
-    final bool isConfigured = await _biometricService
-        .isBiometricConfiguredForUser(email);
+    final bool isConfigured =
+        await _biometricService.isBiometricConfiguredForUser(email);
     if (!isConfigured) {
       _showBiometricAlertDialog(
         title: 'Biometric Not Configured for Profile',
@@ -186,7 +177,6 @@ class _LoginScreenState extends State<LoginScreen>
     }
 
     final bool isAvailable = await _biometricService.isBiometricAvailable();
-    if (!mounted) return;
     if (!isAvailable) {
       _showBiometricAlertDialog(
         title: 'Biometric Sensor Unavailable',
@@ -199,6 +189,7 @@ class _LoginScreenState extends State<LoginScreen>
     final bool authenticated = await _biometricService.authenticate(
       localizedReason: 'Scan fingerprint to sign in as $email',
     );
+
     if (!mounted) return;
 
     if (authenticated) {
@@ -208,9 +199,8 @@ class _LoginScreenState extends State<LoginScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Biometric verified for $email! Enter your Password to complete sign-in.',
-              style: GoogleFonts.poppins(),
-            ),
+                'Biometric verified for $email! Enter your Password to complete sign-in.',
+                style: GoogleFonts.poppins()),
             backgroundColor: AppColors.successGreen,
           ),
         );
@@ -218,20 +208,16 @@ class _LoginScreenState extends State<LoginScreen>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Biometric authentication failed or cancelled.',
-            style: GoogleFonts.poppins(),
-          ),
+          content: Text('Biometric authentication failed or cancelled.',
+              style: GoogleFonts.poppins()),
           backgroundColor: AppColors.dangerRed,
         ),
       );
     }
   }
 
-  void _showBiometricAlertDialog({
-    required String title,
-    required String message,
-  }) {
+  void _showBiometricAlertDialog(
+      {required String title, required String message}) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -241,24 +227,18 @@ class _LoginScreenState extends State<LoginScreen>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.fingerprint_rounded,
-                color: Colors.orange.shade800,
-                size: 24,
-              ),
+                  color: Colors.orange.shade50, shape: BoxShape.circle),
+              child: Icon(Icons.fingerprint_rounded,
+                  color: Colors.orange.shade800, size: 24),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 title,
                 style: GoogleFonts.poppins(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyDark,
-                ),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark),
               ),
             ),
           ],
@@ -266,10 +246,7 @@ class _LoginScreenState extends State<LoginScreen>
         content: Text(
           message,
           style: GoogleFonts.poppins(
-            fontSize: 12.5,
-            color: Colors.grey.shade800,
-            height: 1.35,
-          ),
+              fontSize: 12.5, color: Colors.grey.shade800, height: 1.35),
         ),
         actions: [
           ElevatedButton(
@@ -278,16 +255,11 @@ class _LoginScreenState extends State<LoginScreen>
               backgroundColor: AppColors.navyDark,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+                  borderRadius: BorderRadius.circular(8)),
             ),
-            child: Text(
-              'Understood',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: Text('Understood',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -308,7 +280,9 @@ class _LoginScreenState extends State<LoginScreen>
             return Stack(
               children: [
                 // Background design
-                Container(color: AppColors.lightBg),
+                Container(
+                  color: AppColors.lightBg,
+                ),
                 Positioned(
                   top: -120,
                   right: -100,
@@ -341,9 +315,7 @@ class _LoginScreenState extends State<LoginScreen>
                             side: isCompact
                                 ? BorderSide.none
                                 : const BorderSide(
-                                    color: AppColors.lightBorder,
-                                    width: 1,
-                                  ),
+                                    color: AppColors.lightBorder, width: 1),
                           ),
                           color: Colors.white,
                           child: Padding(
@@ -415,16 +387,12 @@ class _LoginScreenState extends State<LoginScreen>
                   color: AppColors.dangerRed.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
-                    color: AppColors.dangerRed.withValues(alpha: 0.4),
-                  ),
+                      color: AppColors.dangerRed.withValues(alpha: 0.4)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.lock_clock_rounded,
-                      color: AppColors.dangerRed,
-                      size: 20,
-                    ),
+                    const Icon(Icons.lock_clock_rounded,
+                        color: AppColors.dangerRed, size: 20),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Column(
@@ -459,10 +427,8 @@ class _LoginScreenState extends State<LoginScreen>
               controller: _govtEmailCtrl,
               textInputAction: TextInputAction.next,
               autovalidateMode: AutovalidateMode.onUserInteraction,
-              style: GoogleFonts.poppins(
-                color: AppColors.lightText,
-                fontSize: 14,
-              ),
+              style:
+                  GoogleFonts.poppins(color: AppColors.lightText, fontSize: 14),
               decoration: InputDecoration(
                 labelText: 'Government Email / ID',
                 hintText: 'name@department.gov.in',
@@ -470,19 +436,14 @@ class _LoginScreenState extends State<LoginScreen>
                 filled: true,
                 fillColor: const Color(0xFFF8FAFF),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
+                    borderRadius: BorderRadius.circular(AppRadius.md)),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: const BorderSide(color: AppColors.lightBorder),
-                ),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide: const BorderSide(color: AppColors.lightBorder)),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: const BorderSide(
-                    color: AppColors.navyMid,
-                    width: 2,
-                  ),
-                ),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide:
+                        const BorderSide(color: AppColors.navyMid, width: 2)),
               ),
               validator: AppValidators.govtEmail,
             ),
@@ -494,10 +455,8 @@ class _LoginScreenState extends State<LoginScreen>
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _handleLogin(),
-              style: GoogleFonts.poppins(
-                color: AppColors.navyDark,
-                fontSize: 14,
-              ),
+              style:
+                  GoogleFonts.poppins(color: AppColors.navyDark, fontSize: 14),
               decoration: InputDecoration(
                 labelText: 'Password',
                 hintText: '••••••••',
@@ -516,19 +475,14 @@ class _LoginScreenState extends State<LoginScreen>
                 filled: true,
                 fillColor: const Color(0xFFF8FAFF),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
+                    borderRadius: BorderRadius.circular(AppRadius.md)),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: const BorderSide(color: AppColors.lightBorder),
-                ),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide: const BorderSide(color: AppColors.lightBorder)),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: const BorderSide(
-                    color: AppColors.navyMid,
-                    width: 2,
-                  ),
-                ),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide:
+                        const BorderSide(color: AppColors.navyMid, width: 2)),
               ),
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Password is required';
@@ -551,10 +505,8 @@ class _LoginScreenState extends State<LoginScreen>
                   );
                 },
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 2,
-                    horizontal: 2,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -579,9 +531,8 @@ class _LoginScreenState extends State<LoginScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppColors.navyMid.withValues(
-                    alpha: 0.5,
-                  ),
+                  disabledBackgroundColor:
+                      AppColors.navyMid.withValues(alpha: 0.5),
                   disabledForegroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -591,9 +542,7 @@ class _LoginScreenState extends State<LoginScreen>
                 child: Text(
                   'Sign In',
                   style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
+                      fontWeight: FontWeight.w600, fontSize: 16),
                 ),
               ),
             ),
@@ -604,27 +553,21 @@ class _LoginScreenState extends State<LoginScreen>
               width: double.infinity,
               height: isCompact ? 44 : 48,
               child: OutlinedButton.icon(
-                onPressed: (_isLoading || _isLockedOut)
-                    ? null
-                    : _handleBiometricLogin,
-                icon: const Icon(
-                  Icons.fingerprint_rounded,
-                  color: AppColors.navyDark,
-                  size: 20,
-                ),
+                onPressed:
+                    (_isLoading || _isLockedOut) ? null : _handleBiometricLogin,
+                icon: const Icon(Icons.fingerprint_rounded,
+                    color: AppColors.navyDark, size: 20),
                 label: Text(
                   'Sign In with Biometrics',
                   style: GoogleFonts.poppins(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.navyDark,
-                  ),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.navyDark, width: 1.2),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
+                      borderRadius: BorderRadius.circular(AppRadius.md)),
                 ),
               ),
             ),
@@ -632,8 +575,7 @@ class _LoginScreenState extends State<LoginScreen>
             if (_isLoading) ...[
               const SizedBox(height: AppSpacing.md),
               const Center(
-                child: CircularProgressIndicator(color: AppColors.navyMid),
-              ),
+                  child: CircularProgressIndicator(color: AppColors.navyMid)),
             ],
 
             const SizedBox(height: AppSpacing.lg),
