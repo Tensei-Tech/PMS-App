@@ -869,32 +869,51 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton.icon(
+                      OutlinedButton.icon(
                         onPressed: () {
                           setState(() {
                             _victimRows.add(VictimRow());
                           });
                         },
-                        icon: const Icon(Icons.add, size: 18),
+                        icon: const Icon(Icons.add, size: 16, color: Color(0xFF1E3A8A)),
                         label: Text(
                           'Add Row (ओळ जोडा)',
-                          style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600),
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1E3A8A),
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEFF4FA),
+                          side: const BorderSide(color: Color(0xFFD6E4F0), width: 1),
+                          shape: const StadiumBorder(),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         ),
                       ),
                       if (_victimRows.length > 1) ...[
-                        const SizedBox(width: 12),
-                        TextButton.icon(
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
                           onPressed: () {
                             setState(() {
                               final last = _victimRows.removeLast();
                               last.dispose();
                             });
                           },
-                          style: TextButton.styleFrom(foregroundColor: Colors.red),
-                          icon: const Icon(Icons.remove, size: 18),
+                          icon: const Icon(Icons.remove, size: 16, color: Color(0xFFB91C1C)),
                           label: Text(
                             'Remove Row (ओळ काढा)',
-                            style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600),
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFFB91C1C),
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFEEFEE),
+                            side: const BorderSide(color: Color(0xFFFCDADA), width: 1),
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           ),
                         ),
                       ],

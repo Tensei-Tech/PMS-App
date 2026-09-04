@@ -73,7 +73,7 @@ class HousePropertySearchSeizureFormViewState
   final _circumstancesCtrl = TextEditingController();
 
   // Page 3 / Seizure Date & Witnesses
-  final _propertyPackedCtrl = TextEditingController();
+  final List<TextEditingController> _propertyPackedControllers = [TextEditingController()];
   final _seizeDateCtrl = TextEditingController();
   final _seizeDateDayCtrl = TextEditingController();
   final _seizeDateMonthCtrl = TextEditingController();
@@ -202,7 +202,9 @@ class HousePropertySearchSeizureFormViewState
     _propertyDetailsCtrl.dispose();
     _propertyDetailsAttachCtrl.dispose();
     _circumstancesCtrl.dispose();
-    _propertyPackedCtrl.dispose();
+    for (final c in _propertyPackedControllers) {
+      c.dispose();
+    }
     _seizeDateCtrl.dispose();
     _seizeDateDayCtrl.dispose();
     _seizeDateMonthCtrl.dispose();
@@ -285,7 +287,31 @@ class HousePropertySearchSeizureFormViewState
       set(_propertyDetailsCtrl, 'propertyDetails');
       set(_propertyDetailsAttachCtrl, 'propertyDetailsAttach');
       set(_circumstancesCtrl, 'circumstances');
-      set(_propertyPackedCtrl, 'propertyPacked');
+      if (data['propertyPackedList'] is List && (data['propertyPackedList'] as List).isNotEmpty) {
+        for (final c in _propertyPackedControllers) {
+          c.dispose();
+        }
+        _propertyPackedControllers.clear();
+        for (final item in (data['propertyPackedList'] as List)) {
+          _propertyPackedControllers.add(TextEditingController(text: item?.toString() ?? ''));
+        }
+      } else if (data['propertyPacked'] != null && data['propertyPacked'].toString().isNotEmpty) {
+        final text = data['propertyPacked'].toString();
+        for (final c in _propertyPackedControllers) {
+          c.dispose();
+        }
+        _propertyPackedControllers.clear();
+        if (text.contains('\n---\n')) {
+          for (final part in text.split('\n---\n')) {
+            _propertyPackedControllers.add(TextEditingController(text: part));
+          }
+        } else {
+          _propertyPackedControllers.add(TextEditingController(text: text));
+        }
+      }
+      if (_propertyPackedControllers.isEmpty) {
+        _propertyPackedControllers.add(TextEditingController());
+      }
       set(_seizeDateCtrl, 'seizeDate');
       set(_seizeDateDayCtrl, 'seizeDateDay');
       set(_seizeDateMonthCtrl, 'seizeDateMonth');
@@ -386,7 +412,8 @@ class HousePropertySearchSeizureFormViewState
       'propertyDetails': _propertyDetailsCtrl.text.trim(),
       'propertyDetailsAttach': _propertyDetailsAttachCtrl.text.trim(),
       'circumstances': _circumstancesCtrl.text.trim(),
-      'propertyPacked': _propertyPackedCtrl.text.trim(),
+      'propertyPacked': _propertyPackedControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).join('\n---\n'),
+      'propertyPackedList': _propertyPackedControllers.map((c) => c.text.trim()).toList(),
       'seizeDate': _seizeDateCombined,
       'seizeDateDay': _seizeDateDayCtrl.text.trim(),
       'seizeDateMonth': _seizeDateMonthCtrl.text.trim(),
@@ -1122,41 +1149,145 @@ class HousePropertySearchSeizureFormViewState
                   const SizedBox(height: 8),
                   Table(
                     border: TableBorder.all(color: Colors.black87),
-                    columnWidths: const {
-                      0: FixedColumnWidth(60),
-                      1: FlexColumnWidth(1),
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    columnWidths: {
+                      0: const FixedColumnWidth(60),
+                      1: const FlexColumnWidth(1),
+                      if (!widget.readOnly) 2: const FixedColumnWidth(50),
                     },
                     children: [
                       TableRow(
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(6),
-                            child: Text('Sr.No.\nअनु.क्र', style: serifStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                            child: Text(
+                              'Sr.No.\nअनु.क्र',
+                              style: serifStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(6),
-                            child: Text('Property/ मालमत्ता', style: serifStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                            child: Text(
+                              'Property/ मालमत्ता',
+                              style: serifStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
+                          if (!widget.readOnly)
+                            Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Text(
+                                'Action\nकृती',
+                                style: serifStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                         ],
                       ),
-                      TableRow(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Text('1', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                      ...List.generate(_propertyPackedControllers.length, (index) {
+                        final ctrl = _propertyPackedControllers[index];
+                        return TableRow(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                              child: Text(
+                                '${index + 1}',
+                                style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: BilingualDynamicLinedTextField(
+                                controller: ctrl,
+                                minLines: 1,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                            if (!widget.readOnly)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 2),
+                                child: Center(
+                                  child: _propertyPackedControllers.length > 1
+                                      ? IconButton(
+                                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                          tooltip: 'Remove Row (ओळ काढा)',
+                                          onPressed: () {
+                                            setState(() {
+                                              final removed = _propertyPackedControllers.removeAt(index);
+                                              removed.dispose();
+                                            });
+                                          },
+                                        )
+                                      : const SizedBox(height: 28),
+                                ),
+                              ),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
+                  if (!widget.readOnly) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _propertyPackedControllers.add(TextEditingController());
+                            });
+                          },
+                          icon: const Icon(Icons.add, size: 16, color: Color(0xFF1E3A8A)),
+                          label: Text(
+                            'Add Row (ओळ जोडा)',
+                            style: TextStyle(
+                              fontFamily: serifStyle.fontFamily,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF1E3A8A),
+                            ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: BilingualDynamicLinedTextField(
-                              controller: _propertyPackedCtrl,
-                              minLines: 8,
-                              serifStyle: serifStyle,
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEFF4FA),
+                            side: const BorderSide(color: Color(0xFFD6E4F0), width: 1),
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                        ),
+                        if (_propertyPackedControllers.length > 1) ...[
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                final last = _propertyPackedControllers.removeLast();
+                                last.dispose();
+                              });
+                            },
+                            icon: const Icon(Icons.remove, size: 16, color: Color(0xFFB91C1C)),
+                            label: Text(
+                              'Remove Row (ओळ काढा)',
+                              style: TextStyle(
+                                fontFamily: serifStyle.fontFamily,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFB91C1C),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFEEFEE),
+                              side: const BorderSide(color: Color(0xFFFCDADA), width: 1),
+                              shape: const StadiumBorder(),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             ),
                           ),
                         ],
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   BilingualFieldRow(fields: [
                     BilingualField(label: '13) Property seized : (a) Date : ', marathiLabel: 'जप्त केलेली मालमत्ता दिनांक', controller: _seizeDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),

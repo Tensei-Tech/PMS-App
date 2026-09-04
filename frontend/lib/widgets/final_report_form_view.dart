@@ -72,8 +72,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   final _complainantNameCtrl = TextEditingController();
   final _complainantFatherCtrl = TextEditingController();
 
-  static const _propertyRowCount = 2;
-  static const _witnessRowCount = 7;
+  int _propertyRowCount = 2;
+  int _witnessRowCount = 7;
 
   late final List<TextEditingController> _propDescCtrls;
   late final List<TextEditingController> _propValueCtrls;
@@ -234,7 +234,33 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
     _submitIoNameCtrl.dispose();
     _submitIoRankCtrl.dispose();
     _submitIoNoCtrl.dispose();
-    _submitIoPsCtrl.dispose();
+    for (final c in _propDescCtrls) {
+      c.dispose();
+    }
+    for (final c in _propValueCtrls) {
+      c.dispose();
+    }
+    for (final c in _propRegCtrls) {
+      c.dispose();
+    }
+    for (final c in _propFromCtrls) {
+      c.dispose();
+    }
+    for (final c in _propDisposalCtrls) {
+      c.dispose();
+    }
+    for (final c in _witnessNameCtrls) {
+      c.dispose();
+    }
+    for (final c in _witnessAgeCtrls) {
+      c.dispose();
+    }
+    for (final c in _witnessOccupationCtrls) {
+      c.dispose();
+    }
+    for (final c in _witnessAddressCtrls) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -263,6 +289,28 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
       _ioPsCtrl.text = data['ioPs']?.toString() ?? '';
       _complainantNameCtrl.text = data['complainantName']?.toString() ?? '';
       _complainantFatherCtrl.text = data['complainantFather']?.toString() ?? '';
+
+      final savedPropCount = int.tryParse(data['propertyRowCount']?.toString() ?? '');
+      if (savedPropCount != null && savedPropCount > _propertyRowCount) {
+        while (_propertyRowCount < savedPropCount) {
+          _propertyRowCount++;
+          _propDescCtrls.add(TextEditingController());
+          _propValueCtrls.add(TextEditingController());
+          _propRegCtrls.add(TextEditingController());
+          _propFromCtrls.add(TextEditingController());
+          _propDisposalCtrls.add(TextEditingController());
+        }
+      }
+      final savedWitnessCount = int.tryParse(data['witnessRowCount']?.toString() ?? '');
+      if (savedWitnessCount != null && savedWitnessCount > _witnessRowCount) {
+        while (_witnessRowCount < savedWitnessCount) {
+          _witnessRowCount++;
+          _witnessNameCtrls.add(TextEditingController());
+          _witnessAgeCtrls.add(TextEditingController());
+          _witnessOccupationCtrls.add(TextEditingController());
+          _witnessAddressCtrls.add(TextEditingController());
+        }
+      }
 
       for (var i = 0; i < _propertyRowCount; i++) {
         final n = '${i + 1}';
@@ -388,6 +436,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
       'submitIoPs': _submitIoPsCtrl.text.trim(),
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
+      'propertyRowCount': _propertyRowCount,
+      'witnessRowCount': _witnessRowCount,
     };
     for (var i = 0; i < _propertyRowCount; i++) {
       final n = '${i + 1}';
@@ -599,6 +649,71 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                     ],
                   ),
+                  if (!widget.readOnly) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _propertyRowCount++;
+                              _propDescCtrls.add(TextEditingController());
+                              _propValueCtrls.add(TextEditingController());
+                              _propRegCtrls.add(TextEditingController());
+                              _propFromCtrls.add(TextEditingController());
+                              _propDisposalCtrls.add(TextEditingController());
+                            });
+                          },
+                          icon: const Icon(Icons.add, size: 16, color: Color(0xFF1E3A8A)),
+                          label: Text(
+                            'Add Row (ओळ जोडा)',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF1E3A8A),
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEFF4FA),
+                            side: const BorderSide(color: Color(0xFFD6E4F0), width: 1),
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                        ),
+                        if (_propertyRowCount > 1) ...[
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _propertyRowCount--;
+                                _propDescCtrls.removeLast().dispose();
+                                _propValueCtrls.removeLast().dispose();
+                                _propRegCtrls.removeLast().dispose();
+                                _propFromCtrls.removeLast().dispose();
+                                _propDisposalCtrls.removeLast().dispose();
+                              });
+                            },
+                            icon: const Icon(Icons.remove, size: 16, color: Color(0xFFB91C1C)),
+                            label: Text(
+                              'Remove Row (ओळ काढा)',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFB91C1C),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFEEFEE),
+                              side: const BorderSide(color: Color(0xFFFCDADA), width: 1),
+                              shape: const StadiumBorder(),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   FormMrwFooter(serifStyle: serifStyle),
                 ],
@@ -742,7 +857,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                             Padding(
                               padding: const EdgeInsets.all(6),
                               child: Text(
-                                _witnessEvidenceLabels[i],
+                                i < _witnessEvidenceLabels.length
+                                    ? _witnessEvidenceLabels[i]
+                                    : 'इतर साक्षीदार',
                                 style: marathiLabelStyle.copyWith(fontSize: 9),
                               ),
                             ),
@@ -750,6 +867,69 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                     ],
                   ),
+                  if (!widget.readOnly) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _witnessRowCount++;
+                              _witnessNameCtrls.add(TextEditingController());
+                              _witnessAgeCtrls.add(TextEditingController());
+                              _witnessOccupationCtrls.add(TextEditingController());
+                              _witnessAddressCtrls.add(TextEditingController());
+                            });
+                          },
+                          icon: const Icon(Icons.add, size: 16, color: Color(0xFF1E3A8A)),
+                          label: Text(
+                            'Add Row (ओळ जोडा)',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF1E3A8A),
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEFF4FA),
+                            side: const BorderSide(color: Color(0xFFD6E4F0), width: 1),
+                            shape: const StadiumBorder(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                        ),
+                        if (_witnessRowCount > 1) ...[
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _witnessRowCount--;
+                                _witnessNameCtrls.removeLast().dispose();
+                                _witnessAgeCtrls.removeLast().dispose();
+                                _witnessOccupationCtrls.removeLast().dispose();
+                                _witnessAddressCtrls.removeLast().dispose();
+                              });
+                            },
+                            icon: const Icon(Icons.remove, size: 16, color: Color(0xFFB91C1C)),
+                            label: Text(
+                              'Remove Row (ओळ काढा)',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFB91C1C),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFEEFEE),
+                              side: const BorderSide(color: Color(0xFFFCDADA), width: 1),
+                              shape: const StadiumBorder(),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   BilingualMultilineField(
                     label: '14. If F. I. R. is False, indicate action taken or proposed to be taken u/s 182/211 I. P. C. :',
