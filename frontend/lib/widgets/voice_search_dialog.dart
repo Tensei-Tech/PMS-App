@@ -65,10 +65,10 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
   @override
   void dispose() {
     _autoSubmitTimer?.cancel();
+    stopWebVoiceRecognition();
     _pulseCtrl.dispose();
     _voiceInputCtrl.dispose();
     _focusNode.dispose();
-    _stopListening();
     super.dispose();
   }
 
@@ -106,10 +106,10 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
           } else if (status == 'error' || status == 'unsupported') {
             _isListening = false;
             _statusMessage = message;
-            _pulseCtrl.stop();
+            if (_pulseCtrl.isAnimating) _pulseCtrl.stop();
           } else if (status == 'ended') {
             _isListening = false;
-            _pulseCtrl.stop();
+            if (_pulseCtrl.isAnimating) _pulseCtrl.stop();
 
             final currentText = _voiceInputCtrl.text.trim();
             if (currentText.isNotEmpty && !_userIsEditing) {
@@ -136,10 +136,14 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
   void _stopListening() {
     _autoSubmitTimer?.cancel();
     stopWebVoiceRecognition();
-    setState(() {
-      _isListening = false;
-    });
-    _pulseCtrl.stop();
+    if (mounted) {
+      setState(() {
+        _isListening = false;
+      });
+      if (_pulseCtrl.isAnimating) {
+        _pulseCtrl.stop();
+      }
+    }
   }
 
   void _submitSpeech(String text) {

@@ -67,6 +67,8 @@ import 'module_form_screen.dart';
 import 'common_form_screen.dart';
 import '../utils/common_form_module.dart';
 import 'form_i_v_selection_screen.dart';
+import 'hurt_cases_screen.dart';
+import 'absconded_cases_screen.dart';
 import 'module_record_detail_screen.dart';
 import 'report_case_list_screen.dart';
 
@@ -411,6 +413,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.moduleKey == 'hurt') {
+      return HurtCasesScreen(readOnly: widget.readOnly);
+    }
+    if (widget.moduleKey == 'absconded') {
+      return AbscondedCasesScreen(readOnly: widget.readOnly);
+    }
+
     List<ModuleRecord> allRecords;
     int totalCount;
     int openCount = 0;
