@@ -726,8 +726,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   String _pendingHubSubtitle(BuildContext context) {
-    if (_pendingCategory == null)
+    if (_pendingCategory == null) {
       return TranslationHelper.translate(context, 'Select a category');
+    }
     final transCategory =
         TranslationHelper.translate(context, _pendingCategory!);
     if (_pendingTimeRange == null) {

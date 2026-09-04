@@ -228,8 +228,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('[RegisterScreen] Failed to load rank configs: $e');
+      }
     }
     if (mounted) setState(() => _loadingRankConfigs = false);
   }
@@ -917,10 +918,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       !_obscureConfirmPassword),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Please confirm your password';
-                              if (v != _passwordCtrl.text)
+                              }
+                              if (v != _passwordCtrl.text) {
                                 return 'Passwords do not match';
+                              }
                               return null;
                             },
                           ),

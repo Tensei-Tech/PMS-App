@@ -809,12 +809,15 @@ class AuthProvider extends ChangeNotifier {
     await ApiService().clearAuthToken();
     await _secure.deleteAll();
 
-    if (savedEmail != null)
+    if (savedEmail != null) {
       await _secure.write(key: StorageKeys.email, value: savedEmail);
-    if (savedHash != null)
+    }
+    if (savedHash != null) {
       await _secure.write(key: StorageKeys.pinHash, value: savedHash);
-    if (savedSalt != null)
+    }
+    if (savedSalt != null) {
       await _secure.write(key: StorageKeys.pinSalt, value: savedSalt);
+    }
 
     await _lockout.resetAll();
 

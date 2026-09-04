@@ -216,10 +216,12 @@ class NcFormState extends State<NcForm> {
       final y = int.tryParse(p[2]);
       if (d == null || m == null || y == null) return parsedFallback ?? now;
       final dt = DateTime(y, m, d);
-      if (dt.year != y || dt.month != m || dt.day != d)
+      if (dt.year != y || dt.month != m || dt.day != d) {
         return parsedFallback ?? now;
-      if (dt.isBefore(DateTime(2000)) || dt.isAfter(now))
+      }
+      if (dt.isBefore(DateTime(2000)) || dt.isAfter(now)) {
         return parsedFallback ?? now;
+      }
       return dt;
     }
 
@@ -462,15 +464,17 @@ class NcFormState extends State<NcForm> {
     final io = m['investigationOfficer'];
     if (io is Map) {
       final d = _s(io['designation']);
-      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d))
+      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) {
         _ioDesig = d;
+      }
       _ioName.text = _s(io['name']);
     }
     final rb = m['registeredBy'];
     if (rb is Map) {
       final d = _s(rb['designation']);
-      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d))
+      if (d.isNotEmpty && PoliceDesignations.formIoAndReg.contains(d)) {
         _regDesig = d;
+      }
       _registrarName.text = _s(rb['name']);
     }
     final prev = m['preventives'];

@@ -916,12 +916,14 @@ class CommonFormState extends State<CommonForm> {
     final cr = m['caseResponsibility'] as Map?;
     if (cr != null) {
       final iod = cr['ioDesig']?.toString();
-      if (iod != null && PoliceDesignations.formIoAndReg.contains(iod))
+      if (iod != null && PoliceDesignations.formIoAndReg.contains(iod)) {
         _ioDesig = iod;
+      }
       _ioName.text = _s(cr['ioName']);
       final rd = cr['regDesig']?.toString();
-      if (rd != null && PoliceDesignations.formIoAndReg.contains(rd))
+      if (rd != null && PoliceDesignations.formIoAndReg.contains(rd)) {
         _regDesig = rd;
+      }
       _regName.text = _s(cr['regName']);
       _cctvVal = cr['cctvValue'] as String?;
       _cctvDt.text = _s(cr['cctvDateTime']);
