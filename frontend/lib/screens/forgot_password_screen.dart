@@ -502,9 +502,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                               isDense: true,
                                               contentPadding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 10,
-                                                  ),
+                                                horizontal: 12,
+                                                vertical: 10,
+                                              ),
                                               filled: true,
                                               fillColor: const Color(
                                                 0xFFF8FAFC,

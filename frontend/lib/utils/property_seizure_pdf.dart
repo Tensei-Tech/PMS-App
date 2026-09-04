@@ -42,10 +42,10 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
   final activeSection = doc['formSection']?.toString();
 
   bool showsSection(String sectionId) => showsFormSection(
-    activeSection: activeSection,
-    sectionId: sectionId,
-    knownSectionIds: knownSectionIds,
-  );
+        activeSection: activeSection,
+        sectionId: sectionId,
+        knownSectionIds: knownSectionIds,
+      );
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -682,8 +682,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                       : 5,
                   (index) {
                     final sealList = doc['sealProperties'] as List?;
-                    final Map<String, dynamic> row =
-                        (sealList != null &&
+                    final Map<String, dynamic> row = (sealList != null &&
                             index < sealList.length &&
                             sealList[index] is Map)
                         ? Map<String, dynamic>.from(sealList[index] as Map)
@@ -1335,9 +1334,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   if (props is List) {
     for (int i = 0; i < props.length; i++) {
       final item = props[i];
-      final Map<String, dynamic> row = item is Map
-          ? Map<String, dynamic>.from(item)
-          : {};
+      final Map<String, dynamic> row =
+          item is Map ? Map<String, dynamic>.from(item) : {};
       final desc = row['description']?.toString() ?? '';
       final val = row['value']?.toString() ?? '';
       if (containsDevanagari(desc)) {
@@ -1353,9 +1351,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   if (sealProps is List) {
     for (int i = 0; i < sealProps.length; i++) {
       final item = sealProps[i];
-      final Map<String, dynamic> row = item is Map
-          ? Map<String, dynamic>.from(item)
-          : {};
+      final Map<String, dynamic> row =
+          item is Map ? Map<String, dynamic>.from(item) : {};
       final property = row['property']?.toString() ?? '';
       final signature = row['signature']?.toString() ?? '';
       if (containsDevanagari(property)) {

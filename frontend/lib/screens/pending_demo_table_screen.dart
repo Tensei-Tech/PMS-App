@@ -32,7 +32,8 @@ class PendingDemoTableScreen extends StatelessWidget {
     this.realDataRows,
   });
 
-  Future<void> _exportPdf(BuildContext context, List<Map<String, String>> rows) async {
+  Future<void> _exportPdf(
+      BuildContext context, List<Map<String, String>> rows) async {
     await runWithPdfAuthGate(context, () async {
       final theme = await PdfUnicodeFonts.openSansTheme();
       final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
@@ -119,8 +120,9 @@ class PendingDemoTableScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap:
-                        filtered.isEmpty ? null : () => _exportPdf(context, filtered),
+                    onTap: filtered.isEmpty
+                        ? null
+                        : () => _exportPdf(context, filtered),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 10),

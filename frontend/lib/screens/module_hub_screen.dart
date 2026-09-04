@@ -422,8 +422,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       // Aggregate across ALL categories and show only active (non-closed) cases
       final consolidated = _getConsolidatedRecords(context);
       allRecords = consolidated
-          .where((r) =>
-              r.status != 'Closed' && r.moduleKey != 'nc')
+          .where((r) => r.status != 'Closed' && r.moduleKey != 'nc')
           .toList();
       totalCount = allRecords.length;
       openCount = allRecords.where((r) => r.status == 'Open').length;
@@ -458,7 +457,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     final List<ModuleRecord> filtered;
     if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
-      if (_filter == 'Disposal' || _filter == 'Closed' || _filter == 'Resolved') {
+      if (_filter == 'Disposal' ||
+          _filter == 'Closed' ||
+          _filter == 'Resolved') {
         filtered = allRecords
             .where((r) =>
                 r.status == 'Disposal' ||
@@ -504,11 +505,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               SliverToBoxAdapter(
                   child: _buildMonthlyReport(context, allRecords))
             else ...[
-              if (widget.moduleKey != 'form_1_5' && widget.moduleKey != 'disposal') ...[
+              if (widget.moduleKey != 'form_1_5' &&
+                  widget.moduleKey != 'disposal') ...[
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
+                        AppSpacing.md, AppSpacing.lg, AppSpacing.md),
                     child: _buildStatsRow(openCount, activeCount, resolvedCount,
                         closedCount, totalCount),
                   ),
@@ -531,14 +533,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
-      floatingActionButton: (widget.readOnly || widget.moduleKey == 'detected' || widget.moduleKey == 'undetected' || widget.moduleKey == 'disposal')
+      floatingActionButton: (widget.readOnly ||
+              widget.moduleKey == 'detected' ||
+              widget.moduleKey == 'undetected' ||
+              widget.moduleKey == 'disposal')
           ? null
           : FloatingActionButton.extended(
               onPressed: () => _openNewEntryForm(context),
               backgroundColor: AppColors.navyDark,
               elevation: 4,
               shape: const StadiumBorder(),
-              icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+              icon:
+                  const Icon(Icons.add_rounded, color: Colors.white, size: 20),
               label: Text(
                 TranslationHelper.translate(context, 'Add Case'),
                 style: GoogleFonts.poppins(
@@ -562,7 +568,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       subtitle: '$total $transRecord $transReg',
       badgeLabel: transTitle.toUpperCase(),
       onAddPressed: widget.readOnly ? null : () => _openNewEntryForm(context),
-      backgroundColor: (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected' || widget.moduleKey == 'disposal') ? AppColors.navyDark : null,
+      backgroundColor: (widget.moduleKey == 'detected' ||
+              widget.moduleKey == 'undetected' ||
+              widget.moduleKey == 'disposal')
+          ? AppColors.navyDark
+          : null,
     );
   }
 
@@ -605,8 +615,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       ),
     );
   }
-
-
 
   Widget _buildMonthlyReport(BuildContext context, List<ModuleRecord> records) {
     // For the "Monthly" module, show report-only (no category record tiles),
@@ -718,13 +726,17 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   String _pendingHubSubtitle(BuildContext context) {
-    if (_pendingCategory == null) return TranslationHelper.translate(context, 'Select a category');
-    final transCategory = TranslationHelper.translate(context, _pendingCategory!);
+    if (_pendingCategory == null)
+      return TranslationHelper.translate(context, 'Select a category');
+    final transCategory =
+        TranslationHelper.translate(context, _pendingCategory!);
     if (_pendingTimeRange == null) {
-      final transSelectTime = TranslationHelper.translate(context, 'Select time range');
+      final transSelectTime =
+          TranslationHelper.translate(context, 'Select time range');
       return '$transCategory — $transSelectTime';
     }
-    final transTimeRange = TranslationHelper.translate(context, _pendingTimeRange!);
+    final transTimeRange =
+        TranslationHelper.translate(context, _pendingTimeRange!);
     return '$transCategory — $transTimeRange';
   }
 
@@ -855,7 +867,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   if (val == 'IO Wise') {
                     final cat = _pendingCategory ?? _pendingHubCategories.first;
                     setState(() {
-                      _pendingViewMode = 'Case Wise'; // Reset back on back button
+                      _pendingViewMode =
+                          'Case Wise'; // Reset back on back button
                     });
                     Navigator.push(
                       context,
@@ -880,8 +893,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   Widget _buildFormsModuleReportOnly(BuildContext context) {
     void onFormSelect(FormsListEntry entry, {FormsSubSection? subSection}) {
-      final subCategory =
-          subSection?.subCategoryOverride ?? entry.subCategory;
+      final subCategory = subSection?.subCategoryOverride ?? entry.subCategory;
       final moduleLabel = subSection != null
           ? '${entry.title} — ${subSection.label}'
           : entry.title;
@@ -909,7 +921,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     return ModuleHubReportCard(
       title: TranslationHelper.translate(context, 'Forms Categories'),
-      subtitle: '${kFormsHierarchyMock.length} ${TranslationHelper.translate(context, 'form types')}',
+      subtitle:
+          '${kFormsHierarchyMock.length} ${TranslationHelper.translate(context, 'form types')}',
       showSummaryButton: false,
       showFilterRow: false,
       filterRow: const SizedBox.shrink(),
@@ -937,7 +950,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'December',
     ];
 
-    final transMonth = TranslationHelper.translate(context, months[_reportMonth - 1]);
+    final transMonth =
+        TranslationHelper.translate(context, months[_reportMonth - 1]);
     final monthYearLabel = '$transMonth $_reportYear';
 
     // Reuse the Calendar monthly table builder from dashboard (static helper).
@@ -1496,8 +1510,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   .format(DateTime(selectedYear, selectedMonth));
               runWithPdfAuthGate(
                 context,
-                () => ModulePdfHelper.generateMonthlyTablePdf(
-                    label, tableRows),
+                () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
               );
             },
             icon: const Icon(Icons.picture_as_pdf_rounded,
@@ -1835,8 +1848,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   .format(DateTime(selectedYear, selectedMonth));
               runWithPdfAuthGate(
                 context,
-                () => ModulePdfHelper.generateMonthlyTablePdf(
-                    label, tableRows),
+                () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
               );
             },
             icon: const Icon(Icons.picture_as_pdf_rounded,
@@ -1950,8 +1962,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           style: GoogleFonts.poppins(
             fontSize: 9.5,
             fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-            color:
-                recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
+            color: recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
             decoration: recs.isEmpty ? null : TextDecoration.underline,
           ),
         ),
@@ -1973,17 +1984,17 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       final cyDet = yearDetRecsWhere(test);
       return rowOf([
         cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(linkText(cmReg.length, cmReg,
-            '$label • Current Month • Registered',
+        cellBox(linkText(
+            cmReg.length, cmReg, '$label • Current Month • Registered',
             bold: bold)),
-        cellBox(linkText(cmDet.length, cmDet,
-            '$label • Current Month • $detLabel',
+        cellBox(linkText(
+            cmDet.length, cmDet, '$label • Current Month • $detLabel',
             bold: bold)),
-        cellBox(linkText(cyReg.length, cyReg,
-            '$label • Current Year • Registered',
+        cellBox(linkText(
+            cyReg.length, cyReg, '$label • Current Year • Registered',
             bold: bold)),
-        cellBox(linkText(cyDet.length, cyDet,
-            '$label • Current Year • $detLabel',
+        cellBox(linkText(
+            cyDet.length, cyDet, '$label • Current Year • $detLabel',
             bold: bold)),
       ]);
     }
@@ -1995,13 +2006,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       return rowOf([
         cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
         cellBox(
-            linkText(cmReg.length, cmReg,
-                '$label • Current Month • Registered',
+            linkText(cmReg.length, cmReg, '$label • Current Month • Registered',
                 bold: bold),
             flex: 2),
         cellBox(
-            linkText(cyReg.length, cyReg,
-                '$label • Current Year • Registered',
+            linkText(cyReg.length, cyReg, '$label • Current Year • Registered',
                 bold: bold),
             flex: 2),
       ]);
@@ -2061,8 +2070,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     bool g1Total(ModuleRecord r) =>
         isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
-    bool g1NcTotal(ModuleRecord r) =>
-        isAd(r) || isAccident(r) || isNc(r);
+    bool g1NcTotal(ModuleRecord r) => isAd(r) || isAccident(r) || isNc(r);
     bool g2Total(ModuleRecord r) =>
         isSec186175Bnss(r) ||
         isSec128Bnss(r) ||
@@ -2097,7 +2105,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'k': 'd5', 'l': 'AD', 't': isAd, 'dl': 'Detected'},
       {'k': 'd5', 'l': 'N.C Injury', 't': isAccident, 'dl': 'Detected'},
       {'k': 'd5', 'l': 'N.C others', 't': isNc, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C Total', 't': g1NcTotal, 'bold': true, 'dl': 'Detected'},
+      {
+        'k': 'd5',
+        'l': 'N.C Total',
+        't': g1NcTotal,
+        'bold': true,
+        'dl': 'Detected'
+      },
       {'k': 'b'},
       {'k': 'h', 'l': 'Preventive'},
       {'k': 'd3', 'l': 'Sec. 126, 135(2) BNSS', 't': isSec186175Bnss},
@@ -2113,15 +2127,32 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'k': 'b'},
       {'k': 'h', 'l': 'MV Act'},
       {'k': 's', 'r': 'Registered', 'd': 'Fine'},
-      {'k': 'd5', 'l': 'Sec. 66/192 MV Act', 't': isMotorVehicleAct, 'dl': 'Fine'},
+      {
+        'k': 'd5',
+        'l': 'Sec. 66/192 MV Act',
+        't': isMotorVehicleAct,
+        'dl': 'Fine'
+      },
       {'k': 'd5', 'l': 'Other MV Act', 't': isOtherMvAct, 'dl': 'Fine'},
-      {'k': 'd5', 'l': 'Total MV Act', 't': g3Total, 'bold': true, 'dl': 'Fine'},
+      {
+        'k': 'd5',
+        'l': 'Total MV Act',
+        't': g3Total,
+        'bold': true,
+        'dl': 'Fine'
+      },
       {'k': 'b'},
       {'k': 'h', 'l': 'Missing'},
       {'k': 's', 'r': 'Registered', 'd': 'Found'},
       {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
       {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
-      {'k': 'd5', 'l': 'Total missing', 't': isMissingTotal, 'bold': true, 'dl': 'Found'},
+      {
+        'k': 'd5',
+        'l': 'Total missing',
+        't': isMissingTotal,
+        'bold': true,
+        'dl': 'Found'
+      },
     ];
 
     // Renders one rowDef as a Flutter widget (on-screen).
@@ -2161,19 +2192,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       pw.Widget pCellBox(String text,
           {bool bold = false, bool alignLeft = false}) {
         return pw.Container(
-          padding:
-              const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-          alignment:
-              alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
+          padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+          alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
           constraints: const pw.BoxConstraints(minHeight: 11),
           child: pw.Text(
             text,
-            textAlign:
-                alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
+            textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
             style: pw.TextStyle(
               fontSize: 7,
-              fontWeight:
-                  bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+              fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
             ),
           ),
         );
@@ -2202,13 +2229,23 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           case 'b':
             return pw.SizedBox(height: 4);
           case 'h':
-            return pTableRow([5, 2, 2], [
+            return pTableRow([
+              5,
+              2,
+              2
+            ], [
               pCellBox(r['l'] as String, bold: true),
               pCellBox('Current Month', bold: true),
               pCellBox('Current Year', bold: true),
             ]);
           case 's':
-            return pTableRow([5, 1, 1, 1, 1], [
+            return pTableRow([
+              5,
+              1,
+              1,
+              1,
+              1
+            ], [
               pCellBox(''),
               pCellBox(r['r'] as String, bold: true),
               pCellBox(r['d'] as String, bold: true),
@@ -2218,7 +2255,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           case 'd5':
             final test = r['t'] as bool Function(ModuleRecord);
             final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([5, 1, 1, 1, 1], [
+            return pTableRow([
+              5,
+              1,
+              1,
+              1,
+              1
+            ], [
               pCellBox(r['l'] as String, bold: bold, alignLeft: true),
               pCellBox('${monthRecsWhere(test).length}', bold: bold),
               pCellBox('${monthDetRecsWhere(test).length}', bold: bold),
@@ -2228,7 +2271,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           case 'd3':
             final test = r['t'] as bool Function(ModuleRecord);
             final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([5, 2, 2], [
+            return pTableRow([
+              5,
+              2,
+              2
+            ], [
               pCellBox(r['l'] as String, bold: bold, alignLeft: true),
               pCellBox('${monthRecsWhere(test).length}', bold: bold),
               pCellBox('${yearRecsWhere(test).length}', bold: bold),
@@ -2562,8 +2609,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'ypRecords': yearPreviousRecords,
     });
 
-    final cmDateLabel = DateFormat('MMMM,yyyy')
-        .format(DateTime(selectedYear, selectedMonth));
+    final cmDateLabel =
+        DateFormat('MMMM,yyyy').format(DateTime(selectedYear, selectedMonth));
     final pmDateLabel =
         DateFormat('MMMM,yyyy').format(DateTime(prevYear, prevMonth));
     final smlyDateLabel = DateFormat('MMMM,yyyy')
@@ -2576,10 +2623,20 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'sr': '2', 'label': 'Attempt to murder', 'head': 'Att to Murder'},
       {'sr': '3', 'label': 'Dacoity', 'head': 'Dacoity'},
       {'sr': '4', 'label': 'Pro of Decoity', 'head': 'Pro Of Dacoity'},
-      {'sr': '5', 'label': 'Total Robery', 'head': 'Total Robery', 'bold': true},
+      {
+        'sr': '5',
+        'label': 'Total Robery',
+        'head': 'Total Robery',
+        'bold': true
+      },
       {'sr': 'a', 'label': 'Chain Robery', 'head': 'Chain Robery', 'indent': 1},
       {'sr': 'b', 'label': 'Other Robery', 'head': 'Other Robery', 'indent': 1},
-      {'sr': '6', 'label': 'Total H.B.Ts', 'head': 'Total H B Ts', 'bold': true},
+      {
+        'sr': '6',
+        'label': 'Total H.B.Ts',
+        'head': 'Total H B Ts',
+        'bold': true
+      },
       {'sr': 'a', 'label': 'H.B.Ts (Day)', 'head': 'H B Ts (Day)', 'indent': 1},
       {
         'sr': 'b',
@@ -2601,8 +2658,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         'head': 'Chain Snaching',
         'indent': 1,
       },
-      {'sr': 'd', 'label': 'Mobile Thefts', 'head': 'Mobile Thefts', 'indent': 1},
-      {'sr': 'e', 'label': 'Cattle Thefts', 'head': 'Cattel Theft', 'indent': 1},
+      {
+        'sr': 'd',
+        'label': 'Mobile Thefts',
+        'head': 'Mobile Thefts',
+        'indent': 1
+      },
+      {
+        'sr': 'e',
+        'label': 'Cattle Thefts',
+        'head': 'Cattel Theft',
+        'indent': 1
+      },
       {'sr': 'f', 'label': 'Other Thefts', 'head': 'Other Thefts', 'indent': 1},
       {'sr': '8', 'label': 'Extortion', 'head': 'Extcrtion'},
       {'sr': '9', 'label': 'Cheating', 'head': 'Cheating', 'bold': true},
@@ -2718,8 +2785,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       AlignmentGeometry alignment = Alignment.center,
     }) {
       return Container(
-        padding: padding ??
-            const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+        padding:
+            padding ?? const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.lightBorder, width: 0.5),
         ),
@@ -2806,16 +2873,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       final ypR = vInt(src, 'yp_R');
       final ypD = vInt(src, 'yp_D');
       final varVal = vInt(src, 'variation');
-      final cmRecs = (src['cmRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
-      final pmRecs = (src['pmRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
-      final smlyRecs = (src['smlyRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
-      final ycRecs = (src['ycRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
-      final ypRecs = (src['ypRecords'] as List<ModuleRecord>?) ??
-          const <ModuleRecord>[];
+      final cmRecs =
+          (src['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final pmRecs =
+          (src['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final smlyRecs =
+          (src['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final ycRecs =
+          (src['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final ypRecs =
+          (src['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
       final label = def['label'] as String;
       final labelPad = classVCellPad(
         denseTop: denseTop,
@@ -2853,8 +2920,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(cmD, detRecs(cmRecs),
-              '$label • $cmDateLabel • D', bold: bold),
+          child: cLink(cmD, detRecs(cmRecs), '$label • $cmDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
@@ -2868,24 +2935,24 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(pmD, detRecs(pmRecs),
-              '$label • $pmDateLabel • D', bold: bold),
+          child: cLink(pmD, detRecs(pmRecs), '$label • $pmDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(smlyR, smlyRecs,
-              '$label • $smlyDateLabel • R', bold: bold),
+          child:
+              cLink(smlyR, smlyRecs, '$label • $smlyDateLabel • R', bold: bold),
         ),
         cBox(
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(smlyD, detRecs(smlyRecs),
-              '$label • $smlyDateLabel • D', bold: bold),
+          child: cLink(smlyD, detRecs(smlyRecs), '$label • $smlyDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
@@ -2899,8 +2966,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(ycD, detRecs(ycRecs),
-              '$label • $ycDateLabel • D', bold: bold),
+          child: cLink(ycD, detRecs(ycRecs), '$label • $ycDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
@@ -2914,8 +2981,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(ypD, detRecs(ypRecs),
-              '$label • $ypDateLabel • D', bold: bold),
+          child: cLink(ypD, detRecs(ypRecs), '$label • $ypDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
@@ -2930,10 +2997,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     Widget buildScreenTable() {
       return LayoutBuilder(
         builder: (context, constraints) {
-          final barW = constraints.hasBoundedWidth &&
-                  constraints.maxWidth.isFinite
-              ? constraints.maxWidth
-              : MediaQuery.sizeOf(context).width;
+          final barW =
+              constraints.hasBoundedWidth && constraints.maxWidth.isFinite
+                  ? constraints.maxWidth
+                  : MediaQuery.sizeOf(context).width;
 
           return Container(
             decoration: BoxDecoration(
@@ -2996,44 +3063,44 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 ]),
                 rowOfFlex(dataFlexes, [
                   cBox(
-                      child: cText('',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('R',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('D',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child: cText('',
-                          bold: true, fontSize: classVBodyFontSize)),
+                      child:
+                          cText('', bold: true, fontSize: classVBodyFontSize)),
                 ]),
                 for (final def in classVRowDefs) buildScreenDataRow(def),
               ],
@@ -3123,9 +3190,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     Future<void> exportPdf() async {
       final doc = pw.Document();
       final body = <pw.Widget>[
-        pTableRow([flexAll], [
-          pCellBox('Name of the Police Station',
-              bold: true, fontSize: 9),
+        pTableRow([
+          flexAll
+        ], [
+          pCellBox('Name of the Police Station', bold: true, fontSize: 9),
         ]),
         pTableRow(headerGroupFlexes, [
           pCellBox('Sr.No', bold: true),
@@ -3282,7 +3350,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 color: AppColors.goldPrimary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text('$count ${TranslationHelper.translate(context, count == 1 ? 'Case' : 'Cases')}',
+              child: Text(
+                  '$count ${TranslationHelper.translate(context, count == 1 ? 'Case' : 'Cases')}',
                   style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -3376,9 +3445,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         children: [
           _statCard('Total Case', totalCaseCount, AppColors.infoBlue, 'All'),
           const SizedBox(width: 8),
-          _statCard('Pending', pendingCount, AppColors.warningOrange, 'Pending'),
+          _statCard(
+              'Pending', pendingCount, AppColors.warningOrange, 'Pending'),
           const SizedBox(width: 8),
-          _statCard('Disposal', disposalCount, AppColors.successGreen, 'Disposal'),
+          _statCard(
+              'Disposal', disposalCount, AppColors.successGreen, 'Disposal'),
         ],
       );
     }
@@ -3393,7 +3464,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _openNewEntryForm(context),
-                    icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                    icon: const Icon(Icons.add_rounded,
+                        color: Colors.white, size: 20),
                     label: Text(
                       '+ ${TranslationHelper.translate(context, 'Add New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'case')}',
                       style: GoogleFonts.poppins(
@@ -3485,8 +3557,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     TranslationHelper.translate(context, label),
                     style: GoogleFonts.poppins(
                       fontSize: 10,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                      color: isSelected ? AppColors.navyDark : AppColors.lightSubText,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.navyDark
+                          : AppColors.lightSubText,
                     ),
                   ),
                 ],
@@ -3544,7 +3619,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              TranslationHelper.translate(context, 'No registered entries found in this category.'),
+              TranslationHelper.translate(
+                  context, 'No registered entries found in this category.'),
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
@@ -3562,8 +3638,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     if (widget.readOnly) {
       return ReadOnlyModuleRecordHubCard(record: record);
     }
-    final isDetailFormHistory =
-        record.subCategory == 'Crime Detail Form' ||
+    final isDetailFormHistory = record.subCategory == 'Crime Detail Form' ||
         record.subCategory == 'Property & Seizure Form';
     if (isDetailFormHistory) {
       return Center(
@@ -3585,7 +3660,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -3680,9 +3756,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         ),
       );
     }
-    final isDetectedCard =
-        widget.moduleKey == 'detected' || record.moduleKey == 'detected' ||
-        widget.moduleKey == 'undetected' || record.moduleKey == 'undetected';
+    final isDetectedCard = widget.moduleKey == 'detected' ||
+        record.moduleKey == 'detected' ||
+        widget.moduleKey == 'undetected' ||
+        record.moduleKey == 'undetected';
     final String displayStatus;
     final Color sc;
     if (isDetectedCard) {
@@ -3800,95 +3877,86 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         Container(height: 1, color: AppColors.lightBorder),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                      _actionBtn(
-                          Icons.edit_note_rounded, 'Edit', AppColors.infoBlue,
-                          () {
-                        if (widget.moduleKey == 'ad') {
-                          Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(
-                              page: ADFormScreen(existingRecord: record),
-                            ),
-                          );
-                          return;
-                        }
-                        if (widget.moduleKey == 'nc') {
-                          Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(
-                              page: NcFormScreen(
-                                moduleLabel:
-                                    record.firestoreCategoryDisplayName,
-                                subCategory: widget.subCategory,
-                                existingRecord: record,
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        if (widget.moduleKey == 'missing') {
-                          Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(
-                              page: MissingFormScreen(
-                                moduleLabel:
-                                    record.firestoreCategoryDisplayName,
-                                subCategory: widget.subCategory,
-                                existingRecord: record,
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        final page = moduleUsesCommonCrimeForm(widget.moduleKey)
-                            ? CommonFormScreen(
-                                moduleLabel: record.firestoreCategoryDisplayName,
-                                moduleKey: widget.moduleKey,
-                                subCategory: record.subCategory,
-                                existingRecord: record,
-                              )
-                            : ModuleFormScreen(
-                                moduleLabel: record.firestoreCategoryDisplayName,
-                                moduleKey: widget.moduleKey,
-                                subCategory: record.subCategory,
-                                existingRecord: record,
-                              );
-                        Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(page: page));
-                      }),
-                      Container(
-                          width: 1, height: 24, color: AppColors.lightBorder),
-                      _actionBtn(Icons.picture_as_pdf_rounded, 'PDF',
-                          AppColors.dangerRed, () {
-                        ModulePdfHelper.generatePdf(record);
-                      }),
-                      Container(
-                          width: 1, height: 24, color: AppColors.lightBorder),
-                      _actionBtn(Icons.visibility_rounded, 'View',
-                          AppColors.goldPrimary, () {
-                        Navigator.push(
-                            ctx,
-                            AppTheme.fadeSlideRoute(
-                              page: widget.moduleKey == 'ad'
-                                  ? AdRecordDetailScreen(
-                                      record: record,
-                                    )
-                                  : ModuleRecordDetailScreen(
-                                      record: record,
-                                    ),
-                            ));
-                      }),
-                      Container(
-                          width: 1, height: 24, color: AppColors.lightBorder),
-                      _actionBtn(Icons.delete_outline_rounded, 'Delete',
-                          AppColors.warningOrange, () {
-                        _confirmDelete(ctx, record);
-                      }),
-                    ]),
+          child:
+              Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+            _actionBtn(Icons.edit_note_rounded, 'Edit', AppColors.infoBlue, () {
+              if (widget.moduleKey == 'ad') {
+                Navigator.push(
+                  ctx,
+                  AppTheme.fadeSlideRoute(
+                    page: ADFormScreen(existingRecord: record),
+                  ),
+                );
+                return;
+              }
+              if (widget.moduleKey == 'nc') {
+                Navigator.push(
+                  ctx,
+                  AppTheme.fadeSlideRoute(
+                    page: NcFormScreen(
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                      subCategory: widget.subCategory,
+                      existingRecord: record,
+                    ),
+                  ),
+                );
+                return;
+              }
+              if (widget.moduleKey == 'missing') {
+                Navigator.push(
+                  ctx,
+                  AppTheme.fadeSlideRoute(
+                    page: MissingFormScreen(
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                      subCategory: widget.subCategory,
+                      existingRecord: record,
+                    ),
+                  ),
+                );
+                return;
+              }
+              final page = moduleUsesCommonCrimeForm(widget.moduleKey)
+                  ? CommonFormScreen(
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                      moduleKey: widget.moduleKey,
+                      subCategory: record.subCategory,
+                      existingRecord: record,
+                    )
+                  : ModuleFormScreen(
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                      moduleKey: widget.moduleKey,
+                      subCategory: record.subCategory,
+                      existingRecord: record,
+                    );
+              Navigator.push(ctx, AppTheme.fadeSlideRoute(page: page));
+            }),
+            Container(width: 1, height: 24, color: AppColors.lightBorder),
+            _actionBtn(Icons.picture_as_pdf_rounded, 'PDF', AppColors.dangerRed,
+                () {
+              ModulePdfHelper.generatePdf(record);
+            }),
+            Container(width: 1, height: 24, color: AppColors.lightBorder),
+            _actionBtn(Icons.visibility_rounded, 'View', AppColors.goldPrimary,
+                () {
+              Navigator.push(
+                  ctx,
+                  AppTheme.fadeSlideRoute(
+                    page: widget.moduleKey == 'ad'
+                        ? AdRecordDetailScreen(
+                            record: record,
+                          )
+                        : ModuleRecordDetailScreen(
+                            record: record,
+                          ),
+                  ));
+            }),
+            Container(width: 1, height: 24, color: AppColors.lightBorder),
+            _actionBtn(
+                Icons.delete_outline_rounded, 'Delete', AppColors.warningOrange,
+                () {
+              _confirmDelete(ctx, record);
+            }),
+          ]),
         ),
       ]),
     );

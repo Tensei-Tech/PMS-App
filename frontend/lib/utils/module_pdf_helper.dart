@@ -807,9 +807,8 @@ class ModulePdfHelper {
                 final rYc = getR(ycRecs, head);
 
                 final varVal = rYc - rYp;
-                final varStr = varVal > 0
-                    ? '+$varVal'
-                    : (varVal < 0 ? '$varVal' : '=');
+                final varStr =
+                    varVal > 0 ? '+$varVal' : (varVal < 0 ? '$varVal' : '=');
 
                 return pw.TableRow(
                   children: [

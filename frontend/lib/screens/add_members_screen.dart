@@ -158,11 +158,11 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
             List<String> stations = [];
             if (unitType != null && district != null) {
               if (state == 'Maharashtra') {
-                stations =
-                    MaharashtraPoliceStationsRepository.getStationNamesForSelection(
-                      district: district!,
-                      unitType: unitType!,
-                    );
+                stations = MaharashtraPoliceStationsRepository
+                    .getStationNamesForSelection(
+                  district: district!,
+                  unitType: unitType!,
+                );
               } else {
                 stations = PoliceStationsRepository.forSelection(
                   unitType: unitType!,
@@ -254,8 +254,7 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                     SizedBox(
                       height: 48,
                       child: ElevatedButton(
-                        onPressed:
-                            _assigning ||
+                        onPressed: _assigning ||
                                 unitType == null ||
                                 district == null ||
                                 station == null
@@ -559,39 +558,38 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                       child: Row(
                         children: ['All', 'Officers (API/PSI)', 'Constabulary']
                             .map((filter) {
-                              final isSelected = _selectedRankFilter == filter;
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ChoiceChip(
-                                  label: Text(
-                                    filter,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.w500,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : AppColors.navyDark,
-                                    ),
-                                  ),
-                                  selected: isSelected,
-                                  selectedColor: AppColors.navyMid,
-                                  backgroundColor: Colors.white,
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? AppColors.navyMid
-                                        : AppColors.lightBorder,
-                                  ),
-                                  onSelected: (_) {
-                                    setState(
-                                      () => _selectedRankFilter = filter,
-                                    );
-                                  },
+                          final isSelected = _selectedRankFilter == filter;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ChoiceChip(
+                              label: Text(
+                                filter,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.navyDark,
                                 ),
-                              );
-                            })
-                            .toList(),
+                              ),
+                              selected: isSelected,
+                              selectedColor: AppColors.navyMid,
+                              backgroundColor: Colors.white,
+                              side: BorderSide(
+                                color: isSelected
+                                    ? AppColors.navyMid
+                                    : AppColors.lightBorder,
+                              ),
+                              onSelected: (_) {
+                                setState(
+                                  () => _selectedRankFilter = filter,
+                                );
+                              },
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                     const SizedBox(height: 14),

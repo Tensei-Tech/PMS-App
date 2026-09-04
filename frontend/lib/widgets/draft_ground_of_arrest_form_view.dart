@@ -284,8 +284,7 @@ class DraftGroundOfArrestFormViewState
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         text,
-        style:
-            marathi ??
+        style: marathi ??
             serif.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
       ),
     );

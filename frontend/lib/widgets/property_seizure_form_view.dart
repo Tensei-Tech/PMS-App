@@ -112,29 +112,6 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
     return '$h:$m';
   }
 
-  Widget _buildDashedDivider() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final boxWidth = constraints.constrainWidth();
-        const dashWidth = 5.0;
-        const dashSpace = 3.0;
-        final dashCount = (boxWidth / (dashWidth + dashSpace)).floor();
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(dashCount, (_) {
-            return const SizedBox(
-              width: dashWidth,
-              height: 1,
-              child: DecoratedBox(
-                decoration: BoxDecoration(color: Colors.black87),
-              ),
-            );
-          }),
-        );
-      },
-    );
-  }
-
   // Pancha & IO Signature
   final _pancha1NameCtrl = TextEditingController();
   final _pancha1Addr1Ctrl = TextEditingController();
@@ -1468,6 +1445,42 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
           hintStyle: style.copyWith(color: Colors.grey.shade400, fontSize: 10),
         ),
       ),
+    );
+  }
+
+  Widget _chipSelector({
+    required List<String> items,
+    required String selected,
+    required ValueChanged<String> onSelect,
+  }) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: items.map((item) {
+        final active = selected == item;
+        return GestureDetector(
+          onTap: widget.readOnly ? null : () => onSelect(item),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: active ? Colors.blue.shade50 : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: active ? Colors.blue : Colors.grey.shade300,
+                width: active ? 1.5 : 1,
+              ),
+            ),
+            child: Text(
+              item,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                color: active ? Colors.blue.shade900 : Colors.black87,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

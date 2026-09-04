@@ -285,44 +285,45 @@ class BnssDedicatedForms {
     return doc['accusedName']?.toString().trim().isNotEmpty == true
         ? doc['accusedName']!.trim()
         : doc['juvenileName']?.toString().trim().isNotEmpty == true
-        ? doc['juvenileName']!.trim()
-        : doc['patientName']?.toString().trim().isNotEmpty == true
-        ? doc['patientName']!.trim()
-        : doc['witnessNameAddress']?.toString().trim().isNotEmpty == true
-        ? doc['witnessNameAddress']!.trim()
-        : doc['toNameAddress']?.toString().trim().isNotEmpty == true
-        ? doc['toNameAddress']!.trim()
-        : doc['accusedNameAddress']?.toString().trim() ?? '';
+            ? doc['juvenileName']!.trim()
+            : doc['patientName']?.toString().trim().isNotEmpty == true
+                ? doc['patientName']!.trim()
+                : doc['witnessNameAddress']?.toString().trim().isNotEmpty ==
+                        true
+                    ? doc['witnessNameAddress']!.trim()
+                    : doc['toNameAddress']?.toString().trim().isNotEmpty == true
+                        ? doc['toNameAddress']!.trim()
+                        : doc['accusedNameAddress']?.toString().trim() ?? '';
   }
 
   static String caseNumFromDoc(Map<String, dynamic> doc) {
     return doc['crNo']?.toString().trim().isNotEmpty == true
         ? doc['crNo']!.trim()
         : doc['firNo']?.toString().trim().isNotEmpty == true
-        ? doc['firNo']!.trim()
-        : doc['outwardNo']?.toString().trim().isNotEmpty == true
-        ? doc['outwardNo']!.trim()
-        : doc['campNo']?.toString().trim().isNotEmpty == true
-        ? doc['campNo']!.trim()
-        : doc['receiptNo']?.toString().trim() ?? '';
+            ? doc['firNo']!.trim()
+            : doc['outwardNo']?.toString().trim().isNotEmpty == true
+                ? doc['outwardNo']!.trim()
+                : doc['campNo']?.toString().trim().isNotEmpty == true
+                    ? doc['campNo']!.trim()
+                    : doc['receiptNo']?.toString().trim() ?? '';
   }
 
   static String locationFromDoc(Map<String, dynamic> doc) {
     return doc['policeStation']?.toString().trim().isNotEmpty == true
         ? doc['policeStation']!.trim()
         : doc['ps']?.toString().trim().isNotEmpty == true
-        ? doc['ps']!.trim()
-        : doc['searchAddress']?.toString().trim() ?? '';
+            ? doc['ps']!.trim()
+            : doc['searchAddress']?.toString().trim() ?? '';
   }
 
   static DateTime dateFromDoc(Map<String, dynamic> doc) {
     final dateStr = doc['noticeDate']?.toString().trim().isNotEmpty == true
         ? doc['noticeDate']!.trim()
         : doc['date']?.toString().trim().isNotEmpty == true
-        ? doc['date']!.trim()
-        : doc['headerDate']?.toString().trim().isNotEmpty == true
-        ? doc['headerDate']!.trim()
-        : doc['reportDate']?.toString().trim() ?? '';
+            ? doc['date']!.trim()
+            : doc['headerDate']?.toString().trim().isNotEmpty == true
+                ? doc['headerDate']!.trim()
+                : doc['reportDate']?.toString().trim() ?? '';
     final parts = dateStr.split(RegExp(r'[/.-]'));
     if (parts.length >= 3) {
       final d = int.tryParse(parts[0]);

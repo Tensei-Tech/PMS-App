@@ -102,7 +102,7 @@ class MaharashtraPoliceStationsRepository {
   static List<String> getStationNamesForSelection({
     required String district,
     required String
-    unitType, // 'Commissionerate Police' or 'Superintendent of Police'
+        unitType, // 'Commissionerate Police' or 'Superintendent of Police'
   }) {
     _ensureLoaded();
     final stations = _cachedByDistrict?[district] ?? [];

@@ -174,9 +174,8 @@ class CaseProvider extends ChangeNotifier {
       );
 
       if (remoteCasesData != null && remoteCasesData.isNotEmpty) {
-        final remoteCases = remoteCasesData
-            .map((data) => CaseRecord.fromMap(data))
-            .toList();
+        final remoteCases =
+            remoteCasesData.map((data) => CaseRecord.fromMap(data)).toList();
 
         // Merge or update local list
         for (var remoteCase in remoteCases) {

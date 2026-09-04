@@ -620,24 +620,23 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                         initialValue: _custodyTo,
                         decoration: _inputDecoration('Custody Given To'),
                         style: GoogleFonts.poppins(color: _dark),
-                        items:
-                            const [
-                                  'Parents',
-                                  'Relative',
-                                  'Friend',
-                                  'Shelter Home',
-                                  'Other',
-                                ]
-                                .map(
-                                  (e) => DropdownMenuItem<String>(
-                                    value: e,
-                                    child: Text(
-                                      e,
-                                      style: GoogleFonts.poppins(),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
+                        items: const [
+                          'Parents',
+                          'Relative',
+                          'Friend',
+                          'Shelter Home',
+                          'Other',
+                        ]
+                            .map(
+                              (e) => DropdownMenuItem<String>(
+                                value: e,
+                                child: Text(
+                                  e,
+                                  style: GoogleFonts.poppins(),
+                                ),
+                              ),
+                            )
+                            .toList(),
                         onChanged: (v) => setState(() => _custodyTo = v),
                       ),
                       const SizedBox(height: 12),

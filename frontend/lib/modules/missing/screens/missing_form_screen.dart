@@ -280,9 +280,8 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
       extraFields: extra,
       stationName: stationName,
       createdBy: createdBy,
-      assignedOfficerUid: _isEdit
-          ? widget.existingRecord!.assignedOfficerUid
-          : auth.uid,
+      assignedOfficerUid:
+          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
     );
 
     if (_isEdit) {

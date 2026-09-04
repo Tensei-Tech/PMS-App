@@ -19,6 +19,7 @@ import 'case_form_screen.dart';
 
 class CaseDetailScreen extends StatefulWidget {
   final ModuleRecord caseData;
+
   /// When false (e.g. opened from Recent Cases), hides FABs on the detail page.
   final bool showFloatingActions;
 
@@ -116,7 +117,8 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                     const SizedBox(height: 12),
                     FloatingActionButton.extended(
                       heroTag: 'reminder_btn',
-                      onPressed: () => SendReminderDialog.show(context, _record),
+                      onPressed: () =>
+                          SendReminderDialog.show(context, _record),
                       backgroundColor: AppColors.warningOrange,
                       icon: const Icon(Icons.notifications_active_rounded,
                           color: Colors.white),

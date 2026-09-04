@@ -15,8 +15,7 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final out = Map<String, dynamic>.from(source);
 
   // Registration / FIR
-  final firNo =
-      source['crNo'] ??
+  final firNo = source['crNo'] ??
       source['firNo'] ??
       source['caseNumber'] ??
       source['adNo'] ??
@@ -114,10 +113,10 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
   final activeSection = doc['formSection']?.toString();
 
   bool showsSection(String sectionId) => showsFormSection(
-    activeSection: activeSection,
-    sectionId: sectionId,
-    knownSectionIds: knownSectionIds,
-  );
+        activeSection: activeSection,
+        sectionId: sectionId,
+        knownSectionIds: knownSectionIds,
+      );
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -1302,9 +1301,8 @@ List<pw.TableRow> _buildPdfVictimsRows(
   if (victimsData is List) {
     for (int i = 0; i < victimsData.length; i++) {
       final item = victimsData[i];
-      final Map<String, dynamic> row = item is Map
-          ? Map<String, dynamic>.from(item)
-          : {};
+      final Map<String, dynamic> row =
+          item is Map ? Map<String, dynamic>.from(item) : {};
       rows.add(
         pw.TableRow(
           children: [
@@ -1979,9 +1977,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   if (victims is List) {
     for (int i = 0; i < victims.length; i++) {
       final item = victims[i];
-      final Map<String, dynamic> row = item is Map
-          ? Map<String, dynamic>.from(item)
-          : {};
+      final Map<String, dynamic> row =
+          item is Map ? Map<String, dynamic>.from(item) : {};
       final fields = [
         'fullName',
         'dob',

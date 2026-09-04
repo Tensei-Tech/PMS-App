@@ -363,9 +363,8 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _isChangingPassword
-                      ? null
-                      : () => _changePassword(auth),
+                  onPressed:
+                      _isChangingPassword ? null : () => _changePassword(auth),
                   icon: _isChangingPassword
                       ? const SizedBox(
                           width: 18,
@@ -433,9 +432,8 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
           enableSuggestions: !disableAutofill,
           autocorrect: false,
           enableInteractiveSelection: true,
-          autofillHints: disableAutofill
-              ? null
-              : const [AutofillHints.newPassword],
+          autofillHints:
+              disableAutofill ? null : const [AutofillHints.newPassword],
           style: GoogleFonts.poppins(
             color: AppColors.navyDark,
             fontSize: 14,

@@ -67,10 +67,9 @@ void main() {
 
   if (content.contains('_buildBilingualField')) {
     stdout.writeln('WARNING: remaining _buildBilingualField calls');
-    for (final line
-        in content
-            .split('\n')
-            .where((l) => l.contains('_buildBilingualField'))) {
+    for (final line in content
+        .split('\n')
+        .where((l) => l.contains('_buildBilingualField'))) {
       stdout.writeln(line.trim());
     }
   }

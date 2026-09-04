@@ -58,9 +58,8 @@ class SearchablePickerField extends StatelessWidget {
               prefixIcon: leadingIcon == null ? null : Icon(leadingIcon),
               suffixIcon: const Icon(Icons.search_rounded),
               filled: true,
-              fillColor: enabled
-                  ? const Color(0xFFF8FAFF)
-                  : const Color(0xFFF1F3F7),
+              fillColor:
+                  enabled ? const Color(0xFFF8FAFF) : const Color(0xFFF1F3F7),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
@@ -107,8 +106,8 @@ class _SearchSheetState extends State<_SearchSheet> {
         _filtered = q.isEmpty
             ? widget.items
             : widget.items
-                  .where((e) => e.toLowerCase().contains(q))
-                  .toList(growable: false);
+                .where((e) => e.toLowerCase().contains(q))
+                .toList(growable: false);
       });
     });
   }

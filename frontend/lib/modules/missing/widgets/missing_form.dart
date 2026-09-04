@@ -65,13 +65,13 @@ class _SuspectedRow {
   }
 
   Map<String, dynamic> toMap() => {
-    'name': name.text.trim(),
-    'age': age.text.trim(),
-    'gender': gender,
-    'mobile': mobile.text.trim(),
-    'aadhaar': aadhaar.text.trim(),
-    'address': address.text.trim(),
-  };
+        'name': name.text.trim(),
+        'age': age.text.trim(),
+        'gender': gender,
+        'mobile': mobile.text.trim(),
+        'aadhaar': aadhaar.text.trim(),
+        'address': address.text.trim(),
+      };
 
   void hydrate(Map<String, dynamic> m) {
     name.text = _str(m['name']);
@@ -353,11 +353,8 @@ class MissingFormState extends State<MissingForm> {
   }
 
   void _onWordCapChanged(TextEditingController c, void Function(int) setCt) {
-    final words = c.text
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
+    final words =
+        c.text.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
     if (words.length > 25) {
       final allowed = words.take(25).join(' ');
       c.value = TextEditingValue(
@@ -373,11 +370,8 @@ class MissingFormState extends State<MissingForm> {
   }
 
   void _recountWords(TextEditingController c, void Function(int) setCt) {
-    final words = c.text
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
+    final words =
+        c.text.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
     setCt(words.length > 25 ? 25 : words.length);
   }
 
@@ -713,30 +707,30 @@ class MissingFormState extends State<MissingForm> {
   }
 
   Widget _addBtn(String label, VoidCallback onTap) => Align(
-    alignment: Alignment.centerRight,
-    child: TextButton.icon(
-      onPressed: onTap,
-      icon: const Icon(Icons.add, size: 14),
-      label: Text(label, style: const TextStyle(fontSize: 11)),
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        foregroundColor: _kTeal,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-    ),
-  );
+        alignment: Alignment.centerRight,
+        child: TextButton.icon(
+          onPressed: onTap,
+          icon: const Icon(Icons.add, size: 14),
+          label: Text(label, style: const TextStyle(fontSize: 11)),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            foregroundColor: _kTeal,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+      );
 
   Widget _emptyBox(String t) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(14),
-    margin: const EdgeInsets.only(top: 4),
-    decoration: BoxDecoration(
-      color: _kInputBg,
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: _kBorder, style: BorderStyle.solid),
-    ),
-    child: Text(t, textAlign: TextAlign.center, style: _tsMuted),
-  );
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(top: 4),
+        decoration: BoxDecoration(
+          color: _kInputBg,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _kBorder, style: BorderStyle.solid),
+        ),
+        child: Text(t, textAlign: TextAlign.center, style: _tsMuted),
+      );
 
   Widget _barBtn(String label, IconData icon, VoidCallback onTap, Color color) {
     return InkWell(
@@ -1149,176 +1143,178 @@ class MissingFormState extends State<MissingForm> {
   }
 
   Widget _sMissingPersonBody() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _row([
-        _tf('Name', _mpName),
-        _tf(
-          'Age',
-          _mpAge,
-          keyboardType: TextInputType.number,
-          validator: (v) {
-            final n = int.tryParse(v?.trim() ?? '');
-            if (n != null && n < 18) return _kAgeMinorErr;
-            return null;
-          },
-        ),
-      ]),
-      _chipSelector(
-        label: 'Gender',
-        items: _kGenders,
-        selected: _mpGender,
-        onSelect: (v) => setState(() => _mpGender = v),
-      ),
-      const SizedBox(height: 8),
-      _row([_tf('Occupation', _mpOcc)]),
-      _row([
-        _tf('Mobile', _mpMobile, keyboardType: TextInputType.phone),
-        _tf('Aadhaar', _mpAadhaar),
-      ]),
-      _row([_tf('Religion', _mpReligion), _tf('Caste', _mpCaste)]),
-      _row([_tf('Address', _mpAddress, maxLines: 3)]),
-      _row([_tf('Active Social Media Accounts', _mpSocial)]),
-      _row([
-        _tf('WhatsApp Number', _mpWhatsapp, keyboardType: TextInputType.phone),
-      ]),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _row([
+            _tf('Name', _mpName),
+            _tf(
+              'Age',
+              _mpAge,
+              keyboardType: TextInputType.number,
+              validator: (v) {
+                final n = int.tryParse(v?.trim() ?? '');
+                if (n != null && n < 18) return _kAgeMinorErr;
+                return null;
+              },
+            ),
+          ]),
+          _chipSelector(
+            label: 'Gender',
+            items: _kGenders,
+            selected: _mpGender,
+            onSelect: (v) => setState(() => _mpGender = v),
+          ),
+          const SizedBox(height: 8),
+          _row([_tf('Occupation', _mpOcc)]),
+          _row([
+            _tf('Mobile', _mpMobile, keyboardType: TextInputType.phone),
+            _tf('Aadhaar', _mpAadhaar),
+          ]),
+          _row([_tf('Religion', _mpReligion), _tf('Caste', _mpCaste)]),
+          _row([_tf('Address', _mpAddress, maxLines: 3)]),
+          _row([_tf('Active Social Media Accounts', _mpSocial)]),
+          _row([
+            _tf('WhatsApp Number', _mpWhatsapp,
+                keyboardType: TextInputType.phone),
+          ]),
+        ],
+      );
 
   Widget _sComplainantBody() => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _row([
-        _tf('Name', _compName),
-        _tf('Age', _compAge, keyboardType: TextInputType.number),
-      ]),
-      _chipSelector(
-        label: 'Gender',
-        items: _kGenders,
-        selected: _compGender,
-        onSelect: (v) => setState(() => _compGender = v),
-      ),
-      const SizedBox(height: 8),
-      _row([_tf('Occupation', _compOcc)]),
-      _row([
-        _tf('Mobile', _compMobile, keyboardType: TextInputType.phone),
-        _tf('Aadhaar', _compAadhaar),
-      ]),
-      _row([_tf('PAN', _compPan)]),
-      _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _row([
+            _tf('Name', _compName),
+            _tf('Age', _compAge, keyboardType: TextInputType.number),
+          ]),
+          _chipSelector(
+            label: 'Gender',
+            items: _kGenders,
+            selected: _compGender,
+            onSelect: (v) => setState(() => _compGender = v),
+          ),
+          const SizedBox(height: 8),
+          _row([_tf('Occupation', _compOcc)]),
+          _row([
+            _tf('Mobile', _compMobile, keyboardType: TextInputType.phone),
+            _tf('Aadhaar', _compAadhaar),
+          ]),
+          _row([_tf('PAN', _compPan)]),
+          _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
+        ],
+      );
 
   Widget _custodyBlock(BuildContext ctx) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      DropdownButtonFormField<String>(
-        key: ValueKey('custodyTo_${_custodyTo ?? ''}'),
-        initialValue: _custodyTo,
-        decoration: _kidInputDecoration('Custody Given To'),
-        style: GoogleFonts.poppins(color: _kKidDark),
-        items: const ['Parents', 'Relative', 'Friend', 'Shelter Home', 'Other']
-            .map(
-              (e) => DropdownMenuItem<String>(
-                value: e,
-                child: Text(e, style: GoogleFonts.poppins()),
-              ),
-            )
-            .toList(),
-        onChanged: (v) => setState(() => _custodyTo = v),
-      ),
-      const SizedBox(height: 12),
-      _kidAnimatedSwitch(
-        _custodyTo == 'Other',
-        TextFormField(
-          controller: _custodyOtherText,
-          style: GoogleFonts.poppins(),
-          decoration: _kidInputDecoration('Please Specify'),
-          onChanged: (_) => setState(() {}),
-        ),
-      ),
-      const SizedBox(height: 12),
-      _kidAnimatedSwitch(
-        (_custodyTo ?? '').isNotEmpty,
-        Container(
-          key: ValueKey(_custodyKycTitle()),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _kKidInputBorder),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            key: ValueKey('custodyTo_${_custodyTo ?? ''}'),
+            initialValue: _custodyTo,
+            decoration: _kidInputDecoration('Custody Given To'),
+            style: GoogleFonts.poppins(color: _kKidDark),
+            items:
+                const ['Parents', 'Relative', 'Friend', 'Shelter Home', 'Other']
+                    .map(
+                      (e) => DropdownMenuItem<String>(
+                        value: e,
+                        child: Text(e, style: GoogleFonts.poppins()),
+                      ),
+                    )
+                    .toList(),
+            onChanged: (v) => setState(() => _custodyTo = v),
           ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _kidSectionTitle(_custodyKycTitle(), fontSize: 12),
-              const SizedBox(height: 12),
-              _kidResponsiveTwoFieldRow(
-                context: ctx,
-                first: TextFormField(
-                  controller: _custodyName,
-                  style: GoogleFonts.poppins(),
-                  decoration: _kidInputDecoration('Name'),
-                ),
-                second: TextFormField(
-                  controller: _custodyAge,
-                  keyboardType: TextInputType.number,
-                  style: GoogleFonts.poppins(),
-                  decoration: _kidInputDecoration('Age'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _kidResponsiveTwoFieldRow(
-                context: ctx,
-                first: DropdownButtonFormField<String>(
-                  key: ValueKey('custodyGender_${_custodyGender ?? ''}'),
-                  initialValue: _custodyGender,
-                  decoration: _kidInputDecoration('Gender'),
-                  style: GoogleFonts.poppins(color: _kKidDark),
-                  items: const ['Male', 'Female', 'Other']
-                      .map(
-                        (e) => DropdownMenuItem<String>(
-                          value: e,
-                          child: Text(e, style: GoogleFonts.poppins()),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (v) => setState(() => _custodyGender = v),
-                ),
-                second: TextFormField(
-                  controller: _custodyMobile,
-                  keyboardType: TextInputType.phone,
-                  style: GoogleFonts.poppins(),
-                  decoration: _kidInputDecoration('Mobile Number'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _kidResponsiveTwoFieldRow(
-                context: ctx,
-                first: TextFormField(
-                  controller: _custodyAadhaar,
-                  style: GoogleFonts.poppins(),
-                  decoration: _kidInputDecoration('Aadhaar Number'),
-                ),
-                second: TextFormField(
-                  controller: _custodyRelation,
-                  style: GoogleFonts.poppins(),
-                  decoration: _kidInputDecoration('Relationship'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _custodyAddress,
-                maxLines: 3,
-                style: GoogleFonts.poppins(),
-                decoration: _kidInputDecoration('Full Address'),
-              ),
-            ],
+          const SizedBox(height: 12),
+          _kidAnimatedSwitch(
+            _custodyTo == 'Other',
+            TextFormField(
+              controller: _custodyOtherText,
+              style: GoogleFonts.poppins(),
+              decoration: _kidInputDecoration('Please Specify'),
+              onChanged: (_) => setState(() {}),
+            ),
           ),
-        ),
-      ),
-    ],
-  );
+          const SizedBox(height: 12),
+          _kidAnimatedSwitch(
+            (_custodyTo ?? '').isNotEmpty,
+            Container(
+              key: ValueKey(_custodyKycTitle()),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _kKidInputBorder),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _kidSectionTitle(_custodyKycTitle(), fontSize: 12),
+                  const SizedBox(height: 12),
+                  _kidResponsiveTwoFieldRow(
+                    context: ctx,
+                    first: TextFormField(
+                      controller: _custodyName,
+                      style: GoogleFonts.poppins(),
+                      decoration: _kidInputDecoration('Name'),
+                    ),
+                    second: TextFormField(
+                      controller: _custodyAge,
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.poppins(),
+                      decoration: _kidInputDecoration('Age'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _kidResponsiveTwoFieldRow(
+                    context: ctx,
+                    first: DropdownButtonFormField<String>(
+                      key: ValueKey('custodyGender_${_custodyGender ?? ''}'),
+                      initialValue: _custodyGender,
+                      decoration: _kidInputDecoration('Gender'),
+                      style: GoogleFonts.poppins(color: _kKidDark),
+                      items: const ['Male', 'Female', 'Other']
+                          .map(
+                            (e) => DropdownMenuItem<String>(
+                              value: e,
+                              child: Text(e, style: GoogleFonts.poppins()),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setState(() => _custodyGender = v),
+                    ),
+                    second: TextFormField(
+                      controller: _custodyMobile,
+                      keyboardType: TextInputType.phone,
+                      style: GoogleFonts.poppins(),
+                      decoration: _kidInputDecoration('Mobile Number'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _kidResponsiveTwoFieldRow(
+                    context: ctx,
+                    first: TextFormField(
+                      controller: _custodyAadhaar,
+                      style: GoogleFonts.poppins(),
+                      decoration: _kidInputDecoration('Aadhaar Number'),
+                    ),
+                    second: TextFormField(
+                      controller: _custodyRelation,
+                      style: GoogleFonts.poppins(),
+                      decoration: _kidInputDecoration('Relationship'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _custodyAddress,
+                    maxLines: 3,
+                    style: GoogleFonts.poppins(),
+                    decoration: _kidInputDecoration('Full Address'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
 
   Future<void> _generateCrimeDetailPdf() async {
     try {
@@ -1408,8 +1404,8 @@ class MissingFormState extends State<MissingForm> {
                                 _emptyBox('No persons added.')
                               else
                                 ..._suspected.asMap().entries.map(
-                                  (e) => _suspectedCard(e.key, e.value),
-                                ),
+                                      (e) => _suspectedCard(e.key, e.value),
+                                    ),
                             ],
                           ),
                         ),

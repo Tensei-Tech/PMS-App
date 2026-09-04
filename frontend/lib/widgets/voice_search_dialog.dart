@@ -262,11 +262,10 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color:
-                                  (_isListening
-                                          ? const Color(0xFF0072FF)
-                                          : Colors.grey)
-                                      .withValues(alpha: 0.35),
+                              color: (_isListening
+                                      ? const Color(0xFF0072FF)
+                                      : Colors.grey)
+                                  .withValues(alpha: 0.35),
                               blurRadius: 14,
                               offset: const Offset(0, 4),
                             ),
@@ -308,9 +307,8 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
                     color: AppColors.lightBg,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     border: Border.all(
-                      color: hasText
-                          ? AppColors.navyMid
-                          : AppColors.lightBorder,
+                      color:
+                          hasText ? AppColors.navyMid : AppColors.lightBorder,
                       width: 1.3,
                     ),
                   ),

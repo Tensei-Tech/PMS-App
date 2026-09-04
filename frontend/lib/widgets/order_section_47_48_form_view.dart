@@ -33,10 +33,10 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
   static const _knownSectionIds = {kOrderMain, kNotice47, kNotice48};
 
   bool _shows(String id) => showsFormSection(
-    activeSection: widget.formSection,
-    sectionId: id,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        sectionId: id,
+        knownSectionIds: _knownSectionIds,
+      );
 
   late final Map<String, TextEditingController> _fields;
 

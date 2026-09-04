@@ -63,8 +63,7 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
   }
 
   final section = v('formSection').toLowerCase();
-  final showMain =
-      section.isEmpty ||
+  final showMain = section.isEmpty ||
       (section.contains('main') && !section.contains('continuation'));
   final showCont = section.isEmpty || section.contains('continuation');
 

@@ -31,10 +31,14 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
     final s = widget.formSection?.toLowerCase().trim() ?? '';
     if (s.isEmpty) return null;
     if (s.contains('part v') || s.contains('additional')) return 5;
-    if (s.contains('part iv') || s.contains('crime method') || s.contains('logistics')) {
+    if (s.contains('part iv') ||
+        s.contains('crime method') ||
+        s.contains('logistics')) {
       return 4;
     }
-    if (s.contains('part iii') || s.contains('education') || s.contains('id & history')) {
+    if (s.contains('part iii') ||
+        s.contains('education') ||
+        s.contains('id & history')) {
       return 3;
     }
     if (s.contains('part ii') || s.contains('family')) return 2;
@@ -87,8 +91,7 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
   ];
 
   late final Map<String, TextEditingController> _physicalTableCtrls = {
-    for (final feature in _physicalFeatures)
-      feature: TextEditingController(),
+    for (final feature in _physicalFeatures) feature: TextEditingController(),
   };
 
   // Part II — Pages 2–3 (rows 11–21)
@@ -248,7 +251,8 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       set(_additional37Ctrl, 'additionalPoint37');
 
       if (data['physicalTable'] is Map) {
-        final tableData = Map<String, dynamic>.from(data['physicalTable'] as Map);
+        final tableData =
+            Map<String, dynamic>.from(data['physicalTable'] as Map);
         for (final entry in _physicalTableCtrls.entries) {
           entry.value.text = tableData[entry.key]?.toString() ??
               (entry.key == 'ओट' ? (tableData['ओठ']?.toString() ?? '') : '');
@@ -580,22 +584,39 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
         ResponsiveFieldRow(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Expanded(child: _labeledField('१. पोलीस ठाणे', _psCtrl, serif, labelStyle: marathi)),
-            Expanded(child: _labeledField('गुरनं', _gurNoCtrl, serif, labelStyle: marathi)),
-            Expanded(child: _labeledField('कलम', _kalamCtrl, serif, labelStyle: marathi)),
+            Expanded(
+                child: _labeledField('१. पोलीस ठाणे', _psCtrl, serif,
+                    labelStyle: marathi)),
+            Expanded(
+                child: _labeledField('गुरनं', _gurNoCtrl, serif,
+                    labelStyle: marathi)),
+            Expanded(
+                child: _labeledField('कलम', _kalamCtrl, serif,
+                    labelStyle: marathi)),
           ],
         ),
-        _labeledField('३. तपासी अधिकाऱ्याचे नांव व हुद्दा', _ioCtrl, serif, labelStyle: marathi),
-        _labeledField('४. गुन्हेगाराचे नांव व टोपण नांव', _accusedCtrl, serif, labelStyle: marathi),
-        _labeledField('५. अटक तारीख व वेळ', _arrestDtCtrl, serif, labelStyle: marathi),
-        _labeledField('६. जन्म तारीख, जन्मठिकाण, वय', _dobPlaceAgeCtrl, serif, labelStyle: marathi),
+        _labeledField('३. तपासी अधिकाऱ्याचे नांव व हुद्दा', _ioCtrl, serif,
+            labelStyle: marathi),
+        _labeledField('४. गुन्हेगाराचे नांव व टोपण नांव', _accusedCtrl, serif,
+            labelStyle: marathi),
+        _labeledField('५. अटक तारीख व वेळ', _arrestDtCtrl, serif,
+            labelStyle: marathi),
+        _labeledField('६. जन्म तारीख, जन्मठिकाण, वय', _dobPlaceAgeCtrl, serif,
+            labelStyle: marathi),
         _buildCheharePattiTable(serif, marathi),
-        _labeledField('८. ओळखीच्या खुणा (तीळ, मार, जखम, गोंदण, अपंगत्व)', _idMarksCtrl, serif, minLines: 2, labelStyle: marathi),
-        _labeledField('९. सध्याचा/मुळ पत्ता, मोबाईल नंबर', _addressCtrl, serif, minLines: 3, labelStyle: marathi),
+        _labeledField('८. ओळखीच्या खुणा (तीळ, मार, जखम, गोंदण, अपंगत्व)',
+            _idMarksCtrl, serif,
+            minLines: 2, labelStyle: marathi),
+        _labeledField('९. सध्याचा/मुळ पत्ता, मोबाईल नंबर', _addressCtrl, serif,
+            minLines: 3, labelStyle: marathi),
         ResponsiveFieldRow(
           children: [
-            Expanded(child: _labeledField('१०. धर्म', _dharmaCtrl, serif, labelStyle: marathi)),
-            Expanded(child: _labeledField('जात', _jatiCtrl, serif, labelStyle: marathi)),
+            Expanded(
+                child: _labeledField('१०. धर्म', _dharmaCtrl, serif,
+                    labelStyle: marathi)),
+            Expanded(
+                child: _labeledField('जात', _jatiCtrl, serif,
+                    labelStyle: marathi)),
           ],
         ),
       ],
@@ -608,7 +629,8 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       children: [
         _sectionTitle('कुटुंबीय माहिती (१२–२१)', serif),
         for (var i = 0; i < _familyLabels.length; i++)
-          _labeledField(_familyLabels[i], _familyRows[i], serif, minLines: i == 0 ? 2 : 4, labelStyle: marathi),
+          _labeledField(_familyLabels[i], _familyRows[i], serif,
+              minLines: i == 0 ? 2 : 4, labelStyle: marathi),
       ],
     );
   }
@@ -636,19 +658,34 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       children: [
         _sectionTitle('गुन्ह्याची पद्धत व तपशील (३१–४०)', serif),
         for (var i = 0; i < _crimeLabels.length; i++)
-          _labeledField(_crimeLabels[i], _crimeRows[i], serif, minLines: 4, labelStyle: marathi),
+          _labeledField(_crimeLabels[i], _crimeRows[i], serif,
+              minLines: 4, labelStyle: marathi),
         const SizedBox(height: 16),
-        _sectionTitle('${FormIoTerminology.officer} — ${FormIoTerminology.signature}', serif),
+        _sectionTitle(
+            '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
+            serif),
         ResponsiveFieldRow(
           children: [
-            Expanded(child: _labeledField(FormIoTerminology.name, _ioSigNameCtrl, serif, labelStyle: marathi)),
-            Expanded(child: _labeledField(FormIoTerminology.rank, _ioSigRankCtrl, serif, labelStyle: marathi)),
+            Expanded(
+                child: _labeledField(
+                    FormIoTerminology.name, _ioSigNameCtrl, serif,
+                    labelStyle: marathi)),
+            Expanded(
+                child: _labeledField(
+                    FormIoTerminology.rank, _ioSigRankCtrl, serif,
+                    labelStyle: marathi)),
           ],
         ),
         ResponsiveFieldRow(
           children: [
-            Expanded(child: _labeledField(FormIoTerminology.badgeNo, _ioSigCodeCtrl, serif, labelStyle: marathi)),
-            Expanded(child: _labeledField(FormIoTerminology.posting, _ioSigPostingCtrl, serif, labelStyle: marathi)),
+            Expanded(
+                child: _labeledField(
+                    FormIoTerminology.badgeNo, _ioSigCodeCtrl, serif,
+                    labelStyle: marathi)),
+            Expanded(
+                child: _labeledField(
+                    FormIoTerminology.posting, _ioSigPostingCtrl, serif,
+                    labelStyle: marathi)),
           ],
         ),
         FormMrwFooter(serifStyle: serif, fontSize: 10),
@@ -694,13 +731,15 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       readOnly: widget.readOnly,
       children: [
         if (_showPartI) _buildPartI(serif, marathi),
-        if (_showPartI && (_showPartII || _showPartIII || _showPartIV || _showPartV))
+        if (_showPartI &&
+            (_showPartII || _showPartIII || _showPartIV || _showPartV))
           const SizedBox(height: 24),
         if (_showPartII) _buildPartII(serif, marathi),
         if (_showPartII && (_showPartIII || _showPartIV || _showPartV))
           const SizedBox(height: 24),
         if (_showPartIII) _buildPartIII(serif, marathi),
-        if (_showPartIII && (_showPartIV || _showPartV)) const SizedBox(height: 24),
+        if (_showPartIII && (_showPartIV || _showPartV))
+          const SizedBox(height: 24),
         if (_showPartIV) _buildPartIV(serif, marathi),
         if (_showPartIV && _showPartV) const SizedBox(height: 24),
         if (_showPartV) _buildPartV(serif, marathi),

@@ -399,8 +399,7 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
       floatingActionButton: !showContent
           ? null
           : Builder(builder: (ctx) {
-              final canEdit =
-                  PoliceRbacHelper.canEditRecord(_hubRecord, auth);
+              final canEdit = PoliceRbacHelper.canEditRecord(_hubRecord, auth);
               final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
 
               return Column(

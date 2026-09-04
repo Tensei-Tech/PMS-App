@@ -360,8 +360,8 @@ class ProfileScreen extends StatelessWidget {
                 value: auth.username.isNotEmpty
                     ? auth.username
                     : (auth.email.contains('@')
-                          ? auth.email.split('@')[0]
-                          : auth.fullName),
+                        ? auth.email.split('@')[0]
+                        : auth.fullName),
               ),
             ],
           ),
@@ -570,9 +570,8 @@ class ProfileScreen extends StatelessWidget {
                     color: isNotAvailable
                         ? Colors.grey.shade400
                         : AppColors.navyDark,
-                    fontStyle: isNotAvailable
-                        ? FontStyle.italic
-                        : FontStyle.normal,
+                    fontStyle:
+                        isNotAvailable ? FontStyle.italic : FontStyle.normal,
                   ),
                 ),
               ],

@@ -206,37 +206,37 @@ class _PendingTransfersScreenState extends State<PendingTransfersScreen> {
               ),
             )
           : _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.navyMid),
-            )
-          : _pending.isEmpty
-          ? Center(
-              child: Text(
-                emptyMessage,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: AppColors.lightSubText,
-                  fontSize: 14,
-                ),
-              ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              itemCount: _pending.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.md),
-              itemBuilder: (context, index) {
-                final req = _pending[index];
-                final busy = _processingId == req.id;
-                return _RequestCard(
-                  request: req,
-                  busy: busy,
-                  action: _action,
-                  onApprove: () => _approve(req),
-                  onReject: () => _reject(req),
-                );
-              },
-            ),
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.navyMid),
+                )
+              : _pending.isEmpty
+                  ? Center(
+                      child: Text(
+                        emptyMessage,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          color: AppColors.lightSubText,
+                          fontSize: 14,
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      itemCount: _pending.length,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: AppSpacing.md),
+                      itemBuilder: (context, index) {
+                        final req = _pending[index];
+                        final busy = _processingId == req.id;
+                        return _RequestCard(
+                          request: req,
+                          busy: busy,
+                          action: _action,
+                          onApprove: () => _approve(req),
+                          onReject: () => _reject(req),
+                        );
+                      },
+                    ),
     );
   }
 }

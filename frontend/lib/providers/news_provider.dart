@@ -14,7 +14,7 @@ class NewsItem {
   final String iconName;
   final int iconColorHex;
   final String
-  tag; // e.g. "New Law", "Circular", "Amendment", "Alert", "Notice"
+      tag; // e.g. "New Law", "Circular", "Amendment", "Alert", "Notice"
   final int order;
   final DateTime? updatedAt;
 
@@ -58,18 +58,17 @@ class NewsItem {
   }
 
   factory NewsItem.fromMap(String docId, Map<String, dynamic> map) {
-    final name =
-        map['icon_name']?.toString() ??
+    final name = map['icon_name']?.toString() ??
         map['iconName']?.toString() ??
         'article';
     final colorHex = map['iconColorHex'] is int
         ? map['iconColorHex'] as int
         : (int.tryParse(
-                map['icon_color_hex']?.toString() ??
-                    map['iconColorHex']?.toString() ??
-                    '',
-              ) ??
-              0xFF1976D2);
+              map['icon_color_hex']?.toString() ??
+                  map['iconColorHex']?.toString() ??
+                  '',
+            ) ??
+            0xFF1976D2);
 
     DateTime? updated;
     if (map['updatedAt'] != null || map['updated_at'] != null) {

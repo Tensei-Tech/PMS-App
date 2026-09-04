@@ -76,9 +76,8 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
 
   pw.Widget listSection(String heading, List<String> labels, String listKey) {
     final raw = doc[listKey];
-    final values = raw is List
-        ? raw.map((e) => e?.toString() ?? '').toList()
-        : <String>[];
+    final values =
+        raw is List ? raw.map((e) => e?.toString() ?? '').toList() : <String>[];
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [

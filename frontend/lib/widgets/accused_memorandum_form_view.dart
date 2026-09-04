@@ -34,15 +34,15 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
   static const _knownSectionIds = {kPartI, kPartII};
 
   bool _shows(String sectionId) => showsFormSection(
-    activeSection: widget.formSection,
-    sectionId: sectionId,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        sectionId: sectionId,
+        knownSectionIds: _knownSectionIds,
+      );
 
   bool get _showAll => showsAllFormSections(
-    activeSection: widget.formSection,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        knownSectionIds: _knownSectionIds,
+      );
   // Section 1
   final _distCtrl = TextEditingController();
   final _psCtrl = TextEditingController();
@@ -637,7 +637,6 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
           ),
         if (_shows(kPartI) && (_shows(kPartII) || _showAll))
           const SizedBox(height: 24),
-
         if (_shows(kPartII))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Page 48',

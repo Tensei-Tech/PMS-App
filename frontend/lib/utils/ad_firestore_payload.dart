@@ -45,7 +45,7 @@ class AdFirestorePayload {
   }
 
   static Future<({Map<String, dynamic> data, AdFirestoreFormSource source})>
-  loadFormWithSource(String adNo) async {
+      loadFormWithSource(String adNo) async {
     return (data: <String, dynamic>{}, source: AdFirestoreFormSource.none);
   }
 }

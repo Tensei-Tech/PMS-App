@@ -188,9 +188,11 @@ class CommonFormState extends State<CommonForm> {
   bool get _hasSexualOffenceAct {
     const sexualSections = {
       // BNS, 2023 - Rape & sexual offences
-      '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '74', '75', '76', '77', '78', '79',
+      '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '74', '75',
+      '76', '77', '78', '79',
       // IPC, 1860 - Rape & sexual offences
-      '376', '376A', '376AB', '376B', '376C', '376D', '376DA', '376DB', '376E', '354', '354A', '354B', '354C', '354D', '509',
+      '376', '376A', '376AB', '376B', '376C', '376D', '376DA', '376DB', '376E',
+      '354', '354A', '354B', '354C', '354D', '509',
       // POCSO Act
       '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
     };
@@ -731,8 +733,9 @@ class CommonFormState extends State<CommonForm> {
       'spotAddress': _spotAddress.text,
       'isSexualOffence': _hasSexualOffenceAct,
       'complainant': {
-        'name':
-            _hasSexualOffenceAct ? '[Victim Identity Protected]' : _compName.text,
+        'name': _hasSexualOffenceAct
+            ? '[Victim Identity Protected]'
+            : _compName.text,
         'age': _compAge.text,
         'gender': _compGender,
         'occ': _compOcc.text,
@@ -913,10 +916,12 @@ class CommonFormState extends State<CommonForm> {
     final cr = m['caseResponsibility'] as Map?;
     if (cr != null) {
       final iod = cr['ioDesig']?.toString();
-      if (iod != null && PoliceDesignations.formIoAndReg.contains(iod)) _ioDesig = iod;
+      if (iod != null && PoliceDesignations.formIoAndReg.contains(iod))
+        _ioDesig = iod;
       _ioName.text = _s(cr['ioName']);
       final rd = cr['regDesig']?.toString();
-      if (rd != null && PoliceDesignations.formIoAndReg.contains(rd)) _regDesig = rd;
+      if (rd != null && PoliceDesignations.formIoAndReg.contains(rd))
+        _regDesig = rd;
       _regName.text = _s(cr['regName']);
       _cctvVal = cr['cctvValue'] as String?;
       _cctvDt.text = _s(cr['cctvDateTime']);
@@ -1090,7 +1095,8 @@ class CommonFormState extends State<CommonForm> {
         childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
         initiallyExpanded: startOpen,
         leading: leadingBadge,
-        title: Text(TranslationHelper.translate(context, title), style: _tsSection),
+        title: Text(TranslationHelper.translate(context, title),
+            style: _tsSection),
         children: [
           body,
           if (trailing != null) ...trailing,
@@ -1108,7 +1114,9 @@ class CommonFormState extends State<CommonForm> {
               children: [
                 leadingBadge,
                 const SizedBox(width: 12),
-                Expanded(child: Text(TranslationHelper.translate(context, title), style: _tsSection)),
+                Expanded(
+                    child: Text(TranslationHelper.translate(context, title),
+                        style: _tsSection)),
               ],
             ),
           ),
@@ -1328,8 +1336,8 @@ class CommonFormState extends State<CommonForm> {
       style: _tsBody,
       decoration: _d(label).copyWith(
         suffixIcon: IconButton(
-          icon: const Icon(Icons.calendar_today_rounded,
-              size: 18, color: _kTeal),
+          icon:
+              const Icon(Icons.calendar_today_rounded, size: 18, color: _kTeal),
           tooltip: 'Pick date',
           onPressed: () => _pickDateOnly(ctrl, onChanged: onChanged),
           padding: EdgeInsets.zero,
@@ -1346,8 +1354,8 @@ class CommonFormState extends State<CommonForm> {
 
   DateTime? _parseDateTimeDdMmYyyyHhMm(String raw) {
     final s = raw.trim();
-    final m = RegExp(r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$')
-        .firstMatch(s);
+    final m =
+        RegExp(r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$').firstMatch(s);
     if (m == null) return null;
     final dd = int.tryParse(m.group(1)!);
     final mo = int.tryParse(m.group(2)!);
@@ -1428,8 +1436,8 @@ class CommonFormState extends State<CommonForm> {
       style: _tsBody,
       decoration: _d(label).copyWith(
         suffixIcon: IconButton(
-          icon: const Icon(Icons.calendar_today_rounded,
-              size: 18, color: _kTeal),
+          icon:
+              const Icon(Icons.calendar_today_rounded, size: 18, color: _kTeal),
           tooltip: 'Pick date & time',
           onPressed: () => _pickDateTimeFor(ctrl, onChanged: onChanged),
           padding: EdgeInsets.zero,
@@ -1462,7 +1470,8 @@ class CommonFormState extends State<CommonForm> {
         child: TextButton.icon(
           onPressed: onTap,
           icon: const Icon(Icons.add, size: 14),
-          label: Text(TranslationHelper.translate(context, label), style: const TextStyle(fontSize: 11)),
+          label: Text(TranslationHelper.translate(context, label),
+              style: const TextStyle(fontSize: 11)),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             foregroundColor: _kTeal,
@@ -1481,7 +1490,8 @@ class CommonFormState extends State<CommonForm> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: _kBorder, style: BorderStyle.solid),
         ),
-        child: Text(TranslationHelper.translate(context, t), textAlign: TextAlign.center, style: _tsMuted),
+        child: Text(TranslationHelper.translate(context, t),
+            textAlign: TextAlign.center, style: _tsMuted),
       );
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1548,7 +1558,8 @@ class CommonFormState extends State<CommonForm> {
                           _card(5, 'Accused Details', _s5()),
                           _card(6, 'Suspected Accused', _s6()),
                           if (_isUnknown)
-                            _card(7, 'Unidentified Criminal Description', _s7()),
+                            _card(
+                                7, 'Unidentified Criminal Description', _s7()),
                           _card(8, 'Case Responsibility', _s8()),
                           _card(9, 'Arrest & Release Status', _s9()),
                           _card(10, 'Procedural Details', _s10()),
@@ -1626,7 +1637,8 @@ class CommonFormState extends State<CommonForm> {
                   Expanded(
                       child: Text(
                     _firPath == null
-                        ? TranslationHelper.translate(context, 'Upload FIR Copy (tap to select)')
+                        ? TranslationHelper.translate(
+                            context, 'Upload FIR Copy (tap to select)')
                         : '${TranslationHelper.translate(context, 'FIR')}: $_firPath',
                     style: _tsBody.copyWith(
                         color: _firPath == null ? _kSec : _kDark),
@@ -1799,10 +1811,10 @@ class CommonFormState extends State<CommonForm> {
       );
 
   Widget _protectedVictimNameField() {
-    final fieldLabel = TranslationHelper.translate(
-        context, 'You cannot enter victim name');
-    final tooltipMsg = TranslationHelper.translate(
-        context, 'You cannot enter victim details in sexual offence against female');
+    final fieldLabel =
+        TranslationHelper.translate(context, 'You cannot enter victim name');
+    final tooltipMsg = TranslationHelper.translate(context,
+        'You cannot enter victim details in sexual offence against female');
     return Tooltip(
       message: tooltipMsg,
       preferBelow: true,
@@ -2078,8 +2090,8 @@ class CommonFormState extends State<CommonForm> {
               _row([
                 _dateTimeField('Arrest Date & Time (dd/mm/yyyy hh:mm)',
                     r['arrestDt'] as TextEditingController),
-                _dateField('Release Date',
-                    r['releaseDt'] as TextEditingController),
+                _dateField(
+                    'Release Date', r['releaseDt'] as TextEditingController),
               ]),
               const SizedBox(height: 8),
               _chipSelector(
@@ -2142,8 +2154,8 @@ class CommonFormState extends State<CommonForm> {
                   if (on) ...[
                     const SizedBox(height: 6),
                     _row([
-                      _dateTimeField('Date & Time — ${e.value}',
-                          _procDates[e.key]!),
+                      _dateTimeField(
+                          'Date & Time — ${e.value}', _procDates[e.key]!),
                     ]),
                   ],
                 ],

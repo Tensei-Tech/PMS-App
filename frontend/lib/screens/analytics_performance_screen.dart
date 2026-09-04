@@ -33,8 +33,7 @@ class _AnalyticsPerformanceScreenState
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isSenior =
-        SeniorOfficerRoles.canSwitchLocation(auth.designation) ||
+    final isSenior = SeniorOfficerRoles.canSwitchLocation(auth.designation) ||
         auth.isSupervisor ||
         auth.isAdmin;
 
@@ -310,8 +309,8 @@ class _AnalyticsPerformanceScreenState
     final color = rate >= 70
         ? AppColors.successGreen
         : rate >= 40
-        ? AppColors.warningOrange
-        : AppColors.dangerRed;
+            ? AppColors.warningOrange
+            : AppColors.dangerRed;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -469,9 +468,8 @@ class _AnalyticsPerformanceScreenState
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
-                        value: records.isNotEmpty
-                            ? e.value / records.length
-                            : 0.0,
+                        value:
+                            records.isNotEmpty ? e.value / records.length : 0.0,
                         minHeight: 6,
                         backgroundColor: AppColors.lightBg,
                         valueColor: const AlwaysStoppedAnimation<Color>(

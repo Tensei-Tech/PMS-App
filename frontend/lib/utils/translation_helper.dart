@@ -80,9 +80,8 @@ class TranslationHelper {
       final target = text.substring('showing: '.length).trim();
       final translatedTarget = translate(context, target);
       final translatedShowing = translate(context, 'showing');
-      final prefix = (translatedShowing != 'showing')
-          ? translatedShowing
-          : 'Showing';
+      final prefix =
+          (translatedShowing != 'showing') ? translatedShowing : 'Showing';
       return '$prefix: $translatedTarget';
     }
 
@@ -99,9 +98,8 @@ class TranslationHelper {
       final parts = text.split(' ');
       if (parts.isNotEmpty) {
         final numberPart = parts[0];
-        final label = cleanText.endsWith(' form types')
-            ? 'form types'
-            : 'form type';
+        final label =
+            cleanText.endsWith(' form types') ? 'form types' : 'form type';
         final translatedLabel = translate(context, label);
         return '$numberPart $translatedLabel';
       }

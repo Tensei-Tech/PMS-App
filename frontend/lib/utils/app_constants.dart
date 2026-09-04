@@ -127,10 +127,10 @@ class Classification {
 
   /// Combined flat list for the drawer
   static List<Classification> get all => [
-    ...statsGroup,
-    ...casesGroup,
-    ...servicesGroup,
-  ];
+        ...statsGroup,
+        ...casesGroup,
+        ...servicesGroup,
+      ];
 
   /// Unified sequence for the "Add" (FAB) menu as requested by user
   static const List<Classification> addMenuAll = [
@@ -578,8 +578,8 @@ class TransferRequestRoles {
             display: abbr == 'Sr. PI'
                 ? 'Senior Police Inspector (Sr. PI)'
                 : abbr == 'PI'
-                ? 'Police Inspector (PI)'
-                : 'Assistant Police Inspector (API)',
+                    ? 'Police Inspector (PI)'
+                    : 'Assistant Police Inspector (API)',
           ),
         )
         .toList(growable: false);

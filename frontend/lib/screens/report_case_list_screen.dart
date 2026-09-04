@@ -60,7 +60,8 @@ class ReportCaseListScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.folder_open_rounded, size: 64, color: Colors.grey.shade300),
+          Icon(Icons.folder_open_rounded,
+              size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 16),
           Text('No records found for this category',
               style: GoogleFonts.poppins(
@@ -116,7 +117,8 @@ class ReportCaseListScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                        border: Border.all(
+                            color: statusColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(record.status,
                           style: GoogleFonts.poppins(
@@ -181,19 +183,23 @@ class ReportCaseListScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _actionBtn(context, Icons.visibility_rounded, 'View', AppColors.goldPrimary, () {
-                  Navigator.push(context, AppTheme.fadeSlideRoute(
-                    page: record.moduleKey == 'ad'
-                        ? AdRecordDetailScreen(
-                            record: record,
-                          )
-                        : ModuleRecordDetailScreen(
-                            record: record,
-                          ),
-                  ));
+                _actionBtn(context, Icons.visibility_rounded, 'View',
+                    AppColors.goldPrimary, () {
+                  Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page: record.moduleKey == 'ad'
+                            ? AdRecordDetailScreen(
+                                record: record,
+                              )
+                            : ModuleRecordDetailScreen(
+                                record: record,
+                              ),
+                      ));
                 }),
                 Container(width: 1, height: 20, color: AppColors.lightBorder),
-                _actionBtn(context, Icons.picture_as_pdf_rounded, 'PDF', AppColors.dangerRed, () {
+                _actionBtn(context, Icons.picture_as_pdf_rounded, 'PDF',
+                    AppColors.dangerRed, () {
                   runWithPdfAuthGate(
                     context,
                     () => ModulePdfHelper.generatePdf(record),
@@ -207,7 +213,8 @@ class ReportCaseListScreen extends StatelessWidget {
     );
   }
 
-  Widget _actionBtn(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _actionBtn(BuildContext context, IconData icon, String label,
+      Color color, VoidCallback onTap) {
     return Expanded(
       child: InkWell(
         onTap: onTap,

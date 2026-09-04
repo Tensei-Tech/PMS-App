@@ -71,9 +71,10 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
         if (!mounted) return;
         setState(() {
           if (widget.appendMode && _preSpeechText.isNotEmpty) {
-            final prefix = _preSpeechText.endsWith(' ') || _preSpeechText.endsWith('\n')
-                ? _preSpeechText
-                : '$_preSpeechText ';
+            final prefix =
+                _preSpeechText.endsWith(' ') || _preSpeechText.endsWith('\n')
+                    ? _preSpeechText
+                    : '$_preSpeechText ';
             widget.controller.text = '$prefix$text';
           } else {
             widget.controller.text = text;
@@ -121,7 +122,8 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +134,8 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
                     SizedBox(width: 8),
                     Text(
                       'Select Dictation Language / भाषा निवडा',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -142,14 +145,19 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(
-                      isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                      isSelected
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_off,
                       color: isSelected ? const Color(0xFF1E3A8A) : Colors.grey,
                     ),
                     title: Text(
                       entry.value,
                       style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? const Color(0xFF1E3A8A) : Colors.black87,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected
+                            ? const Color(0xFF1E3A8A)
+                            : Colors.black87,
                       ),
                     ),
                     onTap: () {
@@ -190,14 +198,17 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
               borderRadius: BorderRadius.circular(20),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: _isListening
                       ? Colors.red.shade50
                       : const Color(0xFF1E3A8A).withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: _isListening ? Colors.redAccent : const Color(0xFF1E3A8A).withValues(alpha: 0.3),
+                    color: _isListening
+                        ? Colors.redAccent
+                        : const Color(0xFF1E3A8A).withValues(alpha: 0.3),
                     width: _isListening ? 1.5 : 1.0,
                   ),
                   boxShadow: _isListening
@@ -216,7 +227,9 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
                     Icon(
                       _isListening ? Icons.mic : Icons.mic_none,
                       size: 16,
-                      color: _isListening ? Colors.redAccent : const Color(0xFF1E3A8A),
+                      color: _isListening
+                          ? Colors.redAccent
+                          : const Color(0xFF1E3A8A),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -224,7 +237,9 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: _isListening ? Colors.redAccent : const Color(0xFF1E3A8A),
+                        color: _isListening
+                            ? Colors.redAccent
+                            : const Color(0xFF1E3A8A),
                       ),
                     ),
                   ],
@@ -253,7 +268,8 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
                         color: Colors.grey.shade800,
                       ),
                     ),
-                    const Icon(Icons.arrow_drop_down, size: 14, color: Colors.grey),
+                    const Icon(Icons.arrow_drop_down,
+                        size: 14, color: Colors.grey),
                   ],
                 ),
               ),

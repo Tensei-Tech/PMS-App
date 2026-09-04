@@ -37,10 +37,10 @@ class JuvenileSocialReportFormViewState
   static const _knownSectionIds = {kPartI, kPartII, kPartIII, kPartIV, kPartV};
 
   bool _shows(String id) => showsFormSection(
-    activeSection: widget.formSection,
-    sectionId: id,
-    knownSectionIds: _knownSectionIds,
-  );
+        activeSection: widget.formSection,
+        sectionId: id,
+        knownSectionIds: _knownSectionIds,
+      );
 
   late final Map<String, TextEditingController> _fields;
 

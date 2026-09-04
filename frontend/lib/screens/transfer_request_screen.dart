@@ -65,7 +65,8 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
     }
 
     try {
-      final active = await _transferService.getLatestStatusRequestForUser(auth.uid);
+      final active =
+          await _transferService.getLatestStatusRequestForUser(auth.uid);
       if (!mounted) return;
       setState(() {
         _activeRequest = active;
@@ -111,7 +112,8 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
   List<String> _districtsForUnitType(String unitType) {
     if (_fromState == 'Maharashtra') {
       final districts = <String>{};
-      for (final station in MaharashtraPoliceStationsRepository.getAllStations()) {
+      for (final station
+          in MaharashtraPoliceStationsRepository.getAllStations()) {
         if (station.type == unitType) {
           districts.add(station.districtName);
         }
@@ -189,17 +191,18 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
       );
 
       await _transferService.createRequest(request);
-      final created = await _transferService.getLatestStatusRequestForUser(auth.uid);
+      final created =
+          await _transferService.getLatestStatusRequestForUser(auth.uid);
 
       if (!mounted) return;
       setState(() {
         _activeRequest = created;
         _submitting = false;
       });
-      final approvalTarget = TransferRequestRoles.requiresSeniorTransferApproval(
-              auth.designation)
-          ? 'destination SP/CP approval'
-          : 'destination PI/API approval';
+      final approvalTarget =
+          TransferRequestRoles.requiresSeniorTransferApproval(auth.designation)
+              ? 'destination SP/CP approval'
+              : 'destination PI/API approval';
       _showSnack('Transfer request submitted for $approvalTarget.',
           AppColors.successGreen);
     } catch (e) {
@@ -383,7 +386,8 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
                 onPressed: _cancelling ? null : _cancelActiveRequest,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.dangerRed,
-                  side: BorderSide(color: AppColors.dangerRed.withValues(alpha: 0.5)),
+                  side: BorderSide(
+                      color: AppColors.dangerRed.withValues(alpha: 0.5)),
                 ),
                 child: _cancelling
                     ? const SizedBox(
@@ -549,8 +553,9 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
                 leadingIcon: Icons.local_police_rounded,
                 value: _station,
                 items: _stationsForSelection(_district!, _unitType!),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Target station is required' : null,
+                validator: (v) => v == null || v.isEmpty
+                    ? 'Target station is required'
+                    : null,
                 onChanged: (v) => setState(() => _station = v),
               ),
           ],
@@ -558,7 +563,8 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: DropdownButtonFormField<String>(
-                key: ValueKey('target-desig-${isSelfTransfer ? 'pi' : _unitType}'),
+                key: ValueKey(
+                    'target-desig-${isSelfTransfer ? 'pi' : _unitType}'),
                 initialValue: _targetDesignation,
                 isExpanded: true,
                 decoration: InputDecoration(
@@ -579,8 +585,9 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
                     )
                     .toList(growable: false),
                 onChanged: (v) => setState(() => _targetDesignation = v),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Target designation is required' : null,
+                validator: (v) => v == null || v.isEmpty
+                    ? 'Target designation is required'
+                    : null,
               ),
             ),
           TextFormField(
@@ -655,8 +662,8 @@ class _TransferRequestScreenState extends State<TransferRequestScreen> {
           ],
           const SizedBox(height: 4),
           Text(designation,
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.navyMid)),
+              style:
+                  GoogleFonts.poppins(fontSize: 12, color: AppColors.navyMid)),
         ],
       ),
     );
@@ -707,8 +714,7 @@ class _UnitTypeSelector extends StatelessWidget {
                   if (v != null) onChanged(v);
                 },
                 contentPadding: EdgeInsets.zero,
-                title:
-                    Text('Rural', style: GoogleFonts.poppins(fontSize: 13)),
+                title: Text('Rural', style: GoogleFonts.poppins(fontSize: 13)),
               ),
             ),
           ],

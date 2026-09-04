@@ -1345,8 +1345,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildWideLayout(
-      AuthProvider auth, AppLocalizations l10n, List<Widget> pages, int pageIndex) {
+  Widget _buildWideLayout(AuthProvider auth, AppLocalizations l10n,
+      List<Widget> pages, int pageIndex) {
     return Row(
       children: [
         _buildWebProfileSidebar(auth,
@@ -1368,8 +1368,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildNarrowLayout(
-      AuthProvider auth, AppLocalizations l10n, List<Widget> pages, int pageIndex) {
+  Widget _buildNarrowLayout(AuthProvider auth, AppLocalizations l10n,
+      List<Widget> pages, int pageIndex) {
     return Column(
       children: [
         _buildAppBar(auth, showHamburger: true),
@@ -1418,7 +1418,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Builder(
               builder: (ctx) {
                 final stateCode = auth.currentUser?.stateCode ?? auth.stateCode;
-                final stateBranding = StateBrandingHelper.getBranding(stateCode);
+                final stateBranding =
+                    StateBrandingHelper.getBranding(stateCode);
                 final screenWidth = MediaQuery.of(ctx).size.width;
                 final isVeryNarrow = screenWidth < 380;
                 final forceTitleText = isVeryNarrow
@@ -1429,7 +1430,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onTap: () => StatePoliceBannerDialog.show(ctx, auth),
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
@@ -1467,17 +1469,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const SizedBox(width: 6),
                           // Dynamic State Police Badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 3),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  stateBranding.primaryColor.withValues(alpha: 0.08),
-                                  stateBranding.accentColor.withValues(alpha: 0.18),
+                                  stateBranding.primaryColor
+                                      .withValues(alpha: 0.08),
+                                  stateBranding.accentColor
+                                      .withValues(alpha: 0.18),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                color: stateBranding.accentColor.withValues(alpha: 0.4),
+                                color: stateBranding.accentColor
+                                    .withValues(alpha: 0.4),
                               ),
                             ),
                             child: Row(
@@ -1672,7 +1678,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppColors.goldPrimary.withValues(alpha: 0.6),
+                                color: AppColors.goldPrimary
+                                    .withValues(alpha: 0.6),
                                 width: 2,
                               ),
                               boxShadow: [
@@ -1762,7 +1769,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 7, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.1),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
                                           color: Colors.white
@@ -1860,7 +1868,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final activeLang = context.read<SettingsProvider>().locale.languageCode;
     final langs = [
       ('🇬🇧', 'English', 'Nagaland, Arunachal Pradesh, Meghalaya', 'en'),
-      ('🇮🇳', 'Hindi (हिंदी)', 'Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Haryana, Himachal, Jharkhand, Chhattisgarh, Uttarakhand', 'hi'),
+      (
+        '🇮🇳',
+        'Hindi (हिंदी)',
+        'Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Haryana, Himachal, Jharkhand, Chhattisgarh, Uttarakhand',
+        'hi'
+      ),
       ('🇮🇳', 'Marathi (मराठी)', 'Maharashtra', 'mr'),
       ('🇮🇳', 'Gujarati (ગુજરાતી)', 'Gujarat', 'gu'),
       ('🇮🇳', 'Bengali (বাংলা)', 'West Bengal, Tripura', 'bn'),
@@ -1928,8 +1941,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       l.$2,
                       style: GoogleFonts.poppins(
                         fontSize: 15,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? AppColors.infoBlue : AppColors.navyDark,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.infoBlue
+                            : AppColors.navyDark,
                       ),
                     ),
                     subtitle: Text(
@@ -1968,7 +1984,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
 
   void _showStationSwitcher(BuildContext context, AuthProvider auth) {
     final firestore = FirestoreService();
@@ -2033,7 +2048,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 physics: const BouncingScrollPhysics(),
                 children: [
                   // ── ROLE-BASED UNIFIED ADMIN PANEL ──
-                  if (PoliceHierarchyHelper.hasAdminAuthority(auth.designation, auth.roleId)) ...[
+                  if (PoliceHierarchyHelper.hasAdminAuthority(
+                      auth.designation, auth.roleId)) ...[
                     _drawerItem(
                       Icons.admin_panel_settings_rounded,
                       MenuLocalizations.get(lang, 'adminPanel'),
@@ -2041,19 +2057,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Navigator.pop(context);
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const AdminPanelScreen()),
                         );
                       },
                     ),
                   ],
-                  if (PoliceHierarchyHelper.canSendAlerts(auth.designation, auth.roleId) ||
-                      PoliceHierarchyHelper.canSendReminders(auth.designation, auth.roleId)) ...[
+                  if (PoliceHierarchyHelper.canSendAlerts(
+                          auth.designation, auth.roleId) ||
+                      PoliceHierarchyHelper.canSendReminders(
+                          auth.designation, auth.roleId)) ...[
                     _drawerItem(
                       Icons.campaign_rounded,
-                      PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId)
+                      PoliceHierarchyHelper.isStateSuperAdmin(
+                              auth.designation, auth.roleId)
                           ? MenuLocalizations.get(lang, 'sendAlertsState')
-                          : (PoliceHierarchyHelper.isDistrictAdmin(auth.designation, auth.roleId)
-                              ? MenuLocalizations.get(lang, 'sendAlertsDistrict')
+                          : (PoliceHierarchyHelper.isDistrictAdmin(
+                                  auth.designation, auth.roleId)
+                              ? MenuLocalizations.get(
+                                  lang, 'sendAlertsDistrict')
                               : MenuLocalizations.get(lang, 'sendReminderIO')),
                       () => SendBroadcastAlertDialog.show(context),
                     ),
@@ -2139,7 +2161,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const Divider(height: 1),
                   ],
-                  if (TransferRequestRoles.canApproveTransfers(auth.designation)) ...[
+                  if (TransferRequestRoles.canApproveTransfers(
+                      auth.designation)) ...[
                     _drawerItem(
                       Icons.pending_actions_rounded,
                       TransferRequestRoles.isPiOrApi(auth.designation)
@@ -2572,7 +2595,12 @@ class _HomeTabState extends State<_HomeTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        MenuLocalizations.get(context.read<SettingsProvider>().locale.languageCode, 'caseVisibility'),
+                        MenuLocalizations.get(
+                            context
+                                .read<SettingsProvider>()
+                                .locale
+                                .languageCode,
+                            'caseVisibility'),
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -2612,7 +2640,8 @@ class _HomeTabState extends State<_HomeTab> {
                   );
                 },
                 child: Text(
-                  TranslationHelper.translate(context, 'Need full station view? Ask your PI for access.'),
+                  TranslationHelper.translate(context,
+                      'Need full station view? Ask your PI for access.'),
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     color: AppColors.infoBlue,
@@ -2628,8 +2657,6 @@ class _HomeTabState extends State<_HomeTab> {
       ),
     );
   }
-
-
 
   String _moduleDisplayLabel(ModuleRecord record) {
     final name = record.firestoreCategoryDisplayName.trim();
@@ -2709,7 +2736,11 @@ class _HomeTabState extends State<_HomeTab> {
       ('Victim', 'victim', rec<VictimProvider>((p) => p.records)),
       ('Accident', 'accident', rec<AccidentProvider>((p) => p.records)),
       ('Traffic', 'traffic', rec<TrafficProvider>((p) => p.records)),
-      ('Application', 'application', rec<ApplicationProvider>((p) => p.records)),
+      (
+        'Application',
+        'application',
+        rec<ApplicationProvider>((p) => p.records)
+      ),
       ('Sam Warrant', 'sam_warrant', rec<SamWarrantProvider>((p) => p.records)),
       ('Muddemal', 'muddemal', rec<MuddemalProvider>((p) => p.records)),
       ('BNSS', 'bnss', rec<BnssProvider>((p) => p.records)),
@@ -3103,11 +3134,12 @@ class _HomeTabState extends State<_HomeTab> {
         onChanged: _onSearchChanged,
         style: GoogleFonts.poppins(color: AppColors.lightText, fontSize: 14),
         decoration: InputDecoration(
-          hintText: TranslationHelper.translate(context, 'Search cases or type module (e.g. Murder, Theft, Missing)...'),
+          hintText: TranslationHelper.translate(context,
+              'Search cases or type module (e.g. Murder, Theft, Missing)...'),
           hintStyle:
               GoogleFonts.poppins(color: AppColors.lightSubText, fontSize: 13),
-          prefixIcon:
-              const Icon(Icons.search_rounded, color: AppColors.navyMid, size: 22),
+          prefixIcon: const Icon(Icons.search_rounded,
+              color: AppColors.navyMid, size: 22),
           suffixIcon: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -3128,9 +3160,11 @@ class _HomeTabState extends State<_HomeTab> {
                   final spoken = await VoiceSearchDialog.show(context);
                   if (spoken != null && spoken.trim().isNotEmpty) {
                     final cleanSpoken = spoken.trim();
-                    final parsedDate = UniversalSearch.tryParseNaturalDate(cleanSpoken);
+                    final parsedDate =
+                        UniversalSearch.tryParseNaturalDate(cleanSpoken);
                     if (parsedDate != null) {
-                      final formatted = DateFormat('dd MMM yyyy').format(parsedDate);
+                      final formatted =
+                          DateFormat('dd MMM yyyy').format(parsedDate);
                       setState(() {
                         _explicitSearchDate = parsedDate;
                         _searchQuery = formatted;
@@ -3169,118 +3203,208 @@ class _HomeTabState extends State<_HomeTab> {
     Classification('M.V Act', 'traffic', 'traffic'),
   ];
 
-  List<({String title, String subtext, IconData icon, VoidCallback onTap})> _matchingMenuShortcuts(String q) {
+  List<({String title, String subtext, IconData icon, VoidCallback onTap})>
+      _matchingMenuShortcuts(String q) {
     final cleanQ = q.toLowerCase().trim();
     if (cleanQ.isEmpty) return [];
 
-    final shortcuts = <({String title, String subtext, List<String> keywords, IconData icon, VoidCallback onTap})>[
+    final shortcuts = <({
+      String title,
+      String subtext,
+      List<String> keywords,
+      IconData icon,
+      VoidCallback onTap
+    })>[
       (
         title: 'Total Cases',
         subtext: 'Station Cases (All)',
-        keywords: ['total cases', 'total case', 'all cases', 'all case', 'total', 'station cases'],
+        keywords: [
+          'total cases',
+          'total case',
+          'all cases',
+          'all case',
+          'total',
+          'station cases'
+        ],
         icon: Icons.folder_open_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen(initialTab: MyCasesTab.total))),
+        onTap: () => Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: const MyCasesScreen(initialTab: MyCasesTab.total))),
       ),
       (
         title: 'Pending Cases',
         subtext: 'Pending Investigation',
         keywords: ['pending cases', 'pending case', 'pending investigation'],
         icon: Icons.hourglass_top_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen(initialTab: MyCasesTab.pending))),
+        onTap: () => Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: const MyCasesScreen(initialTab: MyCasesTab.pending))),
       ),
       (
         title: 'Disposal Cases',
         subtext: 'Resolved / Disposed',
-        keywords: ['disposal cases', 'disposal case', 'disposed cases', 'disposal', 'disposed', 'closed cases'],
+        keywords: [
+          'disposal cases',
+          'disposal case',
+          'disposed cases',
+          'disposal',
+          'disposed',
+          'closed cases'
+        ],
         icon: Icons.task_alt_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen(initialTab: MyCasesTab.disposal))),
+        onTap: () => Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: const MyCasesScreen(initialTab: MyCasesTab.disposal))),
       ),
       (
         title: 'Pending PI Transfers',
         subtext: 'Transfers',
-        keywords: ['pending pi transfers', 'pending transfers', 'transfer', 'transfers', 'pi transfer'],
+        keywords: [
+          'pending pi transfers',
+          'pending transfers',
+          'transfer',
+          'transfers',
+          'pi transfer'
+        ],
         icon: Icons.pending_actions_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const PendingTransfersScreen())),
+        onTap: () => Navigator.push(context,
+            AppTheme.fadeSlideRoute(page: const PendingTransfersScreen())),
       ),
       (
         title: 'Assign Officer',
         subtext: 'Team & IO',
-        keywords: ['assign officer', 'assign', 'officer assignment', 'add members'],
+        keywords: [
+          'assign officer',
+          'assign',
+          'officer assignment',
+          'add members'
+        ],
         icon: Icons.person_add_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const AssignOfficerScreen())),
+        onTap: () => Navigator.push(context,
+            AppTheme.fadeSlideRoute(page: const AssignOfficerScreen())),
       ),
       (
         title: 'My Cases',
         subtext: 'Station Cases',
         keywords: ['my cases', 'assigned cases', 'station cases', 'cases tab'],
         icon: Icons.folder_shared_outlined,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const MyCasesScreen())),
       ),
       (
         title: 'Login & Security',
         subtext: 'Security & PIN',
-        keywords: ['login & security', 'login and security', 'security', 'password', 'change password', 'pin', 'login'],
+        keywords: [
+          'login & security',
+          'login and security',
+          'security',
+          'password',
+          'change password',
+          'pin',
+          'login'
+        ],
         icon: Icons.lock_person_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const LoginSecurityScreen())),
+        onTap: () => Navigator.push(context,
+            AppTheme.fadeSlideRoute(page: const LoginSecurityScreen())),
       ),
       (
         title: 'App Settings',
         subtext: 'Settings & Theme',
-        keywords: ['app settings', 'settings', 'dark mode', 'theme', 'language'],
+        keywords: [
+          'app settings',
+          'settings',
+          'dark mode',
+          'theme',
+          'language'
+        ],
         icon: Icons.settings_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const AppSettingsScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const AppSettingsScreen())),
       ),
       (
         title: 'Feedback',
         subtext: 'Feedback Form',
         keywords: ['feedback', 'feedback form', 'suggest', 'report issue'],
         icon: Icons.feedback_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const FeedbackFormScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const FeedbackFormScreen())),
       ),
       (
         title: 'Help & Support',
         subtext: 'Support & Helpline',
-        keywords: ['help & support', 'help and support', 'support', 'help', 'helpline', 'contact'],
+        keywords: [
+          'help & support',
+          'help and support',
+          'support',
+          'help',
+          'helpline',
+          'contact'
+        ],
         icon: Icons.help_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const HelpSupportScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const HelpSupportScreen())),
       ),
       (
         title: 'About App',
         subtext: 'App Info',
         keywords: ['about app', 'about', 'about khakhi diary', 'tensei tech'],
         icon: Icons.info_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const AboutAppScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const AboutAppScreen())),
       ),
       (
         title: 'Dashboard access grants',
         subtext: 'Grants',
-        keywords: ['dashboard access grants', 'access grants', 'station grants', 'grants'],
+        keywords: [
+          'dashboard access grants',
+          'access grants',
+          'station grants',
+          'grants'
+        ],
         icon: Icons.dashboard_customize_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const StationAccessGrantsScreen())),
+        onTap: () => Navigator.push(context,
+            AppTheme.fadeSlideRoute(page: const StationAccessGrantsScreen())),
       ),
       (
         title: 'Profile',
         subtext: 'Officer Profile',
         keywords: ['profile', 'my profile', 'user profile', 'officer profile'],
         icon: Icons.account_circle_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const ProfileScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const ProfileScreen())),
       ),
     ];
 
-    return shortcuts.where((s) {
-      final t = s.title.toLowerCase();
-      final sub = s.subtext.toLowerCase();
-      final hasKeyword = s.keywords.any((k) => k.contains(cleanQ) || cleanQ.contains(k));
-      return t.contains(cleanQ) || sub.contains(cleanQ) || cleanQ.contains(t) || cleanQ.contains(sub) || hasKeyword;
-    }).map((s) => (title: s.title, subtext: s.subtext, icon: s.icon, onTap: s.onTap)).toList();
+    return shortcuts
+        .where((s) {
+          final t = s.title.toLowerCase();
+          final sub = s.subtext.toLowerCase();
+          final hasKeyword =
+              s.keywords.any((k) => k.contains(cleanQ) || cleanQ.contains(k));
+          return t.contains(cleanQ) ||
+              sub.contains(cleanQ) ||
+              cleanQ.contains(t) ||
+              cleanQ.contains(sub) ||
+              hasKeyword;
+        })
+        .map((s) =>
+            (title: s.title, subtext: s.subtext, icon: s.icon, onTap: s.onTap))
+        .toList();
   }
 
   int _matchingModulesCount(String query) {
     if (query.trim().isEmpty) return 0;
     final q = query.trim().toLowerCase();
-    final matchingFormIV = kFormIVCaseCategories.where((cat) => cat.toLowerCase().contains(q)).length;
+    final matchingFormIV = kFormIVCaseCategories
+        .where((cat) => cat.toLowerCase().contains(q))
+        .length;
     final allClasses = [...Classification.all, ..._extraSearchClassifications];
-    final matchingClass = allClasses.where((c) => c.name.replaceAll('\n', ' ').toLowerCase().contains(q)).length;
+    final matchingClass = allClasses
+        .where((c) => c.name.replaceAll('\n', ' ').toLowerCase().contains(q))
+        .length;
     final matchingMenu = _matchingMenuShortcuts(q).length;
     return matchingFormIV + matchingClass + matchingMenu;
   }
@@ -3301,7 +3425,9 @@ class _HomeTabState extends State<_HomeTab> {
 
     final matchingMenus = _matchingMenuShortcuts(q);
 
-    if (matchingFormIV.isEmpty && matchingClassifications.isEmpty && matchingMenus.isEmpty) {
+    if (matchingFormIV.isEmpty &&
+        matchingClassifications.isEmpty &&
+        matchingMenus.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -3311,7 +3437,8 @@ class _HomeTabState extends State<_HomeTab> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.4), width: 1.2),
+        border: Border.all(
+            color: AppColors.goldPrimary.withValues(alpha: 0.4), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.06),
@@ -3331,7 +3458,8 @@ class _HomeTabState extends State<_HomeTab> {
                   color: AppColors.goldPrimary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.flash_on_rounded, size: 16, color: AppColors.goldDark),
+                child: const Icon(Icons.flash_on_rounded,
+                    size: 16, color: AppColors.goldDark),
               ),
               const SizedBox(width: 8),
               Text(
@@ -3365,7 +3493,8 @@ class _HomeTabState extends State<_HomeTab> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     onTap: menu.onTap,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
@@ -3375,7 +3504,8 @@ class _HomeTabState extends State<_HomeTab> {
                         borderRadius: BorderRadius.circular(AppRadius.md),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1E3C72).withValues(alpha: 0.25),
+                            color:
+                                const Color(0xFF1E3C72).withValues(alpha: 0.25),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -3396,9 +3526,11 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.goldPrimary.withValues(alpha: 0.35),
+                              color:
+                                  AppColors.goldPrimary.withValues(alpha: 0.35),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -3431,7 +3563,8 @@ class _HomeTabState extends State<_HomeTab> {
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF2193B0), Color(0xFF6DD5ED)],
@@ -3441,7 +3574,8 @@ class _HomeTabState extends State<_HomeTab> {
                         borderRadius: BorderRadius.circular(AppRadius.md),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF2193B0).withValues(alpha: 0.25),
+                            color:
+                                const Color(0xFF2193B0).withValues(alpha: 0.25),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -3450,7 +3584,8 @@ class _HomeTabState extends State<_HomeTab> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.article_rounded, color: Colors.white, size: 16),
+                          const Icon(Icons.article_rounded,
+                              color: Colors.white, size: 16),
                           const SizedBox(width: 6),
                           Text(
                             cat,
@@ -3462,7 +3597,8 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.25),
                               borderRadius: BorderRadius.circular(4),
@@ -3488,7 +3624,8 @@ class _HomeTabState extends State<_HomeTab> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     onTap: () => _openClassificationItem(context, item),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.navyDark,
                         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -3814,11 +3951,8 @@ class _HomeTabState extends State<_HomeTab> {
         ),
       );
     } else {
-      final isStatsItem = [
-        'Monthly',
-        'Pending',
-        'Disposal'
-      ].contains(item.name);
+      final isStatsItem =
+          ['Monthly', 'Pending', 'Disposal'].contains(item.name);
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
@@ -3913,8 +4047,9 @@ class _HomeTabState extends State<_HomeTab> {
     final rawStatus = c['status'] as String? ?? '';
     final badgeLabel = _statusBadgeLabel(rawStatus);
     final badgeColor = _statusBadgeColor(badgeLabel);
-    final moduleLabel =
-        record != null ? _moduleDisplayLabel(record) : (c['type'] as String? ?? '');
+    final moduleLabel = record != null
+        ? _moduleDisplayLabel(record)
+        : (c['type'] as String? ?? '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -3980,8 +4115,8 @@ class _HomeTabState extends State<_HomeTab> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.navyMid
-                                      .withValues(alpha: 0.08),
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.08),
                                   borderRadius:
                                       BorderRadius.circular(AppRadius.sm),
                                 ),
@@ -4039,7 +4174,8 @@ class _HomeTabState extends State<_HomeTab> {
                 IconButton(
                   tooltip: 'Download PDF',
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                  constraints:
+                      const BoxConstraints(minWidth: 40, minHeight: 40),
                   icon: const Icon(Icons.picture_as_pdf_outlined,
                       color: AppColors.dangerRed, size: 22),
                   onPressed: () => runWithPdfAuthGate(
@@ -4489,9 +4625,8 @@ class _ViewTabState extends State<_ViewTab> {
       builder: (context, snapshot) {
         final allRecords = snapshot.data ?? [];
         final filtered = _filterRecords(allRecords);
-        final isLoading =
-            snapshot.connectionState == ConnectionState.waiting &&
-                !snapshot.hasData;
+        final isLoading = snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData;
 
         return CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -4736,17 +4871,19 @@ class _ViewTabState extends State<_ViewTab> {
                         itemCount: filtered.length,
                         itemBuilder: (context, i) {
                           final c = filtered[i];
-                          final isDisposed = c.status.toLowerCase() == 'closed' ||
-                              c.status.toLowerCase() == 'disposal' ||
-                              c.status.toLowerCase() == 'resolved' ||
-                              c.status.toLowerCase() == 'disposed';
+                          final isDisposed =
+                              c.status.toLowerCase() == 'closed' ||
+                                  c.status.toLowerCase() == 'disposal' ||
+                                  c.status.toLowerCase() == 'resolved' ||
+                                  c.status.toLowerCase() == 'disposed';
                           final displayStatus =
                               isDisposed ? 'Disposal' : 'Pending';
-                          final accentColor = _selectedTabIndex == 2 || isDisposed
-                              ? AppColors.successGreen
-                              : _selectedTabIndex == 1
-                                  ? AppColors.warningOrange
-                                  : AppColors.infoBlue;
+                          final accentColor =
+                              _selectedTabIndex == 2 || isDisposed
+                                  ? AppColors.successGreen
+                                  : _selectedTabIndex == 1
+                                      ? AppColors.warningOrange
+                                      : AppColors.infoBlue;
                           final statusColor = isDisposed
                               ? AppColors.successGreen
                               : AppColors.warningOrange;
@@ -4813,8 +4950,8 @@ class _ViewTabState extends State<_ViewTab> {
                                               Row(
                                                 children: [
                                                   Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
                                                       horizontal: 8,
                                                       vertical: 3,
                                                     ),
@@ -4828,19 +4965,20 @@ class _ViewTabState extends State<_ViewTab> {
                                                     ),
                                                     child: Text(
                                                       firLabel,
-                                                      style: GoogleFonts.poppins(
+                                                      style:
+                                                          GoogleFonts.poppins(
                                                         fontSize: 11,
                                                         fontWeight:
                                                             FontWeight.w600,
-                                                        color: AppColors
-                                                            .navyDark,
+                                                        color:
+                                                            AppColors.navyDark,
                                                       ),
                                                     ),
                                                   ),
                                                   const Spacer(),
                                                   Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
                                                       horizontal: 8,
                                                       vertical: 3,
                                                     ),
@@ -4866,7 +5004,8 @@ class _ViewTabState extends State<_ViewTab> {
                                                                 BoxShape.circle,
                                                           ),
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                            width: 4),
                                                         Text(
                                                           displayStatus,
                                                           style: GoogleFonts
@@ -4937,7 +5076,8 @@ class _ViewTabState extends State<_ViewTab> {
                                                       ),
                                                       const SizedBox(width: 4),
                                                       Text(
-                                                        DateFormat('dd MMM yyyy')
+                                                        DateFormat(
+                                                                'dd MMM yyyy')
                                                             .format(
                                                                 c.incidentDate),
                                                         style:
@@ -4961,7 +5101,8 @@ class _ViewTabState extends State<_ViewTab> {
                                                           color: AppColors
                                                               .lightSubText,
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                            width: 4),
                                                         Text(
                                                           c.location,
                                                           style: GoogleFonts
@@ -4985,7 +5126,8 @@ class _ViewTabState extends State<_ViewTab> {
                                                           color: AppColors
                                                               .lightSubText,
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                            width: 4),
                                                         Text(
                                                           c.assignedOfficer,
                                                           style: GoogleFonts
@@ -5003,9 +5145,8 @@ class _ViewTabState extends State<_ViewTab> {
 
                                               // Actions Row: Edit (Guarded), Reminder (Senior Only), PDF, View
                                               Builder(builder: (ctx) {
-                                                final canEdit =
-                                                    PoliceRbacHelper
-                                                        .canEditRecord(c, auth);
+                                                final canEdit = PoliceRbacHelper
+                                                    .canEditRecord(c, auth);
                                                 final canSendReminder =
                                                     PoliceRbacHelper
                                                         .canSendReminder(auth);
@@ -5035,7 +5176,7 @@ class _ViewTabState extends State<_ViewTab> {
                                                                     .firestoreCategoryDisplayName,
                                                                 existingRecord:
                                                                     c,
-                                                             ),
+                                                              ),
                                                             ),
                                                           );
                                                         },
@@ -5076,7 +5217,7 @@ class _ViewTabState extends State<_ViewTab> {
                                                         Navigator.push(
                                                           context,
                                                           AppTheme
-                                                            .fadeSlideRoute(
+                                                              .fadeSlideRoute(
                                                             page: c.moduleKey ==
                                                                     'ad'
                                                                 ? AdRecordDetailScreen(
@@ -8160,9 +8301,8 @@ class _DashboardStationSwitcherState extends State<_DashboardStationSwitcher> {
     final auth = widget.auth;
     final active = auth.activeStation.trim();
     final screenWidth = MediaQuery.of(context).size.width;
-    final maxSwitcherWidth = screenWidth < 380
-        ? 110.0
-        : (screenWidth < 480 ? 130.0 : 220.0);
+    final maxSwitcherWidth =
+        screenWidth < 380 ? 110.0 : (screenWidth < 480 ? 130.0 : 220.0);
     final labelStyle = GoogleFonts.poppins(
       fontSize: screenWidth < 400 ? 10 : 11,
       fontWeight: FontWeight.w600,
@@ -8321,7 +8461,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
       if (currentArea.isEmpty) {
         return names;
       }
-      for (final station in MaharashtraPoliceStationsRepository.getStationsForDistrict(
+      for (final station
+          in MaharashtraPoliceStationsRepository.getStationsForDistrict(
         currentArea,
       )) {
         if (isCp && station.type != 'Commissionerate Police') continue;
@@ -8368,12 +8509,14 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
           district.toLowerCase() == currentArea.toLowerCase()) {
         return true;
       }
-      return additional.any((a) => a.trim().toLowerCase() == district.toLowerCase());
+      return additional
+          .any((a) => a.trim().toLowerCase() == district.toLowerCase());
     }
 
     void addDistrictStations(String district) {
       if (!districtExpanded(district)) return;
-      for (final station in MaharashtraPoliceStationsRepository.getStationsForDistrict(
+      for (final station
+          in MaharashtraPoliceStationsRepository.getStationsForDistrict(
         district,
       )) {
         if (isCp && station.type != 'Commissionerate Police') continue;
@@ -8401,11 +8544,14 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
         (a, b) => a.toLowerCase().compareTo(b.toLowerCase()),
       );
 
-    return sortedZoneNames.map((zoneName) {
-      final entries = zoneEntries[zoneName]!.toList()
-        ..sort(_compareSwitcherEntries);
-      return _SwitcherZone(zoneName: zoneName, entries: entries);
-    }).where((zone) => zone.entries.isNotEmpty).toList();
+    return sortedZoneNames
+        .map((zoneName) {
+          final entries = zoneEntries[zoneName]!.toList()
+            ..sort(_compareSwitcherEntries);
+          return _SwitcherZone(zoneName: zoneName, entries: entries);
+        })
+        .where((zone) => zone.entries.isNotEmpty)
+        .toList();
   }
 
   int _compareSwitcherEntries(String a, String b) {
@@ -8472,7 +8618,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
     if (asDistrict != null) return asDistrict;
 
     if (!MaharashtraPoliceStationsRepository.isLoaded) return null;
-    for (final station in MaharashtraPoliceStationsRepository.getAllStations()) {
+    for (final station
+        in MaharashtraPoliceStationsRepository.getAllStations()) {
       if (station.stationName.toLowerCase() == value.toLowerCase()) {
         return station.districtName;
       }

@@ -369,20 +369,18 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                       _fontSizeLabel(fs),
                       style: GoogleFonts.poppins(
                         fontSize: previewSize,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: isSelected
-                            ? AppColors.navyMid
-                            : AppColors.navyDark,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color:
+                            isSelected ? AppColors.navyMid : AppColors.navyDark,
                       ),
                     ),
                     subtitle: Text(
                       fs == FontSize.small
                           ? 'Compact font for tighter layout'
                           : (fs == FontSize.large
-                                ? 'Larger font for improved readability'
-                                : 'Default standard font scaling'),
+                              ? 'Larger font for improved readability'
+                              : 'Default standard font scaling'),
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         color: AppColors.lightSubText,
@@ -492,9 +490,8 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                           entry.value,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
-                            fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
                             color: isSelected
                                 ? AppColors.cyanDark
                                 : AppColors.navyDark,

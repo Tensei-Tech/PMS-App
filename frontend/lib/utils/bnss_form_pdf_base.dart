@@ -103,12 +103,12 @@ Future<Uint8List> generateBnssFormPdf(
     final keys = section.fieldKeys.isNotEmpty
         ? section.fieldKeys
         : doc.keys
-              .where(
-                (k) =>
-                    k != 'formSection' && k != 'pageRange' && k != 'noticeType',
-              )
-              .cast<String>()
-              .toList();
+            .where(
+              (k) =>
+                  k != 'formSection' && k != 'pageRange' && k != 'noticeType',
+            )
+            .cast<String>()
+            .toList();
 
     pdf.addPage(
       pw.Page(

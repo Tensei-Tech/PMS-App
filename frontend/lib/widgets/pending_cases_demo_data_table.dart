@@ -129,8 +129,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rows = _effectiveRows();
-    final showDisclaimer =
-        includeDemoDisclaimerBelowTable &&
+    final showDisclaimer = includeDemoDisclaimerBelowTable &&
         _showsDemoBackdrop &&
         rows.isNotEmpty;
 
@@ -153,21 +152,21 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         };
 
         Widget headerCell(String s) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-          color: AppColors.navyDark,
-          alignment: Alignment.center,
-          child: Text(
-            s,
-            textAlign: TextAlign.center,
-            softWrap: true,
-            style: GoogleFonts.poppins(
-              fontSize: headerFontSize,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              height: 1.15,
-            ),
-          ),
-        );
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              color: AppColors.navyDark,
+              alignment: Alignment.center,
+              child: Text(
+                s,
+                textAlign: TextAlign.center,
+                softWrap: true,
+                style: GoogleFonts.poppins(
+                  fontSize: headerFontSize,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  height: 1.15,
+                ),
+              ),
+            );
 
         Widget dataCell(String s, {Alignment align = Alignment.center}) =>
             Container(

@@ -41,8 +41,8 @@ class BiometricService {
   /// Checks if there are any enrolled biometrics.
   Future<bool> hasEnrolledBiometrics() async {
     try {
-      final List<BiometricType> availableBiometrics = await _auth
-          .getAvailableBiometrics();
+      final List<BiometricType> availableBiometrics =
+          await _auth.getAvailableBiometrics();
       return availableBiometrics.isNotEmpty;
     } on PlatformException catch (_) {
       return false;

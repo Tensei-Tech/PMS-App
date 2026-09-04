@@ -761,8 +761,11 @@ pw.Widget _linedPropertyCell(
           border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
         ),
         child: line.isNotEmpty
-            ? (containsDevanagari(line) && cache.has('propertyPacked_$i')
-                ? cache.img('propertyPacked_$i')
+            ? (containsDevanagari(line) &&
+                    (cache.has(cacheKey) || cache.has('propertyPacked_$i'))
+                ? (cache.has(cacheKey)
+                    ? cache.img(cacheKey)
+                    : cache.img('propertyPacked_$i'))
                 : pw.Text(line, style: valueStyle))
             : pw.SizedBox(height: 10),
       );

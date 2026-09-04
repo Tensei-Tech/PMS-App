@@ -171,9 +171,8 @@ class _MockOtpVerificationSectionState
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: disabled
-                    ? null
-                    : (_secondsLeft > 0 ? null : _sendOtp),
+                onPressed:
+                    disabled ? null : (_secondsLeft > 0 ? null : _sendOtp),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
                   foregroundColor: Colors.white,
@@ -219,9 +218,8 @@ class _MockOtpVerificationSectionState
               hintText: '6-digit OTP',
               errorText: _error,
               filled: true,
-              fillColor: disabled
-                  ? const Color(0xFFF1F3F7)
-                  : const Color(0xFFF8FAFF),
+              fillColor:
+                  disabled ? const Color(0xFFF1F3F7) : const Color(0xFFF8FAFF),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),

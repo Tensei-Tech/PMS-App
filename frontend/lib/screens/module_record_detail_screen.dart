@@ -163,7 +163,8 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
                     const SizedBox(height: 12),
                     FloatingActionButton.extended(
                       heroTag: 'reminder_module_btn',
-                      onPressed: () => SendReminderDialog.show(context, _record),
+                      onPressed: () =>
+                          SendReminderDialog.show(context, _record),
                       backgroundColor: AppColors.warningOrange,
                       icon: const Icon(Icons.notifications_active_rounded,
                           color: Colors.white),
@@ -230,7 +231,8 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
             onPressed: () async {
               Navigator.pop(dialogCtx);
               try {
-                await _firestore.deleteCase(_record.id, moduleKey: _record.moduleKey);
+                await _firestore.deleteCase(_record.id,
+                    moduleKey: _record.moduleKey);
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text('Record deleted', style: GoogleFonts.poppins()),
@@ -372,13 +374,16 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
     );
   }
 
-  Widget _buildAppBar(
-      BuildContext context, bool isDark, Color statusColor, String moduleLabel) {
+  Widget _buildAppBar(BuildContext context, bool isDark, Color statusColor,
+      String moduleLabel) {
     final titleText = _record.caseNumber.trim().isNotEmpty
         ? _record.caseNumber.trim()
-        : (_record.title.trim().isNotEmpty ? _record.title.trim() : moduleLabel);
+        : (_record.title.trim().isNotEmpty
+            ? _record.title.trim()
+            : moduleLabel);
 
-    final showSubtitle = titleText.toLowerCase() != moduleLabel.trim().toLowerCase();
+    final showSubtitle =
+        titleText.toLowerCase() != moduleLabel.trim().toLowerCase();
 
     return SliverAppBar(
       expandedHeight: showSubtitle ? 70 : 60,
@@ -440,10 +445,13 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
         ),
         const SizedBox(width: 14),
         Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Case Status',
                 style: GoogleFonts.poppins(
-                    fontSize: 10, fontWeight: FontWeight.w600, color: statusColor)),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor)),
             Text(_record.status.toUpperCase(),
                 style: GoogleFonts.poppins(
                     fontSize: 20,

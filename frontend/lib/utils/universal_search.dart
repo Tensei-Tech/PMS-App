@@ -56,14 +56,14 @@ class SearchFilters {
       byAccused;
 
   int get activeCount => [
-    byTitle,
-    byFirNumber,
-    byDate,
-    byOfficer,
-    byLocation,
-    byComplainant,
-    byAccused,
-  ].where((b) => b).length;
+        byTitle,
+        byFirNumber,
+        byDate,
+        byOfficer,
+        byLocation,
+        byComplainant,
+        byAccused,
+      ].where((b) => b).length;
 }
 
 // ── Result Model ──────────────────────────────────────────────────────────────
@@ -204,7 +204,7 @@ class UniversalSearch {
   static List<SearchResult> search({
     required String query,
     required List<(String label, String key, List<ModuleRecord> records)>
-    moduleSources,
+        moduleSources,
     required SearchFilters filters,
     DateTime? exactDate,
   }) {
@@ -281,12 +281,10 @@ class UniversalSearch {
     if (exactDate != null) {
       final rd = r.incidentDate;
       final cd = r.createdAt;
-      final matchInc =
-          (rd.year == exactDate.year &&
+      final matchInc = (rd.year == exactDate.year &&
           rd.month == exactDate.month &&
           rd.day == exactDate.day);
-      final matchCreated =
-          (cd.year == exactDate.year &&
+      final matchCreated = (cd.year == exactDate.year &&
           cd.month == exactDate.month &&
           cd.day == exactDate.day);
       if (!matchInc && !matchCreated) {
