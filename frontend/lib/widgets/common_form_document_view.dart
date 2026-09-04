@@ -85,8 +85,8 @@ class _CaseDetailLayoutScope extends InheritedWidget {
   final bool desktop;
 
   static bool isDesktop(BuildContext context) {
-    final w =
-        context.dependOnInheritedWidgetOfExactType<_CaseDetailLayoutScope>();
+    final w = context
+        .dependOnInheritedWidgetOfExactType<_CaseDetailLayoutScope>();
     return w?.desktop ?? false;
   }
 
@@ -552,8 +552,9 @@ class CommonFormDocumentView extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 12,
-                backgroundColor:
-                    active ? AppColors.infoBlue : AppColors.lightBorder,
+                backgroundColor: active
+                    ? AppColors.infoBlue
+                    : AppColors.lightBorder,
                 child: Text(
                   '$step',
                   style: GoogleFonts.poppins(
@@ -856,7 +857,8 @@ class CommonFormDocumentView extends StatelessWidget {
     final victim = m['victim'] as Map? ?? {};
     final deceased = m['deceased'] as Map? ?? {};
     final inj = m['injured'] as Map? ?? {};
-    final hasInj = inj.isNotEmpty &&
+    final hasInj =
+        inj.isNotEmpty &&
         (inj['name']?.toString().trim().isNotEmpty == true ||
             inj['mobile']?.toString().trim().isNotEmpty == true ||
             inj['aadhaar']?.toString().trim().isNotEmpty == true ||
@@ -873,10 +875,10 @@ class CommonFormDocumentView extends StatelessWidget {
     final verdict = m['verdict'] as Map? ?? {};
     final acquitted =
         (verdict['acquitted'] as List?)?.map((x) => x.toString()).toList() ??
-            [];
+        [];
     final convicted =
         (verdict['convicted'] as List?)?.map((x) => x.toString()).toList() ??
-            [];
+        [];
     final sc = m['scrutiny'] as Map? ?? {};
     final accusedList = (m['accused'] as List?) ?? [];
     final suspectedList = (m['suspectedAccused'] as List?) ?? [];
@@ -954,7 +956,8 @@ class CommonFormDocumentView extends StatelessWidget {
           ..._pairedSimpleFields(context, [
             (
               label: 'Name',
-              value: (commonMap['isSexualOffence'] == true ||
+              value:
+                  (commonMap['isSexualOffence'] == true ||
                       (comp['name']?.toString().contains('Protected') ?? false))
                   ? '⚠️ [Victim Identity Protected - Confidential]'
                   : _v(comp['name']),
@@ -1029,8 +1032,9 @@ class CommonFormDocumentView extends StatelessWidget {
               (label: 'PAN Number', value: _v(inj['pan']), fullWidth: false),
               (
                 label: 'Person Died / Deceased',
-                value:
-                    inj['isDied'] == true ? 'Yes (Died / मयत)' : 'No (Alive)',
+                value: inj['isDied'] == true
+                    ? 'Yes (Died / मयत)'
+                    : 'No (Alive)',
                 fullWidth: false,
               ),
               if (inj['isDied'] == true) ...[
@@ -1236,8 +1240,9 @@ class CommonFormDocumentView extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color:
-                              on ? AppColors.navyDark : AppColors.lightSubText,
+                          color: on
+                              ? AppColors.navyDark
+                              : AppColors.lightSubText,
                         ),
                       ),
                     ),
@@ -1568,12 +1573,14 @@ class _CourtFilingEditableSectionState
   @override
   void initState() {
     super.initState();
-    final initialNum = widget.court['chargeSheetNumber']?.toString().trim() ??
+    final initialNum =
+        widget.court['chargeSheetNumber']?.toString().trim() ??
         widget.record?.extraFields['court']?['chargeSheetNumber']
             ?.toString()
             .trim() ??
         '';
-    final initialDate = widget.court['chargeSheetDate']?.toString().trim() ??
+    final initialDate =
+        widget.court['chargeSheetDate']?.toString().trim() ??
         widget.record?.extraFields['court']?['chargeSheetDate']
             ?.toString()
             .trim() ??

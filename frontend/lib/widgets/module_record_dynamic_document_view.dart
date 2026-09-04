@@ -106,7 +106,8 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
             (t.contains('T') || RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(t))) {
           final d = DateTime.parse(t).toLocal();
           final datePart = DateFormat('dd MMMM yyyy').format(d);
-          final hasTime = t.contains('T') &&
+          final hasTime =
+              t.contains('T') &&
               (d.hour != 0 || d.minute != 0 || d.second != 0);
           if (hasTime) {
             return '$datePart, ${DateFormat('hh:mm a').format(d)}';
