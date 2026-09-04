@@ -38,6 +38,8 @@ import 'station_access_grants_screen.dart';
 import '../utils/case_visibility_ui.dart';
 import 'case_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
+import 'hurt_cases_screen.dart';
+import 'absconded_cases_screen.dart';
 import '../utils/pdf_helper.dart';
 import 'case_detail_screen.dart';
 import '../utils/police_hierarchy_helper.dart';
@@ -3948,6 +3950,20 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: CaseFormScreen(categoryName: label),
+        ),
+      );
+    } else if (item.moduleKey == 'hurt' || item.name == 'Hurt') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const HurtCasesScreen(),
+        ),
+      );
+    } else if (item.moduleKey == 'absconded' || item.name == 'Absconded') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const AbscondedCasesScreen(),
         ),
       );
     } else {
