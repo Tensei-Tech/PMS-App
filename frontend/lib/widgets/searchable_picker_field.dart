@@ -33,11 +33,7 @@ class SearchablePickerField extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _SearchSheet(
-        title: label,
-        items: items,
-        initial: value,
-      ),
+      builder: (_) => _SearchSheet(title: label, items: items, initial: value),
     );
     if (selected != null && selected.isNotEmpty) onChanged(selected);
   }
@@ -62,7 +58,9 @@ class SearchablePickerField extends StatelessWidget {
               prefixIcon: leadingIcon == null ? null : Icon(leadingIcon),
               suffixIcon: const Icon(Icons.search_rounded),
               filled: true,
-              fillColor: enabled ? const Color(0xFFF8FAFF) : const Color(0xFFF1F3F7),
+              fillColor: enabled
+                  ? const Color(0xFFF8FAFF)
+                  : const Color(0xFFF1F3F7),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
@@ -99,7 +97,8 @@ class _SearchSheetState extends State<_SearchSheet> {
   void initState() {
     super.initState();
     _filtered = widget.items;
-    WidgetsBinding.instance.addPostFrameCallback((_) { // FIXED
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // FIXED
       if (mounted) _searchFocusNode.requestFocus(); // FIXED
     }); // FIXED
     _searchCtrl.addListener(() {
@@ -108,8 +107,8 @@ class _SearchSheetState extends State<_SearchSheet> {
         _filtered = q.isEmpty
             ? widget.items
             : widget.items
-                .where((e) => e.toLowerCase().contains(q))
-                .toList(growable: false);
+                  .where((e) => e.toLowerCase().contains(q))
+                  .toList(growable: false);
       });
     });
   }
@@ -191,7 +190,10 @@ class _SearchSheetState extends State<_SearchSheet> {
                   return ListTile(
                     title: Text(item, style: GoogleFonts.poppins(fontSize: 14)),
                     trailing: isSelected
-                        ? const Icon(Icons.check_circle_rounded, color: AppColors.successGreen)
+                        ? const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.successGreen,
+                          )
                         : null,
                     onTap: () => Navigator.pop(context, item),
                   );
@@ -204,4 +206,3 @@ class _SearchSheetState extends State<_SearchSheet> {
     );
   }
 }
-

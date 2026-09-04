@@ -22,7 +22,8 @@ class OrderSection4748FormView extends StatefulWidget {
   });
 
   @override
-  State<OrderSection4748FormView> createState() => OrderSection4748FormViewState();
+  State<OrderSection4748FormView> createState() =>
+      OrderSection4748FormViewState();
 }
 
 class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
@@ -32,10 +33,10 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
   static const _knownSectionIds = {kOrderMain, kNotice47, kNotice48};
 
   bool _shows(String id) => showsFormSection(
-        activeSection: widget.formSection,
-        sectionId: id,
-        knownSectionIds: _knownSectionIds,
-      );
+    activeSection: widget.formSection,
+    sectionId: id,
+    knownSectionIds: _knownSectionIds,
+  );
 
   late final Map<String, TextEditingController> _fields;
 
@@ -110,30 +111,90 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
         Center(
           child: Column(
             children: [
-              Text('ORDER — Sections 47 & 48 BNSS', style: serif.copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text('आदेश — कलम ४७ व ४८ भा.न्या.स.', style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(
+                'ORDER — Sections 47 & 48 BNSS',
+                style: serif.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'आदेश — कलम ४७ व ४८ भा.न्या.स.',
+                style: marathi.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 16),
         BilingualFieldRow(
           fields: [
-            BilingualField(label: 'Order No.', marathiLabel: 'आदेश क्र.', controller: _fields['orderNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['orderDate']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Order No.',
+              marathiLabel: 'आदेश क्र.',
+              controller: _fields['orderNo']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
+            BilingualField(
+              label: 'Date',
+              marathiLabel: 'दिनांक',
+              controller: _fields['orderDate']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
           ],
         ),
-        BilingualField(label: 'Police Station', marathiLabel: 'पोलीस स्टेशन', controller: _fields['policeStation']!, serifStyle: serif, marathiLabelStyle: marathi),
+        BilingualField(
+          label: 'Police Station',
+          marathiLabel: 'पोलीस स्टेशन',
+          controller: _fields['policeStation']!,
+          serifStyle: serif,
+          marathiLabelStyle: marathi,
+        ),
         BilingualFieldRow(
           fields: [
-            BilingualField(label: 'Taluka', marathiLabel: 'ता.', controller: _fields['taluka']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'District', marathiLabel: 'जिल्हा', controller: _fields['district']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Taluka',
+              marathiLabel: 'ता.',
+              controller: _fields['taluka']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
+            BilingualField(
+              label: 'District',
+              marathiLabel: 'जिल्हा',
+              controller: _fields['district']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
           ],
         ),
-        BilingualField(label: 'Accused name', marathiLabel: 'आरोपीचे नाव', controller: _fields['accusedName']!, serifStyle: serif, marathiLabelStyle: marathi),
+        BilingualField(
+          label: 'Accused name',
+          marathiLabel: 'आरोपीचे नाव',
+          controller: _fields['accusedName']!,
+          serifStyle: serif,
+          marathiLabelStyle: marathi,
+        ),
         BilingualFieldRow(
           fields: [
-            BilingualField(label: 'CR No.', marathiLabel: 'गु.र.क्र.', controller: _fields['crNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-            BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'CR No.',
+              marathiLabel: 'गु.र.क्र.',
+              controller: _fields['crNo']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
+            BilingualField(
+              label: 'Section',
+              marathiLabel: 'कलम',
+              controller: _fields['section']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -166,8 +227,20 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
         Center(
           child: Column(
             children: [
-              Text('NOTICE u/s 47(1) BNSS', style: serif.copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text('सूचनापत्र — कलम ४७(१) भा.न्या.स.', style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(
+                'NOTICE u/s 47(1) BNSS',
+                style: serif.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'सूचनापत्र — कलम ४७(१) भा.न्या.स.',
+                style: marathi.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -224,8 +297,20 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
         Center(
           child: Column(
             children: [
-              Text('NOTICE u/s 48 BNSS', style: serif.copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text('सूचनापत्र — कलम ४८ भा.न्या.स.', style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(
+                'NOTICE u/s 48 BNSS',
+                style: serif.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'सूचनापत्र — कलम ४८ भा.न्या.स.',
+                style: marathi.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -285,7 +370,9 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
       pages.add(const SizedBox(height: 24));
     }
     if (_shows(kNotice47)) pages.add(_buildNotice47(serif, marathi));
-    if (_shows(kNotice47) && _shows(kNotice48)) pages.add(const SizedBox(height: 24));
+    if (_shows(kNotice47) && _shows(kNotice48)) {
+      pages.add(const SizedBox(height: 24));
+    }
     if (_shows(kNotice48)) pages.add(_buildNotice48(serif, marathi));
     return FormViewScaffold(readOnly: widget.readOnly, children: pages);
   }

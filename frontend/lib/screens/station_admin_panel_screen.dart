@@ -16,7 +16,8 @@ class StationAdminPanelScreen extends StatefulWidget {
   const StationAdminPanelScreen({super.key});
 
   @override
-  State<StationAdminPanelScreen> createState() => _StationAdminPanelScreenState();
+  State<StationAdminPanelScreen> createState() =>
+      _StationAdminPanelScreenState();
 }
 
 class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
@@ -52,7 +53,9 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final stationName = auth.stationName.isNotEmpty ? auth.stationName : 'Police Station';
+    final stationName = auth.stationName.isNotEmpty
+        ? auth.stationName
+        : 'Police Station';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
@@ -69,7 +72,11 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
         elevation: 0,
         toolbarHeight: 48,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 18,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -105,9 +112,16 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.goldPrimary.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.4), width: 1.2),
+                      border: Border.all(
+                        color: AppColors.goldPrimary.withValues(alpha: 0.4),
+                        width: 1.2,
+                      ),
                     ),
-                    child: const Icon(Icons.local_police_rounded, color: AppColors.goldLight, size: 20),
+                    child: const Icon(
+                      Icons.local_police_rounded,
+                      color: AppColors.goldLight,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -156,18 +170,25 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
             Card(
               margin: EdgeInsets.zero,
               elevation: 1.5,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: InkWell(
                 onTap: () async {
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const PendingApprovalsScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const PendingApprovalsScreen(),
+                    ),
                   );
                   _fetchPendingCount();
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -177,7 +198,11 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
                           color: Colors.orange.shade700.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.how_to_reg_rounded, color: Colors.orange.shade700, size: 18),
+                        child: Icon(
+                          Icons.how_to_reg_rounded,
+                          color: Colors.orange.shade700,
+                          size: 18,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -200,11 +225,17 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
                                   const SizedBox(
                                     width: 12,
                                     height: 12,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.orange,
+                                    ),
                                   )
                                 else if (_pendingCount > 0)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.orange.shade700,
                                       borderRadius: BorderRadius.circular(10),
@@ -235,7 +266,11 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 14,
+                        color: Colors.grey,
+                      ),
                     ],
                   ),
                 ),
@@ -247,17 +282,24 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
             Card(
               margin: EdgeInsets.zero,
               elevation: 1.5,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: InkWell(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const StationAuditLogScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const StationAuditLogScreen(),
+                    ),
                   );
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -267,7 +309,11 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
                           color: Colors.purple.shade700.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.manage_search_rounded, color: Colors.purple.shade700, size: 18),
+                        child: Icon(
+                          Icons.manage_search_rounded,
+                          color: Colors.purple.shade700,
+                          size: 18,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -297,7 +343,11 @@ class _StationAdminPanelScreenState extends State<StationAdminPanelScreen> {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 14,
+                        color: Colors.grey,
+                      ),
                     ],
                   ),
                 ),

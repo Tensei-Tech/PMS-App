@@ -1,4 +1,6 @@
 /// Police Hierarchy & Role Access Helper based on Official Government Platform Matrix Standards.
+library;
+
 ///
 /// Official Designations & Administrative Matrix Mapping Rules:
 ///
@@ -158,7 +160,11 @@ class PoliceHierarchyHelper {
     final d = raw.trim().toUpperCase();
 
     if (d == 'DG' || d == 'DGP' || d.contains('DIRECTOR GENERAL')) return 'DG';
-    if (d == 'ADG' || d == 'ADGP' || d.contains('ADDITIONAL DIRECTOR GENERAL')) return 'ADG';
+    if (d == 'ADG' ||
+        d == 'ADGP' ||
+        d.contains('ADDITIONAL DIRECTOR GENERAL')) {
+      return 'ADG';
+    }
     if (d == 'IG' || d == 'IGP' || d.contains('INSPECTOR GENERAL')) return 'IG';
     if (d == 'DIG' || d.contains('DEPUTY INSPECTOR GENERAL')) return 'DIG';
 
@@ -166,16 +172,40 @@ class PoliceHierarchyHelper {
     if (d == 'SSP' || d.contains('SENIOR SUPERINTENDENT')) return 'SSP';
     if (d == 'SP' || d.contains('SUPERINTENDENT OF POLICE')) return 'SP';
 
-    if (d == 'ADD.SP' || d == 'ADDL. SP' || d == 'ADDL SP' || d.contains('ADDITIONAL SUPERINTENDENT')) return 'ADD.SP';
-    if (d == 'ADD.CP' || d == 'ADDL. CP' || d == 'ADDL CP' || d.contains('ADDITIONAL COMMISSIONER')) return 'ADD.CP';
+    if (d == 'ADD.SP' ||
+        d == 'ADDL. SP' ||
+        d == 'ADDL SP' ||
+        d.contains('ADDITIONAL SUPERINTENDENT')) {
+      return 'ADD.SP';
+    }
+    if (d == 'ADD.CP' ||
+        d == 'ADDL. CP' ||
+        d == 'ADDL CP' ||
+        d.contains('ADDITIONAL COMMISSIONER')) {
+      return 'ADD.CP';
+    }
 
     if (d == 'DCP' || d.contains('DEPUTY COMMISSIONER')) return 'DCP';
     if (d == 'ACP' || d.contains('ASSISTANT COMMISSIONER')) return 'ACP';
-    if (d == 'DYSP' || d == 'DY. SP' || d == 'DY SP' || d.contains('DEPUTY SUPERINTENDENT')) return 'DYSP';
-    if (d == 'SDPO' || d.contains('SUB-DIVISIONAL') || d.contains('SUB DIVISIONAL')) return 'SDPO';
+    if (d == 'DYSP' ||
+        d == 'DY. SP' ||
+        d == 'DY SP' ||
+        d.contains('DEPUTY SUPERINTENDENT')) {
+      return 'DYSP';
+    }
+    if (d == 'SDPO' ||
+        d.contains('SUB-DIVISIONAL') ||
+        d.contains('SUB DIVISIONAL')) {
+      return 'SDPO';
+    }
 
     if (d == 'API' || d.contains('ASSISTANT POLICE INSPECTOR')) return 'API';
-    if (d == 'PSI' || d == 'SI' || d.contains('SUB INSPECTOR') || d.contains('SUB-INSPECTOR')) return 'PSI';
+    if (d == 'PSI' ||
+        d == 'SI' ||
+        d.contains('SUB INSPECTOR') ||
+        d.contains('SUB-INSPECTOR')) {
+      return 'PSI';
+    }
 
     return 'PI'; // Default fallback for PI / SHO / TI
   }
@@ -186,8 +216,14 @@ class PoliceHierarchyHelper {
     final l = levelStr.trim().toLowerCase();
     if (l.contains('state')) return AdminLevel.stateAdmin;
     if (l.contains('district')) return AdminLevel.districtAdmin;
-    if (l.contains('division') || l.contains('subdivision') || l.contains('zone')) return AdminLevel.divisionAdmin;
-    if (l.contains('station') || l.contains('head') || l.contains('sho')) return AdminLevel.stationAdmin;
+    if (l.contains('division') ||
+        l.contains('subdivision') ||
+        l.contains('zone')) {
+      return AdminLevel.divisionAdmin;
+    }
+    if (l.contains('station') || l.contains('head') || l.contains('sho')) {
+      return AdminLevel.stationAdmin;
+    }
     return null;
   }
 
@@ -234,7 +270,9 @@ class PoliceHierarchyHelper {
   /// Check if user is State Super Admin
   static bool isStateSuperAdmin(String? designation, String? roleId) {
     final r = (roleId ?? '').trim().toUpperCase();
-    if (r == 'MASTER_ADMIN' || r == 'SUPER_ADMIN' || r == 'STATE_SUPER_ADMIN') return true;
+    if (r == 'MASTER_ADMIN' || r == 'SUPER_ADMIN' || r == 'STATE_SUPER_ADMIN') {
+      return true;
+    }
     final level = parseAdminLevel(roleId);
     if (level == AdminLevel.stateAdmin) return true;
     return isRoleAllowed(designation ?? '', AdminLevel.stateAdmin);
@@ -281,15 +319,22 @@ class PoliceHierarchyHelper {
   }
 
   static bool canCreateDivisionAdmin(String? designation, String? roleId) {
-    return isStateSuperAdmin(designation, roleId) || isDistrictAdmin(designation, roleId);
+    return isStateSuperAdmin(designation, roleId) ||
+        isDistrictAdmin(designation, roleId);
   }
 
   static bool canSendAlerts(String? designation, String? roleId) {
-    return isStateSuperAdmin(designation, roleId) || isDistrictAdmin(designation, roleId) || isDivisionAdmin(designation, roleId) || isStationHead(designation, roleId);
+    return isStateSuperAdmin(designation, roleId) ||
+        isDistrictAdmin(designation, roleId) ||
+        isDivisionAdmin(designation, roleId) ||
+        isStationHead(designation, roleId);
   }
 
   static bool canSendReminders(String? designation, String? roleId) {
-    return isStateSuperAdmin(designation, roleId) || isDistrictAdmin(designation, roleId) || isDivisionAdmin(designation, roleId) || isStationHead(designation, roleId);
+    return isStateSuperAdmin(designation, roleId) ||
+        isDistrictAdmin(designation, roleId) ||
+        isDivisionAdmin(designation, roleId) ||
+        isStationHead(designation, roleId);
   }
 
   /// Check if user has administrative authority to approve officer registrations

@@ -29,17 +29,23 @@ class UserModel {
   final String? idCardUrl;
   final String role; // 'officer' | 'supervisor' | 'admin' — set by admin only
   final String stateCode; // 'MH', 'GJ', 'KA', etc.
-  final List<String> additionalStations; // Extra stations added by CP-level officers
+  final List<String>
+  additionalStations; // Extra stations added by CP-level officers
   /// `active` (default) | `archived` | `pending_approval` | `rejected`
   final String accountStatus;
+
   /// Operational status written by admin console (e.g. `inactive`, `rejected`).
   final String status;
+
   /// District / commissionerate name (structured; backfilled from stationAddress).
   final String? district;
+
   /// Division name (e.g. Amravati Division)
   final String? divisionName;
+
   /// Jurisdiction zone for hierarchy-scoped approvals (defaults to [district]).
   final String? zone;
+
   /// When true, junior ranks may view full station case dashboard (PI/API grant).
   final bool stationCaseViewGranted;
   final int? age;
@@ -125,23 +131,36 @@ class UserModel {
       idCardUrl: (map['idCardUrl'] ?? map['id_card_url']) as String?,
       role: map['role'] ?? map['role_id'] ?? 'officer',
       stateCode: map['stateCode'] ?? map['state_code'] ?? 'MH',
-      additionalStations: (map['additionalStations'] as List<dynamic>?)
+      additionalStations:
+          (map['additionalStations'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      accountStatus: map['accountStatus'] as String? ??
+      accountStatus:
+          map['accountStatus'] as String? ??
           map['account_status'] as String? ??
           map['status'] as String? ??
           UserAccountStatus.active,
       status: map['status'] as String? ?? '',
       district: map['district'] as String?,
-      divisionName: map['divisionName'] as String? ?? map['division_name'] as String?,
+      divisionName:
+          map['divisionName'] as String? ?? map['division_name'] as String?,
       zone: map['zone'] as String? ?? map['district'] as String?,
-      stationCaseViewGranted: map['stationCaseViewGranted'] == true || map['station_case_view_granted'] == true,
-      age: map['age'] is int ? map['age'] as int : int.tryParse(map['age']?.toString() ?? ''),
+      stationCaseViewGranted:
+          map['stationCaseViewGranted'] == true ||
+          map['station_case_view_granted'] == true,
+      age: map['age'] is int
+          ? map['age'] as int
+          : int.tryParse(map['age']?.toString() ?? ''),
       gender: map['gender'] as String?,
-      departmentLogoUrl: (map['departmentLogoUrl'] ?? map['department_logo_url'] ?? map['state_logo_url']) as String?,
-      createdAt: DateTime.tryParse(map['createdAt'] ?? map['created_at'] ?? '') ?? DateTime.now(),
+      departmentLogoUrl:
+          (map['departmentLogoUrl'] ??
+                  map['department_logo_url'] ??
+                  map['state_logo_url'])
+              as String?,
+      createdAt:
+          DateTime.tryParse(map['createdAt'] ?? map['created_at'] ?? '') ??
+          DateTime.now(),
     );
   }
 

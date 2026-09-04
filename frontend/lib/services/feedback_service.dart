@@ -36,24 +36,28 @@ class FeedbackService {
     }
 
     // 2. Webhook POST notification (Apps Script)
-    try {
-      final body = {
-        'name': trimmedName,
-        'email': trimmedEmail,
-        'category': category,
-        'message': trimmedMessage,
-        'timestamp': clientTs,
-      };
+    if (ApiConstants.feedbackWebAppUrl.isNotEmpty) {
+      try {
+        final body = {
+          'name': trimmedName,
+          'email': trimmedEmail,
+          'category': category,
+          'message': trimmedMessage,
+          'timestamp': clientTs,
+        };
 
-      await http.post(
-        Uri.parse(ApiConstants.feedbackWebAppUrl),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(body),
+        await http.post(
+          Uri.parse(ApiConstants.feedbackWebAppUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(body),
+        );
+      } catch (e) {
+        debugPrint('[FeedbackService] Webhook notice: $e');
+      }
+    } else {
+      debugPrint(
+        '[FeedbackService] FEEDBACK_WEB_APP_URL is not set; skipping webhook mirror.',
       );
-    } catch (e) {
-      debugPrint('[FeedbackService] Webhook notice: $e');
     }
 
     // Always complete successfully for the user

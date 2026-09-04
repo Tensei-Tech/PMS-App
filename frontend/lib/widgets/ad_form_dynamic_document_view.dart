@@ -54,7 +54,7 @@ const Map<String, String> kAdFormFieldLabels = {
   'regName': 'Registrar Name',
   'cctvValue': 'CCTV Available',
   'cctvDateTime': 'CCTV Date & Time',
-  'eshakshValue': 'E-shaksh',
+  'eshakshValue': 'E-Shakshya',
   'cdrSent': 'CDR Sent Date',
   'cdrRecv': 'CDR Received Date',
   'sdpoSend': 'SDPO / ACP — Sent',
@@ -175,9 +175,11 @@ String humanizeFieldKey(String key) {
       .trim();
   return withSpaces
       .split(RegExp(r'\s+'))
-      .map((w) => w.isEmpty
-          ? ''
-          : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+      .map(
+        (w) => w.isEmpty
+            ? ''
+            : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}',
+      )
       .join(' ');
 }
 
@@ -216,7 +218,8 @@ class AdFormDynamicDocumentView extends StatelessWidget {
             (t.contains('T') || RegExp(r'^\d{4}-\d{2}-\d{2}').hasMatch(t))) {
           final d = DateTime.parse(t).toLocal();
           final datePart = DateFormat('dd MMMM yyyy').format(d);
-          final hasTime = t.contains('T') &&
+          final hasTime =
+              t.contains('T') &&
               (d.hour != 0 || d.minute != 0 || d.second != 0);
           if (hasTime) {
             return '$datePart, ${DateFormat('hh:mm a').format(d)}';
@@ -235,20 +238,22 @@ class AdFormDynamicDocumentView extends StatelessWidget {
   }
 
   Widget _sectionHeader(String title, IconData icon) {
-    return Row(children: [
-      Icon(icon, size: 16, color: AppColors.goldPrimary),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AppColors.navyDark,
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.goldPrimary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.navyDark,
+            ),
           ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 
   Widget _row(String label, String value, {bool boldValue = false}) {
@@ -299,8 +304,12 @@ class AdFormDynamicDocumentView extends StatelessWidget {
     );
   }
 
-  List<Widget> _expandField(String label, dynamic v,
-      {String? fieldKey, String? mapParentKey}) {
+  List<Widget> _expandField(
+    String label,
+    dynamic v, {
+    String? fieldKey,
+    String? mapParentKey,
+  }) {
     if (v == null) return [_row(label, '—')];
     if (v is List) {
       return [
@@ -337,10 +346,7 @@ class AdFormDynamicDocumentView extends StatelessWidget {
             ),
           ),
         ),
-        ..._expandMap(
-          v,
-          parentFieldKey: mapParentKey ?? fieldKey,
-        ),
+        ..._expandMap(v, parentFieldKey: mapParentKey ?? fieldKey),
       ];
     }
     return [_row(label, disp(v))];
@@ -349,20 +355,22 @@ class AdFormDynamicDocumentView extends StatelessWidget {
   List<Widget> _expandMap(Map raw, {String? parentFieldKey}) {
     final m = Map<String, dynamic>.from(raw);
     if (m.isEmpty) return [_row('(empty)', '—')];
-    final kind =
-        adNestedMapKindFor(parentFieldKey: parentFieldKey, m: m);
+    final kind = adNestedMapKindFor(parentFieldKey: parentFieldKey, m: m);
     final keys = orderedKeysForAdNestedMap(kind: kind, m: m);
-    final parentForNestedValues =
-        kind == AdNestedMapKind.chargeDataSlots ? 'chargeData' : parentFieldKey;
+    final parentForNestedValues = kind == AdNestedMapKind.chargeDataSlots
+        ? 'chargeData'
+        : parentFieldKey;
     final out = <Widget>[];
     for (final k in keys) {
       if (out.isNotEmpty) out.add(_divider());
-      out.addAll(_expandField(
-        labelForKey(k),
-        m[k],
-        fieldKey: k,
-        mapParentKey: parentForNestedValues,
-      ));
+      out.addAll(
+        _expandField(
+          labelForKey(k),
+          m[k],
+          fieldKey: k,
+          mapParentKey: parentForNestedValues,
+        ),
+      );
     }
     return out;
   }
@@ -382,8 +390,14 @@ class AdFormDynamicDocumentView extends StatelessWidget {
         );
         for (final k in keys) {
           if (out.isNotEmpty) out.add(_divider());
-          out.addAll(_expandField(labelForKey(k), im[k],
-              fieldKey: k, mapParentKey: listFieldKey));
+          out.addAll(
+            _expandField(
+              labelForKey(k),
+              im[k],
+              fieldKey: k,
+              mapParentKey: listFieldKey,
+            ),
+          );
         }
       } else {
         out.add(_row('#${i + 1}', disp(item)));
@@ -431,8 +445,9 @@ class AdFormDynamicDocumentView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _sectionHeader(
-            'A.D — complete form record (all saved fields)',
-            Icons.fact_check_outlined),
+          'A.D — complete form record (all saved fields)',
+          Icons.fact_check_outlined,
+        ),
         const SizedBox(height: 10),
         _card(children: _allFieldRows(formData)),
         const SizedBox(height: AppSpacing.lg),

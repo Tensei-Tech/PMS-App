@@ -43,7 +43,8 @@ class NotificationProvider extends ChangeNotifier {
 
   void _handleMessage(RemoteMessage message) {
     final notification = message.notification;
-    final title = notification?.title ?? message.data['title'] ?? 'Notification';
+    final title =
+        notification?.title ?? message.data['title'] ?? 'Notification';
     final body = notification?.body ?? message.data['body'] ?? '';
 
     addNotification(title: title, body: body);
@@ -51,11 +52,9 @@ class NotificationProvider extends ChangeNotifier {
 
   /// Manually add a notification (also used by background handler if needed).
   void addNotification({required String title, required String body}) {
-    _notifications.add(NotificationItem(
-      title: title,
-      body: body,
-      timestamp: DateTime.now(),
-    ));
+    _notifications.add(
+      NotificationItem(title: title, body: body, timestamp: DateTime.now()),
+    );
     notifyListeners();
   }
 

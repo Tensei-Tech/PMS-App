@@ -21,7 +21,7 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _feedbackCtrl = TextEditingController();
-  
+
   String _selectedCategory = 'Suggestion';
   bool _isSubmitting = false;
 
@@ -97,13 +97,20 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
                 children: [
                   const Icon(Icons.check_circle_rounded, color: Colors.white),
                   const SizedBox(width: 10),
-                  Text('Thank you! Your feedback has been submitted.',
-                      style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500)),
+                  Text(
+                    'Thank you! Your feedback has been submitted.',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
               backgroundColor: AppColors.successGreen,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
               margin: const EdgeInsets.all(AppSpacing.md),
             ),
           );
@@ -121,13 +128,20 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
               children: [
                 const Icon(Icons.error_outline_rounded, color: Colors.white),
                 const SizedBox(width: 10),
-                Text('Failed to submit. Please check your connection.',
-                    style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500)),
+                Text(
+                  'Failed to submit. Please check your connection.',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
             backgroundColor: AppColors.dangerRed,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
             margin: const EdgeInsets.all(AppSpacing.md),
           ),
         );
@@ -166,7 +180,10 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.xxl),
+              padding: const EdgeInsets.only(
+                top: AppSpacing.lg,
+                bottom: AppSpacing.xxl,
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Align(
@@ -181,7 +198,8 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
                           // ── Officer Info Card (Read-only) ───────────────────
                           _buildSectionCard(
                             title: 'Officer Information',
-                            subtitle: 'Verified credentials automatically linked to your submission',
+                            subtitle:
+                                'Verified credentials automatically linked to your submission',
                             icon: Icons.verified_user_rounded,
                             accentColor: AppColors.navyMid,
                             child: Column(
@@ -218,7 +236,8 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
                           // ── Feedback Submission Card ────────────────────────
                           _buildSectionCard(
                             title: 'Your Feedback',
-                            subtitle: 'Select category and describe your thoughts or issues',
+                            subtitle:
+                                'Select category and describe your thoughts or issues',
                             icon: Icons.rate_review_rounded,
                             accentColor: AppColors.cyanDark,
                             child: Column(
@@ -230,37 +249,54 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: _categories.map((cat) {
-                                    final isSelected = _selectedCategory == cat['label'];
+                                    final isSelected =
+                                        _selectedCategory == cat['label'];
                                     return ChoiceChip(
                                       showCheckmark: false,
                                       avatar: Icon(
                                         cat['icon'] as IconData,
                                         size: 16,
-                                        color: isSelected ? Colors.white : AppColors.navyMid,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.navyMid,
                                       ),
                                       label: Text(
                                         cat['label'] as String,
                                         style: GoogleFonts.poppins(
                                           fontSize: 12.5,
-                                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                          color: isSelected ? Colors.white : AppColors.navyDark,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.w400,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : AppColors.navyDark,
                                         ),
                                       ),
                                       selected: isSelected,
                                       selectedColor: AppColors.navyMid,
                                       backgroundColor: AppColors.lightBg,
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 6,
+                                      ),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(AppRadius.md),
+                                        borderRadius: BorderRadius.circular(
+                                          AppRadius.md,
+                                        ),
                                         side: BorderSide(
                                           color: isSelected
                                               ? AppColors.navyMid
-                                              : AppColors.navyMid.withValues(alpha: 0.15),
+                                              : AppColors.navyMid.withValues(
+                                                  alpha: 0.15,
+                                                ),
                                         ),
                                       ),
                                       onSelected: (selected) {
                                         if (selected) {
-                                          setState(() => _selectedCategory = cat['label'] as String);
+                                          setState(
+                                            () => _selectedCategory =
+                                                cat['label'] as String,
+                                          );
                                         }
                                       },
                                     );
@@ -278,31 +314,49 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
                                     color: AppColors.lightText,
                                   ),
                                   decoration: InputDecoration(
-                                    hintText: 'Describe your suggestion, feature request, or issue details...',
+                                    hintText:
+                                        'Describe your suggestion, feature request, or issue details...',
                                     hintStyle: GoogleFonts.poppins(
                                       fontSize: 13,
-                                      color: AppColors.lightSubText.withValues(alpha: 0.7),
+                                      color: AppColors.lightSubText.withValues(
+                                        alpha: 0.7,
+                                      ),
                                     ),
                                     filled: true,
                                     fillColor: Colors.white,
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.md),
-                                      borderSide: const BorderSide(color: AppColors.lightBorder),
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.md,
+                                      ),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.lightBorder,
+                                      ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.md),
-                                      borderSide: const BorderSide(color: AppColors.lightBorder),
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.md,
+                                      ),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.lightBorder,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.md),
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.md,
+                                      ),
                                       borderSide: const BorderSide(
                                         color: AppColors.navyMid,
                                         width: 1.5,
                                       ),
                                     ),
                                     errorBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.md),
-                                      borderSide: const BorderSide(color: AppColors.dangerRed, width: 1.5),
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.md,
+                                      ),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.dangerRed,
+                                        width: 1.5,
+                                      ),
                                     ),
                                     contentPadding: const EdgeInsets.all(14),
                                   ),
@@ -321,7 +375,9 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.navyDark.withValues(alpha: 0.25),
+                                  color: AppColors.navyDark.withValues(
+                                    alpha: 0.25,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -333,7 +389,9 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
                                 ),
                               ),
                               child: _isSubmitting
@@ -342,13 +400,21 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
                                       height: 22,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2.5,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
                                       ),
                                     )
                                   : Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                                        const Icon(
+                                          Icons.send_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
                                         const SizedBox(width: 8),
                                         Text(
                                           'Submit Feedback',
@@ -473,9 +539,7 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: accentColor.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: accentColor.withValues(alpha: 0.12)),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -558,10 +622,7 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
       keyboardType: keyboardType,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: validator,
-      style: GoogleFonts.poppins(
-        fontSize: 14,
-        color: AppColors.lightText,
-      ),
+      style: GoogleFonts.poppins(fontSize: 14, color: AppColors.lightText),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: GoogleFonts.poppins(
@@ -573,7 +634,9 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
             ? Icon(suffixIcon, color: AppColors.lightSubText, size: 18)
             : null,
         filled: true,
-        fillColor: readOnly ? AppColors.lightBg.withValues(alpha: 0.6) : Colors.white,
+        fillColor: readOnly
+            ? AppColors.lightBg.withValues(alpha: 0.6)
+            : Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.lightBorder),
@@ -584,16 +647,16 @@ class _FeedbackFormScreenState extends State<FeedbackFormScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(
-            color: AppColors.navyMid,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.dangerRed, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
     );
   }

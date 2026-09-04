@@ -33,8 +33,16 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
   final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
 
   final body = pw.TextStyle(font: loraRegular, fontSize: 10);
-  final bold = pw.TextStyle(font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
-  final title = pw.TextStyle(font: loraBold, fontSize: 14, fontWeight: pw.FontWeight.bold);
+  final bold = pw.TextStyle(
+    font: loraBold,
+    fontSize: 11,
+    fontWeight: pw.FontWeight.bold,
+  );
+  final title = pw.TextStyle(
+    font: loraBold,
+    fontSize: 14,
+    fontWeight: pw.FontWeight.bold,
+  );
   final mr = pw.TextStyle(font: devanagari, fontSize: 9);
   final mrBold = pw.TextStyle(font: devanagariBold, fontSize: 10);
 
@@ -56,7 +64,8 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
 
   final section = v('formSection').toLowerCase();
   final showMain =
-      section.isEmpty || (section.contains('main') && !section.contains('continuation'));
+      section.isEmpty ||
+      (section.contains('main') && !section.contains('continuation'));
   final showCont = section.isEmpty || section.contains('continuation');
 
   if (showMain) {
@@ -68,15 +77,26 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(
-              child: pw.Text('NOTICE — Section 35(1)(b)(ii) BNSS', style: title),
+              child: pw.Text(
+                'NOTICE — Section 35(1)(b)(ii) BNSS',
+                style: title,
+              ),
             ),
             pw.Center(child: pw.Text('सूचनापत्र', style: mrBold)),
             pw.SizedBox(height: 12),
-            row('Outward No.', 'जावक क्र.', '${v('outwardNo')}/${v('outwardYear')}'),
+            row(
+              'Outward No.',
+              'जावक क्र.',
+              '${v('outwardNo')}/${v('outwardYear')}',
+            ),
             row('Police Station', 'पोलीस स्टेशन', v('policeStation')),
             row('To', 'प्रति', v('accusedNameAddress')),
             row('CR No.', 'ग.र.क्र.', v('subjectCrNo')),
-            row('Section / BNS', 'कलम', '${v('subjectSection')} ${v('subjectBns')}'),
+            row(
+              'Section / BNS',
+              'कलम',
+              '${v('subjectSection')} ${v('subjectBns')}',
+            ),
             row('IO', 'तपासी अधिकारी', v('ioName')),
             row('Brief description', 'संक्षिप्त विवरण', v('briefDescription')),
             pw.SizedBox(height: 8),
@@ -96,9 +116,21 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            row('Relative informed', 'नातेवाईक', '${v('relativeName')} ${v('relativeAddress')} ${v('relativePhone')}'),
-            row('Accused sig / date', 'आरोपी', '${v('accusedSig')} ${v('accusedDateTime')}'),
-            row('IO sig / rank / PS', FormIoTerminology.officer, '${v('ioSig')} ${v('ioNameRank')} ${v('ioPs')}'),
+            row(
+              'Relative informed',
+              'नातेवाईक',
+              '${v('relativeName')} ${v('relativeAddress')} ${v('relativePhone')}',
+            ),
+            row(
+              'Accused sig / date',
+              'आरोपी',
+              '${v('accusedSig')} ${v('accusedDateTime')}',
+            ),
+            row(
+              'IO sig / rank / PS',
+              FormIoTerminology.officer,
+              '${v('ioSig')} ${v('ioNameRank')} ${v('ioPs')}',
+            ),
           ],
         ),
       ),

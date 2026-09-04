@@ -23,7 +23,8 @@ class InquestPanchanamaFormView extends StatefulWidget {
   });
 
   @override
-  State<InquestPanchanamaFormView> createState() => InquestPanchanamaFormViewState();
+  State<InquestPanchanamaFormView> createState() =>
+      InquestPanchanamaFormViewState();
 }
 
 class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
@@ -50,10 +51,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   };
 
   bool _shows(String sectionId) => showsFormSection(
-        activeSection: widget.formSection,
-        sectionId: sectionId,
-        knownSectionIds: _knownSectionIds,
-      );
+    activeSection: widget.formSection,
+    sectionId: sectionId,
+    knownSectionIds: _knownSectionIds,
+  );
 
   // Part 1: Inquest Panchanama Controllers (Pages 1-4)
   final _distCtrl = TextEditingController();
@@ -1243,7 +1244,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     const SizedBox(height: 4),
                     Text(
                       '(Under Section - 194 B.N.S.S.)',
-                      style: serifStyle.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
+                      style: serifStyle.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -1256,165 +1260,522 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               const SizedBox(height: 32),
 
               // 1) Dist, PS, Year, FIR No
-              BilingualFieldRow(fields: [
-                BilingualField(label: '1) Dist. :-', marathiLabel: 'जिल्हा', controller: _distCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'P.S. :-', marathiLabel: 'पो.स्टे.', controller: _psCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Year :- 20', marathiLabel: 'वर्ष', controller: _yearCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'FIR/AD/U.D.No :-', marathiLabel: 'पहिली खबर क्र / अकस्मात मृत्यू क्र.', controller: _firNoCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: '1) Dist. :-',
+                    marathiLabel: 'जिल्हा',
+                    controller: _distCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'P.S. :-',
+                    marathiLabel: 'पो.स्टे.',
+                    controller: _psCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Year :- 20',
+                    marathiLabel: 'वर्ष',
+                    controller: _yearCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'FIR/AD/U.D.No :-',
+                    marathiLabel: 'पहिली खबर क्र / अकस्मात मृत्यू क्र.',
+                    controller: _firNoCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
 
               // 2) Act and Section
-              BilingualWideField(label: '2) Act and Section :-', marathiLabel: 'अधिनियम व कलमे', controller: _actSectionsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualWideField(
+                label: '2) Act and Section :-',
+                marathiLabel: 'अधिनियम व कलमे',
+                controller: _actSectionsCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // 3) Place where body found
-              BilingualSectionHeader(label: '3) Place From where Dead Body Found/Traced :-', marathiLabel: 'प्रेत पाहिल्याचे / मिळाल्याचे ठिकाण / जागा', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Place :-', marathiLabel: 'जागा', controller: _foundPlaceCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Date :-', marathiLabel: 'तारीख', controller: _foundDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Time :-', marathiLabel: 'वेळ', controller: _foundTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
+              BilingualSectionHeader(
+                label: '3) Place From where Dead Body Found/Traced :-',
+                marathiLabel: 'प्रेत पाहिल्याचे / मिळाल्याचे ठिकाण / जागा',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Place :-',
+                    marathiLabel: 'जागा',
+                    controller: _foundPlaceCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Date :-',
+                    marathiLabel: 'तारीख',
+                    controller: _foundDateCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Time :-',
+                    marathiLabel: 'वेळ',
+                    controller: _foundTimeCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
 
               // 4) By whom body shown
-              BilingualWideField(label: '4) By whom Dead Body Shown :-', marathiLabel: 'प्रेत कोणी दाखविले', controller: _shownByCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualWideField(
+                label: '4) By whom Dead Body Shown :-',
+                marathiLabel: 'प्रेत कोणी दाखविले',
+                controller: _shownByCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // 5) By whom identified
-              BilingualWideField(label: '5) By whom Dead Body Identified :-', marathiLabel: 'प्रेत कोणी ओळखले', controller: _identifiedByCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualWideField(
+                label: '5) By whom Dead Body Identified :-',
+                marathiLabel: 'प्रेत कोणी ओळखले',
+                controller: _identifiedByCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // a) Male/Female
-              BilingualField(label: 'a) Dead Body Male/Female :-', marathiLabel: 'अ) प्रेत स्त्री / पुरुष जातीचे', controller: _genderCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label: 'a) Dead Body Male/Female :-',
+                marathiLabel: 'अ) प्रेत स्त्री / पुरुष जातीचे',
+                controller: _genderCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // 6) b) Married/Unmarried
-              BilingualField(label: '6) b) Dead Body Married/Unmarried :-', marathiLabel: 'ब) प्रेत विवाहीत / अविवाहित आहे', controller: _marriedCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label: '6) b) Dead Body Married/Unmarried :-',
+                marathiLabel: 'ब) प्रेत विवाहीत / अविवाहित आहे',
+                controller: _marriedCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // c) Age
-              BilingualField(label: 'c) Age of Dead Body :-', marathiLabel: 'क) प्रेताचे वय', controller: _ageCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label: 'c) Age of Dead Body :-',
+                marathiLabel: 'क) प्रेताचे वय',
+                controller: _ageCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // d) Date & Time of Death
-              BilingualSectionHeader(label: 'd) Date and Time of Death :-', marathiLabel: 'ड) मृत्यूची तारीख व वेळ', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Date :-', marathiLabel: 'तारीख', controller: _deathDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Time :-', marathiLabel: 'वेळ', controller: _deathTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
+              BilingualSectionHeader(
+                label: 'd) Date and Time of Death :-',
+                marathiLabel: 'ड) मृत्यूची तारीख व वेळ',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Date :-',
+                    marathiLabel: 'तारीख',
+                    controller: _deathDateCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Time :-',
+                    marathiLabel: 'वेळ',
+                    controller: _deathTimeCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
 
               // 7) Position of body
-              BilingualMultilineField(label: '7) Position of Dead Body :-', marathiLabel: 'प्रेताची स्थिती / अवस्था (दशा)', controller: _positionOfBodyCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualMultilineField(
+                label: '7) Position of Dead Body :-',
+                marathiLabel: 'प्रेताची स्थिती / अवस्था (दशा)',
+                controller: _positionOfBodyCtrl,
+                minLines: 2,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 24),
 
               // PAGE BREAK EQUIVALENT
-              const Align(alignment: Alignment.centerRight, child: Text('Page 2', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Page 2',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
               const Divider(color: Colors.black45),
               const SizedBox(height: 12),
 
               // 8) Name & Address
-              BilingualMultilineField(label: '8) Name and Address of Dead Body :-', marathiLabel: 'प्रेताचे संपूर्ण नांव व पत्ता (माहित असल्यास)', controller: _nameAddressDeceasedCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualMultilineField(
+                label: '8) Name and Address of Dead Body :-',
+                marathiLabel: 'प्रेताचे संपूर्ण नांव व पत्ता (माहित असल्यास)',
+                controller: _nameAddressDeceasedCtrl,
+                minLines: 2,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 16),
 
               // 9) Description of injuries
-              BilingualSectionHeader(label: '9) Description of injuries found on dead body (if any) :-', marathiLabel: 'प्रेताचे जखमा असल्यास त्याचे वर्णन', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualSectionHeader(
+                label:
+                    '9) Description of injuries found on dead body (if any) :-',
+                marathiLabel: 'प्रेताचे जखमा असल्यास त्याचे वर्णन',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               Padding(
                 padding: const EdgeInsets.only(left: 16.0),
                 child: Column(
                   children: [
-                    BilingualField(label: 'a) Head :-', marathiLabel: 'अ) डोके', controller: _injHeadCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'b) Face :-', marathiLabel: 'ब) चेहरा', controller: _injFaceCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'c) Neck :-', marathiLabel: 'क) मान', controller: _injNeckCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'd) Chest :-', marathiLabel: 'ड) छाती', controller: _injChestCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'e) Stomach :-', marathiLabel: 'इ) पोट', controller: _injStomachCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'f) Right Hand :-', marathiLabel: 'ई) उजवा हात', controller: _injRightHandCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'g) Left Hand :-', marathiLabel: 'उ) डावा हात', controller: _injLeftHandCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'h) Right Leg :-', marathiLabel: 'ऊ) उजवा पाय', controller: _injRightLegCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'i) Left Leg :-', marathiLabel: 'ए) डावा पाय', controller: _injLeftLegCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'j) Private part :-', marathiLabel: 'ऐ) गुप्त भाग', controller: _injPrivatePartCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                    BilingualField(label: 'k) Back :-', marathiLabel: 'ओ) पाठ', controller: _injBackCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                    BilingualField(
+                      label: 'a) Head :-',
+                      marathiLabel: 'अ) डोके',
+                      controller: _injHeadCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'b) Face :-',
+                      marathiLabel: 'ब) चेहरा',
+                      controller: _injFaceCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'c) Neck :-',
+                      marathiLabel: 'क) मान',
+                      controller: _injNeckCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'd) Chest :-',
+                      marathiLabel: 'ड) छाती',
+                      controller: _injChestCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'e) Stomach :-',
+                      marathiLabel: 'इ) पोट',
+                      controller: _injStomachCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'f) Right Hand :-',
+                      marathiLabel: 'ई) उजवा हात',
+                      controller: _injRightHandCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'g) Left Hand :-',
+                      marathiLabel: 'उ) डावा हात',
+                      controller: _injLeftHandCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'h) Right Leg :-',
+                      marathiLabel: 'ऊ) उजवा पाय',
+                      controller: _injRightLegCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'i) Left Leg :-',
+                      marathiLabel: 'ए) डावा पाय',
+                      controller: _injLeftLegCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'j) Private part :-',
+                      marathiLabel: 'ऐ) गुप्त भाग',
+                      controller: _injPrivatePartCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'k) Back :-',
+                      marathiLabel: 'ओ) पाठ',
+                      controller: _injBackCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
 
               // PAGE BREAK EQUIVALENT
-              const Align(alignment: Alignment.centerRight, child: Text('Page 3', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Page 3',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
               const Divider(color: Colors.black45),
               const SizedBox(height: 12),
 
               // 10) Injuries by Accidental/Violence
-              BilingualMultilineField(label: '10) Injuries caused by accidental/violence on dead body :-', marathiLabel: 'प्रेताचे अंगावरील जखमा अपघाताच्या / दंग्याशील / इतरानी केल्यामुळे झाल्या', controller: _injAccidentalViolenceCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualMultilineField(
+                label:
+                    '10) Injuries caused by accidental/violence on dead body :-',
+                marathiLabel:
+                    'प्रेताचे अंगावरील जखमा अपघाताच्या / दंग्याशील / इतरानी केल्यामुळे झाल्या',
+                controller: _injAccidentalViolenceCtrl,
+                minLines: 2,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const Padding(
                 padding: EdgeInsets.only(left: 4, bottom: 8),
-                child: Text('Homicide / Other Burn / (Fair / Tejab)', style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+                child: Text(
+                  'Homicide / Other Burn / (Fair / Tejab)',
+                  style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                ),
               ),
               const SizedBox(height: 12),
 
               // 11) Weapon/Means
-              BilingualField(label: '11) Weapon / Means (if any) :-', marathiLabel: 'जखमा केलेल्या हत्यार / साधन असल्यास', controller: _weaponMeansCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label: '11) Weapon / Means (if any) :-',
+                marathiLabel: 'जखमा केलेल्या हत्यार / साधन असल्यास',
+                controller: _weaponMeansCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // 12) Cool/Warm
-              BilingualField(label: '12) Dead Body Cool / Warm :-', marathiLabel: 'प्रेत थंड आहे / गरम आहे', controller: _bodyCoolWarmCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label: '12) Dead Body Cool / Warm :-',
+                marathiLabel: 'प्रेत थंड आहे / गरम आहे',
+                controller: _bodyCoolWarmCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // 13) Poisoning
-              BilingualField(label: '13) Position of dead body if poisoning suspected :-', marathiLabel: 'प्रेताची स्थिती विष प्राशन प्रयोग झाला असल्यास', controller: _poisoningPositionCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label: '13) Position of dead body if poisoning suspected :-',
+                marathiLabel: 'प्रेताची स्थिती विष प्राशन प्रयोग झाला असल्यास',
+                controller: _poisoningPositionCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // 14) Finger print & Photo
-              BilingualField(label: '14) (a) Finger print taken / not taken — reason (unidentified body) :-', marathiLabel: 'अनोळखी प्रेताचे डॉक्टरकडून बोटाचे ठसे घेतले / नाही — कारण', controller: _fingerprintReasonCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label:
+                    '14) (a) Finger print taken / not taken — reason (unidentified body) :-',
+                marathiLabel:
+                    'अनोळखी प्रेताचे डॉक्टरकडून बोटाचे ठसे घेतले / नाही — कारण',
+                controller: _fingerprintReasonCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 8),
-              BilingualField(label: '(b) Photo taken / not taken — reason (identified body) :-', marathiLabel: 'अनोळखी प्रेताचे फोटो घेतले आहेत काय / नाही — कारण', controller: _photoReasonCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label:
+                    '(b) Photo taken / not taken — reason (identified body) :-',
+                marathiLabel:
+                    'अनोळखी प्रेताचे फोटो घेतले आहेत काय / नाही — कारण',
+                controller: _photoReasonCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // 15) Dead Body sent to PM
-              BilingualField(label: '15) Dead body sent to P.M. / not — reason :-', marathiLabel: 'प्रेत (पोस्ट मार्टम) शल्य चिकित्सा करीता पाठविले / नाही — कारण', controller: _sentToPMReasonCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: '(a) Hospital where body sent for P.M. :-', marathiLabel: 'कोणत्या दवाखान्यात प्रेत पोस्ट मार्टम करीता पाठविले', controller: _hospitalNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label: '15) Dead body sent to P.M. / not — reason :-',
+                marathiLabel:
+                    'प्रेत (पोस्ट मार्टम) शल्य चिकित्सा करीता पाठविले / नाही — कारण',
+                controller: _sentToPMReasonCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: '(a) Hospital where body sent for P.M. :-',
+                marathiLabel:
+                    'कोणत्या दवाखान्यात प्रेत पोस्ट मार्टम करीता पाठविले',
+                controller: _hospitalNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 8),
-              BilingualSectionHeader(label: '(b) With whom (Name, No. and P.S.) :-', marathiLabel: 'कोणा बरोबर पाठविले (नांव व पो.स्टे)', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Name :-', marathiLabel: 'नांव', controller: _sentOfficerNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'B/No :-', marathiLabel: 'बक्कल नंबर', controller: _sentOfficerBNoCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'P.S. :-', marathiLabel: 'पो.स्टे', controller: _sentOfficerPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
+              BilingualSectionHeader(
+                label: '(b) With whom (Name, No. and P.S.) :-',
+                marathiLabel: 'कोणा बरोबर पाठविले (नांव व पो.स्टे)',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Name :-',
+                    marathiLabel: 'नांव',
+                    controller: _sentOfficerNameCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'B/No :-',
+                    marathiLabel: 'बक्कल नंबर',
+                    controller: _sentOfficerBNoCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'P.S. :-',
+                    marathiLabel: 'पो.स्टे',
+                    controller: _sentOfficerPsCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
 
               // 16) Opinion of Panchas
-              BilingualMultilineField(label: '16) Opinion of Panchas and Police about death :-', marathiLabel: 'पंच व पोलीसांचा मृत्युविषयी अभिप्राय', controller: _opinionPanchasCtrl, minLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualMultilineField(
+                label: '16) Opinion of Panchas and Police about death :-',
+                marathiLabel: 'पंच व पोलीसांचा मृत्युविषयी अभिप्राय',
+                controller: _opinionPanchasCtrl,
+                minLines: 3,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 12),
 
               // 17) More Info
-              BilingualMultilineField(label: '17) More information if any :-', marathiLabel: 'अधिक माहिती असल्यास', controller: _moreInfoCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualMultilineField(
+                label: '17) More information if any :-',
+                marathiLabel: 'अधिक माहिती असल्यास',
+                controller: _moreInfoCtrl,
+                minLines: 2,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 24),
 
               // PAGE BREAK EQUIVALENT
-              const Align(alignment: Alignment.centerRight, child: Text('Page 4', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Page 4',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
               const Divider(color: Colors.black45),
               const SizedBox(height: 12),
 
               // 18) Date and Time of panchanama
-              BilingualSectionHeader(label: '18) Date and Time of panchanama :-', marathiLabel: 'पंचनामा केल्याची दिनांक व वेळ', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Date :-', marathiLabel: 'दिनांक', controller: _panchanamaDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Time :-', marathiLabel: 'वेळ', controller: _panchanamaTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'To :-', marathiLabel: 'ते', controller: _panchanamaTimeToCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
+              BilingualSectionHeader(
+                label: '18) Date and Time of panchanama :-',
+                marathiLabel: 'पंचनामा केल्याची दिनांक व वेळ',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Date :-',
+                    marathiLabel: 'दिनांक',
+                    controller: _panchanamaDateCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Time :-',
+                    marathiLabel: 'वेळ',
+                    controller: _panchanamaTimeCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'To :-',
+                    marathiLabel: 'ते',
+                    controller: _panchanamaTimeToCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
               const SizedBox(height: 16),
 
               // 19) Name of Panchas & Signature
-              BilingualSectionHeader(label: '19) Name of Panchas and Signature :-', marathiLabel: 'पंचनामा करणाऱ्या पंचाची नांवे', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualSectionHeader(
+                label: '19) Name of Panchas and Signature :-',
+                marathiLabel: 'पंचनामा करणाऱ्या पंचाची नांवे',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               Row(
                 children: [
                   Expanded(
                     child: Column(
                       children: [
-                        BilingualField(label: 'Panch 1) :-', marathiLabel: '१)', controller: _panch1Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Panch 2) :-', marathiLabel: '२)', controller: _panch2Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Panch 3) :-', marathiLabel: '३)', controller: _panch3Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                        BilingualField(
+                          label: 'Panch 1) :-',
+                          marathiLabel: '१)',
+                          controller: _panch1Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Panch 2) :-',
+                          marathiLabel: '२)',
+                          controller: _panch2Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Panch 3) :-',
+                          marathiLabel: '३)',
+                          controller: _panch3Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
                       ],
                     ),
                   ),
@@ -1422,9 +1783,27 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Expanded(
                     child: Column(
                       children: [
-                        BilingualField(label: 'Signature 1) :-', marathiLabel: 'सह्या १)', controller: _panch1SigCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Signature 2) :-', marathiLabel: 'सह्या २)', controller: _panch2SigCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Signature 3) :-', marathiLabel: 'सह्या ३)', controller: _panch3SigCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                        BilingualField(
+                          label: 'Signature 1) :-',
+                          marathiLabel: 'सह्या १)',
+                          controller: _panch1SigCtrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Signature 2) :-',
+                          marathiLabel: 'सह्या २)',
+                          controller: _panch2SigCtrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Signature 3) :-',
+                          marathiLabel: 'सह्या ३)',
+                          controller: _panch3SigCtrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
                       ],
                     ),
                   ),
@@ -1444,14 +1823,21 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               ),
             ],
           ),
-        if (_shows(kMainInquest) && (_shows(kCivilSurgeon) || widget.formSection?.isEmpty == true))
+        if (_shows(kMainInquest) &&
+            (_shows(kCivilSurgeon) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
         if (_shows(kCivilSurgeon))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Pages 16–17',
             children: [
               // REPORT TO CIVIL SURGEON (Page 5)
-              const Align(alignment: Alignment.centerRight, child: Text('Page 5 (Civil Surgeon Report 1)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Page 5 (Civil Surgeon Report 1)',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
               const Divider(color: Colors.black, thickness: 1.5),
               const SizedBox(height: 12),
 
@@ -1460,22 +1846,34 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   children: [
                     Text(
                       'Police Report to be forwarded to the Civil Surgeon',
-                      style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       'with Dead Bodies sent For Post-mortem examination',
-                      style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'शवविच्छेदन परिक्षेसाठी पाठविलेल्या प्रेताबरोबर जिल्हा शल्यचिकीत्सकाकडे पाठवायाचा पोलीस अहवाल',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       '(G.R.G.D. No. 332, dt. 21-5-12 P.M. 35 M.C. In MR vide L. No L/89-B.dt. 18-4-69 form I.G of Police, M.S. Bombay)',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(fontSize: 10, fontStyle: FontStyle.italic),
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ],
                 ),
@@ -1493,18 +1891,36 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     children: [
                       _buildTableHeaderCell('Question (प्रश्न)'),
                       _buildTableHeaderCell('Answer (उत्तर)'),
-                    ]
+                    ],
                   ),
-                  _buildCSRow('1) Name of Deceased\n(मृत व्यक्तीचे नांव) :-', _csNameDeceasedCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('2) Age\n(वय) :-', _csAgeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('3) Married, Single, Widow or Widower\n(विवाहीत, अविवाहीत, विधवा किंवा विधुर) :-', _csMaritalStatusCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  _buildCSRow(
+                    '1) Name of Deceased\n(मृत व्यक्तीचे नांव) :-',
+                    _csNameDeceasedCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '2) Age\n(वय) :-',
+                    _csAgeCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '3) Married, Single, Widow or Widower\n(विवाहीत, अविवाहीत, विधवा किंवा विधुर) :-',
+                    _csMaritalStatusCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                   TableRow(
                     children: [
                       const Padding(
                         padding: EdgeInsets.all(8.0),
                         child: Text(
                           '4) Date and hour of death\n(मृत्युचा दिनांक आणि वेळ) :-',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       Padding(
@@ -1512,27 +1928,53 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            BilingualFieldRow(fields: [
-                              BilingualField(label: 'Date :-', marathiLabel: 'दिनांक', controller: _csDeathDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                              BilingualField(label: 'Time :-', marathiLabel: 'वेळ', controller: _csDeathTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                            ]),
+                            BilingualFieldRow(
+                              fields: [
+                                BilingualField(
+                                  label: 'Date :-',
+                                  marathiLabel: 'दिनांक',
+                                  controller: _csDeathDateCtrl,
+                                  serifStyle: serifStyle,
+                                  marathiLabelStyle: marathiLabelStyle,
+                                ),
+                                BilingualField(
+                                  label: 'Time :-',
+                                  marathiLabel: 'वेळ',
+                                  controller: _csDeathTimeCtrl,
+                                  serifStyle: serifStyle,
+                                  marathiLabelStyle: marathiLabelStyle,
+                                ),
+                              ],
+                            ),
                             Padding(
                               padding: const EdgeInsets.only(left: 4, top: 4),
-                              child: Text('(on date at time / रोजी ... वाजता)', style: marathiLabelStyle),
+                              child: Text(
+                                '(on date at time / रोजी ... वाजता)',
+                                style: marathiLabelStyle,
+                              ),
                             ),
                           ],
                         ),
-                      )
-                    ]
+                      ),
+                    ],
                   ),
-                  _buildCSRow('5) Describe condition of body when found, Position, Surroundings and any marks of Violence, bloodstains or vomited matters Which may have existed?\n(प्रेत सापडले त्यावेळची अवस्था, स्थिती, भोवतालची परिस्थिती आणि उपलब्ध असलेल्या मारहाणीच्या खुणा रक्ताचे डाग किंवा वांतीबरोबर पडलेले पदार्थ यांचा तपशील दयावा.) :-', _csBodyConditionCtrl, maxLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  _buildCSRow(
+                    '5) Describe condition of body when found, Position, Surroundings and any marks of Violence, bloodstains or vomited matters Which may have existed?\n(प्रेत सापडले त्यावेळची अवस्था, स्थिती, भोवतालची परिस्थिती आणि उपलब्ध असलेल्या मारहाणीच्या खुणा रक्ताचे डाग किंवा वांतीबरोबर पडलेले पदार्थ यांचा तपशील दयावा.) :-',
+                    _csBodyConditionCtrl,
+                    maxLines: 3,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                   TableRow(
                     children: [
                       const Padding(
                         padding: EdgeInsets.all(8.0),
                         child: Text(
                           '6) Day and hour on which the body was seen :- By the officer making the report\n(अहवाल पाठविणाऱ्या अधिकाऱ्याने प्रेत पहिल्याचा दिनांक व वेळ (तास) ):-',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       Padding(
@@ -1540,27 +1982,82 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            BilingualFieldRow(fields: [
-                              BilingualField(label: 'Date :-', marathiLabel: 'दिनांक', controller: _csSeenDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                              BilingualField(label: 'Time :-', marathiLabel: 'वेळ', controller: _csSeenTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                            ]),
-                            BilingualField(label: 'Officer :-', marathiLabel: 'अधिकारी', controller: _csSeenOfficerCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                            BilingualFieldRow(
+                              fields: [
+                                BilingualField(
+                                  label: 'Date :-',
+                                  marathiLabel: 'दिनांक',
+                                  controller: _csSeenDateCtrl,
+                                  serifStyle: serifStyle,
+                                  marathiLabelStyle: marathiLabelStyle,
+                                ),
+                                BilingualField(
+                                  label: 'Time :-',
+                                  marathiLabel: 'वेळ',
+                                  controller: _csSeenTimeCtrl,
+                                  serifStyle: serifStyle,
+                                  marathiLabelStyle: marathiLabelStyle,
+                                ),
+                              ],
+                            ),
+                            BilingualField(
+                              label: 'Officer :-',
+                              marathiLabel: 'अधिकारी',
+                              controller: _csSeenOfficerCtrl,
+                              serifStyle: serifStyle,
+                              marathiLabelStyle: marathiLabelStyle,
+                            ),
                           ],
                         ),
-                      )
-                    ]
+                      ),
+                    ],
                   ),
-                  _buildCSRow('7) Was the body cold or warm when found?\n(प्रेत सापडले त्यावेळी थंड होते कि गरम) :-', _csBodyColdWarmCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('8) Had the deceased suffered from recent Illness? If so, what? State duration and Describe the illness as far as Known.\n(मृत व्यक्तीला अलीकडे काही आजार झाला होता काय असल्यास सांगा.) :-', _csRecentIllnessCtrl, maxLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('9) Had deceased suffered from accident Injury or if so, describe it.\n(मृत व्यक्तीला कोणत्याही प्रकारचा अपघात, दुखापत किंवा मारहाण झाली होती काय ?) :-', _csAccidentInjuryCtrl, maxLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('10) If clothes, weapons, vomited matter of Other articles are forwarded, State why this Is done and what relation they bear to the Case? Describe them.\n(कपडे, हत्यारे, वांतीबरोबर पडलेले पदार्थ किंवा इतर वस्तु पाठविल्या असल्यास तसे का केले व त्यांचा प्रकरणाशी संबंध आहे ते लिहावे, त्याचा तपशील दयावा.) :-', _csArticlesForwardedCtrl, maxLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('11) Is death supposed to have been due to Natural causes, accident, suicide or homicide? State briefly and plainly, any suspicions That may exist and why?\n(मृत्यु नैसर्गीक कारणे, अपघात, आत्महत्या किंवा खुन यापैकी कशामुळे घडला असे वाटते. काही संशय असल्यास ते थोडक्यात स्पष्टपणे नमूद करावे व कारणे दयावे.) :-', _csDeathReasonCtrl, maxLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  _buildCSRow(
+                    '7) Was the body cold or warm when found?\n(प्रेत सापडले त्यावेळी थंड होते कि गरम) :-',
+                    _csBodyColdWarmCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '8) Had the deceased suffered from recent Illness? If so, what? State duration and Describe the illness as far as Known.\n(मृत व्यक्तीला अलीकडे काही आजार झाला होता काय असल्यास सांगा.) :-',
+                    _csRecentIllnessCtrl,
+                    maxLines: 2,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '9) Had deceased suffered from accident Injury or if so, describe it.\n(मृत व्यक्तीला कोणत्याही प्रकारचा अपघात, दुखापत किंवा मारहाण झाली होती काय ?) :-',
+                    _csAccidentInjuryCtrl,
+                    maxLines: 2,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '10) If clothes, weapons, vomited matter of Other articles are forwarded, State why this Is done and what relation they bear to the Case? Describe them.\n(कपडे, हत्यारे, वांतीबरोबर पडलेले पदार्थ किंवा इतर वस्तु पाठविल्या असल्यास तसे का केले व त्यांचा प्रकरणाशी संबंध आहे ते लिहावे, त्याचा तपशील दयावा.) :-',
+                    _csArticlesForwardedCtrl,
+                    maxLines: 3,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '11) Is death supposed to have been due to Natural causes, accident, suicide or homicide? State briefly and plainly, any suspicions That may exist and why?\n(मृत्यु नैसर्गीक कारणे, अपघात, आत्महत्या किंवा खुन यापैकी कशामुळे घडला असे वाटते. काही संशय असल्यास ते थोडक्यात स्पष्टपणे नमूद करावे व कारणे दयावे.) :-',
+                    _csDeathReasonCtrl,
+                    maxLines: 3,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
 
               // PAGE BREAK EQUIVALENT - REPORT TO CIVIL SURGEON CONT. (Page 6)
-              const Align(alignment: Alignment.centerRight, child: Text('Page 6 (Civil Surgeon Report 2)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Page 6 (Civil Surgeon Report 2)',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
               const Divider(color: Colors.black, thickness: 1.5),
               const SizedBox(height: 12),
 
@@ -1575,13 +2072,43 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     children: [
                       _buildTableHeaderCell('Question (प्रश्न)'),
                       _buildTableHeaderCell('Answer (उत्तर)'),
-                    ]
+                    ],
                   ),
-                  _buildCSRow('12) Is there suspicion of poisoning? If, so, is any particular poison supposed to have been employed? Mention any symptoms of poisoning which are reported to have existed during life and any appearances pointing to poisoning observed after death.\n(विष प्रयोग केल्याचा संशय आहे. असल्यास विशिष्ट विषाचा वापर केला असे वाटते काय? मृत व्यक्ती जिवंत असतांना विषबाधा झाल्याची लक्षणे दिसून आल्याचे कळविण्यात आले होते काय. व विषाचे बाबत मृत्यू नंतर दिसून आलेली चिन्हे नमूद करावी.) :-', _csPoisonSuspicionCtrl, maxLines: 4, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('13) In the case of a woman, is she supposed to be pregnant of to have been recently delivered ?\n(स्त्रीच्या बाबतीत ती गरोदर असावी किंवा अलीकडे प्रसुती झाली असावी असे वाटते काय ?) :-', _csWomanPregnancyCtrl, maxLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('14) Is abortion or attempted abortion known or suspected? And if the former, has the focus been found?\n(गर्भपात केला किंवा गर्भपात करण्याचा प्रयत्न केला या विषयी माहिती किंवा संशय आहे काय. गर्भपात केला असल्यास गर्भ सापडला काय.) :-', _csAbortionCtrl, maxLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('15) State the finding of the Jury (if any) and mention any reasons they may have given for their findings.\n(ज्युरीचे निष्कर्ष असल्यास नमूद करावेत व निष्कर्षा बाबत त्यांनी काही कारणे दिली असल्यास त्याचा निर्देश करावा.) :-', _csJuryFindingsCtrl, maxLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  _buildCSRow('16) Remarks. Under this head the Police Officer should give any information not included in the above question which he may consider likely to assist the Civil Surgeon informing an opinion of the cause of death.\n(शेरा - वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकास मृत्यूच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.) :-', _csRemarksCtrl, maxLines: 4, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  _buildCSRow(
+                    '12) Is there suspicion of poisoning? If, so, is any particular poison supposed to have been employed? Mention any symptoms of poisoning which are reported to have existed during life and any appearances pointing to poisoning observed after death.\n(विष प्रयोग केल्याचा संशय आहे. असल्यास विशिष्ट विषाचा वापर केला असे वाटते काय? मृत व्यक्ती जिवंत असतांना विषबाधा झाल्याची लक्षणे दिसून आल्याचे कळविण्यात आले होते काय. व विषाचे बाबत मृत्यू नंतर दिसून आलेली चिन्हे नमूद करावी.) :-',
+                    _csPoisonSuspicionCtrl,
+                    maxLines: 4,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '13) In the case of a woman, is she supposed to be pregnant of to have been recently delivered ?\n(स्त्रीच्या बाबतीत ती गरोदर असावी किंवा अलीकडे प्रसुती झाली असावी असे वाटते काय ?) :-',
+                    _csWomanPregnancyCtrl,
+                    maxLines: 2,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '14) Is abortion or attempted abortion known or suspected? And if the former, has the focus been found?\n(गर्भपात केला किंवा गर्भपात करण्याचा प्रयत्न केला या विषयी माहिती किंवा संशय आहे काय. गर्भपात केला असल्यास गर्भ सापडला काय.) :-',
+                    _csAbortionCtrl,
+                    maxLines: 2,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '15) State the finding of the Jury (if any) and mention any reasons they may have given for their findings.\n(ज्युरीचे निष्कर्ष असल्यास नमूद करावेत व निष्कर्षा बाबत त्यांनी काही कारणे दिली असल्यास त्याचा निर्देश करावा.) :-',
+                    _csJuryFindingsCtrl,
+                    maxLines: 2,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  _buildCSRow(
+                    '16) Remarks. Under this head the Police Officer should give any information not included in the above question which he may consider likely to assist the Civil Surgeon informing an opinion of the cause of death.\n(शेरा - वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकास मृत्यूच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.) :-',
+                    _csRemarksCtrl,
+                    maxLines: 4,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -1597,22 +2124,42 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               ),
             ],
           ),
-        if (_shows(kCivilSurgeon) && (_shows(kVinantiArj) || widget.formSection?.isEmpty == true))
+        if (_shows(kCivilSurgeon) &&
+            (_shows(kVinantiArj) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
         if (_shows(kVinantiArj))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Page 18',
             children: [
               // VINANTI ARJ (Page 7)
-              const Align(alignment: Alignment.centerRight, child: Text('Page 7 (विनंती अर्ज)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Page 7 (विनंती अर्ज)',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
               const Divider(color: Colors.black, thickness: 1.5),
               const SizedBox(height: 12),
 
               Center(
                 child: Column(
                   children: [
-                    Text('Request Application', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
-                    Text('विनंती अर्ज', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Request Application',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    Text(
+                      'विनंती अर्ज',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1623,22 +2170,77 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   width: 420,
                   child: Column(
                     children: [
-                      BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन :-', controller: _reqPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                      BilingualField(label: 'Date :-', marathiLabel: 'दिनांक :-', controller: _reqDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                      BilingualField(
+                        label: 'Police Station :-',
+                        marathiLabel: 'पोलीस स्टेशन :-',
+                        controller: _reqPsCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                      BilingualField(
+                        label: 'Date :-',
+                        marathiLabel: 'दिनांक :-',
+                        controller: _reqDateCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 12),
-              BilingualSectionHeader(label: 'To,', marathiLabel: 'प्रति,', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'Head of Forensic Medicine Department :-', marathiLabel: 'मा. न्यायवैद्यक शास्त्र विभाग प्रमुख', controller: _reqToCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'From — Police Station :-', marathiLabel: 'पासुन :- पोलीस स्टेशन', controller: _reqFromPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'District :-', marathiLabel: 'जिल्हा', controller: _reqDistCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'Subject — Deceased name :-', marathiLabel: 'विषय :- मृतक नामे', controller: _reqSubjectNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'P.S. :-', marathiLabel: 'पो.स्टे.', controller: _reqSubjectPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Taluka :-', marathiLabel: 'ता-', controller: _reqSubjectTaCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
+              BilingualSectionHeader(
+                label: 'To,',
+                marathiLabel: 'प्रति,',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'Head of Forensic Medicine Department :-',
+                marathiLabel: 'मा. न्यायवैद्यक शास्त्र विभाग प्रमुख',
+                controller: _reqToCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'From — Police Station :-',
+                marathiLabel: 'पासुन :- पोलीस स्टेशन',
+                controller: _reqFromPsCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'District :-',
+                marathiLabel: 'जिल्हा',
+                controller: _reqDistCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'Subject — Deceased name :-',
+                marathiLabel: 'विषय :- मृतक नामे',
+                controller: _reqSubjectNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'P.S. :-',
+                    marathiLabel: 'पो.स्टे.',
+                    controller: _reqSubjectPsCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Taluka :-',
+                    marathiLabel: 'ता-',
+                    controller: _reqSubjectTaCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
               Padding(
                 padding: const EdgeInsets.only(left: 4, bottom: 12),
                 child: Text(
@@ -1647,43 +2249,159 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   style: marathiLabelStyle,
                 ),
               ),
-              const Center(child: Text('o o o o', style: TextStyle(fontWeight: FontWeight.bold))),
+              const Center(
+                child: Text(
+                  'o o o o',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
               const SizedBox(height: 12),
-              BilingualSectionHeader(label: 'Sir,', marathiLabel: 'महोदय,', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualSectionHeader(
+                label: 'Sir,',
+                marathiLabel: 'महोदय,',
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const Text(
                 'It is respectfully submitted that on the date and time mentioned below, a marg entry was recorded under Section 194 B.N.S.S. 2023. Details are as follows:',
                 style: TextStyle(fontSize: 13),
               ),
               const SizedBox(height: 12),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Marg date :-', marathiLabel: 'मर्ग दिनांक', controller: _reqMargDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Marg time :-', marathiLabel: 'मर्ग वेळ', controller: _reqMargTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
-              BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन', controller: _reqMargPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Station Diary No. :-', marathiLabel: 'स्टेशन डायरी क्र.', controller: _reqMargDiaryNoCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Year :-', marathiLabel: 'वर्ष', controller: _reqMargYearCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
-              BilingualField(label: 'Deceased name :-', marathiLabel: 'मृतक नामे', controller: _reqMargNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'P.S. :-', marathiLabel: 'पो.स्टे.', controller: _reqSubjectPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Taluka :-', marathiLabel: 'ता', controller: _reqMargTaCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
-              BilingualField(label: 'He/She :-', marathiLabel: 'ही/हा', controller: _reqDeceasedHeSheCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'Hospital name :-', marathiLabel: 'दवाखान्याचे नांव', controller: _reqHospitalNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Admission date :-', marathiLabel: 'भरती दिनांक', controller: _reqAdmitDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Admission time :-', marathiLabel: 'भरती वेळ', controller: _reqAdmitTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
-              BilingualField(label: 'Cause / details :-', marathiLabel: 'कारण / तपशील (गळफास/विष/अपघात)', controller: _reqReasonDetailsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Death date :-', marathiLabel: 'मृत्यू दिनांक', controller: _reqDeathDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Death time :-', marathiLabel: 'मृत्यू वेळ', controller: _reqDeathTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Marg date :-',
+                    marathiLabel: 'मर्ग दिनांक',
+                    controller: _reqMargDateCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Marg time :-',
+                    marathiLabel: 'मर्ग वेळ',
+                    controller: _reqMargTimeCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
+              BilingualField(
+                label: 'Police Station :-',
+                marathiLabel: 'पोलीस स्टेशन',
+                controller: _reqMargPsCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Station Diary No. :-',
+                    marathiLabel: 'स्टेशन डायरी क्र.',
+                    controller: _reqMargDiaryNoCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Year :-',
+                    marathiLabel: 'वर्ष',
+                    controller: _reqMargYearCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
+              BilingualField(
+                label: 'Deceased name :-',
+                marathiLabel: 'मृतक नामे',
+                controller: _reqMargNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'P.S. :-',
+                    marathiLabel: 'पो.स्टे.',
+                    controller: _reqSubjectPsCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Taluka :-',
+                    marathiLabel: 'ता',
+                    controller: _reqMargTaCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
+              BilingualField(
+                label: 'He/She :-',
+                marathiLabel: 'ही/हा',
+                controller: _reqDeceasedHeSheCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'Hospital name :-',
+                marathiLabel: 'दवाखान्याचे नांव',
+                controller: _reqHospitalNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Admission date :-',
+                    marathiLabel: 'भरती दिनांक',
+                    controller: _reqAdmitDateCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Admission time :-',
+                    marathiLabel: 'भरती वेळ',
+                    controller: _reqAdmitTimeCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
+              BilingualField(
+                label: 'Cause / details :-',
+                marathiLabel: 'कारण / तपशील (गळफास/विष/अपघात)',
+                controller: _reqReasonDetailsCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Death date :-',
+                    marathiLabel: 'मृत्यू दिनांक',
+                    controller: _reqDeathDateCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Death time :-',
+                    marathiLabel: 'मृत्यू वेळ',
+                    controller: _reqDeathTimeCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
               const SizedBox(height: 16),
-              const Text('तरी सदर मृतकाचे मरणाचे निश्चीत कारण समजुन घेणेकरीता सदर मृतकाचे प्रेताचे पी.एम करून आपला सविस्तर अभिप्राय मिळणेस विनंती आहे.', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'तरी सदर मृतकाचे मरणाचे निश्चीत कारण समजुन घेणेकरीता सदर मृतकाचे प्रेताचे पी.एम करून आपला सविस्तर अभिप्राय मिळणेस विनंती आहे.',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
-              const Text('सहपत्र : प्रश्नोत्तर फॉर्म, इंक्वेस्ट पंचनामा', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'सहपत्र : प्रश्नोत्तर फॉर्म, इंक्वेस्ट पंचनामा',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1692,8 +2410,20 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        BilingualField(label: 'By hand (name) :-', marathiLabel: 'हस्ते :-', controller: _reqHasteNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'P.S. :-', marathiLabel: 'पो.स्टे. :-', controller: _reqHastePsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                        BilingualField(
+                          label: 'By hand (name) :-',
+                          marathiLabel: 'हस्ते :-',
+                          controller: _reqHasteNameCtrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'P.S. :-',
+                          marathiLabel: 'पो.स्टे. :-',
+                          controller: _reqHastePsCtrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
                       ],
                     ),
                   ),
@@ -1714,23 +2444,49 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               ),
             ],
           ),
-        if (_shows(kVinantiArj) && (_shows(kRelativeSummons) || widget.formSection?.isEmpty == true))
+        if (_shows(kVinantiArj) &&
+            (_shows(kRelativeSummons) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
         if (_shows(kRelativeSummons))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Page 19',
             children: [
               // SUMMONS TO RELATIVES (Page 8)
-              const Align(alignment: Alignment.centerRight, child: Text('Page 8 (नातेवाईकांना समन्स)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Page 8 (नातेवाईकांना समन्स)',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
               const Divider(color: Colors.black, thickness: 1.5),
               const SizedBox(height: 12),
 
               Center(
                 child: Column(
                   children: [
-                    Text('Summons to Relatives', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
-                    Text('नातेवाईकांना समन्स', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold)),
-                    const Text('(Under Section 179 B.N.S.S. 2023 / कलम १७९ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Summons to Relatives',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    Text(
+                      'नातेवाईकांना समन्स',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      '(Under Section 179 B.N.S.S. 2023 / कलम १७९ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1741,34 +2497,116 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   width: 420,
                   child: Column(
                     children: [
-                      BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन :-', controller: _relPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                      BilingualField(label: 'Camp :-', marathiLabel: 'कॅम्प :-', controller: _relCampCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                      BilingualField(label: 'Date :-', marathiLabel: 'दिनांक :-', controller: _relDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                      BilingualField(
+                        label: 'Police Station :-',
+                        marathiLabel: 'पोलीस स्टेशन :-',
+                        controller: _relPsCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                      BilingualField(
+                        label: 'Camp :-',
+                        marathiLabel: 'कॅम्प :-',
+                        controller: _relCampCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                      BilingualField(
+                        label: 'Date :-',
+                        marathiLabel: 'दिनांक :-',
+                        controller: _relDateCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
                     ],
                   ),
                 ),
               ),
-              BilingualMultilineField(label: 'Name :-', marathiLabel: 'नांव', controller: _relToNameCtrl, minLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualMultilineField(
+                label: 'Name :-',
+                marathiLabel: 'नांव',
+                controller: _relToNameCtrl,
+                minLines: 3,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 16),
-              const Center(child: Text('o o o o', style: TextStyle(fontWeight: FontWeight.bold))),
+              const Center(
+                child: Text(
+                  'o o o o',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
               const SizedBox(height: 12),
               const Text(
                 'You are hereby summoned to identify the dead body and remain present until the inquest panchanama is completed as a relative of the deceased. Details:',
                 style: TextStyle(fontSize: 13),
               ),
               const SizedBox(height: 12),
-              BilingualField(label: 'Officer name (We) :-', marathiLabel: 'आम्ही (अधिकाऱ्याचे नांव)', controller: _relWeNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन', controller: _relPsNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'CR / Diary No. :-', marathiLabel: 'दैनंदिनी क्रमांक', controller: _relCrDiaryNoCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Year :-', marathiLabel: 'वर्ष', controller: _relCrYearCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
-              BilingualField(label: 'Section :-', marathiLabel: 'कलम', controller: _relActSecCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'Deceased name :-', marathiLabel: 'मृतक नामे', controller: _relDeceasedNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Taluka :-', marathiLabel: 'ता', controller: _relTaCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'District :-', marathiLabel: 'जिल्हा', controller: _relDistCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
+              BilingualField(
+                label: 'Officer name (We) :-',
+                marathiLabel: 'आम्ही (अधिकाऱ्याचे नांव)',
+                controller: _relWeNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'Police Station :-',
+                marathiLabel: 'पोलीस स्टेशन',
+                controller: _relPsNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'CR / Diary No. :-',
+                    marathiLabel: 'दैनंदिनी क्रमांक',
+                    controller: _relCrDiaryNoCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Year :-',
+                    marathiLabel: 'वर्ष',
+                    controller: _relCrYearCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
+              BilingualField(
+                label: 'Section :-',
+                marathiLabel: 'कलम',
+                controller: _relActSecCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'Deceased name :-',
+                marathiLabel: 'मृतक नामे',
+                controller: _relDeceasedNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Taluka :-',
+                    marathiLabel: 'ता',
+                    controller: _relTaCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'District :-',
+                    marathiLabel: 'जिल्हा',
+                    controller: _relDistCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1777,11 +2615,40 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        BilingualSectionHeader(label: 'Signature', marathiLabel: 'सही', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Signature 1) :-', marathiLabel: '१)', controller: _relSig1Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Signature 2) :-', marathiLabel: '२)', controller: _relSig2Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Signature 3) :-', marathiLabel: '३)', controller: _relSig3Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Signature 4) :-', marathiLabel: '४)', controller: _relSig4Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                        BilingualSectionHeader(
+                          label: 'Signature',
+                          marathiLabel: 'सही',
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Signature 1) :-',
+                          marathiLabel: '१)',
+                          controller: _relSig1Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Signature 2) :-',
+                          marathiLabel: '२)',
+                          controller: _relSig2Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Signature 3) :-',
+                          marathiLabel: '३)',
+                          controller: _relSig3Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Signature 4) :-',
+                          marathiLabel: '४)',
+                          controller: _relSig4Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
                       ],
                     ),
                   ),
@@ -1802,23 +2669,49 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               ),
             ],
           ),
-        if (_shows(kRelativeSummons) && (_shows(kPanchaSummons) || widget.formSection?.isEmpty == true))
+        if (_shows(kRelativeSummons) &&
+            (_shows(kPanchaSummons) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
         if (_shows(kPanchaSummons))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Page 20',
             children: [
               // SUMMONS TO PANCHAS (Page 9)
-              const Align(alignment: Alignment.centerRight, child: Text('Page 9 (पंचांचा समन्स)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Page 9 (पंचांचा समन्स)',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
               const Divider(color: Colors.black, thickness: 1.5),
               const SizedBox(height: 12),
 
               Center(
                 child: Column(
                   children: [
-                    Text('Summons to Panchas', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
-                    Text('पंचाचा समन्स', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold)),
-                    const Text('(Under Section 195 B.N.S.S. 2023 / कलम १९५ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Summons to Panchas',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    Text(
+                      'पंचाचा समन्स',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      '(Under Section 195 B.N.S.S. 2023 / कलम १९५ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1829,34 +2722,116 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   width: 420,
                   child: Column(
                     children: [
-                      BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन :-', controller: _panPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                      BilingualField(label: 'Camp :-', marathiLabel: 'कॅम्प :-', controller: _panCampCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                      BilingualField(label: 'Date :-', marathiLabel: 'दिनांक :-', controller: _panDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                      BilingualField(
+                        label: 'Police Station :-',
+                        marathiLabel: 'पोलीस स्टेशन :-',
+                        controller: _panPsCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                      BilingualField(
+                        label: 'Camp :-',
+                        marathiLabel: 'कॅम्प :-',
+                        controller: _panCampCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                      BilingualField(
+                        label: 'Date :-',
+                        marathiLabel: 'दिनांक :-',
+                        controller: _panDateCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
                     ],
                   ),
                 ),
               ),
-              BilingualMultilineField(label: 'Name :-', marathiLabel: 'नांव', controller: _panToNameCtrl, minLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualMultilineField(
+                label: 'Name :-',
+                marathiLabel: 'नांव',
+                controller: _panToNameCtrl,
+                minLines: 3,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
               const SizedBox(height: 16),
-              const Center(child: Text('o o o o', style: TextStyle(fontWeight: FontWeight.bold))),
+              const Center(
+                child: Text(
+                  'o o o o',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
               const SizedBox(height: 12),
               const Text(
                 'You are hereby summoned to remain present as a Panch until the inquest panchanama proceedings are completed. Details:',
                 style: TextStyle(fontSize: 13),
               ),
               const SizedBox(height: 12),
-              BilingualField(label: 'Officer name (We) :-', marathiLabel: 'आम्ही (अधिकाऱ्याचे नांव)', controller: _panWeNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन', controller: _panPsNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'CR / Diary No. :-', marathiLabel: 'दैनंदिनी क्रमांक', controller: _panCrDiaryNoCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Year :-', marathiLabel: 'वर्ष', controller: _panCrYearCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
-              BilingualField(label: 'Section :-', marathiLabel: 'कलम', controller: _panActSecCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'Deceased name :-', marathiLabel: 'मृतक नामे', controller: _panDeceasedNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: 'Taluka :-', marathiLabel: 'ता', controller: _panTaCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'District :-', marathiLabel: 'जिल्हा', controller: _panDistCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
+              BilingualField(
+                label: 'Officer name (We) :-',
+                marathiLabel: 'आम्ही (अधिकाऱ्याचे नांव)',
+                controller: _panWeNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'Police Station :-',
+                marathiLabel: 'पोलीस स्टेशन',
+                controller: _panPsNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'CR / Diary No. :-',
+                    marathiLabel: 'दैनंदिनी क्रमांक',
+                    controller: _panCrDiaryNoCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Year :-',
+                    marathiLabel: 'वर्ष',
+                    controller: _panCrYearCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
+              BilingualField(
+                label: 'Section :-',
+                marathiLabel: 'कलम',
+                controller: _panActSecCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'Deceased name :-',
+                marathiLabel: 'मृतक नामे',
+                controller: _panDeceasedNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: 'Taluka :-',
+                    marathiLabel: 'ता',
+                    controller: _panTaCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'District :-',
+                    marathiLabel: 'जिल्हा',
+                    controller: _panDistCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1865,11 +2840,40 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        BilingualSectionHeader(label: 'Panch Signatures', marathiLabel: 'पंच सही', serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Panch Signature 1) :-', marathiLabel: '१)', controller: _panSig1Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Panch Signature 2) :-', marathiLabel: '२)', controller: _panSig2Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Panch Signature 3) :-', marathiLabel: '३)', controller: _panSig3Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                        BilingualField(label: 'Panch Signature 4) :-', marathiLabel: '४)', controller: _panSig4Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                        BilingualSectionHeader(
+                          label: 'Panch Signatures',
+                          marathiLabel: 'पंच सही',
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Panch Signature 1) :-',
+                          marathiLabel: '१)',
+                          controller: _panSig1Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Panch Signature 2) :-',
+                          marathiLabel: '२)',
+                          controller: _panSig2Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Panch Signature 3) :-',
+                          marathiLabel: '३)',
+                          controller: _panSig3Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        BilingualField(
+                          label: 'Panch Signature 4) :-',
+                          marathiLabel: '४)',
+                          controller: _panSig4Ctrl,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
                       ],
                     ),
                   ),
@@ -1890,22 +2894,42 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               ),
             ],
           ),
-        if (_shows(kPanchaSummons) && (_shows(kMarananveshan) || widget.formSection?.isEmpty == true))
+        if (_shows(kPanchaSummons) &&
+            (_shows(kMarananveshan) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
         if (_shows(kMarananveshan))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Pages 21–22',
             children: [
               // SIMPLIFIED MARATHI PANCHANAMA (Page 10)
-              const Align(alignment: Alignment.centerRight, child: Text('Page 10 (मरणांवेषण पंचनामा)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Page 10 (मरणांवेषण पंचनामा)',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
               const Divider(color: Colors.black, thickness: 1.5),
               const SizedBox(height: 12),
 
               Center(
                 child: Column(
                   children: [
-                    Text('Maran Anveshan Panchanama', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
-                    Text('मरणांवेषण पंचनामा', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Maran Anveshan Panchanama',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    Text(
+                      'मरणांवेषण पंचनामा',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1916,60 +2940,181 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   width: 420,
                   child: Column(
                     children: [
-                      BilingualField(label: 'Place :-', marathiLabel: 'ठिकाण', controller: _marThikanCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                      BilingualField(label: 'Date :-', marathiLabel: 'दिनांक', controller: _marDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                      BilingualField(label: 'Start time :-', marathiLabel: 'सुरु केल्याची वेळ', controller: _marTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                      BilingualField(
+                        label: 'Place :-',
+                        marathiLabel: 'ठिकाण',
+                        controller: _marThikanCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                      BilingualField(
+                        label: 'Date :-',
+                        marathiLabel: 'दिनांक',
+                        controller: _marDateCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
+                      BilingualField(
+                        label: 'Start time :-',
+                        marathiLabel: 'सुरु केल्याची वेळ',
+                        controller: _marTimeCtrl,
+                        serifStyle: serifStyle,
+                        marathiLabelStyle: marathiLabelStyle,
+                      ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 12),
 
-              BilingualField(label: '1) Panch name and address :-', marathiLabel: '१) पंचाचे नांव व पत्ता', controller: _marPanchNameAddressCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualFieldRow(fields: [
-                BilingualField(label: '2) Police Station :-', marathiLabel: '२) पोलीस स्टेशन', controller: _marPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'District :-', marathiLabel: 'जिल्हा', controller: _marDistCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              ]),
-              BilingualField(label: '3) Accidental death / crime / station diary no. :-', marathiLabel: '३) अकस्मात मृत्यू/गुन्हा/ठाणे दैनंदिनी क्र', controller: _marDiaryNoCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualWideField(label: '4) Act and Section :-', marathiLabel: '४) अधिनियम व कलम', controller: _marActSecCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: '5) I.O. name and rank :-', marathiLabel: '५) ${FormIoTerminology.officer} — ${FormIoTerminology.name}, ${FormIoTerminology.rank}', controller: _marIoDetailsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: '6) Complainant name :-', marathiLabel: '६) फिर्यादीचे नांव', controller: _marComplainantNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: '7) Deceased name and address :-', marathiLabel: '७) मृतकाचे नांव व पत्ता', controller: _marDeceasedNameAddressCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: '8) Name of person who showed/identified body :-', marathiLabel: '८) प्रेत दाखविणाऱ्याचे/ओळखणाऱ्याचे नांव', controller: _marShownByNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label: '1) Panch name and address :-',
+                marathiLabel: '१) पंचाचे नांव व पत्ता',
+                controller: _marPanchNameAddressCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualFieldRow(
+                fields: [
+                  BilingualField(
+                    label: '2) Police Station :-',
+                    marathiLabel: '२) पोलीस स्टेशन',
+                    controller: _marPsCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'District :-',
+                    marathiLabel: 'जिल्हा',
+                    controller: _marDistCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                ],
+              ),
+              BilingualField(
+                label: '3) Accidental death / crime / station diary no. :-',
+                marathiLabel: '३) अकस्मात मृत्यू/गुन्हा/ठाणे दैनंदिनी क्र',
+                controller: _marDiaryNoCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualWideField(
+                label: '4) Act and Section :-',
+                marathiLabel: '४) अधिनियम व कलम',
+                controller: _marActSecCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: '5) I.O. name and rank :-',
+                marathiLabel:
+                    '५) ${FormIoTerminology.officer} — ${FormIoTerminology.name}, ${FormIoTerminology.rank}',
+                controller: _marIoDetailsCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: '6) Complainant name :-',
+                marathiLabel: '६) फिर्यादीचे नांव',
+                controller: _marComplainantNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: '7) Deceased name and address :-',
+                marathiLabel: '७) मृतकाचे नांव व पत्ता',
+                controller: _marDeceasedNameAddressCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: '8) Name of person who showed/identified body :-',
+                marathiLabel: '८) प्रेत दाखविणाऱ्याचे/ओळखणाऱ्याचे नांव',
+                controller: _marShownByNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
 
-              BilingualMultilineField(label: '9) Description of place where body is kept :-', marathiLabel: '९) प्रेत ठेवले आहे त्या ठिकाणाचे वर्णन', controller: _marThikanDescriptionCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualMultilineField(label: '10) Condition of the body :-', marathiLabel: '१०) प्रेताची स्थिती', controller: _marBodyConditionCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualMultilineField(label: '11) Description of clothes on body :-', marathiLabel: '११) प्रेताचे अंगावरील कपड्याचे वर्णन', controller: _marBodyClothesCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualMultilineField(label: '12) Ornaments and other articles on body :-', marathiLabel: '१२) प्रेताचे अंगावरील दागिने व इतर वस्तु', controller: _marBodyOrnamentsCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              _buildPage11(serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualMultilineField(
+                label: '9) Description of place where body is kept :-',
+                marathiLabel: '९) प्रेत ठेवले आहे त्या ठिकाणाचे वर्णन',
+                controller: _marThikanDescriptionCtrl,
+                minLines: 2,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualMultilineField(
+                label: '10) Condition of the body :-',
+                marathiLabel: '१०) प्रेताची स्थिती',
+                controller: _marBodyConditionCtrl,
+                minLines: 2,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualMultilineField(
+                label: '11) Description of clothes on body :-',
+                marathiLabel: '११) प्रेताचे अंगावरील कपड्याचे वर्णन',
+                controller: _marBodyClothesCtrl,
+                minLines: 2,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualMultilineField(
+                label: '12) Ornaments and other articles on body :-',
+                marathiLabel: '१२) प्रेताचे अंगावरील दागिने व इतर वस्तु',
+                controller: _marBodyOrnamentsCtrl,
+                minLines: 2,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              _buildPage11(
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
             ],
           ),
-        if (_shows(kMarananveshan) && (_shows(kKalmi14) || widget.formSection?.isEmpty == true))
+        if (_shows(kMarananveshan) &&
+            (_shows(kKalmi14) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
         if (_shows(kKalmi14))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Page 23',
             children: [
-              _buildPage12(serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              _buildPage13(serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              _buildPage12(
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              _buildPage13(
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
             ],
           ),
-        if (_shows(kKalmi14) && (_shows(kBodyHandover) || widget.formSection?.isEmpty == true))
+        if (_shows(kKalmi14) &&
+            (_shows(kBodyHandover) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
         if (_shows(kBodyHandover))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Page 25',
             children: [
-              _buildPage14(serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              _buildPage14(
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
             ],
           ),
-        if (_shows(kBodyHandover) && (_shows(kDutyPass) || widget.formSection?.isEmpty == true))
+        if (_shows(kBodyHandover) &&
+            (_shows(kDutyPass) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
         if (_shows(kDutyPass))
           FormPaperPage(
             formLabel: widget.pageRange ?? 'Page 26',
             children: [
-              _buildPage15(serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              _buildPage15(
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
             ],
           ),
       ],
@@ -2035,7 +3180,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 32),
         const Align(
           alignment: Alignment.centerRight,
-          child: Text('Page 11 (मरणांवेषण — cont.)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          child: Text(
+            'Page 11 (मरणांवेषण — cont.)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
         ),
         const Divider(color: Colors.black, thickness: 1.5),
         const SizedBox(height: 12),
@@ -2044,23 +3192,76 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             children: [
               Text(
                 'Maran Anveshan Panchanama (continued)',
-                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
                 'मरणांवेषण पंचनामा (पुढे चालू)',
-                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 12),
 
-        BilingualMultilineField(label: '13) Injuries / marks on the body of the deceased :-', marathiLabel: '१३) मृतकाच्या शरीरावरील मार, जखमा इत्यादी :', controller: _mar13InjuriesCtrl, minLines: 4, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '14) Other marks, stains, decomposition, poison or injection — samples taken for examination (details) :-', marathiLabel: '१४) प्रेतावरील इतर खुणा, लच्छवी, विरघळन, विषा किंवा वांती झाली काय ? तपासणीकरीता नमुने घेतले काय सविस्तर उल्लेख करावा :', controller: _mar14OtherMarksCtrl, minLines: 4, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '15) Disposal of ornaments and other articles on the body of the deceased :-', marathiLabel: '१५) मृतकाचे अंगावरील दागिने व इतर वस्तूंची काय विल्लेवाट लावली :', controller: _mar15OrnamentsDisposalCtrl, minLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '16) Opinion of Panchas and Investigating Officer :-', marathiLabel: '१६) पंच व ${FormIoTerminology.officer} यांचा अभिप्राय :', controller: _mar16OpinionCtrl, minLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '17) Disposal of the dead body :-', marathiLabel: '१७) प्रेताची काय विल्लेवाट लावली ?', controller: _mar17BodyDisposalCtrl, minLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '18) Date and time of completion of Panchanama :-', marathiLabel: '१८) पंचनामा संपविल्याची दिनांक व वेळ :', controller: _mar18DateTimeCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+        BilingualMultilineField(
+          label: '13) Injuries / marks on the body of the deceased :-',
+          marathiLabel: '१३) मृतकाच्या शरीरावरील मार, जखमा इत्यादी :',
+          controller: _mar13InjuriesCtrl,
+          minLines: 4,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label:
+              '14) Other marks, stains, decomposition, poison or injection — samples taken for examination (details) :-',
+          marathiLabel:
+              '१४) प्रेतावरील इतर खुणा, लच्छवी, विरघळन, विषा किंवा वांती झाली काय ? तपासणीकरीता नमुने घेतले काय सविस्तर उल्लेख करावा :',
+          controller: _mar14OtherMarksCtrl,
+          minLines: 4,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label:
+              '15) Disposal of ornaments and other articles on the body of the deceased :-',
+          marathiLabel:
+              '१५) मृतकाचे अंगावरील दागिने व इतर वस्तूंची काय विल्लेवाट लावली :',
+          controller: _mar15OrnamentsDisposalCtrl,
+          minLines: 3,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label: '16) Opinion of Panchas and Investigating Officer :-',
+          marathiLabel:
+              '१६) पंच व ${FormIoTerminology.officer} यांचा अभिप्राय :',
+          controller: _mar16OpinionCtrl,
+          minLines: 3,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label: '17) Disposal of the dead body :-',
+          marathiLabel: '१७) प्रेताची काय विल्लेवाट लावली ?',
+          controller: _mar17BodyDisposalCtrl,
+          minLines: 3,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label: '18) Date and time of completion of Panchanama :-',
+          marathiLabel: '१८) पंचनामा संपविल्याची दिनांक व वेळ :',
+          controller: _mar18DateTimeCtrl,
+          minLines: 2,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
         const SizedBox(height: 16),
 
         Row(
@@ -2070,15 +3271,51 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Signature of Panchas', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text(
+                    'Signature of Panchas',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
                   Text('पंचाची सही', style: marathiLabelStyle),
                   const SizedBox(height: 10),
-                  BilingualField(label: '1)', marathiLabel: '१)', controller: _mar11Panch1Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  BilingualField(label: '2)', marathiLabel: '२)', controller: _mar11Panch2Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  BilingualField(label: '3)', marathiLabel: '३)', controller: _mar11Panch3Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  BilingualField(label: '4)', marathiLabel: '४)', controller: _mar11Panch4Ctrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  BilingualField(
+                    label: '1)',
+                    marathiLabel: '१)',
+                    controller: _mar11Panch1Ctrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: '2)',
+                    marathiLabel: '२)',
+                    controller: _mar11Panch2Ctrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: '3)',
+                    marathiLabel: '३)',
+                    controller: _mar11Panch3Ctrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: '4)',
+                    marathiLabel: '४)',
+                    controller: _mar11Panch4Ctrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                   const SizedBox(height: 12),
-                  BilingualField(label: 'Copy submitted to Medical Officer :-', marathiLabel: 'प्रत सादर :- मा.वैद्यकीय अधिकारी—', controller: _mar11CopyToCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  BilingualField(
+                    label: 'Copy submitted to Medical Officer :-',
+                    marathiLabel: 'प्रत सादर :- मा.वैद्यकीय अधिकारी—',
+                    controller: _mar11CopyToCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                 ],
               ),
             ),
@@ -2087,12 +3324,39 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('I.O. Name, Rank & Signature / Seal', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13)),
-                  Text(FormIoTerminology.signatureHeaderSeal, style: marathiLabelStyle),
+                  Text(
+                    'I.O. Name, Rank & Signature / Seal',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    FormIoTerminology.signatureHeaderSeal,
+                    style: marathiLabelStyle,
+                  ),
                   const SizedBox(height: 10),
-                  BilingualField(label: 'Name :-', marathiLabel: '${FormIoTerminology.name} :', controller: _mar11IoNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  BilingualField(label: 'Rank :-', marathiLabel: '${FormIoTerminology.rank} :', controller: _mar11IoRankCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन :', controller: _mar11IoPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  BilingualField(
+                    label: 'Name :-',
+                    marathiLabel: '${FormIoTerminology.name} :',
+                    controller: _mar11IoNameCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Rank :-',
+                    marathiLabel: '${FormIoTerminology.rank} :',
+                    controller: _mar11IoRankCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Police Station :-',
+                    marathiLabel: 'पोलीस स्टेशन :',
+                    controller: _mar11IoPsCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                 ],
               ),
             ),
@@ -2115,7 +3379,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 32),
         const Align(
           alignment: Alignment.centerRight,
-          child: Text('Page 12 (१४-कलमी फॉर्म)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          child: Text(
+            'Page 12 (१४-कलमी फॉर्म)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
         ),
         const Divider(color: Colors.black, thickness: 1.5),
         const SizedBox(height: 12),
@@ -2124,45 +3391,153 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             children: [
               Text(
                 '14-Clause Form (to be submitted with Inquest Panchanama)',
-                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               Text(
                 '१४ कलमी फॉर्म व इन्क्वेस्ट पंचनामा सोबत द्यावाचा फॉर्म',
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
               Text(
                 'Submitted to Medical Officer',
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 'मा.वैद्यकीय अधिकारी यांना सादर',
-                style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600),
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 12),
 
-        BilingualField(label: '1) Name and age of deceased :-', marathiLabel: '१) मृतकाचे नांव व वय :', controller: _kal14NameAgeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '2) Full address of deceased (village, taluka, district) :-', marathiLabel: '२) मृतकाचा पूर्ण पत्ता गांव तालुका जिल्हा:', controller: _kal14AddressCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '3) Place from where dead body was brought :-', marathiLabel: '३) मृतकाचे शव (प्रेत) ज्या ठिकाणाहुन आणले त्या जागेचे नांव पत्ता :', controller: _kal14ShavFromCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: 'Place to which dead body was brought :-', marathiLabel: 'आणले त्या जागेचे नांव पत्ता', controller: _kal14ShavToCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '4) Full name and address of deceased\'s mother :-', marathiLabel: '४) मृतकाचे आईचे पूर्ण नांव व पत्ता :', controller: _kal14AaiNameCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '5) Full name and address of deceased\'s father :-', marathiLabel: '५) मृतकाचे बदोलचे पूर्ण नांव व पत्ता :', controller: _kal14BaapNameCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+        BilingualField(
+          label: '1) Name and age of deceased :-',
+          marathiLabel: '१) मृतकाचे नांव व वय :',
+          controller: _kal14NameAgeCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label: '2) Full address of deceased (village, taluka, district) :-',
+          marathiLabel: '२) मृतकाचा पूर्ण पत्ता गांव तालुका जिल्हा:',
+          controller: _kal14AddressCtrl,
+          minLines: 2,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label: '3) Place from where dead body was brought :-',
+          marathiLabel:
+              '३) मृतकाचे शव (प्रेत) ज्या ठिकाणाहुन आणले त्या जागेचे नांव पत्ता :',
+          controller: _kal14ShavFromCtrl,
+          minLines: 2,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label: 'Place to which dead body was brought :-',
+          marathiLabel: 'आणले त्या जागेचे नांव पत्ता',
+          controller: _kal14ShavToCtrl,
+          minLines: 2,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label: '4) Full name and address of deceased\'s mother :-',
+          marathiLabel: '४) मृतकाचे आईचे पूर्ण नांव व पत्ता :',
+          controller: _kal14AaiNameCtrl,
+          minLines: 2,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label: '5) Full name and address of deceased\'s father :-',
+          marathiLabel: '५) मृतकाचे बदोलचे पूर्ण नांव व पत्ता :',
+          controller: _kal14BaapNameCtrl,
+          minLines: 2,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
 
-        BilingualFieldRow(fields: [
-          BilingualField(label: '6) Religion of deceased :-', marathiLabel: '६) मृतकाचा धर्म :', controller: _kal14DharmCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-          BilingualField(label: 'Occupation of deceased :-', marathiLabel: 'मृतकाचा व्यवसाय :', controller: _kal14VyavsayCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        ]),
+        BilingualFieldRow(
+          fields: [
+            BilingualField(
+              label: '6) Religion of deceased :-',
+              marathiLabel: '६) मृतकाचा धर्म :',
+              controller: _kal14DharmCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+            BilingualField(
+              label: 'Occupation of deceased :-',
+              marathiLabel: 'मृतकाचा व्यवसाय :',
+              controller: _kal14VyavsayCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
 
-        _buildHabitRow(label: '7) Did the deceased smoke cigarettes? If yes, since how many days?', marathiLabel: '७) मृतक हा सिगरेट पित होता काय? असल्यास किती दिवसांपासून', checked: _kal14Cigarette, onChanged: (v) => setState(() => _kal14Cigarette = v ?? false), daysController: _kal14CigaretteDaysCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        _buildHabitRow(label: '8) Did the deceased have alcohol addiction? If yes, since how many days?', marathiLabel: '८) मृतकाला दारूचे व्यसन होते काय? असल्यास किती दिवसांपासून', checked: _kal14Daru, onChanged: (v) => setState(() => _kal14Daru = v ?? false), daysController: _kal14DaruDaysCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        _buildHabitRow(label: '9) Did the deceased have tobacco addiction? If yes, since how many days?', marathiLabel: '९) मृतकाला तंबाखूचे व्यसन होते काय? असल्यास किती दिवसांपासून', checked: _kal14Tambakhu, onChanged: (v) => setState(() => _kal14Tambakhu = v ?? false), daysController: _kal14TambakhuDaysCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        _buildHabitRow(label: '10) Did the deceased have habit of pan masala / supari? If yes, since how many days?', marathiLabel: '१०) मृतकाला पान मसाला, सुपारी खाण्याची सवय होती काय? असल्यास किती दिवसांपासून', checked: _kal14PanMasala, onChanged: (v) => setState(() => _kal14PanMasala = v ?? false), daysController: _kal14PanMasalaDaysCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+        _buildHabitRow(
+          label:
+              '7) Did the deceased smoke cigarettes? If yes, since how many days?',
+          marathiLabel:
+              '७) मृतक हा सिगरेट पित होता काय? असल्यास किती दिवसांपासून',
+          checked: _kal14Cigarette,
+          onChanged: (v) => setState(() => _kal14Cigarette = v ?? false),
+          daysController: _kal14CigaretteDaysCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        _buildHabitRow(
+          label:
+              '8) Did the deceased have alcohol addiction? If yes, since how many days?',
+          marathiLabel:
+              '८) मृतकाला दारूचे व्यसन होते काय? असल्यास किती दिवसांपासून',
+          checked: _kal14Daru,
+          onChanged: (v) => setState(() => _kal14Daru = v ?? false),
+          daysController: _kal14DaruDaysCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        _buildHabitRow(
+          label:
+              '9) Did the deceased have tobacco addiction? If yes, since how many days?',
+          marathiLabel:
+              '९) मृतकाला तंबाखूचे व्यसन होते काय? असल्यास किती दिवसांपासून',
+          checked: _kal14Tambakhu,
+          onChanged: (v) => setState(() => _kal14Tambakhu = v ?? false),
+          daysController: _kal14TambakhuDaysCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        _buildHabitRow(
+          label:
+              '10) Did the deceased have habit of pan masala / supari? If yes, since how many days?',
+          marathiLabel:
+              '१०) मृतकाला पान मसाला, सुपारी खाण्याची सवय होती काय? असल्यास किती दिवसांपासून',
+          checked: _kal14PanMasala,
+          onChanged: (v) => setState(() => _kal14PanMasala = v ?? false),
+          daysController: _kal14PanMasalaDaysCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
       ],
     );
   }
@@ -2180,7 +3555,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 32),
         const Align(
           alignment: Alignment.centerRight,
-          child: Text('Page 13 (१४-कलमी — cont.)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          child: Text(
+            'Page 13 (१४-कलमी — cont.)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
         ),
         const Divider(color: Colors.black, thickness: 1.5),
         const SizedBox(height: 12),
@@ -2189,32 +3567,110 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             children: [
               Text(
                 '14-Clause Form (continued)',
-                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
                 '१४ कलमी फॉर्म (पुढे चालू)',
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 12),
 
-        Text('11) In case of vehicle accident :-', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
+          '11) In case of vehicle accident :-',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
         Text('११) वाहन अपघाताची केस असल्यास :', style: marathiLabelStyle),
         const SizedBox(height: 8),
-        BilingualField(label: 'a) Name of vehicle involved in accident :-', marathiLabel: 'अ) अपघात झालेल्या वाहनाचे नांव :', controller: _kal14VehicleNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'b) Deceased was driver or passenger :-', marathiLabel: 'ब) मृतक ड्रायव्हर किंवा पॅसेंजर :', controller: _kal14DriverPassCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'c) Or pedestrian (specify) :-', marathiLabel: 'क) किंवा पादचारी या पैकी काय होता :', controller: _kal14PedestrianCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'd) How the accident occurred :-', marathiLabel: 'ड) अपघात कसा झाला :', controller: _kal14AccidentHowCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'Date and time of accident :-', marathiLabel: 'अपघात झाल्याची तारीख व वेळ (दिनांक ....../....../२०...... रोजी चे ...../....... वा दरम्यान)', controller: _kal14AccidentDateTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+        BilingualField(
+          label: 'a) Name of vehicle involved in accident :-',
+          marathiLabel: 'अ) अपघात झालेल्या वाहनाचे नांव :',
+          controller: _kal14VehicleNameCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'b) Deceased was driver or passenger :-',
+          marathiLabel: 'ब) मृतक ड्रायव्हर किंवा पॅसेंजर :',
+          controller: _kal14DriverPassCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'c) Or pedestrian (specify) :-',
+          marathiLabel: 'क) किंवा पादचारी या पैकी काय होता :',
+          controller: _kal14PedestrianCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'd) How the accident occurred :-',
+          marathiLabel: 'ड) अपघात कसा झाला :',
+          controller: _kal14AccidentHowCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'Date and time of accident :-',
+          marathiLabel:
+              'अपघात झाल्याची तारीख व वेळ (दिनांक ....../....../२०...... रोजी चे ...../....... वा दरम्यान)',
+          controller: _kal14AccidentDateTimeCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
         const SizedBox(height: 8),
 
-        BilingualMultilineField(label: '12) If death was due to fall, give details :-', marathiLabel: '१२) मृत्यू हा पडून झाला असल्यास त्याबाबत माहिती :', controller: _kal14FallInfoCtrl, minLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: '13) If deceased is female — was she pregnant? If yes, how many months?', marathiLabel: '१३) मृतक ही स्त्री असल्यास ती गरोदर होती काय? असल्यास किती महिने?', controller: _kal14PregnantMonthsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: 'If female — had delivery or abortion occurred?', marathiLabel: 'मृतक ही स्त्री असल्यास ती बाळांत झाली होती काय किंवा तिचे अबोर्शिन झाले होते काय?', controller: _kal14DeliveredAbortionCtrl, minLines: 2, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'If yes, since how many days?', marathiLabel: 'असल्यास किती दिवसांपासून ?', controller: _kal14PregnantDaysCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualMultilineField(label: '14) Name, address and relationship of person identifying the deceased :-', marathiLabel: '१४) मृतकाची ओळख पटविणाऱ्याचे नांव व पत्ता व मृतकाशी त्याचे काय संबंध नाते आहे (लिहावे)', controller: _kal14IdentifierNameCtrl, minLines: 3, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+        BilingualMultilineField(
+          label: '12) If death was due to fall, give details :-',
+          marathiLabel: '१२) मृत्यू हा पडून झाला असल्यास त्याबाबत माहिती :',
+          controller: _kal14FallInfoCtrl,
+          minLines: 3,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label:
+              '13) If deceased is female — was she pregnant? If yes, how many months?',
+          marathiLabel:
+              '१३) मृतक ही स्त्री असल्यास ती गरोदर होती काय? असल्यास किती महिने?',
+          controller: _kal14PregnantMonthsCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label: 'If female — had delivery or abortion occurred?',
+          marathiLabel:
+              'मृतक ही स्त्री असल्यास ती बाळांत झाली होती काय किंवा तिचे अबोर्शिन झाले होते काय?',
+          controller: _kal14DeliveredAbortionCtrl,
+          minLines: 2,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'If yes, since how many days?',
+          marathiLabel: 'असल्यास किती दिवसांपासून ?',
+          controller: _kal14PregnantDaysCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualMultilineField(
+          label:
+              '14) Name, address and relationship of person identifying the deceased :-',
+          marathiLabel:
+              '१४) मृतकाची ओळख पटविणाऱ्याचे नांव व पत्ता व मृतकाशी त्याचे काय संबंध नाते आहे (लिहावे)',
+          controller: _kal14IdentifierNameCtrl,
+          minLines: 3,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
         const SizedBox(height: 20),
 
         Align(
@@ -2222,12 +3678,39 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('I.O. Name, Rank & Signature / Seal', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13)),
-              Text(FormIoTerminology.signatureHeaderSeal, style: marathiLabelStyle),
+              Text(
+                'I.O. Name, Rank & Signature / Seal',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+              Text(
+                FormIoTerminology.signatureHeaderSeal,
+                style: marathiLabelStyle,
+              ),
               const SizedBox(height: 8),
-              BilingualField(label: 'Name :-', marathiLabel: '${FormIoTerminology.name} :', controller: _kal14IoNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'Rank :-', marathiLabel: '${FormIoTerminology.rank} :', controller: _kal14IoRankCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-              BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन :', controller: _kal14IoPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+              BilingualField(
+                label: 'Name :-',
+                marathiLabel: '${FormIoTerminology.name} :',
+                controller: _kal14IoNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'Rank :-',
+                marathiLabel: '${FormIoTerminology.rank} :',
+                controller: _kal14IoRankCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              BilingualField(
+                label: 'Police Station :-',
+                marathiLabel: 'पोलीस स्टेशन :',
+                controller: _kal14IoPsCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
             ],
           ),
         ),
@@ -2248,7 +3731,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 32),
         const Align(
           alignment: Alignment.centerRight,
-          child: Text('Page 14 (प्रेत ताबा पावती)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          child: Text(
+            'Page 14 (प्रेत ताबा पावती)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
         ),
         const Divider(color: Colors.black, thickness: 1.5),
         const SizedBox(height: 12),
@@ -2257,11 +3743,18 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             children: [
               Text(
                 'Body Custody Receipt',
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
               ),
               Text(
                 'प्रेत ताबा पावती',
-                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -2274,9 +3767,27 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             width: 420,
             child: Column(
               children: [
-                BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन :', controller: _ptpPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Camp :-', marathiLabel: 'कॅम्प :', controller: _ptpCampCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Date :-', marathiLabel: 'दिनांक :', controller: _ptpDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
+                  label: 'Police Station :-',
+                  marathiLabel: 'पोलीस स्टेशन :',
+                  controller: _ptpPsCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle,
+                ),
+                BilingualField(
+                  label: 'Camp :-',
+                  marathiLabel: 'कॅम्प :',
+                  controller: _ptpCampCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle,
+                ),
+                BilingualField(
+                  label: 'Date :-',
+                  marathiLabel: 'दिनांक :',
+                  controller: _ptpDateCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle,
+                ),
               ],
             ),
           ),
@@ -2294,21 +3805,82 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         ),
         const SizedBox(height: 12),
 
-        BilingualField(label: 'I (Receiver name) :-', marathiLabel: 'मी (प्रेत ताब्यात घेणाऱ्याचे नांव) :', controller: _ptpReceiverNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualFieldRow(fields: [
-          BilingualField(label: 'Village (R.) :-', marathiLabel: 'र. :', controller: _ptpReceiverRaCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-          BilingualField(label: 'Taluka (Ta.) :-', marathiLabel: 'ता :', controller: _ptpReceiverTaCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-          BilingualField(label: 'District :-', marathiLabel: 'जिल्हा :', controller: _ptpReceiverDistCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        ]),
-        BilingualField(label: 'Mobile No. :-', marathiLabel: 'मो नं :', controller: _ptpMoNoCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'Receipt date :-', marathiLabel: 'प्रेत ताबा पावती दिनांक :', controller: _ptpReceiptDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'Deceased name :-', marathiLabel: 'मृतक नामे :', controller: _ptpDeceasedNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualFieldRow(fields: [
-          BilingualField(label: 'Deceased village (R.) :-', marathiLabel: 'र. :', controller: _ptpDeceasedRaCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-          BilingualField(label: 'Taluka & District :-', marathiLabel: 'ता आणी जिल्हा :', controller: _ptpDeceasedDistCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        ]),
+        BilingualField(
+          label: 'I (Receiver name) :-',
+          marathiLabel: 'मी (प्रेत ताब्यात घेणाऱ्याचे नांव) :',
+          controller: _ptpReceiverNameCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualFieldRow(
+          fields: [
+            BilingualField(
+              label: 'Village (R.) :-',
+              marathiLabel: 'र. :',
+              controller: _ptpReceiverRaCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+            BilingualField(
+              label: 'Taluka (Ta.) :-',
+              marathiLabel: 'ता :',
+              controller: _ptpReceiverTaCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+            BilingualField(
+              label: 'District :-',
+              marathiLabel: 'जिल्हा :',
+              controller: _ptpReceiverDistCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+          ],
+        ),
+        BilingualField(
+          label: 'Mobile No. :-',
+          marathiLabel: 'मो नं :',
+          controller: _ptpMoNoCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'Receipt date :-',
+          marathiLabel: 'प्रेत ताबा पावती दिनांक :',
+          controller: _ptpReceiptDateCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'Deceased name :-',
+          marathiLabel: 'मृतक नामे :',
+          controller: _ptpDeceasedNameCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualFieldRow(
+          fields: [
+            BilingualField(
+              label: 'Deceased village (R.) :-',
+              marathiLabel: 'र. :',
+              controller: _ptpDeceasedRaCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+            BilingualField(
+              label: 'Taluka & District :-',
+              marathiLabel: 'ता आणी जिल्हा :',
+              controller: _ptpDeceasedDistCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
-        const Text('Issuing body custody receipt accordingly.', style: TextStyle(fontSize: 13)),
+        const Text(
+          'Issuing body custody receipt accordingly.',
+          style: TextStyle(fontSize: 13),
+        ),
         Text('करीता प्रेत ताबा पावती लिहून देत आहे.', style: marathiLabelStyle),
         const SizedBox(height: 24),
 
@@ -2319,12 +3891,39 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('I.O. Name, Rank & Signature / Seal', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 12)),
-                  Text(FormIoTerminology.signatureHeaderSeal, style: marathiLabelStyle),
+                  Text(
+                    'I.O. Name, Rank & Signature / Seal',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                  Text(
+                    FormIoTerminology.signatureHeaderSeal,
+                    style: marathiLabelStyle,
+                  ),
                   const SizedBox(height: 8),
-                  BilingualField(label: 'Name :-', marathiLabel: '${FormIoTerminology.name} :', controller: _ptpIoNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  BilingualField(label: 'Rank :-', marathiLabel: '${FormIoTerminology.rank} :', controller: _ptpIoRankCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन :', controller: _ptpIoPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  BilingualField(
+                    label: 'Name :-',
+                    marathiLabel: '${FormIoTerminology.name} :',
+                    controller: _ptpIoNameCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Rank :-',
+                    marathiLabel: '${FormIoTerminology.rank} :',
+                    controller: _ptpIoRankCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Police Station :-',
+                    marathiLabel: 'पोलीस स्टेशन :',
+                    controller: _ptpIoPsCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                 ],
               ),
             ),
@@ -2332,10 +3931,25 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Signature of body receiver', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 12)),
-                  Text('प्रेत ताब्यात घेणाऱ्याची सही', style: marathiLabelStyle),
+                  Text(
+                    'Signature of body receiver',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                  Text(
+                    'प्रेत ताब्यात घेणाऱ्याची सही',
+                    style: marathiLabelStyle,
+                  ),
                   const SizedBox(height: 8),
-                  BilingualField(label: 'Signature :-', marathiLabel: 'सही :', controller: _ptpReceiverSigCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  BilingualField(
+                    label: 'Signature :-',
+                    marathiLabel: 'सही :',
+                    controller: _ptpReceiverSigCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                 ],
               ),
             ),
@@ -2358,7 +3972,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 32),
         const Align(
           alignment: Alignment.centerRight,
-          child: Text('Page 15 (ड्युटी पास)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          child: Text(
+            'Page 15 (ड्युटी पास)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
         ),
         const Divider(color: Colors.black, thickness: 1.5),
         const SizedBox(height: 12),
@@ -2367,11 +3984,18 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             children: [
               Text(
                 'Duty Pass',
-                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
               ),
               Text(
                 'ड्युटी पास',
-                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -2384,19 +4008,61 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             width: 420,
             child: Column(
               children: [
-                BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन :', controller: _dpPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Camp :-', marathiLabel: 'कॅम्प :', controller: _dpCampCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                BilingualField(label: 'Date :-', marathiLabel: 'दिनांक :', controller: _dpDateCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                BilingualField(
+                  label: 'Police Station :-',
+                  marathiLabel: 'पोलीस स्टेशन :',
+                  controller: _dpPsCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle,
+                ),
+                BilingualField(
+                  label: 'Camp :-',
+                  marathiLabel: 'कॅम्प :',
+                  controller: _dpCampCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle,
+                ),
+                BilingualField(
+                  label: 'Date :-',
+                  marathiLabel: 'दिनांक :',
+                  controller: _dpDateCtrl,
+                  serifStyle: serifStyle,
+                  marathiLabelStyle: marathiLabelStyle,
+                ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 12),
 
-        BilingualField(label: 'Name of Police Constable :-', marathiLabel: 'पो अंमलदाराचे नांव :', controller: _dpAmaldaarNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'Police Station (duty) :-', marathiLabel: 'पोलीस स्टेशन :', controller: _dpDutyPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'District :-', marathiLabel: 'जिल्हा', controller: _dpDutyDistCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'Duty date and time :-', marathiLabel: 'नोकरीचा दिनांक व वेळ :-', controller: _dpDutyDateTimeCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+        BilingualField(
+          label: 'Name of Police Constable :-',
+          marathiLabel: 'पो अंमलदाराचे नांव :',
+          controller: _dpAmaldaarNameCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'Police Station (duty) :-',
+          marathiLabel: 'पोलीस स्टेशन :',
+          controller: _dpDutyPsCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'District :-',
+          marathiLabel: 'जिल्हा',
+          controller: _dpDutyDistCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'Duty date and time :-',
+          marathiLabel: 'नोकरीचा दिनांक व वेळ :-',
+          controller: _dpDutyDateTimeCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
         const SizedBox(height: 12),
 
         const Text(
@@ -2410,18 +4076,70 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         ),
         const SizedBox(height: 12),
 
-        BilingualFieldRow(fields: [
-          BilingualField(label: 'Accidental / Death / Station Diary No. :-', marathiLabel: 'अप/ मर्ग/ स्टे.डायरी क्रमांक :', controller: _dpMargNoCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-          BilingualField(label: 'Year :-', marathiLabel: 'वर्ष :', controller: _dpMargYearCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        ]),
-        BilingualField(label: 'Section (Kalam) :-', marathiLabel: 'कलम :', controller: _dpKalamCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualField(label: 'Deceased name :-', marathiLabel: 'मधील मृतक नामे :', controller: _dpDeceasedNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        BilingualFieldRow(fields: [
-          BilingualField(label: 'Village (R.) :-', marathiLabel: 'र. :', controller: _dpDeceasedRaCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-          BilingualField(label: 'Taluka (Ta.) :-', marathiLabel: 'ता :', controller: _dpDeceasedTaCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-          BilingualField(label: 'District :-', marathiLabel: 'जिल्हा :', controller: _dpDeceasedDistCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-        ]),
-        BilingualField(label: 'Medical Officer (for post-mortem) :-', marathiLabel: 'मा.वैद्यकीय अधिकारी :', controller: _dpMedOfficerNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+        BilingualFieldRow(
+          fields: [
+            BilingualField(
+              label: 'Accidental / Death / Station Diary No. :-',
+              marathiLabel: 'अप/ मर्ग/ स्टे.डायरी क्रमांक :',
+              controller: _dpMargNoCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+            BilingualField(
+              label: 'Year :-',
+              marathiLabel: 'वर्ष :',
+              controller: _dpMargYearCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+          ],
+        ),
+        BilingualField(
+          label: 'Section (Kalam) :-',
+          marathiLabel: 'कलम :',
+          controller: _dpKalamCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualField(
+          label: 'Deceased name :-',
+          marathiLabel: 'मधील मृतक नामे :',
+          controller: _dpDeceasedNameCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
+        BilingualFieldRow(
+          fields: [
+            BilingualField(
+              label: 'Village (R.) :-',
+              marathiLabel: 'र. :',
+              controller: _dpDeceasedRaCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+            BilingualField(
+              label: 'Taluka (Ta.) :-',
+              marathiLabel: 'ता :',
+              controller: _dpDeceasedTaCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+            BilingualField(
+              label: 'District :-',
+              marathiLabel: 'जिल्हा :',
+              controller: _dpDeceasedDistCtrl,
+              serifStyle: serifStyle,
+              marathiLabelStyle: marathiLabelStyle,
+            ),
+          ],
+        ),
+        BilingualField(
+          label: 'Medical Officer (for post-mortem) :-',
+          marathiLabel: 'मा.वैद्यकीय अधिकारी :',
+          controller: _dpMedOfficerNameCtrl,
+          serifStyle: serifStyle,
+          marathiLabelStyle: marathiLabelStyle,
+        ),
         const SizedBox(height: 8),
         const Text(
           'After post-mortem, hand over the body to the heir of the deceased. If clothing bundle is given by M.O. during P.M., take custody and hand over to investigating constable.',
@@ -2440,10 +4158,22 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Signature of duty pass holder', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 12)),
+                  Text(
+                    'Signature of duty pass holder',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
                   Text('ड्युटी पास घेणाऱ्याची सही', style: marathiLabelStyle),
                   const SizedBox(height: 8),
-                  BilingualField(label: 'Signature :-', marathiLabel: 'सही :', controller: _dpAmaldaarSigCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  BilingualField(
+                    label: 'Signature :-',
+                    marathiLabel: 'सही :',
+                    controller: _dpAmaldaarSigCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                 ],
               ),
             ),
@@ -2451,12 +4181,39 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('I.O. Name, Rank & Signature / Seal', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 12)),
-                  Text(FormIoTerminology.signatureHeaderSeal, style: marathiLabelStyle),
+                  Text(
+                    'I.O. Name, Rank & Signature / Seal',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                  Text(
+                    FormIoTerminology.signatureHeaderSeal,
+                    style: marathiLabelStyle,
+                  ),
                   const SizedBox(height: 8),
-                  BilingualField(label: 'Name :-', marathiLabel: '${FormIoTerminology.name} :', controller: _dpIoNameCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  BilingualField(label: 'Rank :-', marathiLabel: '${FormIoTerminology.rank} :', controller: _dpIoRankCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
-                  BilingualField(label: 'Police Station :-', marathiLabel: 'पोलीस स्टेशन :', controller: _dpIoPsCtrl, serifStyle: serifStyle, marathiLabelStyle: marathiLabelStyle),
+                  BilingualField(
+                    label: 'Name :-',
+                    marathiLabel: '${FormIoTerminology.name} :',
+                    controller: _dpIoNameCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Rank :-',
+                    marathiLabel: '${FormIoTerminology.rank} :',
+                    controller: _dpIoRankCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
+                  BilingualField(
+                    label: 'Police Station :-',
+                    marathiLabel: 'पोलीस स्टेशन :',
+                    controller: _dpIoPsCtrl,
+                    serifStyle: serifStyle,
+                    marathiLabelStyle: marathiLabelStyle,
+                  ),
                 ],
               ),
             ),

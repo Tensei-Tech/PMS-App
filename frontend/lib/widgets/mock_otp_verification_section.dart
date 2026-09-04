@@ -27,7 +27,8 @@ class MockOtpVerificationSection extends StatefulWidget {
       _MockOtpVerificationSectionState();
 }
 
-class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection> {
+class _MockOtpVerificationSectionState
+    extends State<MockOtpVerificationSection> {
   static const _mockOtp = '123456';
   static const _resendSeconds = 60;
 
@@ -110,37 +111,54 @@ class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.title,
-                      style: GoogleFonts.poppins(
-                          fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(
+                    widget.title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(widget.subtitle,
-                      style: GoogleFonts.poppins(
-                          fontSize: 12, color: Colors.black54)),
+                  Text(
+                    widget.subtitle,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Colors.black54,
+                    ),
+                  ),
                 ],
               ),
             ),
             if (_verified)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.successGreen.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(99),
                   border: Border.all(
-                      color: AppColors.successGreen.withValues(alpha: 0.4)),
+                    color: AppColors.successGreen.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.verified_rounded,
-                        color: AppColors.successGreen, size: 16),
+                    const Icon(
+                      Icons.verified_rounded,
+                      color: AppColors.successGreen,
+                      size: 16,
+                    ),
                     const SizedBox(width: 6),
-                    Text('Verified',
-                        style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.successGreen)),
+                    Text(
+                      'Verified',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.successGreen,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -153,13 +171,15 @@ class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection>
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed:
-                    disabled ? null : (_secondsLeft > 0 ? null : _sendOtp),
+                onPressed: disabled
+                    ? null
+                    : (_secondsLeft > 0 ? null : _sendOtp),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md)),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
                   elevation: 0,
                 ),
                 child: Text(
@@ -171,10 +191,14 @@ class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection>
             const SizedBox(width: 12),
             if (_otpSent)
               Text(
-                _secondsLeft > 0 ? 'Resend in $_secondsLeft s' : 'You can resend now',
+                _secondsLeft > 0
+                    ? 'Resend in $_secondsLeft s'
+                    : 'You can resend now',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
-                  color: _secondsLeft > 0 ? Colors.black54 : AppColors.successGreen,
+                  color: _secondsLeft > 0
+                      ? Colors.black54
+                      : AppColors.successGreen,
                 ),
               ),
           ],
@@ -195,7 +219,9 @@ class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection>
               hintText: '6-digit OTP',
               errorText: _error,
               filled: true,
-              fillColor: disabled ? const Color(0xFFF1F3F7) : const Color(0xFFF8FAFF),
+              fillColor: disabled
+                  ? const Color(0xFFF1F3F7)
+                  : const Color(0xFFF8FAFF),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
@@ -208,11 +234,14 @@ class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection>
               onPressed: (!disabled && !_verified) ? _verifyOtp : null,
               style: OutlinedButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md)),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
                 side: const BorderSide(color: AppColors.navyMid),
               ),
-              child: Text('Verify OTP',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+              child: Text(
+                'Verify OTP',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+              ),
             ),
           ),
         ],
@@ -220,4 +249,3 @@ class _MockOtpVerificationSectionState extends State<MockOtpVerificationSection>
     );
   }
 }
-

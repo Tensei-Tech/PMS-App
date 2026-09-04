@@ -49,17 +49,19 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
   final _psCtrl = TextEditingController();
   final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
-  final _firYearSuffixCtrl = TextEditingController();
+  final _firYearSuffixCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
-  final _dateYearCtrl = TextEditingController();
-  
+  final _dateYearCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
+
   final _actSectionCtrl = TextEditingController();
-  
+
   final _shownByNameCtrl = TextEditingController();
   final _shownByFatherHusbandCtrl = TextEditingController();
   final _shownByAddressCtrl = TextEditingController();
-  
+
   final _typeOfCrimeCtrl = TextEditingController();
   final _majorHeadCtrl = TextEditingController();
   final _minorHeadCtrl = TextEditingController();
@@ -115,6 +117,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
     final to = tm.isNotEmpty ? '$th/$tm' : th;
     return '$from ते $to पर्यंत'.trim();
   }
+
   final _pancha1NameCtrl = TextEditingController();
   final _pancha1AddressCtrl = TextEditingController();
   final _pancha2NameCtrl = TextEditingController();
@@ -130,13 +133,17 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
   late final List<VictimRow> _victimRows;
   late final TextEditingController _motiveOfCrimeCtrl;
   TextEditingController? __placeDescriptionCtrl;
-  TextEditingController get _placeDescriptionCtrl => __placeDescriptionCtrl ??= TextEditingController();
+  TextEditingController get _placeDescriptionCtrl =>
+      __placeDescriptionCtrl ??= TextEditingController();
   TextEditingController? __propertyDetailsCtrl;
-  TextEditingController get _propertyDetailsCtrl => __propertyDetailsCtrl ??= TextEditingController();
+  TextEditingController get _propertyDetailsCtrl =>
+      __propertyDetailsCtrl ??= TextEditingController();
   TextEditingController? __placeDescriptionContCtrl;
-  TextEditingController get _placeDescriptionContCtrl => __placeDescriptionContCtrl ??= TextEditingController();
+  TextEditingController get _placeDescriptionContCtrl =>
+      __placeDescriptionContCtrl ??= TextEditingController();
   TextEditingController? __physicalEvidenceCtrl;
-  TextEditingController get _physicalEvidenceCtrl => __physicalEvidenceCtrl ??= TextEditingController();
+  TextEditingController get _physicalEvidenceCtrl =>
+      __physicalEvidenceCtrl ??= TextEditingController();
   String? _mapImagePath;
 
   @override
@@ -288,7 +295,8 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
       _actSectionCtrl.text = data['actSection']?.toString() ?? '';
       _shownByNameCtrl.text = data['shownByName']?.toString() ?? '';
-      _shownByFatherHusbandCtrl.text = data['shownByFatherHusband']?.toString() ?? '';
+      _shownByFatherHusbandCtrl.text =
+          data['shownByFatherHusband']?.toString() ?? '';
       _shownByAddressCtrl.text = data['shownByAddress']?.toString() ?? '';
       _typeOfCrimeCtrl.text = data['typeOfCrime']?.toString() ?? '';
       _majorHeadCtrl.text = data['majorHead']?.toString() ?? '';
@@ -313,21 +321,28 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       _motiveOfCrimeCtrl.text = data['motiveOfCrime']?.toString() ?? '';
       _placeDescriptionCtrl.text = data['placeDescription']?.toString() ?? '';
       _propertyDetailsCtrl.text = data['propertyDetails']?.toString() ?? '';
-      _placeDescriptionContCtrl.text = data['placeDescriptionCont']?.toString() ?? '';
+      _placeDescriptionContCtrl.text =
+          data['placeDescriptionCont']?.toString() ?? '';
       _mapImagePath = data['mapImagePath'] as String?;
       _physicalEvidenceCtrl.text = data['physicalEvidence']?.toString() ?? '';
       _panchnamaDateCtrl.text = data['panchnamaDate']?.toString() ?? '';
       _panchnamaTimeCtrl.text = data['panchnamaTime']?.toString() ?? '';
       _panchnamaDateDayCtrl.text = data['panchnamaDateDay']?.toString() ?? '';
-      _panchnamaDateMonthCtrl.text = data['panchnamaDateMonth']?.toString() ?? '';
+      _panchnamaDateMonthCtrl.text =
+          data['panchnamaDateMonth']?.toString() ?? '';
       _panchnamaDateYearCtrl.text = data['panchnamaDateYear']?.toString() ?? '';
-      _panchnamaTimeFromHoursCtrl.text = data['panchnamaTimeFromHours']?.toString() ?? '';
-      _panchnamaTimeFromMinutesCtrl.text = data['panchnamaTimeFromMinutes']?.toString() ?? '';
-      _panchnamaTimeToHoursCtrl.text = data['panchnamaTimeToHours']?.toString() ?? '';
-      _panchnamaTimeToMinutesCtrl.text = data['panchnamaTimeToMinutes']?.toString() ?? '';
+      _panchnamaTimeFromHoursCtrl.text =
+          data['panchnamaTimeFromHours']?.toString() ?? '';
+      _panchnamaTimeFromMinutesCtrl.text =
+          data['panchnamaTimeFromMinutes']?.toString() ?? '';
+      _panchnamaTimeToHoursCtrl.text =
+          data['panchnamaTimeToHours']?.toString() ?? '';
+      _panchnamaTimeToMinutesCtrl.text =
+          data['panchnamaTimeToMinutes']?.toString() ?? '';
 
       // Legacy fallback for panchnamaDate:
-      if (_panchnamaDateDayCtrl.text.isEmpty && _panchnamaDateCtrl.text.isNotEmpty) {
+      if (_panchnamaDateDayCtrl.text.isEmpty &&
+          _panchnamaDateCtrl.text.isNotEmpty) {
         final parts = _panchnamaDateCtrl.text.split(RegExp(r'[/.-]'));
         if (parts.length >= 3) {
           _panchnamaDateDayCtrl.text = parts[0].trim();
@@ -378,949 +393,969 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       readOnly: widget.readOnly,
       children: [
         if (_shows(kForm2A))
-            FormPaperPage(
-              formLabel: widget.pageRange ?? 'Page 1',
-              children: [
-                  // --- FORM HEADER ---
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Text(
-                      'Form: 2-A',
+          FormPaperPage(
+            formLabel: widget.pageRange ?? 'Page 1',
+            children: [
+              // --- FORM HEADER ---
+              Align(
+                alignment: Alignment.topRight,
+                child: Text(
+                  'Form: 2-A',
+                  style: serifStyle.copyWith(
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'CRIME DETAILS FORM',
                       style: serifStyle.copyWith(
-                        decoration: TextDecoration.underline,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        decoration: TextDecoration.underline,
                       ),
                     ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'गुन्ह्यांच्या तपशीलाचा नमुना/ घटनास्थल पंचनामा',
+                      style: GoogleFonts.notoSansDevanagari(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // --- SECTION 1 ---
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 22,
+                    child: BilingualField(
+                      label: '1) District: ',
+                      marathiLabel: 'जिल्हा',
+                      controller: _districtCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Column(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 28,
+                    child: BilingualField(
+                      label: 'P.S.: ',
+                      marathiLabel: 'पोलीस स्टेशन',
+                      controller: _psCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 15,
+                    child: BilingualField(
+                      label: 'Year: ',
+                      marathiLabel: 'वर्ष',
+                      controller: _yearCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 22,
+                    child: ResponsiveFieldRow(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'CRIME DETAILS FORM',
-                          style: serifStyle.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                            decoration: TextDecoration.underline,
+                        Expanded(
+                          child: BilingualField(
+                            label: 'FIR No: ',
+                            marathiLabel: 'पहिली खबर क्र.',
+                            controller: _firNoCtrl,
+                            serifStyle: serifStyle,
+                            marathiLabelStyle: marathiLabelStyle,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'गुन्ह्यांच्या तपशीलाचा नमुना/ घटनास्थल पंचनामा',
-                          style: GoogleFonts.notoSansDevanagari(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              top: 2.0, left: 2, right: 2),
+                          child: Text('/20', style: serifStyle),
+                        ),
+                        SizedBox(
+                          width: 35,
+                          child: BilingualSimpleUnderlineInput(
+                            controller: _firYearSuffixCtrl,
+                            serifStyle: serifStyle,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-
-                  // --- SECTION 1 ---
-                  ResponsiveFieldRow(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 22,
-                        child: BilingualField(
-                          label: '1) District: ',
-                          marathiLabel: 'जिल्हा',
-                          controller: _districtCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 28,
-                        child: BilingualField(
-                          label: 'P.S.: ',
-                          marathiLabel: 'पोलीस स्टेशन',
-                          controller: _psCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 15,
-                        child: BilingualField(
-                          label: 'Year: ',
-                          marathiLabel: 'वर्ष',
-                          controller: _yearCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 22,
-                        child: ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 28,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Date : ', style: serifStyle),
+                        const SizedBox(width: 4),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Expanded(
-                              child: BilingualField(
-                                label: 'FIR No: ',
-                                marathiLabel: 'पहिली खबर क्र.',
-                                controller: _firNoCtrl,
-                                serifStyle: serifStyle,
-                                marathiLabelStyle: marathiLabelStyle,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2.0, left: 2, right: 2),
-                              child: Text('/20', style: serifStyle),
-                            ),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _firYearSuffixCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'YY',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 28,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Date : ', style: serifStyle),
-                            const SizedBox(width: 4),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 35,
-                                      child: BilingualSimpleUnderlineInput(
-                                        controller: _dateDayCtrl,
-                                        serifStyle: serifStyle,
-                                        hintText: 'DD',
-                                      ),
-                                    ),
-                                    Text('/', style: serifStyle),
-                                    SizedBox(
-                                      width: 35,
-                                      child: BilingualSimpleUnderlineInput(
-                                        controller: _dateMonthCtrl,
-                                        serifStyle: serifStyle,
-                                        hintText: 'MM',
-                                      ),
-                                    ),
-                                    Text('/20', style: serifStyle),
-                                    SizedBox(
-                                      width: 35,
-                                      child: BilingualSimpleUnderlineInput(
-                                        controller: _dateYearCtrl,
-                                        serifStyle: serifStyle,
-                                        hintText: 'YY',
-                                      ),
-                                    ),
-                                  ],
+                                SizedBox(
+                                  width: 35,
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _dateDayCtrl,
+                                    serifStyle: serifStyle,
+                                    hintText: 'DD',
+                                  ),
                                 ),
-                                const SizedBox(height: 2),
-                                Text('तारीख', style: marathiLabelStyle),
+                                Text('/', style: serifStyle),
+                                SizedBox(
+                                  width: 35,
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _dateMonthCtrl,
+                                    serifStyle: serifStyle,
+                                    hintText: 'MM',
+                                  ),
+                                ),
+                                Text('/20', style: serifStyle),
+                                SizedBox(
+                                  width: 35,
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _dateYearCtrl,
+                                    serifStyle: serifStyle,
+                                    hintText: 'YY',
+                                  ),
+                                ),
                               ],
                             ),
+                            const SizedBox(height: 2),
+                            Text('तारीख', style: marathiLabelStyle),
                           ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // --- SECTION 2 ---
-                  BilingualWideField(
-                    label: '2) Act and Section:',
-                    marathiLabel: 'अधिनियम व कलमे',
-                    controller: _actSectionCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // --- SECTION 3 ---
-                  Text(
-                    '3) The Place of Occurrence shown by:',
-                    style: serifStyle,
-                  ),
-                  Text(
-                    'घटनेचे ठिकाण दाखविणाऱ्याचे :',
-                    style: marathiLabelStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  ResponsiveFieldRow(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: BilingualField(
-                          label: 'Name: ',
-                          marathiLabel: 'नांव',
-                          controller: _shownByNameCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        flex: 5,
-                        child: BilingualField(
-                          label: 'Father\'s/ Husband\'s Name: ',
-                          marathiLabel: 'पित्याचे/ पतीचे नांव',
-                          controller: _shownByFatherHusbandCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: 'Address:',
-                    marathiLabel: 'पत्ता :',
-                    controller: _shownByAddressCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // --- SECTION 4 ---
-                  BilingualWideField(
-                    label: '4) TYPE OF CRIME (All including M.O. Crime) :',
-                    marathiLabel: 'गुन्ह्याचा प्रकार (गुन्ह्याच्या सर्व पद्धतीसह)',
-                    controller: _typeOfCrimeCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 16),
-                  ResponsiveFieldRow(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: BilingualField(
-                          label: '(i) *Major Head: : ',
-                          marathiLabel: 'प्रधान शीर्ष',
-                          controller: _majorHeadCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: BilingualField(
-                          label: '(ii): * Minor Head : : ',
-                          marathiLabel: 'गौण शीर्ष',
-                          controller: _minorHeadCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: '(iii) * Method (s):',
-                    marathiLabel: 'पद्धती',
-                    controller: _methodCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 12),
-                  BilingualNumberedMethodField(
-                    number: '(१)',
-                    controller: _method1Ctrl,
-                    serifStyle: serifStyle,
-                  ),
-                  const SizedBox(height: 12),
-                  BilingualNumberedMethodField(
-                    number: '(२)',
-                    controller: _method2Ctrl,
-                    serifStyle: serifStyle,
-                  ),
-                  const SizedBox(height: 12),
-                  BilingualNumberedMethodField(
-                    number: '(३)',
-                    controller: _method3Ctrl,
-                    serifStyle: serifStyle,
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: '(iv) Conveyances used:',
-                    marathiLabel: 'वापरलेली वाहने',
-                    controller: _conveyancesCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: '(V)* Character Assumed:',
-                    marathiLabel: 'केलेले वेषांतर/ केलेली बतावणी',
-                    controller: _characterAssumedCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: '(Vi)* Language/ slang used:',
-                    marathiLabel: 'वापरलेली भाषा/ बोली भाषा',
-                    controller: _languageSlangCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: '(Vii)* Special Feature-1:',
-                    marathiLabel: 'विशेष वैशिष्ट्ये - १',
-                    controller: _specialFeature1Ctrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: '*Special Feature-2:',
-                    marathiLabel: 'विशेष वैशिष्ट्ये - २',
-                    controller: _specialFeature2Ctrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: '*Special Feature-3:',
-                    marathiLabel: 'विशेष वैशिष्ट्ये - ३',
-                    controller: _specialFeature3Ctrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: '(Viii) Type of Place of Occurrence:',
-                    marathiLabel: 'घटनेच्या ठिकाणाचा प्रकार',
-                    controller: _placeOfOccurrenceTypeCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 16),
-                  BilingualWideField(
-                    label: '(ix) Type of Property Involved ( 4 Types ):',
-                    marathiLabel: 'अंतर्भूत मालमत्तेचे प्रकार',
-                    controller: _propertyInvolvedCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 12),
-                  ResponsiveFieldRow(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: BilingualField(
-                          label: '(1) ',
-                          marathiLabel: '',
-                          controller: _propertyType1Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                          showMarathiLabel: false,
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: BilingualField(
-                          label: '(2) ',
-                          marathiLabel: '',
-                          controller: _propertyType2Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                          showMarathiLabel: false,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ResponsiveFieldRow(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: BilingualField(
-                          label: '(3) ',
-                          marathiLabel: '',
-                          controller: _propertyType3Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                          showMarathiLabel: false,
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: BilingualField(
-                          label: '(4) ',
-                          marathiLabel: '',
-                          controller: _propertyType4Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                          showMarathiLabel: false,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  FormMrwFooter(serifStyle: serifStyle, fontSize: 11),
-                ],
-              ),
-        if (_shows(kForm2A) && (_shows(kForm2B) || _showAll))
-            const SizedBox(height: 24),
-
-        if (_shows(kForm2B))
-            FormPaperPage(
-              formLabel: widget.pageRange ?? 'Page 2',
-              children: [
-                  // --- FORM HEADER ---
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Text(
-                      'Form: 2-B',
-                      style: serifStyle.copyWith(
-                        decoration: TextDecoration.underline,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Text(
-                    '5) Particulars of the victims (Attach separate sheet, if required)',
-                    style: serifStyle.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'बळीचा तपशील ( आवश्यक असल्यास स्वतंत्र कागद जोडावा. )',
-                    style: marathiLabelStyle.copyWith(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  Table(
-                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    border: TableBorder.all(color: Colors.black87, width: 1),
-                    columnWidths: const {
-                      0: FixedColumnWidth(30),  // Sr No
-                      1: FlexColumnWidth(2.5),  // Full Name
-                      2: FlexColumnWidth(1.8),  // Date/Year of Birth
-                      3: FlexColumnWidth(1.0),  // Sex
-                      4: FlexColumnWidth(1.8),  // Nationality
-                      5: FlexColumnWidth(1.5),  // Religion
-                      6: FlexColumnWidth(1.8),  // SC/ST
-                      7: FlexColumnWidth(1.8),  // Occupation
-                      8: FlexColumnWidth(2.2),  // Address
-                      9: FlexColumnWidth(2.0),  // Injury
-                      10: FlexColumnWidth(1.5), // Means
-                    },
-                    children: [
-                      TableRow(
-                        decoration: BoxDecoration(color: Colors.grey.shade100),
-                        children: [
-                          _buildHeaderCell("Sr.\nNo\n\nअ.\nक.\n\n(1)"),
-                          _buildHeaderCell("Full Name\n\nसंपूर्ण नांव\n\n(2)"),
-                          _buildHeaderCell("Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)"),
-                          _buildHeaderCell("Sex\n\nलिंग\n\n(*4)"),
-                          _buildHeaderCell("Nationality\n\nराष्ट्रीयत्व\n\n(*5)"),
-                          _buildHeaderCell("Religion\n\nधर्म\n\n(*6)"),
-                          _buildHeaderCell("Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)"),
-                          _buildHeaderCell("Ocupetion\n\nव्यवसाय\n\n(*8)"),
-                          _buildHeaderCell("Address\n\nपत्ता\n\n(*9)"),
-                          _buildHeaderCell("Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)"),
-                          _buildHeaderCell("Means\n\nसाधने/\nहत्यारे\n\n(11)"),
-                        ],
-                      ),
-                      ...List.generate(_victimRows.length, (index) {
-                        final row = _victimRows[index];
-                        return TableRow(
-                          children: [
-                            FormTableSrNoCell(index: index, style: serifStyle),
-                            _buildTableInputCell(controller: row.fullNameCtrl, style: serifStyle, hintText: 'Name'),
-                            _buildTableInputCell(controller: row.dobCtrl, style: serifStyle, hintText: 'DOB/Year'),
-                            _buildTableInputCell(controller: row.sexCtrl, style: serifStyle, hintText: 'Sex'),
-                            _buildTableInputCell(controller: row.nationalityCtrl, style: serifStyle, hintText: 'Nationality'),
-                            _buildTableInputCell(controller: row.religionCtrl, style: serifStyle, hintText: 'Religion'),
-                            _buildTableInputCell(controller: row.scStCtrl, style: serifStyle, hintText: 'SC/ST'),
-                            _buildTableInputCell(controller: row.occupationCtrl, style: serifStyle, hintText: 'Occupation'),
-                            _buildTableInputCell(controller: row.addressCtrl, style: serifStyle, hintText: 'Address'),
-                            _buildTableInputCell(controller: row.injuryCtrl, style: serifStyle, hintText: 'Injury'),
-                            _buildTableInputCell(controller: row.meansCtrl, style: serifStyle, hintText: 'Means'),
-                          ],
-                        );
-                      }),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _victimRows.add(VictimRow());
-                          });
-                        },
-                        icon: const Icon(Icons.add, size: 16, color: Color(0xFF1E3A8A)),
-                        label: Text(
-                          'Add Row (ओळ जोडा)',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1E3A8A),
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEFF4FA),
-                          side: const BorderSide(color: Color(0xFFD6E4F0), width: 1),
-                          shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        ),
-                      ),
-                      if (_victimRows.length > 1) ...[
-                        const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              final last = _victimRows.removeLast();
-                              last.dispose();
-                            });
-                          },
-                          icon: const Icon(Icons.remove, size: 16, color: Color(0xFFB91C1C)),
-                          label: Text(
-                            'Remove Row (ओळ काढा)',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFFB91C1C),
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFEEFEE),
-                            side: const BorderSide(color: Color(0xFFFCDADA), width: 1),
-                            shape: const StadiumBorder(),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          ),
                         ),
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  BilingualWideField(
-                    label: '6) Motive of Crime:',
-                    marathiLabel: 'गुन्ह्याचा हेतू :',
-                    controller: _motiveOfCrimeCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // --- SECTION 7 ---
-                  Text(
-                    '7) Details of properties Stolen/Involved: (Use appropriate prescribed forms (s) and attach):',
-                    style: serifStyle.copyWith(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'चोरीचा / अंतर्भूत मालमत्तेचा तपशील (योग्य नमुना वापरावा व सोबत जोडावा) :',
-                    style: marathiLabelStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  BilingualDynamicLinedTextField(
-                    controller: _propertyDetailsCtrl,
-                    minLines: 4,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // --- SECTION 8 ---
-                  Text(
-                    '8) Description of the place of occurrence:',
-                    style: serifStyle.copyWith(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '(घटनेच्या जागेचे वर्णन) :',
-                    style: marathiLabelStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  BilingualDynamicLinedTextField(
-                    controller: _placeDescriptionCtrl,
-                    minLines: 6,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                    ),
                   ),
                 ],
               ),
-        if (_shows(kForm2B) && (_shows(kForm2C) || _showAll))
-            const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
-        if (_shows(kForm2C)) ...[
-            FormPaperPage(
-              formLabel: widget.pageRange ?? 'Pages 3–4',
-              children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: Text(
-                'Form: 2-C',
+              // --- SECTION 2 ---
+              BilingualWideField(
+                label: '2) Act and Section:',
+                marathiLabel: 'अधिनियम व कलमे',
+                controller: _actSectionCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 24),
+
+              // --- SECTION 3 ---
+              Text('3) The Place of Occurrence shown by:', style: serifStyle),
+              Text(
+                'घटनेचे ठिकाण दाखविणाऱ्याचे :',
+                style: marathiLabelStyle.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: BilingualField(
+                      label: 'Name: ',
+                      marathiLabel: 'नांव',
+                      controller: _shownByNameCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    flex: 5,
+                    child: BilingualField(
+                      label: 'Father\'s/ Husband\'s Name: ',
+                      marathiLabel: 'पित्याचे/ पतीचे नांव',
+                      controller: _shownByFatherHusbandCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: 'Address:',
+                marathiLabel: 'पत्ता :',
+                controller: _shownByAddressCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 24),
+
+              // --- SECTION 4 ---
+              BilingualWideField(
+                label: '4) TYPE OF CRIME (All including M.O. Crime) :',
+                marathiLabel: 'गुन्ह्याचा प्रकार (गुन्ह्याच्या सर्व पद्धतीसह)',
+                controller: _typeOfCrimeCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: BilingualField(
+                      label: '(i) *Major Head: : ',
+                      marathiLabel: 'प्रधान शीर्ष',
+                      controller: _majorHeadCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: BilingualField(
+                      label: '(ii): * Minor Head : : ',
+                      marathiLabel: 'गौण शीर्ष',
+                      controller: _minorHeadCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: '(iii) * Method (s):',
+                marathiLabel: 'पद्धती',
+                controller: _methodCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 12),
+              BilingualNumberedMethodField(
+                number: '(१)',
+                controller: _method1Ctrl,
+                serifStyle: serifStyle,
+              ),
+              const SizedBox(height: 12),
+              BilingualNumberedMethodField(
+                number: '(२)',
+                controller: _method2Ctrl,
+                serifStyle: serifStyle,
+              ),
+              const SizedBox(height: 12),
+              BilingualNumberedMethodField(
+                number: '(३)',
+                controller: _method3Ctrl,
+                serifStyle: serifStyle,
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: '(iv) Conveyances used:',
+                marathiLabel: 'वापरलेली वाहने',
+                controller: _conveyancesCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: '(V)* Character Assumed:',
+                marathiLabel: 'केलेले वेषांतर/ केलेली बतावणी',
+                controller: _characterAssumedCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: '(Vi)* Language/ slang used:',
+                marathiLabel: 'वापरलेली भाषा/ बोली भाषा',
+                controller: _languageSlangCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: '(Vii)* Special Feature-1:',
+                marathiLabel: 'विशेष वैशिष्ट्ये - १',
+                controller: _specialFeature1Ctrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: '*Special Feature-2:',
+                marathiLabel: 'विशेष वैशिष्ट्ये - २',
+                controller: _specialFeature2Ctrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: '*Special Feature-3:',
+                marathiLabel: 'विशेष वैशिष्ट्ये - ३',
+                controller: _specialFeature3Ctrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: '(Viii) Type of Place of Occurrence:',
+                marathiLabel: 'घटनेच्या ठिकाणाचा प्रकार',
+                controller: _placeOfOccurrenceTypeCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: '(ix) Type of Property Involved ( 4 Types ):',
+                marathiLabel: 'अंतर्भूत मालमत्तेचे प्रकार',
+                controller: _propertyInvolvedCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: BilingualField(
+                      label: '(1) ',
+                      marathiLabel: '',
+                      controller: _propertyType1Ctrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                      showMarathiLabel: false,
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: BilingualField(
+                      label: '(2) ',
+                      marathiLabel: '',
+                      controller: _propertyType2Ctrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                      showMarathiLabel: false,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: BilingualField(
+                      label: '(3) ',
+                      marathiLabel: '',
+                      controller: _propertyType3Ctrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                      showMarathiLabel: false,
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: BilingualField(
+                      label: '(4) ',
+                      marathiLabel: '',
+                      controller: _propertyType4Ctrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                      showMarathiLabel: false,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              FormMrwFooter(serifStyle: serifStyle, fontSize: 11),
+            ],
+          ),
+        if (_shows(kForm2A) && (_shows(kForm2B) || _showAll))
+          const SizedBox(height: 24),
+        if (_shows(kForm2B))
+          FormPaperPage(
+            formLabel: widget.pageRange ?? 'Page 2',
+            children: [
+              // --- FORM HEADER ---
+              Align(
+                alignment: Alignment.topRight,
+                child: Text(
+                  'Form: 2-B',
+                  style: serifStyle.copyWith(
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              Text(
+                '5) Particulars of the victims (Attach separate sheet, if required)',
                 style: serifStyle.copyWith(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Description of the place of occurrence (Cont.):',
-              style: serifStyle.copyWith(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '(घटनेच्या जागेचे वर्णन) :',
-              style: marathiLabelStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            BilingualDynamicLinedTextField(
-              controller: _placeDescriptionContCtrl,
-              minLines: 6,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-            const SizedBox(height: 16),
-            const SizedBox(height: 24),
-
-            // --- SECTION 9: Map ---
-            Text(
-              '(9) Map: नकाशा',
-              style: serifStyle.copyWith(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () async {
-                final picker = ImagePicker();
-                final x = await picker.pickImage(source: ImageSource.gallery);
-                if (x != null) {
-                  setState(() {
-                    _mapImagePath = x.path;
-                  });
-                }
-              },
-              child: Container(
-                width: double.infinity,
-                height: 350,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 1.5),
-                  color: Colors.white,
+              Text(
+                'बळीचा तपशील ( आवश्यक असल्यास स्वतंत्र कागद जोडावा. )',
+                style: marathiLabelStyle.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
                 ),
-                child: _mapImagePath == null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+              ),
+              const SizedBox(height: 16),
+
+              Table(
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                border: TableBorder.all(color: Colors.black87, width: 1),
+                columnWidths: const {
+                  0: FixedColumnWidth(30), // Sr No
+                  1: FlexColumnWidth(2.5), // Full Name
+                  2: FlexColumnWidth(1.8), // Date/Year of Birth
+                  3: FlexColumnWidth(1.0), // Sex
+                  4: FlexColumnWidth(1.8), // Nationality
+                  5: FlexColumnWidth(1.5), // Religion
+                  6: FlexColumnWidth(1.8), // SC/ST
+                  7: FlexColumnWidth(1.8), // Occupation
+                  8: FlexColumnWidth(2.2), // Address
+                  9: FlexColumnWidth(2.0), // Injury
+                  10: FlexColumnWidth(1.5), // Means
+                },
+                children: [
+                  TableRow(
+                    decoration: BoxDecoration(color: Colors.grey.shade100),
+                    children: [
+                      _buildHeaderCell("Sr.\nNo\n\nअ.\nक.\n\n(1)"),
+                      _buildHeaderCell("Full Name\n\nसंपूर्ण नांव\n\n(2)"),
+                      _buildHeaderCell(
+                        "Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)",
+                      ),
+                      _buildHeaderCell("Sex\n\nलिंग\n\n(*4)"),
+                      _buildHeaderCell("Nationality\n\nराष्ट्रीयत्व\n\n(*5)"),
+                      _buildHeaderCell("Religion\n\nधर्म\n\n(*6)"),
+                      _buildHeaderCell(
+                        "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)",
+                      ),
+                      _buildHeaderCell("Ocupetion\n\nव्यवसाय\n\n(*8)"),
+                      _buildHeaderCell("Address\n\nपत्ता\n\n(*9)"),
+                      _buildHeaderCell(
+                        "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
+                      ),
+                      _buildHeaderCell("Means\n\nसाधने/\nहत्यारे\n\n(11)"),
+                    ],
+                  ),
+                  ...List.generate(_victimRows.length, (index) {
+                    final row = _victimRows[index];
+                    return TableRow(
+                      children: [
+                        FormTableSrNoCell(index: index, style: serifStyle),
+                        _buildTableInputCell(
+                          controller: row.fullNameCtrl,
+                          style: serifStyle,
+                          hintText: 'Name',
+                        ),
+                        _buildTableInputCell(
+                          controller: row.dobCtrl,
+                          style: serifStyle,
+                          hintText: 'DOB/Year',
+                        ),
+                        _buildTableInputCell(
+                          controller: row.sexCtrl,
+                          style: serifStyle,
+                          hintText: 'Sex',
+                        ),
+                        _buildTableInputCell(
+                          controller: row.nationalityCtrl,
+                          style: serifStyle,
+                          hintText: 'Nationality',
+                        ),
+                        _buildTableInputCell(
+                          controller: row.religionCtrl,
+                          style: serifStyle,
+                          hintText: 'Religion',
+                        ),
+                        _buildTableInputCell(
+                          controller: row.scStCtrl,
+                          style: serifStyle,
+                          hintText: 'SC/ST',
+                        ),
+                        _buildTableInputCell(
+                          controller: row.occupationCtrl,
+                          style: serifStyle,
+                          hintText: 'Occupation',
+                        ),
+                        _buildTableInputCell(
+                          controller: row.addressCtrl,
+                          style: serifStyle,
+                          hintText: 'Address',
+                        ),
+                        _buildTableInputCell(
+                          controller: row.injuryCtrl,
+                          style: serifStyle,
+                          hintText: 'Injury',
+                        ),
+                        _buildTableInputCell(
+                          controller: row.meansCtrl,
+                          style: serifStyle,
+                          hintText: 'Means',
+                        ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _victimRows.add(VictimRow());
+                      });
+                    },
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(
+                      'Add Row (ओळ जोडा)',
+                      style: GoogleFonts.poppins(
+                          fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  if (_victimRows.length > 1) ...[
+                    const SizedBox(width: 12),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          final last = _victimRows.removeLast();
+                          last.dispose();
+                        });
+                      },
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      icon: const Icon(Icons.remove, size: 18),
+                      label: Text(
+                        'Remove Row (ओळ काढा)',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              BilingualWideField(
+                label: '6) Motive of Crime:',
+                marathiLabel: 'गुन्ह्याचा हेतू :',
+                controller: _motiveOfCrimeCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 24),
+
+              // --- SECTION 7 ---
+              Text(
+                '7) Details of properties Stolen/Involved: (Use appropriate prescribed forms (s) and attach):',
+                style: serifStyle.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'चोरीचा / अंतर्भूत मालमत्तेचा तपशील (योग्य नमुना वापरावा व सोबत जोडावा) :',
+                style: marathiLabelStyle.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              BilingualDynamicLinedTextField(
+                controller: _propertyDetailsCtrl,
+                minLines: 4,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 24),
+
+              // --- SECTION 8 ---
+              Text(
+                '8) Description of the place of occurrence:',
+                style: serifStyle.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '(घटनेच्या जागेचे वर्णन) :',
+                style: marathiLabelStyle.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              BilingualDynamicLinedTextField(
+                controller: _placeDescriptionCtrl,
+                minLines: 6,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+            ],
+          ),
+        if (_shows(kForm2B) && (_shows(kForm2C) || _showAll))
+          const SizedBox(height: 32),
+        if (_shows(kForm2C)) ...[
+          FormPaperPage(
+            formLabel: widget.pageRange ?? 'Pages 3–4',
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: Text(
+                  'Form: 2-C',
+                  style: serifStyle.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Description of the place of occurrence (Cont.):',
+                style: serifStyle.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '(घटनेच्या जागेचे वर्णन) :',
+                style: marathiLabelStyle.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              BilingualDynamicLinedTextField(
+                controller: _placeDescriptionContCtrl,
+                minLines: 6,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+
+              // --- SECTION 9: Map ---
+              Text(
+                '(9) Map: नकाशा',
+                style: serifStyle.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () async {
+                  final picker = ImagePicker();
+                  final x = await picker.pickImage(source: ImageSource.gallery);
+                  if (x != null) {
+                    setState(() {
+                      _mapImagePath = x.path;
+                    });
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 350,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 1.5),
+                    color: Colors.white,
+                  ),
+                  child: _mapImagePath == null
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.map_outlined,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Click to upload Map Image',
+                                style: serifStyle.copyWith(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              Text(
+                                '(नकाशा चित्र अपलोड करण्यासाठी येथे क्लिक करा)',
+                                style: marathiLabelStyle.copyWith(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Stack(
                           children: [
-                            Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Click to upload Map Image',
-                              style: serifStyle.copyWith(color: Colors.grey.shade600, fontSize: 13),
+                            Positioned.fill(
+                              child: kIsWeb
+                                  ? Image.network(
+                                      _mapImagePath!,
+                                      fit: BoxFit.contain,
+                                    )
+                                  : Image.file(
+                                      File(_mapImagePath!),
+                                      fit: BoxFit.contain,
+                                    ),
                             ),
-                            Text(
-                              '(नकाशा चित्र अपलोड करण्यासाठी येथे क्लिक करा)',
-                              style: marathiLabelStyle.copyWith(color: Colors.grey.shade500, fontSize: 11),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: CircleAvatar(
+                                backgroundColor: Colors.black54,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _mapImagePath = null;
+                                    });
+                                  },
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      )
-                    : Stack(
-                        children: [
-                          Positioned.fill(
-                            child: kIsWeb
-                                ? Image.network(_mapImagePath!, fit: BoxFit.contain)
-                                : Image.file(File(_mapImagePath!), fit: BoxFit.contain),
-                          ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: CircleAvatar(
-                              backgroundColor: Colors.black54,
-                              child: IconButton(
-                                icon: const Icon(Icons.close, color: Colors.white),
-                                onPressed: () {
-                                  setState(() {
-                                    _mapImagePath = null;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-              ),
-            const SizedBox(height: 16),
-            // --- SECTION 10: Physical Evidence ---
-            Text(
-              '(10) Description of physical evidence from the science of crime for the property recovered / seized for the purpose of investigation:',
-              style: serifStyle.copyWith(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              'तपासकामी प्रत्यक्ष पुरावा म्हणून गुन्ह्याच्या जागेवरून मिळविलेल्या / जप्त केलेल्या मालमत्तेचे वर्णन :',
-              style: marathiLabelStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            BilingualDynamicLinedTextField(
-              controller: _physicalEvidenceCtrl,
-              minLines: 6,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-            const SizedBox(height: 32),
-            const Divider(color: Colors.black26),
-            const SizedBox(height: 16),
-            ResponsiveFieldRow(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Date and Time of panchnama', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.end,
-                        children: [
-                          Text('घटनास्थळ पंचनाम्याची दिनांक : ', style: marathiLabelStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _panchnamaDateDayCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'DD',
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            child: Text('/', style: serifStyle),
-                          ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _panchnamaDateMonthCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            child: Text('/20', style: serifStyle),
-                          ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _panchnamaDateYearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Name of panchas: / पंचाची नांवे :',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      Text('(1)', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _pancha1NameCtrl,
-                        minLines: 1,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      const SizedBox(height: 12),
-                      Text('Full Address: / पत्ता', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _pancha1AddressCtrl,
-                        minLines: 3,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      const SizedBox(height: 20),
-                      Text('(2)', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _pancha2NameCtrl,
-                        minLines: 1,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      const SizedBox(height: 12),
-                      Text('Full Address: / पत्ता', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _pancha2AddressCtrl,
-                        minLines: 3,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      const SizedBox(height: 20),
-                      Text('Date: / दिनांक', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _panchnamaFormDateCtrl,
-                        minLines: 1,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
-                  ),
                 ),
-                const SizedBox(width: 40),
-                // Right Column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Time', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.end,
-                        children: [
-                          Text('वेळ : ', style: marathiLabelStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _panchnamaTimeFromHoursCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'HH',
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            child: Text('/', style: serifStyle),
-                          ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _panchnamaTimeFromMinutesCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: Text('ते :', style: marathiLabelStyle),
-                          ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _panchnamaTimeToHoursCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'HH',
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            child: Text('/', style: serifStyle),
-                          ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _panchnamaTimeToMinutesCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4),
-                            child: Text('पर्यंत', style: marathiLabelStyle),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Signature of Panchas: / पंचाच्या सह्या :',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      Text('1)', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _pancha1SigCtrl,
-                        minLines: 1,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      const SizedBox(height: 20),
-                      Text('2)', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _pancha2SigCtrl,
-                        minLines: 1,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Name and Signature of Investigation Officer: / ${FormIoTerminology.amaldarSignatureHeader} :',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      Text('Name: / ${FormIoTerminology.name} :', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _ioNameCtrl,
-                        minLines: 1,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      const SizedBox(height: 12),
-                      Text('Rank: / ${FormIoTerminology.rank} :', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _ioRankCtrl,
-                        minLines: 1,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      const SizedBox(height: 12),
-                      Text('B.No. if any: / बक्कल नंबर :', style: serifStyle.copyWith(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      BilingualDynamicLinedTextField(
-                        controller: _ioBuckleNoCtrl,
-                        minLines: 1,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
+              ),
+              const SizedBox(height: 16),
+              // --- SECTION 10: Physical Evidence ---
+              Text(
+                '(10) Description of physical evidence from the science of crime for the property recovered / seized for the purpose of investigation:',
+                style: serifStyle.copyWith(
+                    fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'तपासकामी प्रत्यक्ष पुरावा म्हणून गुन्ह्याच्या जागेवरून मिळविलेल्या / जप्त केलेल्या मालमत्तेचे वर्णन :',
+                style: marathiLabelStyle.copyWith(
+                    fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              BilingualDynamicLinedTextField(
+                controller: _physicalEvidenceCtrl,
+                minLines: 6,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 32),
+              const Divider(color: Colors.black26),
+              const SizedBox(height: 16),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left Column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Date and Time of panchnama:',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        Text('घटनास्थळ पंचनाम्याची दिनांक :',
+                            style: marathiLabelStyle),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _panchnamaDateCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Name of panchas: / पंचाची नांवे :',
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        Text('(1)',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _pancha1NameCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 12),
+                        Text('Full Address: / पत्ता',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _pancha1AddressCtrl,
+                          minLines: 3,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 20),
+                        Text('(2)',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _pancha2NameCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 12),
+                        Text('Full Address: / पत्ता',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _pancha2AddressCtrl,
+                          minLines: 3,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 20),
+                        Text('Date: / दिनांक',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _panchnamaFormDateCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            FormMrwFooter(serifStyle: serifStyle, fontSize: 11),
-          ],
-        ),
+                  const SizedBox(width: 40),
+                  // Right Column
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Time:',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        Text('वेळ :', style: marathiLabelStyle),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _panchnamaTimeCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Signature of Panchas: / पंचाच्या सह्या :',
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        Text('1)',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _pancha1SigCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 20),
+                        Text('2)',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _pancha2SigCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Name and Signature of Investigation Officer: / ${FormIoTerminology.amaldarSignatureHeader} :',
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        Text('Name: / ${FormIoTerminology.name} :',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _ioNameCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 12),
+                        Text('Rank: / ${FormIoTerminology.rank} :',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _ioRankCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                        const SizedBox(height: 12),
+                        Text('B.No. if any: / बक्कल नंबर :',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        BilingualDynamicLinedTextField(
+                          controller: _ioBuckleNoCtrl,
+                          minLines: 1,
+                          serifStyle: serifStyle,
+                          marathiLabelStyle: marathiLabelStyle,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              FormMrwFooter(serifStyle: serifStyle, fontSize: 11),
+            ],
+          ),
         ],
       ],
     );
   }
+
   // Helper methods for Form 2-B Table
   Widget _buildHeaderCell(String text) {
     return Padding(
@@ -1356,13 +1391,13 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
         ),
         decoration: InputDecoration(
           isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 4,
+            horizontal: 2,
+          ),
           border: InputBorder.none,
           hintText: hintText,
-          hintStyle: style.copyWith(
-            color: Colors.grey.shade400,
-            fontSize: 10,
-          ),
+          hintStyle: style.copyWith(color: Colors.grey.shade400, fontSize: 10),
         ),
       ),
     );

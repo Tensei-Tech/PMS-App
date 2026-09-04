@@ -21,7 +21,8 @@ class SettingsProvider extends ChangeNotifier {
   Locale get locale => _locale;
   bool get isBiometricEnabled => _isBiometricEnabled;
   bool get isBiometricSkipped => _isBiometricSkipped;
-  bool get shouldSkipNextBiometricAutoTrigger => _shouldSkipNextBiometricAutoTrigger;
+  bool get shouldSkipNextBiometricAutoTrigger =>
+      _shouldSkipNextBiometricAutoTrigger;
 
   String get language {
     return supportedLanguages[_locale.languageCode] ?? 'English';
@@ -64,8 +65,8 @@ class SettingsProvider extends ChangeNotifier {
       _fontSize = fs == 'small'
           ? FontSize.small
           : fs == 'large'
-              ? FontSize.large
-              : FontSize.medium;
+          ? FontSize.large
+          : FontSize.medium;
 
       final langCode = prefs.getString(StorageKeys.language) ?? 'en';
       _locale = Locale(langCode);
@@ -81,12 +82,13 @@ class SettingsProvider extends ChangeNotifier {
     _fontSize = size;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
-        StorageKeys.fontSize,
-        size == FontSize.small
-            ? 'small'
-            : size == FontSize.large
-                ? 'large'
-                : 'medium');
+      StorageKeys.fontSize,
+      size == FontSize.small
+          ? 'small'
+          : size == FontSize.large
+          ? 'large'
+          : 'medium',
+    );
     notifyListeners();
   }
 

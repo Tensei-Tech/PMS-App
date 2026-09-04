@@ -51,7 +51,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Profile updated successfully', style: GoogleFonts.poppins()),
+            content: Text(
+              'Profile updated successfully',
+              style: GoogleFonts.poppins(),
+            ),
             backgroundColor: AppColors.successGreen,
           ),
         );
@@ -61,7 +64,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update profile', style: GoogleFonts.poppins()),
+            content: Text(
+              'Failed to update profile',
+              style: GoogleFonts.poppins(),
+            ),
             backgroundColor: AppColors.dangerRed,
           ),
         );
@@ -78,7 +84,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       appBar: AppBar(
         title: Text(
           'Edit Profile',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: AppColors.navyDark),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            color: AppColors.navyDark,
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -109,7 +118,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 controller: _nameCtrl,
                 icon: Icons.person_rounded,
                 hint: 'Enter your full name',
-                validator: (v) => v == null || v.isEmpty ? 'Name is required' : null,
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Name is required' : null,
               ),
               const SizedBox(height: AppSpacing.lg),
               _buildFieldLabel('Phone Number'),
@@ -118,7 +128,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 icon: Icons.phone_rounded,
                 hint: 'Enter your phone number',
                 keyboardType: TextInputType.phone,
-                validator: (v) => v == null || v.isEmpty ? 'Phone number is required' : null,
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Phone number is required' : null,
               ),
               const SizedBox(height: AppSpacing.lg),
               _buildFieldLabel('Designation'),
@@ -126,11 +137,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 controller: _designationCtrl,
                 icon: Icons.badge_rounded,
                 hint: 'Enter your designation',
-                validator: (v) => v == null || v.isEmpty ? 'Designation is required' : null,
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Designation is required' : null,
               ),
               const SizedBox(height: 40),
               if (_isLoading)
-                const Center(child: CircularProgressIndicator(color: AppColors.navyMid))
+                const Center(
+                  child: CircularProgressIndicator(color: AppColors.navyMid),
+                )
               else
                 SizedBox(
                   width: double.infinity,
@@ -139,7 +153,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     onPressed: _handleSave,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navyMid,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
                       elevation: 0,
                     ),
                     child: Text(
@@ -203,7 +219,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
     );
   }

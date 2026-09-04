@@ -33,7 +33,8 @@ class _AnalyticsPerformanceScreenState
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isSenior = SeniorOfficerRoles.canSwitchLocation(auth.designation) ||
+    final isSenior =
+        SeniorOfficerRoles.canSwitchLocation(auth.designation) ||
         auth.isSupervisor ||
         auth.isAdmin;
 
@@ -47,8 +48,7 @@ class _AnalyticsPerformanceScreenState
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon:
-              const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,16 +76,21 @@ class _AnalyticsPerformanceScreenState
             padding: const EdgeInsets.only(right: 12),
             child: DropdownButtonHideUnderline(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.navyMid.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: DropdownButton<String>(
                   value: _selectedTimeFilter,
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                      size: 18, color: AppColors.navyDark),
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 18,
+                    color: AppColors.navyDark,
+                  ),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -116,16 +121,20 @@ class _AnalyticsPerformanceScreenState
 
           final totalCases = filteredRecords.length;
           final pendingCases = filteredRecords
-              .where((r) =>
-                  r.status != 'Disposal' &&
-                  r.status != 'Closed' &&
-                  r.status != 'Resolved')
+              .where(
+                (r) =>
+                    r.status != 'Disposal' &&
+                    r.status != 'Closed' &&
+                    r.status != 'Resolved',
+              )
               .toList();
           final disposedCases = filteredRecords
-              .where((r) =>
-                  r.status == 'Disposal' ||
-                  r.status == 'Closed' ||
-                  r.status == 'Resolved')
+              .where(
+                (r) =>
+                    r.status == 'Disposal' ||
+                    r.status == 'Closed' ||
+                    r.status == 'Resolved',
+              )
               .toList();
 
           final disposalRate = totalCases > 0
@@ -301,8 +310,8 @@ class _AnalyticsPerformanceScreenState
     final color = rate >= 70
         ? AppColors.successGreen
         : rate >= 40
-            ? AppColors.warningOrange
-            : AppColors.dangerRed;
+        ? AppColors.warningOrange
+        : AppColors.dangerRed;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -345,8 +354,10 @@ class _AnalyticsPerformanceScreenState
                 ],
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppRadius.full),
@@ -399,8 +410,11 @@ class _AnalyticsPerformanceScreenState
         children: [
           Row(
             children: [
-              const Icon(Icons.pie_chart_rounded,
-                  size: 18, color: AppColors.navyDark),
+              const Icon(
+                Icons.pie_chart_rounded,
+                size: 18,
+                color: AppColors.navyDark,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Crime Category Distribution',
@@ -417,7 +431,9 @@ class _AnalyticsPerformanceScreenState
             Text(
               'No records found for the selected filter.',
               style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText),
+                fontSize: 12,
+                color: AppColors.lightSubText,
+              ),
             )
           else
             ...sortedEntries.map((e) {
@@ -497,8 +513,11 @@ class _AnalyticsPerformanceScreenState
         children: [
           Row(
             children: [
-              const Icon(Icons.people_alt_rounded,
-                  size: 18, color: AppColors.navyDark),
+              const Icon(
+                Icons.people_alt_rounded,
+                size: 18,
+                color: AppColors.navyDark,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -529,7 +548,9 @@ class _AnalyticsPerformanceScreenState
             Text(
               'No active pending cases.',
               style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText),
+                fontSize: 12,
+                color: AppColors.lightSubText,
+              ),
             )
           else
             ...ioCases.entries.map((entry) {
@@ -551,10 +572,14 @@ class _AnalyticsPerformanceScreenState
                       children: [
                         CircleAvatar(
                           radius: 14,
-                          backgroundColor:
-                              AppColors.navyMid.withValues(alpha: 0.1),
-                          child: const Icon(Icons.person_rounded,
-                              size: 16, color: AppColors.navyDark),
+                          backgroundColor: AppColors.navyMid.withValues(
+                            alpha: 0.1,
+                          ),
+                          child: const Icon(
+                            Icons.person_rounded,
+                            size: 16,
+                            color: AppColors.navyDark,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -569,10 +594,13 @@ class _AnalyticsPerformanceScreenState
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.warningOrange
-                                .withValues(alpha: 0.15),
+                            color: AppColors.warningOrange.withValues(
+                              alpha: 0.15,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(

@@ -32,25 +32,44 @@ enum AuditEvent {
 extension AuditEventName on AuditEvent {
   String get name {
     switch (this) {
-      case AuditEvent.loginSuccess: return 'login_success';
-      case AuditEvent.loginFailed: return 'login_failed';
-      case AuditEvent.biometricLoginSuccess: return 'biometric_login_success';
-      case AuditEvent.biometricLoginFailed: return 'biometric_login_failed';
-      case AuditEvent.pinChanged: return 'pin_changed';
-      case AuditEvent.pinChangeFailed: return 'pin_change_failed';
-      case AuditEvent.pinVerifySuccess: return 'pin_verify_success';
-      case AuditEvent.pinVerifyFailed: return 'pin_verify_failed';
-      case AuditEvent.sessionLocked: return 'session_locked';
-      case AuditEvent.sessionUnlocked: return 'session_unlocked';
-      case AuditEvent.logout: return 'logout';
-      case AuditEvent.fullLogout: return 'full_logout';
-      case AuditEvent.lockoutTriggered: return 'lockout_triggered';
-      case AuditEvent.registrationSuccess: return 'registration_success';
-      case AuditEvent.registrationFailed: return 'registration_failed';
-      case AuditEvent.caseCreated: return 'case_created';
-      case AuditEvent.caseUpdated: return 'case_updated';
-      case AuditEvent.caseDeleted: return 'case_deleted';
-      case AuditEvent.adminAction: return 'admin_action';
+      case AuditEvent.loginSuccess:
+        return 'login_success';
+      case AuditEvent.loginFailed:
+        return 'login_failed';
+      case AuditEvent.biometricLoginSuccess:
+        return 'biometric_login_success';
+      case AuditEvent.biometricLoginFailed:
+        return 'biometric_login_failed';
+      case AuditEvent.pinChanged:
+        return 'pin_changed';
+      case AuditEvent.pinChangeFailed:
+        return 'pin_change_failed';
+      case AuditEvent.pinVerifySuccess:
+        return 'pin_verify_success';
+      case AuditEvent.pinVerifyFailed:
+        return 'pin_verify_failed';
+      case AuditEvent.sessionLocked:
+        return 'session_locked';
+      case AuditEvent.sessionUnlocked:
+        return 'session_unlocked';
+      case AuditEvent.logout:
+        return 'logout';
+      case AuditEvent.fullLogout:
+        return 'full_logout';
+      case AuditEvent.lockoutTriggered:
+        return 'lockout_triggered';
+      case AuditEvent.registrationSuccess:
+        return 'registration_success';
+      case AuditEvent.registrationFailed:
+        return 'registration_failed';
+      case AuditEvent.caseCreated:
+        return 'case_created';
+      case AuditEvent.caseUpdated:
+        return 'case_updated';
+      case AuditEvent.caseDeleted:
+        return 'case_deleted';
+      case AuditEvent.adminAction:
+        return 'admin_action';
     }
   }
 }
@@ -68,14 +87,19 @@ class AuditService {
   }) async {
     try {
       if (kDebugMode) {
-        debugPrint('[AuditLog] Event: ${event.name} | UID: ${uid ?? "anonymous"} | Platform: ${_getPlatform()}');
+        debugPrint(
+          '[AuditLog] Event: ${event.name} | UID: ${uid ?? "anonymous"} | Platform: ${_getPlatform()}',
+        );
       }
-      await ApiService().post(ApiConfig.auditLogs, data: {
-        'event': event.name,
-        'uid': uid ?? 'anonymous',
-        'platform': _getPlatform(),
-        if (metadata != null) 'metadata': metadata,
-      });
+      await ApiService().post(
+        ApiConfig.auditLogs,
+        data: {
+          'event': event.name,
+          'uid': uid ?? 'anonymous',
+          'platform': _getPlatform(),
+          if (metadata != null) 'metadata': metadata,
+        },
+      );
     } catch (_) {
       // Intentionally silent — audit log failure must never block main flow
     }
@@ -90,4 +114,3 @@ class AuditService {
     return 'unknown';
   }
 }
-

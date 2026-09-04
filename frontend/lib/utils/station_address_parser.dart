@@ -28,8 +28,7 @@ class StationAddressParser {
     }
 
     final bulletParts = raw.split('•');
-    final unitType =
-        bulletParts.length > 1 ? bulletParts.last.trim() : '';
+    final unitType = bulletParts.length > 1 ? bulletParts.last.trim() : '';
     final left = bulletParts.first.trim();
 
     if (left.isEmpty) {

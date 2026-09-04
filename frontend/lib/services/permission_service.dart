@@ -53,11 +53,15 @@ class PermissionService {
         return DynamicPermissionsModel.fromMap(response.data);
       } else {
         if (kDebugMode) {
-          debugPrint('[PermissionService] Error fetching permissions: ${response.errorMessage}');
+          debugPrint(
+            '[PermissionService] Error fetching permissions: ${response.errorMessage}',
+          );
         }
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('[PermissionService] Exception fetching permissions: $e');
+      if (kDebugMode) {
+        debugPrint('[PermissionService] Exception fetching permissions: $e');
+      }
     }
     return null;
   }

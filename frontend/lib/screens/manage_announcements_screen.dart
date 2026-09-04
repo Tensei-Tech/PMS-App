@@ -29,17 +29,29 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
   ];
 
   static const List<({String name, IconData icon, String label})>
-      _availableIcons = [
+  _availableIcons = [
     (name: 'gavel', icon: Icons.gavel_rounded, label: 'Legal / Gavel'),
     (name: 'shield', icon: Icons.shield_rounded, label: 'Shield / Safety'),
     (name: 'videocam', icon: Icons.videocam_rounded, label: 'Body Camera'),
     (name: 'security', icon: Icons.security_rounded, label: 'Security / Cyber'),
     (name: 'campaign', icon: Icons.campaign_rounded, label: 'Announcement'),
-    (name: 'warning', icon: Icons.warning_amber_rounded, label: 'Alert / Warning'),
+    (
+      name: 'warning',
+      icon: Icons.warning_amber_rounded,
+      label: 'Alert / Warning',
+    ),
     (name: 'policy', icon: Icons.policy_rounded, label: 'Policy / Rule'),
     (name: 'article', icon: Icons.article_rounded, label: 'Document / Order'),
-    (name: 'local_police', icon: Icons.local_police_rounded, label: 'Police Badge'),
-    (name: 'handshake', icon: Icons.handshake_rounded, label: 'Community / Public'),
+    (
+      name: 'local_police',
+      icon: Icons.local_police_rounded,
+      label: 'Police Badge',
+    ),
+    (
+      name: 'handshake',
+      icon: Icons.handshake_rounded,
+      label: 'Community / Public',
+    ),
   ];
 
   static const List<({String label, int hexColor})> _themeColors = [
@@ -66,8 +78,7 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
-          final selectedIconData =
-              NewsItem.iconFromName(selectedIconName);
+          final selectedIconData = NewsItem.iconFromName(selectedIconName);
 
           return Container(
             padding: EdgeInsets.only(
@@ -171,7 +182,9 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.22),
                                   borderRadius: BorderRadius.circular(6),
@@ -277,10 +290,14 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                       fillColor: AppColors.lightBg,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: const BorderSide(color: AppColors.lightBorder),
+                        borderSide: const BorderSide(
+                          color: AppColors.lightBorder,
+                        ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -308,10 +325,14 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                       fillColor: AppColors.lightBg,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: const BorderSide(color: AppColors.lightBorder),
+                        borderSide: const BorderSide(
+                          color: AppColors.lightBorder,
+                        ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -337,8 +358,9 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                         final isSel = entry.name == selectedIconName;
                         return InkWell(
                           borderRadius: BorderRadius.circular(10),
-                          onTap: () =>
-                              setModalState(() => selectedIconName = entry.name),
+                          onTap: () => setModalState(
+                            () => selectedIconName = entry.name,
+                          ),
                           child: Container(
                             width: 48,
                             height: 48,
@@ -387,8 +409,9 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                         final isSel = theme.hexColor == selectedColor;
                         return InkWell(
                           borderRadius: BorderRadius.circular(20),
-                          onTap: () =>
-                              setModalState(() => selectedColor = theme.hexColor),
+                          onTap: () => setModalState(
+                            () => selectedColor = theme.hexColor,
+                          ),
                           child: Container(
                             width: 40,
                             height: 40,
@@ -396,22 +419,28 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                               color: Color(theme.hexColor),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isSel ? Colors.white : Colors.transparent,
+                                color: isSel
+                                    ? Colors.white
+                                    : Colors.transparent,
                                 width: 2.5,
                               ),
                               boxShadow: [
                                 if (isSel)
                                   BoxShadow(
-                                    color: Color(theme.hexColor)
-                                        .withValues(alpha: 0.5),
+                                    color: Color(
+                                      theme.hexColor,
+                                    ).withValues(alpha: 0.5),
                                     blurRadius: 8,
                                     spreadRadius: 2,
                                   ),
                               ],
                             ),
                             child: isSel
-                                ? const Icon(Icons.check,
-                                    color: Colors.white, size: 20)
+                                ? const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 20,
+                                  )
                                 : null,
                           ),
                         );
@@ -434,12 +463,16 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Icon(Icons.cloud_upload_rounded,
-                              color: Colors.white),
+                          : const Icon(
+                              Icons.cloud_upload_rounded,
+                              color: Colors.white,
+                            ),
                       label: Text(
                         isSaving
                             ? 'Saving...'
-                            : (isEditing ? 'Update Announcement' : 'Publish Announcement'),
+                            : (isEditing
+                                  ? 'Update Announcement'
+                                  : 'Publish Announcement'),
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -461,7 +494,9 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                               if (title.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Please enter announcement title'),
+                                    content: Text(
+                                      'Please enter announcement title',
+                                    ),
                                   ),
                                 );
                                 return;
@@ -478,7 +513,8 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                                 icon: selectedIconData,
                                 iconColorHex: selectedColor,
                                 tag: selectedTag,
-                                order: item?.order ?? (provider.items.length + 1),
+                                order:
+                                    item?.order ?? (provider.items.length + 1),
                               );
 
                               try {
@@ -489,7 +525,9 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                                 }
                                 if (ctx.mounted) Navigator.pop(ctx);
                                 if (mounted) {
-                                  ScaffoldMessenger.of(this.context).showSnackBar(
+                                  ScaffoldMessenger.of(
+                                    this.context,
+                                  ).showSnackBar(
                                     SnackBar(
                                       backgroundColor: AppColors.successGreen,
                                       content: Text(
@@ -503,7 +541,9 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                               } catch (err) {
                                 setModalState(() => isSaving = false);
                                 if (mounted) {
-                                  ScaffoldMessenger.of(this.context).showSnackBar(
+                                  ScaffoldMessenger.of(
+                                    this.context,
+                                  ).showSnackBar(
                                     SnackBar(
                                       backgroundColor: AppColors.dangerRed,
                                       content: Text('Error saving: $err'),
@@ -666,8 +706,11 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
         backgroundColor: AppColors.navyDark,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 18),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 18,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -689,8 +732,11 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                 value: 'reset',
                 child: Row(
                   children: [
-                    const Icon(Icons.restore_rounded,
-                        size: 18, color: AppColors.navyMid),
+                    const Icon(
+                      Icons.restore_rounded,
+                      size: 18,
+                      color: AppColors.navyMid,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Restore Defaults',
@@ -719,8 +765,11 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.cloud_sync_rounded,
-                    color: AppColors.goldDark, size: 20),
+                const Icon(
+                  Icons.cloud_sync_rounded,
+                  color: AppColors.goldDark,
+                  size: 20,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -743,8 +792,11 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.newspaper_rounded,
-                            size: 48, color: Colors.grey.shade400),
+                        Icon(
+                          Icons.newspaper_rounded,
+                          size: 48,
+                          color: Colors.grey.shade400,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'No active announcements',
@@ -800,10 +852,12 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: Color(item.iconColorHex)
-                                          .withValues(alpha: 0.12),
-                                      borderRadius:
-                                          BorderRadius.circular(AppRadius.md),
+                                      color: Color(
+                                        item.iconColorHex,
+                                      ).withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.md,
+                                      ),
                                     ),
                                     child: Icon(
                                       item.icon,
@@ -819,12 +873,16 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                                       children: [
                                         Container(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 2),
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: Color(item.iconColorHex)
-                                                .withValues(alpha: 0.12),
-                                            borderRadius:
-                                                BorderRadius.circular(4),
+                                            color: Color(
+                                              item.iconColorHex,
+                                            ).withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
                                           ),
                                           child: Text(
                                             item.tag,
@@ -862,14 +920,19 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                             const Divider(height: 1),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
                               color: AppColors.lightBg.withValues(alpha: 0.5),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   TextButton.icon(
-                                    icon: const Icon(Icons.edit_rounded,
-                                        size: 15, color: AppColors.navyMid),
+                                    icon: const Icon(
+                                      Icons.edit_rounded,
+                                      size: 15,
+                                      color: AppColors.navyMid,
+                                    ),
                                     label: Text(
                                       'Edit',
                                       style: GoogleFonts.poppins(
@@ -884,9 +947,10 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> {
                                   const SizedBox(width: 8),
                                   TextButton.icon(
                                     icon: const Icon(
-                                        Icons.delete_outline_rounded,
-                                        size: 15,
-                                        color: AppColors.dangerRed),
+                                      Icons.delete_outline_rounded,
+                                      size: 15,
+                                      color: AppColors.dangerRed,
+                                    ),
                                     label: Text(
                                       'Delete',
                                       style: GoogleFonts.poppins(

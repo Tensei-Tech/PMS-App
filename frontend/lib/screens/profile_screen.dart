@@ -43,7 +43,11 @@ class ProfileScreen extends StatelessWidget {
                 context,
                 AppTheme.fadeSlideRoute(page: const ProfileEditScreen()),
               ),
-              icon: const Icon(Icons.edit_outlined, color: AppColors.navyMid, size: 22),
+              icon: const Icon(
+                Icons.edit_outlined,
+                color: AppColors.navyMid,
+                size: 22,
+              ),
               tooltip: 'Edit Profile',
             ),
           ),
@@ -55,7 +59,10 @@ class ProfileScreen extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.xxl),
+              padding: const EdgeInsets.only(
+                top: AppSpacing.lg,
+                bottom: AppSpacing.xxl,
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Align(
@@ -157,7 +164,9 @@ class ProfileScreen extends StatelessWidget {
                         gradient: AppColors.goldGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.goldPrimary.withValues(alpha: 0.35),
+                            color: AppColors.goldPrimary.withValues(
+                              alpha: 0.35,
+                            ),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -190,7 +199,10 @@ class ProfileScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.navyDark,
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.goldPrimary, width: 1.5),
+                          border: Border.all(
+                            color: AppColors.goldPrimary,
+                            width: 1.5,
+                          ),
                         ),
                         child: const Icon(
                           Icons.shield_rounded,
@@ -218,7 +230,10 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 4),
                 // Rank / Designation Chip
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.goldPrimary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(AppRadius.full),
@@ -342,7 +357,11 @@ class ProfileScreen extends StatelessWidget {
               _buildTileItem(
                 icon: Icons.account_circle_outlined,
                 label: 'USERNAME',
-                value: auth.username.isNotEmpty ? auth.username : (auth.email.contains('@') ? auth.email.split('@')[0] : auth.fullName),
+                value: auth.username.isNotEmpty
+                    ? auth.username
+                    : (auth.email.contains('@')
+                          ? auth.email.split('@')[0]
+                          : auth.fullName),
               ),
             ],
           ),
@@ -397,7 +416,9 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.sm),
           child: Column(
             children: [
-              if (TransferRequestRoles.canSubmitTransferRequest(auth.designation)) ...[
+              if (TransferRequestRoles.canSubmitTransferRequest(
+                auth.designation,
+              )) ...[
                 _buildActionTile(
                   context,
                   title: 'Request Transfer',
@@ -407,12 +428,18 @@ class ProfileScreen extends StatelessWidget {
                   iconBg: AppColors.cyanPrimary.withValues(alpha: 0.12),
                   onTap: () => Navigator.push(
                     context,
-                    AppTheme.fadeSlideRoute(page: const TransferRequestScreen()),
+                    AppTheme.fadeSlideRoute(
+                      page: const TransferRequestScreen(),
+                    ),
                   ),
                 ),
               ],
-              if (TransferRequestRoles.canApproveTransfers(auth.designation)) ...[
-                if (TransferRequestRoles.canSubmitTransferRequest(auth.designation))
+              if (TransferRequestRoles.canApproveTransfers(
+                auth.designation,
+              )) ...[
+                if (TransferRequestRoles.canSubmitTransferRequest(
+                  auth.designation,
+                ))
                   _buildDivider(),
                 _buildActionTile(
                   context,
@@ -425,7 +452,9 @@ class ProfileScreen extends StatelessWidget {
                   iconBg: AppColors.warningOrange.withValues(alpha: 0.12),
                   onTap: () => Navigator.push(
                     context,
-                    AppTheme.fadeSlideRoute(page: const PendingTransfersScreen()),
+                    AppTheme.fadeSlideRoute(
+                      page: const PendingTransfersScreen(),
+                    ),
                   ),
                 ),
               ],
@@ -440,7 +469,9 @@ class ProfileScreen extends StatelessWidget {
                   iconBg: AppColors.navyMid.withValues(alpha: 0.1),
                   onTap: () => Navigator.push(
                     context,
-                    AppTheme.fadeSlideRoute(page: const StationAccessGrantsScreen()),
+                    AppTheme.fadeSlideRoute(
+                      page: const StationAccessGrantsScreen(),
+                    ),
                   ),
                 ),
               ],
@@ -514,11 +545,7 @@ class ProfileScreen extends StatelessWidget {
               color: AppColors.navyMid.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: Icon(
-              icon,
-              color: AppColors.navyMid,
-              size: 20,
-            ),
+            child: Icon(icon, color: AppColors.navyMid, size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -543,7 +570,9 @@ class ProfileScreen extends StatelessWidget {
                     color: isNotAvailable
                         ? Colors.grey.shade400
                         : AppColors.navyDark,
-                    fontStyle: isNotAvailable ? FontStyle.italic : FontStyle.normal,
+                    fontStyle: isNotAvailable
+                        ? FontStyle.italic
+                        : FontStyle.normal,
                   ),
                 ),
               ],

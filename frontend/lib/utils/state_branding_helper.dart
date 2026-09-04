@@ -137,7 +137,8 @@ class StateBrandingHelper {
 
     // Try finding by state name matching
     for (final info in _knownStates.values) {
-      if (info.stateName.toLowerCase() == stateCodeOrName.trim().toLowerCase()) {
+      if (info.stateName.toLowerCase() ==
+          stateCodeOrName.trim().toLowerCase()) {
         return info;
       }
     }

@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Frontend (Debug)",
+      "cwd": "frontend",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define-from-file=secrets.json"
+      ]
+    },
+    {
+      "name": "Frontend (Release)",
+      "cwd": "frontend",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "args": [
+        "--dart-define-from-file=secrets.json"
+      ]
+    }
+  ]
+}

@@ -140,47 +140,69 @@ class ModulePdfHelper {
               amberSubtitle: '$displayName - Official Case Report',
             ),
             pw.SizedBox(height: 20),
-            pw.Row(children: [
-              pw.Expanded(
+            pw.Row(
+              children: [
+                pw.Expanded(
                   child: DynamicMapPdf.summaryStatBox(
-                      'Case Number', record.caseNumber)),
-              pw.SizedBox(width: 12),
-              pw.Expanded(
-                  child: DynamicMapPdf.summaryStatBox('Status', record.status)),
-              pw.SizedBox(width: 12),
-              pw.Expanded(
+                    'Case Number',
+                    record.caseNumber,
+                  ),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: DynamicMapPdf.summaryStatBox('Status', record.status),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
                   child: DynamicMapPdf.summaryStatBox(
-                      'Priority', record.priority)),
-            ]),
+                    'Priority',
+                    record.priority,
+                  ),
+                ),
+              ],
+            ),
             pw.SizedBox(height: 16),
             ...DynamicMapPdf.buildModuleRecordPdfBody(record, displayName),
             pw.SizedBox(height: 24),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Column(children: [
-                  pw.Container(
+                pw.Column(
+                  children: [
+                    pw.Container(
                       width: 120,
                       decoration: const pw.BoxDecoration(
-                          border: pw.Border(bottom: pw.BorderSide()))),
-                  pw.SizedBox(height: 4),
-                  pw.Text('Investigating Officer',
-                      style: const pw.TextStyle(fontSize: 10)),
-                ]),
-                pw.Column(children: [
-                  pw.Container(
+                        border: pw.Border(bottom: pw.BorderSide()),
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      'Investigating Officer',
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+                pw.Column(
+                  children: [
+                    pw.Container(
                       width: 120,
                       decoration: const pw.BoxDecoration(
-                          border: pw.Border(bottom: pw.BorderSide()))),
-                  pw.SizedBox(height: 4),
-                  pw.Text('Station Head / SHO',
-                      style: const pw.TextStyle(fontSize: 10)),
-                ]),
+                        border: pw.Border(bottom: pw.BorderSide()),
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      'Station Head / SHO',
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
               ],
             ),
             pw.SizedBox(height: 16),
             DynamicMapPdf.confidentialFooterRow(
-                generatedText: 'Generated: $now'),
+              generatedText: 'Generated: $now',
+            ),
           ];
         },
       ),
@@ -191,7 +213,9 @@ class ModulePdfHelper {
 
   /// A.D: load `ad_forms` / `ad_drafts` + hub merge, then emit every field dynamically.
   static Future<void> _generateAdFullFormPdf(
-      ModuleRecord record, String moduleName) async {
+    ModuleRecord record,
+    String moduleName,
+  ) async {
     final adNo = AdFirestorePayload.adNoFromRecord(record);
     var form = await AdFirestorePayload.loadFormMapByAdNo(adNo);
     form = AdFirestorePayload.mergeHubIntoForm(form, record);
@@ -212,18 +236,27 @@ class ModulePdfHelper {
               amberSubtitle: '$moduleName — A.D form (all fields)',
             ),
             pw.SizedBox(height: 20),
-            pw.Row(children: [
-              pw.Expanded(
-                  child: DynamicMapPdf.summaryStatBox('AD No.',
-                      adNo.isEmpty ? DynamicMapPdf.emptyDisplay : adNo)),
-              pw.SizedBox(width: 12),
-              pw.Expanded(
-                  child: DynamicMapPdf.summaryStatBox('Status', record.status)),
-              pw.SizedBox(width: 12),
-              pw.Expanded(
+            pw.Row(
+              children: [
+                pw.Expanded(
                   child: DynamicMapPdf.summaryStatBox(
-                      'Priority', record.priority)),
-            ]),
+                    'AD No.',
+                    adNo.isEmpty ? DynamicMapPdf.emptyDisplay : adNo,
+                  ),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: DynamicMapPdf.summaryStatBox('Status', record.status),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: DynamicMapPdf.summaryStatBox(
+                    'Priority',
+                    record.priority,
+                  ),
+                ),
+              ],
+            ),
             pw.SizedBox(height: 16),
             DynamicMapPdf.sectionHeader('Complete saved A.D form record'),
             ...DynamicMapPdf.buildAdFormMapPdfBody(form),
@@ -231,29 +264,42 @@ class ModulePdfHelper {
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Column(children: [
-                  pw.Container(
+                pw.Column(
+                  children: [
+                    pw.Container(
                       width: 120,
                       decoration: const pw.BoxDecoration(
-                          border: pw.Border(bottom: pw.BorderSide()))),
-                  pw.SizedBox(height: 4),
-                  pw.Text('Investigating Officer',
-                      style: const pw.TextStyle(fontSize: 10)),
-                ]),
-                pw.Column(children: [
-                  pw.Container(
+                        border: pw.Border(bottom: pw.BorderSide()),
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      'Investigating Officer',
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+                pw.Column(
+                  children: [
+                    pw.Container(
                       width: 120,
                       decoration: const pw.BoxDecoration(
-                          border: pw.Border(bottom: pw.BorderSide()))),
-                  pw.SizedBox(height: 4),
-                  pw.Text('Station Head / SHO',
-                      style: const pw.TextStyle(fontSize: 10)),
-                ]),
+                        border: pw.Border(bottom: pw.BorderSide()),
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      'Station Head / SHO',
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
               ],
             ),
             pw.SizedBox(height: 16),
             DynamicMapPdf.confidentialFooterRow(
-                generatedText: 'Generated: $now'),
+              generatedText: 'Generated: $now',
+            ),
           ];
         },
       ),
@@ -263,7 +309,10 @@ class ModulePdfHelper {
   }
 
   static Future<void> generateSummaryReportPdf(
-      Map<String, int> counts, String title, String dateRange) async {
+    Map<String, int> counts,
+    String title,
+    String dateRange,
+  ) async {
     final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = pw.Document();
     final now = DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now());
@@ -281,82 +330,129 @@ class ModulePdfHelper {
               pw.Container(
                 width: double.infinity,
                 padding: const pw.EdgeInsets.all(20),
-                decoration:
-                    const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1A2A4A)),
+                decoration: const pw.BoxDecoration(
+                  color: PdfColor.fromInt(0xFF1A2A4A),
+                ),
                 child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('POLICE MANAGEMENT SYSTEM',
-                          style: pw.TextStyle(
-                              color: PdfColors.white,
-                              fontSize: 14,
-                              fontWeight: pw.FontWeight.bold)),
-                      pw.SizedBox(height: 4),
-                      pw.Text('$title - $dateRange',
-                          style: const pw.TextStyle(
-                              color: PdfColor.fromInt(0xFFFFC107),
-                              fontSize: 11)),
-                    ]),
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'POLICE MANAGEMENT SYSTEM',
+                      style: pw.TextStyle(
+                        color: PdfColors.white,
+                        fontSize: 14,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      '$title - $dateRange',
+                      style: const pw.TextStyle(
+                        color: PdfColor.fromInt(0xFFFFC107),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               pw.SizedBox(height: 24),
 
-              pw.Text('Summary of Registered Cases',
-                  style: pw.TextStyle(
-                      fontSize: 14,
-                      fontWeight: pw.FontWeight.bold,
-                      color: const PdfColor.fromInt(0xFF1A2A4A))),
+              pw.Text(
+                'Summary of Registered Cases',
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                  color: const PdfColor.fromInt(0xFF1A2A4A),
+                ),
+              ),
               pw.SizedBox(height: 12),
 
               // Table header
               pw.Container(
-                padding:
-                    const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                padding: const pw.EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
                 decoration: const pw.BoxDecoration(color: PdfColors.grey200),
-                child: pw.Row(children: [
-                  pw.Expanded(
-                      child: pw.Text('CATEGORY',
-                          style: pw.TextStyle(
-                              fontWeight: pw.FontWeight.bold, fontSize: 10))),
-                  pw.Container(
+                child: pw.Row(
+                  children: [
+                    pw.Expanded(
+                      child: pw.Text(
+                        'CATEGORY',
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                    pw.Container(
                       width: 80,
-                      child: pw.Text('COUNT',
-                          style: pw.TextStyle(
-                              fontWeight: pw.FontWeight.bold, fontSize: 10),
-                          textAlign: pw.TextAlign.right)),
-                ]),
+                      child: pw.Text(
+                        'COUNT',
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                        textAlign: pw.TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               // Table rows
-              ...counts.entries.map((e) => pw.Container(
-                    padding: const pw.EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 12),
-                    decoration: const pw.BoxDecoration(
-                        border: pw.Border(
-                            bottom: pw.BorderSide(color: PdfColors.grey300))),
-                    child: pw.Row(children: [
+              ...counts.entries.map(
+                (e) => pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(
+                    vertical: 10,
+                    horizontal: 12,
+                  ),
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(
+                      bottom: pw.BorderSide(color: PdfColors.grey300),
+                    ),
+                  ),
+                  child: pw.Row(
+                    children: [
                       pw.Expanded(
-                          child: pw.Text(e.key,
-                              style: const pw.TextStyle(fontSize: 11))),
+                        child: pw.Text(
+                          e.key,
+                          style: const pw.TextStyle(fontSize: 11),
+                        ),
+                      ),
                       pw.Container(
-                          width: 80,
-                          child: pw.Text('${e.value}',
-                              style: pw.TextStyle(
-                                  fontSize: 11, fontWeight: pw.FontWeight.bold),
-                              textAlign: pw.TextAlign.right)),
-                    ]),
-                  )),
+                        width: 80,
+                        child: pw.Text(
+                          '${e.value}',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                          textAlign: pw.TextAlign.right,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
               pw.SizedBox(height: 32),
-              pw.Text('Report Details',
-                  style: pw.TextStyle(
-                      fontSize: 11,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.grey700)),
+              pw.Text(
+                'Report Details',
+                style: pw.TextStyle(
+                  fontSize: 11,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.grey700,
+                ),
+              ),
               pw.SizedBox(height: 8),
               pw.Text(
-                  'This report contains a consolidated count of all cases registered in the selected month across all modules, including Section I to V, Section VI, and all other crime categories up to Coin.',
-                  style: const pw.TextStyle(
-                      fontSize: 10, color: PdfColors.grey600)),
+                'This report contains a consolidated count of all cases registered in the selected month across all modules, including Section I to V, Section VI, and all other crime categories up to Coin.',
+                style: const pw.TextStyle(
+                  fontSize: 10,
+                  color: PdfColors.grey600,
+                ),
+              ),
 
               pw.Spacer(),
 
@@ -365,19 +461,28 @@ class ModulePdfHelper {
                 width: double.infinity,
                 padding: const pw.EdgeInsets.symmetric(vertical: 8),
                 decoration: const pw.BoxDecoration(
-                    border: pw.Border(
-                        top: pw.BorderSide(color: PdfColors.grey300))),
+                  border: pw.Border(
+                    top: pw.BorderSide(color: PdfColors.grey300),
+                  ),
+                ),
                 child: pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('Generated: $now',
-                        style: const pw.TextStyle(
-                            fontSize: 9, color: PdfColors.grey600)),
-                    pw.Text('CONFIDENTIAL - Police Use Only',
-                        style: pw.TextStyle(
-                            fontSize: 9,
-                            color: PdfColors.grey600,
-                            fontWeight: pw.FontWeight.bold)),
+                    pw.Text(
+                      'Generated: $now',
+                      style: const pw.TextStyle(
+                        fontSize: 9,
+                        color: PdfColors.grey600,
+                      ),
+                    ),
+                    pw.Text(
+                      'CONFIDENTIAL - Police Use Only',
+                      style: pw.TextStyle(
+                        fontSize: 9,
+                        color: PdfColors.grey600,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -411,21 +516,30 @@ class ModulePdfHelper {
             pw.Container(
               width: double.infinity,
               padding: const pw.EdgeInsets.all(15),
-              decoration:
-                  const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1A2A4A)),
+              decoration: const pw.BoxDecoration(
+                color: PdfColor.fromInt(0xFF1A2A4A),
+              ),
               child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('POLICE MANAGEMENT SYSTEM',
-                        style: pw.TextStyle(
-                            color: PdfColors.white,
-                            fontSize: 16,
-                            fontWeight: pw.FontWeight.bold)),
-                    pw.SizedBox(height: 4),
-                    pw.Text('Monthly Report - $monthYear',
-                        style: const pw.TextStyle(
-                            color: PdfColor.fromInt(0xFFFFC107), fontSize: 12)),
-                  ]),
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    'POLICE MANAGEMENT SYSTEM',
+                    style: pw.TextStyle(
+                      color: PdfColors.white,
+                      fontSize: 16,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Text(
+                    'Monthly Report - $monthYear',
+                    style: const pw.TextStyle(
+                      color: PdfColor.fromInt(0xFFFFC107),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
             pw.SizedBox(height: 20),
 
@@ -458,15 +572,20 @@ class ModulePdfHelper {
                         : null,
                     children: [
                       _dataCell(row['N']?.toString() ?? '', isBold: isTotal),
-                      _dataCell(row['Heads']?.toString() ?? '',
-                          alignLeft: true, isBold: isTotal),
+                      _dataCell(
+                        row['Heads']?.toString() ?? '',
+                        alignLeft: true,
+                        isBold: isTotal,
+                      ),
                       _dataCell(rd('cm_R', 'cm_D'), isBold: isTotal),
                       _dataCell(rd('pm_R', 'pm_D'), isBold: isTotal),
                       _dataCell(rd('smly_R', 'smly_D'), isBold: isTotal),
                       _dataCell(rd('yc_R', 'yc_D'), isBold: isTotal),
                       _dataCell(rd('yp_R', 'yp_D'), isBold: isTotal),
-                      _dataCell(row['variation']?.toString() ?? '0',
-                          isBold: isTotal),
+                      _dataCell(
+                        row['variation']?.toString() ?? '0',
+                        isBold: isTotal,
+                      ),
                     ],
                   );
                 }),
@@ -474,40 +593,49 @@ class ModulePdfHelper {
             ),
 
             pw.SizedBox(height: 30),
-            pw.Text('Generated: $now',
-                style:
-                    const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
+            pw.Text(
+              'Generated: $now',
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+            ),
           ];
         },
       ),
     );
 
     await Printing.layoutPdf(
-        onLayout: (_) async => doc.save(),
-        name: 'Monthly_Report_${monthYear.replaceAll(' ', '_')}.pdf');
+      onLayout: (_) async => doc.save(),
+      name: 'Monthly_Report_${monthYear.replaceAll(' ', '_')}.pdf',
+    );
   }
 
   static pw.Widget _headerCell(String text) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(6),
       child: pw.Center(
-        child: pw.Text(text,
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
+        child: pw.Text(
+          text,
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
+        ),
       ),
     );
   }
 
-  static pw.Widget _dataCell(String text,
-      {bool alignLeft = false, bool isBold = false}) {
+  static pw.Widget _dataCell(
+    String text, {
+    bool alignLeft = false,
+    bool isBold = false,
+  }) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(6),
       child: pw.Align(
         alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
-        child: pw.Text(text,
-            style: pw.TextStyle(
-                fontSize: 8,
-                fontWeight:
-                    isBold ? pw.FontWeight.bold : pw.FontWeight.normal)),
+        child: pw.Text(
+          text,
+          style: pw.TextStyle(
+            fontSize: 8,
+            fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          ),
+        ),
       ),
     );
   }
@@ -529,10 +657,24 @@ class ModulePdfHelper {
 
     if (kind == MonthlyReportKind.v) {
       await _generateFormVStructuredPdf(
-          doc, theme, allRecords, selectedMonth, selectedYear, monthYear, now);
+        doc,
+        theme,
+        allRecords,
+        selectedMonth,
+        selectedYear,
+        monthYear,
+        now,
+      );
     } else {
       await _generateDefaultDigitalPdf(
-          doc, theme, records, reportTitle, monthYear, kind, now);
+        doc,
+        theme,
+        records,
+        reportTitle,
+        monthYear,
+        kind,
+        now,
+      );
     }
 
     final fileName = '${reportTitle.replaceAll(' ', '_')}_$monthYear.pdf';
@@ -581,11 +723,15 @@ class ModulePdfHelper {
       '304 (A) I P C',
       '498 (A) I P C',
       '509 I P C',
-      'Othar I P C'
+      'Othar I P C',
     ];
 
-    List<ModuleRecord> filter(int mon, int yr,
-        {bool isYearCurrent = false, bool isYearPrev = false}) {
+    List<ModuleRecord> filter(
+      int mon,
+      int yr, {
+      bool isYearCurrent = false,
+      bool isYearPrev = false,
+    }) {
       return allRecords.where((r) {
         if (isYearCurrent) {
           return r.incidentDate.year == yr && r.incidentDate.month <= mon;
@@ -605,21 +751,26 @@ class ModulePdfHelper {
     final ycRecs = filter(m, y, isYearCurrent: true);
     final ypRecs = filter(m, y - 1, isYearPrev: true);
 
-    doc.addPage(pw.MultiPage(
+    doc.addPage(
+      pw.MultiPage(
         maxPages: 200,
         theme: theme,
         pageFormat: PdfPageFormat.a4.landscape,
         margin: const pw.EdgeInsets.all(24),
         build: (pw.Context ctx) => [
-              pw.Center(
-                  child: pw.Text(
-                      'Monthly Crime Statement Month  $monthYear  P.S. TUMSAR',
-                      style: pw.TextStyle(
-                          fontSize: 14, fontWeight: pw.FontWeight.bold))),
-              pw.SizedBox(height: 10),
-              pw.Table(border: pw.TableBorder.all(width: 0.5), children: [
-                // Header
-                pw.TableRow(children: [
+          pw.Center(
+            child: pw.Text(
+              'Monthly Crime Statement Month  $monthYear  P.S. TUMSAR',
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            ),
+          ),
+          pw.SizedBox(height: 10),
+          pw.Table(
+            border: pw.TableBorder.all(width: 0.5),
+            children: [
+              // Header
+              pw.TableRow(
+                children: [
                   _tc('अ. क.'),
                   _tc('गुन्हयाचा प्रकार'),
                   _tc('Current Month\n(R|D)'),
@@ -628,35 +779,40 @@ class ModulePdfHelper {
                   _tc('Current Year\n(R|D)'),
                   _tc('Prev Year\n(R|D)'),
                   _tc('Var.'),
-                ]),
-                // Data Rows
-                ...heads.asMap().entries.map((entry) {
-                  final i = entry.key + 1;
-                  final head = entry.value;
+                ],
+              ),
+              // Data Rows
+              ...heads.asMap().entries.map((entry) {
+                final i = entry.key + 1;
+                final head = entry.value;
 
-                  int getR(List<ModuleRecord> list, String h) =>
-                      list.where((r) => _getHeadLocal(r) == h).length;
-                  int getD(List<ModuleRecord> list, String h) => list
-                      .where((r) =>
+                int getR(List<ModuleRecord> list, String h) =>
+                    list.where((r) => _getHeadLocal(r) == h).length;
+                int getD(List<ModuleRecord> list, String h) => list
+                    .where(
+                      (r) =>
                           _getHeadLocal(r) == h &&
-                          r.status.toLowerCase() != 'open')
-                      .length;
+                          r.status.toLowerCase() != 'open',
+                    )
+                    .length;
 
-                  String rd(List<ModuleRecord> list, String h) {
-                    final r = getR(list, h);
-                    final d = getD(list, h);
-                    if (r == 0 && d == 0) return '';
-                    return '$r|$d';
-                  }
+                String rd(List<ModuleRecord> list, String h) {
+                  final r = getR(list, h);
+                  final d = getD(list, h);
+                  if (r == 0 && d == 0) return '';
+                  return '$r|$d';
+                }
 
-                  final rYp = getR(ypRecs, head);
-                  final rYc = getR(ycRecs, head);
+                final rYp = getR(ypRecs, head);
+                final rYc = getR(ycRecs, head);
 
-                  final varVal = rYc - rYp;
-                  final varStr =
-                      varVal > 0 ? '+$varVal' : (varVal < 0 ? '$varVal' : '=');
+                final varVal = rYc - rYp;
+                final varStr = varVal > 0
+                    ? '+$varVal'
+                    : (varVal < 0 ? '$varVal' : '=');
 
-                  return pw.TableRow(children: [
+                return pw.TableRow(
+                  children: [
                     _tc('$i'),
                     _tc(head, alignLeft: true),
                     _tc(rd(cmRecs, head)),
@@ -665,24 +821,34 @@ class ModulePdfHelper {
                     _tc(rd(ycRecs, head)),
                     _tc(rd(ypRecs, head)),
                     _tc(varStr),
-                  ]);
-                }),
-              ]),
-              pw.SizedBox(height: 20),
-              pw.Align(
-                  alignment: pw.Alignment.centerRight,
-                  child: pw.Text('Generated: $genDate',
-                      style: const pw.TextStyle(fontSize: 8))),
-            ]));
+                  ],
+                );
+              }),
+            ],
+          ),
+          pw.SizedBox(height: 20),
+          pw.Align(
+            alignment: pw.Alignment.centerRight,
+            child: pw.Text(
+              'Generated: $genDate',
+              style: const pw.TextStyle(fontSize: 8),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   static pw.Widget _tc(String text, {bool alignLeft = false}) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(4),
       child: pw.Center(
-          child: pw.Text(text,
-              style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-              textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center)),
+        child: pw.Text(
+          text,
+          style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+          textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
+        ),
+      ),
     );
   }
 
@@ -751,36 +917,54 @@ class ModulePdfHelper {
         header: (pw.Context ctx) => pw.Container(
           width: double.infinity,
           padding: const pw.EdgeInsets.all(15),
-          decoration:
-              const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1A2A4A)),
+          decoration: const pw.BoxDecoration(
+            color: PdfColor.fromInt(0xFF1A2A4A),
+          ),
           child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('POLICE MANAGEMENT SYSTEM',
-                    style: pw.TextStyle(
-                        color: PdfColors.white,
-                        fontSize: 14,
-                        fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 4),
-                pw.Text('$reportTitle - $monthYear',
-                    style: const pw.TextStyle(
-                        color: PdfColor.fromInt(0xFFFFC107), fontSize: 11)),
-              ]),
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'POLICE MANAGEMENT SYSTEM',
+                style: pw.TextStyle(
+                  color: PdfColors.white,
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Text(
+                '$reportTitle - $monthYear',
+                style: const pw.TextStyle(
+                  color: PdfColor.fromInt(0xFFFFC107),
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
         ),
         footer: (pw.Context ctx) => pw.Container(
           width: double.infinity,
           padding: const pw.EdgeInsets.symmetric(vertical: 8),
           decoration: const pw.BoxDecoration(
-              border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300))),
+            border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
+          ),
           child: pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text('Generated: $genDate',
-                  style: const pw.TextStyle(
-                      fontSize: 8, color: PdfColors.grey600)),
-              pw.Text('Page ${ctx.pageNumber} of ${ctx.pagesCount}',
-                  style: const pw.TextStyle(
-                      fontSize: 8, color: PdfColors.grey600)),
+              pw.Text(
+                'Generated: $genDate',
+                style: const pw.TextStyle(
+                  fontSize: 8,
+                  color: PdfColors.grey600,
+                ),
+              ),
+              pw.Text(
+                'Page ${ctx.pageNumber} of ${ctx.pagesCount}',
+                style: const pw.TextStyle(
+                  fontSize: 8,
+                  color: PdfColors.grey600,
+                ),
+              ),
             ],
           ),
         ),
@@ -793,11 +977,13 @@ class ModulePdfHelper {
           return [
             pw.SizedBox(height: 20),
             pw.Text(
-                'Structured Monthly Statement (Form ${kind == MonthlyReportKind.vi ? 'VI' : 'Preventive'})',
-                style: pw.TextStyle(
-                    fontSize: 14,
-                    fontWeight: pw.FontWeight.bold,
-                    color: const PdfColor.fromInt(0xFF1A2A4A))),
+              'Structured Monthly Statement (Form ${kind == MonthlyReportKind.vi ? 'VI' : 'Preventive'})',
+              style: pw.TextStyle(
+                fontSize: 14,
+                fontWeight: pw.FontWeight.bold,
+                color: const PdfColor.fromInt(0xFF1A2A4A),
+              ),
+            ),
             pw.SizedBox(height: 16),
             pw.Table(
               border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
@@ -832,44 +1018,64 @@ class ModulePdfHelper {
               ],
             ),
             pw.SizedBox(height: 30),
-            pw.Text('Detailed Case Breakdown',
-                style:
-                    pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+            pw.Text(
+              'Detailed Case Breakdown',
+              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+            ),
             pw.SizedBox(height: 10),
-            ...records.map((r) => pw.Container(
-                  padding: const pw.EdgeInsets.all(8),
-                  margin: const pw.EdgeInsets.only(bottom: 6),
-                  decoration: pw.BoxDecoration(
-                      border: pw.Border.all(color: PdfColors.grey300),
-                      borderRadius: pw.BorderRadius.circular(4)),
-                  child: pw.Row(children: [
+            ...records.map(
+              (r) => pw.Container(
+                padding: const pw.EdgeInsets.all(8),
+                margin: const pw.EdgeInsets.only(bottom: 6),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey300),
+                  borderRadius: pw.BorderRadius.circular(4),
+                ),
+                child: pw.Row(
+                  children: [
                     pw.Expanded(
-                        child: pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                          pw.Text(r.title,
-                              style: pw.TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: pw.FontWeight.bold)),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
                           pw.Text(
-                              'Case: ${r.caseNumber} | Date: ${DateFormat('dd MMM yyyy').format(r.incidentDate)}',
-                              style: const pw.TextStyle(
-                                  fontSize: 8, color: PdfColors.grey700)),
-                        ])),
-                    pw.Text(r.status,
-                        style: pw.TextStyle(
-                            fontSize: 9,
-                            fontWeight: pw.FontWeight.bold,
-                            color: _getPdfStatusColor(r.status))),
-                  ]),
-                )),
+                            r.title,
+                            style: pw.TextStyle(
+                              fontSize: 10,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                          pw.Text(
+                            'Case: ${r.caseNumber} | Date: ${DateFormat('dd MMM yyyy').format(r.incidentDate)}',
+                            style: const pw.TextStyle(
+                              fontSize: 8,
+                              color: PdfColors.grey700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    pw.Text(
+                      r.status,
+                      style: pw.TextStyle(
+                        fontSize: 9,
+                        fontWeight: pw.FontWeight.bold,
+                        color: _getPdfStatusColor(r.status),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             if (records.isEmpty)
               pw.Padding(
-                  padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                  child: pw.Center(
-                      child: pw.Text('No records found.',
-                          style:
-                              const pw.TextStyle(color: PdfColors.grey500)))),
+                padding: const pw.EdgeInsets.symmetric(vertical: 20),
+                child: pw.Center(
+                  child: pw.Text(
+                    'No records found.',
+                    style: const pw.TextStyle(color: PdfColors.grey500),
+                  ),
+                ),
+              ),
           ];
         },
       ),

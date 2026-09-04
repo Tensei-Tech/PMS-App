@@ -129,17 +129,16 @@ class PendingCasesDemoDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rows = _effectiveRows();
-    final showDisclaimer = includeDemoDisclaimerBelowTable &&
+    final showDisclaimer =
+        includeDemoDisclaimerBelowTable &&
         _showsDemoBackdrop &&
         rows.isNotEmpty;
 
     final tableCore = LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final double cellFontSize =
-            w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
-        final double headerFontSize =
-            w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
+        final double cellFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
+        final double headerFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
 
         final columnWidths = <int, TableColumnWidth>{
           0: const IntrinsicColumnWidth(),
@@ -154,22 +153,21 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         };
 
         Widget headerCell(String s) => Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              color: AppColors.navyDark,
-              alignment: Alignment.center,
-              child: Text(
-                s,
-                textAlign: TextAlign.center,
-                softWrap: true,
-                style: GoogleFonts.poppins(
-                  fontSize: headerFontSize,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  height: 1.15,
-                ),
-              ),
-            );
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          color: AppColors.navyDark,
+          alignment: Alignment.center,
+          child: Text(
+            s,
+            textAlign: TextAlign.center,
+            softWrap: true,
+            style: GoogleFonts.poppins(
+              fontSize: headerFontSize,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              height: 1.15,
+            ),
+          ),
+        );
 
         Widget dataCell(String s, {Alignment align = Alignment.center}) =>
             Container(
@@ -201,8 +199,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
-          final bg =
-              idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
+          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
           return TableRow(
             decoration: BoxDecoration(color: bg),
             children: [
@@ -232,16 +229,11 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             ),
             child: Table(
               columnWidths: columnWidths,
-              defaultVerticalAlignment:
-                  TableCellVerticalAlignment.middle,
-              border: TableBorder.all(
-                color: AppColors.lightBorder,
-                width: 1,
-              ),
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              border: TableBorder.all(color: AppColors.lightBorder, width: 1),
               children: [
                 TableRow(
-                  decoration:
-                      const BoxDecoration(color: AppColors.navyDark),
+                  decoration: const BoxDecoration(color: AppColors.navyDark),
                   children: headers,
                 ),
                 for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),

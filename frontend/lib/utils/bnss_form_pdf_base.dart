@@ -62,8 +62,16 @@ Future<Uint8List> generateBnssFormPdf(
   final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
 
   final body = pw.TextStyle(font: loraRegular, fontSize: 10);
-  final bold = pw.TextStyle(font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
-  final title = pw.TextStyle(font: loraBold, fontSize: 14, fontWeight: pw.FontWeight.bold);
+  final bold = pw.TextStyle(
+    font: loraBold,
+    fontSize: 11,
+    fontWeight: pw.FontWeight.bold,
+  );
+  final title = pw.TextStyle(
+    font: loraBold,
+    fontSize: 14,
+    fontWeight: pw.FontWeight.bold,
+  );
   final mr = pw.TextStyle(font: devanagari, fontSize: 9);
   final mrBold = pw.TextStyle(font: devanagariBold, fontSize: 10);
 
@@ -95,10 +103,12 @@ Future<Uint8List> generateBnssFormPdf(
     final keys = section.fieldKeys.isNotEmpty
         ? section.fieldKeys
         : doc.keys
-            .where((k) =>
-                k != 'formSection' && k != 'pageRange' && k != 'noticeType')
-            .cast<String>()
-            .toList();
+              .where(
+                (k) =>
+                    k != 'formSection' && k != 'pageRange' && k != 'noticeType',
+              )
+              .cast<String>()
+              .toList();
 
     pdf.addPage(
       pw.Page(
@@ -139,8 +149,16 @@ Future<Uint8List> generateMinimalMarathiFormPdf(
   final loraBold = await PdfGoogleFonts.loraBold();
   final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
 
-  final bold = pw.TextStyle(font: loraBold, fontSize: 12, fontWeight: pw.FontWeight.bold);
-  final value = pw.TextStyle(font: devanagari, fontSize: 10, color: PdfColors.blue900);
+  final bold = pw.TextStyle(
+    font: loraBold,
+    fontSize: 12,
+    fontWeight: pw.FontWeight.bold,
+  );
+  final value = pw.TextStyle(
+    font: devanagari,
+    fontSize: 10,
+    color: PdfColors.blue900,
+  );
 
   final cache = MarathiImageCache();
   await cache.add(
@@ -158,7 +176,10 @@ Future<Uint8List> generateMinimalMarathiFormPdf(
       build: (_) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          if (cache.has('title')) cache.img('title') else pw.Text(titleMr, style: bold),
+          if (cache.has('title'))
+            cache.img('title')
+          else
+            pw.Text(titleMr, style: bold),
           pw.Text(titleEn, style: bold),
           pw.SizedBox(height: 12),
           for (final key in fieldKeys) ...[

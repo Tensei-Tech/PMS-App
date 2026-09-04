@@ -22,7 +22,8 @@ class PropertySeizureFormView extends StatefulWidget {
   });
 
   @override
-  State<PropertySeizureFormView> createState() => PropertySeizureFormViewState();
+  State<PropertySeizureFormView> createState() =>
+      PropertySeizureFormViewState();
 }
 
 class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
@@ -45,10 +46,12 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
   final _psCtrl = TextEditingController();
   final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
-  final _firYearSuffixCtrl = TextEditingController();
+  final _firYearSuffixCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
-  final _dateYearCtrl = TextEditingController();
+  final _dateYearCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
 
   final _actSectionCtrl = TextEditingController();
 
@@ -56,7 +59,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
   String _natureOfProperty = 'चोरीला गेलेली';
   final _seizureDateDayCtrl = TextEditingController();
   final _seizureDateMonthCtrl = TextEditingController();
-  final _seizureDateYearCtrl = TextEditingController();
+  final _seizureDateYearCtrl =
+      TextEditingController(text: DateTime.now().year.toString().substring(2));
   final _seizureTimeCtrl = TextEditingController();
   final _seizureTimeHoursCtrl = TextEditingController();
   final _seizureTimeMinutesCtrl = TextEditingController();
@@ -154,7 +158,10 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
 
   // Seized Properties Table
   final List<PropertyRow> _propertyRows = [PropertyRow()];
-  final List<SealPropertyRow> _sealPropertyRows = List.generate(5, (_) => SealPropertyRow());
+  final List<SealPropertyRow> _sealPropertyRows = List.generate(
+    5,
+    (_) => SealPropertyRow(),
+  );
 
   @override
   void dispose() {
@@ -318,14 +325,18 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       _dateMonthCtrl.text = data['dateMonth']?.toString() ?? '';
       _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
       _actSectionCtrl.text = data['actSection']?.toString() ?? '';
-      _natureOfProperty = data['natureOfProperty']?.toString() ?? 'चोरीला गेलेली';
+      _natureOfProperty =
+          data['natureOfProperty']?.toString() ?? 'चोरीला गेलेली';
       _seizureDateDayCtrl.text = data['seizureDateDay']?.toString() ?? '';
       _seizureDateMonthCtrl.text = data['seizureDateMonth']?.toString() ?? '';
       _seizureDateYearCtrl.text = data['seizureDateYear']?.toString() ?? '';
       _seizureTimeCtrl.text = data['seizureTime']?.toString() ?? '';
       _seizureTimeHoursCtrl.text = data['seizureTimeHours']?.toString() ?? '';
-      _seizureTimeMinutesCtrl.text = data['seizureTimeMinutes']?.toString() ?? '';
-      if (_seizureTimeHoursCtrl.text.isEmpty && _seizureTimeMinutesCtrl.text.isEmpty && _seizureTimeCtrl.text.isNotEmpty) {
+      _seizureTimeMinutesCtrl.text =
+          data['seizureTimeMinutes']?.toString() ?? '';
+      if (_seizureTimeHoursCtrl.text.isEmpty &&
+          _seizureTimeMinutesCtrl.text.isEmpty &&
+          _seizureTimeCtrl.text.isNotEmpty) {
         final parts = _seizureTimeCtrl.text.split(RegExp(r'[:/]'));
         if (parts.isNotEmpty) _seizureTimeHoursCtrl.text = parts[0].trim();
         if (parts.length > 1) _seizureTimeMinutesCtrl.text = parts[1].trim();
@@ -333,14 +344,16 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       _seizurePlaceCtrl.text = data['seizurePlace']?.toString() ?? '';
       _seizurePlaceDescCtrl.text = data['seizurePlaceDesc']?.toString() ?? '';
       _seizedFromCtrl.text = data['seizedFrom']?.toString() ?? '';
-      _isProfessionalReceiver = data['isProfessionalReceiver']?.toString() ?? 'नाही';
+      _isProfessionalReceiver =
+          data['isProfessionalReceiver']?.toString() ?? 'नाही';
       _personNameCtrl.text = data['personName']?.toString() ?? '';
       _personFatherCtrl.text = data['personFather']?.toString() ?? '';
       _personSexCtrl.text = data['personSex']?.toString() ?? '';
       _personAgeCtrl.text = data['personAge']?.toString() ?? '';
       _personOccupationCtrl.text = data['personOccupation']?.toString() ?? '';
       _personAddressCtrl.text = data['personAddress']?.toString() ?? '';
-      _personAddressLine2Ctrl.text = data['personAddressLine2']?.toString() ?? '';
+      _personAddressLine2Ctrl.text =
+          data['personAddressLine2']?.toString() ?? '';
       _w1NameCtrl.text = data['w1Name']?.toString() ?? '';
       _w1FatherCtrl.text = data['w1Father']?.toString() ?? '';
       _w1SexCtrl.text = data['w1Sex']?.toString() ?? '';
@@ -355,14 +368,16 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       _w2OccupationCtrl.text = data['w2Occupation']?.toString() ?? '';
       _w2AddressCtrl.text = data['w2Address']?.toString() ?? '';
       _w2AddressLine2Ctrl.text = data['w2AddressLine2']?.toString() ?? '';
-      _perishableDisposalCtrl.text = data['perishableDisposal']?.toString() ?? '';
+      _perishableDisposalCtrl.text =
+          data['perishableDisposal']?.toString() ?? '';
       _valuableKeepingCtrl.text = data['valuableKeeping']?.toString() ?? '';
-      _identificationRequired = data['identificationRequired']?.toString() ?? 'नाही';
-      _identificationRequiredCtrl.text = data['identificationRequiredText']?.toString() ?? '';
-      _propertyDetailsCtrl.text = data['propertyDetails']?.toString() ?? '';
+      _identificationRequired =
+          data['identificationRequired']?.toString() ?? 'नाही';
       _circumstancesCtrl.text = data['circumstances']?.toString() ?? '';
-      _circumstancesLine2Ctrl.text = data['circumstancesLine2']?.toString() ?? '';
-      _circumstancesLine3Ctrl.text = data['circumstancesLine3']?.toString() ?? '';
+      _circumstancesLine2Ctrl.text =
+          data['circumstancesLine2']?.toString() ?? '';
+      _circumstancesLine3Ctrl.text =
+          data['circumstancesLine3']?.toString() ?? '';
       _pancha1NameCtrl.text = data['pancha1Name']?.toString() ?? '';
       _pancha1Addr1Ctrl.text = data['pancha1Addr1']?.toString() ?? '';
       _pancha1Addr2Ctrl.text = data['pancha1Addr2']?.toString() ?? '';
@@ -430,1070 +445,984 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       readOnly: widget.readOnly,
       children: [
         if (_shows(kMemoBody))
-        FormPaperPage(
-          children: [
-            // --- FORM HEADER (Screenshot 1 matching) ---
-            Center(
-              child: Column(
+          FormPaperPage(
+            formLabel: widget.pageRange ?? 'Page 6',
+            children: [
+              // --- FORM HEADER ---
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'PROPERTY SEACH & SEIZURE FORM',
+                      style: serifStyle.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'मालमत्ता शोध व जप्तीचा नमुना',
+                      style: GoogleFonts.notoSansDevanagari(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '(Search/ Production/ Recovery u/s. 185 B.N.S.S)',
+                      style: serifStyle.copyWith(fontSize: 12),
+                    ),
+                    const SizedBox(height: 2),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: GoogleFonts.notoSansDevanagari(
+                          fontSize: 12,
+                          color: Colors.black87,
+                        ),
+                        children: [
+                          const TextSpan(
+                            text:
+                                '(कलम १८५ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये झडती/हजर ',
+                          ),
+                          TextSpan(
+                            text: 'करणे/परत',
+                            style: TextStyle(color: Colors.blue.shade900),
+                          ),
+                          const TextSpan(text: ' मिळविणे)'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Divider(color: Colors.black54, thickness: 1),
+              const SizedBox(height: 16),
+
+              // --- SECTION 1 ---
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 4,
+                runSpacing: 8,
+                children: [
+                  Text('१) *जिल्हा:', style: marathiStyle),
+                  SizedBox(
+                    width: 80,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _districtCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('*पोलीस ठाणे:', style: marathiStyle),
+                  SizedBox(
+                    width: 120,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _psCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('वर्षे:', style: marathiStyle),
+                  SizedBox(
+                    width: 60,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _yearCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('*पहिली खबर क/कार्यवाही', style: marathiStyle),
+                  SizedBox(
+                    width: 50,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _firNoCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('/', style: marathiStyle),
+                  SizedBox(
+                    width: 50,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _firYearSuffixCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('*दि', style: marathiStyle),
+                  SizedBox(
+                    width: 35,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _dateDayCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('/', style: marathiStyle),
+                  SizedBox(
+                    width: 35,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _dateMonthCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('/२०', style: marathiStyle),
+                  SizedBox(
+                    width: 35,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _dateYearCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // --- SECTION 2 ---
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('२) अधिनियम व कलमे : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _actSectionCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // --- SECTION 3 ---
+              Text(
+                '३) *जप्त केलेले/मिळालेल्या मालमत्तेचे स्वरूप : चोरीला गेलेली/बेवारशी/बेकायदेशीर ताबा/अंतर्भूत/मृत्यू पत्राशिवाय.',
+                style: marathiStyle,
+              ),
+              const SizedBox(height: 20),
+
+              // --- SECTION 4 ---
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 4,
+                runSpacing: 8,
+                children: [
+                  Text('४) जप्त केलेली मालमत्ता : (अ) तारीख :',
+                      style: marathiStyle),
+                  SizedBox(
+                    width: 35,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _seizureDateDayCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('/', style: marathiStyle),
+                  SizedBox(
+                    width: 35,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _seizureDateMonthCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('/२०', style: marathiStyle),
+                  SizedBox(
+                    width: 35,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _seizureDateYearCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('(ब) वेळ :', style: marathiStyle),
+                  SizedBox(
+                    width: 60,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _seizureTimeCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('(क) जेथून जप्त केली/परत मिळवली ती जागा : ',
+                      style: marathiStyle),
+                  Expanded(
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _seizurePlaceCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('(ड) जप्तीच्या/परत मिळवल्याची जागेचे वर्णन: ',
+                      style: marathiStyle),
+                  Expanded(
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _seizurePlaceDescCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // --- SECTION 5 ---
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('५) कोणाकडून जप्त केली : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _seizedFromCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Text('*चोरीचा माल घेणारा धंदेवाईक : होय/नाही',
+                      style: marathiStyle),
+                  const SizedBox(width: 8),
+                  _chipSelector(
+                    items: ['होय', 'नाही'],
+                    selected: _isProfessionalReceiver,
+                    onSelect: (val) {
+                      setState(() {
+                        _isProfessionalReceiver = val;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Text('नाव :', style: marathiStyle),
+                  SizedBox(
+                    width: 140,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _personNameCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('पित्याचे/पतीचे नाव :', style: marathiStyle),
+                  SizedBox(
+                    width: 140,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _personFatherCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('लिंग :', style: marathiStyle),
+                  SizedBox(
+                    width: 80,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _personSexCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Text('वय :', style: marathiStyle),
+                  SizedBox(
+                    width: 60,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _personAgeCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('व्यवसाय :', style: marathiStyle),
+                  SizedBox(
+                    width: 120,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _personOccupationCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('पत्ता :', style: marathiStyle),
+                  SizedBox(
+                    width: 200,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _personAddressCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // --- SECTION 6 ---
+              Text('६) साक्षीदार', style: marathiStyle),
+              const SizedBox(height: 12),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Text('(i) नाव :', style: marathiStyle),
+                  SizedBox(
+                    width: 140,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w1NameCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('पित्याचे/पतीचे नाव :', style: marathiStyle),
+                  SizedBox(
+                    width: 140,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w1FatherCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('लिंग :', style: marathiStyle),
+                  SizedBox(
+                    width: 80,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w1SexCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Text('वय :', style: marathiStyle),
+                  SizedBox(
+                    width: 60,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w1AgeCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('व्यवसाय :', style: marathiStyle),
+                  SizedBox(
+                    width: 120,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w1OccupationCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('पत्ता :', style: marathiStyle),
+                  SizedBox(
+                    width: 200,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w1AddressCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // --- WITNESS (ii) ---
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Text('(ii) नाव :', style: marathiStyle),
+                  SizedBox(
+                    width: 140,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w2NameCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('पित्याचे/पतीचे नाव :', style: marathiStyle),
+                  SizedBox(
+                    width: 140,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w2FatherCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('लिंग :', style: marathiStyle),
+                  SizedBox(
+                    width: 80,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w2SexCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Text('वय :', style: marathiStyle),
+                  SizedBox(
+                    width: 60,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w2AgeCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('व्यवसाय :', style: marathiStyle),
+                  SizedBox(
+                    width: 120,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w2OccupationCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                  Text('पत्ता :', style: marathiStyle),
+                  SizedBox(
+                    width: 200,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w2AddressCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              BilingualSimpleUnderlineInput(
+                controller: _w2AddressLine2Ctrl,
+                serifStyle: marathiStyle,
+              ),
+              const SizedBox(height: 20),
+
+              // --- SECTION 7 ---
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'PROPERTY SEACH & SEIZURE FORM',
-                    style: serifStyle.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+                    '७) नाशवंत मालमत्तेच्या विल्हेवाटीसाठी केलेली शिफारस/केलेली कार्यवाही : ',
+                    style: marathiStyle,
                   ),
-                  const SizedBox(height: 2),
+                  Expanded(
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _perishableDisposalCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // --- SECTION 8 ---
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
                   Text(
-                    'मालमत्ता शोध व जप्तीचा नमुना',
-                    style: marathiStyle.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
+                    '८) मौल्यवान मालमत्ता ठेवण्यासाठी केलेली शिफारस/केलेली कार्यवाही : ',
+                    style: marathiStyle,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '(Search/ Production/ Recovery u/s 185 B.N.S.S)',
-                    style: serifStyle.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.underline,
+                  Expanded(
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _valuableKeepingCtrl,
+                      serifStyle: marathiStyle,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 2),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style: marathiStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // --- SECTION 9 ---
+              Row(
+                children: [
+                  Text('९) ओळख पटवावी लागली काय : ', style: marathiStyle),
+                  const SizedBox(width: 8),
+                  _chipSelector(
+                    items: ['होय', 'नाही'],
+                    selected: _identificationRequired,
+                    onSelect: (val) {
+                      setState(() {
+                        _identificationRequired = val;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // --- SECTION 10 ---
+              Text(
+                '१०) जप्त केलेल्या/परत मिळालेल्या मालाचे वर्णन (योग्य नमुन्यात माहिती भरा व जोडा )',
+                style: marathiStyle,
+              ),
+              const SizedBox(height: 16),
+
+              // --- PROPERTY TABLE (section 10 attachment) ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (!widget.readOnly)
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline,
+                          color: Colors.blue),
+                      onPressed: () {
+                        setState(() {
+                          _propertyRows.add(PropertyRow());
+                        });
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              Table(
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                border: TableBorder.all(color: Colors.black87, width: 1),
+                columnWidths: const {
+                  0: FixedColumnWidth(40),
+                  1: FlexColumnWidth(6.0),
+                  2: FlexColumnWidth(3.0),
+                  3: FixedColumnWidth(40),
+                },
+                children: [
+                  TableRow(
+                    decoration: BoxDecoration(color: Colors.grey.shade100),
+                    children: [
+                      _buildHeaderCell("Sr. No.\nअ. क."),
+                      _buildHeaderCell(
+                          "Property Description\nमालमत्तेचे वर्णन"),
+                      _buildHeaderCell(
+                          "Estimated Value (Rs)\nअंदाजे किंमत (रु.)"),
+                      _buildHeaderCell("Action"),
+                    ],
+                  ),
+                  ...List.generate(_propertyRows.length, (index) {
+                    final row = _propertyRows[index];
+                    return TableRow(
                       children: [
-                        const TextSpan(
-                          text: '(कलम १८५ भारतीय नागरिक सुरक्षा संहिता २०२३ अन्वये झडती/हजर ',
+                        FormTableSrNoCell(index: index, style: serifStyle),
+                        _buildTableInputCell(
+                            controller: row.descriptionCtrl,
+                            style: serifStyle,
+                            hintText: 'Description'),
+                        _buildTableInputCell(
+                            controller: row.estimatedValueCtrl,
+                            style: serifStyle,
+                            hintText: 'Value in Rs.'),
+                        Center(
+                          child: widget.readOnly
+                              ? const SizedBox(width: 0, height: 40)
+                              : IconButton(
+                                  icon: const Icon(Icons.delete_outline,
+                                      color: Colors.red, size: 18),
+                                  onPressed: () {
+                                    if (_propertyRows.length > 1) {
+                                      setState(() {
+                                        _propertyRows.removeAt(index);
+                                      });
+                                    }
+                                  },
+                                ),
                         ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // --- SECTION 11 ---
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      style: marathiStyle,
+                      children: [
+                        const TextSpan(text: '११) जप्तीची '),
                         TextSpan(
-                          text: 'करणे/परत',
+                          text: 'परिस्थिती/कारणे',
                           style: TextStyle(
                             color: Colors.blue.shade900,
                             decoration: TextDecoration.underline,
                           ),
                         ),
-                        const TextSpan(text: ' मिळविणे)'),
+                        const TextSpan(text: ' : '),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _circumstancesCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              BilingualSimpleUnderlineInput(
+                controller: _circumstancesLine2Ctrl,
+                serifStyle: marathiStyle,
+              ),
+              const SizedBox(height: 8),
+              BilingualSimpleUnderlineInput(
+                controller: _circumstancesLine3Ctrl,
+                serifStyle: marathiStyle,
+              ),
+              const SizedBox(height: 16),
+              FormMrwFooter(
+                serifStyle: serifStyle,
+                fontSize: 12,
+                alignment: Alignment.centerRight,
+              ),
+            ],
+          ),
+        if (_shows(kMemoBody) && (_shows(kSignatures) || _showAll))
+          const SizedBox(height: 24),
+        if (_shows(kSignatures))
+          FormPaperPage(
+            formLabel: widget.pageRange ?? 'Page 30',
+            children: [
+              const SizedBox(height: 24),
+
+              // --- SECTION 12 ---
+              Text(
+                '१२) वर नमूद करण्यात आलेली मालमत्ता पूर्ववत साक्षीदारांच्या समक्ष कायद्यातील तरतुदी नुसार जप्त करण्यात आली. आणि जप्तीच्या ज्ञापनाची ज्याच्याकडून मालमत्ता जप्त करण्यात आली. त्या इसमास/जागेत राहणाऱ्यास देण्यात आली.',
+                style: marathiStyle,
+              ),
+              const SizedBox(height: 16),
+
+              // --- SECTION 13 ---
+              RichText(
+                text: TextSpan(
+                  style: marathiStyle,
+                  children: [
+                    const TextSpan(text: '१३) खालील मालमत्ता अविष्ठित '),
+                    TextSpan(
+                      text: 'आणि/किंवा',
+                      style: TextStyle(
+                        color: Colors.blue.shade900,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    const TextSpan(
+                      text:
+                          ' मोहोरबंद करण्यात आली आणि त्यावर किंवा मालमत्तेवर पूर्ववत साक्षीदारांच्या सहया घेण्यात आल्या आहेत.',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (!widget.readOnly)
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline,
+                          color: Colors.blue),
+                      onPressed: () {
+                        setState(() {
+                          _sealPropertyRows.add(SealPropertyRow());
+                        });
+                      },
+                    ),
+                ],
+              ),
+              Table(
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                border: TableBorder.all(color: Colors.black87, width: 1),
+                columnWidths: const {
+                  0: FixedColumnWidth(50),
+                  1: FlexColumnWidth(4.0),
+                  2: FlexColumnWidth(5.0),
+                  3: FixedColumnWidth(40),
+                },
+                children: [
+                  TableRow(
+                    decoration: BoxDecoration(color: Colors.grey.shade100),
+                    children: [
+                      _buildHeaderCell('अ क्र\n(१)'),
+                      _buildHeaderCell('मालमत्ता\n(२)'),
+                      _buildHeaderCell(
+                          'पुडक्यावर किंवा मालमत्तेवर सही घेण्यात आली.\n(३)'),
+                      _buildHeaderCell('Action'),
+                    ],
+                  ),
+                  ...List.generate(_sealPropertyRows.length, (index) {
+                    final row = _sealPropertyRows[index];
+                    return TableRow(
+                      children: [
+                        FormTableSrNoCell(index: index, style: marathiStyle),
+                        _buildTableInputCell(
+                          controller: row.propertyCtrl,
+                          style: marathiStyle,
+                        ),
+                        _buildTableInputCell(
+                          controller: row.signatureCtrl,
+                          style: marathiStyle,
+                        ),
+                        Center(
+                          child: widget.readOnly
+                              ? const SizedBox(width: 0, height: 40)
+                              : IconButton(
+                                  icon: const Icon(Icons.delete_outline,
+                                      color: Colors.red, size: 18),
+                                  onPressed: () {
+                                    if (_sealPropertyRows.length > 1) {
+                                      setState(() {
+                                        _sealPropertyRows.removeAt(index);
+                                      });
+                                    }
+                                  },
+                                ),
+                        ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'मोहोरेचा नमुना खाली देण्यात आली आहे.',
+                  style: marathiStyle,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // --- PANCHA & IO SIGNATURE BLOCK ---
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Name of panchas:', style: serifStyle),
+                        Text('पंचाची नांवे :', style: marathiStyle),
+                        const SizedBox(height: 8),
+                        ResponsiveFieldRow(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('(1) ', style: serifStyle),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _pancha1NameCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ResponsiveFieldRow(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Full Address: ', style: serifStyle),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _pancha1Addr1Ctrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text('पत्ता', style: marathiStyle),
+                        BilingualSimpleUnderlineInput(
+                          controller: _pancha1Addr2Ctrl,
+                          serifStyle: serifStyle,
+                        ),
+                        const SizedBox(height: 4),
+                        BilingualSimpleUnderlineInput(
+                          controller: _pancha1Addr3Ctrl,
+                          serifStyle: serifStyle,
+                        ),
+                        const SizedBox(height: 16),
+                        ResponsiveFieldRow(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('(2) ', style: serifStyle),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _pancha2NameCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ResponsiveFieldRow(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Full Address: ', style: serifStyle),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _pancha2Addr1Ctrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text('पत्ता', style: marathiStyle),
+                        BilingualSimpleUnderlineInput(
+                          controller: _pancha2Addr2Ctrl,
+                          serifStyle: serifStyle,
+                        ),
+                        const SizedBox(height: 4),
+                        BilingualSimpleUnderlineInput(
+                          controller: _pancha2Addr3Ctrl,
+                          serifStyle: serifStyle,
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Date: ', style: serifStyle),
+                            SizedBox(
+                              width: 50,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchaDateDayCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                            Text(' / ', style: serifStyle),
+                            SizedBox(
+                              width: 50,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchaDateMonthCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                            Text(' / ', style: serifStyle),
+                            SizedBox(
+                              width: 60,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchaDateYearCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text('दिनांक', style: marathiStyle),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 32),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Signature of Panchas:', style: serifStyle),
+                        Text('पंचाच्या सह्या :', style: marathiStyle),
+                        const SizedBox(height: 8),
+                        ResponsiveFieldRow(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('1) ', style: serifStyle),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _pancha1SigCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 40),
+                        ResponsiveFieldRow(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('2) ', style: serifStyle),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _pancha2SigCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 48),
+                        Text(
+                          'Name and Signature of Investigation Officer',
+                          style: serifStyle,
+                        ),
+                        Text(
+                          FormIoTerminology.amaldarSignatureHeader,
+                          style: marathiStyle,
+                        ),
+                        const SizedBox(height: 8),
+                        ResponsiveFieldRow(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Name: ', style: serifStyle),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _ioNameCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '${FormIoTerminology.name} :',
+                          style: marathiStyle,
+                        ),
+                        const SizedBox(height: 8),
+                        ResponsiveFieldRow(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Rank: ', style: serifStyle),
+                            SizedBox(
+                              width: 80,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _ioRankCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                            Text(' B.No.if any: ', style: serifStyle),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _ioBuckleNoCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            Text(
+                              '${FormIoTerminology.rank} :',
+                              style: marathiStyle,
+                            ),
+                            Text(
+                              '${FormIoTerminology.badgeNo} :',
+                              style: marathiStyle,
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 8),
-            _buildDashedDivider(),
-            const SizedBox(height: 10),
-
-            // --- SECTION 1 ---
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('१) *जिल्हा:', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 4),
-                    SizedBox(
-                      width: 70,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _districtCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'यवतमाळ',
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('*पोलीस ठाणे:', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 4),
-                    SizedBox(
-                      width: 90,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _psCtrl,
-                        serifStyle: serifStyle,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('वर्ष:', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 4),
-                    SizedBox(
-                      width: 50,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _yearCtrl,
-                        serifStyle: serifStyle,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('*पहिली खबर क्र/कार्यवाही', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 4),
-                    SizedBox(
-                      width: 50,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _firNoCtrl,
-                        serifStyle: serifStyle,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Text('/', style: serifStyle),
-                    ),
-                    SizedBox(
-                      width: 35,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _firYearSuffixCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'YY',
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('*दि.', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 4),
-                    SizedBox(
-                      width: 32,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _dateDayCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'DD',
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Text('/', style: serifStyle),
-                    ),
-                    SizedBox(
-                      width: 32,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _dateMonthCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'MM',
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Text('/२०', style: serifStyle),
-                    ),
-                    SizedBox(
-                      width: 35,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _dateYearCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'YY',
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // --- SECTION 2 ---
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('२) अधिनियम व कलमे : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _actSectionCtrl,
-                    serifStyle: serifStyle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // --- SECTION 3 ---
-            Text(
-              '३) *जप्त केलेले/मिळालेल्या मालमत्तेचे स्वरूप : चोरीला गेलेली/बेवारशी/बेकायदेशीर ताबा/अंतर्भूत/मृत्यू पत्राशिवाय.',
-              style: marathiStyle.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-
-            // --- SECTION 4 ---
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('४) जप्त केलेली मालमत्ता : (अ) तारीख : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 32,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _seizureDateDayCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'DD',
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Text('/', style: serifStyle),
-                    ),
-                    SizedBox(
-                      width: 32,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _seizureDateMonthCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'MM',
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Text('/२०', style: serifStyle),
-                    ),
-                    SizedBox(
-                      width: 35,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _seizureDateYearCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'YY',
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('(ब) वेळ : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 32,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _seizureTimeHoursCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'HH',
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Text('/', style: serifStyle),
-                    ),
-                    SizedBox(
-                      width: 32,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _seizureTimeMinutesCtrl,
-                        serifStyle: serifStyle,
-                        hintText: 'MM',
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('(क) जेथून जप्त केली/परत मिळवली ती जागा : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _seizurePlaceCtrl,
-                    serifStyle: serifStyle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('(ड) जप्तीच्या/परत मिळवल्याची जागेचे वर्णन: ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _seizurePlaceDescCtrl,
-                    serifStyle: serifStyle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // --- SECTION 5 ---
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('५) कोणाकडून जप्त केली : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _seizedFromCtrl,
-                    serifStyle: serifStyle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text('*चोरीचा माल घेणारा धंदेवाईक : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                const Spacer(),
-                Text('होय/नाही', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('नाव : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 140,
-                      child: BilingualSimpleUnderlineInput(controller: _personNameCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('पित्याचे/पतीचे नाव : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 140,
-                      child: BilingualSimpleUnderlineInput(controller: _personFatherCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('लिंग : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 80,
-                      child: BilingualSimpleUnderlineInput(controller: _personSexCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('वय : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 60,
-                      child: BilingualSimpleUnderlineInput(controller: _personAgeCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('व्यवसाय : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 120,
-                      child: BilingualSimpleUnderlineInput(controller: _personOccupationCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('पत्ता : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 200,
-                      child: BilingualSimpleUnderlineInput(controller: _personAddressCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            BilingualSimpleUnderlineInput(
-              controller: _personAddressLine2Ctrl,
-              serifStyle: serifStyle,
-            ),
-            const SizedBox(height: 10),
-
-            // --- SECTION 6 ---
-            Text('६) साक्षदार', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            // Witness (i)
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('(i)  नाव : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 140,
-                      child: BilingualSimpleUnderlineInput(controller: _w1NameCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('पित्याचे/पतीचे नाव : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 140,
-                      child: BilingualSimpleUnderlineInput(controller: _w1FatherCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('लिंग : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 80,
-                      child: BilingualSimpleUnderlineInput(controller: _w1SexCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('     वय : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 60,
-                      child: BilingualSimpleUnderlineInput(controller: _w1AgeCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('व्यवसाय : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 120,
-                      child: BilingualSimpleUnderlineInput(controller: _w1OccupationCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('पत्ता : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 200,
-                      child: BilingualSimpleUnderlineInput(controller: _w1AddressCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            BilingualSimpleUnderlineInput(
-              controller: _w1AddressLine2Ctrl,
-              serifStyle: serifStyle,
-            ),
-            const SizedBox(height: 12),
-            // Witness (ii)
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('(ii) नाव : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 140,
-                      child: BilingualSimpleUnderlineInput(controller: _w2NameCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('पित्याचे/पतीचे नाव : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 140,
-                      child: BilingualSimpleUnderlineInput(controller: _w2FatherCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('लिंग : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 80,
-                      child: BilingualSimpleUnderlineInput(controller: _w2SexCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('     वय : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 60,
-                      child: BilingualSimpleUnderlineInput(controller: _w2AgeCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('व्यवसाय : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 120,
-                      child: BilingualSimpleUnderlineInput(controller: _w2OccupationCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('पत्ता : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      width: 200,
-                      child: BilingualSimpleUnderlineInput(controller: _w2AddressCtrl, serifStyle: serifStyle),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            BilingualSimpleUnderlineInput(
-              controller: _w2AddressLine2Ctrl,
-              serifStyle: serifStyle,
-            ),
-            const SizedBox(height: 10),
-
-            // --- SECTION 7 ---
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '७) नाशवंत मालमत्तेच्या विल्हेवाटीसाठी केलेली शिफारस/केलेली कार्यवाही : ',
-                  style: marathiStyle.copyWith(fontWeight: FontWeight.bold),
-                ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _perishableDisposalCtrl,
-                    serifStyle: serifStyle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // --- SECTION 8 ---
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '८) मौल्यवान मालमत्ता ठेवण्यासाठी केलेली शिफारस/केलेली कार्यवाही : ',
-                  style: marathiStyle.copyWith(fontWeight: FontWeight.bold),
-                ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _valuableKeepingCtrl,
-                    serifStyle: serifStyle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // --- SECTION 9 ---
-            Row(
-              children: [
-                Text('९) ओळख पटवावी लागली काय : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                const Spacer(),
-                Text('होय/नाही', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // --- SECTION 10 ---
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '१०) जप्त केलेल्या/परत मिळालेल्या मालाचे वर्णन (योग्य नमुन्यात माहिती भरा व जोडा )',
-                  style: marathiStyle.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                BilingualDynamicLinedTextField(
-                  controller: _propertyDetailsCtrl,
-                  minLines: 2,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiStyle,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // --- SECTION 11 ---
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    style: marathiStyle.copyWith(fontWeight: FontWeight.bold),
-                    children: [
-                      const TextSpan(text: '११) जप्तीची '),
-                      TextSpan(
-                        text: 'परिस्थिती/कारणे',
-                        style: TextStyle(
-                          color: Colors.blue.shade900,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                      const TextSpan(text: ' : '),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                BilingualDynamicLinedTextField(
-                  controller: _circumstancesCtrl,
-                  minLines: 3,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiStyle,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            FormMrwFooter(
-              serifStyle: serifStyle,
-              fontSize: 12,
-              alignment: Alignment.centerRight,
-            ),
-          ],
-        ),
-        if (_shows(kMemoBody) && (_shows(kSignatures) || _showAll))
-                    const SizedBox(height: 24),
-        if (_shows(kSignatures))
-        FormPaperPage(
-          formLabel: widget.pageRange ?? 'Page 30',
-          children: [
-                    const SizedBox(height: 24),
-
-                    // --- SECTION 12 ---
-                    Text(
-                      '१२) वर नमूद करण्यात आलेली मालमत्ता पूर्ववत साक्षीदारांच्या समक्ष कायद्यातील तरतुदी नुसार जप्त करण्यात आली. आणि जप्तीच्या ज्ञापनाची ज्याच्याकडून मालमत्ता जप्त करण्यात आली. त्या इसमास/जागेत राहणाऱ्यास देण्यात आली.',
-                      style: marathiStyle,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // --- SECTION 13 ---
-                    RichText(
-                      text: TextSpan(
-                        style: marathiStyle,
-                        children: [
-                          const TextSpan(
-                            text: '१३) खालील मालमत्ता अविष्ठित ',
-                          ),
-                          TextSpan(
-                            text: 'आणि/किंवा',
-                            style: TextStyle(
-                              color: Colors.blue.shade900,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                          const TextSpan(
-                            text: ' मोहोरबंद करण्यात आली आणि त्यावर किंवा मालमत्तेवर पूर्ववत साक्षीदारांच्या सहया घेण्यात आल्या आहेत.',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Table(
-                      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                      border: TableBorder.all(color: Colors.black87, width: 1),
-                      columnWidths: const {
-                        0: FixedColumnWidth(50),
-                        1: FlexColumnWidth(4.0),
-                        2: FlexColumnWidth(5.0),
-                        3: FixedColumnWidth(40),
-                      },
-                      children: [
-                        TableRow(
-                          decoration: BoxDecoration(color: Colors.grey.shade100),
-                          children: [
-                            _buildHeaderCell('अ क्र\n(१)'),
-                            _buildHeaderCell('मालमत्ता\n(२)'),
-                            _buildHeaderCell('पुडक्यावर किंवा मालमत्तेवर सही घेण्यात आली.\n(३)'),
-                            _buildHeaderCell('Action'),
-                          ],
-                        ),
-                        ...List.generate(_sealPropertyRows.length, (index) {
-                          final row = _sealPropertyRows[index];
-                          return TableRow(
-                            children: [
-                              FormTableSrNoCell(index: index, style: marathiStyle),
-                              _buildTableInputCell(
-                                controller: row.propertyCtrl,
-                                style: marathiStyle,
-                              ),
-                              _buildTableInputCell(
-                                controller: row.signatureCtrl,
-                                style: marathiStyle,
-                              ),
-                              Center(
-                                child: widget.readOnly
-                                    ? const SizedBox(width: 0, height: 40)
-                                    : IconButton(
-                                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                                        onPressed: () {
-                                          if (_sealPropertyRows.length > 1) {
-                                            setState(() {
-                                              _sealPropertyRows.removeAt(index);
-                                            });
-                                          }
-                                        },
-                                      ),
-                              ),
-                            ],
-                          );
-                        }),
-                      ],
-                    ),
-                    if (!widget.readOnly) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _sealPropertyRows.add(SealPropertyRow());
-                              });
-                            },
-                            icon: const Icon(Icons.add, size: 16, color: Color(0xFF1E3A8A)),
-                            label: Text(
-                              'Add Row (ओळ जोडा)',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF1E3A8A),
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: const Color(0xFFEFF4FA),
-                              side: const BorderSide(color: Color(0xFFD6E4F0), width: 1),
-                              shape: const StadiumBorder(),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            ),
-                          ),
-                          if (_sealPropertyRows.length > 1) ...[
-                            const SizedBox(width: 8),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  _sealPropertyRows.removeLast();
-                                });
-                              },
-                              icon: const Icon(Icons.remove, size: 16, color: Color(0xFFB91C1C)),
-                              label: Text(
-                                'Remove Row (ओळ काढा)',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFFB91C1C),
-                                ),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFEEFEE),
-                                side: const BorderSide(color: Color(0xFFFCDADA), width: 1),
-                                shape: const StadiumBorder(),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        'मोहोरेचा नमुना खाली देण्यात आली आहे.',
-                        style: marathiStyle,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // --- PANCHA & IO SIGNATURE BLOCK ---
-                    ResponsiveFieldRow(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Name of panchas:', style: serifStyle),
-                              Text('पंचाची नांवे :', style: marathiStyle),
-                              const SizedBox(height: 8),
-                              ResponsiveFieldRow(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('(1) ', style: serifStyle),
-                                  Expanded(
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _pancha1NameCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              ResponsiveFieldRow(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('Full Address: ', style: serifStyle),
-                                  Expanded(
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _pancha1Addr1Ctrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text('पत्ता', style: marathiStyle),
-                              BilingualSimpleUnderlineInput(
-                                controller: _pancha1Addr2Ctrl,
-                                serifStyle: serifStyle,
-                              ),
-                              const SizedBox(height: 4),
-                              BilingualSimpleUnderlineInput(
-                                controller: _pancha1Addr3Ctrl,
-                                serifStyle: serifStyle,
-                              ),
-                              const SizedBox(height: 16),
-                              ResponsiveFieldRow(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('(2) ', style: serifStyle),
-                                  Expanded(
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _pancha2NameCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              ResponsiveFieldRow(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('Full Address: ', style: serifStyle),
-                                  Expanded(
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _pancha2Addr1Ctrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text('पत्ता', style: marathiStyle),
-                              BilingualSimpleUnderlineInput(
-                                controller: _pancha2Addr2Ctrl,
-                                serifStyle: serifStyle,
-                              ),
-                              const SizedBox(height: 4),
-                              BilingualSimpleUnderlineInput(
-                                controller: _pancha2Addr3Ctrl,
-                                serifStyle: serifStyle,
-                              ),
-                              const SizedBox(height: 24),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('Date: ', style: serifStyle),
-                                  SizedBox(
-                                    width: 50,
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _panchaDateDayCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                  Text(' / ', style: serifStyle),
-                                  SizedBox(
-                                    width: 50,
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _panchaDateMonthCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                  Text(' / ', style: serifStyle),
-                                  SizedBox(
-                                    width: 60,
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _panchaDateYearCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text('दिनांक', style: marathiStyle),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 32),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Signature of Panchas:', style: serifStyle),
-                              Text('पंचाच्या सह्या :', style: marathiStyle),
-                              const SizedBox(height: 8),
-                              ResponsiveFieldRow(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('1) ', style: serifStyle),
-                                  Expanded(
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _pancha1SigCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 40),
-                              ResponsiveFieldRow(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('2) ', style: serifStyle),
-                                  Expanded(
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _pancha2SigCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 48),
-                              Text(
-                                'Name and Signature of Investigation Officer',
-                                style: serifStyle,
-                              ),
-                              Text(FormIoTerminology.amaldarSignatureHeader, style: marathiStyle),
-                              const SizedBox(height: 8),
-                              ResponsiveFieldRow(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('Name: ', style: serifStyle),
-                                  Expanded(
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _ioNameCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text('${FormIoTerminology.name} :', style: marathiStyle),
-                              const SizedBox(height: 8),
-                              ResponsiveFieldRow(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('Rank: ', style: serifStyle),
-                                  SizedBox(
-                                    width: 80,
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _ioRankCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                  Text(' B.No.if any: ', style: serifStyle),
-                                  Expanded(
-                                    child: BilingualSimpleUnderlineInput(
-                                      controller: _ioBuckleNoCtrl,
-                                      serifStyle: serifStyle,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Wrap(
-                                spacing: 8,
-                                children: [
-                                  Text('${FormIoTerminology.rank} :', style: marathiStyle),
-                                  Text('${FormIoTerminology.badgeNo} :', style: marathiStyle),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    FormMrwFooter(
-                      serifStyle: serifStyle,
-                      fontSize: 12,
-                      alignment: Alignment.centerRight,
-                    ),
-                    const SizedBox(height: 24),
-          ],
-        ),
+              const SizedBox(height: 16),
+              FormMrwFooter(
+                serifStyle: serifStyle,
+                fontSize: 12,
+                alignment: Alignment.centerRight,
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
       ],
     );
   }
@@ -1536,10 +1465,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
           contentPadding: const EdgeInsets.symmetric(vertical: 6.0),
           border: InputBorder.none,
           hintText: hintText,
-          hintStyle: style.copyWith(
-            color: Colors.grey.shade400,
-            fontSize: 10,
-          ),
+          hintStyle: style.copyWith(color: Colors.grey.shade400, fontSize: 10),
         ),
       ),
     );

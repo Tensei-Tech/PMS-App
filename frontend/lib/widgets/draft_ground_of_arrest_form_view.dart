@@ -23,7 +23,8 @@ class DraftGroundOfArrestFormView extends StatefulWidget {
       DraftGroundOfArrestFormViewState();
 }
 
-class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView> {
+class DraftGroundOfArrestFormViewState
+    extends State<DraftGroundOfArrestFormView> {
   int? get _activeSection {
     final s = widget.formSection?.toLowerCase().trim() ?? '';
     if (s.isEmpty) return null;
@@ -283,7 +284,9 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         text,
-        style: marathi ?? serif.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
+        style:
+            marathi ??
+            serif.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
       ),
     );
   }
@@ -413,7 +416,11 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
     );
   }
 
-  Widget _buildSectionI(TextStyle serif, TextStyle marathi, TextStyle marathiLabel) {
+  Widget _buildSectionI(
+    TextStyle serif,
+    TextStyle marathi,
+    TextStyle marathiLabel,
+  ) {
     return FormPaperPage(
       formLabel: widget.pageRange ?? 'Pages 1–4',
       children: [
@@ -429,7 +436,10 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
             children: [
               Text(
                 'अटकेचा आधार (Ground of Arrest)',
-                style: marathi.copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                style: marathi.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               Text(
@@ -499,9 +509,21 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
         ),
         _refText('१) पुढील गुन्हे टाळण्यासाठी', serif, marathi: marathi),
         _refText('२) योग्य तपासासाठी', serif, marathi: marathi),
-        _refText('३) पुरावे नष्ट/बदल होण्यास रोखण्यासाठी', serif, marathi: marathi),
-        _refText('४) साक्षीदारांना धमकवणे/प्रलोभन देणे रोखण्यासाठी', serif, marathi: marathi),
-        _refText('५) न्यायालयात उपस्थिती सुनिश्चित करण्यासाठी', serif, marathi: marathi),
+        _refText(
+          '३) पुरावे नष्ट/बदल होण्यास रोखण्यासाठी',
+          serif,
+          marathi: marathi,
+        ),
+        _refText(
+          '४) साक्षीदारांना धमकवणे/प्रलोभन देणे रोखण्यासाठी',
+          serif,
+          marathi: marathi,
+        ),
+        _refText(
+          '५) न्यायालयात उपस्थिती सुनिश्चित करण्यासाठी',
+          serif,
+          marathi: marathi,
+        ),
         BilingualSectionHeader(
           label: 'Section 48 BNSS — Informing Relatives',
           marathiLabel: 'कलम ४८ BNSS — नातेवाईकांना माहिती',
@@ -519,7 +541,11 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
     );
   }
 
-  Widget _buildSectionII(TextStyle serif, TextStyle marathi, TextStyle marathiLabel) {
+  Widget _buildSectionII(
+    TextStyle serif,
+    TextStyle marathi,
+    TextStyle marathiLabel,
+  ) {
     return FormPaperPage(
       formLabel: widget.pageRange ?? 'Pages 5–8',
       children: [
@@ -556,7 +582,11 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
               decoration: BoxDecoration(color: Colors.grey.shade200),
               children: [
                 _tableCell('Ground of Arrest\n(कलम ४७)', serif, bold: true),
-                _tableCell('Reason of Arrest\n(कलम ३५(१)(ब))', serif, bold: true),
+                _tableCell(
+                  'Reason of Arrest\n(कलम ३५(१)(ब))',
+                  serif,
+                  bold: true,
+                ),
                 _tableCell('Reason for PCR\n(कलम १८७)', serif, bold: true),
               ],
             ),
@@ -566,10 +596,7 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
                   'Prima facie evidence\n(FIR, CCTV, witness, confession, CDR…)',
                   serif,
                 ),
-                _tableCell(
-                  '5 specific reasons\n(≤7 yr offences only)',
-                  serif,
-                ),
+                _tableCell('5 specific reasons\n(≤7 yr offences only)', serif),
                 _tableCell(
                   'PCR necessity\n(weapon seizure, recovery, motive…)',
                   serif,
@@ -592,8 +619,16 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
           serifStyle: serif,
           marathiLabelStyle: marathiLabel,
         ),
-        _refText('१) आरोपीला लेखी अटकेचा आधार (कलम ४७)', serif, marathi: marathi),
-        _refText('२) नातेवाईक/मित्रांना लेखी माहिती (कलम ४८)', serif, marathi: marathi),
+        _refText(
+          '१) आरोपीला लेखी अटकेचा आधार (कलम ४७)',
+          serif,
+          marathi: marathi,
+        ),
+        _refText(
+          '२) नातेवाईक/मित्रांना लेखी माहिती (कलम ४८)',
+          serif,
+          marathi: marathi,
+        ),
         _refText('३) अटकेचे कारण लेखी (कलम ३५(१)(ब))', serif, marathi: marathi),
         _refText('४) स्टेशन डायरी', serif, marathi: marathi),
         _refText('५) अटक पंचनामा — कॉलम ८', serif, marathi: marathi),
@@ -616,7 +651,11 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
     );
   }
 
-  Widget _buildPage9(TextStyle serif, TextStyle marathi, TextStyle marathiLabel) {
+  Widget _buildPage9(
+    TextStyle serif,
+    TextStyle marathi,
+    TextStyle marathiLabel,
+  ) {
     return FormPaperPage(
       formLabel: 'Page 9',
       children: [
@@ -634,8 +673,10 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
         const SizedBox(height: 12),
         _buildSharedCaseHeader(serif, marathi, marathiLabel),
         const SizedBox(height: 16),
-        Text('Grounds of Arrest / अटकेचे आधार',
-            style: serif.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Grounds of Arrest / अटकेचे आधार',
+          style: serif.copyWith(fontWeight: FontWeight.bold),
+        ),
         _checkboxRow(
           '1. Allegations in FIR by complainant',
           '१. FIR मधील फिर्यादीचे आरोप',
@@ -751,7 +792,11 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
     );
   }
 
-  Widget _buildPage10(TextStyle serif, TextStyle marathi, TextStyle marathiLabel) {
+  Widget _buildPage10(
+    TextStyle serif,
+    TextStyle marathi,
+    TextStyle marathiLabel,
+  ) {
     return FormPaperPage(
       formLabel: 'Page 10',
       children: [
@@ -804,8 +849,10 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
           marathiLabelStyle: marathiLabel,
         ),
         const SizedBox(height: 12),
-        Text('Grounds of Arrest / अटकेचे आधार',
-            style: serif.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Grounds of Arrest / अटकेचे आधार',
+          style: serif.copyWith(fontWeight: FontWeight.bold),
+        ),
         _checkboxRow(
           '1. Crime mentioned in FIR',
           '१. FIR मध्ये गुन्ह्याचा उल्लेख',
@@ -901,7 +948,11 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
     );
   }
 
-  Widget _buildPage11(TextStyle serif, TextStyle marathi, TextStyle marathiLabel) {
+  Widget _buildPage11(
+    TextStyle serif,
+    TextStyle marathi,
+    TextStyle marathiLabel,
+  ) {
     return FormPaperPage(
       formLabel: 'Page 11',
       children: [
@@ -914,8 +965,10 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
         const SizedBox(height: 12),
         _buildSharedCaseHeader(serif, marathi, marathiLabel),
         const SizedBox(height: 12),
-        Text('Reasons for Arrest / अटकेची कारणे',
-            style: serif.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          'Reasons for Arrest / अटकेची कारणे',
+          style: serif.copyWith(fontWeight: FontWeight.bold),
+        ),
         _checkboxRow(
           '1. To prevent further crimes',
           '१. पुढील गुन्हे टाळण्यासाठी',
@@ -997,7 +1050,11 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
     );
   }
 
-  Widget _buildPage12(TextStyle serif, TextStyle marathi, TextStyle marathiLabel) {
+  Widget _buildPage12(
+    TextStyle serif,
+    TextStyle marathi,
+    TextStyle marathiLabel,
+  ) {
     return FormPaperPage(
       formLabel: 'Page 12',
       children: [
@@ -1076,7 +1133,11 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
     );
   }
 
-  Widget _buildSectionIII(TextStyle serif, TextStyle marathi, TextStyle marathiLabel) {
+  Widget _buildSectionIII(
+    TextStyle serif,
+    TextStyle marathi,
+    TextStyle marathiLabel,
+  ) {
     return Column(
       children: [
         _buildPage9(serif, marathi, marathiLabel),
@@ -1093,7 +1154,9 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
   @override
   Widget build(BuildContext context) {
     final serif = FormTypography.serifStyle();
-    final marathi = FormTypography.marathiLabelStyle(fontWeight: FontWeight.normal);
+    final marathi = FormTypography.marathiLabelStyle(
+      fontWeight: FontWeight.normal,
+    );
     final marathiLabel = FormTypography.marathiLabelStyle();
 
     final pages = <Widget>[];
@@ -1109,9 +1172,6 @@ class DraftGroundOfArrestFormViewState extends State<DraftGroundOfArrestFormView
       pages.add(_buildSectionIII(serif, marathi, marathiLabel));
     }
 
-    return FormViewScaffold(
-      readOnly: widget.readOnly,
-      children: pages,
-    );
+    return FormViewScaffold(readOnly: widget.readOnly, children: pages);
   }
 }

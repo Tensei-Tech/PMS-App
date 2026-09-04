@@ -87,26 +87,74 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
             Center(
               child: Column(
                 children: [
-                  Text('MUDDEMAL PAVTI', style: serif.copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('मुद्देमाल पावती', style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text(
+                    'MUDDEMAL PAVTI',
+                    style: serif.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'मुद्देमाल पावती',
+                    style: marathi.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Receipt No.', marathiLabel: 'पावती क्र.', controller: _fields['receiptNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['date']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Receipt No.',
+                  marathiLabel: 'पावती क्र.',
+                  controller: _fields['receiptNo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Date',
+                  marathiLabel: 'दिनांक',
+                  controller: _fields['date']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
-            BilingualField(label: 'Police Station', marathiLabel: 'पोलीस स्टेशन', controller: _fields['policeStation']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Police Station',
+              marathiLabel: 'पोलीस स्टेशन',
+              controller: _fields['policeStation']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'CR No.', marathiLabel: 'गु.र.क्र.', controller: _fields['crNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'CR No.',
+                  marathiLabel: 'गु.र.क्र.',
+                  controller: _fields['crNo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Section',
+                  marathiLabel: 'कलम',
+                  controller: _fields['section']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
-            BilingualField(label: 'Accused name', marathiLabel: 'आरोपीचे नाव', controller: _fields['accusedName']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Accused name',
+              marathiLabel: 'आरोपीचे नाव',
+              controller: _fields['accusedName']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             BilingualMultilineField(
               label: 'Property description',
               marathiLabel: 'मुद्देमाल वर्णन',
@@ -117,26 +165,74 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Value', marathiLabel: 'मूल्य', controller: _fields['propertyValue']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Seized from', marathiLabel: 'जप्त केले', controller: _fields['seizedFrom']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Value',
+                  marathiLabel: 'मूल्य',
+                  controller: _fields['propertyValue']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Seized from',
+                  marathiLabel: 'जप्त केले',
+                  controller: _fields['seizedFrom']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Seized date', marathiLabel: 'जप्त दिनांक', controller: _fields['seizedDate']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Deposited with', marathiLabel: 'सोपवले', controller: _fields['depositedWith']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Seized date',
+                  marathiLabel: 'जप्त दिनांक',
+                  controller: _fields['seizedDate']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Deposited with',
+                  marathiLabel: 'सोपवले',
+                  controller: _fields['depositedWith']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Witness 1', marathiLabel: 'साक्षी १', controller: _fields['witness1']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Witness 2', marathiLabel: 'साक्षी २', controller: _fields['witness2']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Witness 1',
+                  marathiLabel: 'साक्षी १',
+                  controller: _fields['witness1']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Witness 2',
+                  marathiLabel: 'साक्षी २',
+                  controller: _fields['witness2']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Receiver name', marathiLabel: 'प्राप्तकर्ता', controller: _fields['receiverName']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Signature', marathiLabel: 'सही', controller: _fields['receiverSig']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Receiver name',
+                  marathiLabel: 'प्राप्तकर्ता',
+                  controller: _fields['receiverName']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Signature',
+                  marathiLabel: 'सही',
+                  controller: _fields['receiverSig']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             const SizedBox(height: 16),
