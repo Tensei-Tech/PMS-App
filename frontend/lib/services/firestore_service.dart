@@ -3,7 +3,6 @@
 // All active database storage & permissions have migrated to Django PostgreSQL REST backend.
 
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import '../modules/core/models/base_record.dart';
 import '../models/user_model.dart';
 
@@ -33,11 +32,15 @@ class FirestoreService {
   Stream<ModuleRecord?> watchCaseById(String id) => Stream.value(null);
 
   Stream<Map<String, dynamic>?> watchDocumentData(
-      String collection, String docId) =>
+    String collection,
+    String docId,
+  ) =>
       Stream.value(null);
 
   Stream<List<ModuleRecord>> getCasesStream(
-      String moduleKey, String stationId) =>
+    String moduleKey,
+    String stationId,
+  ) =>
       Stream.value(const []);
 
   Stream<List<ModuleRecord>> watchAssignedCasesStream(
@@ -46,7 +49,10 @@ class FirestoreService {
   }) =>
       Stream.value(const []);
 
-  Stream<List<ModuleRecord>> getRecentCasesStream(int limit, String stationId) =>
+  Stream<List<ModuleRecord>> getRecentCasesStream(
+    int limit,
+    String stationId,
+  ) =>
       Stream.value(const []);
 
   Stream<List<ModuleRecord>> getStationCasesStream(String stationId) =>
@@ -55,7 +61,8 @@ class FirestoreService {
   Stream<List<ModuleRecord>> getPendingCasesStream(String stationId) =>
       Stream.value(const []);
 
-  Future<List<ModuleRecord>> fetchPendingCasesOnce(String stationId) async => [];
+  Future<List<ModuleRecord>> fetchPendingCasesOnce(String stationId) async =>
+      [];
 
   Stream<List<ModuleRecord>> getDisposalCasesStream(String stationId) =>
       Stream.value(const []);
@@ -93,7 +100,8 @@ class FirestoreService {
     required String message,
     String category = 'General',
     String? clientTimestampIso,
-  }) async => null;
+  }) async =>
+      null;
 
   Stream<List<UserModel>> watchPendingRegistrationRequests({
     required bool isSuperAdmin,
@@ -125,7 +133,9 @@ class FirestoreService {
   Stream<List<Map<String, dynamic>>> getIoRemindersStream(String ioUid) =>
       Stream.value(const []);
 
-  Stream<List<Map<String, dynamic>>> getStationRemindersStream(String stationName) =>
+  Stream<List<Map<String, dynamic>>> getStationRemindersStream(
+    String stationName,
+  ) =>
       Stream.value(const []);
 
   Stream<List<Map<String, dynamic>>> getSentRemindersStream(String sentByUid) =>

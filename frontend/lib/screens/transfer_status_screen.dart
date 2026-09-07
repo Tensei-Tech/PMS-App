@@ -65,8 +65,7 @@ class _TransferStatusScreenState extends State<TransferStatusScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final request = _request;
-    final isApproved =
-        request?.status == TransferRequestStatus.approved;
+    final isApproved = request?.status == TransferRequestStatus.approved;
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -105,7 +104,7 @@ class _TransferStatusScreenState extends State<TransferStatusScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.info_outline_rounded,
+                            const Icon(Icons.info_outline_rounded,
                                 color: AppColors.infoBlue),
                             const SizedBox(width: 8),
                             Text(

@@ -92,4 +92,3 @@ const Map<String, List<Map<String, String>>> maharashtraPoliceStations = {
     {'name': 'Panvel (Railway)', 'type': 'Commissionerate'},
   ],
 };
-

@@ -124,10 +124,7 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
     } catch (e, st) {
       debugPrint('RegisterPinSetupScreen._register failed: $e\n$st');
       if (!mounted) return;
-      _showSnack(
-        'Registration failed unexpectedly: $e',
-        AppColors.dangerRed,
-      );
+      _showSnack('Registration failed unexpectedly: $e', AppColors.dangerRed);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -169,15 +166,20 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
       data: AppTheme.lightTheme(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Set Your Login PIN',
-              style: GoogleFonts.poppins(
-                color: AppColors.navyDark,
-                fontWeight: FontWeight.w700,
-              )),
+          title: Text(
+            'Set Your Login PIN',
+            style: GoogleFonts.poppins(
+              color: AppColors.navyDark,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: AppColors.navyDark,
+            ),
             onPressed: _loading ? null : () => Navigator.pop(context),
           ),
         ),
@@ -186,10 +188,7 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFFFFFF),
-                Color(0xFFF0F4FF),
-              ],
+              colors: [Color(0xFFFFFFFF), Color(0xFFF0F4FF)],
             ),
           ),
           child: LayoutBuilder(
@@ -203,7 +202,8 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                      minHeight: availableHeight - (AppSpacing.lg * 2)),
+                    minHeight: availableHeight - (AppSpacing.lg * 2),
+                  ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -238,8 +238,7 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
                             filled: true,
                             fillColor: const Color(0xFFF8FAFF),
                             border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                           ),
                           validator: AppValidators.pin,
@@ -263,8 +262,7 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
                             filled: true,
                             fillColor: const Color(0xFFF8FAFF),
                             border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                           ),
                           validator: (v) {
@@ -284,8 +282,9 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
                               backgroundColor: AppColors.navyMid,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.md,
+                                ),
                               ),
                               elevation: 0,
                             ),
@@ -298,10 +297,13 @@ class _RegisterPinSetupScreenState extends State<RegisterPinSetupScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : Text('Register',
+                                : Text(
+                                    'Register',
                                     style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700)),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                           ),
                         ),
                       ],

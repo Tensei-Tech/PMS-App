@@ -94,11 +94,17 @@ class PanchanamaContinuationFormViewState
                 children: [
                   Text(
                     '8) Details of Further Panchanama',
-                    style: serif.copyWith(fontSize: 15, fontWeight: FontWeight.bold),
+                    style: serif.copyWith(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     'पंचनाम्याचा पुढील भाग',
-                    style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                    style: marathi.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -106,10 +112,34 @@ class PanchanamaContinuationFormViewState
             const SizedBox(height: 16),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'District', marathiLabel: 'जिल्हा', controller: _fields['dist']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'P.S.', marathiLabel: 'पोलीस स्टेशन', controller: _fields['ps']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'FIR No.', marathiLabel: 'पहिली खबर क्र.', controller: _fields['firNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['headerDate']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'District',
+                  marathiLabel: 'जिल्हा',
+                  controller: _fields['dist']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'P.S.',
+                  marathiLabel: 'पोलीस स्टेशन',
+                  controller: _fields['ps']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'FIR No.',
+                  marathiLabel: 'पहिली खबर क्र.',
+                  controller: _fields['firNo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Date',
+                  marathiLabel: 'दिनांक',
+                  controller: _fields['headerDate']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -123,9 +153,27 @@ class PanchanamaContinuationFormViewState
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Date', marathiLabel: 'तारीख', controller: _fields['furtherDate']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Time from', marathiLabel: 'वेळ', controller: _fields['furtherTimeFrom']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'To', marathiLabel: 'ते', controller: _fields['furtherTimeTo']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Date',
+                  marathiLabel: 'तारीख',
+                  controller: _fields['furtherDate']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Time from',
+                  marathiLabel: 'वेळ',
+                  controller: _fields['furtherTimeFrom']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'To',
+                  marathiLabel: 'ते',
+                  controller: _fields['furtherTimeTo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             const SizedBox(height: 20),

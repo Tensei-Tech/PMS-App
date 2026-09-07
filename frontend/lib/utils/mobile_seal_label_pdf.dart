@@ -13,7 +13,16 @@ Future<void> previewMobileSealLabelPdf(
       titleMr: 'मोबाईल शिक्का लेबल',
       titleEn: 'Mobile Seal Label',
       fieldKeys: [
-        'labelNo', 'date', 'policeStation', 'crNo', 'mobileMake',
-        'mobileModel', 'imei1', 'imei2', 'simNo', 'seizedFrom', 'ioName',
+        'labelNo',
+        'date',
+        'policeStation',
+        'crNo',
+        'mobileMake',
+        'mobileModel',
+        'imei1',
+        'imei2',
+        'simNo',
+        'seizedFrom',
+        'ioName',
       ],
     );

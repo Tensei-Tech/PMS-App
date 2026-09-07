@@ -86,9 +86,8 @@ class PendingIoWiseAllCategoriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final consolidated = _watchConsolidatedRecords(context);
-    final filtered = consolidated
-        .where(pendingIoWiseEligibleAnyDashboardCategory)
-        .toList();
+    final filtered =
+        consolidated.where(pendingIoWiseEligibleAnyDashboardCategory).toList();
 
     final buckets = <String, List<ModuleRecord>>{};
     for (final r in filtered) {
@@ -98,7 +97,8 @@ class PendingIoWiseAllCategoriesScreen extends StatelessWidget {
 
     final names = buckets.keys.toList()..sort((a, b) => a.compareTo(b));
 
-    final title = '${TranslationHelper.translate(context, 'IO Wise Pending')} — ${TranslationHelper.translate(context, 'All Categories')}';
+    final title =
+        '${TranslationHelper.translate(context, 'IO Wise Pending')} — ${TranslationHelper.translate(context, 'All Categories')}';
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -119,7 +119,7 @@ class PendingIoWiseAllCategoriesScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Icon(Icons.arrow_back_rounded,
+                      child: const Icon(Icons.arrow_back_rounded,
                           color: AppColors.navyMid, size: 20),
                     ),
                   ),
@@ -144,7 +144,8 @@ class PendingIoWiseAllCategoriesScreen extends StatelessWidget {
               child: names.isEmpty
                   ? Center(
                       child: Text(
-                        TranslationHelper.translate(context, 'No IO Wise pending cases'),
+                        TranslationHelper.translate(
+                            context, 'No IO Wise pending cases'),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
@@ -263,7 +264,7 @@ class PendingIoWiseAllCategoriesDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Icon(Icons.arrow_back_rounded,
+                      child: const Icon(Icons.arrow_back_rounded,
                           color: AppColors.navyMid, size: 20),
                     ),
                   ),

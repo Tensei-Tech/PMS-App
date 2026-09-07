@@ -13,7 +13,14 @@ Future<void> previewWitnessNoticePdf(
       titleMr: 'साक्षीदार सूचनापत्र',
       titleEn: 'Witness Notice',
       fieldKeys: [
-        'outwardNo', 'policeStation', 'noticeDate', 'witnessNameAddress',
-        'crNo', 'noticeBody', 'appearanceDate', 'witnessSig', 'ioName',
+        'outwardNo',
+        'policeStation',
+        'noticeDate',
+        'witnessNameAddress',
+        'crNo',
+        'noticeBody',
+        'appearanceDate',
+        'witnessSig',
+        'ioName',
       ],
     );

@@ -17,7 +17,12 @@ class PendingApprovalsScope {
   /// Officers who may review pending registration requests.
   static bool canReviewRegistrations(AuthProvider auth) {
     if (isSuperAdmin(auth)) return true;
-    if (PoliceHierarchyHelper.hasAdminAuthority(auth.designation, auth.roleId)) return true;
+    if (PoliceHierarchyHelper.hasAdminAuthority(
+      auth.designation,
+      auth.roleId,
+    )) {
+      return true;
+    }
     if (SeniorOfficerRoles.canSwitchLocation(auth.designation)) return true;
     if (TransferRequestRoles.isPiOrApi(auth.designation)) return true;
     return false;

@@ -27,10 +27,7 @@ class BaseFormContent extends StatelessWidget {
   }) {
     return BaseFormContent(
       maxWidth: maxWidth,
-      child: Column(
-        crossAxisAlignment: crossAxisAlignment,
-        children: children,
-      ),
+      child: Column(crossAxisAlignment: crossAxisAlignment, children: children),
     );
   }
 
@@ -128,8 +125,11 @@ class BaseFormLayout extends StatelessWidget {
         foregroundColor: appBarFg,
         elevation: darkAppBar ? 0 : 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: appBarFg, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: appBarFg,
+            size: 20,
+          ),
           onPressed: () => Navigator.maybePop(context),
         ),
         title: subtitle == null
@@ -175,12 +175,7 @@ class BaseFormLayout extends StatelessWidget {
     if (onSubmit == null) return null;
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          8,
-          AppSpacing.lg,
-          12,
-        ),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 8, AppSpacing.lg, 12),
         child: SizedBox(
           height: 52,
           child: ElevatedButton(

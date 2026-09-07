@@ -13,7 +13,13 @@ Future<void> previewMedicalExamS51Pdf(
       titleMr: 'वैद्यकीय तपासणी विनंती — कलम ५१',
       titleEn: 'Medical Exam Request — Section 51',
       fieldKeys: [
-        'letterNo', 'date', 'policeStation', 'crNo', 'toHospital',
-        'accusedName', 'requestBody', 'ioName',
+        'letterNo',
+        'date',
+        'policeStation',
+        'crNo',
+        'toHospital',
+        'accusedName',
+        'requestBody',
+        'ioName',
       ],
     );

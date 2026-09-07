@@ -7,11 +7,7 @@ import '../theme/app_theme.dart';
 
 /// Simple access-denied body for case/detail screens (Phase 4 integration).
 class AccessDeniedView extends StatelessWidget {
-  const AccessDeniedView({
-    super.key,
-    this.message,
-    this.onBack,
-  });
+  const AccessDeniedView({super.key, this.message, this.onBack});
 
   final String? message;
   final VoidCallback? onBack;
@@ -61,8 +57,13 @@ class AccessDeniedView extends StatelessWidget {
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.navyMid,
-                side: BorderSide(color: AppColors.navyMid.withValues(alpha: 0.35)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                side: BorderSide(
+                  color: AppColors.navyMid.withValues(alpha: 0.35),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
             ),
           ],

@@ -27,7 +27,13 @@ bool pendingIoWiseCcIsFilled(ModuleRecord r) {
     final court = m['court'];
     if (court is Map) {
       final c = Map<String, dynamic>.from(court);
-      for (final k in ['ccStNumber', 'ccNumber', 'cc_number', 'ccNo', 'CC No']) {
+      for (final k in [
+        'ccStNumber',
+        'ccNumber',
+        'cc_number',
+        'ccNo',
+        'CC No',
+      ]) {
         if (anyFilled(c[k])) return true;
       }
     }
@@ -113,7 +119,9 @@ bool pendingRecordMatchesDashboardCategory({
     case 'IT Act/Cyber':
       return r.moduleKey == 'it_act';
     default:
-      debugPrint('pendingRecordMatchesDashboardCategory: unknown "$dashboardCategory"');
+      debugPrint(
+        'pendingRecordMatchesDashboardCategory: unknown "$dashboardCategory"',
+      );
       return false;
   }
 }
@@ -123,7 +131,9 @@ bool pendingIoWiseEligibleInCategory(ModuleRecord r, String dashboardCategory) {
   if (r.moduleKey == 'nc') return false;
   if (r.status == 'Closed') return false;
   if (!pendingRecordMatchesDashboardCategory(
-      r: r, dashboardCategory: dashboardCategory)) {
+    r: r,
+    dashboardCategory: dashboardCategory,
+  )) {
     return false;
   }
   if (pendingIoWiseCcIsFilled(r)) return false;

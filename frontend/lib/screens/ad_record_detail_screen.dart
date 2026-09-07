@@ -399,8 +399,7 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
       floatingActionButton: !showContent
           ? null
           : Builder(builder: (ctx) {
-              final canEdit =
-                  PoliceRbacHelper.canEditRecord(_hubRecord, auth);
+              final canEdit = PoliceRbacHelper.canEditRecord(_hubRecord, auth);
               final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
 
               return Column(
@@ -460,7 +459,7 @@ class _AdRecordDetailScreenState extends State<AdRecordDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.delete_forever_rounded,
+            const Icon(Icons.delete_forever_rounded,
                 size: 64, color: AppColors.lightSubText),
             const SizedBox(height: 16),
             Text(

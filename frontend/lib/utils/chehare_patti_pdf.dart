@@ -13,7 +13,14 @@ Future<void> previewCheharePattiPdf(
       titleMr: 'चेहरे पट्टी',
       titleEn: 'Chehare Patti / Identification Parade',
       fieldKeys: [
-        'campNo', 'date', 'policeStation', 'crNo', 'identifyingWitness',
-        'suspectName', 'paradeBody', 'witnessSig', 'ioName',
+        'campNo',
+        'date',
+        'policeStation',
+        'crNo',
+        'identifyingWitness',
+        'suspectName',
+        'paradeBody',
+        'witnessSig',
+        'ioName',
       ],
     );

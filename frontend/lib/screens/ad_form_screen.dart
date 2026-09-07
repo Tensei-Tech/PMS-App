@@ -362,9 +362,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
   String saveBarText = 'All changes unsaved';
   Timer? _syncDebounce;
   final _scrollController = ScrollController();
-  final ValueNotifier<double> _scrollProgressNotifier = ValueNotifier<double>(0);
+  final ValueNotifier<double> _scrollProgressNotifier =
+      ValueNotifier<double>(0);
 
   final FirestoreService _caseFirestore = FirestoreService();
+
   /// Document id in `cases` collection (keeps hub list in sync with this form).
   String? _caseListDocId;
   bool _hydrating = false;
@@ -436,9 +438,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
       'X'
     ];
     return chargeData.entries.toList().asMap().entries.map((e) {
-      final roman = e.key < romanNumerals.length
-          ? romanNumerals[e.key]
-          : '${e.key + 1}';
+      final roman =
+          e.key < romanNumerals.length ? romanNumerals[e.key] : '${e.key + 1}';
       final rawAct = e.value.value['act'] as dynamic;
       return {
         'roman': roman,
@@ -573,9 +574,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
   ModuleRecord _moduleRecordForCaseList() {
     final auth = context.read<AuthProvider>();
     final adNo = adNoController.text.trim();
-    final id = _caseListDocId ??
-        widget.existingRecord?.id ??
-        const Uuid().v4();
+    final id = _caseListDocId ?? widget.existingRecord?.id ?? const Uuid().v4();
     _caseListDocId = id;
     final village = spotVillageController.text.trim();
     final area = spotAreaController.text.trim();
@@ -585,8 +584,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
         : [village, area].where((s) => s.isNotEmpty).join(', ');
     final prev = widget.existingRecord;
     final regStr = regDateController.text.trim();
-    final incident =
-        regStr.isNotEmpty ? _parseRegDate(regStr) : prev?.incidentDate ?? DateTime.now();
+    final incident = regStr.isNotEmpty
+        ? _parseRegDate(regStr)
+        : prev?.incidentDate ?? DateTime.now();
     final title = 'AD — $adNo';
     final comp = compNameController.text.trim();
     final desc = [
@@ -610,8 +610,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
       extraFields: const {},
       stationName: auth.stationName,
       createdBy: prev != null ? prev.createdBy : auth.uid,
-      assignedOfficerUid: prev?.assignedOfficerUid ??
-          (auth.uid.isNotEmpty ? auth.uid : null),
+      assignedOfficerUid:
+          prev?.assignedOfficerUid ?? (auth.uid.isNotEmpty ? auth.uid : null),
     );
   }
 
@@ -732,9 +732,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            Icon(Icons.sync_rounded, color: accentBlue, size: 20),
+            const Icon(Icons.sync_rounded, color: accentBlue, size: 20),
             const SizedBox(width: 10),
-            Expanded(
+            const Expanded(
               child: Text(
                 'This record was updated by another officer.',
                 style: TextStyle(fontSize: 12, color: textPrimary),
@@ -761,12 +761,12 @@ class _ADFormScreenState extends State<ADFormScreen> {
     if (!_adDocumentDeleted) return const SizedBox.shrink();
     return Material(
       color: accentRed.withValues(alpha: 0.1),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
             Icon(Icons.delete_forever_rounded, color: accentRed, size: 20),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Expanded(
               child: Text(
                 'The A.D form document was removed remotely.',
@@ -1118,7 +1118,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
     return combined;
   }
 
-  InputDecoration _fieldDecor(String label) => BaseFormStyles.inputDecoration(label);
+  InputDecoration _fieldDecor(String label) =>
+      BaseFormStyles.inputDecoration(label);
 
   Widget _responsiveGrid(BuildContext context, List<Widget> fields) {
     return LayoutBuilder(
@@ -1135,7 +1136,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
 
         final rows = <Widget>[];
         for (var i = 0; i < fields.length; i += safeCols) {
-          final end = i + safeCols > fields.length ? fields.length : i + safeCols;
+          final end =
+              i + safeCols > fields.length ? fields.length : i + safeCols;
           final chunk = fields.sublist(i, end);
           final rowChildren = <Widget>[];
           for (var j = 0; j < chunk.length; j++) {
@@ -2145,9 +2147,9 @@ class _ADFormScreenState extends State<ADFormScreen> {
     }
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
               color: Colors.black12, blurRadius: 10, offset: Offset(0, -2)),
         ],
@@ -2242,33 +2244,6 @@ class _ADFormScreenState extends State<ADFormScreen> {
     if (_hydrating) return;
     final adNo = adNoController.text.trim();
     if (adNo.isEmpty) return;
-    const romanNumerals = [
-      'I',
-      'II',
-      'III',
-      'IV',
-      'V',
-      'VI',
-      'VII',
-      'VIII',
-      'IX',
-      'X'
-    ];
-    final payload = chargeData.entries
-        .toList()
-        .asMap()
-        .entries
-        .where((e) => e.value.value['act'].toString().isNotEmpty)
-        .map((e) {
-      final roman =
-          e.key < romanNumerals.length ? romanNumerals[e.key] : '${e.key + 1}';
-      final rawAct = e.value.value['act'] as dynamic;
-      return {
-        'roman': roman,
-        'act': ACT_DATA['$rawAct']?['label'] ?? '$rawAct',
-        'sections': (e.value.value['sections'] as Set<String>).toList(),
-      };
-    }).toList();
   }
 
   Future<void> saveDraft() async {
@@ -2282,8 +2257,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
       if (!mounted) return;
       setState(() =>
           saveBarText = 'Draft saved at ${TimeOfDay.now().format(context)}');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Draft saved!'), backgroundColor: accentGreen));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Draft saved!'), backgroundColor: accentGreen));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -2299,18 +2274,16 @@ class _ADFormScreenState extends State<ADFormScreen> {
       return;
     }
     try {
-      _caseListDocId = _caseListDocId ??
-          widget.existingRecord?.id ??
-          const Uuid().v4();
+      _caseListDocId =
+          _caseListDocId ?? widget.existingRecord?.id ?? const Uuid().v4();
 
       // Primary Save to PostgreSQL backend
       await _caseFirestore.saveCase(_moduleRecordForCaseList());
 
       if (!mounted) return;
       setState(() => saveBarText = 'Submitted successfully!');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Form submitted!'),
-          backgroundColor: accentGreen));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Form submitted!'), backgroundColor: accentGreen));
       if (Navigator.canPop(context)) {
         var left = widget.popCountAfterSubmit.clamp(1, 5);
         while (left > 0 && Navigator.canPop(context)) {

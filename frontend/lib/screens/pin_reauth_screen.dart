@@ -39,7 +39,9 @@ class _PinReauthScreenState extends State<PinReauthScreen> {
   String? _validate(String? v) {
     if (v == null || v.isEmpty) return 'PIN is required';
     if (v.length < 4 || v.length > 6) return 'PIN must be 4-6 digits';
-    if (!RegExp(r'^\d{4,6}$').hasMatch(v)) return 'PIN must contain only digits';
+    if (!RegExp(r'^\d{4,6}$').hasMatch(v)) {
+      return 'PIN must contain only digits';
+    }
     return null;
   }
 
@@ -157,8 +159,7 @@ class _PinReauthScreenState extends State<PinReauthScreen> {
                             backgroundColor: AppColors.navyMid,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                             elevation: 0,
                           ),

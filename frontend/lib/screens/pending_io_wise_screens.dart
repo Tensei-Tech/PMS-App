@@ -102,7 +102,8 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
 
     final names = buckets.keys.toList()..sort((a, b) => a.compareTo(b));
 
-    final title = '${TranslationHelper.translate(context, 'IO Wise Pending')} - ${TranslationHelper.translate(context, category)}';
+    final title =
+        '${TranslationHelper.translate(context, 'IO Wise Pending')} - ${TranslationHelper.translate(context, category)}';
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -123,7 +124,7 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Icon(Icons.arrow_back_rounded,
+                      child: const Icon(Icons.arrow_back_rounded,
                           color: AppColors.navyMid, size: 20),
                     ),
                   ),
@@ -148,7 +149,8 @@ class PendingIoWiseByCategoryScreen extends StatelessWidget {
               child: names.isEmpty
                   ? Center(
                       child: Text(
-                        TranslationHelper.translate(context, 'No IO Wise pending cases in this category'),
+                        TranslationHelper.translate(context,
+                            'No IO Wise pending cases in this category'),
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
@@ -269,7 +271,7 @@ class PendingIoWiseDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Icon(Icons.arrow_back_rounded,
+                      child: const Icon(Icons.arrow_back_rounded,
                           color: AppColors.navyMid, size: 20),
                     ),
                   ),

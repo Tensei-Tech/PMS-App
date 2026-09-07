@@ -202,8 +202,13 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              Text('NOTICE / सूचनापत्र',
-                  style: serif.copyWith(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                'NOTICE / सूचनापत्र',
+                style: serif.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -397,8 +402,10 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('I have received the notice',
-                      style: marathiLabel.copyWith(fontSize: 11)),
+                  Text(
+                    'I have received the notice',
+                    style: marathiLabel.copyWith(fontSize: 11),
+                  ),
                   BilingualField(
                     label: 'Accused signature',
                     marathiLabel: 'आरोपीची सही',
@@ -430,7 +437,8 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                 children: [
                   BilingualField(
                     label: 'IO signature',
-                    marathiLabel: '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
+                    marathiLabel:
+                        '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
                     controller: _ioSigCtrl,
                     serifStyle: serif,
                     marathiLabelStyle: marathiLabel,

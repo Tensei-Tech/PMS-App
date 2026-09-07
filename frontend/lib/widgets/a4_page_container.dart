@@ -38,10 +38,7 @@ class A4PageContainer extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(32),
-                    child: AbsorbPointer(
-                      absorbing: readOnly,
-                      child: child,
-                    ),
+                    child: AbsorbPointer(absorbing: readOnly, child: child),
                   ),
                 ),
               ),

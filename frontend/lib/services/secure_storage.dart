@@ -12,9 +12,7 @@ class SecureStorage {
 
   static const FlutterSecureStorage _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(),
-    iOptions: IOSOptions(
-      accessibility: KeychainAccessibility.first_unlock,
-    ),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
     webOptions: WebOptions(
       dbName: 'pms_secure_storage',
       publicKey: 'pms_secure_key',
@@ -47,7 +45,9 @@ class SecureStorage {
   }
 
   Future<String?> read({required String key}) async {
-    if (_memoryCache.containsKey(key) && _memoryCache[key] != null && _memoryCache[key]!.isNotEmpty) {
+    if (_memoryCache.containsKey(key) &&
+        _memoryCache[key] != null &&
+        _memoryCache[key]!.isNotEmpty) {
       return _memoryCache[key];
     }
     try {
@@ -106,4 +106,3 @@ class SecureStorage {
     }
   }
 }
-

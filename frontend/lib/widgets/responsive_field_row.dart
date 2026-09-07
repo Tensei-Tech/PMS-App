@@ -16,9 +16,6 @@ class ResponsiveFieldRow extends StatelessWidget {
   Widget build(BuildContext context) {
     // Reverted the stacking logic as per user request:
     // Fields should always render in their original desktop layout/positions (Row).
-    return Row(
-      crossAxisAlignment: crossAxisAlignment,
-      children: children,
-    );
+    return Row(crossAxisAlignment: crossAxisAlignment, children: children);
   }
 }

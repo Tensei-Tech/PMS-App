@@ -13,7 +13,14 @@ Future<void> previewMuddemalPavtiPdf(
       titleMr: 'मुद्देमाल पावती',
       titleEn: 'Muddemal Pavti',
       fieldKeys: [
-        'receiptNo', 'date', 'policeStation', 'crNo', 'accusedName',
-        'propertyDescription', 'propertyValue', 'receiverName', 'ioName',
+        'receiptNo',
+        'date',
+        'policeStation',
+        'crNo',
+        'accusedName',
+        'propertyDescription',
+        'propertyValue',
+        'receiverName',
+        'ioName',
       ],
     );

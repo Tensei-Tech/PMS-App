@@ -72,7 +72,10 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
     _subscribedKey = key;
     _fetchStats(station);
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _fetchStats(station));
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _fetchStats(station),
+    );
   }
 
   Future<void> _fetchStats(String station) async {
@@ -95,11 +98,34 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
 
     try {
       final fetched = await _caseService.fetchStationCases(station);
-      final filtered = CaseVisibility.filterRecords(fetched, uid: uid, mode: mode);
+      final filtered = CaseVisibility.filterRecords(
+        fetched,
+        uid: uid,
+        mode: mode,
+      );
 
-      final total = filtered.where((r) => r.status.toLowerCase() != 'closed' && r.status.toLowerCase() != 'resolved').length;
-      final pending = filtered.where((r) => r.status.toLowerCase() == 'pending' || r.status.toLowerCase() == 'open').length;
-      final disposed = filtered.where((r) => r.status.toLowerCase() == 'disposal' || r.status.toLowerCase() == 'closed' || r.status.toLowerCase() == 'resolved').length;
+      final total = filtered
+          .where(
+            (r) =>
+                r.status.toLowerCase() != 'closed' &&
+                r.status.toLowerCase() != 'resolved',
+          )
+          .length;
+      final pending = filtered
+          .where(
+            (r) =>
+                r.status.toLowerCase() == 'pending' ||
+                r.status.toLowerCase() == 'open',
+          )
+          .length;
+      final disposed = filtered
+          .where(
+            (r) =>
+                r.status.toLowerCase() == 'disposal' ||
+                r.status.toLowerCase() == 'closed' ||
+                r.status.toLowerCase() == 'resolved',
+          )
+          .length;
 
       if (!mounted) return;
       setState(() {
@@ -248,17 +274,17 @@ class _SummaryStatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 4, vertical: verticalPadding),
+          padding: EdgeInsets.symmetric(
+            horizontal: 4,
+            vertical: verticalPadding,
+          ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(color: data.accent.withValues(alpha: 0.15)),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                data.accent.withValues(alpha: 0.06),
-                Colors.white,
-              ],
+              colors: [data.accent.withValues(alpha: 0.06), Colors.white],
             ),
           ),
           child: Column(

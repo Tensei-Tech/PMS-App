@@ -11,9 +11,7 @@ class TransferRequestStatus {
   static const String cancelled = 'cancelled';
 
   /// Statuses that block submitting a new request.
-  static const List<String> activeBlocking = [
-    pending,
-  ];
+  static const List<String> activeBlocking = [pending];
 }
 
 class TransferRequest {
@@ -67,8 +65,7 @@ class TransferRequest {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  bool get isActive =>
-      TransferRequestStatus.activeBlocking.contains(status);
+  bool get isActive => TransferRequestStatus.activeBlocking.contains(status);
 
   Map<String, dynamic> toMap() {
     return {

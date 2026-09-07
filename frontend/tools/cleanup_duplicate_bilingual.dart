@@ -49,7 +49,7 @@ void main() {
   );
   removeTrailingBilingualBlock('lib/widgets/crimespot_seizure_form_view.dart');
 
-  final arrestPath = 'lib/widgets/arrest_surrender_form_view.dart';
+  const arrestPath = 'lib/widgets/arrest_surrender_form_view.dart';
   var arrest = File(arrestPath).readAsStringSync();
   arrest = arrest.replaceFirst(
     '(String label, bool value, ValueChanged<bool?> onChanged, TextStyle serifStyle) {',

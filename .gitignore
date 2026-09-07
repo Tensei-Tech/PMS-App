@@ -42,6 +42,9 @@ frontend/windows/build/
 *.log
 npm-debug.log*
 
-# Dotenv
+# Dotenv & Secrets
 .env
 .env.*
+secrets.json
+*.secrets.json
+frontend/secrets.json

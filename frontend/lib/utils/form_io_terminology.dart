@@ -18,8 +18,6 @@ class FormIoTerminology {
   static const badgeNo = 'बक्कल नंबर';
   static const posting = 'नेमणुक व पत्ता';
   static const signature = 'सही';
-  static const englishSignatureHeader =
-      'Signature of Investigation Officer :-';
-  static const englishNameRankSeal =
-      'I.O. Name, Rank & Signature / Seal :-';
+  static const englishSignatureHeader = 'Signature of Investigation Officer :-';
+  static const englishNameRankSeal = 'I.O. Name, Rank & Signature / Seal :-';
 }

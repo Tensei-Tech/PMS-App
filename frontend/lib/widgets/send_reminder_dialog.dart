@@ -83,18 +83,22 @@ class _SendReminderDialogState extends State<SendReminderDialog> {
         SnackBar(
           backgroundColor: AppColors.successGreen,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded,
-                  color: Colors.white, size: 20),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Reminder sent to $ioName successfully!',
                   style: GoogleFonts.poppins(
-                      fontSize: 12.5, fontWeight: FontWeight.w500),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -248,7 +252,9 @@ class _SendReminderDialogState extends State<SendReminderDialog> {
                 controller: _notesCtrl,
                 maxLines: 3,
                 style: GoogleFonts.poppins(
-                    fontSize: 13, color: AppColors.navyDark),
+                  fontSize: 13,
+                  color: AppColors.navyDark,
+                ),
                 decoration: InputDecoration(
                   hintText:
                       'Enter any specific instruction (e.g., Expedite within 24 hours)...',
@@ -282,7 +288,8 @@ class _SendReminderDialogState extends State<SendReminderDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                    onPressed:
+                        _isSubmitting ? null : () => Navigator.pop(context),
                     child: Text(
                       'Cancel',
                       style: GoogleFonts.poppins(

@@ -12,8 +12,7 @@ class AdFirestorePayload {
     return (r.extraFields['adNo']?.toString() ?? '').trim();
   }
 
-  static bool _empty(dynamic v) =>
-      v == null || v.toString().trim().isEmpty;
+  static bool _empty(dynamic v) => v == null || v.toString().trim().isEmpty;
 
   /// Fills missing/empty form fields from the case hub record (same rules as detail screen).
   static Map<String, dynamic> mergeHubIntoForm(

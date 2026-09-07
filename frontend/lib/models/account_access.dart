@@ -20,7 +20,8 @@ class AccountAccess {
     final accountStatus = profile.accountStatus.trim().toLowerCase();
     final status = profile.status.trim().toLowerCase();
 
-    if (accountStatus == UserAccountStatus.archived || accountStatus == 'archived') {
+    if (accountStatus == UserAccountStatus.archived ||
+        accountStatus == 'archived') {
       return const AccountAccess._(
         allowed: false,
         blockMessage: archivedMessage,

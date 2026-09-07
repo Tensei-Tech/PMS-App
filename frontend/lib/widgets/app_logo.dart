@@ -14,7 +14,9 @@ class AppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (logoUrl != null && logoUrl!.trim().isNotEmpty && logoUrl!.startsWith('http')) {
+    if (logoUrl != null &&
+        logoUrl!.trim().isNotEmpty &&
+        logoUrl!.startsWith('http')) {
       return Container(
         width: size,
         height: size,
@@ -22,7 +24,7 @@ class AppLogo extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -55,11 +57,7 @@ class AppLogo extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.star_rounded,
-                size: size * 0.18,
-                color: Colors.white,
-              ),
+              Icon(Icons.star_rounded, size: size * 0.18, color: Colors.white),
               Icon(
                 Icons.menu_book_rounded,
                 size: size * 0.35,
@@ -78,10 +76,7 @@ class _ShieldLogoPainter extends CustomPainter {
   final Color primaryColor;
   final Color accentColor;
 
-  _ShieldLogoPainter({
-    required this.primaryColor,
-    required this.accentColor,
-  });
+  _ShieldLogoPainter({required this.primaryColor, required this.accentColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -106,18 +101,33 @@ class _ShieldLogoPainter extends CustomPainter {
     path.moveTo(w * 0.5, h * 0.05); // Top center
     path.quadraticBezierTo(w * 0.85, h * 0.05, w * 0.95, h * 0.15); // Top right
     path.lineTo(w * 0.95, h * 0.5); // Right side
-    path.quadraticBezierTo(w * 0.95, h * 0.85, w * 0.5, h * 0.98); // Bottom center
+    path.quadraticBezierTo(
+      w * 0.95,
+      h * 0.85,
+      w * 0.5,
+      h * 0.98,
+    ); // Bottom center
     path.quadraticBezierTo(w * 0.05, h * 0.85, w * 0.05, h * 0.5); // Left side
     path.lineTo(w * 0.05, h * 0.15); // Left side up
-    path.quadraticBezierTo(w * 0.15, h * 0.05, w * 0.5, h * 0.05); // Back to top
+    path.quadraticBezierTo(
+      w * 0.15,
+      h * 0.05,
+      w * 0.5,
+      h * 0.05,
+    ); // Back to top
     path.close();
 
     // Shadow
-    canvas.drawShadow(path.shift(const Offset(0, 4)), Colors.black.withValues(alpha: 0.3), 8.0, true);
-    
+    canvas.drawShadow(
+      path.shift(const Offset(0, 4)),
+      Colors.black.withValues(alpha: 0.3),
+      8.0,
+      true,
+    );
+
     // Fill
     canvas.drawPath(path, paint);
-    
+
     // Gradient accent overlay
     final Paint accentPaint = Paint()
       ..shader = LinearGradient(
@@ -130,7 +140,7 @@ class _ShieldLogoPainter extends CustomPainter {
 
     // Border
     canvas.drawPath(path, borderPaint);
-    
+
     // Inner Glow
     final Paint glowPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.1)

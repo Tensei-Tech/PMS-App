@@ -94,13 +94,30 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database Configuration - Primary (Write) + Read Replicas for High Availability
 DATABASES = {}
 
+
+def is_ssl_required(db_url: str) -> bool:
+    """
+    Determines if SSL is required for database connection based on environment or connection URL.
+    """
+    if not db_url:
+        return False
+    env_flag = os.getenv('DB_SSL_REQUIRE')
+    if env_flag is not None:
+        return env_flag.strip().lower() in ('true', '1', 'yes')
+    if 'localhost' in db_url or '127.0.0.1' in db_url or 'sslmode=disable' in db_url:
+        return False
+    return True
+
+
 # 1. Primary Database (Writes & Critical Operations)
+is_local = os.getenv('DB_HOST', 'localhost') in ['localhost', '127.0.0.1']
+
 if os.getenv('DATABASE_URL') and dj_database_url:
     DATABASES['default'] = dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
         conn_health_checks=True,
-        ssl_require=True,
+        ssl_require=is_ssl_required(os.getenv('DATABASE_URL', '')),
     )
 elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWORD') != 'YOUR_SUPABASE_DB_PASSWORD':
     DATABASES['default'] = {
@@ -113,7 +130,7 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
         'CONN_MAX_AGE': 600,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
-            'sslmode': os.getenv('DB_SSLMODE', 'require'),
+            'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_local else 'require'),
         },
     }
 else:
@@ -123,12 +140,14 @@ else:
     }
 
 # 2. Read Replica 1 (Optional - High Load Read Offloading)
+is_rep1_local = os.getenv('DB_REPLICA_1_HOST', 'localhost') in ['localhost', '127.0.0.1']
+
 if os.getenv('DATABASE_REPLICA_1_URL') and dj_database_url:
     DATABASES['replica_1'] = dj_database_url.config(
         default=os.getenv('DATABASE_REPLICA_1_URL'),
         conn_max_age=600,
         conn_health_checks=True,
-        ssl_require=True,
+        ssl_require=is_ssl_required(os.getenv('DATABASE_REPLICA_1_URL', '')),
     )
 elif os.getenv('DB_REPLICA_1_HOST'):
     DATABASES['replica_1'] = {
@@ -141,17 +160,19 @@ elif os.getenv('DB_REPLICA_1_HOST'):
         'CONN_MAX_AGE': 600,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
-            'sslmode': os.getenv('DB_SSLMODE', 'require'),
+            'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_rep1_local else 'require'),
         },
     }
 
 # 3. Read Replica 2 (Optional - High Load Read Offloading)
+is_rep2_local = os.getenv('DB_REPLICA_2_HOST', 'localhost') in ['localhost', '127.0.0.1']
+
 if os.getenv('DATABASE_REPLICA_2_URL') and dj_database_url:
     DATABASES['replica_2'] = dj_database_url.config(
         default=os.getenv('DATABASE_REPLICA_2_URL'),
         conn_max_age=600,
         conn_health_checks=True,
-        ssl_require=True,
+        ssl_require=is_ssl_required(os.getenv('DATABASE_REPLICA_2_URL', '')),
     )
 elif os.getenv('DB_REPLICA_2_HOST'):
     DATABASES['replica_2'] = {
@@ -164,7 +185,7 @@ elif os.getenv('DB_REPLICA_2_HOST'):
         'CONN_MAX_AGE': 600,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
-            'sslmode': os.getenv('DB_SSLMODE', 'require'),
+            'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_rep2_local else 'require'),
         },
     }
 
@@ -272,6 +293,3 @@ CACHES = {
         'TIMEOUT': 300,  # Default 5 min TTL
     }
 }
-
-
-

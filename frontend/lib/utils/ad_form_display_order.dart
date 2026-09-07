@@ -120,8 +120,7 @@ int _compareNumericOrLex(String a, String b) {
   return a.compareTo(b);
 }
 
-List<String> _preferThenRest(
-    List<String> preferred, List<String> allKeys) {
+List<String> _preferThenRest(List<String> preferred, List<String> allKeys) {
   final set = allKeys.toSet();
   final out = <String>[
     for (final p in preferred)

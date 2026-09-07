@@ -5,7 +5,7 @@ void main() {
     'lib/widgets/form_e_view.dart',
     'lib/widgets/crimespot_seizure_form_view.dart',
     'lib/widgets/property_seizure_form_view.dart',
-    'lib/widgets/crime_detail_form_view.dart'
+    'lib/widgets/crime_detail_form_view.dart',
   ];
 
   const targetStart = '''        child: Center(
@@ -40,7 +40,7 @@ void main() {
       stdout.writeln('File not found: $filePath');
       continue;
     }
-    
+
     var content = file.readAsStringSync();
     if (content.contains(targetStart) && content.contains(targetEnd)) {
       content = content.replaceFirst(targetStart, replacementStart);

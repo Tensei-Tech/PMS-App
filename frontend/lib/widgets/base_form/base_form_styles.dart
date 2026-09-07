@@ -17,10 +17,8 @@ abstract final class BaseFormStyles {
   static const Color fieldTextColor = Color(0xFF1E293B);
   static const Color accent = Color(0xFF0EA5E9);
 
-  static TextStyle get fieldTextStyle => GoogleFonts.poppins(
-        fontSize: 12,
-        color: fieldTextColor,
-      );
+  static TextStyle get fieldTextStyle =>
+      GoogleFonts.poppins(fontSize: 12, color: fieldTextColor);
 
   static TextStyle get labelStyle => GoogleFonts.poppins(
         fontSize: 12,
@@ -38,10 +36,7 @@ abstract final class BaseFormStyles {
         labelText: label,
         hintText: hintText,
         labelStyle: labelStyle,
-        floatingLabelStyle: labelStyle.copyWith(
-          fontSize: 11,
-          color: accent,
-        ),
+        floatingLabelStyle: labelStyle.copyWith(fontSize: 11, color: accent),
         filled: true,
         fillColor: inputBg,
         isDense: true,

@@ -32,19 +32,17 @@ class StandardDatePicker extends StatelessWidget {
     final min = firstDate ?? DateTime(2000);
     final max = lastDate ?? now;
     final parsed = BaseFormStyles.parseDateDdMmYyyy(controller.text);
-    final initial = parsed != null &&
-            !parsed.isBefore(min) &&
-            !parsed.isAfter(max)
-        ? parsed
-        : (max.isBefore(now) ? max : now);
+    final initial =
+        parsed != null && !parsed.isBefore(min) && !parsed.isAfter(max)
+            ? parsed
+            : (max.isBefore(now) ? max : now);
 
     final picked = await showDatePicker(
       context: context,
       firstDate: min,
       lastDate: max,
-      initialDate: initial.isBefore(min)
-          ? min
-          : (initial.isAfter(max) ? max : initial),
+      initialDate:
+          initial.isBefore(min) ? min : (initial.isAfter(max) ? max : initial),
     );
     if (picked == null) return;
     controller.text = _format(picked);
@@ -59,8 +57,11 @@ class StandardDatePicker extends StatelessWidget {
       readOnly: true,
       onTap: () => _pick(context),
       suffixIcon: IconButton(
-        icon: const Icon(Icons.calendar_today_rounded,
-            size: 18, color: BaseFormStyles.accent),
+        icon: const Icon(
+          Icons.calendar_today_rounded,
+          size: 18,
+          color: BaseFormStyles.accent,
+        ),
         tooltip: 'Pick date',
         onPressed: () => _pick(context),
         padding: EdgeInsets.zero,

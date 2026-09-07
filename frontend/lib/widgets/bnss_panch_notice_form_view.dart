@@ -25,7 +25,8 @@ class BnssPanchNoticeFormView extends StatefulWidget {
   });
 
   @override
-  State<BnssPanchNoticeFormView> createState() => BnssPanchNoticeFormViewState();
+  State<BnssPanchNoticeFormView> createState() =>
+      BnssPanchNoticeFormViewState();
 }
 
 class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
@@ -103,11 +104,17 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                 children: [
                   Text(
                     'PANCH NOTICE — Section $section BNSS',
-                    style: serif.copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: serif.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   Text(
                     'पंच सूचनापत्र — कलम $section भा.न्या.स.',
-                    style: marathi.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+                    style: marathi.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -126,8 +133,20 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'CR No.', marathiLabel: 'गु.र.क्र.', controller: _fields['crNo']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Section', marathiLabel: 'कलम', controller: _fields['section']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'CR No.',
+                  marathiLabel: 'गु.र.क्र.',
+                  controller: _fields['crNo']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Section',
+                  marathiLabel: 'कलम',
+                  controller: _fields['section']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
             BilingualMultilineField(
@@ -148,11 +167,29 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Appearance date', marathiLabel: 'हजर दिनांक', controller: _fields['appearanceDate']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Time', marathiLabel: 'वेळ', controller: _fields['appearanceTime']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Appearance date',
+                  marathiLabel: 'हजर दिनांक',
+                  controller: _fields['appearanceDate']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Time',
+                  marathiLabel: 'वेळ',
+                  controller: _fields['appearanceTime']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
-            BilingualField(label: 'Place', marathiLabel: 'ठिकाण', controller: _fields['appearancePlace']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Place',
+              marathiLabel: 'ठिकाण',
+              controller: _fields['appearancePlace']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             const SizedBox(height: 16),
             FormIoSignatureBlock(
               nameCtrl: _fields['ioName']!,
@@ -171,11 +208,29 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(label: 'Received by', marathiLabel: 'प्राप्तकर्ता', controller: _fields['receiptName']!, serifStyle: serif, marathiLabelStyle: marathi),
-                BilingualField(label: 'Date', marathiLabel: 'दिनांक', controller: _fields['receiptDate']!, serifStyle: serif, marathiLabelStyle: marathi),
+                BilingualField(
+                  label: 'Received by',
+                  marathiLabel: 'प्राप्तकर्ता',
+                  controller: _fields['receiptName']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
+                BilingualField(
+                  label: 'Date',
+                  marathiLabel: 'दिनांक',
+                  controller: _fields['receiptDate']!,
+                  serifStyle: serif,
+                  marathiLabelStyle: marathi,
+                ),
               ],
             ),
-            BilingualField(label: 'Signature', marathiLabel: 'सही', controller: _fields['receiptSig']!, serifStyle: serif, marathiLabelStyle: marathi),
+            BilingualField(
+              label: 'Signature',
+              marathiLabel: 'सही',
+              controller: _fields['receiptSig']!,
+              serifStyle: serif,
+              marathiLabelStyle: marathi,
+            ),
             const SizedBox(height: 16),
             FormMrwFooter(serifStyle: serif),
           ],

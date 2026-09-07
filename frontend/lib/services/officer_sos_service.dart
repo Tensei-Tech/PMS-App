@@ -51,12 +51,16 @@ class OfficerSosService {
       try {
         await _api.post(ApiConfig.sosAlerts, data: payload);
       } catch (e) {
-        if (kDebugMode) debugPrint('[OfficerSosService] Django SOS endpoint error: $e');
+        if (kDebugMode) {
+          debugPrint('[OfficerSosService] Django SOS endpoint error: $e');
+        }
       }
 
       return alertId;
     } catch (e) {
-      if (kDebugMode) debugPrint('Emergency SOS trigger failed: $e');
+      if (kDebugMode) {
+        debugPrint('Emergency SOS trigger failed: $e');
+      }
       return alertId;
     }
   }
@@ -64,10 +68,10 @@ class OfficerSosService {
   /// Resolve an existing SOS alert
   Future<void> resolveSosAlert(String alertId, {String? resolutionNote}) async {
     try {
-      await _api.post('${ApiConfig.sosAlerts}$alertId/resolve/', data: {
-        'resolution_note': resolutionNote ?? 'Resolved by Control Room',
-      });
+      await _api.post(
+        '${ApiConfig.sosAlerts}$alertId/resolve/',
+        data: {'resolution_note': resolutionNote ?? 'Resolved by Control Room'},
+      );
     } catch (_) {}
   }
 }
-

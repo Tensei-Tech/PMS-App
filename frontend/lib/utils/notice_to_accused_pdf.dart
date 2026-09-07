@@ -13,7 +13,14 @@ Future<void> previewNoticeToAccusedPdf(
       titleMr: 'आरोपीस सूचनापत्र',
       titleEn: 'Notice to Accused',
       fieldKeys: [
-        'outwardNo', 'policeStation', 'noticeDate', 'accusedNameAddress',
-        'crNo', 'subject', 'noticeBody', 'accusedSig', 'ioName',
+        'outwardNo',
+        'policeStation',
+        'noticeDate',
+        'accusedNameAddress',
+        'crNo',
+        'subject',
+        'noticeBody',
+        'accusedSig',
+        'ioName',
       ],
     );

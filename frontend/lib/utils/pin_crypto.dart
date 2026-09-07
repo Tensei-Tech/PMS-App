@@ -8,8 +8,10 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
 class PinCrypto {
-  // PBKDF2 iteration count — optimized for UI responsiveness on Web (runs in milliseconds)
-  static const int _iterations = 1000;
+  // PBKDF2 iteration count — 100,000 iterations is the cryptographic standard
+  // (NIST SP 800-132 / OWASP) required to protect short 4-6 digit numeric PINs
+  // against offline dictionary and brute-force GPU cracking attacks.
+  static const int _iterations = 100000;
   static const int _saltLengthBytes = 32;
   static const int _keyLengthBytes = 32;
 
@@ -30,17 +32,34 @@ class PinCrypto {
     final pinBytes = utf8.encode(pin);
 
     // PBKDF2 manual implementation using HMAC-SHA256
-    final derivedKey = _pbkdf2HmacSha256(pinBytes, saltBytes, _iterations, _keyLengthBytes);
+    final derivedKey = _pbkdf2HmacSha256(
+      pinBytes,
+      saltBytes,
+      _iterations,
+      _keyLengthBytes,
+    );
     return _bytesToHex(derivedKey);
   }
 
   /// Verifies a PIN against a stored hash + salt.
   /// Returns true if the PIN matches.
-  static bool verifyPin(String inputPin, String storedHash, String storedSalt, [int iterations = _iterations]) {
-    if (inputPin.isEmpty || storedHash.isEmpty || storedSalt.isEmpty) return false;
+  static bool verifyPin(
+    String inputPin,
+    String storedHash,
+    String storedSalt, [
+    int iterations = _iterations,
+  ]) {
+    if (inputPin.isEmpty || storedHash.isEmpty || storedSalt.isEmpty) {
+      return false;
+    }
     final saltBytes = _hexToBytes(storedSalt);
     final pinBytes = utf8.encode(inputPin);
-    final derivedKey = _pbkdf2HmacSha256(pinBytes, saltBytes, iterations, _keyLengthBytes);
+    final derivedKey = _pbkdf2HmacSha256(
+      pinBytes,
+      saltBytes,
+      iterations,
+      _keyLengthBytes,
+    );
     final computedHash = _bytesToHex(derivedKey);
     // Constant-time comparison to prevent timing attacks
     return _constantTimeEquals(computedHash, storedHash);
@@ -117,15 +136,12 @@ class PinCrypto {
     String storedSalt, [
     int iterations = _iterations,
   ]) async {
-    return compute(
-      _isolateVerify,
-      {
-        'pin': inputPin,
-        'hash': storedHash,
-        'salt': storedSalt,
-        'iterations': iterations.toString(),
-      },
-    );
+    return compute(_isolateVerify, {
+      'pin': inputPin,
+      'hash': storedHash,
+      'salt': storedSalt,
+      'iterations': iterations.toString(),
+    });
   }
 }
 
@@ -138,5 +154,10 @@ bool _isolateVerify(Map<String, String> args) {
   final iterations = args.containsKey('iterations')
       ? int.parse(args['iterations']!)
       : PinCrypto._iterations;
-  return PinCrypto.verifyPin(args['pin']!, args['hash']!, args['salt']!, iterations);
+  return PinCrypto.verifyPin(
+    args['pin']!,
+    args['hash']!,
+    args['salt']!,
+    iterations,
+  );
 }

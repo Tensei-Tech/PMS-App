@@ -13,7 +13,9 @@ class FcmService {
   FcmService._internal();
 
   FirebaseMessaging? get _messaging {
-    if (kIsWeb || defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS) {
+    if (kIsWeb ||
+        defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS) {
       try {
         return FirebaseMessaging.instance;
       } catch (_) {
@@ -99,7 +101,8 @@ class FcmService {
       // ── 5. Notification tap while app was in background ───────────────────
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         debugPrint(
-            '[FCM] Opened from background: ${message.notification?.title}');
+          '[FCM] Opened from background: ${message.notification?.title}',
+        );
         _foregroundController.add(message);
       });
 
@@ -107,7 +110,8 @@ class FcmService {
       final initialMessage = await msg.getInitialMessage();
       if (initialMessage != null) {
         debugPrint(
-            '[FCM] Opened from terminated: ${initialMessage.notification?.title}');
+          '[FCM] Opened from terminated: ${initialMessage.notification?.title}',
+        );
         _foregroundController.add(initialMessage);
       }
 
@@ -126,26 +130,31 @@ class FcmService {
     final msg = _messaging;
     if (msg == null) return;
     try {
-      const String webVapidKey = String.fromEnvironment('FCM_WEB_VAPID_KEY', defaultValue: '');
+      const String webVapidKey = String.fromEnvironment(
+        'FCM_WEB_VAPID_KEY',
+        defaultValue: '',
+      );
       if (kIsWeb && webVapidKey.isEmpty) {
-        debugPrint('[FCM] Web VAPID key not configured; skipping web push registration.');
+        debugPrint(
+          '[FCM] Web VAPID key not configured; skipping web push registration.',
+        );
         return;
       }
 
-      final token = await msg.getToken(
-        vapidKey: kIsWeb ? webVapidKey : null,
-      );
+      final token = await msg.getToken(vapidKey: kIsWeb ? webVapidKey : null);
       _token = token;
 
       debugPrint(
-          '╔══════════════════════════════════════════════════════════╗');
+        '╔══════════════════════════════════════════════════════════╗',
+      );
+      debugPrint('║  FCM DEVICE TOKEN (copy for Firebase Console testing):  ║');
       debugPrint(
-          '║  FCM DEVICE TOKEN (copy for Firebase Console testing):  ║');
-      debugPrint(
-          '╠══════════════════════════════════════════════════════════╣');
+        '╠══════════════════════════════════════════════════════════╣',
+      );
       debugPrint('║  $token');
       debugPrint(
-          '╚══════════════════════════════════════════════════════════╝');
+        '╚══════════════════════════════════════════════════════════╝',
+      );
 
       if (token != null) {
         await _saveTokenToFirestore(token);

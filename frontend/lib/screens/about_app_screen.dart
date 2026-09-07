@@ -11,7 +11,12 @@ import '../widgets/app_logo.dart';
 class AboutAppScreen extends StatelessWidget {
   const AboutAppScreen({super.key});
 
-  Future<void> _launchUrl(BuildContext context, String url, {String? copyText, String? label}) async {
+  Future<void> _launchUrl(
+    BuildContext context,
+    String url, {
+    String? copyText,
+    String? label,
+  }) async {
     if (copyText != null) {
       await Clipboard.setData(ClipboardData(text: copyText));
       if (context.mounted) {
@@ -20,19 +25,29 @@ class AboutAppScreen extends StatelessWidget {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     'Opening ${label ?? 'Link'} ($copyText copied to clipboard)',
-                    style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w500),
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
             ),
             backgroundColor: AppColors.navyDark,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
             margin: const EdgeInsets.all(AppSpacing.md),
             duration: const Duration(seconds: 3),
           ),
@@ -93,7 +108,10 @@ class AboutAppScreen extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.xxl),
+              padding: const EdgeInsets.only(
+                top: AppSpacing.lg,
+                bottom: AppSpacing.xxl,
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Align(
@@ -128,7 +146,8 @@ class AboutAppScreen extends StatelessWidget {
                         // [3] SOCIAL & WEB LINKS
                         _buildSectionCard(
                           title: 'Connect With Us',
-                          subtitle: 'Visit our official portal and social channels',
+                          subtitle:
+                              'Visit our official portal and social channels',
                           icon: Icons.share_rounded,
                           accentColor: AppColors.infoBlue,
                           child: Center(child: _buildSocialLinks(context)),
@@ -218,7 +237,10 @@ class AboutAppScreen extends StatelessWidget {
                 ),
                 Container(
                   margin: const EdgeInsets.only(top: 2, bottom: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppRadius.full),
@@ -261,9 +283,7 @@ class AboutAppScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(
-          color: accentColor.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: accentColor.withValues(alpha: 0.12)),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -379,11 +399,16 @@ class AboutAppScreen extends StatelessWidget {
               SnackBar(
                 content: Text(
                   'Running on Cross-Platform PMS Engine',
-                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 12.5,
+                  ),
                 ),
                 backgroundColor: AppColors.navyMid,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
                 margin: const EdgeInsets.all(AppSpacing.md),
               ),
             );
@@ -402,11 +427,16 @@ class AboutAppScreen extends StatelessWidget {
               SnackBar(
                 content: Text(
                   'Your application is up to date (v2.4.0)',
-                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 12.5,
+                  ),
                 ),
                 backgroundColor: AppColors.successGreen,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
                 margin: const EdgeInsets.all(AppSpacing.md),
               ),
             );
@@ -428,16 +458,17 @@ class AboutAppScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.lightBg.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: AppColors.navyMid.withValues(alpha: 0.08),
-        ),
+        border: Border.all(color: AppColors.navyMid.withValues(alpha: 0.08)),
       ),
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: ListTile(
           onTap: onTap,
-          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: 2,
+          ),
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -497,7 +528,11 @@ class AboutAppScreen extends StatelessWidget {
       (Icons.lock_rounded, 'Secure Login', AppColors.infoBlue),
       (Icons.assignment_rounded, 'Duty Records', AppColors.successGreen),
       (Icons.dashboard_rounded, 'Smart Dashboard', AppColors.goldPrimary),
-      (Icons.notifications_active_rounded, 'Live Alerts', AppColors.warningOrange),
+      (
+        Icons.notifications_active_rounded,
+        'Live Alerts',
+        AppColors.warningOrange,
+      ),
       (Icons.translate_rounded, 'Multi-Language', AppColors.navyMid),
       (Icons.groups_rounded, 'Staff Management', AppColors.navyDark),
     ];
@@ -522,7 +557,9 @@ class AboutAppScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.lightBg.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.navyMid.withValues(alpha: 0.08)),
+                border: Border.all(
+                  color: AppColors.navyMid.withValues(alpha: 0.08),
+                ),
               ),
               child: Row(
                 children: [
@@ -558,9 +595,24 @@ class AboutAppScreen extends StatelessWidget {
 
   Widget _buildSocialLinks(BuildContext context) {
     final socials = [
-      (Icons.link_rounded, 'https://www.linkedin.com/company/tensei-tech-pvt-ltd/', 'LinkedIn', AppColors.infoBlue),
-      (Icons.camera_alt_rounded, 'https://www.instagram.com/tenseitechpvtltd', 'Instagram', const Color(0xFFE1306C)),
-      (Icons.language_rounded, 'https://tenseitech.com/', 'Website', AppColors.goldPrimary),
+      (
+        Icons.link_rounded,
+        'https://www.linkedin.com/company/tensei-tech-pvt-ltd/',
+        'LinkedIn',
+        AppColors.infoBlue,
+      ),
+      (
+        Icons.camera_alt_rounded,
+        'https://www.instagram.com/tenseitechpvtltd',
+        'Instagram',
+        const Color(0xFFE1306C),
+      ),
+      (
+        Icons.language_rounded,
+        'https://tenseitech.com/',
+        'Website',
+        AppColors.goldPrimary,
+      ),
     ];
 
     return Wrap(

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../utils/app_constants.dart';
+import '../../../utils/crime_detail_pdf.dart';
 import '../../../widgets/base_form/base_form.dart';
 
 // ── Palette (matches nc_form.dart / common_form.dart) ─────────────────────────
@@ -271,8 +272,9 @@ class MissingFormState extends State<MissingForm> {
   }
 
   void saveDraft() {
-    setState(() =>
-        saveBarText = 'Draft saved · ${TimeOfDay.now().format(context)}');
+    setState(
+      () => saveBarText = 'Draft saved · ${TimeOfDay.now().format(context)}',
+    );
   }
 
   void clearForm() {
@@ -351,11 +353,8 @@ class MissingFormState extends State<MissingForm> {
   }
 
   void _onWordCapChanged(TextEditingController c, void Function(int) setCt) {
-    final words = c.text
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
+    final words =
+        c.text.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
     if (words.length > 25) {
       final allowed = words.take(25).join(' ');
       c.value = TextEditingValue(
@@ -371,11 +370,8 @@ class MissingFormState extends State<MissingForm> {
   }
 
   void _recountWords(TextEditingController c, void Function(int) setCt) {
-    final words = c.text
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
+    final words =
+        c.text.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
     setCt(words.length > 25 ? 25 : words.length);
   }
 
@@ -429,10 +425,7 @@ class MissingFormState extends State<MissingForm> {
 
   Future<void> _pickKidnapTime(TextEditingController controller) async {
     final initial = _parseKidnapTime(controller.text) ?? TimeOfDay.now();
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initial,
-    );
+    final picked = await showTimePicker(context: context, initialTime: initial);
     if (picked != null) {
       setState(() => controller.text = _formatKidnapTime(picked));
     }
@@ -499,10 +492,7 @@ class MissingFormState extends State<MissingForm> {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: _kKidInputBorder),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: child,
-      ),
+      child: Padding(padding: const EdgeInsets.all(20), child: child),
     );
   }
 
@@ -544,9 +534,15 @@ class MissingFormState extends State<MissingForm> {
             );
       return selected
           ? ElevatedButton(
-              onPressed: onPressed, style: style, child: Text(text))
+              onPressed: onPressed,
+              style: style,
+              child: Text(text),
+            )
           : OutlinedButton(
-              onPressed: onPressed, style: style, child: Text(text));
+              onPressed: onPressed,
+              style: style,
+              child: Text(text),
+            );
     }
 
     return Row(
@@ -588,9 +584,9 @@ class MissingFormState extends State<MissingForm> {
       controller: controller,
       readOnly: true,
       style: GoogleFonts.poppins(),
-      decoration: _kidInputDecoration(label).copyWith(
-        suffixIcon: const Icon(Icons.calendar_today_outlined),
-      ),
+      decoration: _kidInputDecoration(
+        label,
+      ).copyWith(suffixIcon: const Icon(Icons.calendar_today_outlined)),
       onTap: () => _pickKidnapDate(controller),
     );
   }
@@ -600,9 +596,9 @@ class MissingFormState extends State<MissingForm> {
       controller: controller,
       readOnly: true,
       style: GoogleFonts.poppins(),
-      decoration: _kidInputDecoration(label).copyWith(
-        suffixIcon: const Icon(Icons.access_time_rounded),
-      ),
+      decoration: _kidInputDecoration(
+        label,
+      ).copyWith(suffixIcon: const Icon(Icons.access_time_rounded)),
       onTap: () => _pickKidnapTime(controller),
     );
   }
@@ -614,13 +610,7 @@ class MissingFormState extends State<MissingForm> {
   }) {
     final width = MediaQuery.sizeOf(context).width;
     if (width < 400) {
-      return Column(
-        children: [
-          first,
-          const SizedBox(height: 12),
-          second,
-        ],
-      );
+      return Column(children: [first, const SizedBox(height: 12), second]);
     }
     return Row(
       children: [
@@ -684,8 +674,10 @@ class MissingFormState extends State<MissingForm> {
                   onTap: () => onSelect(item),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 140),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: active
                           ? activeColor.withValues(alpha: 0.1)
@@ -755,17 +747,27 @@ class MissingFormState extends State<MissingForm> {
           children: [
             Icon(icon, size: 13, color: color),
             const SizedBox(width: 4),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _card(int idx, String title, Widget body,
-      {bool startOpen = false, bool useExpansion = false}) {
+  Widget _card(
+    int idx,
+    String title,
+    Widget body, {
+    bool startOpen = false,
+    bool useExpansion = false,
+  }) {
     final leadingBadge = Container(
       width: 22,
       height: 22,
@@ -774,11 +776,14 @@ class MissingFormState extends State<MissingForm> {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Center(
-        child: Text('$idx',
-            style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: Colors.white)),
+        child: Text(
+          '$idx',
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
     final themed = Theme.of(context).copyWith(dividerColor: Colors.transparent);
@@ -829,22 +834,21 @@ class MissingFormState extends State<MissingForm> {
         borderRadius: BorderRadius.circular(12),
         side: const BorderSide(color: _kBorder),
       ),
-      child: Theme(
-        data: themed,
-        child: inner,
-      ),
+      child: Theme(data: themed, child: inner),
     );
   }
 
   Widget _slashDateRow(String label, TextEditingController c) =>
-      StandardFormFieldRow(children: [
-        StandardDatePicker(
-          label: '$label (dd/MM/yyyy)',
-          controller: c,
-          lastDate: DateTime.now(),
-          onDateChanged: (_) => setState(() {}),
-        ),
-      ]);
+      StandardFormFieldRow(
+        children: [
+          StandardDatePicker(
+            label: '$label (dd/MM/yyyy)',
+            controller: c,
+            lastDate: DateTime.now(),
+            onDateChanged: (_) => setState(() {}),
+          ),
+        ],
+      );
 
   void _addSuspected() {
     setState(() => _suspected.add(_SuspectedRow()));
@@ -870,8 +874,11 @@ class MissingFormState extends State<MissingForm> {
           Row(
             children: [
               Expanded(
-                  child: Text('Person #${i + 1}',
-                      style: _tsSection.copyWith(fontSize: 11))),
+                child: Text(
+                  'Person #${i + 1}',
+                  style: _tsSection.copyWith(fontSize: 11),
+                ),
+              ),
               TextButton(
                 onPressed: () => _removeSuspected(i),
                 style: TextButton.styleFrom(
@@ -1053,13 +1060,17 @@ class MissingFormState extends State<MissingForm> {
     final reg = data['registeredBy'];
     if (reg is Map) {
       final d = reg['designation']?.toString();
-      if (d != null && PoliceDesignations.formIoAndReg.contains(d)) _regDesig = d;
+      if (d != null && PoliceDesignations.formIoAndReg.contains(d)) {
+        _regDesig = d;
+      }
       _registrarName.text = _str(reg['name']);
     }
     final io = data['investigationOfficer'];
     if (io is Map) {
       final d = io['designation']?.toString();
-      if (d != null && PoliceDesignations.formIoAndReg.contains(d)) _ioDesig = d;
+      if (d != null && PoliceDesignations.formIoAndReg.contains(d)) {
+        _ioDesig = d;
+      }
       _ioName.text = _str(io['name']);
     }
 
@@ -1159,10 +1170,7 @@ class MissingFormState extends State<MissingForm> {
             _tf('Mobile', _mpMobile, keyboardType: TextInputType.phone),
             _tf('Aadhaar', _mpAadhaar),
           ]),
-          _row([
-            _tf('Religion', _mpReligion),
-            _tf('Caste', _mpCaste),
-          ]),
+          _row([_tf('Religion', _mpReligion), _tf('Caste', _mpCaste)]),
           _row([_tf('Address', _mpAddress, maxLines: 3)]),
           _row([_tf('Active Social Media Accounts', _mpSocial)]),
           _row([
@@ -1192,10 +1200,7 @@ class MissingFormState extends State<MissingForm> {
             _tf('Aadhaar', _compAadhaar),
           ]),
           _row([_tf('PAN', _compPan)]),
-          _row([
-            _tf('Religion', _compReligion),
-            _tf('Caste', _compCaste),
-          ]),
+          _row([_tf('Religion', _compReligion), _tf('Caste', _compCaste)]),
         ],
       );
 
@@ -1207,20 +1212,15 @@ class MissingFormState extends State<MissingForm> {
             initialValue: _custodyTo,
             decoration: _kidInputDecoration('Custody Given To'),
             style: GoogleFonts.poppins(color: _kKidDark),
-            items: const [
-              'Parents',
-              'Relative',
-              'Friend',
-              'Shelter Home',
-              'Other',
-            ]
-                .map(
-                  (e) => DropdownMenuItem<String>(
-                    value: e,
-                    child: Text(e, style: GoogleFonts.poppins()),
-                  ),
-                )
-                .toList(),
+            items:
+                const ['Parents', 'Relative', 'Friend', 'Shelter Home', 'Other']
+                    .map(
+                      (e) => DropdownMenuItem<String>(
+                        value: e,
+                        child: Text(e, style: GoogleFonts.poppins()),
+                      ),
+                    )
+                    .toList(),
             onChanged: (v) => setState(() => _custodyTo = v),
           ),
           const SizedBox(height: 12),
@@ -1247,10 +1247,7 @@ class MissingFormState extends State<MissingForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _kidSectionTitle(
-                    _custodyKycTitle(),
-                    fontSize: 12,
-                  ),
+                  _kidSectionTitle(_custodyKycTitle(), fontSize: 12),
                   const SizedBox(height: 12),
                   _kidResponsiveTwoFieldRow(
                     context: ctx,
@@ -1270,9 +1267,7 @@ class MissingFormState extends State<MissingForm> {
                   _kidResponsiveTwoFieldRow(
                     context: ctx,
                     first: DropdownButtonFormField<String>(
-                      key: ValueKey(
-                        'custodyGender_${_custodyGender ?? ''}',
-                      ),
+                      key: ValueKey('custodyGender_${_custodyGender ?? ''}'),
                       initialValue: _custodyGender,
                       decoration: _kidInputDecoration('Gender'),
                       style: GoogleFonts.poppins(color: _kKidDark),
@@ -1280,15 +1275,11 @@ class MissingFormState extends State<MissingForm> {
                           .map(
                             (e) => DropdownMenuItem<String>(
                               value: e,
-                              child: Text(
-                                e,
-                                style: GoogleFonts.poppins(),
-                              ),
+                              child: Text(e, style: GoogleFonts.poppins()),
                             ),
                           )
                           .toList(),
-                      onChanged: (v) =>
-                          setState(() => _custodyGender = v),
+                      onChanged: (v) => setState(() => _custodyGender = v),
                     ),
                     second: TextFormField(
                       controller: _custodyMobile,
@@ -1303,8 +1294,7 @@ class MissingFormState extends State<MissingForm> {
                     first: TextFormField(
                       controller: _custodyAadhaar,
                       style: GoogleFonts.poppins(),
-                      decoration:
-                          _kidInputDecoration('Aadhaar Number'),
+                      decoration: _kidInputDecoration('Aadhaar Number'),
                     ),
                     second: TextFormField(
                       controller: _custodyRelation,
@@ -1325,6 +1315,21 @@ class MissingFormState extends State<MissingForm> {
           ),
         ],
       );
+
+  Future<void> _generateCrimeDetailPdf() async {
+    try {
+      final doc = buildDocumentMap();
+      await previewCrimeDetailPdf(context, doc);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate PDF: $e'),
+          backgroundColor: _kRed,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1351,8 +1356,14 @@ class MissingFormState extends State<MissingForm> {
                   Expanded(child: Text(saveBarText, style: _tsMuted)),
                   _barBtn('Clear', Icons.refresh_outlined, clearForm, _kRed),
                   const SizedBox(width: 6),
+                  _barBtn('Save Draft', Icons.save_outlined, saveDraft, _kTeal),
+                  const SizedBox(width: 6),
                   _barBtn(
-                      'Save Draft', Icons.save_outlined, saveDraft, _kTeal),
+                    'Generate Crime Detail Form PDF',
+                    Icons.picture_as_pdf_outlined,
+                    _generateCrimeDetailPdf,
+                    const Color(0xFF0284C7),
+                  ),
                 ],
               ),
             ),
@@ -1362,399 +1373,444 @@ class MissingFormState extends State<MissingForm> {
                 key: _formKey,
                 child: ListView(
                   controller: _scroll,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   children: [
                     BaseFormContent.scrollSections(
                       children: [
-                      _card(1, 'Missing Number',
+                        _card(
+                          1,
+                          'Missing Number',
                           _row([_tf('Missing Number', _missingNumber)]),
-                          startOpen: true),
-                    _card(2, 'Missing Person KYC', _sMissingPersonBody(),
-                        startOpen: false, useExpansion: true),
-                    _card(
-                      3,
-                      'With Whom / Suspected',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _addBtn('+ Add Person', _addSuspected),
-                          if (_suspected.isEmpty)
-                            _emptyBox('No persons added.')
-                          else
-                            ..._suspected.asMap().entries.map(
-                                  (e) => _suspectedCard(e.key, e.value),
+                          startOpen: true,
+                        ),
+                        _card(
+                          2,
+                          'Missing Person KYC',
+                          _sMissingPersonBody(),
+                          startOpen: false,
+                          useExpansion: true,
+                        ),
+                        _card(
+                          3,
+                          'With Whom / Suspected',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _addBtn('+ Add Person', _addSuspected),
+                              if (_suspected.isEmpty)
+                                _emptyBox('No persons added.')
+                              else
+                                ..._suspected.asMap().entries.map(
+                                      (e) => _suspectedCard(e.key, e.value),
+                                    ),
+                            ],
+                          ),
+                        ),
+                        _card(
+                          4,
+                          'Reason',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _tf(
+                                'Reason',
+                                _reason,
+                                maxLines: 5,
+                                onChanged: (v) => _onWordCapChanged(
+                                  _reason,
+                                  (n) => _reasonWords = n,
                                 ),
-                        ],
-                      ),
-                    ),
-                    _card(
-                      4,
-                      'Reason',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _tf(
-                            'Reason',
-                            _reason,
-                            maxLines: 5,
-                            onChanged: (v) =>
-                                _onWordCapChanged(_reason, (n) => _reasonWords = n),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              '$_reasonWords / 25 words',
-                              style: _tsMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _card(5, 'Complainant KYC', _sComplainantBody(),
-                        useExpansion: true),
-                    _card(
-                      6,
-                      'Registered By',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _chipSelector(
-                            label: 'Designation',
-                            items: PoliceDesignations.formIoAndReg,
-                            selected: _regDesig,
-                            onSelect: (v) => setState(() => _regDesig = v),
-                          ),
-                          const SizedBox(height: 8),
-                          _row([_tf('Registrar Name', _registrarName)]),
-                        ],
-                      ),
-                    ),
-                    _card(
-                      7,
-                      'Investigation Officer',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _chipSelector(
-                            label: 'Designation',
-                            items: PoliceDesignations.formIoAndReg,
-                            selected: _ioDesig,
-                            onSelect: (v) => setState(() => _ioDesig = v),
-                          ),
-                          const SizedBox(height: 8),
-                          _row([_tf('IO Name', _ioName)]),
-                        ],
-                      ),
-                    ),
-                    _card(
-                      8,
-                      'Last Known Direction / Destination',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _tf(
-                            'Last Known Direction / Destination',
-                            _lastKnown,
-                            maxLines: 5,
-                            onChanged: (v) => _onWordCapChanged(
-                                _lastKnown, (n) => _lastKnownWords = n),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              '$_lastKnownWords / 25 words',
-                              style: _tsMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _kidSectionCard(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _kidSectionTitle('CCTV'),
-                          const SizedBox(height: 12),
-                          _kidYesNoToggle(
-                            value: _cctvRecorded,
-                            onChanged: (v) =>
-                                setState(() => _cctvRecorded = v),
-                          ),
-                          const SizedBox(height: 12),
-                          _kidAnimatedSwitch(
-                            _cctvRecorded,
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _kidResponsiveTwoFieldRow(
-                                  context: context,
-                                  first:
-                                      _kidDateField('Date', _cctvDate),
-                                  second:
-                                      _kidTimeField('Time', _cctvTime),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  '$_reasonWords / 25 words',
+                                  style: _tsMuted,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                    _card(10, 'CDR Sent Date',
-                        _slashDateRow('CDR Sent Date', _cdrSentDate)),
-                    _card(
-                      11,
-                      'Outward Number & Date',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _row([
-                            _tf('Outward Number', _outwardNum),
-                            StandardDatePicker(
-                              label: 'Outward Date (dd/MM/yyyy)',
-                              controller: _outwardDate,
-                              lastDate: DateTime.now(),
-                              onDateChanged: (_) => setState(() {}),
-                            ),
-                          ]),
-                        ],
-                      ),
-                    ),
-                    _card(12, 'CDR Received Date',
-                        _slashDateRow('CDR Received Date', _cdrReceivedDate)),
-                    _kidSectionCard(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _kidSectionTitle('Found Section'),
-                          const SizedBox(height: 12),
-                          _kidYesNoToggle(
-                            value: _foundReported,
-                            onChanged: (v) =>
-                                setState(() => _foundReported = v),
+                        ),
+                        _card(
+                          5,
+                          'Complainant KYC',
+                          _sComplainantBody(),
+                          useExpansion: true,
+                        ),
+                        _card(
+                          6,
+                          'Registered By',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _chipSelector(
+                                label: 'Designation',
+                                items: PoliceDesignations.formIoAndReg,
+                                selected: _regDesig,
+                                onSelect: (v) => setState(() => _regDesig = v),
+                              ),
+                              const SizedBox(height: 8),
+                              _row([_tf('Registrar Name', _registrarName)]),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          _kidAnimatedSwitch(
-                            _foundReported,
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                        ),
+                        _card(
+                          7,
+                          'Investigation Officer',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _chipSelector(
+                                label: 'Designation',
+                                items: PoliceDesignations.ioDesignations,
+                                selected: _ioDesig,
+                                onSelect: (v) => setState(() => _ioDesig = v),
+                              ),
+                              const SizedBox(height: 8),
+                              _row([_tf('IO Name', _ioName)]),
+                            ],
+                          ),
+                        ),
+                        _card(
+                          8,
+                          'Last Known Direction / Destination',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _tf(
+                                'Last Known Direction / Destination',
+                                _lastKnown,
+                                maxLines: 5,
+                                onChanged: (v) => _onWordCapChanged(
+                                  _lastKnown,
+                                  (n) => _lastKnownWords = n,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  '$_lastKnownWords / 25 words',
+                                  style: _tsMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _kidSectionCard(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _kidSectionTitle('CCTV'),
+                              const SizedBox(height: 12),
+                              _kidYesNoToggle(
+                                value: _cctvRecorded,
+                                onChanged: (v) =>
+                                    setState(() => _cctvRecorded = v),
+                              ),
+                              const SizedBox(height: 12),
+                              _kidAnimatedSwitch(
+                                _cctvRecorded,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _kidResponsiveTwoFieldRow(
+                                      context: context,
+                                      first: _kidDateField('Date', _cctvDate),
+                                      second: _kidTimeField('Time', _cctvTime),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _card(
+                          10,
+                          'CDR Sent Date',
+                          _slashDateRow('CDR Sent Date', _cdrSentDate),
+                        ),
+                        _card(
+                          11,
+                          'Outward Number & Date',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _row([
+                                _tf('Outward Number', _outwardNum),
+                                StandardDatePicker(
+                                  label: 'Outward Date (dd/MM/yyyy)',
+                                  controller: _outwardDate,
+                                  lastDate: DateTime.now(),
+                                  onDateChanged: (_) => setState(() {}),
+                                ),
+                              ]),
+                            ],
+                          ),
+                        ),
+                        _card(
+                          12,
+                          'CDR Received Date',
+                          _slashDateRow('CDR Received Date', _cdrReceivedDate),
+                        ),
+                        _kidSectionCard(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _kidSectionTitle('Found Section'),
+                              const SizedBox(height: 12),
+                              _kidYesNoToggle(
+                                value: _foundReported,
+                                onChanged: (v) =>
+                                    setState(() => _foundReported = v),
+                              ),
+                              const SizedBox(height: 12),
+                              _kidAnimatedSwitch(
+                                _foundReported,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _kidResponsiveTwoFieldRow(
+                                      context: context,
+                                      first: _kidDateField(
+                                        'Found Date',
+                                        _foundDate,
+                                      ),
+                                      second: _kidTimeField(
+                                        'Found Time',
+                                        _foundTime,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextFormField(
+                                      controller: _foundSd,
+                                      style: GoogleFonts.poppins(),
+                                      decoration: _kidInputDecoration(
+                                        'SD Number / Station Diary Number',
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextFormField(
+                                      controller: _foundVillage,
+                                      style: GoogleFonts.poppins(),
+                                      decoration: _kidInputDecoration(
+                                        'Village / Town',
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextFormField(
+                                      controller: _foundAreaName,
+                                      style: GoogleFonts.poppins(),
+                                      decoration: _kidInputDecoration(
+                                        'Area Name',
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextFormField(
+                                      controller: _foundFullAddress,
+                                      maxLines: 3,
+                                      style: GoogleFonts.poppins(),
+                                      decoration: _kidInputDecoration(
+                                        'Full Address',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _kidSectionCard(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _kidSectionTitle('Custody'),
+                              const SizedBox(height: 12),
+                              _custodyBlock(context),
+                            ],
+                          ),
+                        ),
+                        _card(
+                          15,
+                          'Remark',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _tf(
+                                'Remark',
+                                _remark,
+                                maxLines: 5,
+                                onChanged: (v) => _onWordCapChanged(
+                                  _remark,
+                                  (n) => _remarkWords = n,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  '$_remarkWords / 25 words',
+                                  style: _tsMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _kidSectionCard(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _kidSectionTitle('164/183 Statement'),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Statement Recorded under 164/183?',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _kKidDark,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _kidYesNoToggle(
+                                value: _statement164183Recorded,
+                                onChanged: (v) => setState(
+                                  () => _statement164183Recorded = v,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _kidAnimatedSwitch(
+                                _statement164183Recorded,
                                 _kidResponsiveTwoFieldRow(
                                   context: context,
                                   first: _kidDateField(
-                                      'Found Date', _foundDate),
+                                    'Statement Date',
+                                    _s164Date,
+                                  ),
                                   second: _kidTimeField(
-                                      'Found Time', _foundTime),
+                                    'Statement Time',
+                                    _s164Time,
+                                  ),
                                 ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: _foundSd,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _kidInputDecoration(
-                                      'SD Number / Station Diary Number'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _kidSectionCard(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _kidSectionTitle('CWC Statement'),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Statement Recorded before Child Welfare Committee (CWC)?',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _kKidDark,
                                 ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: _foundVillage,
-                                  style: GoogleFonts.poppins(),
-                                  decoration:
-                                      _kidInputDecoration('Village / Town'),
+                              ),
+                              const SizedBox(height: 8),
+                              _kidYesNoToggle(
+                                value: _cwcRecorded,
+                                onChanged: (v) =>
+                                    setState(() => _cwcRecorded = v),
+                              ),
+                              const SizedBox(height: 12),
+                              _kidAnimatedSwitch(
+                                _cwcRecorded,
+                                _kidResponsiveTwoFieldRow(
+                                  context: context,
+                                  first: _kidDateField(
+                                    'CWC Statement Date',
+                                    _cwcDate,
+                                  ),
+                                  second: _kidTimeField(
+                                    'CWC Statement Time',
+                                    _cwcTime,
+                                  ),
                                 ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: _foundAreaName,
-                                  style: GoogleFonts.poppins(),
-                                  decoration:
-                                      _kidInputDecoration('Area Name'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _kidSectionCard(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _kidSectionTitle('Medical Examination'),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Medical Examination Conducted?',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _kKidDark,
                                 ),
-                                const SizedBox(height: 12),
-                                TextFormField(
-                                  controller: _foundFullAddress,
-                                  maxLines: 3,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _kidInputDecoration(
-                                      'Full Address'),
+                              ),
+                              const SizedBox(height: 8),
+                              _kidYesNoToggle(
+                                value: _medicalExamDone,
+                                onChanged: (v) =>
+                                    setState(() => _medicalExamDone = v),
+                              ),
+                              const SizedBox(height: 12),
+                              _kidAnimatedSwitch(
+                                _medicalExamDone,
+                                _kidResponsiveTwoFieldRow(
+                                  context: context,
+                                  first: _kidDateField(
+                                    'Medical Examination Date',
+                                    _medicalDate,
+                                  ),
+                                  second: _kidTimeField(
+                                    'Medical Examination Time',
+                                    _medicalTime,
+                                  ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                    _kidSectionCard(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _kidSectionTitle('Custody'),
-                          const SizedBox(height: 12),
-                          _custodyBlock(context),
-                        ],
-                      ),
-                    ),
-                    _card(
-                      15,
-                      'Remark',
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _tf(
-                            'Remark',
-                            _remark,
-                            maxLines: 5,
-                            onChanged: (v) => _onWordCapChanged(
-                                _remark, (n) => _remarkWords = n),
+                        ),
+                        _kidSectionCard(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _kidSectionTitle('In-Camera Statement'),
+                              const SizedBox(height: 12),
+                              Text(
+                                'In-Camera Statement Recorded?',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _kKidDark,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _kidYesNoToggle(
+                                value: _inCameraRecorded,
+                                onChanged: (v) =>
+                                    setState(() => _inCameraRecorded = v),
+                              ),
+                              const SizedBox(height: 12),
+                              _kidAnimatedSwitch(
+                                _inCameraRecorded,
+                                _kidResponsiveTwoFieldRow(
+                                  context: context,
+                                  first: _kidDateField(
+                                    'In-Camera Statement Date',
+                                    _inCameraDate,
+                                  ),
+                                  second: _kidTimeField(
+                                    'In-Camera Statement Time',
+                                    _inCameraTime,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              '$_remarkWords / 25 words',
-                              style: _tsMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _kidSectionCard(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _kidSectionTitle('164/183 Statement'),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Statement Recorded under 164/183?',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: _kKidDark,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _kidYesNoToggle(
-                            value: _statement164183Recorded,
-                            onChanged: (v) => setState(
-                                () => _statement164183Recorded = v),
-                          ),
-                          const SizedBox(height: 12),
-                          _kidAnimatedSwitch(
-                            _statement164183Recorded,
-                            _kidResponsiveTwoFieldRow(
-                              context: context,
-                              first: _kidDateField(
-                                  'Statement Date', _s164Date),
-                              second: _kidTimeField(
-                                  'Statement Time', _s164Time),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _kidSectionCard(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _kidSectionTitle('CWC Statement'),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Statement Recorded before Child Welfare Committee (CWC)?',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: _kKidDark,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _kidYesNoToggle(
-                            value: _cwcRecorded,
-                            onChanged: (v) =>
-                                setState(() => _cwcRecorded = v),
-                          ),
-                          const SizedBox(height: 12),
-                          _kidAnimatedSwitch(
-                            _cwcRecorded,
-                            _kidResponsiveTwoFieldRow(
-                              context: context,
-                              first: _kidDateField(
-                                  'CWC Statement Date', _cwcDate),
-                              second: _kidTimeField(
-                                  'CWC Statement Time', _cwcTime),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _kidSectionCard(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _kidSectionTitle('Medical Examination'),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Medical Examination Conducted?',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: _kKidDark,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _kidYesNoToggle(
-                            value: _medicalExamDone,
-                            onChanged: (v) =>
-                                setState(() => _medicalExamDone = v),
-                          ),
-                          const SizedBox(height: 12),
-                          _kidAnimatedSwitch(
-                            _medicalExamDone,
-                            _kidResponsiveTwoFieldRow(
-                              context: context,
-                              first: _kidDateField(
-                                  'Medical Examination Date',
-                                  _medicalDate),
-                              second: _kidTimeField(
-                                  'Medical Examination Time',
-                                  _medicalTime),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _kidSectionCard(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _kidSectionTitle('In-Camera Statement'),
-                          const SizedBox(height: 12),
-                          Text(
-                            'In-Camera Statement Recorded?',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: _kKidDark,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _kidYesNoToggle(
-                            value: _inCameraRecorded,
-                            onChanged: (v) =>
-                                setState(() => _inCameraRecorded = v),
-                          ),
-                          const SizedBox(height: 12),
-                          _kidAnimatedSwitch(
-                            _inCameraRecorded,
-                            _kidResponsiveTwoFieldRow(
-                              context: context,
-                              first: _kidDateField(
-                                  'In-Camera Statement Date',
-                                  _inCameraDate),
-                              second: _kidTimeField(
-                                  'In-Camera Statement Time',
-                                  _inCameraTime),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 80),
+                        ),
+                        const SizedBox(height: 80),
                       ],
                     ),
                   ],

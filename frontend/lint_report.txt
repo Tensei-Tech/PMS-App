@@ -1,0 +1,215 @@
+Analyzing frontend...                                           
+
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\modules\missing\screens\missing_form_screen.dart:316:17 - prefer_const_constructors
+warning - Unused import: '../../../utils/translation_helper.dart'. Try removing the import directive - lib\modules\missing\widgets\missing_form.dart:9:8 - unused_import
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\modules\nc\screens\nc_form_screen.dart:270:17 - prefer_const_constructors
+warning - Unused import: '../../../utils/translation_helper.dart'. Try removing the import directive - lib\modules\nc\widgets\nc_form.dart:9:8 - unused_import
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\modules\nc\widgets\nc_form.dart:222:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\modules\nc\widgets\nc_form.dart:224:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\modules\nc\widgets\nc_form.dart:468:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\modules\nc\widgets\nc_form.dart:475:9 - curly_braces_in_flow_control_structures
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\modules\nc\widgets\nc_form.dart:896:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\modules\nc\widgets\nc_form.dart:1222:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\modules\nc\widgets\nc_form.dart:1512:31 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\modules\nc\widgets\nc_form.dart:1513:35 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\providers\auth_provider.dart:42:48 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\providers\auth_provider.dart:48:46 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\providers\auth_provider.dart:54:48 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\providers\auth_provider.dart:60:48 - prefer_const_constructors
+warning - The value of the local variable 'storedEmail' isn't used. Try removing the variable or using it - lib\providers\auth_provider.dart:290:15 - unused_local_variable
+   info - Unnecessary braces in a string interpolation. Try removing the braces - lib\providers\news_provider.dart:265:60 - unnecessary_brace_in_string_interps
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:746:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:748:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:749:22 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:751:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:775:14 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:777:16 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal - lib\screens\ad_form_screen.dart:778:21 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:779:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:781:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:782:22 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:784:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:2163:19 - prefer_const_constructors
+warning - The value of the local variable 'payload' isn't used. Try removing the variable or using it - lib\screens\ad_form_screen.dart:2302:11 - unused_local_variable
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:2330:50 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_form_screen.dart:2355:50 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\ad_record_detail_screen.dart:463:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\case_detail_screen.dart:193:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\case_form_screen.dart:73:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\case_form_screen.dart:305:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\category_records_screen.dart:33:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\category_records_screen.dart:53:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\category_records_screen.dart:173:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\classification_list_screen.dart:85:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\classification_list_screen.dart:91:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\classification_list_screen.dart:205:25 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\classification_list_screen.dart:260:36 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\common_form_screen.dart:1383:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\common_form_screen.dart:1608:27 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\common_form_screen.dart:1618:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\common_form_screen.dart:1655:29 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\common_form_screen.dart:1665:25 - prefer_const_constructors
+warning - Unused import: 'pending_approvals_screen.dart'. Try removing the import directive - lib\screens\dashboard_screen.dart:36:8 - unused_import
+warning - Unused import: 'state_admin_hierarchy_screen.dart'. Try removing the import directive - lib\screens\dashboard_screen.dart:37:8 - unused_import
+warning - Unused import: '../widgets/create_sub_admin_dialog.dart'. Try removing the import directive - lib\screens\dashboard_screen.dart:46:8 - unused_import
+warning - The value of the local variable 'settings' isn't used. Try removing the variable or using it - lib\screens\dashboard_screen.dart:1309:11 - unused_local_variable
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:1319:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:1320:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:1321:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:1418:23 - prefer_const_constructors
+warning - The declaration '_appBarBtn' isn't referenced. Try removing the declaration of '_appBarBtn' - lib\screens\dashboard_screen.dart:1976:10 - unused_element
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\screens\dashboard_screen.dart:2362:5 - prefer_const_declarations
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\screens\dashboard_screen.dart:2363:5 - prefer_const_declarations
+warning - The declaration '_showFilterSheet' isn't referenced. Try removing the declaration of '_showFilterSheet' - lib\screens\dashboard_screen.dart:3603:8 - unused_element
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:3662:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:3817:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:3960:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:4100:25 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:4142:21 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:4201:21 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:5463:25 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:5491:23 - prefer_const_constructors
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\screens\dashboard_screen.dart:5537:5 - prefer_const_declarations
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:8710:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:9056:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:9259:21 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\dashboard_screen.dart:9307:13 - prefer_const_constructors
+warning - Unused import: 'package:google_fonts/google_fonts.dart'. Try removing the import directive - lib\screens\division_audit_log_screen.dart:5:8 - unused_import
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\screens\enable_biometric_screen.dart:133:5 - prefer_const_declarations
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\form_i_v_selection_screen.dart:292:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\form_i_v_selection_screen.dart:554:21 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\form_i_v_selection_screen.dart:570:21 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\form_i_v_selection_screen.dart:599:25 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\form_i_v_selection_screen.dart:627:25 - prefer_const_constructors
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\screens\login_screen.dart:192:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check - lib\screens\login_screen.dart:200:28 - use_build_context_synchronously
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\login_screen.dart:297:35 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\login_screen.dart:422:33 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\login_screen.dart:461:33 - prefer_const_constructors
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\screens\module_hub_screen.dart:587:5 - prefer_const_declarations
+warning - The declaration '_onPendingCategorySelected' isn't referenced. Try removing the declaration of '_onPendingCategorySelected' - lib\screens\module_hub_screen.dart:732:8 - unused_element
+warning - The declaration '_onPendingTimeRangeSelected' isn't referenced. Try removing the declaration of '_onPendingTimeRangeSelected' - lib\screens\module_hub_screen.dart:748:8 - unused_element
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\screens\module_hub_screen.dart:967:5 - prefer_const_declarations
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\module_hub_screen.dart:1074:31 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\module_hub_screen.dart:1104:29 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\module_hub_screen.dart:3474:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\module_hub_screen.dart:3571:22 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\module_hub_screen.dart:3648:25 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\module_hub_screen.dart:3660:25 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\module_hub_screen.dart:3822:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\module_hub_screen.dart:3832:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\module_record_detail_screen.dart:345:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\my_cases_screen.dart:488:18 - prefer_const_constructors
+warning - Unused import: 'package:flutter/foundation.dart'. Try removing the import directive - lib\screens\notification_screen.dart:4:8 - unused_import
+   info - The import of 'package:flutter/services.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart'. Try removing the import directive - lib\screens\notification_screen.dart:7:8 - unnecessary_import
+warning - Unused import: 'package:firebase_messaging/firebase_messaging.dart'. Try removing the import directive - lib\screens\notification_screen.dart:11:8 - unused_import
+warning - Unused import: '../utils/police_rbac_helper.dart'. Try removing the import directive - lib\screens\notification_screen.dart:17:8 - unused_import
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\pending_approvals_screen.dart:222:17 - prefer_const_constructors
+warning - The value of the local variable 'desig' isn't used. Try removing the variable or using it - lib\screens\pending_approvals_screen.dart:285:40 - unused_local_variable
+warning - The declaration '_InfoRow' isn't referenced. Try removing the declaration of '_InfoRow' - lib\screens\pending_approvals_screen.dart:469:7 - unused_element
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\pending_demo_table_screen.dart:102:30 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\pending_demo_table_screen.dart:297:14 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\pending_io_wise_all_categories_screen.dart:122:30 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\pending_io_wise_all_categories_screen.dart:266:30 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\pending_io_wise_screens.dart:126:30 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\pending_io_wise_screens.dart:272:30 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\pending_summary_screen.dart:165:30 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\pending_summary_screen.dart:374:14 - prefer_const_constructors
+warning - Unused import: 'package:flutter_secure_storage/flutter_secure_storage.dart'. Try removing the import directive - lib\screens\post_register_pin_setup_screen.dart:9:8 - unused_import
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\profile_edit_screen.dart:196:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\profile_edit_screen.dart:200:23 - prefer_const_constructors
+warning - Unused import: '../services/api_service.dart'. Try removing the import directive - lib\screens\register_screen.dart:17:8 - unused_import
+   info - The private field _onboardedStates could be 'final'. Try making the field 'final' - lib\screens\register_screen.dart:184:16 - prefer_final_fields
+warning - The value of the field '_onboardedStates' isn't used. Try removing the field, or using it - lib\screens\register_screen.dart:184:16 - unused_field
+warning - The value of the field '_loadingDivisions' isn't used. Try removing the field, or using it - lib\screens\register_screen.dart:199:8 - unused_field
+warning - The value of the field '_loadingDistricts' isn't used. Try removing the field, or using it - lib\screens\register_screen.dart:200:8 - unused_field
+warning - The value of the field '_loadingStations' isn't used. Try removing the field, or using it - lib\screens\register_screen.dart:201:8 - unused_field
+warning - Dead code. Try removing the code, or fixing the code before it so that it can be reached - lib\screens\register_screen.dart:341:62 - dead_code
+warning - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand - lib\screens\register_screen.dart:341:65 - dead_null_aware_expression
+warning - Dead code. Try removing the code, or fixing the code before it so that it can be reached - lib\screens\register_screen.dart:342:62 - dead_code
+warning - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand - lib\screens\register_screen.dart:342:65 - dead_null_aware_expression
+warning - Dead code. Try removing the code, or fixing the code before it so that it can be reached - lib\screens\register_screen.dart:343:60 - dead_code
+warning - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand - lib\screens\register_screen.dart:343:63 - dead_null_aware_expression
+warning - The declaration '_onUnitTypeChanged' isn't referenced. Try removing the declaration of '_onUnitTypeChanged' - lib\screens\register_screen.dart:360:8 - unused_element
+warning - Dead code. Try removing the code, or fixing the code before it so that it can be reached - lib\screens\register_screen.dart:368:71 - dead_code
+warning - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand - lib\screens\register_screen.dart:368:74 - dead_null_aware_expression
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\register_screen.dart:1526:46 - deprecated_member_use
+warning - The operand can't be 'null', so the condition is always 'true'. Remove the condition - lib\screens\register_screen.dart:1649:42 - unnecessary_null_comparison
+warning - The receiver can't be null, so the null-aware operator '?.' is unnecessary. Try replacing the operator '?.' with '.' - lib\screens\register_screen.dart:1669:68 - invalid_null_aware_operator
+warning - The operand can't be 'null', so the condition is always 'true'. Remove the condition - lib\screens\register_screen.dart:1681:21 - unnecessary_null_comparison
+warning - The receiver can't be null, so the null-aware operator '?.' is unnecessary. Try replacing the operator '?.' with '.' - lib\screens\register_screen.dart:1694:55 - invalid_null_aware_operator
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement - lib\screens\register_screen.dart:1747:7 - deprecated_member_use
+warning - The operand can't be 'null', so the condition is always 'true'. Remove the condition - lib\screens\register_screen.dart:1773:31 - unnecessary_null_comparison
+warning - The declaration '_buildUnitCard' isn't referenced. Try removing the declaration of '_buildUnitCard' - lib\screens\register_screen.dart:1807:10 - unused_element
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\report_case_list_screen.dart:31:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\report_case_list_screen.dart:157:21 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\report_case_list_screen.dart:167:21 - prefer_const_constructors
+warning - The value of the local variable 'ip' isn't used. Try removing the variable or using it - lib\screens\state_audit_log_screen.dart:242:11 - unused_local_variable
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\station_access_grants_screen.dart:274:37 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\station_access_grants_screen.dart:278:37 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\station_access_grants_screen.dart:346:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\transfer_request_screen.dart:289:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\transfer_status_screen.dart:108:29 - prefer_const_constructors
+   info - The import of 'dart:typed_data' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/foundation.dart'. Try removing the import directive - lib\services\evidence_geotag_service.dart:2:8 - unnecessary_import
+warning - Unused import: 'package:intl/intl.dart'. Try removing the import directive - lib\services\evidence_geotag_service.dart:6:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart'. Try removing the import directive - lib\services\firestore_service.dart:6:8 - unused_import
+   info - 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead. Try replacing the use of the deprecated member with the replacement - lib\services\geotag_web.dart:4:1 - deprecated_member_use
+warning - The operand can't be 'null', so the condition is always 'true'. Remove the condition - lib\services\geotag_web.dart:12:43 - unnecessary_null_comparison
+warning - Unused import: 'package:flutter_secure_storage/flutter_secure_storage.dart'. Try removing the import directive - lib\services\lockout_service.dart:4:8 - unused_import
+warning - The value of the field '_tiers' isn't used. Try removing the field, or using it - lib\services\lockout_service.dart:56:16 - unused_field
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\utils\common_form_pdf.dart:149:20 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\utils\common_form_pdf.dart:168:20 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\utils\common_form_pdf.dart:172:20 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\utils\common_form_pdf.dart:529:30 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\utils\common_form_pdf.dart:1019:39 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\utils\common_form_pdf.dart:1027:36 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\utils\common_form_pdf.dart:1134:29 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\utils\common_form_pdf.dart:1421:42 - prefer_const_constructors
+   info - Dangling library doc comment. Add a 'library' directive after the library comment - lib\utils\police_hierarchy_helper.dart:1:1 - dangling_library_doc_comments
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\ad_form_dynamic_document_view.dart:287:24 - prefer_const_constructors
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\widgets\app_logo.dart:25:35 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\bell_icon_widget.dart:79:22 - prefer_const_constructors
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\widgets\common_form\common_form.dart:1274:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block. Try wrapping the statement in a block - lib\widgets\common_form\common_form.dart:1278:9 - curly_braces_in_flow_control_structures
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\common_form\common_form.dart:2339:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\common_form\common_form.dart:3194:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\common_form\common_form.dart:3196:32 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\common_form\common_form.dart:3481:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\common_form\common_form.dart:3801:31 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\common_form\common_form.dart:3802:35 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\common_form_document_view.dart:174:7 - prefer_const_constructors
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\widgets\common_form_document_view.dart:826:5 - prefer_const_declarations
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement - lib\widgets\create_sub_admin_dialog.dart:379:31 - deprecated_member_use
+warning - Dead code. Try removing the code, or fixing the code before it so that it can be reached - lib\widgets\create_sub_admin_dialog.dart:381:52 - dead_code
+warning - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand - lib\widgets\create_sub_admin_dialog.dart:381:55 - dead_null_aware_expression
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement - lib\widgets\create_sub_admin_dialog.dart:399:31 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement - lib\widgets\create_sub_admin_dialog.dart:418:33 - deprecated_member_use
+warning - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand - lib\widgets\create_sub_admin_dialog.dart:420:57 - dead_null_aware_expression
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement - lib\widgets\create_sub_admin_dialog.dart:437:33 - deprecated_member_use
+warning - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand - lib\widgets\create_sub_admin_dialog.dart:439:57 - dead_null_aware_expression
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement - lib\widgets\create_sub_admin_dialog.dart:448:33 - deprecated_member_use
+warning - The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand - lib\widgets\create_sub_admin_dialog.dart:450:56 - dead_null_aware_expression
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\forms_accordion_list.dart:499:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\forms_accordion_list.dart:564:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\forms_accordion_list.dart:613:28 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\forms_accordion_list.dart:634:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\forms_accordion_list.dart:635:22 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\forms_accordion_list.dart:651:29 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\forms_accordion_list.dart:653:38 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\forms_accordion_list.dart:680:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\forms_accordion_list.dart:688:21 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\module_hub_report_card.dart:146:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\module_hub_report_card.dart:147:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\module_hub_report_card.dart:243:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\module_record_dynamic_document_view.dart:223:24 - prefer_const_constructors
+warning - The value of the field '_isBroadcasting' isn't used. Try removing the field, or using it - lib\widgets\officer_sos_dialog.dart:53:8 - unused_field
+warning - The value of the field '_alertId' isn't used. Try removing the field, or using it - lib\widgets\officer_sos_dialog.dart:54:11 - unused_field
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\widgets\pending_cases_demo_data_table.dart:253:9 - prefer_const_declarations
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\read_only_module_record_hub_card.dart:151:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\read_only_module_record_hub_card.dart:161:17 - prefer_const_constructors
+warning - The value of the field '_statusMessage' isn't used. Try removing the field, or using it - lib\widgets\voice_dictation_button.dart:28:10 - unused_field
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\widgets\voice_dictation_button.dart:135:17 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal - lib\widgets\voice_dictation_button.dart:136:29 - prefer_const_literals_to_create_immutables
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - tools\cleanup_duplicate_bilingual.dart:52:3 - prefer_const_declarations
+
+211 issues found. (ran in 8.0s)

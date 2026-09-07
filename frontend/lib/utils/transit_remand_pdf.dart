@@ -10,7 +10,8 @@ Future<void> previewTransitRemandPdf(
 ) async {
   final bytes = await generateTransitRemandPdf(doc);
   if (!context.mounted) return;
-  final fileName = 'Transit_Remand_${DateTime.now().millisecondsSinceEpoch}.pdf';
+  final fileName =
+      'Transit_Remand_${DateTime.now().millisecondsSinceEpoch}.pdf';
   try {
     if (kIsWeb) {
       await Printing.sharePdf(bytes: bytes, filename: fileName);

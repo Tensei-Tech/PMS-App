@@ -13,7 +13,14 @@ Future<void> previewPanchanamaContinuationPdf(
       titleMr: 'पंचनाम्याचा पुढील भाग',
       titleEn: 'Further Panchanama',
       fieldKeys: [
-        'dist', 'ps', 'firNo', 'headerDate', 'furtherPanchanama',
-        'furtherDate', 'ioName', 'ioRank', 'ioPosting',
+        'dist',
+        'ps',
+        'firNo',
+        'headerDate',
+        'furtherPanchanama',
+        'furtherDate',
+        'ioName',
+        'ioRank',
+        'ioPosting',
       ],
     );

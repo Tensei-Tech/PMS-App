@@ -280,9 +280,8 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
       extraFields: extra,
       stationName: stationName,
       createdBy: createdBy,
-      assignedOfficerUid: _isEdit
-          ? widget.existingRecord!.assignedOfficerUid
-          : auth.uid,
+      assignedOfficerUid:
+          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
     );
 
     if (_isEdit) {
@@ -314,7 +313,7 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
         IconButton(
           tooltip: 'Generate PDF',
           onPressed: _exportPdf,
-          icon: Icon(Icons.picture_as_pdf_outlined,
+          icon: const Icon(Icons.picture_as_pdf_outlined,
               color: AppColors.navyMid, size: 24),
         ),
         TextButton(

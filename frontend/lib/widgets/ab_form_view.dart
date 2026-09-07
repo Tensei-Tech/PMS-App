@@ -239,7 +239,12 @@ class AbFormViewState extends State<AbFormView> {
     );
   }
 
-  Widget _bilingualCaption(String en, String mr, TextStyle serif, TextStyle marathi) {
+  Widget _bilingualCaption(
+    String en,
+    String mr,
+    TextStyle serif,
+    TextStyle marathi,
+  ) {
     return SizedBox(
       width: double.infinity,
       child: Column(
@@ -384,14 +389,20 @@ class AbFormViewState extends State<AbFormView> {
           serifStyle,
           marathiStyle,
         ),
-        BilingualSimpleUnderlineInput(controller: _personNameCtrl, serifStyle: serifStyle),
+        BilingualSimpleUnderlineInput(
+          controller: _personNameCtrl,
+          serifStyle: serifStyle,
+        ),
         _bilingualCaption(
           'was brought to this hospital / dispensary by',
           'या रुग्णालय / औषधालयात आणण्यात आले',
           serifStyle,
           marathiStyle,
         ),
-        BilingualSimpleUnderlineInput(controller: _broughtByCtrl, serifStyle: serifStyle),
+        BilingualSimpleUnderlineInput(
+          controller: _broughtByCtrl,
+          serifStyle: serifStyle,
+        ),
         _bilingualCaption(
           '(here state name and designation of the officer)',
           '(अधिकाऱ्याचे नाव व पदनाम)',
@@ -405,25 +416,51 @@ class AbFormViewState extends State<AbFormView> {
           children: [
             Text('on', style: serifStyle),
             Text('दिनांक', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _broughtDateCtrl, width: 90),
+            _inlineField(
+              style: serifStyle,
+              controller: _broughtDateCtrl,
+              width: 90,
+            ),
             Text('at', style: serifStyle),
             Text('वेळ', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _broughtTimeCtrl, width: 70),
-            _inlineField(style: serifStyle, controller: _broughtAmPmCtrl, width: 50),
+            _inlineField(
+              style: serifStyle,
+              controller: _broughtTimeCtrl,
+              width: 70,
+            ),
+            _inlineField(
+              style: serifStyle,
+              controller: _broughtAmPmCtrl,
+              width: 50,
+            ),
             Text('(a.m./p.m.)', style: serifStyle.copyWith(fontSize: 10)),
             Text('and was examined by MO on', style: serifStyle),
             Text('वै.अ. ने तपासणी', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _examinedDateCtrl, width: 90),
+            _inlineField(
+              style: serifStyle,
+              controller: _examinedDateCtrl,
+              width: 90,
+            ),
             Text('at', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _examinedTimeCtrl, width: 70),
-            _inlineField(style: serifStyle, controller: _examinedAmPmCtrl, width: 50),
+            _inlineField(
+              style: serifStyle,
+              controller: _examinedTimeCtrl,
+              width: 70,
+            ),
+            _inlineField(
+              style: serifStyle,
+              controller: _examinedAmPmCtrl,
+              width: 50,
+            ),
             Text('a.m./p.m.', style: serifStyle),
           ],
         ),
         const SizedBox(height: 20),
         BilingualSectionHeader(
-          label: 'A clinical examination of the above named person disclosed the following :-',
-          marathiLabel: 'वर नमूद व्यक्तीच्या वैद्यकीय तपासणीत खालील गोष्टी आढळल्या :-',
+          label:
+              'A clinical examination of the above named person disclosed the following :-',
+          marathiLabel:
+              'वर नमूद व्यक्तीच्या वैद्यकीय तपासणीत खालील गोष्टी आढळल्या :-',
           serifStyle: serifStyle.copyWith(fontWeight: FontWeight.w600),
           marathiLabelStyle: marathiStyle,
         ),
@@ -436,8 +473,10 @@ class AbFormViewState extends State<AbFormView> {
           _breathCtrl,
           serifStyle,
           marathiStyle,
-          suffixEn: ' smelling / Not smelling of Alcohol / Opium / Charas / Ganja / Bhang',
-          suffixMr: ' दुर्गंध / दुर्गंध नाही — मद्य / अफीम / चरस / गांजा / भांग',
+          suffixEn:
+              ' smelling / Not smelling of Alcohol / Opium / Charas / Ganja / Bhang',
+          suffixMr:
+              ' दुर्गंध / दुर्गंध नाही — मद्य / अफीम / चरस / गांजा / भांग',
         ),
         _examRow(
           'Speech',
@@ -487,18 +526,39 @@ class AbFormViewState extends State<AbFormView> {
           spacing: 4,
           runSpacing: 8,
           children: [
-            _inlineField(style: serifStyle, controller: _consumedCtrl, width: 130),
-            _inlineField(style: serifStyle, controller: _intoxicantTypeCtrl, width: 160),
-            Text('Alcohol / Opium / Charas / Ganja / Bhang / any toxicant.', style: serifStyle),
+            _inlineField(
+              style: serifStyle,
+              controller: _consumedCtrl,
+              width: 130,
+            ),
+            _inlineField(
+              style: serifStyle,
+              controller: _intoxicantTypeCtrl,
+              width: 160,
+            ),
+            Text(
+              'Alcohol / Opium / Charas / Ganja / Bhang / any toxicant.',
+              style: serifStyle,
+            ),
           ],
         ),
-        _marathiCaption('मद्य / अफीम / चरस / गांजा / भांग / इतर विषारी पदार्थ', marathiStyle),
+        _marathiCaption(
+          'मद्य / अफीम / चरस / गांजा / भांग / इतर विषारी पदार्थ',
+          marathiStyle,
+        ),
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.end,
           spacing: 4,
           children: [
-            Text('I also find that he is / is not under the Influence of alcohol.', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _underInfluenceCtrl, width: 60),
+            Text(
+              'I also find that he is / is not under the Influence of alcohol.',
+              style: serifStyle,
+            ),
+            _inlineField(
+              style: serifStyle,
+              controller: _underInfluenceCtrl,
+              width: 60,
+            ),
           ],
         ),
         _marathiCaption('मद्याच्या प्रभावाखाली आहे / नाही', marathiStyle),
@@ -508,7 +568,11 @@ class AbFormViewState extends State<AbFormView> {
           spacing: 4,
           children: [
             Text('(N.B.', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _bloodCollectedCtrl, width: 80),
+            _inlineField(
+              style: serifStyle,
+              controller: _bloodCollectedCtrl,
+              width: 80,
+            ),
             Text(
               'Blood from the body of the above named was / was not collected by MO for Chemical examination )',
               style: serifStyle,
@@ -613,10 +677,19 @@ class AbFormViewState extends State<AbFormView> {
                   decoration: TextDecoration.underline,
                 ),
               ),
-              Text('(See rule 4 (2))', style: serifStyle.copyWith(fontSize: 11, decoration: TextDecoration.underline)),
+              Text(
+                '(See rule 4 (2))',
+                style: serifStyle.copyWith(
+                  fontSize: 11,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
               Text(
                 '(नियम ४ (२) पहा)',
-                style: marathiStyle.copyWith(fontSize: 10, decoration: TextDecoration.underline),
+                style: marathiStyle.copyWith(
+                  fontSize: 10,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ],
           ),
@@ -708,29 +781,77 @@ class AbFormViewState extends State<AbFormView> {
           spacing: 4,
           runSpacing: 10,
           children: [
-            _inlineField(style: serifStyle, controller: _messengerNameCtrl, width: 140),
-            Text('of Police station a phial bearing serial No.', style: serifStyle),
-            Text('पोलीस ठाणे — शीशी अ.क्र.', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _phialSerialCtrl, width: 90),
+            _inlineField(
+              style: serifStyle,
+              controller: _messengerNameCtrl,
+              width: 140,
+            ),
+            Text(
+              'of Police station a phial bearing serial No.',
+              style: serifStyle,
+            ),
+            Text(
+              'पोलीस ठाणे — शीशी अ.क्र.',
+              style: marathiStyle.copyWith(fontSize: 10),
+            ),
+            _inlineField(
+              style: serifStyle,
+              controller: _phialSerialCtrl,
+              width: 90,
+            ),
             Text('containing', style: serifStyle),
             Text('यात', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _bloodAmountCtrl, width: 60),
+            _inlineField(
+              style: serifStyle,
+              controller: _bloodAmountCtrl,
+              width: 60,
+            ),
             Text('c.c. of venous blood collected by me on', style: serifStyle),
-            Text('स.स. रक्त गोळा केले', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _collectionDateCtrl, width: 90),
+            Text(
+              'स.स. रक्त गोळा केले',
+              style: marathiStyle.copyWith(fontSize: 10),
+            ),
+            _inlineField(
+              style: serifStyle,
+              controller: _collectionDateCtrl,
+              width: 90,
+            ),
             Text('at', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _collectionTimeCtrl, width: 70),
-            _inlineField(style: serifStyle, controller: _collectionAmPmCtrl, width: 50),
-            Text('a.m./p.m. from the body of Shri/Smt/Kumari', style: serifStyle),
-            _inlineField(style: serifStyle, controller: _subjectNameCtrl, width: 140),
+            _inlineField(
+              style: serifStyle,
+              controller: _collectionTimeCtrl,
+              width: 70,
+            ),
+            _inlineField(
+              style: serifStyle,
+              controller: _collectionAmPmCtrl,
+              width: 50,
+            ),
+            Text(
+              'a.m./p.m. from the body of Shri/Smt/Kumari',
+              style: serifStyle,
+            ),
+            _inlineField(
+              style: serifStyle,
+              controller: _subjectNameCtrl,
+              width: 140,
+            ),
             Text('of', style: serifStyle),
             Text('यांचे', style: marathiStyle.copyWith(fontSize: 10)),
-            _inlineField(style: serifStyle, controller: _subjectAddressCtrl, width: 180),
+            _inlineField(
+              style: serifStyle,
+              controller: _subjectAddressCtrl,
+              width: 180,
+            ),
             Text(
               'who was produced before me for medical examination and / or collection of blood from his / her body by',
               style: serifStyle,
             ),
-            _inlineField(style: serifStyle, controller: _producedByCtrl, width: 180),
+            _inlineField(
+              style: serifStyle,
+              controller: _producedByCtrl,
+              width: 180,
+            ),
             Text(
               'and request you to test the blood and issue a certificate ( in duplicates ) regarding the result of the test.',
               style: serifStyle,
@@ -772,8 +893,10 @@ class AbFormViewState extends State<AbFormView> {
         ),
         const SizedBox(height: 24),
         BilingualMultilineField(
-          label: 'Facsimile of the seal or Monogram used for sealing the phial containing the blood.',
-          marathiLabel: 'रक्ताची शीशी सील करण्यासाठी वापरलेल्या शिक्क्याची / monogram ची प्रतिकृती',
+          label:
+              'Facsimile of the seal or Monogram used for sealing the phial containing the blood.',
+          marathiLabel:
+              'रक्ताची शीशी सील करण्यासाठी वापरलेल्या शिक्क्याची / monogram ची प्रतिकृती',
           controller: _sealFacsimileCtrl,
           minLines: 2,
           serifStyle: serifStyle,

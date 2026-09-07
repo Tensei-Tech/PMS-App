@@ -22,7 +22,8 @@ abstract final class FormLayout {
   }
 
   /// Lowest allowed zoom: default fit-to-screen (no thumbnail shrink).
-  static double minZoomScale(double viewportWidth) => fitScaleFor(viewportWidth);
+  static double minZoomScale(double viewportWidth) =>
+      fitScaleFor(viewportWidth);
 
   /// Initial transform: scale to [scale] and center the canvas horizontally.
   static Matrix4 centeredFitTransform({

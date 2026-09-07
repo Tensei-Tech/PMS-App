@@ -2,12 +2,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
 
+
 def health_check(request):
     return JsonResponse({
         'status': 'healthy',
         'service': 'PMS App Backend',
         'api_version': '1.0.0'
     })
+
 
 urlpatterns = [
     # Root Health Check for Render & Load Balancers
@@ -24,4 +26,3 @@ urlpatterns = [
     path('api/cases/', include('apps.cases.urls')),
     path('api/core/', include('apps.core.urls')),
 ]
-

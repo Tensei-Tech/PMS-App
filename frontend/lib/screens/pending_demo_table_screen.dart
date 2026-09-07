@@ -32,7 +32,8 @@ class PendingDemoTableScreen extends StatelessWidget {
     this.realDataRows,
   });
 
-  Future<void> _exportPdf(BuildContext context, List<Map<String, String>> rows) async {
+  Future<void> _exportPdf(
+      BuildContext context, List<Map<String, String>> rows) async {
     await runWithPdfAuthGate(context, () async {
       final theme = await PdfUnicodeFonts.openSansTheme();
       final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
@@ -99,7 +100,7 @@ class PendingDemoTableScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: Icon(Icons.arrow_back_rounded,
+                      child: const Icon(Icons.arrow_back_rounded,
                           color: AppColors.navyMid, size: 20),
                     ),
                   ),
@@ -119,8 +120,9 @@ class PendingDemoTableScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap:
-                        filtered.isEmpty ? null : () => _exportPdf(context, filtered),
+                    onTap: filtered.isEmpty
+                        ? null
+                        : () => _exportPdf(context, filtered),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 10),
@@ -294,9 +296,9 @@ class _LivePendingTableLoaderState extends State<_LivePendingTableLoader> {
     }
 
     if (_initialLoad && modules.isEmpty) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppColors.lightBg,
-        body: const SafeArea(
+        body: SafeArea(
           child: Center(
             child: CircularProgressIndicator(color: AppColors.navyMid),
           ),
