@@ -5,10 +5,12 @@ import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
 
-/// Helper class to hold all 12 controllers for a relative entry (Items 9 to 43).
+/// Helper class to hold all controllers for relative, friend, or accomplice entries.
 class RelativeEntryControllers {
   final int itemNumber;
   final String title;
+  final bool hasAccompliceRelation;
+
   final TextEditingController name = TextEditingController();
   final TextEditingController occ = TextEditingController();
   final TextEditingController currAddr = TextEditingController();
@@ -21,10 +23,12 @@ class RelativeEntryControllers {
   final TextEditingController permState = TextEditingController();
   final TextEditingController prop = TextEditingController();
   final TextEditingController phone = TextEditingController();
+  final TextEditingController relation = TextEditingController();
 
   RelativeEntryControllers({
     required this.itemNumber,
     required this.title,
+    this.hasAccompliceRelation = false,
   });
 
   void dispose() {
@@ -40,6 +44,7 @@ class RelativeEntryControllers {
     permState.dispose();
     prop.dispose();
     phone.dispose();
+    relation.dispose();
   }
 
   void hydrate(Map<String, dynamic> data) {
@@ -55,6 +60,9 @@ class RelativeEntryControllers {
     permState.text = data['rel${itemNumber}PermState']?.toString() ?? '';
     prop.text = data['rel${itemNumber}Prop']?.toString() ?? '';
     phone.text = data['rel${itemNumber}Phone']?.toString() ?? '';
+    if (hasAccompliceRelation) {
+      relation.text = data['rel${itemNumber}Relation']?.toString() ?? '';
+    }
   }
 
   void collect(Map<String, dynamic> map) {
@@ -70,6 +78,9 @@ class RelativeEntryControllers {
     map['rel${itemNumber}PermState'] = permState.text.trim();
     map['rel${itemNumber}Prop'] = prop.text.trim();
     map['rel${itemNumber}Phone'] = phone.text.trim();
+    if (hasAccompliceRelation) {
+      map['rel${itemNumber}Relation'] = relation.text.trim();
+    }
   }
 }
 
@@ -143,7 +154,48 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
   // Item 8: Birth place
   final _accusedBirthPlaceCtrl = TextEditingController();
 
-  // ─── RELATIVE CONTROLLERS (Items 9–43) ───────────────────────────────────
+  // ─── EDUCATION & EMPLOYMENT & STAY CONTROLLERS (Items 49–56) ─────────────
+  final _eduCtrl = TextEditingController();
+  final _eduLastYearCtrl = TextEditingController();
+  final _schoolNameAddrCtrl = TextEditingController();
+  final _jobOfficeNameCtrl = TextEditingController();
+  final _jobSalaryCtrl = TextEditingController();
+  final _jobDurationCtrl = TextEditingController();
+  final _jobStayAddrCtrl = TextEditingController();
+  final _prevJobOfficeCtrl = TextEditingController();
+  final _prevJobLeaveReasonCtrl = TextEditingController();
+  final _prevJobDurationCtrl = TextEditingController();
+  final _prevJobStayAddrCtrl = TextEditingController();
+  final _currentStayDurationAddrCtrl = TextEditingController();
+  final _prevStayAddrCtrl = TextEditingController();
+  final _bankAccountDetailsCtrl = TextEditingController();
+  final _habitsCtrl = TextEditingController();
+
+  // ─── CRIME DETAILS & MODUS OPERANDI CONTROLLERS (Items 57–73 & 80–83) ─────
+  final _alcoholPlaceCtrl = TextEditingController();
+  final _prostituteMistressDetailsCtrl = TextEditingController();
+  final _crimeMotiveCtrl = TextEditingController();
+  final _firstCrimeAccomplicesCtrl = TextEditingController();
+  final _prevArrestCircumstancesCtrl = TextEditingController();
+  final _prevArrestPoliceStationsCtrl = TextEditingController();
+  final _prevArrestCrimeDetailsCtrl = TextEditingController();
+  final _bailSuretyNameAddrNativeCtrl = TextEditingController();
+  final _advocateNameAddrCtrl = TextEditingController();
+  final _convictionStatusCtrl = TextEditingController();
+  final _convictionDurationJailCtrl = TextEditingController();
+  final _modusOperandiCtrl = TextEditingController();
+  final _recceMethodCtrl = TextEditingController();
+  final _informerNameAddrCtrl = TextEditingController();
+  final _rendezvousPlaceCtrl = TextEditingController();
+  final _soloCrimeCtrl = TextEditingController();
+  final _groupCrimeCtrl = TextEditingController();
+
+  final _favoriteCrimePlaceCtrl = TextEditingController();
+  final _gangLeaderNameCtrl = TextEditingController();
+  final _travelToCrimeMethodCtrl = TextEditingController();
+  final _travelFromCrimeMethodCtrl = TextEditingController();
+
+  // ─── RELATIVE & ACCOMPLICE CONTROLLERS (Items 9–48 & 74–79) ──────────────
   late final Map<int, RelativeEntryControllers> _relatives;
 
   @override
@@ -185,6 +237,19 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       41: RelativeEntryControllers(itemNumber: 41, title: 'आरोपीच्या काकाचे संपुर्ण नांव'),
       42: RelativeEntryControllers(itemNumber: 42, title: 'आरोपीच्या आत्याचे संपुर्ण नांव'),
       43: RelativeEntryControllers(itemNumber: 43, title: 'आरोपीच्या आत्याचे संपुर्ण नांव'),
+      44: RelativeEntryControllers(itemNumber: 44, title: 'आरोपीच्या आत्याचे संपुर्ण नांव'),
+      45: RelativeEntryControllers(itemNumber: 45, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
+      46: RelativeEntryControllers(itemNumber: 46, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
+      47: RelativeEntryControllers(itemNumber: 47, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
+      48: RelativeEntryControllers(itemNumber: 48, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
+
+      // Accomplices (Items 74–79)
+      74: RelativeEntryControllers(itemNumber: 74, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
+      75: RelativeEntryControllers(itemNumber: 75, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
+      76: RelativeEntryControllers(itemNumber: 76, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
+      77: RelativeEntryControllers(itemNumber: 77, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
+      78: RelativeEntryControllers(itemNumber: 78, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
+      79: RelativeEntryControllers(itemNumber: 79, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
     };
 
     if (widget.existingRecord != null) {
@@ -232,6 +297,45 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
     _descBurnMarksCtrl.dispose();
     _descMainIdMarkCtrl.dispose();
     _accusedBirthPlaceCtrl.dispose();
+
+    _eduCtrl.dispose();
+    _eduLastYearCtrl.dispose();
+    _schoolNameAddrCtrl.dispose();
+    _jobOfficeNameCtrl.dispose();
+    _jobSalaryCtrl.dispose();
+    _jobDurationCtrl.dispose();
+    _jobStayAddrCtrl.dispose();
+    _prevJobOfficeCtrl.dispose();
+    _prevJobLeaveReasonCtrl.dispose();
+    _prevJobDurationCtrl.dispose();
+    _prevJobStayAddrCtrl.dispose();
+    _currentStayDurationAddrCtrl.dispose();
+    _prevStayAddrCtrl.dispose();
+    _bankAccountDetailsCtrl.dispose();
+    _habitsCtrl.dispose();
+
+    _alcoholPlaceCtrl.dispose();
+    _prostituteMistressDetailsCtrl.dispose();
+    _crimeMotiveCtrl.dispose();
+    _firstCrimeAccomplicesCtrl.dispose();
+    _prevArrestCircumstancesCtrl.dispose();
+    _prevArrestPoliceStationsCtrl.dispose();
+    _prevArrestCrimeDetailsCtrl.dispose();
+    _bailSuretyNameAddrNativeCtrl.dispose();
+    _advocateNameAddrCtrl.dispose();
+    _convictionStatusCtrl.dispose();
+    _convictionDurationJailCtrl.dispose();
+    _modusOperandiCtrl.dispose();
+    _recceMethodCtrl.dispose();
+    _informerNameAddrCtrl.dispose();
+    _rendezvousPlaceCtrl.dispose();
+    _soloCrimeCtrl.dispose();
+    _groupCrimeCtrl.dispose();
+
+    _favoriteCrimePlaceCtrl.dispose();
+    _gangLeaderNameCtrl.dispose();
+    _travelToCrimeMethodCtrl.dispose();
+    _travelFromCrimeMethodCtrl.dispose();
 
     for (final rel in _relatives.values) {
       rel.dispose();
@@ -283,6 +387,45 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       _descMainIdMarkCtrl.text = data['descMainIdMark']?.toString() ?? '';
       _accusedBirthPlaceCtrl.text = data['accusedBirthPlace']?.toString() ?? '';
 
+      _eduCtrl.text = data['edu']?.toString() ?? '';
+      _eduLastYearCtrl.text = data['eduLastYear']?.toString() ?? '';
+      _schoolNameAddrCtrl.text = data['schoolNameAddr']?.toString() ?? '';
+      _jobOfficeNameCtrl.text = data['jobOfficeName']?.toString() ?? '';
+      _jobSalaryCtrl.text = data['jobSalary']?.toString() ?? '';
+      _jobDurationCtrl.text = data['jobDuration']?.toString() ?? '';
+      _jobStayAddrCtrl.text = data['jobStayAddr']?.toString() ?? '';
+      _prevJobOfficeCtrl.text = data['prevJobOffice']?.toString() ?? '';
+      _prevJobLeaveReasonCtrl.text = data['prevJobLeaveReason']?.toString() ?? '';
+      _prevJobDurationCtrl.text = data['prevJobDuration']?.toString() ?? '';
+      _prevJobStayAddrCtrl.text = data['prevJobStayAddr']?.toString() ?? '';
+      _currentStayDurationAddrCtrl.text = data['currentStayDurationAddr']?.toString() ?? '';
+      _prevStayAddrCtrl.text = data['prevStayAddr']?.toString() ?? '';
+      _bankAccountDetailsCtrl.text = data['bankAccountDetails']?.toString() ?? '';
+      _habitsCtrl.text = data['habits']?.toString() ?? '';
+
+      _alcoholPlaceCtrl.text = data['alcoholPlace']?.toString() ?? '';
+      _prostituteMistressDetailsCtrl.text = data['prostituteMistressDetails']?.toString() ?? '';
+      _crimeMotiveCtrl.text = data['crimeMotive']?.toString() ?? '';
+      _firstCrimeAccomplicesCtrl.text = data['firstCrimeAccomplices']?.toString() ?? '';
+      _prevArrestCircumstancesCtrl.text = data['prevArrestCircumstances']?.toString() ?? '';
+      _prevArrestPoliceStationsCtrl.text = data['prevArrestPoliceStations']?.toString() ?? '';
+      _prevArrestCrimeDetailsCtrl.text = data['prevArrestCrimeDetails']?.toString() ?? '';
+      _bailSuretyNameAddrNativeCtrl.text = data['bailSuretyNameAddrNative']?.toString() ?? '';
+      _advocateNameAddrCtrl.text = data['advocateNameAddr']?.toString() ?? '';
+      _convictionStatusCtrl.text = data['convictionStatus']?.toString() ?? '';
+      _convictionDurationJailCtrl.text = data['convictionDurationJail']?.toString() ?? '';
+      _modusOperandiCtrl.text = data['modusOperandi']?.toString() ?? '';
+      _recceMethodCtrl.text = data['recceMethod']?.toString() ?? '';
+      _informerNameAddrCtrl.text = data['informerNameAddr']?.toString() ?? '';
+      _rendezvousPlaceCtrl.text = data['rendezvousPlace']?.toString() ?? '';
+      _soloCrimeCtrl.text = data['soloCrime']?.toString() ?? '';
+      _groupCrimeCtrl.text = data['groupCrime']?.toString() ?? '';
+
+      _favoriteCrimePlaceCtrl.text = data['favoriteCrimePlace']?.toString() ?? '';
+      _gangLeaderNameCtrl.text = data['gangLeaderName']?.toString() ?? '';
+      _travelToCrimeMethodCtrl.text = data['travelToCrimeMethod']?.toString() ?? '';
+      _travelFromCrimeMethodCtrl.text = data['travelFromCrimeMethod']?.toString() ?? '';
+
       for (final rel in _relatives.values) {
         rel.hydrate(data);
       }
@@ -331,6 +474,45 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       'descBurnMarks': _descBurnMarksCtrl.text.trim(),
       'descMainIdMark': _descMainIdMarkCtrl.text.trim(),
       'accusedBirthPlace': _accusedBirthPlaceCtrl.text.trim(),
+
+      'edu': _eduCtrl.text.trim(),
+      'eduLastYear': _eduLastYearCtrl.text.trim(),
+      'schoolNameAddr': _schoolNameAddrCtrl.text.trim(),
+      'jobOfficeName': _jobOfficeNameCtrl.text.trim(),
+      'jobSalary': _jobSalaryCtrl.text.trim(),
+      'jobDuration': _jobDurationCtrl.text.trim(),
+      'jobStayAddr': _jobStayAddrCtrl.text.trim(),
+      'prevJobOffice': _prevJobOfficeCtrl.text.trim(),
+      'prevJobLeaveReason': _prevJobLeaveReasonCtrl.text.trim(),
+      'prevJobDuration': _prevJobDurationCtrl.text.trim(),
+      'prevJobStayAddr': _prevJobStayAddrCtrl.text.trim(),
+      'currentStayDurationAddr': _currentStayDurationAddrCtrl.text.trim(),
+      'prevStayAddr': _prevStayAddrCtrl.text.trim(),
+      'bankAccountDetails': _bankAccountDetailsCtrl.text.trim(),
+      'habits': _habitsCtrl.text.trim(),
+
+      'alcoholPlace': _alcoholPlaceCtrl.text.trim(),
+      'prostituteMistressDetails': _prostituteMistressDetailsCtrl.text.trim(),
+      'crimeMotive': _crimeMotiveCtrl.text.trim(),
+      'firstCrimeAccomplices': _firstCrimeAccomplicesCtrl.text.trim(),
+      'prevArrestCircumstances': _prevArrestCircumstancesCtrl.text.trim(),
+      'prevArrestPoliceStations': _prevArrestPoliceStationsCtrl.text.trim(),
+      'prevArrestCrimeDetails': _prevArrestCrimeDetailsCtrl.text.trim(),
+      'bailSuretyNameAddrNative': _bailSuretyNameAddrNativeCtrl.text.trim(),
+      'advocateNameAddr': _advocateNameAddrCtrl.text.trim(),
+      'convictionStatus': _convictionStatusCtrl.text.trim(),
+      'convictionDurationJail': _convictionDurationJailCtrl.text.trim(),
+      'modusOperandi': _modusOperandiCtrl.text.trim(),
+      'recceMethod': _recceMethodCtrl.text.trim(),
+      'informerNameAddr': _informerNameAddrCtrl.text.trim(),
+      'rendezvousPlace': _rendezvousPlaceCtrl.text.trim(),
+      'soloCrime': _soloCrimeCtrl.text.trim(),
+      'groupCrime': _groupCrimeCtrl.text.trim(),
+
+      'favoriteCrimePlace': _favoriteCrimePlaceCtrl.text.trim(),
+      'gangLeaderName': _gangLeaderNameCtrl.text.trim(),
+      'travelToCrimeMethod': _travelToCrimeMethodCtrl.text.trim(),
+      'travelFromCrimeMethod': _travelFromCrimeMethodCtrl.text.trim(),
     };
 
     for (final rel in _relatives.values) {
@@ -500,6 +682,36 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
             _tableCellInput(rel.phone, serifStyle),
           ],
         ),
+        if (rel.hasAccompliceRelation)
+          TableRow(
+            children: [
+              const SizedBox(),
+              Padding(
+                padding: const EdgeInsets.all(6),
+                child: Text('आरोपीचे साथीदाराशी नाते व संबंध', style: marathiLabelStyle),
+              ),
+              _tableCellInput(rel.relation, serifStyle),
+            ],
+          ),
+      ],
+    );
+  }
+
+  TableRow _buildSimpleRow(
+    String num,
+    String label,
+    TextEditingController ctrl,
+    TextStyle marathiLabelStyle,
+    TextStyle serifStyle,
+  ) {
+    return TableRow(
+      children: [
+        _tableHeader(num, serifStyle),
+        Padding(
+          padding: const EdgeInsets.all(6),
+          child: Text(label, style: marathiLabelStyle),
+        ),
+        _tableCellInput(ctrl, serifStyle),
       ],
     );
   }
@@ -973,6 +1185,239 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
             _buildRelativeBlock(_relatives[42]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
             _buildRelativeBlock(_relatives[43]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // ══════════════════════════════════════════════════════════════════
+        // PAGE 11 — ITEMS 44 TO 47 (Aatya & Close Friends / जिवलग मित्र)
+        // ══════════════════════════════════════════════════════════════════
+        FormPaperPage(
+          formLabel: 'Page : 11 (Aatya & Close Friends)',
+          children: [
+            _buildRelativeBlock(_relatives[44]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            const SizedBox(height: 12),
+            _buildRelativeBlock(_relatives[45]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            const SizedBox(height: 12),
+            _buildRelativeBlock(_relatives[46]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            const SizedBox(height: 12),
+            _buildRelativeBlock(_relatives[47]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // ══════════════════════════════════════════════════════════════════
+        // PAGE 12 — ITEMS 48 TO 56 (Friend, Education, Employment & Stay)
+        // ══════════════════════════════════════════════════════════════════
+        FormPaperPage(
+          formLabel: 'Page : 12 (Education, Job & Stay Details)',
+          children: [
+            _buildRelativeBlock(_relatives[48]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            const SizedBox(height: 12),
+
+            Table(
+              border: TableBorder.all(color: Colors.black87),
+              columnWidths: const {
+                0: FixedColumnWidth(44),
+                1: FlexColumnWidth(1.8),
+                2: FlexColumnWidth(4.2),
+              },
+              children: [
+                TableRow(
+                  children: [
+                    _tableHeader('49.', serifStyle),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('आरोपीचे शिक्षण', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_eduCtrl, serifStyle),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    const SizedBox(),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('शेवटचे शैक्षणीक वर्ष', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_eduLastYearCtrl, serifStyle),
+                  ],
+                ),
+                _buildSimpleRow('50.', 'कोणत्या शाळेत शिकला त्याचे नांव व पत्ता', _schoolNameAddrCtrl, marathiLabelStyle, serifStyle),
+                TableRow(
+                  children: [
+                    _tableHeader('51.', serifStyle),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('नोकरी असल्यास खाजगी मालकाचे किंवा सरकारी कार्यालयाचे संपुर्ण नांव', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_jobOfficeNameCtrl, serifStyle),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    const SizedBox(),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('मिळणारा मासीक पगार', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_jobSalaryCtrl, serifStyle),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    const SizedBox(),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('नोकरी केव्हा पासुन आहे नोकरीचा कालावधी', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_jobDurationCtrl, serifStyle),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    const SizedBox(),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('नोकरी असतांना राहण्याचा पत्ता', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_jobStayAddrCtrl, serifStyle),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    _tableHeader('52.', serifStyle),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('त्यापुर्वी नोकरीच्या मालकाचे / कार्यालयाचे नांव व पत्ता', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_prevJobOfficeCtrl, serifStyle),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    const SizedBox(),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('नोकरी सोडल्याचे कारण', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_prevJobLeaveReasonCtrl, serifStyle),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    const SizedBox(),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('नोकरीचा कालावधी', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_prevJobDurationCtrl, serifStyle),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    const SizedBox(),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('नोकरीवर असतांना राहण्याचा पत्ता', style: marathiLabelStyle),
+                    ),
+                    _tableCellInput(_prevJobStayAddrCtrl, serifStyle),
+                  ],
+                ),
+                _buildSimpleRow('53.', 'सध्या राहत असलेल्या जागी केव्हा पासुन राहत आहे त्या जागेचा पत्ता', _currentStayDurationAddrCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('54.', 'पुर्वी राहत असलेल्या जागेचा पत्ता', _prevStayAddrCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('55.', 'बँक खाते आहे काय असल्यास बँकेचे नांव पत्ता', _bankAccountDetailsCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('56.', 'सवयी', _habitsCtrl, marathiLabelStyle, serifStyle),
+              ],
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // ══════════════════════════════════════════════════════════════════
+        // PAGE 13 — ITEMS 57 TO 73 (Crime History, MO, Legal & Gang info)
+        // ══════════════════════════════════════════════════════════════════
+        FormPaperPage(
+          formLabel: 'Page : 13 (Crime Profile & Modus Operandi)',
+          children: [
+            Table(
+              border: TableBorder.all(color: Colors.black87),
+              columnWidths: const {
+                0: FixedColumnWidth(44),
+                1: FlexColumnWidth(1.8),
+                2: FlexColumnWidth(4.2),
+              },
+              children: [
+                _buildSimpleRow('57.', 'नेहमी दारू पिण्याचे ठिकाण', _alcoholPlaceCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('58.', 'धंदेवाईक बाई/ रखेल/ प्रेयसी चे संपुर्ण नांव व पत्ता', _prostituteMistressDetailsCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('59.', 'गुन्ह्यात प्रवृत्त होण्याचे कारण', _crimeMotiveCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('60.', 'प्रथम केलेला गुन्हा व त्यातील साथीदार', _firstCrimeAccomplicesCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('61.', 'पुर्वी अटक झाली आहे काय ? कुठल्या परिस्थितीत अटक झाली आहे.', _prevArrestCircumstancesCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('62.', 'कोण कोणत्या पोलीस स्टेशनला अटक होता', _prevArrestPoliceStationsCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('63.', 'कोण कोणत्या गुन्ह्यात अटक होता.', _prevArrestCrimeDetailsCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('64.', 'गुन्ह्यात जामीन घेणाऱ्या जामीनदारांचे नांव व संपुर्ण पत्ता मुळ गावासह', _bailSuretyNameAddrNativeCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('65.', 'गुन्ह्यात लावलेल्या वकीलाचे नांव व पत्ता', _advocateNameAddrCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('66.', 'शिक्षा झाली आहे काय ?', _convictionStatusCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('67.', 'शिक्षेचा कालावधी व कोणत्या कारागृहात', _convictionDurationJailCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('68.', 'गुन्हा करण्याची पध्दत', _modusOperandiCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('69.', 'गुन्हा करण्यापुर्वी जागेची माहिती कशी काढतो ?', _recceMethodCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('70.', 'बातमीदार मार्फत माहिती काढत असल्यास त्याचे नांव व पत्ता', _informerNameAddrCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('71.', 'गुन्हा करण्या अगोदर व केल्यानंतर आरोपींचे एकत्र जमण्याचे ठिकाण', _rendezvousPlaceCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('72.', 'गुन्हा एकटा करतो काय ?', _soloCrimeCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('73.', 'साथीदारासह गुन्हा करतो काय ?', _groupCrimeCtrl, marathiLabelStyle, serifStyle),
+              ],
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // ══════════════════════════════════════════════════════════════════
+        // PAGE 14 — ITEMS 74 TO 77 (Accomplices 1 to 4)
+        // ══════════════════════════════════════════════════════════════════
+        FormPaperPage(
+          formLabel: 'Page : 14 (Accomplices 1–4)',
+          children: [
+            _buildRelativeBlock(_relatives[74]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            const SizedBox(height: 12),
+            _buildRelativeBlock(_relatives[75]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            const SizedBox(height: 12),
+            _buildRelativeBlock(_relatives[76]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            const SizedBox(height: 12),
+            _buildRelativeBlock(_relatives[77]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // ══════════════════════════════════════════════════════════════════
+        // PAGE 15 — ITEMS 78 TO 83 (Accomplices 5–6 & Gang/Travel info)
+        // ══════════════════════════════════════════════════════════════════
+        FormPaperPage(
+          formLabel: 'Page : 15 (Accomplices 5–6 & Gang/Travel info)',
+          children: [
+            _buildRelativeBlock(_relatives[78]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            const SizedBox(height: 12),
+            _buildRelativeBlock(_relatives[79]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            const SizedBox(height: 12),
+
+            Table(
+              border: TableBorder.all(color: Colors.black87),
+              columnWidths: const {
+                0: FixedColumnWidth(44),
+                1: FlexColumnWidth(1.8),
+                2: FlexColumnWidth(4.2),
+              },
+              children: [
+                _buildSimpleRow('80.', 'गुन्हा करण्यासाठी जास्त आवडीचे ठिकाण', _favoriteCrimePlaceCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('81.', 'गुन्हा करणाऱ्या टोळीतील सुत्रधाराचे नांव', _gangLeaderNameCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('82.', 'गुन्हा करण्यासाठी जातांना प्रवास कशाने करतात', _travelToCrimeMethodCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('83.', 'गुन्हा करून परत जातांना प्रवास कशाने करतात', _travelFromCrimeMethodCtrl, marathiLabelStyle, serifStyle),
+              ],
+            ),
             const SizedBox(height: 16),
 
             Align(

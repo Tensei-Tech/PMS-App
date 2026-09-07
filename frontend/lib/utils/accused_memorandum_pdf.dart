@@ -122,9 +122,28 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
     );
   }
 
+  pw.Widget buildDescRow({
+    required String lKey,
+    required String vKey1,
+    required String? vVal1,
+    required String rKey,
+    required String vKey2,
+    required String? vVal2,
+  }) {
+    return pw.Row(
+      children: [
+        mLbl(lKey),
+        pw.Expanded(child: tableCell(vKey1, vVal1)),
+        mLbl(rKey),
+        pw.Expanded(child: tableCell(vKey2, vVal2)),
+      ],
+    );
+  }
+
   pw.Widget buildRelativeBlock({
     required int itemNum,
     required String titleKey,
+    bool hasAccompliceRelation = false,
   }) {
     final num = itemNum;
     return pw.Table(
@@ -213,6 +232,30 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
             tableCell('val_rel${num}Phone', val('val_rel${num}Phone', doc['rel${num}Phone'])),
           ],
         ),
+        if (hasAccompliceRelation)
+          pw.TableRow(
+            children: [
+              pw.SizedBox(),
+              pw.Padding(
+                padding: const pw.EdgeInsets.all(4),
+                child: mLbl('lbl_accomplice_relation'),
+              ),
+              tableCell('val_rel${num}Relation', val('val_rel${num}Relation', doc['rel${num}Relation'])),
+            ],
+          ),
+      ],
+    );
+  }
+
+  pw.TableRow buildSimplePdfRow(String num, String labelKey, String docKey) {
+    return pw.TableRow(
+      children: [
+        tableHeader(num),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: mLbl(labelKey),
+        ),
+        tableCell('val_$docKey', val('val_$docKey', doc[docKey])),
       ],
     );
   }
@@ -253,21 +296,21 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                   children: [
                     tableHeader('1.'),
                     pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_ps')),
-                    tableCell('val_ps', val('val_ps', doc['ps'])),
+                    tableCell('val_ps', val('val_ps', doc['ps'] ?? doc['policeStation'])),
                   ],
                 ),
                 pw.TableRow(
                   children: [
                     tableHeader('2.'),
                     pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_crime_sec')),
-                    tableCell('val_crimeNoSection', val('val_crimeNoSection', doc['crimeNoSection'])),
+                    tableCell('val_crimeNoSection', val('val_crimeNoSection', doc['crimeNoSection'] ?? doc['crimeNo'])),
                   ],
                 ),
                 pw.TableRow(
                   children: [
                     tableHeader('3.'),
                     pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_accused_name')),
-                    tableCell('val_accusedFullName', val('val_accusedFullName', doc['accusedFullName'])),
+                    tableCell('val_accusedFullName', val('val_accusedFullName', doc['accusedFullName'] ?? doc['accusedName'])),
                   ],
                 ),
                 pw.TableRow(
@@ -353,85 +396,23 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                     tableHeader('7.'),
                     pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_desc')),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(3),
+                      padding: const pw.EdgeInsets.all(4),
                       child: pw.Column(
                         children: [
-                          pw.Row(
-                            children: [
-                              mLbl('lbl_desc_color'),
-                              pw.Expanded(child: tableCell('val_descColor', val('val_descColor', doc['descColor']))),
-                              mLbl('lbl_desc_height'),
-                              pw.Expanded(child: tableCell('val_descHeight', val('val_descHeight', doc['descHeight']))),
-                              mLbl('lbl_desc_caste'),
-                              pw.Expanded(child: tableCell('val_descCaste', val('val_descCaste', doc['descCaste']))),
-                            ],
-                          ),
-                          pw.Row(
-                            children: [
-                              mLbl('lbl_desc_deform'),
-                              pw.Expanded(child: tableCell('val_descDeformity', val('val_descDeformity', doc['descDeformity']))),
-                              mLbl('lbl_desc_teeth'),
-                              pw.Expanded(child: tableCell('val_descTeeth', val('val_descTeeth', doc['descTeeth']))),
-                              mLbl('lbl_desc_hair'),
-                              pw.Expanded(child: tableCell('val_descHair', val('val_descHair', doc['descHair']))),
-                            ],
-                          ),
-                          pw.Row(
-                            children: [
-                              mLbl('lbl_desc_eyes'),
-                              pw.Expanded(child: tableCell('val_descEyes', val('val_descEyes', doc['descEyes']))),
-                              mLbl('lbl_desc_dress'),
-                              pw.Expanded(child: tableCell('val_descDress', val('val_descDress', doc['descDress']))),
-                            ],
-                          ),
-                          pw.Row(
-                            children: [
-                              mLbl('lbl_desc_voter'),
-                              pw.Expanded(child: tableCell('val_descVoterName', val('val_descVoterName', doc['descVoterName']))),
-                            ],
-                          ),
-                          pw.Row(
-                            children: [
-                              mLbl('lbl_desc_boil'),
-                              pw.Expanded(child: tableCell('val_descBoil', val('val_descBoil', doc['descBoil']))),
-                              mLbl('lbl_desc_mole'),
-                              pw.Expanded(child: tableCell('val_descMole', val('val_descMole', doc['descMole']))),
-                              mLbl('lbl_desc_tattoo'),
-                              pw.Expanded(child: tableCell('val_descTattoo', val('val_descTattoo', doc['descTattoo']))),
-                            ],
-                          ),
-                          pw.Row(
-                            children: [
-                              mLbl('lbl_desc_ears'),
-                              pw.Expanded(child: tableCell('val_descEars', val('val_descEars', doc['descEars']))),
-                              mLbl('lbl_desc_nose'),
-                              pw.Expanded(child: tableCell('val_descNose', val('val_descNose', doc['descNose']))),
-                              mLbl('lbl_desc_mustache'),
-                              pw.Expanded(child: tableCell('val_descMustache', val('val_descMustache', doc['descMustache']))),
-                            ],
-                          ),
-                          pw.Row(
-                            children: [
-                              mLbl('lbl_desc_face'),
-                              pw.Expanded(child: tableCell('val_descFace', val('val_descFace', doc['descFace']))),
-                              mLbl('lbl_desc_lang'),
-                              pw.Expanded(child: tableCell('val_descLanguage', val('val_descLanguage', doc['descLanguage']))),
-                              mLbl('lbl_desc_dob'),
-                              pw.Expanded(child: tableCell('val_descDob', val('val_descDob', doc['descDob']))),
-                            ],
-                          ),
-                          pw.Row(
-                            children: [
-                              mLbl('lbl_desc_complexion'),
-                              pw.Expanded(child: tableCell('val_descComplexion', val('val_descComplexion', doc['descComplexion']))),
-                              mLbl('lbl_desc_burn'),
-                              pw.Expanded(child: tableCell('val_descBurnMarks', val('val_descBurnMarks', doc['descBurnMarks']))),
-                            ],
-                          ),
+                          buildDescRow(lKey: 'lbl_desc_color', vKey1: 'val_descColor', vVal1: val('val_descColor', doc['descColor']), rKey: 'lbl_desc_height', vKey2: 'val_descHeight', vVal2: val('val_descHeight', doc['descHeight'])),
+                          buildDescRow(lKey: 'lbl_desc_caste', vKey1: 'val_descCaste', vVal1: val('val_descCaste', doc['descCaste']), rKey: 'lbl_desc_deform', vKey2: 'val_descDeformity', vVal2: val('val_descDeformity', doc['descDeformity'])),
+                          buildDescRow(lKey: 'lbl_desc_teeth', vKey1: 'val_descTeeth', vVal1: val('val_descTeeth', doc['descTeeth']), rKey: 'lbl_desc_hair', vKey2: 'val_descHair', vVal2: val('val_descHair', doc['descHair'])),
+                          buildDescRow(lKey: 'lbl_desc_eyes', vKey1: 'val_descEyes', vVal1: val('val_descEyes', doc['descEyes']), rKey: 'lbl_desc_dress', vKey2: 'val_descDress', vVal2: val('val_descDress', doc['descDress'])),
+                          buildDescRow(lKey: 'lbl_desc_voter', vKey1: 'val_descVoterName', vVal1: val('val_descVoterName', doc['descVoterName']), rKey: 'lbl_desc_boil', vKey2: 'val_descBoil', vVal2: val('val_descBoil', doc['descBoil'])),
+                          buildDescRow(lKey: 'lbl_desc_mole', vKey1: 'val_descMole', vVal1: val('val_descMole', doc['descMole']), rKey: 'lbl_desc_tattoo', vKey2: 'val_descTattoo', vVal2: val('val_descTattoo', doc['descTattoo'])),
+                          buildDescRow(lKey: 'lbl_desc_ears', vKey1: 'val_descEars', vVal1: val('val_descEars', doc['descEars']), rKey: 'lbl_desc_nose', vKey2: 'val_descNose', vVal2: val('val_descNose', doc['descNose'])),
+                          buildDescRow(lKey: 'lbl_desc_mustache', vKey1: 'val_descMustache', vVal1: val('val_descMustache', doc['descMustache']), rKey: 'lbl_desc_face', vKey2: 'val_descFace', vVal2: val('val_descFace', doc['descFace'])),
+                          buildDescRow(lKey: 'lbl_desc_lang', vKey1: 'val_descLanguage', vVal1: val('val_descLanguage', doc['descLanguage']), rKey: 'lbl_desc_dob', vKey2: 'val_descDob', vVal2: val('val_descDob', doc['descDob'])),
+                          buildDescRow(lKey: 'lbl_desc_complexion', vKey1: 'val_descComplexion', vVal1: val('val_descComplexion', doc['descComplexion']), rKey: 'lbl_desc_burn', vKey2: 'val_descBurnMarks', vVal2: val('val_descBurnMarks', doc['descBurnMarks'])),
                           pw.Row(
                             children: [
                               mLbl('lbl_desc_main_id'),
-                              pw.Expanded(child: tableCell('val_descMainIdMark', val('val_descMainIdMark', doc['descMainIdMark']))),
+                              pw.Expanded(child: renderText('val_descMainIdMark', val('val_descMainIdMark', doc['descMainIdMark']), valueStyle)),
                             ],
                           ),
                         ],
@@ -448,7 +429,7 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
-
+            pw.SizedBox(height: 6),
             buildRelativeBlock(itemNum: 9, titleKey: 'lbl_rel9_title'),
           ],
         );
@@ -468,9 +449,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
             buildRelativeBlock(itemNum: 10, titleKey: 'lbl_rel10_title'),
-            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 8),
             buildRelativeBlock(itemNum: 11, titleKey: 'lbl_rel11_title'),
-            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 8),
             buildRelativeBlock(itemNum: 12, titleKey: 'lbl_rel12_title'),
           ],
         );
@@ -514,9 +495,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
             buildRelativeBlock(itemNum: 17, titleKey: 'lbl_rel17_title'),
-            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 8),
             buildRelativeBlock(itemNum: 18, titleKey: 'lbl_rel18_title'),
-            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 8),
             buildRelativeBlock(itemNum: 19, titleKey: 'lbl_rel19_title'),
           ],
         );
@@ -662,8 +643,248 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
             buildRelativeBlock(itemNum: 42, titleKey: 'lbl_rel42_title'),
             pw.SizedBox(height: 8),
             buildRelativeBlock(itemNum: 43, titleKey: 'lbl_rel43_title'),
-            pw.SizedBox(height: 12),
+          ],
+        );
+      },
+    ),
+  );
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 11 — ITEMS 44 TO 47 (Aatya & Close Friends / जिवलग मित्र)
+  // ══════════════════════════════════════════════════════════════════════════
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(24),
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            buildRelativeBlock(itemNum: 44, titleKey: 'lbl_rel44_title'),
+            pw.SizedBox(height: 8),
+            buildRelativeBlock(itemNum: 45, titleKey: 'lbl_rel45_title'),
+            pw.SizedBox(height: 8),
+            buildRelativeBlock(itemNum: 46, titleKey: 'lbl_rel46_title'),
+            pw.SizedBox(height: 8),
+            buildRelativeBlock(itemNum: 47, titleKey: 'lbl_rel47_title'),
+            pw.SizedBox(height: 12),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text('M.R.W', style: englishBold),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 12 — ITEMS 48 TO 56 (Friend, Education, Employment & Stay)
+  // ══════════════════════════════════════════════════════════════════════════
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(24),
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            buildRelativeBlock(itemNum: 48, titleKey: 'lbl_rel48_title'),
+            pw.SizedBox(height: 8),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.6),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(28),
+                1: pw.FlexColumnWidth(1.8),
+                2: pw.FlexColumnWidth(4.2),
+              },
+              children: [
+                pw.TableRow(
+                  children: [
+                    tableHeader('49.'),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_edu')),
+                    tableCell('val_edu', val('val_edu', doc['edu'])),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.SizedBox(),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_edu_last_year')),
+                    tableCell('val_eduLastYear', val('val_eduLastYear', doc['eduLastYear'])),
+                  ],
+                ),
+                buildSimplePdfRow('50.', 'lbl_school_name_addr', 'schoolNameAddr'),
+                pw.TableRow(
+                  children: [
+                    tableHeader('51.'),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_job_office')),
+                    tableCell('val_jobOfficeName', val('val_jobOfficeName', doc['jobOfficeName'])),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.SizedBox(),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_job_salary')),
+                    tableCell('val_jobSalary', val('val_jobSalary', doc['jobSalary'])),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.SizedBox(),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_job_duration')),
+                    tableCell('val_jobDuration', val('val_jobDuration', doc['jobDuration'])),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.SizedBox(),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_job_stay_addr')),
+                    tableCell('val_jobStayAddr', val('val_jobStayAddr', doc['jobStayAddr'])),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    tableHeader('52.'),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_prev_job_office')),
+                    tableCell('val_prevJobOffice', val('val_prevJobOffice', doc['prevJobOffice'])),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.SizedBox(),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_prev_job_reason')),
+                    tableCell('val_prevJobLeaveReason', val('val_prevJobLeaveReason', doc['prevJobLeaveReason'])),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.SizedBox(),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_prev_job_duration')),
+                    tableCell('val_prevJobDuration', val('val_prevJobDuration', doc['prevJobDuration'])),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.SizedBox(),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: mLbl('lbl_prev_job_stay_addr')),
+                    tableCell('val_prevJobStayAddr', val('val_prevJobStayAddr', doc['prevJobStayAddr'])),
+                  ],
+                ),
+                buildSimplePdfRow('53.', 'lbl_current_stay_duration_addr', 'currentStayDurationAddr'),
+                buildSimplePdfRow('54.', 'lbl_prev_stay_addr', 'prevStayAddr'),
+                buildSimplePdfRow('55.', 'lbl_bank_account', 'bankAccountDetails'),
+                buildSimplePdfRow('56.', 'lbl_habits', 'habits'),
+              ],
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 13 — ITEMS 57 TO 73 (Crime Details & Modus Operandi)
+  // ══════════════════════════════════════════════════════════════════════════
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(24),
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.6),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(28),
+                1: pw.FlexColumnWidth(1.8),
+                2: pw.FlexColumnWidth(4.2),
+              },
+              children: [
+                buildSimplePdfRow('57.', 'lbl_alcohol_place', 'alcoholPlace'),
+                buildSimplePdfRow('58.', 'lbl_prostitute_mistress', 'prostituteMistressDetails'),
+                buildSimplePdfRow('59.', 'lbl_crime_motive', 'crimeMotive'),
+                buildSimplePdfRow('60.', 'lbl_first_crime_accomplices', 'firstCrimeAccomplices'),
+                buildSimplePdfRow('61.', 'lbl_prev_arrest_circumstances', 'prevArrestCircumstances'),
+                buildSimplePdfRow('62.', 'lbl_prev_arrest_ps', 'prevArrestPoliceStations'),
+                buildSimplePdfRow('63.', 'lbl_prev_arrest_crimes', 'prevArrestCrimeDetails'),
+                buildSimplePdfRow('64.', 'lbl_bail_surety', 'bailSuretyNameAddrNative'),
+                buildSimplePdfRow('65.', 'lbl_lawyer', 'advocateNameAddr'),
+                buildSimplePdfRow('66.', 'lbl_conviction_status', 'convictionStatus'),
+                buildSimplePdfRow('67.', 'lbl_conviction_duration', 'convictionDurationJail'),
+                buildSimplePdfRow('68.', 'lbl_mo', 'modusOperandi'),
+                buildSimplePdfRow('69.', 'lbl_recce_method', 'recceMethod'),
+                buildSimplePdfRow('70.', 'lbl_informer', 'informerNameAddr'),
+                buildSimplePdfRow('71.', 'lbl_rendezvous', 'rendezvousPlace'),
+                buildSimplePdfRow('72.', 'lbl_solo', 'soloCrime'),
+                buildSimplePdfRow('73.', 'lbl_gang', 'groupCrime'),
+              ],
+            ),
+            pw.SizedBox(height: 12),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text('M.R.W', style: englishBold),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 14 — ITEMS 74 TO 77 (Accomplices 1–4)
+  // ══════════════════════════════════════════════════════════════════════════
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(24),
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            buildRelativeBlock(itemNum: 74, titleKey: 'lbl_rel74_title', hasAccompliceRelation: true),
+            pw.SizedBox(height: 8),
+            buildRelativeBlock(itemNum: 75, titleKey: 'lbl_rel75_title', hasAccompliceRelation: true),
+            pw.SizedBox(height: 8),
+            buildRelativeBlock(itemNum: 76, titleKey: 'lbl_rel76_title', hasAccompliceRelation: true),
+            pw.SizedBox(height: 8),
+            buildRelativeBlock(itemNum: 77, titleKey: 'lbl_rel77_title', hasAccompliceRelation: true),
+          ],
+        );
+      },
+    ),
+  );
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 15 — ITEMS 78 TO 83 (Accomplices 5–6 & Gang/Travel info)
+  // ══════════════════════════════════════════════════════════════════════════
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(24),
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            buildRelativeBlock(itemNum: 78, titleKey: 'lbl_rel78_title', hasAccompliceRelation: true),
+            pw.SizedBox(height: 8),
+            buildRelativeBlock(itemNum: 79, titleKey: 'lbl_rel79_title', hasAccompliceRelation: true),
+            pw.SizedBox(height: 8),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.6),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(28),
+                1: pw.FlexColumnWidth(1.8),
+                2: pw.FlexColumnWidth(4.2),
+              },
+              children: [
+                buildSimplePdfRow('80.', 'lbl_fav_spot', 'favoriteCrimePlace'),
+                buildSimplePdfRow('81.', 'lbl_gang_leader', 'gangLeaderName'),
+                buildSimplePdfRow('82.', 'lbl_transit_to', 'travelToCrimeMethod'),
+                buildSimplePdfRow('83.', 'lbl_transit_from', 'travelFromCrimeMethod'),
+              ],
+            ),
+            pw.SizedBox(height: 12),
             pw.Align(
               alignment: pw.Alignment.bottomRight,
               child: pw.Text('M.R.W', style: englishBold),
@@ -757,6 +978,54 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'lbl_rel41_title': 'आरोपीच्या काकाचे संपुर्ण नांव',
     'lbl_rel42_title': 'आरोपीच्या आत्याचे संपुर्ण नांव',
     'lbl_rel43_title': 'आरोपीच्या आत्याचे संपुर्ण नांव',
+    'lbl_rel44_title': 'आरोपीच्या आत्याचे संपुर्ण नांव',
+    'lbl_rel45_title': 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव',
+    'lbl_rel46_title': 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव',
+    'lbl_rel47_title': 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव',
+    'lbl_rel48_title': 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव',
+    'lbl_rel74_title': 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+    'lbl_rel75_title': 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+    'lbl_rel76_title': 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+    'lbl_rel77_title': 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+    'lbl_rel78_title': 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+    'lbl_rel79_title': 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+    'lbl_accomplice_relation': 'आरोपीचे साथीदाराशी नाते व संबंध',
+    'lbl_edu': 'आरोपीचे शिक्षण',
+    'lbl_edu_last_year': 'शेवटचे शैक्षणीक वर्ष',
+    'lbl_school_name_addr': 'कोणत्या शाळेत शिकला त्याचे नांव व पत्ता',
+    'lbl_job_office': 'नोकरी असल्यास खाजगी मालकाचे किंवा सरकारी कार्यालयाचे संपुर्ण नांव',
+    'lbl_job_salary': 'मिळणारा मासीक पगार',
+    'lbl_job_duration': 'नोकरी केव्हा पासुन आहे नोकरीचा कालावधी',
+    'lbl_job_stay_addr': 'नोकरी असतांना राहण्याचा पत्ता',
+    'lbl_prev_job_office': 'त्यापुर्वी नोकरीच्या मालकाचे / कार्यालयाचे नांव व पत्ता',
+    'lbl_prev_job_reason': 'नोकरी सोडल्याचे कारण',
+    'lbl_prev_job_duration': 'नोकरीचा कालावधी',
+    'lbl_prev_job_stay_addr': 'नोकरीवर असतांना राहण्याचा पत्ता',
+    'lbl_current_stay_duration_addr': 'सध्या राहत असलेल्या जागी केव्हा पासुन राहत आहे त्या जागेचा पत्ता',
+    'lbl_prev_stay_addr': 'पुर्वी राहत असलेल्या जागेचा पत्ता',
+    'lbl_bank_account': 'बँक खाते आहे काय असल्यास बँकेचे नांव पत्ता',
+    'lbl_habits': 'सवयी',
+    'lbl_alcohol_place': 'नेहमी दारू पिण्याचे ठिकाण',
+    'lbl_prostitute_mistress': 'धंदेवाईक बाई/ रखेल/ प्रेयसी चे संपुर्ण नांव व पत्ता',
+    'lbl_crime_motive': 'गुन्ह्यात प्रवृत्त होण्याचे कारण',
+    'lbl_first_crime_accomplices': 'प्रथम केलेला गुन्हा व त्यातील साथीदार',
+    'lbl_prev_arrest_circumstances': 'पुर्वी अटक झाली आहे काय ? कुठल्या परिस्थितीत अटक झाली आहे.',
+    'lbl_prev_arrest_ps': 'कोण कोणत्या पोलीस स्टेशनला अटक होता',
+    'lbl_prev_arrest_crimes': 'कोण कोणत्या गुन्ह्यात अटक होता.',
+    'lbl_bail_surety': 'गुन्ह्यात जामीन घेणाऱ्या जामीनदारांचे नांव व संपुर्ण पत्ता मुळ गावासह',
+    'lbl_lawyer': 'गुन्ह्यात लावलेल्या वकीलाचे नांव व पत्ता',
+    'lbl_conviction_status': 'शिक्षा झाली आहे काय ?',
+    'lbl_conviction_duration': 'शिक्षेचा कालावधी व कोणत्या कारागृहात',
+    'lbl_mo': 'गुन्हा करण्याची पध्दत',
+    'lbl_recce_method': 'गुन्हा करण्यापुर्वी जागेची माहिती कशी काढतो ?',
+    'lbl_informer': 'बातमीदार मार्फत माहिती काढत असल्यास त्याचे नांव व पत्ता',
+    'lbl_rendezvous': 'गुन्हा करण्या अगोदर व केल्यानंतर आरोपींचे एकत्र जमण्याचे ठिकाण',
+    'lbl_solo': 'गुन्हा एकटा करतो काय ?',
+    'lbl_gang': 'साथीदारासह गुन्हा करतो काय ?',
+    'lbl_fav_spot': 'गुन्हा करण्यासाठी जास्त आवडीचे ठिकाण',
+    'lbl_gang_leader': 'गुन्हा करणाऱ्या टोळीतील सुत्रधाराचे नांव',
+    'lbl_transit_to': 'गुन्हा करण्यासाठी जातांना प्रवास कशाने करतात',
+    'lbl_transit_from': 'गुन्हा करून परत जातांना प्रवास कशाने करतात',
   };
 
   void addIfDevanagari(String k, dynamic v) {
@@ -791,7 +1060,45 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'lbl_birth_place',
     'lbl_curr_addr',
     'lbl_perm_addr',
-    for (int i = 9; i <= 43; i++) 'lbl_rel${i}_title',
+    for (int i = 9; i <= 48; i++) 'lbl_rel${i}_title',
+    for (int i = 74; i <= 79; i++) 'lbl_rel${i}_title',
+    'lbl_accomplice_relation',
+    'lbl_edu',
+    'lbl_edu_last_year',
+    'lbl_school_name_addr',
+    'lbl_job_office',
+    'lbl_job_salary',
+    'lbl_job_duration',
+    'lbl_job_stay_addr',
+    'lbl_prev_job_office',
+    'lbl_prev_job_reason',
+    'lbl_prev_job_duration',
+    'lbl_prev_job_stay_addr',
+    'lbl_current_stay_duration_addr',
+    'lbl_prev_stay_addr',
+    'lbl_bank_account',
+    'lbl_habits',
+    'lbl_alcohol_place',
+    'lbl_prostitute_mistress',
+    'lbl_crime_motive',
+    'lbl_first_crime_accomplices',
+    'lbl_prev_arrest_circumstances',
+    'lbl_prev_arrest_ps',
+    'lbl_prev_arrest_crimes',
+    'lbl_bail_surety',
+    'lbl_lawyer',
+    'lbl_conviction_status',
+    'lbl_conviction_duration',
+    'lbl_mo',
+    'lbl_recce_method',
+    'lbl_informer',
+    'lbl_rendezvous',
+    'lbl_solo',
+    'lbl_gang',
+    'lbl_fav_spot',
+    'lbl_gang_leader',
+    'lbl_transit_to',
+    'lbl_transit_from',
   };
 
   final cache = MarathiImageCache();
