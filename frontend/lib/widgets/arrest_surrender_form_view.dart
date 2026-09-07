@@ -48,14 +48,56 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
   final _firNoCtrl = TextEditingController();
   final _yearCtrl = TextEditingController();
   final _dateCtrl = TextEditingController();
+  final _dateDayCtrl = TextEditingController();
+  final _dateMonthCtrl = TextEditingController();
+  final _dateYearCtrl = TextEditingController();
   final _accusedCodeCtrl = TextEditingController();
 
   final _arrestDateCtrl = TextEditingController();
+  final _arrestDateDayCtrl = TextEditingController();
+  final _arrestDateMonthCtrl = TextEditingController();
+  final _arrestDateYearCtrl = TextEditingController();
   final _arrestTimeCtrl = TextEditingController();
+  final _arrestTimeHoursCtrl = TextEditingController();
+  final _arrestTimeMinutesCtrl = TextEditingController();
   final _arrestGdNoCtrl = TextEditingController();
   final _arrestPlaceCtrl = TextEditingController();
   final _arrestDistCtrl = TextEditingController();
   final _arrestStateCtrl = TextEditingController();
+
+  String get _dateCombined {
+    final d = _dateDayCtrl.text.trim();
+    final m = _dateMonthCtrl.text.trim();
+    final y = _dateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _dateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
+  String get _arrestDateCombined {
+    final d = _arrestDateDayCtrl.text.trim();
+    final m = _arrestDateMonthCtrl.text.trim();
+    final y = _arrestDateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _arrestDateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
+  String get _arrestTimeCombined {
+    final h = _arrestTimeHoursCtrl.text.trim();
+    final m = _arrestTimeMinutesCtrl.text.trim();
+    if (h.isEmpty && m.isEmpty) {
+      return _arrestTimeCtrl.text.trim();
+    }
+    if (h.isNotEmpty && m.isNotEmpty) {
+      return '$h/$m';
+    }
+    return h.isNotEmpty ? h : m;
+  }
 
   final _courtNameCtrl = TextEditingController();
   final _actsSectionsCtrl = TextEditingController();
@@ -193,9 +235,17 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
     _firNoCtrl.dispose();
     _yearCtrl.dispose();
     _dateCtrl.dispose();
+    _dateDayCtrl.dispose();
+    _dateMonthCtrl.dispose();
+    _dateYearCtrl.dispose();
     _accusedCodeCtrl.dispose();
     _arrestDateCtrl.dispose();
+    _arrestDateDayCtrl.dispose();
+    _arrestDateMonthCtrl.dispose();
+    _arrestDateYearCtrl.dispose();
     _arrestTimeCtrl.dispose();
+    _arrestTimeHoursCtrl.dispose();
+    _arrestTimeMinutesCtrl.dispose();
     _arrestGdNoCtrl.dispose();
     _arrestPlaceCtrl.dispose();
     _arrestDistCtrl.dispose();
@@ -263,9 +313,46 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
       _firNoCtrl.text = data['firNo'] ?? '';
       _yearCtrl.text = data['year'] ?? '';
       _dateCtrl.text = data['date'] ?? '';
+      _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
+      _dateMonthCtrl.text = data['dateMonth']?.toString() ?? '';
+      _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
+      if (_dateDayCtrl.text.isEmpty && _dateCtrl.text.isNotEmpty) {
+        final parts = _dateCtrl.text.split(RegExp(r'[/.-]'));
+        if (parts.length >= 3) {
+          _dateDayCtrl.text = parts[0].trim();
+          _dateMonthCtrl.text = parts[1].trim();
+          var yr = parts[2].trim();
+          if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
+          _dateYearCtrl.text = yr;
+        }
+      }
+
       _accusedCodeCtrl.text = data['accusedCode'] ?? '';
       _arrestDateCtrl.text = data['arrestDate'] ?? '';
+      _arrestDateDayCtrl.text = data['arrestDateDay']?.toString() ?? '';
+      _arrestDateMonthCtrl.text = data['arrestDateMonth']?.toString() ?? '';
+      _arrestDateYearCtrl.text = data['arrestDateYear']?.toString() ?? '';
+      if (_arrestDateDayCtrl.text.isEmpty && _arrestDateCtrl.text.isNotEmpty) {
+        final parts = _arrestDateCtrl.text.split(RegExp(r'[/.-]'));
+        if (parts.length >= 3) {
+          _arrestDateDayCtrl.text = parts[0].trim();
+          _arrestDateMonthCtrl.text = parts[1].trim();
+          var yr = parts[2].trim();
+          if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
+          _arrestDateYearCtrl.text = yr;
+        }
+      }
+
       _arrestTimeCtrl.text = data['arrestTime'] ?? '';
+      _arrestTimeHoursCtrl.text = data['arrestTimeHours']?.toString() ?? '';
+      _arrestTimeMinutesCtrl.text = data['arrestTimeMinutes']?.toString() ?? '';
+      if (_arrestTimeHoursCtrl.text.isEmpty &&
+          _arrestTimeCtrl.text.isNotEmpty) {
+        final parts = _arrestTimeCtrl.text.split(RegExp(r'[/.:]'));
+        if (parts.isNotEmpty) _arrestTimeHoursCtrl.text = parts[0].trim();
+        if (parts.length > 1) _arrestTimeMinutesCtrl.text = parts[1].trim();
+      }
+
       _arrestGdNoCtrl.text = data['arrestGdNo'] ?? '';
       _arrestPlaceCtrl.text = data['arrestPlace'] ?? '';
       _arrestDistCtrl.text = data['arrestDist'] ?? '';
@@ -386,10 +473,18 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
       'ps': _psCtrl.text,
       'firNo': _firNoCtrl.text,
       'year': _yearCtrl.text,
-      'date': _dateCtrl.text,
+      'date': _dateCombined,
+      'dateDay': _dateDayCtrl.text,
+      'dateMonth': _dateMonthCtrl.text,
+      'dateYear': _dateYearCtrl.text,
       'accusedCode': _accusedCodeCtrl.text,
-      'arrestDate': _arrestDateCtrl.text,
-      'arrestTime': _arrestTimeCtrl.text,
+      'arrestDate': _arrestDateCombined,
+      'arrestDateDay': _arrestDateDayCtrl.text,
+      'arrestDateMonth': _arrestDateMonthCtrl.text,
+      'arrestDateYear': _arrestDateYearCtrl.text,
+      'arrestTime': _arrestTimeCombined,
+      'arrestTimeHours': _arrestTimeHoursCtrl.text,
+      'arrestTimeMinutes': _arrestTimeMinutesCtrl.text,
       'arrestGdNo': _arrestGdNoCtrl.text,
       'arrestPlace': _arrestPlaceCtrl.text,
       'arrestDist': _arrestDistCtrl.text,
@@ -723,139 +818,423 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
               ),
               const Divider(color: Colors.black87, thickness: 2, height: 32),
 
-              // 1) District / P.S. / FIR / Year / Date
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: '1) District: ',
-                    marathiLabel: 'जिल्हा',
-                    controller: _distCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+              // 1. Dist / P.S. / FIR / Year / Date
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.end,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('1.Dist.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 90,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _distCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YAVATMAL',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('जिल्हा :- यवतमाळ', style: marathiLabelStyle),
+                    ],
                   ),
-                  BilingualField(
-                    label: 'P.S.: ',
-                    marathiLabel: 'पो.स्टे.',
-                    controller: _psCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('P.S.:-', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 100,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _psCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('पो.स्टे.', style: marathiLabelStyle),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('FIR/Proceeding/G.D.No:-', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 100,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _firNoCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('पहिली खबर क/ कार्यवाही क.', style: marathiLabelStyle),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Year:-20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 35,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _yearCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('वर्ष', style: marathiLabelStyle),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Date', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _dateDayCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'DD',
+                            ),
+                          ),
+                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _dateMonthCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'MM',
+                            ),
+                          ),
+                          Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _dateYearCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('दिनांक', style: marathiLabelStyle),
+                    ],
                   ),
                 ],
               ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'FIR/Proceeding/G.D.No: ',
-                    marathiLabel: 'पहिली खबर / दैनंदिनी क्र.',
-                    controller: _firNoCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Year:=20',
-                    marathiLabel: 'वर्ष',
-                    controller: _yearCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              BilingualField(
-                label: 'Date: ',
-                marathiLabel: 'दिनांक',
-                controller: _dateCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              const SizedBox(height: 12),
-              BilingualWideField(
-                label: 'Alphanumeric Code of the Accused: ',
-                marathiLabel: 'आरोपीचा अक्षरांकित कोड',
-                controller: _accusedCodeCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 14),
 
-              // 2) Arrest / surrender date, time, place
-              BilingualSectionHeader(
-                label: '2) Date, Time & place of Arrest/surrender :-',
-                marathiLabel: 'अटक / स्वाधीन होण्याची तारीख, वेळ व ठिकाण',
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              const SizedBox(height: 12),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'Date: ',
-                    marathiLabel: 'दिनांक',
-                    controller: _arrestDateCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+              // Alphanumeric Code of the Accused
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Alphanumeric Code of the Accused (Write A1 to A9 for the first 9 persons, B1 for 10 th person and so on)',
+                          style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      SizedBox(
+                        width: 120,
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _accusedCodeCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  BilingualField(
-                    label: 'Time: ',
-                    marathiLabel: 'वेळ',
-                    controller: _arrestTimeCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'G.D.No.: ',
-                    marathiLabel: 'दैनंदिनी क्र.',
-                    controller: _arrestGdNoCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 2),
+                  Text(
+                    'आरोपीचा सांकेतिक क्रमांक ( पहिल्या ९ व्यक्तींसाठी अ १ ते अ ९, दहाव्या व्यक्तीसाठी ब १ या प्रमाणे पुढे असे लिहावे )',
+                    style: marathiLabelStyle,
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'Place of Arrest — P.S.: ',
-                    marathiLabel: 'अटक ठिकाण — पो.स्टे.',
-                    controller: _arrestPlaceCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+              const SizedBox(height: 20),
+
+              // 2. Date, Time & place of Arrest/surrender
+              Wrap(
+                spacing: 16,
+                runSpacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.end,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '2. Date, Time & place of Arrest/surrender :-',
+                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'अटकेची / स्वाधीन होण्याची तारीख वेळ',
+                        style: marathiLabelStyle,
+                      ),
+                    ],
                   ),
-                  BilingualField(
-                    label: 'Dist.: ',
-                    marathiLabel: 'जिल्हा',
-                    controller: _arrestDistCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Date ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _arrestDateDayCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'DD',
+                            ),
+                          ),
+                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _arrestDateMonthCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'MM',
+                            ),
+                          ),
+                          Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _arrestDateYearCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('दिनांक', style: marathiLabelStyle),
+                    ],
                   ),
-                  BilingualField(
-                    label: 'State.: ',
-                    marathiLabel: 'राज्य',
-                    controller: _arrestStateCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Time ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _arrestTimeHoursCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'HH',
+                            ),
+                          ),
+                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 32,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _arrestTimeMinutesCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'MM',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('वेळ', style: marathiLabelStyle),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('G.D.No.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 90,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _arrestGdNoCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('ठाणे दैनंदिन क्रमांक', style: marathiLabelStyle),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 14),
+
+              // Place of Arrest: - P.S. ... Dist. ... State. ...
+              Wrap(
+                spacing: 16,
+                runSpacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.end,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Place of Arrest: - P.S.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 120,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _arrestPlaceCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('अटकेची जागा : पोलीस ठाणे', style: marathiLabelStyle),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Dist.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 120,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _arrestDistCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('जिल्हा', style: marathiLabelStyle),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('State.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          SizedBox(
+                            width: 120,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _arrestStateCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text('राज्य', style: marathiLabelStyle),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
 
               // 3) Court name
-              BilingualWideField(
-                label: '3) Name of the Court (if surrendered) :- ',
-                marathiLabel: 'न्यायालयाचे नाव (स्वाधीन झाल्यास)',
-                controller: _courtNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '3. Name of the Court ( if surrendered) :- ',
+                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _courtNameCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text('न्यायालयाचे नाव ( स्वाधीन झाल्यास ) :-', style: marathiLabelStyle),
+                ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // 4) Acts and sections
-              BilingualWideField(
-                label: '4) Acts and sections:- ',
-                marathiLabel: 'अधिनियम व कलमे',
-                controller: _actsSectionsCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '4. Acts and sections:- ',
+                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _actsSectionsCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text('अधिनियम व कलमे :', style: marathiLabelStyle),
+                ],
               ),
               const SizedBox(height: 24),
 
