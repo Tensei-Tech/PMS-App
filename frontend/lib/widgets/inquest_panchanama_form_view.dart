@@ -149,6 +149,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   final _csAbortionCtrl = TextEditingController();
   final _csJuryFindingsCtrl = TextEditingController();
   final _csRemarksCtrl = TextEditingController();
+  final _csExtraNotesCtrl = TextEditingController();
   final _csIoNameCtrl = TextEditingController();
   final _csIoRankCtrl = TextEditingController();
   final _csIoNoCtrl = TextEditingController();
@@ -158,6 +159,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   final _reqPsCtrl = TextEditingController();
   final _reqDateCtrl = TextEditingController();
   final _reqToCtrl = TextEditingController();
+  final _reqTo2Ctrl = TextEditingController();
   final _reqFromPsCtrl = TextEditingController();
   final _reqDistCtrl = TextEditingController();
   final _reqSubjectNameCtrl = TextEditingController();
@@ -429,6 +431,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _csAbortionCtrl.text = doc['csAbortion'] ?? '';
     _csJuryFindingsCtrl.text = doc['csJuryFindings'] ?? '';
     _csRemarksCtrl.text = doc['csRemarks'] ?? '';
+    _csExtraNotesCtrl.text = doc['csExtraNotes'] ?? '';
     _csIoNameCtrl.text = doc['csIoName'] ?? '';
     _csIoRankCtrl.text = doc['csIoRank'] ?? '';
     _csIoNoCtrl.text = doc['csIoNo'] ?? '';
@@ -438,6 +441,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _reqPsCtrl.text = doc['reqPs'] ?? '';
     _reqDateCtrl.text = doc['reqDate'] ?? '';
     _reqToCtrl.text = doc['reqTo'] ?? '';
+    _reqTo2Ctrl.text = doc['reqTo2'] ?? '';
     _reqFromPsCtrl.text = doc['reqFromPs'] ?? '';
     _reqDistCtrl.text = doc['reqDist'] ?? '';
     _reqSubjectNameCtrl.text = doc['reqSubjectName'] ?? '';
@@ -705,6 +709,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       'csAbortion': _csAbortionCtrl.text.trim(),
       'csJuryFindings': _csJuryFindingsCtrl.text.trim(),
       'csRemarks': _csRemarksCtrl.text.trim(),
+      'csExtraNotes': _csExtraNotesCtrl.text.trim(),
       'csIoName': _csIoNameCtrl.text.trim(),
       'csIoRank': _csIoRankCtrl.text.trim(),
       'csIoNo': _csIoNoCtrl.text.trim(),
@@ -714,6 +719,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       'reqPs': _reqPsCtrl.text.trim(),
       'reqDate': _reqDateCtrl.text.trim(),
       'reqTo': _reqToCtrl.text.trim(),
+      'reqTo2': _reqTo2Ctrl.text.trim(),
       'reqFromPs': _reqFromPsCtrl.text.trim(),
       'reqDist': _reqDistCtrl.text.trim(),
       'reqSubjectName': _reqSubjectNameCtrl.text.trim(),
@@ -979,6 +985,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _csAbortionCtrl.dispose();
     _csJuryFindingsCtrl.dispose();
     _csRemarksCtrl.dispose();
+    _csExtraNotesCtrl.dispose();
     _csIoNameCtrl.dispose();
     _csIoRankCtrl.dispose();
     _csIoNoCtrl.dispose();
@@ -988,6 +995,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _reqPsCtrl.dispose();
     _reqDateCtrl.dispose();
     _reqToCtrl.dispose();
+    _reqTo2Ctrl.dispose();
     _reqFromPsCtrl.dispose();
     _reqDistCtrl.dispose();
     _reqSubjectNameCtrl.dispose();
@@ -1206,6 +1214,1127 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       ),
     );
   }
+
+
+  Widget _inlineBlank({
+    required TextEditingController controller,
+    required TextStyle style,
+    double? width,
+    String? hintText,
+  }) {
+    return SizedBox(
+      width: width,
+      child: TextFormField(
+        controller: controller,
+        readOnly: widget.readOnly,
+        style: style.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 13.5,
+          color: const Color(0xFF0D47A1),
+        ),
+        decoration: InputDecoration(
+          isDense: true,
+          filled: false,
+          fillColor: Colors.transparent,
+          hintText: hintText,
+          hintStyle: style.copyWith(fontSize: 11, color: Colors.grey.shade400, fontStyle: FontStyle.italic),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          border: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333), width: 1.0)),
+          enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+          focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+        ),
+      ),
+    );
+  }
+
+  Widget _multilineBlankBox({
+    required TextEditingController controller,
+    required TextStyle style,
+    int minLines = 2,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: widget.readOnly,
+      minLines: minLines,
+      maxLines: null,
+      style: style.copyWith(
+        fontWeight: FontWeight.w500,
+        fontSize: 13.5,
+        height: 1.4,
+        color: const Color(0xFF0D47A1),
+      ),
+      decoration: const InputDecoration(
+        isDense: true,
+        filled: false,
+        fillColor: Colors.transparent,
+        contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        border: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+      ),
+    );
+  }
+
+  Widget _subLabel(String text, TextStyle marathiStyle) {
+    return Text(
+      text,
+      style: marathiStyle.copyWith(
+        fontSize: 10.5,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  Widget _buildCsRow({
+    required String qNum,
+    required String qTextEn,
+    required String qTextMr,
+    required Widget answerWidget,
+    required TextStyle style,
+    required TextStyle marathiStyle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 11,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$qNum $qTextEn',
+                  style: style.copyWith(fontWeight: FontWeight.bold, fontSize: 13, height: 1.25),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  qTextMr,
+                  style: marathiStyle.copyWith(fontSize: 10.5, color: Colors.black87, height: 1.25),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 12,
+            child: answerWidget,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCsDateTimeAnswer({
+    required TextEditingController dateCtrl,
+    required TextEditingController timeCtrl,
+    required TextStyle style,
+    required TextStyle marathiStyle,
+  }) {
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 2,
+      runSpacing: 4,
+      children: [
+        Text(':- दिनांक ', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
+        _inlineBlank(controller: dateCtrl, style: style, width: 85, hintText: 'DD/MM/YY'),
+        Text(' रोजी ', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
+        _inlineBlank(controller: timeCtrl, style: style, width: 75, hintText: 'HH:MM'),
+        Text(' वाजता.', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 5 (Police Report to Civil Surgeon - Page 1)
+  // ══════════════════════════════════════════════════════════════════════════
+  Widget _buildCivilSurgeonPage5(TextStyle style, TextStyle marathiStyle) {
+    return FormPaperPage(
+      formLabel: 'Page 5',
+      children: [
+        Text(
+          'नमुना सी-६१७ स्थानांतरण/सं-२७१-कालगुण-२७११-२,००,०००(पुस्तके ४ पो.स्टे.का. ४४\n(G.R.G.D No.352 dt 21-5-12 P.M. 35 M.C in MR vide L.No.L.89-B dt.18-4-69 form I.G of Police, M.S.Bombay)',
+          textAlign: TextAlign.center,
+          style: marathiStyle.copyWith(fontSize: 9.5, color: Colors.black87),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'शवविच्छेदन परिक्षेसाठी पाठविलेल्या प्रेताबरोबर जिल्हा शल्यचिकित्सकाकडे पाठवायचा पोलीस अहवाल',
+          textAlign: TextAlign.center,
+          style: marathiStyle.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          'Police Report to be forwarded to the Civil Surgeon with Dead Bodies sent For Post-mortem examination',
+          textAlign: TextAlign.center,
+          style: style.copyWith(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        const Divider(color: Colors.black87, thickness: 1.0),
+        Row(
+          children: [
+            Expanded(
+              flex: 11,
+              child: Column(
+                children: [
+                  Text('प्रश्न', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  Text('Question', style: style.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            Container(width: 1, height: 30, color: Colors.black26),
+            Expanded(
+              flex: 12,
+              child: Column(
+                children: [
+                  Text('उत्तर', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  Text('Answer', style: style.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const Divider(color: Colors.black87, thickness: 1.0),
+        const SizedBox(height: 8),
+
+        // 1) Name of Deceased
+        _buildCsRow(
+          qNum: '1)',
+          qTextEn: 'Name of Deceased',
+          qTextMr: 'मृत व्यक्तीचे नांव',
+          answerWidget: _inlineBlank(controller: _csNameDeceasedCtrl, style: style),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 2) Age
+        _buildCsRow(
+          qNum: '2)',
+          qTextEn: 'Age',
+          qTextMr: 'वय',
+          answerWidget: _inlineBlank(controller: _csAgeCtrl, style: style),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 3) Married, Single, Widow or Widower
+        _buildCsRow(
+          qNum: '3)',
+          qTextEn: 'Married, Single, Widow or Widower',
+          qTextMr: 'विवाहीत, अविवाहीत, विधवा किंवा विधूर',
+          answerWidget: _inlineBlank(controller: _csMaritalStatusCtrl, style: style),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 4) Date and hour of death
+        _buildCsRow(
+          qNum: '4)',
+          qTextEn: 'Date and hour of death',
+          qTextMr: 'मृत्युचा दिनांक आणि वेळ',
+          answerWidget: _buildCsDateTimeAnswer(
+            dateCtrl: _csDeathDateCtrl,
+            timeCtrl: _csDeathTimeCtrl,
+            style: style,
+            marathiStyle: marathiStyle,
+          ),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 5) Describe condition of body when found...
+        _buildCsRow(
+          qNum: '5)',
+          qTextEn: 'Describe condition of body when found, Position, Surroundings and any marks of Violence, bloodstains or vomited matters Which may have existed?',
+          qTextMr: 'प्रेत सापडले त्यावेळची अवस्था, स्थिती, भोवतालची परिस्थिती आणि उपलब्ध असलेल्या मारहाणीच्या खुणा रक्ताचे डाग किंवा वांतीबरोबर पडलेले पदार्थ यांचा तपशील दयावा.',
+          answerWidget: _multilineBlankBox(controller: _csBodyConditionCtrl, style: style, minLines: 4),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 6) Day and hour on which the body was seen...
+        _buildCsRow(
+          qNum: '6)',
+          qTextEn: 'Day and hour on which the body was seen by the officer making the report',
+          qTextMr: 'अहवाल पाठविणाऱ्या अधिकाऱ्याने प्रेत पाहिल्याचा दिनांक व वेळ (तास)',
+          answerWidget: _buildCsDateTimeAnswer(
+            dateCtrl: _csSeenDateCtrl,
+            timeCtrl: _csSeenTimeCtrl,
+            style: style,
+            marathiStyle: marathiStyle,
+          ),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 7) Was the body cold or warm when found?
+        _buildCsRow(
+          qNum: '7)',
+          qTextEn: 'Was the body cold or warm when found?',
+          qTextMr: 'प्रेत सापडले त्यावेळी थंड होते कि गरम',
+          answerWidget: _inlineBlank(controller: _csBodyColdWarmCtrl, style: style),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 8) Had the deceased suffered from recent Illness?
+        _buildCsRow(
+          qNum: '8)',
+          qTextEn: 'Had the deceased suffered from recent Illness? If so, what? State duration and Describe the illness as far as Known.',
+          qTextMr: 'मृत व्यक्तीस अलिकडे काही आजार झाला होता काय असल्यास कोणता.',
+          answerWidget: _multilineBlankBox(controller: _csRecentIllnessCtrl, style: style, minLines: 3),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 9) Had deceased suffered from accident Injury...
+        _buildCsRow(
+          qNum: '9)',
+          qTextEn: 'Had deceased suffered from accident Injury or if so, describe it.',
+          qTextMr: 'मृत व्यक्तीस कोणत्याही प्रकारचा अपघात, दुखापत किंवा मारहाण झाली होती काय ?',
+          answerWidget: _multilineBlankBox(controller: _csAccidentInjuryCtrl, style: style, minLines: 2),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 10) If clothes, weapons, vomited matter...
+        _buildCsRow(
+          qNum: '10)',
+          qTextEn: 'If clothes, weapons, vomited matter of Other articles are forwarded, State why this Is done and what relation they bear to the Case? Describe them.',
+          qTextMr: 'कपडे, हत्यारे, वांतीबरोबर पडलेले पदार्थ किंवा इतर वस्तु पाठविल्या असल्यास तसे का केले व त्याचा प्रकरणाशी संबंध आहे ते लिहावे, त्याचा तपशील दयावा.',
+          answerWidget: _multilineBlankBox(controller: _csArticlesForwardedCtrl, style: style, minLines: 4),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 11) Is death supposed to have been due to Natural causes...
+        _buildCsRow(
+          qNum: '11)',
+          qTextEn: 'Is death supposed to have been due to Natural causes, accident, suicide or homicide? State briefly and plainly, any suspicions That may exist and why?',
+          qTextMr: 'मृत्यु नैसर्गिक कारणे, अपघात, आत्महत्या किंवा खून यापैकी कशामुळे घडला असे वाटते. काही संशय असल्यास ते थोडक्यात स्पष्टपणे नमुद करावे व कारणे दयावे.',
+          answerWidget: _multilineBlankBox(controller: _csDeathReasonCtrl, style: style, minLines: 4),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+        ),
+      ],
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 6 (Police Report to Civil Surgeon - Page 2)
+  // ══════════════════════════════════════════════════════════════════════════
+  Widget _buildCivilSurgeonPage6(TextStyle style, TextStyle marathiStyle) {
+    return FormPaperPage(
+      formLabel: 'Page 6',
+      children: [
+        const Divider(color: Colors.black87, thickness: 1.0),
+        Row(
+          children: [
+            Expanded(
+              flex: 11,
+              child: Column(
+                children: [
+                  Text('प्रश्न', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  Text('Question', style: style.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            Container(width: 1, height: 30, color: Colors.black26),
+            Expanded(
+              flex: 12,
+              child: Column(
+                children: [
+                  Text('उत्तर', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  Text('Answer', style: style.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const Divider(color: Colors.black87, thickness: 1.0),
+        const SizedBox(height: 8),
+
+        // 12) Is there suspicion of poisoning?
+        _buildCsRow(
+          qNum: '12)',
+          qTextEn: 'Is there suspicion of poisoning? If, so, is any particular poison supposed to have been employed? Mention any symptoms of poisoning which are reported to have existed during life and any appearances pointing to poisoning observed after death.',
+          qTextMr: 'विष प्रयोग केल्याचा संशय आहे, असल्यास विशिष्ट विषाचा वापर केला आहे वाटते काय? मृत व्यक्ती जिवंत असतांना विषबाधा झाल्याची लक्षणे दिसून आल्याचे कळविण्यात आले होते काय, व विषाचे बाबत मृत्यु नंतर दिसून आलेली चिन्हे नमुद करावी.',
+          answerWidget: _multilineBlankBox(controller: _csPoisonSuspicionCtrl, style: style, minLines: 5),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 13) In the case of a woman...
+        _buildCsRow(
+          qNum: '13)',
+          qTextEn: 'In the case of a woman, is she supposed to be pregnant of to have been recently delivered ?',
+          qTextMr: 'स्त्रीच्या बाबतीत ती गरोदर असावी किंवा अलीकडे प्रसुती झाली असावी असे वाटते काय ?',
+          answerWidget: _multilineBlankBox(controller: _csWomanPregnancyCtrl, style: style, minLines: 2),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 14) Is abortion or attempted abortion...
+        _buildCsRow(
+          qNum: '14)',
+          qTextEn: 'Is abortion or attempted abortion known or suspected? And if the former, has the focus been found?',
+          qTextMr: 'गर्भपात केला किंवा गर्भपात करण्याचा प्रयत्न केला या विषयी माहिती किंवा संशय आहे काय, गर्भपात केला असल्यास गर्भ सापडला काय.',
+          answerWidget: _multilineBlankBox(controller: _csAbortionCtrl, style: style, minLines: 2),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 15) State the finding of the Jury...
+        _buildCsRow(
+          qNum: '15)',
+          qTextEn: 'State the finding of the Jury (if any) and mention any reasons they may have given for their findings.',
+          qTextMr: 'ज्युरीचे निष्कर्ष असल्यास नमुद करावेत व निष्कर्षा बाबत त्यांनी काही कारणे दिली असल्यास त्याचा निर्देश करावा.',
+          answerWidget: _multilineBlankBox(controller: _csJuryFindingsCtrl, style: style, minLines: 2),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        // 16) Remarks
+        _buildCsRow(
+          qNum: '16)',
+          qTextEn: 'Remarks. Under this head the Police Officer should give any information not included in the above question which he may consider likely to assist the Civil Surgeon informing an opinion of the cause of death.',
+          qTextMr: 'शेरा वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकांना मृत्युच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.',
+          answerWidget: _multilineBlankBox(controller: _csRemarksCtrl, style: style, minLines: 5),
+          style: style,
+          marathiStyle: marathiStyle,
+        ),
+
+        const SizedBox(height: 12),
+        _multilineBlankBox(controller: _csExtraNotesCtrl, style: style, minLines: 1),
+        const SizedBox(height: 24),
+
+        // IO Signature Section
+        Row(
+          children: [
+            const Spacer(),
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _subLabel('तपासणी करणाऱ्या अधिकाऱ्यांची नांव व सही', marathiStyle),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('Name: ', style: style),
+                      Expanded(child: _inlineBlank(controller: _csIoNameCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('नांव', marathiStyle),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('Rank: ', style: style),
+                      _inlineBlank(controller: _csIoRankCtrl, style: style, width: 110),
+                      const SizedBox(width: 6),
+                      Text('Number if any:', style: style),
+                      Expanded(child: _inlineBlank(controller: _csIoNoCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('पद                   बक्कल नंबर', marathiStyle),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('Posting and Address:', style: style),
+                      Expanded(child: _inlineBlank(controller: _csIoPostingCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('नेमणूक व पत्ता', marathiStyle),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+        ),
+      ],
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 7 (Vinanti Arj / Post Mortem Request Application)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildVinantiArjPage7(TextStyle style, TextStyle marathiStyle) {
+    return FormPaperPage(
+      formLabel: 'Page 7',
+      children: [
+        // Title
+        Center(
+          child: Column(
+            children: [
+              Text(
+                'विनंती अर्ज',
+                style: marathiStyle.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                  decorationStyle: TextDecorationStyle.dotted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Top Right: पोलीस स्टेशन / दिनांक
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('पोलीस स्टेशन', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(controller: _reqPsCtrl, style: style, width: 140),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('दिनांक :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(controller: _reqDateCtrl, style: style, width: 110, hintText: 'DD/MM/20YY'),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Recipient (प्रति)
+        Text('प्रति,', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+        Padding(
+          padding: const EdgeInsets.only(left: 32.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('मा. न्यायवैद्यक शास्त्र विभाग प्रमुख', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 4),
+              _inlineBlank(controller: _reqToCtrl, style: style, width: 280),
+              const SizedBox(height: 4),
+              _inlineBlank(controller: _reqTo2Ctrl, style: style, width: 280),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // From (पासुन)
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text('पासुन  :-    पोलीस स्टेशन', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+            _inlineBlank(controller: _reqFromPsCtrl, style: style, width: 140),
+            Text('   जिल्हा ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+            _inlineBlank(controller: _reqDistCtrl, style: style, width: 120, hintText: 'जिल्हा'),
+            Text('  जिल्हा यवतमाळ.', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Subject (विषय)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('विषय  :-    ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('मृतक नामे ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      _inlineBlank(controller: _reqSubjectNameCtrl, style: style, width: 340),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('पो.स्टे.', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      _inlineBlank(controller: _reqSubjectPsCtrl, style: style, width: 110),
+                      Text('  ता-', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      _inlineBlank(controller: _reqSubjectTaCtrl, style: style, width: 100),
+                      Text('  जिल्हा यवतमाळ हिचे/ ह्यांचे प्रेताचे पि.एम', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text('करून आपला अभिप्राय मिळणेबाबत.', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Center(child: Text('० ० ० ०', style: marathiStyle.copyWith(letterSpacing: 4))),
+        const SizedBox(height: 8),
+
+        // Body (महोदय)
+        Text('महोदय,', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 6,
+            spacing: 2,
+            children: [
+              Text('सविनय सेवेशी सादर आहे की, आज दिनांक ', style: marathiStyle),
+              _inlineBlank(controller: _reqMargDateCtrl, style: style, width: 85, hintText: 'DD/MM/YY'),
+              Text(' रोजी ', style: marathiStyle),
+              _inlineBlank(controller: _reqMargTimeCtrl, style: style, width: 65, hintText: 'HH:MM'),
+              Text(' वाजता पोलीस स्टेशन ', style: marathiStyle),
+              _inlineBlank(controller: _reqMargPsCtrl, style: style, width: 120),
+              Text(' मर्ग/ स्टेशन डायरी क्र.', style: marathiStyle),
+              _inlineBlank(controller: _reqMargDiaryNoCtrl, style: style, width: 75),
+              Text('/२०', style: marathiStyle),
+              _inlineBlank(controller: _reqMargYearCtrl, style: style, width: 45),
+              Text(' कलम १९४ बी.एन.एस.एस २०२३ चा मर्ग दाखल झाला असुन यातील मृतक नामे ', style: marathiStyle),
+              _inlineBlank(controller: _reqMargNameCtrl, style: style, width: 260),
+              Text(' पो.स्टे.', style: marathiStyle),
+              _inlineBlank(controller: _reqSubjectPsCtrl, style: style, width: 110),
+              Text(' ता-', style: marathiStyle),
+              _inlineBlank(controller: _reqMargTaCtrl, style: style, width: 100),
+              Text(' जिल्हा यवतमाळ ही/ह्या ', style: marathiStyle),
+              _inlineBlank(controller: _reqHospitalNameCtrl, style: style, width: 180, hintText: 'दवाखान्याचे नांव'),
+              Text(' येथे दिनांक ', style: marathiStyle),
+              _inlineBlank(controller: _reqAdmitDateCtrl, style: style, width: 85, hintText: 'DD/MM/YY'),
+              Text(' रोजी ', style: marathiStyle),
+              _inlineBlank(controller: _reqAdmitTimeCtrl, style: style, width: 65, hintText: 'HH:MM'),
+              Text(' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ ', style: marathiStyle),
+              _inlineBlank(controller: _reqReasonDetailsCtrl, style: style, width: 220),
+              Text('   मयत (तो / ती) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+              _inlineBlank(controller: _reqDeceasedHeSheCtrl, style: style, width: 80, hintText: 'तो/ती'),
+              Text(' दिनांक ', style: marathiStyle),
+              _inlineBlank(controller: _reqDeathDateCtrl, style: style, width: 85, hintText: 'DD/MM/YY'),
+              Text(' रोजी ', style: marathiStyle),
+              _inlineBlank(controller: _reqDeathTimeCtrl, style: style, width: 65, hintText: 'HH:MM'),
+              Text(' वाजता मरण पावला आहे.', style: marathiStyle),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: Text(
+            'तरी सदर मृतकाचे मरणाचे निश्चीत कारण समजुन येणेकरीता सदर मृतकाचे प्रेताचे पी.एम करून आपला सविस्तर अभिप्राय मिळणेस विनंती आहे.',
+            style: marathiStyle.copyWith(height: 1.4),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Bottom Row: Attachments on Left | IO Signature on Right
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left: सहपत्र & हस्ते
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('सहपत्र : प्रश्नोत्तर फॉर्म', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 45.0),
+                    child: Text('इंक्वेस्ट पंचनामा', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('हस्ते : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      _inlineBlank(controller: _reqHasteNameCtrl, style: style, width: 140),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('पो.स्टे. : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      _inlineBlank(controller: _reqHastePsCtrl, style: style, width: 140),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 20),
+            // Right: IO Signature
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('तपासी अधिकारी नांव /सही शिक्या', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('Name: ', style: style),
+                      Expanded(child: _inlineBlank(controller: _reqIoNameCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('नांव', marathiStyle),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text('Rank: ', style: style),
+                      _inlineBlank(controller: _reqIoRankCtrl, style: style, width: 100),
+                      const SizedBox(width: 4),
+                      Text('No:', style: style),
+                      Expanded(child: _inlineBlank(controller: _reqIoNoCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('पद                   बक्कल नंबर', marathiStyle),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text('Posting:', style: style),
+                      Expanded(child: _inlineBlank(controller: _reqIoPostingCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('नेमणूक व पत्ता', marathiStyle),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+        ),
+      ],
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 8 (Relative Summons / नातेवाईकांना समन्स)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildRelativeSummonsPage8(TextStyle style, TextStyle marathiStyle) {
+    return FormPaperPage(
+      formLabel: 'Page 8',
+      children: [
+        // Title
+        Center(
+          child: Column(
+            children: [
+              Text(
+                'नातेवाईकांना समन्स',
+                style: marathiStyle.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                  decorationStyle: TextDecorationStyle.dotted,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '(कलम १७९ भारतीय नागरिक सुरक्षा संहिता २०२३ अन्वये)',
+                style: marathiStyle.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                  decorationStyle: TextDecorationStyle.dotted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Top Right: पोलीस स्टेशन / कॅम्प / दिनांक
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('पोलीस स्टेशन', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(controller: _relPsCtrl, style: style, width: 140),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('कॅम्प :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(controller: _relCampCtrl, style: style, width: 155),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('दिनांक :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(controller: _relDateCtrl, style: style, width: 110, hintText: 'DD/MM/20YY'),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Recipient (नांव :-)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('नांव  :-   ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+            Expanded(
+              child: _multilineBlankBox(controller: _relToNameCtrl, style: style, minLines: 4),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Center(child: Text('० ० ० ०', style: marathiStyle.copyWith(letterSpacing: 4))),
+        const SizedBox(height: 12),
+
+        // Body Paragraph
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 6,
+            spacing: 2,
+            children: [
+              Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ', style: marathiStyle),
+              _inlineBlank(controller: _relWeNameCtrl, style: style, width: 220),
+              Text(' पोलीस स्टेशन ', style: marathiStyle),
+              _inlineBlank(controller: _relPsNameCtrl, style: style, width: 140),
+              Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ', style: marathiStyle),
+              _inlineBlank(controller: _relCrDiaryNoCtrl, style: style, width: 75),
+              Text('/२०', style: marathiStyle),
+              _inlineBlank(controller: _relCrYearCtrl, style: style, width: 45),
+              Text(' कलम ', style: marathiStyle),
+              _inlineBlank(controller: _relActSecCtrl, style: style, width: 180),
+              Text(' मधील मृतक नामे ', style: marathiStyle),
+              _inlineBlank(controller: _relDeceasedNameCtrl, style: style, width: 260),
+              Text(' ता-', style: marathiStyle),
+              _inlineBlank(controller: _relTaCtrl, style: style, width: 110),
+              Text(' जिल्हा ', style: marathiStyle),
+              _inlineBlank(controller: _relDistCtrl, style: style, width: 110),
+              Text(' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण प्रेत ओळखुन देवून मृतकाचे नातेवाईक या नात्याने पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत आमचे सोबत हजर राहावे.', style: marathiStyle),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Bottom Row: सही on Left | IO Signature on Right
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left: सही (१, २, ३, ४)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('सही', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text('१) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: _inlineBlank(controller: _relSig1Ctrl, style: style)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('२) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: _inlineBlank(controller: _relSig2Ctrl, style: style)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('३) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: _inlineBlank(controller: _relSig3Ctrl, style: style)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('४) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: _inlineBlank(controller: _relSig4Ctrl, style: style)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 24),
+            // Right: IO Signature
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('तपासी अधिकारी नांव / सही शिक्या', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('Name: ', style: style),
+                      Expanded(child: _inlineBlank(controller: _relIoNameCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('नांव', marathiStyle),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text('Rank: ', style: style),
+                      _inlineBlank(controller: _relIoRankCtrl, style: style, width: 100),
+                      const SizedBox(width: 4),
+                      Text('Number if any:', style: style),
+                      Expanded(child: _inlineBlank(controller: _relIoNoCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('पद                   बक्कल नंबर', marathiStyle),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text('Posting and Address:', style: style),
+                      Expanded(child: _inlineBlank(controller: _relIoPostingCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('नेमणूक व पत्ता', marathiStyle),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+        ),
+      ],
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 9 (Pancha Summons / पंचांना समन्स)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildPanchaSummonsPage9(TextStyle style, TextStyle marathiStyle) {
+    return FormPaperPage(
+      formLabel: 'Page 9',
+      children: [
+        // Title
+        Center(
+          child: Column(
+            children: [
+              Text(
+                'पंचांना समन्स',
+                style: marathiStyle.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                  decorationStyle: TextDecorationStyle.dotted,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '(कलम १९५ भारतीय नागरिक सुरक्षा संहिता २०२३ अन्वये)',
+                style: marathiStyle.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                  decorationStyle: TextDecorationStyle.dotted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Top Right: पोलीस स्टेशन / कॅम्प / दिनांक
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('पोलीस स्टेशन', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(controller: _panPsCtrl, style: style, width: 140),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('कॅम्प :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(controller: _panCampCtrl, style: style, width: 155),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('दिनांक :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(controller: _panDateCtrl, style: style, width: 110, hintText: 'DD/MM/20YY'),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Recipient (नांव :-)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('नांव  :-   ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+            Expanded(
+              child: _multilineBlankBox(controller: _panToNameCtrl, style: style, minLines: 4),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Center(child: Text('० ० ० ०', style: marathiStyle.copyWith(letterSpacing: 4))),
+        const SizedBox(height: 12),
+
+        // Body Paragraph
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 6,
+            spacing: 2,
+            children: [
+              Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ', style: marathiStyle),
+              _inlineBlank(controller: _panWeNameCtrl, style: style, width: 220),
+              Text(' पोलीस स्टेशन ', style: marathiStyle),
+              _inlineBlank(controller: _panPsNameCtrl, style: style, width: 140),
+              Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ', style: marathiStyle),
+              _inlineBlank(controller: _panCrDiaryNoCtrl, style: style, width: 75),
+              Text('/२०', style: marathiStyle),
+              _inlineBlank(controller: _panCrYearCtrl, style: style, width: 45),
+              Text(' कलम ', style: marathiStyle),
+              _inlineBlank(controller: _panActSecCtrl, style: style, width: 180),
+              Text(' मधील मृतक नामे ', style: marathiStyle),
+              _inlineBlank(controller: _panDeceasedNameCtrl, style: style, width: 260),
+              Text(' ता-', style: marathiStyle),
+              _inlineBlank(controller: _panTaCtrl, style: style, width: 110),
+              Text(' जिल्हा ', style: marathiStyle),
+              _inlineBlank(controller: _panDistCtrl, style: style, width: 110),
+              Text(' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत पंच म्हणुन आमचे सोबत हजर राहावे.', style: marathiStyle),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Bottom Row: पंच सही on Left | IO Signature on Right
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left: पंच सही (१, २, ३, ४)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('पंच सही', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text('१) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: _inlineBlank(controller: _panSig1Ctrl, style: style)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('२) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: _inlineBlank(controller: _panSig2Ctrl, style: style)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('३) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: _inlineBlank(controller: _panSig3Ctrl, style: style)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('४) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: _inlineBlank(controller: _panSig4Ctrl, style: style)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 24),
+            // Right: IO Signature
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('तपासी अधिकारी नांव / सही शिक्या', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('Name: ', style: style),
+                      Expanded(child: _inlineBlank(controller: _panIoNameCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('नांव', marathiStyle),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text('Rank: ', style: style),
+                      _inlineBlank(controller: _panIoRankCtrl, style: style, width: 100),
+                      const SizedBox(width: 4),
+                      Text('Number if any:', style: style),
+                      Expanded(child: _inlineBlank(controller: _panIoNoCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('पद                   बक्कल नंबर', marathiStyle),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text('Posting and Address:', style: style),
+                      Expanded(child: _inlineBlank(controller: _panIoPostingCtrl, style: style)),
+                    ],
+                  ),
+                  _subLabel('नेमणूक व पत्ता', marathiStyle),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+        ),
+      ],
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1826,1074 +2955,28 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         if (_shows(kMainInquest) &&
             (_shows(kCivilSurgeon) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
-        if (_shows(kCivilSurgeon))
-          FormPaperPage(
-            formLabel: widget.pageRange ?? 'Pages 16–17',
-            children: [
-              // REPORT TO CIVIL SURGEON (Page 5)
-              const Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  'Page 5 (Civil Surgeon Report 1)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-              const Divider(color: Colors.black, thickness: 1.5),
-              const SizedBox(height: 12),
-
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Police Report to be forwarded to the Civil Surgeon',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'with Dead Bodies sent For Post-mortem examination',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'शवविच्छेदन परिक्षेसाठी पाठविलेल्या प्रेताबरोबर जिल्हा शल्यचिकीत्सकाकडे पाठवायाचा पोलीस अहवाल',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '(G.R.G.D. No. 332, dt. 21-5-12 P.M. 35 M.C. In MR vide L. No L/89-B.dt. 18-4-69 form I.G of Police, M.S. Bombay)',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              Table(
-                border: TableBorder.all(color: Colors.black87),
-                columnWidths: const {
-                  0: FlexColumnWidth(4),
-                  1: FlexColumnWidth(6),
-                },
-                children: [
-                  TableRow(
-                    children: [
-                      _buildTableHeaderCell('Question (प्रश्न)'),
-                      _buildTableHeaderCell('Answer (उत्तर)'),
-                    ],
-                  ),
-                  _buildCSRow(
-                    '1) Name of Deceased\n(मृत व्यक्तीचे नांव) :-',
-                    _csNameDeceasedCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '2) Age\n(वय) :-',
-                    _csAgeCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '3) Married, Single, Widow or Widower\n(विवाहीत, अविवाहीत, विधवा किंवा विधुर) :-',
-                    _csMaritalStatusCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  TableRow(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          '4) Date and hour of death\n(मृत्युचा दिनांक आणि वेळ) :-',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            BilingualFieldRow(
-                              fields: [
-                                BilingualField(
-                                  label: 'Date :-',
-                                  marathiLabel: 'दिनांक',
-                                  controller: _csDeathDateCtrl,
-                                  serifStyle: serifStyle,
-                                  marathiLabelStyle: marathiLabelStyle,
-                                ),
-                                BilingualField(
-                                  label: 'Time :-',
-                                  marathiLabel: 'वेळ',
-                                  controller: _csDeathTimeCtrl,
-                                  serifStyle: serifStyle,
-                                  marathiLabelStyle: marathiLabelStyle,
-                                ),
-                              ],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 4, top: 4),
-                              child: Text(
-                                '(on date at time / रोजी ... वाजता)',
-                                style: marathiLabelStyle,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  _buildCSRow(
-                    '5) Describe condition of body when found, Position, Surroundings and any marks of Violence, bloodstains or vomited matters Which may have existed?\n(प्रेत सापडले त्यावेळची अवस्था, स्थिती, भोवतालची परिस्थिती आणि उपलब्ध असलेल्या मारहाणीच्या खुणा रक्ताचे डाग किंवा वांतीबरोबर पडलेले पदार्थ यांचा तपशील दयावा.) :-',
-                    _csBodyConditionCtrl,
-                    maxLines: 3,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  TableRow(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          '6) Day and hour on which the body was seen :- By the officer making the report\n(अहवाल पाठविणाऱ्या अधिकाऱ्याने प्रेत पहिल्याचा दिनांक व वेळ (तास) ):-',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            BilingualFieldRow(
-                              fields: [
-                                BilingualField(
-                                  label: 'Date :-',
-                                  marathiLabel: 'दिनांक',
-                                  controller: _csSeenDateCtrl,
-                                  serifStyle: serifStyle,
-                                  marathiLabelStyle: marathiLabelStyle,
-                                ),
-                                BilingualField(
-                                  label: 'Time :-',
-                                  marathiLabel: 'वेळ',
-                                  controller: _csSeenTimeCtrl,
-                                  serifStyle: serifStyle,
-                                  marathiLabelStyle: marathiLabelStyle,
-                                ),
-                              ],
-                            ),
-                            BilingualField(
-                              label: 'Officer :-',
-                              marathiLabel: 'अधिकारी',
-                              controller: _csSeenOfficerCtrl,
-                              serifStyle: serifStyle,
-                              marathiLabelStyle: marathiLabelStyle,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  _buildCSRow(
-                    '7) Was the body cold or warm when found?\n(प्रेत सापडले त्यावेळी थंड होते कि गरम) :-',
-                    _csBodyColdWarmCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '8) Had the deceased suffered from recent Illness? If so, what? State duration and Describe the illness as far as Known.\n(मृत व्यक्तीला अलीकडे काही आजार झाला होता काय असल्यास सांगा.) :-',
-                    _csRecentIllnessCtrl,
-                    maxLines: 2,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '9) Had deceased suffered from accident Injury or if so, describe it.\n(मृत व्यक्तीला कोणत्याही प्रकारचा अपघात, दुखापत किंवा मारहाण झाली होती काय ?) :-',
-                    _csAccidentInjuryCtrl,
-                    maxLines: 2,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '10) If clothes, weapons, vomited matter of Other articles are forwarded, State why this Is done and what relation they bear to the Case? Describe them.\n(कपडे, हत्यारे, वांतीबरोबर पडलेले पदार्थ किंवा इतर वस्तु पाठविल्या असल्यास तसे का केले व त्यांचा प्रकरणाशी संबंध आहे ते लिहावे, त्याचा तपशील दयावा.) :-',
-                    _csArticlesForwardedCtrl,
-                    maxLines: 3,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '11) Is death supposed to have been due to Natural causes, accident, suicide or homicide? State briefly and plainly, any suspicions That may exist and why?\n(मृत्यु नैसर्गीक कारणे, अपघात, आत्महत्या किंवा खुन यापैकी कशामुळे घडला असे वाटते. काही संशय असल्यास ते थोडक्यात स्पष्टपणे नमूद करावे व कारणे दयावे.) :-',
-                    _csDeathReasonCtrl,
-                    maxLines: 3,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // PAGE BREAK EQUIVALENT - REPORT TO CIVIL SURGEON CONT. (Page 6)
-              const Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  'Page 6 (Civil Surgeon Report 2)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-              const Divider(color: Colors.black, thickness: 1.5),
-              const SizedBox(height: 12),
-
-              Table(
-                border: TableBorder.all(color: Colors.black87),
-                columnWidths: const {
-                  0: FlexColumnWidth(4),
-                  1: FlexColumnWidth(6),
-                },
-                children: [
-                  TableRow(
-                    children: [
-                      _buildTableHeaderCell('Question (प्रश्न)'),
-                      _buildTableHeaderCell('Answer (उत्तर)'),
-                    ],
-                  ),
-                  _buildCSRow(
-                    '12) Is there suspicion of poisoning? If, so, is any particular poison supposed to have been employed? Mention any symptoms of poisoning which are reported to have existed during life and any appearances pointing to poisoning observed after death.\n(विष प्रयोग केल्याचा संशय आहे. असल्यास विशिष्ट विषाचा वापर केला असे वाटते काय? मृत व्यक्ती जिवंत असतांना विषबाधा झाल्याची लक्षणे दिसून आल्याचे कळविण्यात आले होते काय. व विषाचे बाबत मृत्यू नंतर दिसून आलेली चिन्हे नमूद करावी.) :-',
-                    _csPoisonSuspicionCtrl,
-                    maxLines: 4,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '13) In the case of a woman, is she supposed to be pregnant of to have been recently delivered ?\n(स्त्रीच्या बाबतीत ती गरोदर असावी किंवा अलीकडे प्रसुती झाली असावी असे वाटते काय ?) :-',
-                    _csWomanPregnancyCtrl,
-                    maxLines: 2,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '14) Is abortion or attempted abortion known or suspected? And if the former, has the focus been found?\n(गर्भपात केला किंवा गर्भपात करण्याचा प्रयत्न केला या विषयी माहिती किंवा संशय आहे काय. गर्भपात केला असल्यास गर्भ सापडला काय.) :-',
-                    _csAbortionCtrl,
-                    maxLines: 2,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '15) State the finding of the Jury (if any) and mention any reasons they may have given for their findings.\n(ज्युरीचे निष्कर्ष असल्यास नमूद करावेत व निष्कर्षा बाबत त्यांनी काही कारणे दिली असल्यास त्याचा निर्देश करावा.) :-',
-                    _csJuryFindingsCtrl,
-                    maxLines: 2,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  _buildCSRow(
-                    '16) Remarks. Under this head the Police Officer should give any information not included in the above question which he may consider likely to assist the Civil Surgeon informing an opinion of the cause of death.\n(शेरा - वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकास मृत्यूच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.) :-',
-                    _csRemarksCtrl,
-                    maxLines: 4,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              FormIoSignatureBlock(
-                nameCtrl: _csIoNameCtrl,
-                rankCtrl: _csIoRankCtrl,
-                numberCtrl: _csIoNoCtrl,
-                postingCtrl: _csIoPostingCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-                englishLabel: FormIoTerminology.englishNameRankSeal,
-                marathiLabel: FormIoTerminology.signatureHeader,
-              ),
-            ],
-          ),
+        if (_shows(kCivilSurgeon)) ...[
+          _buildCivilSurgeonPage5(serifStyle, marathiLabelStyle),
+          _buildCivilSurgeonPage6(serifStyle, marathiLabelStyle),
+        ],
         if (_shows(kCivilSurgeon) &&
             (_shows(kVinantiArj) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
-        if (_shows(kVinantiArj))
-          FormPaperPage(
-            formLabel: widget.pageRange ?? 'Page 18',
-            children: [
-              // VINANTI ARJ (Page 7)
-              const Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  'Page 7 (विनंती अर्ज)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-              const Divider(color: Colors.black, thickness: 1.5),
-              const SizedBox(height: 12),
-
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Request Application',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                    Text(
-                      'विनंती अर्ज',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: SizedBox(
-                  width: 420,
-                  child: Column(
-                    children: [
-                      BilingualField(
-                        label: 'Police Station :-',
-                        marathiLabel: 'पोलीस स्टेशन :-',
-                        controller: _reqPsCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Date :-',
-                        marathiLabel: 'दिनांक :-',
-                        controller: _reqDateCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              BilingualSectionHeader(
-                label: 'To,',
-                marathiLabel: 'प्रति,',
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: 'Head of Forensic Medicine Department :-',
-                marathiLabel: 'मा. न्यायवैद्यक शास्त्र विभाग प्रमुख',
-                controller: _reqToCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: 'From — Police Station :-',
-                marathiLabel: 'पासुन :- पोलीस स्टेशन',
-                controller: _reqFromPsCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: 'District :-',
-                marathiLabel: 'जिल्हा',
-                controller: _reqDistCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: 'Subject — Deceased name :-',
-                marathiLabel: 'विषय :- मृतक नामे',
-                controller: _reqSubjectNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'P.S. :-',
-                    marathiLabel: 'पो.स्टे.',
-                    controller: _reqSubjectPsCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Taluka :-',
-                    marathiLabel: 'ता-',
-                    controller: _reqSubjectTaCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 12),
-                child: Text(
-                  'For P.M. opinion on deceased body — request for post-mortem examination and medical opinion / '
-                  'मृतकाच्या प्रेताचे पी.एम. करून वैद्यकीय अभिप्राय मिळणेबाबत.',
-                  style: marathiLabelStyle,
-                ),
-              ),
-              const Center(
-                child: Text(
-                  'o o o o',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 12),
-              BilingualSectionHeader(
-                label: 'Sir,',
-                marathiLabel: 'महोदय,',
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              const Text(
-                'It is respectfully submitted that on the date and time mentioned below, a marg entry was recorded under Section 194 B.N.S.S. 2023. Details are as follows:',
-                style: TextStyle(fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'Marg date :-',
-                    marathiLabel: 'मर्ग दिनांक',
-                    controller: _reqMargDateCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Marg time :-',
-                    marathiLabel: 'मर्ग वेळ',
-                    controller: _reqMargTimeCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              BilingualField(
-                label: 'Police Station :-',
-                marathiLabel: 'पोलीस स्टेशन',
-                controller: _reqMargPsCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'Station Diary No. :-',
-                    marathiLabel: 'स्टेशन डायरी क्र.',
-                    controller: _reqMargDiaryNoCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Year :-',
-                    marathiLabel: 'वर्ष',
-                    controller: _reqMargYearCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              BilingualField(
-                label: 'Deceased name :-',
-                marathiLabel: 'मृतक नामे',
-                controller: _reqMargNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'P.S. :-',
-                    marathiLabel: 'पो.स्टे.',
-                    controller: _reqSubjectPsCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Taluka :-',
-                    marathiLabel: 'ता',
-                    controller: _reqMargTaCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              BilingualField(
-                label: 'He/She :-',
-                marathiLabel: 'ही/हा',
-                controller: _reqDeceasedHeSheCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: 'Hospital name :-',
-                marathiLabel: 'दवाखान्याचे नांव',
-                controller: _reqHospitalNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'Admission date :-',
-                    marathiLabel: 'भरती दिनांक',
-                    controller: _reqAdmitDateCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Admission time :-',
-                    marathiLabel: 'भरती वेळ',
-                    controller: _reqAdmitTimeCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              BilingualField(
-                label: 'Cause / details :-',
-                marathiLabel: 'कारण / तपशील (गळफास/विष/अपघात)',
-                controller: _reqReasonDetailsCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'Death date :-',
-                    marathiLabel: 'मृत्यू दिनांक',
-                    controller: _reqDeathDateCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Death time :-',
-                    marathiLabel: 'मृत्यू वेळ',
-                    controller: _reqDeathTimeCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'तरी सदर मृतकाचे मरणाचे निश्चीत कारण समजुन घेणेकरीता सदर मृतकाचे प्रेताचे पी.एम करून आपला सविस्तर अभिप्राय मिळणेस विनंती आहे.',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'सहपत्र : प्रश्नोत्तर फॉर्म, इंक्वेस्ट पंचनामा',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        BilingualField(
-                          label: 'By hand (name) :-',
-                          marathiLabel: 'हस्ते :-',
-                          controller: _reqHasteNameCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                        BilingualField(
-                          label: 'P.S. :-',
-                          marathiLabel: 'पो.स्टे. :-',
-                          controller: _reqHastePsCtrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: FormIoSignatureBlock(
-                      nameCtrl: _reqIoNameCtrl,
-                      rankCtrl: _reqIoRankCtrl,
-                      numberCtrl: _reqIoNoCtrl,
-                      postingCtrl: _reqIoPostingCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                      englishLabel: 'I.O. Name and Signature / Seal :-',
-                      marathiLabel: FormIoTerminology.signatureHeaderSeal,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        if (_shows(kVinantiArj)) ...[
+          _buildVinantiArjPage7(serifStyle, marathiLabelStyle),
+        ],
         if (_shows(kVinantiArj) &&
             (_shows(kRelativeSummons) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
-        if (_shows(kRelativeSummons))
-          FormPaperPage(
-            formLabel: widget.pageRange ?? 'Page 19',
-            children: [
-              // SUMMONS TO RELATIVES (Page 8)
-              const Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  'Page 8 (नातेवाईकांना समन्स)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-              const Divider(color: Colors.black, thickness: 1.5),
-              const SizedBox(height: 12),
-
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Summons to Relatives',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                    Text(
-                      'नातेवाईकांना समन्स',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      '(Under Section 179 B.N.S.S. 2023 / कलम १७९ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: SizedBox(
-                  width: 420,
-                  child: Column(
-                    children: [
-                      BilingualField(
-                        label: 'Police Station :-',
-                        marathiLabel: 'पोलीस स्टेशन :-',
-                        controller: _relPsCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Camp :-',
-                        marathiLabel: 'कॅम्प :-',
-                        controller: _relCampCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Date :-',
-                        marathiLabel: 'दिनांक :-',
-                        controller: _relDateCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              BilingualMultilineField(
-                label: 'Name :-',
-                marathiLabel: 'नांव',
-                controller: _relToNameCtrl,
-                minLines: 3,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              const SizedBox(height: 16),
-              const Center(
-                child: Text(
-                  'o o o o',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'You are hereby summoned to identify the dead body and remain present until the inquest panchanama is completed as a relative of the deceased. Details:',
-                style: TextStyle(fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              BilingualField(
-                label: 'Officer name (We) :-',
-                marathiLabel: 'आम्ही (अधिकाऱ्याचे नांव)',
-                controller: _relWeNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: 'Police Station :-',
-                marathiLabel: 'पोलीस स्टेशन',
-                controller: _relPsNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'CR / Diary No. :-',
-                    marathiLabel: 'दैनंदिनी क्रमांक',
-                    controller: _relCrDiaryNoCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Year :-',
-                    marathiLabel: 'वर्ष',
-                    controller: _relCrYearCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              BilingualField(
-                label: 'Section :-',
-                marathiLabel: 'कलम',
-                controller: _relActSecCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: 'Deceased name :-',
-                marathiLabel: 'मृतक नामे',
-                controller: _relDeceasedNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'Taluka :-',
-                    marathiLabel: 'ता',
-                    controller: _relTaCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'District :-',
-                    marathiLabel: 'जिल्हा',
-                    controller: _relDistCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        BilingualSectionHeader(
-                          label: 'Signature',
-                          marathiLabel: 'सही',
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                        BilingualField(
-                          label: 'Signature 1) :-',
-                          marathiLabel: '१)',
-                          controller: _relSig1Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                        BilingualField(
-                          label: 'Signature 2) :-',
-                          marathiLabel: '२)',
-                          controller: _relSig2Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                        BilingualField(
-                          label: 'Signature 3) :-',
-                          marathiLabel: '३)',
-                          controller: _relSig3Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                        BilingualField(
-                          label: 'Signature 4) :-',
-                          marathiLabel: '४)',
-                          controller: _relSig4Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: FormIoSignatureBlock(
-                      nameCtrl: _relIoNameCtrl,
-                      rankCtrl: _relIoRankCtrl,
-                      numberCtrl: _relIoNoCtrl,
-                      postingCtrl: _relIoPostingCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                      englishLabel: 'I.O. Name and Signature / Seal :-',
-                      marathiLabel: FormIoTerminology.signatureHeaderSeal,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        if (_shows(kRelativeSummons)) ...[
+          _buildRelativeSummonsPage8(serifStyle, marathiLabelStyle),
+        ],
         if (_shows(kRelativeSummons) &&
             (_shows(kPanchaSummons) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
-        if (_shows(kPanchaSummons))
-          FormPaperPage(
-            formLabel: widget.pageRange ?? 'Page 20',
-            children: [
-              // SUMMONS TO PANCHAS (Page 9)
-              const Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  'Page 9 (पंचांचा समन्स)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-              const Divider(color: Colors.black, thickness: 1.5),
-              const SizedBox(height: 12),
-
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Summons to Panchas',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                    Text(
-                      'पंचाचा समन्स',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      '(Under Section 195 B.N.S.S. 2023 / कलम १९५ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: SizedBox(
-                  width: 420,
-                  child: Column(
-                    children: [
-                      BilingualField(
-                        label: 'Police Station :-',
-                        marathiLabel: 'पोलीस स्टेशन :-',
-                        controller: _panPsCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Camp :-',
-                        marathiLabel: 'कॅम्प :-',
-                        controller: _panCampCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Date :-',
-                        marathiLabel: 'दिनांक :-',
-                        controller: _panDateCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              BilingualMultilineField(
-                label: 'Name :-',
-                marathiLabel: 'नांव',
-                controller: _panToNameCtrl,
-                minLines: 3,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              const SizedBox(height: 16),
-              const Center(
-                child: Text(
-                  'o o o o',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'You are hereby summoned to remain present as a Panch until the inquest panchanama proceedings are completed. Details:',
-                style: TextStyle(fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              BilingualField(
-                label: 'Officer name (We) :-',
-                marathiLabel: 'आम्ही (अधिकाऱ्याचे नांव)',
-                controller: _panWeNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: 'Police Station :-',
-                marathiLabel: 'पोलीस स्टेशन',
-                controller: _panPsNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'CR / Diary No. :-',
-                    marathiLabel: 'दैनंदिनी क्रमांक',
-                    controller: _panCrDiaryNoCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Year :-',
-                    marathiLabel: 'वर्ष',
-                    controller: _panCrYearCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              BilingualField(
-                label: 'Section :-',
-                marathiLabel: 'कलम',
-                controller: _panActSecCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: 'Deceased name :-',
-                marathiLabel: 'मृतक नामे',
-                controller: _panDeceasedNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: 'Taluka :-',
-                    marathiLabel: 'ता',
-                    controller: _panTaCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'District :-',
-                    marathiLabel: 'जिल्हा',
-                    controller: _panDistCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        BilingualSectionHeader(
-                          label: 'Panch Signatures',
-                          marathiLabel: 'पंच सही',
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                        BilingualField(
-                          label: 'Panch Signature 1) :-',
-                          marathiLabel: '१)',
-                          controller: _panSig1Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                        BilingualField(
-                          label: 'Panch Signature 2) :-',
-                          marathiLabel: '२)',
-                          controller: _panSig2Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                        BilingualField(
-                          label: 'Panch Signature 3) :-',
-                          marathiLabel: '३)',
-                          controller: _panSig3Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                        BilingualField(
-                          label: 'Panch Signature 4) :-',
-                          marathiLabel: '४)',
-                          controller: _panSig4Ctrl,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: FormIoSignatureBlock(
-                      nameCtrl: _panIoNameCtrl,
-                      rankCtrl: _panIoRankCtrl,
-                      numberCtrl: _panIoNoCtrl,
-                      postingCtrl: _panIoPostingCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                      englishLabel: 'I.O. Name and Signature / Seal :-',
-                      marathiLabel: FormIoTerminology.signatureHeaderSeal,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        if (_shows(kPanchaSummons)) ...[
+          _buildPanchaSummonsPage9(serifStyle, marathiLabelStyle),
+        ],
         if (_shows(kPanchaSummons) &&
             (_shows(kMarananveshan) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
@@ -3121,51 +3204,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     );
   }
 
-  Widget _buildTableHeaderCell(String text) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-        ),
-      ),
-    );
-  }
 
-  TableRow _buildCSRow(
-    String question,
-    TextEditingController ctrl, {
-    int maxLines = 1,
-    required TextStyle serifStyle,
-    required TextStyle marathiLabelStyle,
-  }) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            question,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: maxLines > 1
-              ? BilingualDynamicLinedTextField(
-                  controller: ctrl,
-                  minLines: maxLines,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiLabelStyle,
-                )
-              : BilingualSimpleUnderlineInput(
-                  controller: ctrl,
-                  serifStyle: serifStyle,
-                ),
-        ),
-      ],
-    );
-  }
+
 
   // ─────────────────────────────────────────────────────────────────
   // PAGE 11 — मरणांवेषण पंचनामा (Sections 13-18 + Signatures)
