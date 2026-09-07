@@ -832,7 +832,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('1.Dist.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('1.Dist.',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 90,
                             child: BilingualSimpleUnderlineInput(
@@ -855,7 +857,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('P.S.:-', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('P.S.:-',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 100,
                             child: BilingualSimpleUnderlineInput(
@@ -877,7 +881,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('FIR/Proceeding/G.D.No:-', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('FIR/Proceeding/G.D.No:-',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 100,
                             child: BilingualSimpleUnderlineInput(
@@ -888,7 +894,8 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text('पहिली खबर क/ कार्यवाही क.', style: marathiLabelStyle),
+                      Text('पहिली खबर क/ कार्यवाही क.',
+                          style: marathiLabelStyle),
                     ],
                   ),
                   Column(
@@ -899,7 +906,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Year:-20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Year:-20',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 35,
                             child: BilingualSimpleUnderlineInput(
@@ -922,7 +931,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Date', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Date',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
                           SizedBox(
                             width: 32,
@@ -932,7 +943,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                               hintText: 'DD',
                             ),
                           ),
-                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -941,7 +954,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                               hintText: 'MM',
                             ),
                           ),
-                          Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/20',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -970,7 +985,8 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                       Flexible(
                         child: Text(
                           'Alphanumeric Code of the Accused (Write A1 to A9 for the first 9 persons, B1 for 10 th person and so on)',
-                          style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -1021,7 +1037,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Date ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Date ',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -1030,7 +1048,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                               hintText: 'DD',
                             ),
                           ),
-                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -1039,7 +1059,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                               hintText: 'MM',
                             ),
                           ),
-                          Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/20',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -1062,7 +1084,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Time ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Time ',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -1071,7 +1095,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                               hintText: 'HH',
                             ),
                           ),
-                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -1094,7 +1120,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('G.D.No.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('G.D.No.',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 90,
                             child: BilingualSimpleUnderlineInput(
@@ -1126,7 +1154,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Place of Arrest: - P.S.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Place of Arrest: - P.S.',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 120,
                             child: BilingualSimpleUnderlineInput(
@@ -1137,7 +1167,8 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text('अटकेची जागा : पोलीस ठाणे', style: marathiLabelStyle),
+                      Text('अटकेची जागा : पोलीस ठाणे',
+                          style: marathiLabelStyle),
                     ],
                   ),
                   Column(
@@ -1148,7 +1179,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Dist.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Dist.',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 120,
                             child: BilingualSimpleUnderlineInput(
@@ -1170,7 +1203,9 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('State.', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('State.',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 120,
                             child: BilingualSimpleUnderlineInput(
@@ -1208,7 +1243,8 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     ],
                   ),
                   const SizedBox(height: 2),
-                  Text('न्यायालयाचे नाव ( स्वाधीन झाल्यास ) :-', style: marathiLabelStyle),
+                  Text('न्यायालयाचे नाव ( स्वाधीन झाल्यास ) :-',
+                      style: marathiLabelStyle),
                 ],
               ),
               const SizedBox(height: 20),

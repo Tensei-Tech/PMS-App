@@ -1345,8 +1345,7 @@ class HousePropertySearchSeizureFormViewState
                   child: TextButton.icon(
                     onPressed: () {
                       setState(() {
-                        _propertyPackedControllers
-                            .add(TextEditingController());
+                        _propertyPackedControllers.add(TextEditingController());
                       });
                     },
                     icon: const Icon(Icons.add, size: 18),

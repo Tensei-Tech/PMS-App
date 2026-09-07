@@ -259,6 +259,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     }
     return h.isNotEmpty ? h : m;
   }
+
   final _csBodyConditionCtrl = TextEditingController();
   final _csSeenDateCtrl = TextEditingController();
   final _csSeenTimeCtrl = TextEditingController();
@@ -463,13 +464,15 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       return _dpDutyDateTimeCtrl.text.trim();
     }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
-    final datePart = (d.isNotEmpty || m.isNotEmpty || y.isNotEmpty) ? '$d/$m/$yFull' : '';
+    final datePart =
+        (d.isNotEmpty || m.isNotEmpty || y.isNotEmpty) ? '$d/$m/$yFull' : '';
     final timePart = (h.isNotEmpty || min.isNotEmpty) ? '$h/$min' : '';
     if (datePart.isNotEmpty && timePart.isNotEmpty) {
       return '$datePart रोजी चे $timePart वा';
     }
     return datePart.isNotEmpty ? datePart : timePart;
   }
+
   final _dpMargNoCtrl = TextEditingController();
   final _dpMargYearCtrl = TextEditingController();
   final _dpKalamCtrl = TextEditingController();
@@ -587,9 +590,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
 
     _panchanamaDateCtrl.text = doc['panchanamaDate'] ?? '';
     _panchanamaDateDayCtrl.text = doc['panchanamaDateDay']?.toString() ?? '';
-    _panchanamaDateMonthCtrl.text = doc['panchanamaDateMonth']?.toString() ?? '';
+    _panchanamaDateMonthCtrl.text =
+        doc['panchanamaDateMonth']?.toString() ?? '';
     _panchanamaDateYearCtrl.text = doc['panchanamaDateYear']?.toString() ?? '';
-    if (_panchanamaDateDayCtrl.text.isEmpty && _panchanamaDateCtrl.text.isNotEmpty) {
+    if (_panchanamaDateDayCtrl.text.isEmpty &&
+        _panchanamaDateCtrl.text.isNotEmpty) {
       final parts = _panchanamaDateCtrl.text.split(RegExp(r'[/.-]'));
       if (parts.length >= 3) {
         _panchanamaDateDayCtrl.text = parts[0].trim();
@@ -601,18 +606,24 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     }
 
     _panchanamaTimeCtrl.text = doc['panchanamaTime'] ?? '';
-    _panchanamaTimeHoursCtrl.text = doc['panchanamaTimeHours']?.toString() ?? '';
-    _panchanamaTimeMinutesCtrl.text = doc['panchanamaTimeMinutes']?.toString() ?? '';
-    if (_panchanamaTimeHoursCtrl.text.isEmpty && _panchanamaTimeCtrl.text.isNotEmpty) {
+    _panchanamaTimeHoursCtrl.text =
+        doc['panchanamaTimeHours']?.toString() ?? '';
+    _panchanamaTimeMinutesCtrl.text =
+        doc['panchanamaTimeMinutes']?.toString() ?? '';
+    if (_panchanamaTimeHoursCtrl.text.isEmpty &&
+        _panchanamaTimeCtrl.text.isNotEmpty) {
       final parts = _panchanamaTimeCtrl.text.split(RegExp(r'[/.:]'));
       if (parts.isNotEmpty) _panchanamaTimeHoursCtrl.text = parts[0].trim();
       if (parts.length > 1) _panchanamaTimeMinutesCtrl.text = parts[1].trim();
     }
 
     _panchanamaTimeToCtrl.text = doc['panchanamaTimeTo'] ?? '';
-    _panchanamaTimeToHoursCtrl.text = doc['panchanamaTimeToHours']?.toString() ?? '';
-    _panchanamaTimeToMinutesCtrl.text = doc['panchanamaTimeToMinutes']?.toString() ?? '';
-    if (_panchanamaTimeToHoursCtrl.text.isEmpty && _panchanamaTimeToCtrl.text.isNotEmpty) {
+    _panchanamaTimeToHoursCtrl.text =
+        doc['panchanamaTimeToHours']?.toString() ?? '';
+    _panchanamaTimeToMinutesCtrl.text =
+        doc['panchanamaTimeToMinutes']?.toString() ?? '';
+    if (_panchanamaTimeToHoursCtrl.text.isEmpty &&
+        _panchanamaTimeToCtrl.text.isNotEmpty) {
       final parts = _panchanamaTimeToCtrl.text.split(RegExp(r'[/.:]'));
       if (parts.isNotEmpty) _panchanamaTimeToHoursCtrl.text = parts[0].trim();
       if (parts.length > 1) _panchanamaTimeToMinutesCtrl.text = parts[1].trim();
@@ -652,7 +663,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _csDeathTimeCtrl.text = doc['csDeathTime'] ?? '';
     _csDeathTimeHoursCtrl.text = doc['csDeathTimeHours']?.toString() ?? '';
     _csDeathTimeMinutesCtrl.text = doc['csDeathTimeMinutes']?.toString() ?? '';
-    if (_csDeathTimeHoursCtrl.text.isEmpty && _csDeathTimeCtrl.text.isNotEmpty) {
+    if (_csDeathTimeHoursCtrl.text.isEmpty &&
+        _csDeathTimeCtrl.text.isNotEmpty) {
       final parts = _csDeathTimeCtrl.text.split(RegExp(r'[/.:]'));
       if (parts.isNotEmpty) _csDeathTimeHoursCtrl.text = parts[0].trim();
       if (parts.length > 1) _csDeathTimeMinutesCtrl.text = parts[1].trim();
@@ -1520,10 +1532,13 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 onTap: widget.readOnly ? null : () => onChanged(!checked),
                 borderRadius: BorderRadius.circular(4),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: checked ? Colors.green.shade800 : Colors.grey.shade400,
+                      color: checked
+                          ? Colors.green.shade800
+                          : Colors.grey.shade400,
                       width: 1.0,
                     ),
                     borderRadius: BorderRadius.circular(4),
@@ -1536,8 +1551,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         'होय',
                         style: marathiLabelStyle.copyWith(
                           fontSize: 12,
-                          fontWeight: checked ? FontWeight.bold : FontWeight.normal,
-                          color: checked ? Colors.green.shade900 : Colors.black54,
+                          fontWeight:
+                              checked ? FontWeight.bold : FontWeight.normal,
+                          color:
+                              checked ? Colors.green.shade900 : Colors.black54,
                           decoration: checked ? TextDecoration.underline : null,
                         ),
                       ),
@@ -1553,9 +1570,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         'नाही',
                         style: marathiLabelStyle.copyWith(
                           fontSize: 12,
-                          fontWeight: !checked ? FontWeight.bold : FontWeight.normal,
+                          fontWeight:
+                              !checked ? FontWeight.bold : FontWeight.normal,
                           color: !checked ? Colors.black87 : Colors.black54,
-                          decoration: !checked ? TextDecoration.underline : null,
+                          decoration:
+                              !checked ? TextDecoration.underline : null,
                         ),
                       ),
                     ],
@@ -1734,7 +1753,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Place:-', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Place:-',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 140,
                             child: BilingualSimpleUnderlineInput(
@@ -1748,7 +1769,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Date:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Date:',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
                           SizedBox(
                             width: 32,
@@ -1758,7 +1781,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               hintText: 'DD',
                             ),
                           ),
-                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -1767,7 +1792,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               hintText: 'MM',
                             ),
                           ),
-                          Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/20',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -1782,7 +1809,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('time:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('time:',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
                           SizedBox(
                             width: 32,
@@ -1792,7 +1821,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               hintText: 'HH',
                             ),
                           ),
-                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -1884,7 +1915,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('Date:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Text('Date:',
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       SizedBox(
                         width: 32,
@@ -1894,7 +1927,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                           hintText: 'DD',
                         ),
                       ),
-                      Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Text('/',
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold)),
                       SizedBox(
                         width: 32,
                         child: BilingualSimpleUnderlineInput(
@@ -1903,7 +1938,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                           hintText: 'MM',
                         ),
                       ),
-                      Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Text('/20',
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold)),
                       SizedBox(
                         width: 32,
                         child: BilingualSimpleUnderlineInput(
@@ -1918,7 +1955,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('time:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Text('time:',
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       SizedBox(
                         width: 32,
@@ -1928,7 +1967,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                           hintText: 'HH',
                         ),
                       ),
-                      Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Text('/',
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold)),
                       SizedBox(
                         width: 32,
                         child: BilingualSimpleUnderlineInput(
@@ -2230,7 +2271,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Date : -', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Date : -',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
                           SizedBox(
                             width: 32,
@@ -2240,7 +2283,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               hintText: 'DD',
                             ),
                           ),
-                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -2249,7 +2294,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               hintText: 'MM',
                             ),
                           ),
-                          Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/20',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -2272,7 +2319,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Time:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('Time:',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
                           SizedBox(
                             width: 32,
@@ -2282,7 +2331,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               hintText: 'HH',
                             ),
                           ),
-                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -2305,7 +2356,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('To ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('To ',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -2314,7 +2367,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               hintText: 'HH',
                             ),
                           ),
-                          Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('/',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 32,
                             child: BilingualSimpleUnderlineInput(
@@ -2483,8 +2538,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 children: [
                   TableRow(
                     children: [
-                      _buildTableHeaderCell('Question (प्रश्न)', serifStyle: serifStyle),
-                      _buildTableHeaderCell('Answer (उत्तर)', serifStyle: serifStyle),
+                      _buildTableHeaderCell('Question (प्रश्न)',
+                          serifStyle: serifStyle),
+                      _buildTableHeaderCell('Answer (उत्तर)',
+                          serifStyle: serifStyle),
                     ],
                   ),
                   _buildCSRow(
@@ -2544,7 +2601,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                                 hintText: 'DD',
                               ),
                             ),
-                            Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.black87)),
+                            Text('/',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87)),
                             SizedBox(
                               width: 32,
                               child: BilingualSimpleUnderlineInput(
@@ -2571,7 +2631,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                                 hintText: 'HH',
                               ),
                             ),
-                            Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.black87)),
+                            Text('/',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87)),
                             SizedBox(
                               width: 32,
                               child: BilingualSimpleUnderlineInput(
@@ -2855,7 +2918,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               Center(
                 child: Text(
                   'o o o o',
-                  style: serifStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: serifStyle.copyWith(
+                      fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ),
               const SizedBox(height: 12),
@@ -2998,12 +3062,14 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               const SizedBox(height: 16),
               Text(
                 'तरी सदर मृतकाचे मरणाचे निश्चीत कारण समजुन घेणेकरीता सदर मृतकाचे प्रेताचे पी.एम करून आपला सविस्तर अभिप्राय मिळणेस विनंती आहे.',
-                style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.black87),
+                style: marathiLabelStyle.copyWith(
+                    fontWeight: FontWeight.bold, color: Colors.black87),
               ),
               const SizedBox(height: 16),
               Text(
                 'सहपत्र : प्रश्नोत्तर फॉर्म, इंक्वेस्ट पंचनामा',
-                style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.black87),
+                style: marathiLabelStyle.copyWith(
+                    fontWeight: FontWeight.bold, color: Colors.black87),
               ),
               const SizedBox(height: 16),
               Row(
@@ -3140,7 +3206,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               Center(
                 child: Text(
                   'o o o o',
-                  style: serifStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: serifStyle.copyWith(
+                      fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ),
               const SizedBox(height: 12),
@@ -3368,7 +3435,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               Center(
                 child: Text(
                   'o o o o',
-                  style: serifStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: serifStyle.copyWith(
+                      fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ),
               const SizedBox(height: 12),
@@ -4148,7 +4216,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 12),
         Text(
           '11) In case of vehicle accident :-',
-          style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+          style: serifStyle.copyWith(
+              fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
         ),
         Text('११) वाहन अपघाताची केस असल्यास :', style: marathiLabelStyle),
         const SizedBox(height: 8),
@@ -4361,7 +4430,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 4),
         Text(
           'मी प्रेत ताबा पावती लिहून देतो की, आज दिनांक ... रोजी मृतक नामे ... हयाचे / हिचे प्रेत पोस्टमार्टम होवुन अंतिम संस्काराकरीता माझे ताब्यात मिळाले आहे. सदर प्रेत हे नमुद मृतकाचेच आहे. मी मृतकाचा वारसा या नात्याने ताब्यात घेतले आहे. माझी कोणत्याच प्रकारची तक्रार नाही.',
-          style: marathiLabelStyle.copyWith(fontSize: 11, color: Colors.black87),
+          style:
+              marathiLabelStyle.copyWith(fontSize: 11, color: Colors.black87),
         ),
         const SizedBox(height: 12),
         BilingualField(
@@ -4642,7 +4712,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                       hintText: 'DD',
                     ),
                   ),
-                  Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.black87)),
+                  Text('/',
+                      style: serifStyle.copyWith(
+                          fontWeight: FontWeight.bold, color: Colors.black87)),
                   SizedBox(
                     width: 32,
                     child: BilingualSimpleUnderlineInput(
@@ -4669,7 +4741,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                       hintText: 'HH',
                     ),
                   ),
-                  Text('/', style: serifStyle.copyWith(fontWeight: FontWeight.bold, color: Colors.black87)),
+                  Text('/',
+                      style: serifStyle.copyWith(
+                          fontWeight: FontWeight.bold, color: Colors.black87)),
                   SizedBox(
                     width: 32,
                     child: BilingualSimpleUnderlineInput(
@@ -4692,7 +4766,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 4),
         Text(
           'आपणास आदेश देण्यात येतो की, आपण ... हयाचे / हिचे प्रेत सोबत घेवून मा.वैद्यकीय अधिकारी यांचेकडे शवविच्छेदनाकरीता दाखल करावे.',
-          style: marathiLabelStyle.copyWith(fontSize: 11, color: Colors.black87),
+          style:
+              marathiLabelStyle.copyWith(fontSize: 11, color: Colors.black87),
         ),
         const SizedBox(height: 12),
         BilingualFieldRow(

@@ -111,12 +111,10 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
     if (fh.isEmpty && fm.isEmpty && th.isEmpty && tm.isEmpty) {
       return _panchnamaTimeCtrl.text.trim();
     }
-    final from = fh.isNotEmpty && fm.isNotEmpty
-        ? '$fh/$fm'
-        : (fh.isNotEmpty ? fh : fm);
-    final to = th.isNotEmpty && tm.isNotEmpty
-        ? '$th/$tm'
-        : (th.isNotEmpty ? th : tm);
+    final from =
+        fh.isNotEmpty && fm.isNotEmpty ? '$fh/$fm' : (fh.isNotEmpty ? fh : fm);
+    final to =
+        th.isNotEmpty && tm.isNotEmpty ? '$th/$tm' : (th.isNotEmpty ? th : tm);
     if (from.isNotEmpty && to.isNotEmpty) {
       return '$from ते $to पर्यंत';
     } else if (from.isNotEmpty) {
