@@ -36,6 +36,7 @@ Future<Uint8List> generateFinalReportPdf(Map<String, dynamic> doc) async {
     'Final Report Part I',
     'Final Report Part II',
     'Final Report Part III',
+    'Final Report Part IV',
   };
   final activeSection = doc['formSection']?.toString();
 
@@ -58,7 +59,7 @@ Future<Uint8List> generateFinalReportPdf(Map<String, dynamic> doc) async {
   );
   final headerStyle = pw.TextStyle(
     font: loraBold,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: pw.FontWeight.bold,
     color: PdfColors.black,
   );
@@ -75,22 +76,25 @@ Future<Uint8List> generateFinalReportPdf(Map<String, dynamic> doc) async {
     return pw.Text(t, style: valueStyle);
   }
 
-  pw.Widget field(String label, String key, String? fallback) {
+  pw.Widget field(String label, String key, String? fallback, {double width = 0}) {
+    final child = pw.Container(
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+      ),
+      padding: const pw.EdgeInsets.only(left: 3, bottom: 1),
+      child: val(key, fallback),
+    );
     return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 4),
+      padding: const pw.EdgeInsets.only(bottom: 3),
       child: pw.Row(
+        mainAxisSize: width > 0 ? pw.MainAxisSize.min : pw.MainAxisSize.max,
         crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
           pw.Text(label, style: englishBold),
-          pw.Expanded(
-            child: pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-              ),
-              padding: const pw.EdgeInsets.only(left: 4, bottom: 1),
-              child: val(key, fallback),
-            ),
-          ),
+          if (width > 0)
+            pw.SizedBox(width: width, child: child)
+          else
+            pw.Expanded(child: child),
         ],
       ),
     );
@@ -115,120 +119,260 @@ Future<Uint8List> generateFinalReportPdf(Map<String, dynamic> doc) async {
             ),
             child: i < split.length
                 ? val('${key}_$i', split[i])
-                : pw.SizedBox(height: 10),
+                : pw.SizedBox(height: 9),
           ),
       ],
     );
   }
 
-  // PAGE 1
+  // ══════════════════════════════════════════════════════════════════
+  // PAGE 1 — Sections 1 to 10
+  // ══════════════════════════════════════════════════════════════════
   if (showsSection('Final Report Part I')) {
+    final propCount = int.tryParse(doc['propertyRowCount']?.toString() ?? '') ?? 2;
+
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(28),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(child: pw.Text('FINAL REPORT FORM', style: headerStyle)),
-            pw.SizedBox(height: 4),
             pw.Center(
               child: cache.has('title_mr')
                   ? cache.img('title_mr')
                   : pw.Text('अंतिम अहवाल नमुना', style: englishStyle),
             ),
-            pw.SizedBox(height: 4),
             pw.Center(
-              child: pw.Text(
-                '( UNDER SECTION 193 B.N.S.S.2023 )',
-                style: englishBold,
-              ),
+              child: pw.Text('( UNDER SECTION 193 B.N.S.S.2023 )', style: englishBold),
             ),
-            pw.SizedBox(height: 10),
-            field('1.Dist: ', 'val_dist', doc['dist']?.toString()),
-            field('P.S: ', 'val_ps', doc['ps']?.toString()),
-            field('Year: ', 'val_year', doc['year']?.toString()),
-            field('FIR No: ', 'val_firNo', doc['firNo']?.toString()),
-            field('Date: ', 'val_headerDate', doc['headerDate']?.toString()),
-            field(
-              '2. Final Report/Charge Sheet No. ',
-              'val_reportNo',
-              doc['reportNo']?.toString(),
+            pw.SizedBox(height: 8),
+
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text('IN THE COURT OF : ', style: englishBold),
+                if (cache.has('label_court_mr')) cache.img('label_court_mr'),
+                pw.Expanded(
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+                    ),
+                    padding: const pw.EdgeInsets.only(left: 3, bottom: 1),
+                    child: val('val_court', doc['court']?.toString()),
+                  ),
+                ),
+                pw.SizedBox(width: 6),
+                if (cache.has('label_dist_mr')) cache.img('label_dist_mr'),
+                pw.SizedBox(
+                  width: 80,
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+                    ),
+                    padding: const pw.EdgeInsets.only(left: 3, bottom: 1),
+                    child: val('val_courtDist', doc['courtDist']?.toString()),
+                  ),
+                ),
+              ],
             ),
-            field('3. Date: ', 'val_reportDate', doc['reportDate']?.toString()),
-            field('4. Act: ', 'val_act', doc['act']?.toString()),
-            field('Section: ', 'val_section', doc['section']?.toString()),
-            multiline(
-              '5. Type of Final Form / Report:',
-              'reportType',
-              doc['reportType']?.toString(),
-              lines: 2,
+            pw.SizedBox(height: 5),
+
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text('1.Dist : ', style: englishBold),
+                pw.SizedBox(
+                  width: 70,
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
+                    child: val('val_dist', doc['dist']?.toString()),
+                  ),
+                ),
+                pw.SizedBox(width: 6),
+                pw.Text('P.S: ', style: englishBold),
+                pw.Expanded(
+                  flex: 2,
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
+                    child: val('val_ps', doc['ps']?.toString()),
+                  ),
+                ),
+                pw.SizedBox(width: 6),
+                pw.Text('Year : 20', style: englishBold),
+                pw.SizedBox(
+                  width: 25,
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
+                    child: val('val_year', doc['year']?.toString()),
+                  ),
+                ),
+                pw.SizedBox(width: 6),
+                pw.Text('FIRNo : ', style: englishBold),
+                pw.Expanded(
+                  flex: 2,
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
+                    child: val('val_firNo', doc['firNo']?.toString()),
+                  ),
+                ),
+                pw.Text('/', style: englishBold),
+                pw.SizedBox(
+                  width: 35,
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
+                    child: val('val_firYearSuffix', doc['firYearSuffix']?.toString()),
+                  ),
+                ),
+                pw.SizedBox(width: 6),
+                pw.Text('Date : ', style: englishBold),
+                pw.Expanded(
+                  flex: 2,
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
+                    child: val('val_headerDate', doc['headerDate']?.toString()),
+                  ),
+                ),
+              ],
             ),
-            multiline(
-              '6. If F.R. Unoccured:',
-              'frUnoccurred',
-              doc['frUnoccurred']?.toString(),
-              lines: 2,
+            pw.SizedBox(height: 5),
+
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  flex: 3,
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('2. Final Report/Charge Sheet No. ', style: englishBold),
+                      pw.Expanded(
+                        child: pw.Container(
+                          decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
+                          child: val('val_reportNo', doc['reportNo']?.toString()),
+                        ),
+                      ),
+                      pw.Text('/20', style: englishBold),
+                      pw.SizedBox(
+                        width: 25,
+                        child: pw.Container(
+                          decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
+                          child: val('val_reportYearSuffix', doc['reportYearSuffix']?.toString()),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  flex: 2,
+                  child: field('3.Date: ', 'val_reportDate', doc['reportDate']?.toString()),
+                ),
+              ],
             ),
-            field(
-              '7. If Charge Sheeted: ',
-              'val_chargeSheeted',
-              doc['chargeSheeted']?.toString(),
+            pw.SizedBox(height: 5),
+
+            pw.Row(
+              children: [
+                pw.Expanded(flex: 3, child: field('4. Act : ', 'val_act', doc['act']?.toString())),
+                pw.SizedBox(width: 12),
+                pw.Expanded(flex: 2, child: field('Section: ', 'val_section', doc['section']?.toString())),
+              ],
             ),
-            field(
-              'Original/Supplementary: ',
-              'val_origSupp',
-              doc['originalSupplementary']?.toString(),
+            pw.SizedBox(height: 5),
+
+            pw.Text(
+              '5. Type of Final Form /Report : Charge Sheeted/Not charge sheeted for want of evidence/ FR Undetect/FR untraced/FR offence abated/FR Unoccured :',
+              style: englishBold,
             ),
-            field('8. Name of I.O: ', 'val_ioName', doc['ioName']?.toString()),
-            field('Rank: ', 'val_ioRank', doc['ioRank']?.toString()),
-            field('No: ', 'val_ioNo', doc['ioNo']?.toString()),
-            field('P.S: ', 'val_ioPs', doc['ioPs']?.toString()),
-            field(
-              '9.(a) Complainant: ',
-              'val_complainantName',
-              doc['complainantName']?.toString(),
-            ),
-            field(
-              '(b) Father/Husband: ',
-              'val_complainantFather',
-              doc['complainantFather']?.toString(),
-            ),
-            pw.SizedBox(height: 6),
-            pw.Text('10. Properties recovered/seized:', style: englishBold),
+            field('   ', 'val_reportType', doc['reportType']?.toString()),
             pw.SizedBox(height: 4),
-            for (var i = 1; i <= 2; i++) ...[
-              pw.Text('$i.', style: englishBold),
-              field(
-                '  Description: ',
-                'val_prop${i}Desc',
-                doc['prop${i}Desc']?.toString(),
-              ),
-              field(
-                '  Value: ',
-                'val_prop${i}Value',
-                doc['prop${i}Value']?.toString(),
-              ),
-              field(
-                '  Reg No: ',
-                'val_prop${i}Reg',
-                doc['prop${i}Reg']?.toString(),
-              ),
-              field(
-                '  From: ',
-                'val_prop${i}From',
-                doc['prop${i}From']?.toString(),
-              ),
-              field(
-                '  Disposal: ',
-                'val_prop${i}Disposal',
-                doc['prop${i}Disposal']?.toString(),
-              ),
-            ],
-            pw.Spacer(),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold),
+
+            pw.Text(
+              '6. If F.R. Unoccured : False/Mistake of Fact/Mistake of Law/Non-cognizable/Civil Nature :',
+              style: englishBold,
+            ),
+            field('   ', 'val_frUnoccurred', doc['frUnoccurred']?.toString()),
+            pw.SizedBox(height: 4),
+
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: field('7. If Charge Sheeted : ( जर आरोपपत्र ठेवले ) ', 'val_chargeSheeted', doc['chargeSheeted']?.toString()),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: field('Original Supplementary ( मुळ/पुरवणी ) : ', 'val_origSupp', doc['originalSupplementary']?.toString()),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 4),
+
+            pw.Row(
+              children: [
+                pw.Expanded(flex: 3, child: field('8. Name of the I.O : ', 'val_ioName', doc['ioName']?.toString())),
+                pw.SizedBox(width: 8),
+                pw.Expanded(flex: 2, child: field('Rank : ', 'val_ioRank', doc['ioRank']?.toString())),
+                pw.SizedBox(width: 8),
+                pw.SizedBox(width: 65, child: field('No. : ', 'val_ioNo', doc['ioNo']?.toString())),
+              ],
+            ),
+            field('   Police Station / पोलीस स्टेशन: ', 'val_ioPs', doc['ioPs']?.toString()),
+            pw.SizedBox(height: 4),
+
+            field('9. (a) Name of Complainant/Informant : ', 'val_complainantName', doc['complainantName']?.toString()),
+            field('   (b) Father\'s/Husband\'s Name : ', 'val_complainantFather', doc['complainantFather']?.toString()),
+            pw.SizedBox(height: 6),
+
+            pw.Text(
+              '10. Details of Properties/Articles/Documents recovered/seized during investigation and relied upon : Enclosed with C/S.( separate list can be attached, if necessary )',
+              style: englishBold,
+            ),
+            pw.SizedBox(height: 4),
+
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(28),
+                1: pw.FlexColumnWidth(2.6),
+                2: pw.FlexColumnWidth(1.4),
+                3: pw.FlexColumnWidth(1.6),
+                4: pw.FlexColumnWidth(2.2),
+                5: pw.FlexColumnWidth(1.4),
+              },
+              children: [
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Sr.No\nअ.क्र', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Property Description\nमालमत्तेचे वर्णन', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Estimated Value\n(in Rs.)', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('P.S. Property\nRegister No.', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('From whom/where\nRecovered or Seized', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Disposal\nविल्हेवाट', style: englishBold, textAlign: pw.TextAlign.center)),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('1', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('2', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('3', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('4', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('5', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('6', style: englishBold, textAlign: pw.TextAlign.center)),
+                  ],
+                ),
+                for (var i = 1; i <= propCount; i++)
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('$i.', style: englishBold, textAlign: pw.TextAlign.center)),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_prop${i}Desc', doc['prop${i}Desc']?.toString())),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_prop${i}Value', doc['prop${i}Value']?.toString())),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_prop${i}Reg', doc['prop${i}Reg']?.toString())),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_prop${i}From', doc['prop${i}From']?.toString())),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_prop${i}Disposal', doc['prop${i}Disposal']?.toString())),
+                    ],
+                  ),
+              ],
             ),
           ],
         ),
@@ -236,240 +380,258 @@ Future<Uint8List> generateFinalReportPdf(Map<String, dynamic> doc) async {
     );
   }
 
-  // PAGE 2 — Form 5-B
+  // ══════════════════════════════════════════════════════════════════
+  // PAGE 2 — Sections 11 & 12
+  // ══════════════════════════════════════════════════════════════════
   if (showsSection('Final Report Part II')) {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(28),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Align(
-              alignment: pw.Alignment.topRight,
-              child: pw.Text('Form : 5-B', style: englishBold),
-            ),
-            pw.SizedBox(height: 6),
+            pw.Align(alignment: pw.Alignment.topRight, child: pw.Text('Page : 2', style: englishBold)),
+            pw.SizedBox(height: 4),
             pw.Text(
-              '11. Particulars of accused charge-sheeted:',
+              '11. i) Particulars of accused persons charge-sheeted ( use separate sheet for each accused ) : आरोपपत्र ठेवलेल्या आरोपीचा तपशिल ( प्रत्येक आरोपीसाठी स्वतंत्र कागद वापरावा ) :',
               style: englishBold,
             ),
-            field('(i) Name: ', 'val_accName', doc['accName']?.toString()),
-            field(
-              'Where verified: ',
-              'val_accNameVerified',
-              doc['accNameVerified']?.toString(),
+            pw.SizedBox(height: 6),
+            pw.Row(
+              children: [
+                pw.Expanded(flex: 3, child: field('(i) Name : ', 'val_accName', doc['accName']?.toString())),
+                pw.SizedBox(width: 10),
+                pw.Expanded(flex: 2, child: field('Where verified : ', 'val_accNameVerified', doc['accNameVerified']?.toString())),
+              ],
             ),
-            field(
-              '(ii) Father/Husband: ',
-              'val_accFather',
-              doc['accFather']?.toString(),
+            field('(ii) Father\'s/Husband\'s Name : ', 'val_accFather', doc['accFather']?.toString()),
+            pw.Row(
+              children: [
+                pw.Expanded(flex: 3, child: field('(iii) Date/Year of Birth ( जन्मतारीख ) : ', 'val_accDob', doc['accDob']?.toString())),
+                pw.SizedBox(width: 10),
+                pw.SizedBox(width: 80, child: field('Age / वय : ', 'val_accAge', doc['accAge']?.toString())),
+              ],
             ),
-            field('(iii) DOB: ', 'val_accDob', doc['accDob']?.toString()),
-            field('Age: ', 'val_accAge', doc['accAge']?.toString()),
-            field('(iv) Sex: ', 'val_accSex', doc['accSex']?.toString()),
-            field(
-              '(v) Nationality: ',
-              'val_accNationality',
-              doc['accNationality']?.toString(),
+            pw.Row(
+              children: [
+                pw.Expanded(child: field('(iv) Sex / लिंग : ', 'val_accSex', doc['accSex']?.toString())),
+                pw.SizedBox(width: 10),
+                pw.Expanded(child: field('(v) Nationality / राष्ट्रीयत्व : ', 'val_accNationality', doc['accNationality']?.toString())),
+              ],
             ),
-            field(
-              '(vi) Passport: ',
-              'val_accPassport',
-              doc['accPassport']?.toString(),
+            pw.Row(
+              children: [
+                pw.Expanded(child: field('(vi) Passport No. : ', 'val_accPassport', doc['accPassport']?.toString())),
+                pw.SizedBox(width: 8),
+                pw.Expanded(child: field('Date of issue : ', 'val_accPassportDate', doc['accPassportDate']?.toString())),
+                pw.SizedBox(width: 8),
+                pw.Expanded(child: field('Place of Issue : ', 'val_accPassportPlace', doc['accPassportPlace']?.toString())),
+              ],
             ),
-            field(
-              '(vii) Religion: ',
-              'val_accReligion',
-              doc['accReligion']?.toString(),
+            pw.Row(
+              children: [
+                pw.Expanded(child: field('(vii) Religion / धर्म : ', 'val_accReligion', doc['accReligion']?.toString())),
+                pw.SizedBox(width: 10),
+                pw.Expanded(child: field('(viii) Whether SC/ST : ', 'val_accScSt', doc['accScSt']?.toString())),
+              ],
             ),
-            field('(viii) SC/ST: ', 'val_accScSt', doc['accScSt']?.toString()),
-            field(
-              '(ix) Occupation: ',
-              'val_accOccupation',
-              doc['accOccupation']?.toString(),
+            field('(ix) Occupation (व्यवसाय) : ', 'val_accOccupation', doc['accOccupation']?.toString()),
+            field('(x) Address ( पत्ता ) : ', 'val_accAddress', doc['accAddress']?.toString()),
+            field('    Whether verified (पडताळला किंवा काय) : ', 'val_accAddressVerified', doc['accAddressVerified']?.toString()),
+            field('(xi) Provisional Criminal No. (तात्पूरता गुन्हेगार क्र.) : ', 'val_accProvCriminalNo', doc['accProvCriminalNo']?.toString()),
+            field('(xii) Regular Criminal No. ( नियमित गुन्हेगार क्र.) : ', 'val_accRegularCriminalNo', doc['accRegularCriminalNo']?.toString()),
+            pw.Row(
+              children: [
+                pw.Expanded(child: field('(xiii) Date of Arrest (अटकेची तारीख.) : दिनांक ', 'val_accArrestDate', doc['accArrestDate']?.toString())),
+                pw.SizedBox(width: 8),
+                pw.SizedBox(width: 110, child: field('वाजता : ', 'val_accArrestTime', doc['accArrestTime']?.toString())),
+              ],
             ),
-            field(
-              '(x) Address: ',
-              'val_accAddress',
-              doc['accAddress']?.toString(),
+            field('(xiv) Date of release on bail (जामीनावर सोडल्याची तारीख.) : ', 'val_accBailDate', doc['accBailDate']?.toString()),
+            field('(xv) Date on which forwarded to court (न्यायालयात पाठविल्याची तारीख.): ', 'val_accForwardedCourt', doc['accForwardedCourt']?.toString()),
+            field('(xvi) Under Acts & Section ( कोणत्या अधिनियमाखाली व कलमाखाली ) : ', 'val_accActsSections', doc['accActsSections']?.toString()),
+            field('(xvii) Name (s) of bailers/sureties and Address ( जामीनदारांची नांवे व पत्ते ) : ', 'val_accBailers', doc['accBailers']?.toString()),
+            field('(xviii) Previous convictions with case reference : ', 'val_accPrevConvictions', doc['accPrevConvictions']?.toString()),
+            field('(xix) Status of the accused (आरोपीची स्थिती) : ', 'val_accStatus', doc['accStatus']?.toString()),
+            pw.Text(
+              'Forwarded/Bailed by Police/In Police Custody/Bailed by Court/In Judicial Custody/Absconding/Proclaimed Offender',
+              style: englishStyle,
             ),
-            field(
-              '(xi) Prov. Criminal No: ',
-              'val_accProvCriminalNo',
-              doc['accProvCriminalNo']?.toString(),
-            ),
-            field(
-              '(xii) Regular Criminal No: ',
-              'val_accRegularCriminalNo',
-              doc['accRegularCriminalNo']?.toString(),
-            ),
-            field(
-              '(xiii) Arrest Date: ',
-              'val_accArrestDate',
-              doc['accArrestDate']?.toString(),
-            ),
-            field(
-              '(xiv) Bail Date: ',
-              'val_accBailDate',
-              doc['accBailDate']?.toString(),
-            ),
-            field(
-              '(xv) Forwarded to court: ',
-              'val_accForwardedCourt',
-              doc['accForwardedCourt']?.toString(),
-            ),
-            field(
-              '(xvi) Acts & Sections: ',
-              'val_accActsSections',
-              doc['accActsSections']?.toString(),
-            ),
-            field(
-              '(xvii) Bailers: ',
-              'val_accBailers',
-              doc['accBailers']?.toString(),
-            ),
-            field(
-              '(xviii) Prev convictions: ',
-              'val_accPrevConvictions',
-              doc['accPrevConvictions']?.toString(),
-            ),
-            field(
-              '(xix) Status: ',
-              'val_accStatus',
-              doc['accStatus']?.toString(),
-            ),
-            multiline(
-              '12. Not charge-sheeted:',
-              'notChargeSheeted',
-              doc['notChargeSheeted']?.toString(),
-              lines: 2,
-            ),
-            pw.Spacer(),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold),
-            ),
+            pw.SizedBox(height: 8),
+            field('12. आरोप पत्र न ठेवलेल्या आरोपीचा तपशिल: ', 'val_notChargeSheeted', doc['notChargeSheeted']?.toString()),
           ],
         ),
       ),
     );
   }
 
-  // PAGE 3
+  // ══════════════════════════════════════════════════════════════════
+  // PAGE 3 — Sections 13 to 15
+  // ══════════════════════════════════════════════════════════════════
   if (showsSection('Final Report Part III')) {
+    final witnessCount = int.tryParse(doc['witnessRowCount']?.toString() ?? '') ?? 7;
+
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(28),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('13. Verified witnesses:', style: englishBold),
+            pw.Align(alignment: pw.Alignment.topRight, child: pw.Text('Page : 3', style: englishBold)),
             pw.SizedBox(height: 4),
-            for (var i = 1; i <= 7; i++) ...[
-              pw.Text('$i.', style: englishBold),
-              field(
-                '  Name: ',
-                'val_witness${i}Name',
-                doc['witness${i}Name']?.toString(),
-              ),
-              field(
-                '  Age: ',
-                'val_witness${i}Age',
-                doc['witness${i}Age']?.toString(),
-              ),
-              field(
-                '  Occupation: ',
-                'val_witness${i}Occupation',
-                doc['witness${i}Occupation']?.toString(),
-              ),
-              field(
-                '  Address: ',
-                'val_witness${i}Address',
-                doc['witness${i}Address']?.toString(),
-              ),
-              pw.SizedBox(height: 2),
-            ],
-            multiline(
-              '14. False FIR action:',
-              'falseFirAction',
-              doc['falseFirAction']?.toString(),
-              lines: 3,
+            field('13. पडताळलेल्या साक्षटारांचे विवरण: ', 'val_witnessDesc', doc['witnessDesc']?.toString()),
+            pw.SizedBox(height: 4),
+            pw.Center(
+              child: cache.has('witness_header_mr')
+                  ? cache.img('witness_header_mr')
+                  : pw.Text('साक्षीदारांची यादी.', style: englishBold),
             ),
-            field(
-              '15. Lab analysis: ',
-              'val_labAnalysis',
-              doc['labAnalysis']?.toString(),
+            pw.SizedBox(height: 4),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(28),
+                1: pw.FlexColumnWidth(2.4),
+                2: pw.FixedColumnWidth(40),
+                3: pw.FlexColumnWidth(1.4),
+                4: pw.FlexColumnWidth(2.6),
+                5: pw.FlexColumnWidth(2.2),
+              },
+              children: [
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('अ.क्र', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('साक्षीदारांचे नांव', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('वय', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('व्यवसाय', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('राहण्याचा पत्ता', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('सादर करावयाच्या\nपुराव्याचा प्रकार', style: englishBold, textAlign: pw.TextAlign.center)),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('1', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('2', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('3', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('4', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('5', style: englishBold, textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(2), child: pw.Text('6', style: englishBold, textAlign: pw.TextAlign.center)),
+                  ],
+                ),
+                for (var i = 1; i <= witnessCount; i++)
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('$i.', style: englishBold, textAlign: pw.TextAlign.center)),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_witness${i}Name', doc['witness${i}Name']?.toString())),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_witness${i}Age', doc['witness${i}Age']?.toString())),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_witness${i}Occupation', doc['witness${i}Occupation']?.toString())),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_witness${i}Address', doc['witness${i}Address']?.toString())),
+                      pw.Padding(padding: const pw.EdgeInsets.all(3), child: val('val_witness${i}Evidence', doc['witness${i}Evidence']?.toString())),
+                    ],
+                  ),
+              ],
             ),
-            pw.Spacer(),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold),
+            pw.SizedBox(height: 10),
+            pw.Text(
+              '14. If F. I. R. is False, indicate action taken or proposed to be taken u/s 182/211 I. P. C.',
+              style: englishBold,
             ),
+            pw.Text(
+              '(तकार खोटी असेल तर भादंवि १८२/२११ अन्वये केलेली किंवा करावयाची कार्यवाही नमुद करावी.)',
+              style: englishStyle,
+            ),
+            field('   ', 'val_falseFirAction', doc['falseFirAction']?.toString()),
+            pw.SizedBox(height: 8),
+            field('15. Result of laboratory analysis (प्रयोगशाळा विश्लेषकाचा निष्कर्ष) : ', 'val_labAnalysis', doc['labAnalysis']?.toString()),
           ],
         ),
       ),
     );
+  }
 
-    // PAGE 4 — Form 5-E
+  // ══════════════════════════════════════════════════════════════════
+  // PAGE 4 — Sections 16 to 18 & Signatures (Form : 5 E)
+  // ══════════════════════════════════════════════════════════════════
+  if (showsSection('Final Report Part IV') || showsSection('Final Report Part III')) {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(28),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Align(
-              alignment: pw.Alignment.topRight,
-              child: pw.Text('Form : 5-E', style: englishBold),
+            pw.Align(alignment: pw.Alignment.topRight, child: pw.Text('Form : 5 E', style: englishBold)),
+            pw.SizedBox(height: 4),
+            pw.Text(
+              '16. Brief Facts of the Case (Add separate sheet, if necessary.)',
+              style: englishBold,
             ),
-            pw.SizedBox(height: 6),
-            multiline(
-              '16. Brief Facts:',
-              'briefFacts',
-              doc['briefFacts']?.toString(),
-              lines: 10,
+            pw.Text(
+              '    थोडक्यात माहिती ( आवश्यक असल्यास वेगळा कागद जोडावा. ) :',
+              style: englishStyle,
             ),
-            field(
-              '17. Refer Notice Served: ',
-              'val_referNoticeServed',
-              doc['referNoticeServed']?.toString(),
-            ),
-            field(
-              'Date: ',
-              'val_referNoticeDate',
-              doc['referNoticeDate']?.toString(),
-            ),
-            field(
-              '18. Dispatched on: ',
-              'val_dispatchedOn',
-              doc['dispatchedOn']?.toString(),
-            ),
+            pw.Text('महोदय,', style: englishBold),
+            pw.SizedBox(height: 4),
+            multiline('', 'briefFacts', doc['briefFacts']?.toString(), lines: 14),
             pw.SizedBox(height: 8),
-            pw.Text('SHO:', style: englishBold),
-            field('Name: ', 'val_shoName', doc['shoName']?.toString()),
-            field('Rank: ', 'val_shoRank', doc['shoRank']?.toString()),
-            field('No: ', 'val_shoNo', doc['shoNo']?.toString()),
-            field('P.S: ', 'val_shoPs', doc['shoPs']?.toString()),
+            pw.Text('टिप :-', style: englishBold),
+            pw.Row(
+              children: [
+                pw.Expanded(child: field('17. Refer Notice Served : ', 'val_referNoticeServed', doc['referNoticeServed']?.toString())),
+                pw.SizedBox(width: 12),
+                pw.SizedBox(width: 140, child: field('Date : ', 'val_referNoticeDate', doc['referNoticeDate']?.toString())),
+              ],
+            ),
+            pw.Text('    ( Acknowledgement to be placed )', style: englishStyle),
             pw.SizedBox(height: 6),
-            pw.Text('Submitting I.O:', style: englishBold),
-            field(
-              'Name: ',
-              'val_submitIoName',
-              doc['submitIoName']?.toString(),
-            ),
-            field(
-              'Rank: ',
-              'val_submitIoRank',
-              doc['submitIoRank']?.toString(),
-            ),
-            field('No: ', 'val_submitIoNo', doc['submitIoNo']?.toString()),
-            field('P.S: ', 'val_submitIoPs', doc['submitIoPs']?.toString()),
-            pw.Spacer(),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold),
+            field('18. Dispatched on : ', 'val_dispatchedOn', doc['dispatchedOn']?.toString()),
+            pw.SizedBox(height: 20),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('Forwarded by Station House\nOfficer/officer in-charge', style: englishBold),
+                      pw.SizedBox(height: 8),
+                      field('Name : ', 'val_shoName', doc['shoName']?.toString()),
+                      pw.Row(
+                        children: [
+                          pw.Expanded(child: field('Rank : ', 'val_shoRank', doc['shoRank']?.toString())),
+                          pw.SizedBox(width: 6),
+                          pw.SizedBox(width: 50, child: field('No : ', 'val_shoNo', doc['shoNo']?.toString())),
+                        ],
+                      ),
+                      field('', 'val_shoPs', doc['shoPs']?.toString()),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(width: 24),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'Signature of the Investigation Officer\nsubmitting the Final Report/Charge\nSheet.',
+                        style: englishBold,
+                      ),
+                      pw.SizedBox(height: 8),
+                      field('Name : ', 'val_submitIoName', doc['submitIoName']?.toString()),
+                      pw.Row(
+                        children: [
+                          pw.Expanded(child: field('Rank : ', 'val_submitIoRank', doc['submitIoRank']?.toString())),
+                          pw.SizedBox(width: 6),
+                          pw.SizedBox(width: 50, child: field('No. : ', 'val_submitIoNo', doc['submitIoNo']?.toString())),
+                        ],
+                      ),
+                      field('', 'val_submitIoPs', doc['submitIoPs']?.toString()),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -518,6 +680,9 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   );
   await GoogleFonts.pendingFonts();
   await cache.add('title_mr', 'अंतिम अहवाल नमुना', labelStyle);
+  await cache.add('label_court_mr', 'मा.वि.न्यायदंडाधिकारी प्रथम श्रेणी,न्यायालय ', labelStyle);
+  await cache.add('label_dist_mr', 'जिल्हा ', labelStyle);
+  await cache.add('witness_header_mr', 'साक्षीदारांची यादी.', labelStyle);
 
   Future<void> addVal(String key, String? v) async {
     final t = v?.trim() ?? '';
@@ -527,15 +692,22 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   }
 
   final keys = [
+    'court',
+    'courtDist',
     'dist',
     'ps',
     'year',
     'firNo',
+    'firYearSuffix',
     'headerDate',
     'reportNo',
+    'reportYearSuffix',
     'reportDate',
     'act',
     'section',
+    'reportType',
+    'reportTypeCustom',
+    'frUnoccurred',
     'chargeSheeted',
     'originalSupplementary',
     'ioName',
@@ -545,26 +717,56 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'complainantName',
     'complainantFather',
     'accName',
+    'accNameVerified',
     'accFather',
+    'accDob',
+    'accAge',
+    'accSex',
+    'accNationality',
+    'accPassport',
+    'accPassportDate',
+    'accPassportPlace',
+    'accReligion',
+    'accScSt',
+    'accOccupation',
     'accAddress',
+    'accAddressVerified',
+    'accProvCriminalNo',
+    'accRegularCriminalNo',
+    'accArrestDate',
+    'accArrestTime',
+    'accBailDate',
+    'accForwardedCourt',
+    'accActsSections',
+    'accBailers',
+    'accPrevConvictions',
+    'accStatus',
+    'notChargeSheeted',
+    'witnessDesc',
+    'falseFirAction',
     'labAnalysis',
+    'referNoticeServed',
+    'referNoticeDate',
+    'dispatchedOn',
     'shoName',
     'shoRank',
+    'shoNo',
     'shoPs',
     'submitIoName',
     'submitIoRank',
+    'submitIoNo',
     'submitIoPs',
   ];
   for (final k in keys) {
     await addVal('val_$k', doc[k]?.toString());
   }
-  for (var i = 1; i <= 2; i++) {
+  for (var i = 1; i <= 10; i++) {
     for (final col in ['Desc', 'Value', 'Reg', 'From', 'Disposal']) {
       await addVal('val_prop$i$col', doc['prop$i$col']?.toString());
     }
   }
-  for (var i = 1; i <= 7; i++) {
-    for (final col in ['Name', 'Age', 'Occupation', 'Address']) {
+  for (var i = 1; i <= 20; i++) {
+    for (final col in ['Name', 'Age', 'Occupation', 'Address', 'Evidence']) {
       await addVal('val_witness$i$col', doc['witness$i$col']?.toString());
     }
   }
