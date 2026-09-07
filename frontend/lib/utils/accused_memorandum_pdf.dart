@@ -895,6 +895,259 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
     ),
   );
 
+  pw.TableRow buildPdfFeatureRow(String k1, String lbl1, String k2, String lbl2) {
+    final bool val1 = doc[k1] == true || doc[k1] == 'true';
+    final bool val2 = doc[k2] == true || doc[k2] == 'true';
+    return pw.TableRow(
+      children: [
+        pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2.5),
+          child: pw.Row(
+            children: [
+              pw.Container(
+                width: 8,
+                height: 8,
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.black, width: 0.8),
+                ),
+                child: val1
+                    ? pw.Center(
+                        child: pw.Text('X', style: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold)),
+                      )
+                    : null,
+              ),
+              pw.SizedBox(width: 4),
+              pw.Expanded(child: mLbl(lbl1)),
+            ],
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2.5),
+          child: pw.Row(
+            children: [
+              pw.Container(
+                width: 8,
+                height: 8,
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.black, width: 0.8),
+                ),
+                child: val2
+                    ? pw.Center(
+                        child: pw.Text('X', style: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold)),
+                      )
+                    : null,
+              ),
+              pw.SizedBox(width: 4),
+              pw.Expanded(child: mLbl(lbl2)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 16 — ITEMS 84 TO 93 (Weapons, Disposal, Features & Prep)
+  // ══════════════════════════════════════════════════════════════════════════
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(24),
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.6),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(28),
+                1: pw.FlexColumnWidth(1.8),
+                2: pw.FlexColumnWidth(4.2),
+              },
+              children: [
+                buildSimplePdfRow('84.', 'lbl_weapons_vehicles', 'weaponsVehiclesUsed'),
+                buildSimplePdfRow('85.', 'lbl_booty_distribution', 'bootyDistribution'),
+                buildSimplePdfRow('86.', 'lbl_money_disposal', 'moneyDisposal'),
+                buildSimplePdfRow('87.', 'lbl_valuables_disposal', 'valuablesDisposal'),
+                pw.TableRow(
+                  children: [
+                    tableHeader('88.'),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(4),
+                      child: mLbl('lbl_features_header'),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(2),
+                      child: pw.Table(
+                        border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+                        columnWidths: const {
+                          0: pw.FlexColumnWidth(1),
+                          1: pw.FlexColumnWidth(1),
+                        },
+                        children: [
+                          buildPdfFeatureRow('feat_defecate', 'feat_defecate', 'feat_rape', 'feat_rape'),
+                          buildPdfFeatureRow('feat_cook', 'feat_cook', 'feat_smoke_spit', 'feat_smoke_spit'),
+                          buildPdfFeatureRow('feat_spray', 'feat_spray', 'feat_brought_weapon_assault', 'feat_brought_weapon_assault'),
+                          buildPdfFeatureRow('feat_tie_victims', 'feat_tie_victims', 'feat_spot_weapon_assault', 'feat_spot_weapon_assault'),
+                          buildPdfFeatureRow('feat_latch_neighbors', 'feat_latch_neighbors', 'feat_mask_handkerchief', 'feat_mask_handkerchief'),
+                          buildPdfFeatureRow('feat_impersonate_police', 'feat_impersonate_police', 'feat_half_pant_baniyan', 'feat_half_pant_baniyan'),
+                          buildPdfFeatureRow('feat_theft_with_inhabitants', 'feat_theft_with_inhabitants', 'feat_theft_locked_house', 'feat_theft_locked_house'),
+                          buildPdfFeatureRow('feat_wall_hole_theft', 'feat_wall_hole_theft', 'feat_intercept_motorcycle', 'feat_intercept_motorcycle'),
+                          buildPdfFeatureRow('feat_target_follow', 'feat_target_follow', 'feat_rope_across_road', 'feat_rope_across_road'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                buildSimplePdfRow('89.', 'lbl_escape_routes', 'escapeRoutesTogetherOrApart'),
+                buildSimplePdfRow('90.', 'lbl_police_arrival_plan', 'policeArrivalPlan'),
+                buildSimplePdfRow('91.', 'lbl_people_wake_plan', 'peopleWakePlan'),
+                buildSimplePdfRow('92.', 'lbl_resistance_plan', 'resistancePlan'),
+                buildSimplePdfRow('93.', 'lbl_crime_language', 'crimeLanguage'),
+              ],
+            ),
+            pw.SizedBox(height: 12),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text('M.R.W', style: englishBold),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PAGE 17 — ITEMS 94 TO 101 (Rivals, Past Crimes & Signatures)
+  // ══════════════════════════════════════════════════════════════════════════
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(24),
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.6),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(28),
+                1: pw.FlexColumnWidth(1.8),
+                2: pw.FlexColumnWidth(4.2),
+              },
+              children: [
+                pw.TableRow(
+                  children: [
+                    tableHeader('94.'),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(4),
+                      child: mLbl('lbl_rival_accomplices'),
+                    ),
+                    pw.Column(
+                      children: [
+                        for (int i = 0; i < 5; i++)
+                          pw.Container(
+                            decoration: i < 4
+                                ? const pw.BoxDecoration(
+                                    border: pw.Border(
+                                      bottom: pw.BorderSide(color: PdfColors.black, width: 0.5),
+                                    ),
+                                  )
+                                : null,
+                            child: pw.Row(
+                              children: [
+                                pw.Container(
+                                  width: 20,
+                                  alignment: pw.Alignment.center,
+                                  padding: const pw.EdgeInsets.symmetric(vertical: 2),
+                                  child: mLbl('lbl_dev_num_${i + 1}'),
+                                ),
+                                pw.Container(width: 0.5, height: 16, color: PdfColors.black),
+                                pw.Expanded(
+                                  child: tableCell(
+                                    'val_rivalAccompliceReason${i + 1}',
+                                    val('val_rivalAccompliceReason${i + 1}', doc['rivalAccompliceReason${i + 1}']),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+                buildSimplePdfRow('95.', 'lbl_gang_merger', 'gangMerger'),
+                buildSimplePdfRow('96.', 'lbl_rival_gang_dispute', 'rivalGangDisputeReason'),
+                buildSimplePdfRow('97.', 'lbl_injured_accomplice_plan', 'injuredAccomplicePlan'),
+                buildSimplePdfRow('98.', 'lbl_arrested_accomplice_plan', 'arrestedAccompliceReleasePlan'),
+                buildSimplePdfRow('99.', 'lbl_favorable_season', 'favorableSeasonReason'),
+                buildSimplePdfRow('100.', 'lbl_officers_recognizing', 'officersRecognizingCriminal'),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+
+            // Item 101 Heading
+            mLbl('lbl_past_crimes_title'),
+            pw.SizedBox(height: 4),
+
+            // Item 101 Table
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.6),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(24),
+                1: pw.FlexColumnWidth(1.8),
+                2: pw.FlexColumnWidth(1.8),
+                3: pw.FlexColumnWidth(2.0),
+                4: pw.FlexColumnWidth(2.8),
+              },
+              children: [
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: mLbl('lbl_tbl_sr')),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: mLbl('lbl_tbl_place')),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: mLbl('lbl_tbl_datetime')),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: mLbl('lbl_tbl_goods')),
+                    pw.Padding(padding: const pw.EdgeInsets.all(3), child: mLbl('lbl_tbl_accomplices')),
+                  ],
+                ),
+                for (int i = 0; i < 10; i++)
+                  pw.TableRow(
+                    children: [
+                      tableHeader('${i + 1}.'),
+                      tableCell('val_pastCrimePlace${i + 1}', val('val_pastCrimePlace${i + 1}', doc['pastCrimePlace${i + 1}'])),
+                      tableCell('val_pastCrimeDateTime${i + 1}', val('val_pastCrimeDateTime${i + 1}', doc['pastCrimeDateTime${i + 1}'])),
+                      tableCell('val_pastCrimeGoods${i + 1}', val('val_pastCrimeGoods${i + 1}', doc['pastCrimeGoods${i + 1}'])),
+                      tableCell('val_pastCrimeAccomplices${i + 1}', val('val_pastCrimeAccomplices${i + 1}', doc['pastCrimeAccomplices${i + 1}'])),
+                    ],
+                  ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+
+            // Note
+            mLbl('lbl_footer_note'),
+            pw.SizedBox(height: 16),
+
+            // Investigating Officer Signature
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.end,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    tableCell('val_investigatingOfficerNameSign', val('val_investigatingOfficerNameSign', doc['investigatingOfficerNameSign'])),
+                    pw.SizedBox(height: 2),
+                    mLbl('lbl_investigating_officer'),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
   return pdf.save();
 }
 
@@ -1026,6 +1279,61 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'lbl_gang_leader': 'गुन्हा करणाऱ्या टोळीतील सुत्रधाराचे नांव',
     'lbl_transit_to': 'गुन्हा करण्यासाठी जातांना प्रवास कशाने करतात',
     'lbl_transit_from': 'गुन्हा करून परत जातांना प्रवास कशाने करतात',
+
+    'lbl_weapons_vehicles': 'गुन्ह्यात कोणत्या हत्याराचा व वाहनाचा वापर करतात',
+    'lbl_booty_distribution': 'गुन्ह्यात मिळालेल्या मुद्देमालाची वाटणी कोठे व कशी करतात.',
+    'lbl_money_disposal': 'गुन्ह्यात मिळालेल्या पैश्याची विल्हेवाट',
+    'lbl_valuables_disposal': 'गुन्ह्यात मिळालेल्या मौल्यवान वस्तुंची विल्हेवाट चांदी/ सोने व इतर वस्तु',
+    'lbl_features_header': 'गुन्ह्याचे वैशिष्टये लागे असल्यास मार्क करणे',
+
+    'feat_defecate': 'घटनास्थळी संडास करणे',
+    'feat_rape': 'घटनास्थळी स्त्रि /मुलीवर बलात्कार करणे',
+    'feat_cook': 'स्वयंपाक करण्यास लावणे',
+    'feat_smoke_spit': 'घटनास्थळी बीडी सिगारेट पिणे थुंकने',
+    'feat_spray': 'फिर्यादीचे चेहऱ्यावर स्प्रे मारणे',
+    'feat_brought_weapon_assault': 'सोबत आणलेल्या हत्याराने मारहाण करणे',
+    'feat_tie_victims': 'घरातील लोकांना बांधुन ठेवणे',
+    'feat_spot_weapon_assault': 'घटनास्थळावरील हत्यार घेवुन मारहाण करणे',
+    'feat_latch_neighbors': 'शेजारच्या घरांना कड्या लावणे',
+    'feat_mask_handkerchief': 'चेहऱ्यावर रूमाल बांधुन गुन्हा करणे',
+    'feat_impersonate_police': 'पोलीस असल्याची बतावणी करणे',
+    'feat_half_pant_baniyan': 'गुन्हा करतांना हाफ पॅन्ट व बनियान वापरणे',
+    'feat_theft_with_inhabitants': 'घरात लोक असतांना चोरी करणे',
+    'feat_theft_locked_house': 'घराला कुलुप असतांना चोरी करणे',
+    'feat_wall_hole_theft': 'भिंतीला छिद्र पाडुन चोरी करणे',
+    'feat_intercept_motorcycle': 'वाहनास मोटार सायकलवर येऊन अडवीणे',
+    'feat_target_follow': 'सावज हेरून गुन्हा पाठलाग करणे',
+    'feat_rope_across_road': 'दोर आडवा लावुन मोटार सायकल अडविणे',
+
+    'lbl_escape_routes': 'गुन्ह्याचे घटनास्थळा पासुन साथीदारांसह एकत्र जातात की वेगवेगळ्या दिशेने जातात',
+    'lbl_police_arrival_plan': 'गुन्हा करतेवेळी पोलीस आल्यास कुठली तयारी असते',
+    'lbl_people_wake_plan': 'गुन्हा करतांना लोक जागे झाल्यास कोणती तयारी असते',
+    'lbl_resistance_plan': 'गुन्ह्यात लोकांनी प्रतिकार केल्यास कोणी तयारी असते',
+    'lbl_crime_language': 'गुन्हा करतांना वापरावयाची भाषा',
+
+    'lbl_rival_accomplices': 'विरोधाकाचे व साथीदार यांचे नांव व पत्ता व विरोध करण्याचे त्याचे कारण',
+    'lbl_dev_num_1': '१',
+    'lbl_dev_num_2': '२',
+    'lbl_dev_num_3': '३',
+    'lbl_dev_num_4': '४',
+    'lbl_dev_num_5': '५',
+
+    'lbl_gang_merger': 'गुन्हा करतांना दोन टोळ्या एकत्र होतात काय',
+    'lbl_rival_gang_dispute': 'दुसऱ्या टोळी बरोबर वाद आहे काय असल्यास वादाचे कारण',
+    'lbl_injured_accomplice_plan': 'गुन्ह्यात एखादा साथीदार जखमी असल्यास कोणती तयारी असते',
+    'lbl_arrested_accomplice_plan': 'गुन्ह्यात एखादा साथीदार अटक झाल्यास त्याला कोणत्या पध्दतीने सोडवितात',
+    'lbl_favorable_season': 'कुठल्या हंगामात गुन्हा करण्याचे सोईचे जाते त्याचे कारण काय',
+    'lbl_officers_recognizing': 'गुन्हेगाराला ओळखणारे अधिकारी व कर्मचारी यांचे नांव व मो नं',
+
+    'lbl_past_crimes_title': '101 आज पावेतो किती गुन्हे केले आहे त्याचे वर्णन :—',
+    'lbl_tbl_sr': 'अ.क्र',
+    'lbl_tbl_place': 'ठिकाण',
+    'lbl_tbl_datetime': 'दिनांक व वेळ',
+    'lbl_tbl_goods': 'मिळाला माल',
+    'lbl_tbl_accomplices': 'साथीदारांचे नांव व माहिती',
+
+    'lbl_footer_note': 'टिप :— सावत्र आई किंवा इतर विशेष माहिती असल्यास त्याचे करीता पुरवणी कागद वापरावा',
+    'lbl_investigating_officer': 'तपासी अधिकारी नांव व सही',
   };
 
   void addIfDevanagari(String k, dynamic v) {
@@ -1099,6 +1407,30 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'lbl_gang_leader',
     'lbl_transit_to',
     'lbl_transit_from',
+    'lbl_weapons_vehicles',
+    'lbl_booty_distribution',
+    'lbl_money_disposal',
+    'lbl_valuables_disposal',
+    'lbl_features_header',
+    'lbl_escape_routes',
+    'lbl_police_arrival_plan',
+    'lbl_people_wake_plan',
+    'lbl_resistance_plan',
+    'lbl_crime_language',
+    'lbl_rival_accomplices',
+    'lbl_gang_merger',
+    'lbl_rival_gang_dispute',
+    'lbl_injured_accomplice_plan',
+    'lbl_arrested_accomplice_plan',
+    'lbl_favorable_season',
+    'lbl_officers_recognizing',
+    'lbl_past_crimes_title',
+    'lbl_tbl_sr',
+    'lbl_tbl_place',
+    'lbl_tbl_datetime',
+    'lbl_tbl_goods',
+    'lbl_tbl_accomplices',
+    'lbl_investigating_officer',
   };
 
   final cache = MarathiImageCache();
@@ -1106,9 +1438,9 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
 
   for (final entry in pairs.entries) {
     final isBold = boldKeys.contains(entry.key);
-    final double fs = entry.key == 'hdr_title'
-        ? 13.0
-        : (entry.key == 'hdr_subtitle' ? 10.5 : 8.5);
+    final double fs = entry.key == 'hdr_title' || entry.key == 'lbl_past_crimes_title'
+        ? 12.0
+        : (entry.key == 'hdr_subtitle' ? 10.5 : 8.0);
     final color = entry.key.startsWith('val_') ? const Color(0xFF0D47A1) : Colors.black87;
 
     await cache.add(
@@ -1119,7 +1451,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
         fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
         color: color,
       ),
-      maxWidth: entry.key == 'hdr_title' || entry.key == 'hdr_subtitle' ? 500 : 350,
+      maxWidth: entry.key == 'hdr_title' || entry.key == 'hdr_subtitle' || entry.key == 'lbl_past_crimes_title' ? 500 : 350,
     );
   }
 

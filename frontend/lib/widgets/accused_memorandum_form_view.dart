@@ -195,6 +195,63 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
   final _travelToCrimeMethodCtrl = TextEditingController();
   final _travelFromCrimeMethodCtrl = TextEditingController();
 
+  // ─── PAGE 16 CONTROLLERS (Items 84–93) ────────────────────────────────────
+  final _weaponsVehiclesUsedCtrl = TextEditingController();
+  final _bootyDistributionCtrl = TextEditingController();
+  final _moneyDisposalCtrl = TextEditingController();
+  final _valuablesDisposalCtrl = TextEditingController();
+
+  // Item 88: Modus Operandi Features (18 Checkboxes)
+  final Map<String, bool> _features = {
+    'feat_defecate': false,
+    'feat_rape': false,
+    'feat_cook': false,
+    'feat_smoke_spit': false,
+    'feat_spray': false,
+    'feat_brought_weapon_assault': false,
+    'feat_tie_victims': false,
+    'feat_spot_weapon_assault': false,
+    'feat_latch_neighbors': false,
+    'feat_mask_handkerchief': false,
+    'feat_impersonate_police': false,
+    'feat_half_pant_baniyan': false,
+    'feat_theft_with_inhabitants': false,
+    'feat_theft_locked_house': false,
+    'feat_wall_hole_theft': false,
+    'feat_intercept_motorcycle': false,
+    'feat_target_follow': false,
+    'feat_rope_across_road': false,
+  };
+
+  final _escapeRoutesTogetherOrApartCtrl = TextEditingController();
+  final _policeArrivalPlanCtrl = TextEditingController();
+  final _peopleWakePlanCtrl = TextEditingController();
+  final _resistancePlanCtrl = TextEditingController();
+  final _crimeLanguageCtrl = TextEditingController();
+
+  // ─── PAGE 17 CONTROLLERS (Items 94–101) ───────────────────────────────────
+  final List<TextEditingController> _rivalAccompliceReasonCtrls =
+      List.generate(5, (_) => TextEditingController());
+
+  final _gangMergerCtrl = TextEditingController();
+  final _rivalGangDisputeReasonCtrl = TextEditingController();
+  final _injuredAccomplicePlanCtrl = TextEditingController();
+  final _arrestedAccompliceReleasePlanCtrl = TextEditingController();
+  final _favorableSeasonReasonCtrl = TextEditingController();
+  final _officersRecognizingCriminalCtrl = TextEditingController();
+
+  // Item 101 Table (10 rows):
+  final List<TextEditingController> _pastCrimePlaces =
+      List.generate(10, (_) => TextEditingController());
+  final List<TextEditingController> _pastCrimeDateTimes =
+      List.generate(10, (_) => TextEditingController());
+  final List<TextEditingController> _pastCrimeGoods =
+      List.generate(10, (_) => TextEditingController());
+  final List<TextEditingController> _pastCrimeAccomplices =
+      List.generate(10, (_) => TextEditingController());
+
+  final _investigatingOfficerNameSignCtrl = TextEditingController();
+
   // ─── RELATIVE & ACCOMPLICE CONTROLLERS (Items 9–48 & 74–79) ──────────────
   late final Map<int, RelativeEntryControllers> _relatives;
 
@@ -337,6 +394,34 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
     _travelToCrimeMethodCtrl.dispose();
     _travelFromCrimeMethodCtrl.dispose();
 
+    _weaponsVehiclesUsedCtrl.dispose();
+    _bootyDistributionCtrl.dispose();
+    _moneyDisposalCtrl.dispose();
+    _valuablesDisposalCtrl.dispose();
+    _escapeRoutesTogetherOrApartCtrl.dispose();
+    _policeArrivalPlanCtrl.dispose();
+    _peopleWakePlanCtrl.dispose();
+    _resistancePlanCtrl.dispose();
+    _crimeLanguageCtrl.dispose();
+
+    for (final c in _rivalAccompliceReasonCtrls) {
+      c.dispose();
+    }
+    _gangMergerCtrl.dispose();
+    _rivalGangDisputeReasonCtrl.dispose();
+    _injuredAccomplicePlanCtrl.dispose();
+    _arrestedAccompliceReleasePlanCtrl.dispose();
+    _favorableSeasonReasonCtrl.dispose();
+    _officersRecognizingCriminalCtrl.dispose();
+
+    for (int i = 0; i < 10; i++) {
+      _pastCrimePlaces[i].dispose();
+      _pastCrimeDateTimes[i].dispose();
+      _pastCrimeGoods[i].dispose();
+      _pastCrimeAccomplices[i].dispose();
+    }
+    _investigatingOfficerNameSignCtrl.dispose();
+
     for (final rel in _relatives.values) {
       rel.dispose();
     }
@@ -426,6 +511,41 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       _travelToCrimeMethodCtrl.text = data['travelToCrimeMethod']?.toString() ?? '';
       _travelFromCrimeMethodCtrl.text = data['travelFromCrimeMethod']?.toString() ?? '';
 
+      _weaponsVehiclesUsedCtrl.text = data['weaponsVehiclesUsed']?.toString() ?? '';
+      _bootyDistributionCtrl.text = data['bootyDistribution']?.toString() ?? '';
+      _moneyDisposalCtrl.text = data['moneyDisposal']?.toString() ?? '';
+      _valuablesDisposalCtrl.text = data['valuablesDisposal']?.toString() ?? '';
+
+      _features.keys.toList().forEach((k) {
+        _features[k] = data[k] == true || data[k] == 'true';
+      });
+
+      _escapeRoutesTogetherOrApartCtrl.text = data['escapeRoutesTogetherOrApart']?.toString() ?? '';
+      _policeArrivalPlanCtrl.text = data['policeArrivalPlan']?.toString() ?? '';
+      _peopleWakePlanCtrl.text = data['peopleWakePlan']?.toString() ?? '';
+      _resistancePlanCtrl.text = data['resistancePlan']?.toString() ?? '';
+      _crimeLanguageCtrl.text = data['crimeLanguage']?.toString() ?? '';
+
+      for (int i = 0; i < 5; i++) {
+        _rivalAccompliceReasonCtrls[i].text = data['rivalAccompliceReason${i + 1}']?.toString() ?? '';
+      }
+
+      _gangMergerCtrl.text = data['gangMerger']?.toString() ?? '';
+      _rivalGangDisputeReasonCtrl.text = data['rivalGangDisputeReason']?.toString() ?? '';
+      _injuredAccomplicePlanCtrl.text = data['injuredAccomplicePlan']?.toString() ?? '';
+      _arrestedAccompliceReleasePlanCtrl.text = data['arrestedAccompliceReleasePlan']?.toString() ?? '';
+      _favorableSeasonReasonCtrl.text = data['favorableSeasonReason']?.toString() ?? '';
+      _officersRecognizingCriminalCtrl.text = data['officersRecognizingCriminal']?.toString() ?? '';
+
+      for (int i = 0; i < 10; i++) {
+        _pastCrimePlaces[i].text = data['pastCrimePlace${i + 1}']?.toString() ?? '';
+        _pastCrimeDateTimes[i].text = data['pastCrimeDateTime${i + 1}']?.toString() ?? '';
+        _pastCrimeGoods[i].text = data['pastCrimeGoods${i + 1}']?.toString() ?? '';
+        _pastCrimeAccomplices[i].text = data['pastCrimeAccomplices${i + 1}']?.toString() ?? '';
+      }
+
+      _investigatingOfficerNameSignCtrl.text = data['investigatingOfficerNameSign']?.toString() ?? '';
+
       for (final rel in _relatives.values) {
         rel.hydrate(data);
       }
@@ -513,6 +633,38 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       'gangLeaderName': _gangLeaderNameCtrl.text.trim(),
       'travelToCrimeMethod': _travelToCrimeMethodCtrl.text.trim(),
       'travelFromCrimeMethod': _travelFromCrimeMethodCtrl.text.trim(),
+
+      'weaponsVehiclesUsed': _weaponsVehiclesUsedCtrl.text.trim(),
+      'bootyDistribution': _bootyDistributionCtrl.text.trim(),
+      'moneyDisposal': _moneyDisposalCtrl.text.trim(),
+      'valuablesDisposal': _valuablesDisposalCtrl.text.trim(),
+
+      ..._features,
+
+      'escapeRoutesTogetherOrApart': _escapeRoutesTogetherOrApartCtrl.text.trim(),
+      'policeArrivalPlan': _policeArrivalPlanCtrl.text.trim(),
+      'peopleWakePlan': _peopleWakePlanCtrl.text.trim(),
+      'resistancePlan': _resistancePlanCtrl.text.trim(),
+      'crimeLanguage': _crimeLanguageCtrl.text.trim(),
+
+      for (int i = 0; i < 5; i++)
+        'rivalAccompliceReason${i + 1}': _rivalAccompliceReasonCtrls[i].text.trim(),
+
+      'gangMerger': _gangMergerCtrl.text.trim(),
+      'rivalGangDisputeReason': _rivalGangDisputeReasonCtrl.text.trim(),
+      'injuredAccomplicePlan': _injuredAccomplicePlanCtrl.text.trim(),
+      'arrestedAccompliceReleasePlan': _arrestedAccompliceReleasePlanCtrl.text.trim(),
+      'favorableSeasonReason': _favorableSeasonReasonCtrl.text.trim(),
+      'officersRecognizingCriminal': _officersRecognizingCriminalCtrl.text.trim(),
+
+      for (int i = 0; i < 10; i++) ...{
+        'pastCrimePlace${i + 1}': _pastCrimePlaces[i].text.trim(),
+        'pastCrimeDateTime${i + 1}': _pastCrimeDateTimes[i].text.trim(),
+        'pastCrimeGoods${i + 1}': _pastCrimeGoods[i].text.trim(),
+        'pastCrimeAccomplices${i + 1}': _pastCrimeAccomplices[i].text.trim(),
+      },
+
+      'investigatingOfficerNameSign': _investigatingOfficerNameSignCtrl.text.trim(),
     };
 
     for (final rel in _relatives.values) {
@@ -712,6 +864,83 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
           child: Text(label, style: marathiLabelStyle),
         ),
         _tableCellInput(ctrl, serifStyle),
+      ],
+    );
+  }
+
+  TableRow _buildFeatureRow(
+    String key1,
+    String label1,
+    String key2,
+    String label2,
+    TextStyle marathiLabelStyle,
+  ) {
+    return TableRow(
+      children: [
+        InkWell(
+          onTap: widget.readOnly
+              ? null
+              : () {
+                  setState(() {
+                    _features[key1] = !(_features[key1] ?? false);
+                  });
+                },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: _features[key1] ?? false,
+                    onChanged: widget.readOnly
+                        ? null
+                        : (val) {
+                            setState(() {
+                              _features[key1] = val ?? false;
+                            });
+                          },
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(child: Text(label1, style: marathiLabelStyle.copyWith(fontSize: 12))),
+              ],
+            ),
+          ),
+        ),
+        InkWell(
+          onTap: widget.readOnly
+              ? null
+              : () {
+                  setState(() {
+                    _features[key2] = !(_features[key2] ?? false);
+                  });
+                },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: _features[key2] ?? false,
+                    onChanged: widget.readOnly
+                        ? null
+                        : (val) {
+                            setState(() {
+                              _features[key2] = val ?? false;
+                            });
+                          },
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(child: Text(label2, style: marathiLabelStyle.copyWith(fontSize: 12))),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -1429,6 +1658,210 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                   fontSize: 10,
                 ),
               ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // ══════════════════════════════════════════════════════════════════
+        // PAGE 16 — ITEMS 84 TO 93 (Weapons, Disposal, Features & Prep)
+        // ══════════════════════════════════════════════════════════════════
+        FormPaperPage(
+          formLabel: 'Page : 16 (Weapons, Disposal & Crime Features)',
+          children: [
+            Table(
+              border: TableBorder.all(color: Colors.black87),
+              columnWidths: const {
+                0: FixedColumnWidth(44),
+                1: FlexColumnWidth(1.8),
+                2: FlexColumnWidth(4.2),
+              },
+              children: [
+                _buildSimpleRow('84.', 'गुन्ह्यात कोणत्या हत्याराचा व वाहनाचा वापर करतात', _weaponsVehiclesUsedCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('85.', 'गुन्ह्यात मिळालेल्या मुद्देमालाची वाटणी कोठे व कशी करतात.', _bootyDistributionCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('86.', 'गुन्ह्यात मिळालेल्या पैश्याची विल्हेवाट', _moneyDisposalCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('87.', 'गुन्ह्यात मिळालेल्या मौल्यवान वस्तुंची विल्हेवाट चांदी/ सोने व इतर वस्तु', _valuablesDisposalCtrl, marathiLabelStyle, serifStyle),
+                TableRow(
+                  children: [
+                    _tableHeader('88.', serifStyle),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('गुन्ह्याचे वैशिष्टये लागे असल्यास मार्क करणे', style: marathiLabelStyle),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Table(
+                        border: TableBorder.all(color: Colors.black54),
+                        columnWidths: const {
+                          0: FlexColumnWidth(1),
+                          1: FlexColumnWidth(1),
+                        },
+                        children: [
+                          _buildFeatureRow('feat_defecate', 'घटनास्थळी संडास करणे', 'feat_rape', 'घटनास्थळी स्त्रि /मुलीवर बलात्कार करणे', marathiLabelStyle),
+                          _buildFeatureRow('feat_cook', 'स्वयंपाक करण्यास लावणे', 'feat_smoke_spit', 'घटनास्थळी बीडी सिगारेट पिणे थुंकने', marathiLabelStyle),
+                          _buildFeatureRow('feat_spray', 'फिर्यादीचे चेहऱ्यावर स्प्रे मारणे', 'feat_brought_weapon_assault', 'सोबत आणलेल्या हत्याराने मारहाण करणे', marathiLabelStyle),
+                          _buildFeatureRow('feat_tie_victims', 'घरातील लोकांना बांधुन ठेवणे', 'feat_spot_weapon_assault', 'घटनास्थळावरील हत्यार घेवुन मारहाण करणे', marathiLabelStyle),
+                          _buildFeatureRow('feat_latch_neighbors', 'शेजारच्या घरांना कड्या लावणे', 'feat_mask_handkerchief', 'चेहऱ्यावर रूमाल बांधुन गुन्हा करणे', marathiLabelStyle),
+                          _buildFeatureRow('feat_impersonate_police', 'पोलीस असल्याची बतावणी करणे', 'feat_half_pant_baniyan', 'गुन्हा करतांना हाफ पॅन्ट व बनियान वापरणे', marathiLabelStyle),
+                          _buildFeatureRow('feat_theft_with_inhabitants', 'घरात लोक असतांना चोरी करणे', 'feat_theft_locked_house', 'घराला कुलुप असतांना चोरी करणे', marathiLabelStyle),
+                          _buildFeatureRow('feat_wall_hole_theft', 'भिंतीला छिद्र पाडुन चोरी करणे', 'feat_intercept_motorcycle', 'वाहनास मोटार सायकलवर येऊन अडवीणे', marathiLabelStyle),
+                          _buildFeatureRow('feat_target_follow', 'सावज हेरून गुन्हा पाठलाग करणे', 'feat_rope_across_road', 'दोर आडवा लावुन मोटार सायकल अडविणे', marathiLabelStyle),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                _buildSimpleRow('89.', 'गुन्ह्याचे घटनास्थळा पासुन साथीदारांसह एकत्र जातात की वेगवेगळ्या दिशेने जातात', _escapeRoutesTogetherOrApartCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('90.', 'गुन्हा करतेवेळी पोलीस आल्यास कुठली तयारी असते', _policeArrivalPlanCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('91.', 'गुन्हा करतांना लोक जागे झाल्यास कोणती तयारी असते', _peopleWakePlanCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('92.', 'गुन्ह्यात लोकांनी प्रतिकार केल्यास कोणी तयारी असते', _resistancePlanCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('93.', 'गुन्हा करतांना वापरावयाची भाषा', _crimeLanguageCtrl, marathiLabelStyle, serifStyle),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Text(
+                'M.R.W',
+                style: serifStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // ══════════════════════════════════════════════════════════════════
+        // PAGE 17 — ITEMS 94 TO 101 (Rivals, Past Crimes & Signatures)
+        // ══════════════════════════════════════════════════════════════════
+        FormPaperPage(
+          formLabel: 'Page : 17 (Rivals, Past Crimes History & Signatures)',
+          children: [
+            Table(
+              border: TableBorder.all(color: Colors.black87),
+              columnWidths: const {
+                0: FixedColumnWidth(44),
+                1: FlexColumnWidth(1.8),
+                2: FlexColumnWidth(4.2),
+              },
+              children: [
+                TableRow(
+                  children: [
+                    _tableHeader('94.', serifStyle),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text('विरोधाकाचे व साथीदार यांचे नांव व पत्ता व विरोध करण्याचे त्याचे कारण', style: marathiLabelStyle),
+                    ),
+                    Column(
+                      children: [
+                        for (int i = 0; i < 5; i++)
+                          Container(
+                            decoration: BoxDecoration(
+                              border: i < 4
+                                  ? const Border(bottom: BorderSide(color: Colors.black45, width: 0.5))
+                                  : null,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 28,
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  child: Text(['१', '२', '३', '४', '५'][i], style: marathiLabelStyle),
+                                ),
+                                Container(width: 1, height: 26, color: Colors.black45),
+                                Expanded(
+                                  child: _tableCellInput(_rivalAccompliceReasonCtrls[i], serifStyle),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+                _buildSimpleRow('95.', 'गुन्हा करतांना दोन टोळ्या एकत्र होतात काय', _gangMergerCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('96.', 'दुसऱ्या टोळी बरोबर वाद आहे काय असल्यास वादाचे कारण', _rivalGangDisputeReasonCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('97.', 'गुन्ह्यात एखादा साथीदार जखमी असल्यास कोणती तयारी असते', _injuredAccomplicePlanCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('98.', 'गुन्ह्यात एखादा साथीदार अटक झाल्यास त्याला कोणत्या पध्दतीने सोडवितात', _arrestedAccompliceReleasePlanCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('99.', 'कुठल्या हंगामात गुन्हा करण्याचे सोईचे जाते त्याचे कारण काय', _favorableSeasonReasonCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('100.', 'गुन्हेगाराला ओळखणारे अधिकारी व कर्मचारी यांचे नांव व मो नं', _officersRecognizingCriminalCtrl, marathiLabelStyle, serifStyle),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Item 101 Table Heading
+            Text(
+              '101 आज पावेतो किती गुन्हे केले आहे त्याचे वर्णन :—',
+              style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+            const SizedBox(height: 6),
+
+            // Item 101 Table (10 Rows)
+            Table(
+              border: TableBorder.all(color: Colors.black87),
+              columnWidths: const {
+                0: FixedColumnWidth(36),
+                1: FlexColumnWidth(1.8),
+                2: FlexColumnWidth(1.8),
+                3: FlexColumnWidth(2.0),
+                4: FlexColumnWidth(2.8),
+              },
+              children: [
+                TableRow(
+                  decoration: BoxDecoration(color: Colors.grey.shade100),
+                  children: [
+                    _tableHeader('अ.क्र', serifStyle),
+                    _tableHeader('ठिकाण', serifStyle),
+                    _tableHeader('दिनांक व वेळ', serifStyle),
+                    _tableHeader('मिळाला माल', serifStyle),
+                    _tableHeader('साथीदारांचे नांव व माहिती', serifStyle),
+                  ],
+                ),
+                for (int i = 0; i < 10; i++)
+                  TableRow(
+                    children: [
+                      _tableHeader('${i + 1}.', serifStyle),
+                      _tableCellInput(_pastCrimePlaces[i], serifStyle),
+                      _tableCellInput(_pastCrimeDateTimes[i], serifStyle),
+                      _tableCellInput(_pastCrimeGoods[i], serifStyle),
+                      _tableCellInput(_pastCrimeAccomplices[i], serifStyle),
+                    ],
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Footer Note
+            Text(
+              'टिप :— सावत्र आई किंवा इतर विशेष माहिती असल्यास त्याचे करीता पुरवणी कागद वापरावा',
+              style: marathiLabelStyle.copyWith(fontSize: 11, fontStyle: FontStyle.italic),
+            ),
+            const SizedBox(height: 24),
+
+            // Investigating Officer Signature
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 220,
+                      child: _tableCellInput(_investigatingOfficerNameSignCtrl, serifStyle),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'तपासी अधिकारी नांव व सही',
+                      style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
