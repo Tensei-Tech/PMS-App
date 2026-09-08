@@ -1630,7 +1630,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     );
   }
 
-
   Widget _inlineBlank({
     required TextEditingController controller,
     required TextStyle style,
@@ -1652,11 +1651,18 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           filled: false,
           fillColor: Colors.transparent,
           hintText: hintText,
-          hintStyle: style.copyWith(fontSize: 11, color: Colors.grey.shade400, fontStyle: FontStyle.italic),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          border: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF333333), width: 1.0)),
-          enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
-          focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+          hintStyle: style.copyWith(
+              fontSize: 11,
+              color: Colors.grey.shade400,
+              fontStyle: FontStyle.italic),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          border: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF333333), width: 1.0)),
+          enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+          focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
         ),
       ),
     );
@@ -1683,9 +1689,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         filled: false,
         fillColor: Colors.transparent,
         contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        border: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
-        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
-        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+        border: UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+        enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+        focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
       ),
     );
   }
@@ -1720,12 +1729,14 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               children: [
                 Text(
                   '$qNum $qTextEn',
-                  style: style.copyWith(fontWeight: FontWeight.bold, fontSize: 13, height: 1.25),
+                  style: style.copyWith(
+                      fontWeight: FontWeight.bold, fontSize: 13, height: 1.25),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   qTextMr,
-                  style: marathiStyle.copyWith(fontSize: 10.5, color: Colors.black87, height: 1.25),
+                  style: marathiStyle.copyWith(
+                      fontSize: 10.5, color: Colors.black87, height: 1.25),
                 ),
               ],
             ),
@@ -1751,11 +1762,22 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       spacing: 2,
       runSpacing: 4,
       children: [
-        Text(':- दिनांक ', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
-        _inlineBlank(controller: dateCtrl, style: style, width: 85, hintText: 'DD/MM/YY'),
-        Text(' रोजी ', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
-        _inlineBlank(controller: timeCtrl, style: style, width: 75, hintText: 'HH:MM'),
-        Text(' वाजता.', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
+        Text(':- दिनांक ',
+            style: marathiStyle.copyWith(
+                fontSize: 11.5, fontWeight: FontWeight.bold)),
+        _inlineBlank(
+            controller: dateCtrl,
+            style: style,
+            width: 85,
+            hintText: 'DD/MM/YY'),
+        Text(' रोजी ',
+            style: marathiStyle.copyWith(
+                fontSize: 11.5, fontWeight: FontWeight.bold)),
+        _inlineBlank(
+            controller: timeCtrl, style: style, width: 75, hintText: 'HH:MM'),
+        Text(' वाजता.',
+            style: marathiStyle.copyWith(
+                fontSize: 11.5, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -1776,7 +1798,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         Text(
           'शवविच्छेदन परिक्षेसाठी पाठविलेल्या प्रेताबरोबर जिल्हा शल्यचिकित्सकाकडे पाठवायचा पोलीस अहवाल',
           textAlign: TextAlign.center,
-          style: marathiStyle.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
+          style:
+              marathiStyle.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
         ),
         Text(
           'Police Report to be forwarded to the Civil Surgeon with Dead Bodies sent For Post-mortem examination',
@@ -1791,8 +1814,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               flex: 11,
               child: Column(
                 children: [
-                  Text('प्रश्न', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                  Text('Question', style: style.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text('प्रश्न',
+                      style: marathiStyle.copyWith(
+                          fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  Text('Question',
+                      style: style.copyWith(
+                          fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -1801,8 +1828,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               flex: 12,
               child: Column(
                 children: [
-                  Text('उत्तर', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                  Text('Answer', style: style.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text('उत्तर',
+                      style: marathiStyle.copyWith(
+                          fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  Text('Answer',
+                      style: style.copyWith(
+                          fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -1816,7 +1847,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qNum: '1)',
           qTextEn: 'Name of Deceased',
           qTextMr: 'मृत व्यक्तीचे नांव',
-          answerWidget: _inlineBlank(controller: _csNameDeceasedCtrl, style: style),
+          answerWidget:
+              _inlineBlank(controller: _csNameDeceasedCtrl, style: style),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1836,7 +1868,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qNum: '3)',
           qTextEn: 'Married, Single, Widow or Widower',
           qTextMr: 'विवाहीत, अविवाहीत, विधवा किंवा विधूर',
-          answerWidget: _inlineBlank(controller: _csMaritalStatusCtrl, style: style),
+          answerWidget:
+              _inlineBlank(controller: _csMaritalStatusCtrl, style: style),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1859,9 +1892,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 5) Describe condition of body when found...
         _buildCsRow(
           qNum: '5)',
-          qTextEn: 'Describe condition of body when found, Position, Surroundings and any marks of Violence, bloodstains or vomited matters Which may have existed?',
-          qTextMr: 'प्रेत सापडले त्यावेळची अवस्था, स्थिती, भोवतालची परिस्थिती आणि उपलब्ध असलेल्या मारहाणीच्या खुणा रक्ताचे डाग किंवा वांतीबरोबर पडलेले पदार्थ यांचा तपशील दयावा.',
-          answerWidget: _multilineBlankBox(controller: _csBodyConditionCtrl, style: style, minLines: 4),
+          qTextEn:
+              'Describe condition of body when found, Position, Surroundings and any marks of Violence, bloodstains or vomited matters Which may have existed?',
+          qTextMr:
+              'प्रेत सापडले त्यावेळची अवस्था, स्थिती, भोवतालची परिस्थिती आणि उपलब्ध असलेल्या मारहाणीच्या खुणा रक्ताचे डाग किंवा वांतीबरोबर पडलेले पदार्थ यांचा तपशील दयावा.',
+          answerWidget: _multilineBlankBox(
+              controller: _csBodyConditionCtrl, style: style, minLines: 4),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1869,8 +1905,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 6) Day and hour on which the body was seen...
         _buildCsRow(
           qNum: '6)',
-          qTextEn: 'Day and hour on which the body was seen by the officer making the report',
-          qTextMr: 'अहवाल पाठविणाऱ्या अधिकाऱ्याने प्रेत पाहिल्याचा दिनांक व वेळ (तास)',
+          qTextEn:
+              'Day and hour on which the body was seen by the officer making the report',
+          qTextMr:
+              'अहवाल पाठविणाऱ्या अधिकाऱ्याने प्रेत पाहिल्याचा दिनांक व वेळ (तास)',
           answerWidget: _buildCsDateTimeAnswer(
             dateCtrl: _csSeenDateCtrl,
             timeCtrl: _csSeenTimeCtrl,
@@ -1886,7 +1924,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qNum: '7)',
           qTextEn: 'Was the body cold or warm when found?',
           qTextMr: 'प्रेत सापडले त्यावेळी थंड होते कि गरम',
-          answerWidget: _inlineBlank(controller: _csBodyColdWarmCtrl, style: style),
+          answerWidget:
+              _inlineBlank(controller: _csBodyColdWarmCtrl, style: style),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1894,9 +1933,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 8) Had the deceased suffered from recent Illness?
         _buildCsRow(
           qNum: '8)',
-          qTextEn: 'Had the deceased suffered from recent Illness? If so, what? State duration and Describe the illness as far as Known.',
+          qTextEn:
+              'Had the deceased suffered from recent Illness? If so, what? State duration and Describe the illness as far as Known.',
           qTextMr: 'मृत व्यक्तीस अलिकडे काही आजार झाला होता काय असल्यास कोणता.',
-          answerWidget: _multilineBlankBox(controller: _csRecentIllnessCtrl, style: style, minLines: 3),
+          answerWidget: _multilineBlankBox(
+              controller: _csRecentIllnessCtrl, style: style, minLines: 3),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1904,9 +1945,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 9) Had deceased suffered from accident Injury...
         _buildCsRow(
           qNum: '9)',
-          qTextEn: 'Had deceased suffered from accident Injury or if so, describe it.',
-          qTextMr: 'मृत व्यक्तीस कोणत्याही प्रकारचा अपघात, दुखापत किंवा मारहाण झाली होती काय ?',
-          answerWidget: _multilineBlankBox(controller: _csAccidentInjuryCtrl, style: style, minLines: 2),
+          qTextEn:
+              'Had deceased suffered from accident Injury or if so, describe it.',
+          qTextMr:
+              'मृत व्यक्तीस कोणत्याही प्रकारचा अपघात, दुखापत किंवा मारहाण झाली होती काय ?',
+          answerWidget: _multilineBlankBox(
+              controller: _csAccidentInjuryCtrl, style: style, minLines: 2),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1914,9 +1958,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 10) If clothes, weapons, vomited matter...
         _buildCsRow(
           qNum: '10)',
-          qTextEn: 'If clothes, weapons, vomited matter of Other articles are forwarded, State why this Is done and what relation they bear to the Case? Describe them.',
-          qTextMr: 'कपडे, हत्यारे, वांतीबरोबर पडलेले पदार्थ किंवा इतर वस्तु पाठविल्या असल्यास तसे का केले व त्याचा प्रकरणाशी संबंध आहे ते लिहावे, त्याचा तपशील दयावा.',
-          answerWidget: _multilineBlankBox(controller: _csArticlesForwardedCtrl, style: style, minLines: 4),
+          qTextEn:
+              'If clothes, weapons, vomited matter of Other articles are forwarded, State why this Is done and what relation they bear to the Case? Describe them.',
+          qTextMr:
+              'कपडे, हत्यारे, वांतीबरोबर पडलेले पदार्थ किंवा इतर वस्तु पाठविल्या असल्यास तसे का केले व त्याचा प्रकरणाशी संबंध आहे ते लिहावे, त्याचा तपशील दयावा.',
+          answerWidget: _multilineBlankBox(
+              controller: _csArticlesForwardedCtrl, style: style, minLines: 4),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1924,9 +1971,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 11) Is death supposed to have been due to Natural causes...
         _buildCsRow(
           qNum: '11)',
-          qTextEn: 'Is death supposed to have been due to Natural causes, accident, suicide or homicide? State briefly and plainly, any suspicions That may exist and why?',
-          qTextMr: 'मृत्यु नैसर्गिक कारणे, अपघात, आत्महत्या किंवा खून यापैकी कशामुळे घडला असे वाटते. काही संशय असल्यास ते थोडक्यात स्पष्टपणे नमुद करावे व कारणे दयावे.',
-          answerWidget: _multilineBlankBox(controller: _csDeathReasonCtrl, style: style, minLines: 4),
+          qTextEn:
+              'Is death supposed to have been due to Natural causes, accident, suicide or homicide? State briefly and plainly, any suspicions That may exist and why?',
+          qTextMr:
+              'मृत्यु नैसर्गिक कारणे, अपघात, आत्महत्या किंवा खून यापैकी कशामुळे घडला असे वाटते. काही संशय असल्यास ते थोडक्यात स्पष्टपणे नमुद करावे व कारणे दयावे.',
+          answerWidget: _multilineBlankBox(
+              controller: _csDeathReasonCtrl, style: style, minLines: 4),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1934,7 +1984,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.centerRight,
-          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+          child: Text('M.R.W',
+              style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
         ),
       ],
     );
@@ -1954,8 +2005,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               flex: 11,
               child: Column(
                 children: [
-                  Text('प्रश्न', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                  Text('Question', style: style.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text('प्रश्न',
+                      style: marathiStyle.copyWith(
+                          fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  Text('Question',
+                      style: style.copyWith(
+                          fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -1964,8 +2019,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               flex: 12,
               child: Column(
                 children: [
-                  Text('उत्तर', style: marathiStyle.copyWith(fontSize: 11.5, fontWeight: FontWeight.bold)),
-                  Text('Answer', style: style.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text('उत्तर',
+                      style: marathiStyle.copyWith(
+                          fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  Text('Answer',
+                      style: style.copyWith(
+                          fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -1977,9 +2036,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 12) Is there suspicion of poisoning?
         _buildCsRow(
           qNum: '12)',
-          qTextEn: 'Is there suspicion of poisoning? If, so, is any particular poison supposed to have been employed? Mention any symptoms of poisoning which are reported to have existed during life and any appearances pointing to poisoning observed after death.',
-          qTextMr: 'विष प्रयोग केल्याचा संशय आहे, असल्यास विशिष्ट विषाचा वापर केला आहे वाटते काय? मृत व्यक्ती जिवंत असतांना विषबाधा झाल्याची लक्षणे दिसून आल्याचे कळविण्यात आले होते काय, व विषाचे बाबत मृत्यु नंतर दिसून आलेली चिन्हे नमुद करावी.',
-          answerWidget: _multilineBlankBox(controller: _csPoisonSuspicionCtrl, style: style, minLines: 5),
+          qTextEn:
+              'Is there suspicion of poisoning? If, so, is any particular poison supposed to have been employed? Mention any symptoms of poisoning which are reported to have existed during life and any appearances pointing to poisoning observed after death.',
+          qTextMr:
+              'विष प्रयोग केल्याचा संशय आहे, असल्यास विशिष्ट विषाचा वापर केला आहे वाटते काय? मृत व्यक्ती जिवंत असतांना विषबाधा झाल्याची लक्षणे दिसून आल्याचे कळविण्यात आले होते काय, व विषाचे बाबत मृत्यु नंतर दिसून आलेली चिन्हे नमुद करावी.',
+          answerWidget: _multilineBlankBox(
+              controller: _csPoisonSuspicionCtrl, style: style, minLines: 5),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1987,9 +2049,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 13) In the case of a woman...
         _buildCsRow(
           qNum: '13)',
-          qTextEn: 'In the case of a woman, is she supposed to be pregnant of to have been recently delivered ?',
-          qTextMr: 'स्त्रीच्या बाबतीत ती गरोदर असावी किंवा अलीकडे प्रसुती झाली असावी असे वाटते काय ?',
-          answerWidget: _multilineBlankBox(controller: _csWomanPregnancyCtrl, style: style, minLines: 2),
+          qTextEn:
+              'In the case of a woman, is she supposed to be pregnant of to have been recently delivered ?',
+          qTextMr:
+              'स्त्रीच्या बाबतीत ती गरोदर असावी किंवा अलीकडे प्रसुती झाली असावी असे वाटते काय ?',
+          answerWidget: _multilineBlankBox(
+              controller: _csWomanPregnancyCtrl, style: style, minLines: 2),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -1997,9 +2062,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 14) Is abortion or attempted abortion...
         _buildCsRow(
           qNum: '14)',
-          qTextEn: 'Is abortion or attempted abortion known or suspected? And if the former, has the focus been found?',
-          qTextMr: 'गर्भपात केला किंवा गर्भपात करण्याचा प्रयत्न केला या विषयी माहिती किंवा संशय आहे काय, गर्भपात केला असल्यास गर्भ सापडला काय.',
-          answerWidget: _multilineBlankBox(controller: _csAbortionCtrl, style: style, minLines: 2),
+          qTextEn:
+              'Is abortion or attempted abortion known or suspected? And if the former, has the focus been found?',
+          qTextMr:
+              'गर्भपात केला किंवा गर्भपात करण्याचा प्रयत्न केला या विषयी माहिती किंवा संशय आहे काय, गर्भपात केला असल्यास गर्भ सापडला काय.',
+          answerWidget: _multilineBlankBox(
+              controller: _csAbortionCtrl, style: style, minLines: 2),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2007,9 +2075,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 15) State the finding of the Jury...
         _buildCsRow(
           qNum: '15)',
-          qTextEn: 'State the finding of the Jury (if any) and mention any reasons they may have given for their findings.',
-          qTextMr: 'ज्युरीचे निष्कर्ष असल्यास नमुद करावेत व निष्कर्षा बाबत त्यांनी काही कारणे दिली असल्यास त्याचा निर्देश करावा.',
-          answerWidget: _multilineBlankBox(controller: _csJuryFindingsCtrl, style: style, minLines: 2),
+          qTextEn:
+              'State the finding of the Jury (if any) and mention any reasons they may have given for their findings.',
+          qTextMr:
+              'ज्युरीचे निष्कर्ष असल्यास नमुद करावेत व निष्कर्षा बाबत त्यांनी काही कारणे दिली असल्यास त्याचा निर्देश करावा.',
+          answerWidget: _multilineBlankBox(
+              controller: _csJuryFindingsCtrl, style: style, minLines: 2),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2017,15 +2088,19 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // 16) Remarks
         _buildCsRow(
           qNum: '16)',
-          qTextEn: 'Remarks. Under this head the Police Officer should give any information not included in the above question which he may consider likely to assist the Civil Surgeon informing an opinion of the cause of death.',
-          qTextMr: 'शेरा वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकांना मृत्युच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.',
-          answerWidget: _multilineBlankBox(controller: _csRemarksCtrl, style: style, minLines: 5),
+          qTextEn:
+              'Remarks. Under this head the Police Officer should give any information not included in the above question which he may consider likely to assist the Civil Surgeon informing an opinion of the cause of death.',
+          qTextMr:
+              'शेरा वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकांना मृत्युच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.',
+          answerWidget: _multilineBlankBox(
+              controller: _csRemarksCtrl, style: style, minLines: 5),
           style: style,
           marathiStyle: marathiStyle,
         ),
 
         const SizedBox(height: 12),
-        _multilineBlankBox(controller: _csExtraNotesCtrl, style: style, minLines: 1),
+        _multilineBlankBox(
+            controller: _csExtraNotesCtrl, style: style, minLines: 1),
         const SizedBox(height: 24),
 
         // IO Signature Section
@@ -2037,12 +2112,15 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _subLabel('तपासणी करणाऱ्या अधिकाऱ्यांची नांव व सही', marathiStyle),
+                  _subLabel(
+                      'तपासणी करणाऱ्या अधिकाऱ्यांची नांव व सही', marathiStyle),
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       Text('Name: ', style: style),
-                      Expanded(child: _inlineBlank(controller: _csIoNameCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _csIoNameCtrl, style: style)),
                     ],
                   ),
                   _subLabel('नांव', marathiStyle),
@@ -2050,10 +2128,13 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Row(
                     children: [
                       Text('Rank: ', style: style),
-                      _inlineBlank(controller: _csIoRankCtrl, style: style, width: 110),
+                      _inlineBlank(
+                          controller: _csIoRankCtrl, style: style, width: 110),
                       const SizedBox(width: 6),
                       Text('Number if any:', style: style),
-                      Expanded(child: _inlineBlank(controller: _csIoNoCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _csIoNoCtrl, style: style)),
                     ],
                   ),
                   _subLabel('पद                   बक्कल नंबर', marathiStyle),
@@ -2061,7 +2142,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Row(
                     children: [
                       Text('Posting and Address:', style: style),
-                      Expanded(child: _inlineBlank(controller: _csIoPostingCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _csIoPostingCtrl, style: style)),
                     ],
                   ),
                   _subLabel('नेमणूक व पत्ता', marathiStyle),
@@ -2074,7 +2157,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.centerRight,
-          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+          child: Text('M.R.W',
+              style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
         ),
       ],
     );
@@ -2116,16 +2200,25 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('पोलीस स्टेशन', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    _inlineBlank(controller: _reqPsCtrl, style: style, width: 140),
+                    Text('पोलीस स्टेशन',
+                        style:
+                            marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(
+                        controller: _reqPsCtrl, style: style, width: 140),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('दिनांक :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    _inlineBlank(controller: _reqDateCtrl, style: style, width: 110, hintText: 'DD/MM/20YY'),
+                    Text('दिनांक :- ',
+                        style:
+                            marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(
+                        controller: _reqDateCtrl,
+                        style: style,
+                        width: 110,
+                        hintText: 'DD/MM/20YY'),
                   ],
                 ),
               ],
@@ -2135,13 +2228,17 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 12),
 
         // Recipient (प्रति)
-        Text('प्रति,', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text('प्रति,',
+            style: marathiStyle.copyWith(
+                fontWeight: FontWeight.bold, fontSize: 13)),
         Padding(
           padding: const EdgeInsets.only(left: 32.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('मा. न्यायवैद्यक शास्त्र विभाग प्रमुख', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text('मा. न्यायवैद्यक शास्त्र विभाग प्रमुख',
+                  style: marathiStyle.copyWith(
+                      fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 4),
               _inlineBlank(controller: _reqToCtrl, style: style, width: 280),
               const SizedBox(height: 4),
@@ -2155,11 +2252,18 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text('पासुन  :-    पोलीस स्टेशन', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+            Text('पासुन  :-    पोलीस स्टेशन',
+                style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
             _inlineBlank(controller: _reqFromPsCtrl, style: style, width: 140),
-            Text('   जिल्हा ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-            _inlineBlank(controller: _reqDistCtrl, style: style, width: 120, hintText: 'जिल्हा'),
-            Text('  जिल्हा यवतमाळ.', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+            Text('   जिल्हा ',
+                style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+            _inlineBlank(
+                controller: _reqDistCtrl,
+                style: style,
+                width: 120,
+                hintText: 'जिल्हा'),
+            Text('  जिल्हा यवतमाळ.',
+                style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 16),
@@ -2168,7 +2272,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('विषय  :-    ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+            Text('विषय  :-    ',
+                style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2176,34 +2281,56 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      Text('मृतक नामे ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      _inlineBlank(controller: _reqSubjectNameCtrl, style: style, width: 340),
+                      Text('मृतक नामे ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      _inlineBlank(
+                          controller: _reqSubjectNameCtrl,
+                          style: style,
+                          width: 340),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      Text('पो.स्टे.', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      _inlineBlank(controller: _reqSubjectPsCtrl, style: style, width: 110),
-                      Text('  ता-', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      _inlineBlank(controller: _reqSubjectTaCtrl, style: style, width: 100),
-                      Text('  जिल्हा यवतमाळ हिचे/ ह्यांचे प्रेताचे पि.एम', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                      Text('पो.स्टे.',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      _inlineBlank(
+                          controller: _reqSubjectPsCtrl,
+                          style: style,
+                          width: 110),
+                      Text('  ता-',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      _inlineBlank(
+                          controller: _reqSubjectTaCtrl,
+                          style: style,
+                          width: 100),
+                      Text('  जिल्हा यवतमाळ हिचे/ ह्यांचे प्रेताचे पि.एम',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text('करून आपला अभिप्राय मिळणेबाबत.', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('करून आपला अभिप्राय मिळणेबाबत.',
+                      style:
+                          marathiStyle.copyWith(fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        Center(child: Text('० ० ० ०', style: marathiStyle.copyWith(letterSpacing: 4))),
+        Center(
+            child: Text('० ० ० ०',
+                style: marathiStyle.copyWith(letterSpacing: 4))),
         const SizedBox(height: 8),
 
         // Body (महोदय)
-        Text('महोदय,', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+        Text('महोदय,',
+            style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 6),
         Padding(
           padding: const EdgeInsets.only(left: 16.0),
@@ -2213,35 +2340,79 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             spacing: 2,
             children: [
               Text('सविनय सेवेशी सादर आहे की, आज दिनांक ', style: marathiStyle),
-              _inlineBlank(controller: _reqMargDateCtrl, style: style, width: 85, hintText: 'DD/MM/YY'),
+              _inlineBlank(
+                  controller: _reqMargDateCtrl,
+                  style: style,
+                  width: 85,
+                  hintText: 'DD/MM/YY'),
               Text(' रोजी ', style: marathiStyle),
-              _inlineBlank(controller: _reqMargTimeCtrl, style: style, width: 65, hintText: 'HH:MM'),
+              _inlineBlank(
+                  controller: _reqMargTimeCtrl,
+                  style: style,
+                  width: 65,
+                  hintText: 'HH:MM'),
               Text(' वाजता पोलीस स्टेशन ', style: marathiStyle),
-              _inlineBlank(controller: _reqMargPsCtrl, style: style, width: 120),
+              _inlineBlank(
+                  controller: _reqMargPsCtrl, style: style, width: 120),
               Text(' मर्ग/ स्टेशन डायरी क्र.', style: marathiStyle),
-              _inlineBlank(controller: _reqMargDiaryNoCtrl, style: style, width: 75),
+              _inlineBlank(
+                  controller: _reqMargDiaryNoCtrl, style: style, width: 75),
               Text('/२०', style: marathiStyle),
-              _inlineBlank(controller: _reqMargYearCtrl, style: style, width: 45),
-              Text(' कलम १९४ बी.एन.एस.एस २०२३ चा मर्ग दाखल झाला असुन यातील मृतक नामे ', style: marathiStyle),
-              _inlineBlank(controller: _reqMargNameCtrl, style: style, width: 260),
+              _inlineBlank(
+                  controller: _reqMargYearCtrl, style: style, width: 45),
+              Text(
+                  ' कलम १९४ बी.एन.एस.एस २०२३ चा मर्ग दाखल झाला असुन यातील मृतक नामे ',
+                  style: marathiStyle),
+              _inlineBlank(
+                  controller: _reqMargNameCtrl, style: style, width: 260),
               Text(' पो.स्टे.', style: marathiStyle),
-              _inlineBlank(controller: _reqSubjectPsCtrl, style: style, width: 110),
+              _inlineBlank(
+                  controller: _reqSubjectPsCtrl, style: style, width: 110),
               Text(' ता-', style: marathiStyle),
-              _inlineBlank(controller: _reqMargTaCtrl, style: style, width: 100),
+              _inlineBlank(
+                  controller: _reqMargTaCtrl, style: style, width: 100),
               Text(' जिल्हा यवतमाळ ही/ह्या ', style: marathiStyle),
-              _inlineBlank(controller: _reqHospitalNameCtrl, style: style, width: 180, hintText: 'दवाखान्याचे नांव'),
+              _inlineBlank(
+                  controller: _reqHospitalNameCtrl,
+                  style: style,
+                  width: 180,
+                  hintText: 'दवाखान्याचे नांव'),
               Text(' येथे दिनांक ', style: marathiStyle),
-              _inlineBlank(controller: _reqAdmitDateCtrl, style: style, width: 85, hintText: 'DD/MM/YY'),
+              _inlineBlank(
+                  controller: _reqAdmitDateCtrl,
+                  style: style,
+                  width: 85,
+                  hintText: 'DD/MM/YY'),
               Text(' रोजी ', style: marathiStyle),
-              _inlineBlank(controller: _reqAdmitTimeCtrl, style: style, width: 65, hintText: 'HH:MM'),
-              Text(' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ ', style: marathiStyle),
-              _inlineBlank(controller: _reqReasonDetailsCtrl, style: style, width: 220),
-              Text('   मयत (तो / ती) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-              _inlineBlank(controller: _reqDeceasedHeSheCtrl, style: style, width: 80, hintText: 'तो/ती'),
+              _inlineBlank(
+                  controller: _reqAdmitTimeCtrl,
+                  style: style,
+                  width: 65,
+                  hintText: 'HH:MM'),
+              Text(
+                  ' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ ',
+                  style: marathiStyle),
+              _inlineBlank(
+                  controller: _reqReasonDetailsCtrl, style: style, width: 220),
+              Text('   मयत (तो / ती) ',
+                  style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+              _inlineBlank(
+                  controller: _reqDeceasedHeSheCtrl,
+                  style: style,
+                  width: 80,
+                  hintText: 'तो/ती'),
               Text(' दिनांक ', style: marathiStyle),
-              _inlineBlank(controller: _reqDeathDateCtrl, style: style, width: 85, hintText: 'DD/MM/YY'),
+              _inlineBlank(
+                  controller: _reqDeathDateCtrl,
+                  style: style,
+                  width: 85,
+                  hintText: 'DD/MM/YY'),
               Text(' रोजी ', style: marathiStyle),
-              _inlineBlank(controller: _reqDeathTimeCtrl, style: style, width: 65, hintText: 'HH:MM'),
+              _inlineBlank(
+                  controller: _reqDeathTimeCtrl,
+                  style: style,
+                  width: 65,
+                  hintText: 'HH:MM'),
               Text(' वाजता मरण पावला आहे.', style: marathiStyle),
             ],
           ),
@@ -2265,25 +2436,39 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('सहपत्र : प्रश्नोत्तर फॉर्म', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('सहपत्र : प्रश्नोत्तर फॉर्म',
+                      style:
+                          marathiStyle.copyWith(fontWeight: FontWeight.bold)),
                   Padding(
                     padding: const EdgeInsets.only(left: 45.0),
-                    child: Text('इंक्वेस्ट पंचनामा', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    child: Text('इंक्वेस्ट पंचनामा',
+                        style:
+                            marathiStyle.copyWith(fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 12),
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      Text('हस्ते : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      _inlineBlank(controller: _reqHasteNameCtrl, style: style, width: 140),
+                      Text('हस्ते : ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      _inlineBlank(
+                          controller: _reqHasteNameCtrl,
+                          style: style,
+                          width: 140),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      Text('पो.स्टे. : ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      _inlineBlank(controller: _reqHastePsCtrl, style: style, width: 140),
+                      Text('पो.स्टे. : ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      _inlineBlank(
+                          controller: _reqHastePsCtrl,
+                          style: style,
+                          width: 140),
                     ],
                   ),
                 ],
@@ -2295,12 +2480,16 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('तपासी अधिकारी नांव /सही शिक्या', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('तपासी अधिकारी नांव /सही शिक्या',
+                      style:
+                          marathiStyle.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       Text('Name: ', style: style),
-                      Expanded(child: _inlineBlank(controller: _reqIoNameCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _reqIoNameCtrl, style: style)),
                     ],
                   ),
                   _subLabel('नांव', marathiStyle),
@@ -2308,10 +2497,13 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Row(
                     children: [
                       Text('Rank: ', style: style),
-                      _inlineBlank(controller: _reqIoRankCtrl, style: style, width: 100),
+                      _inlineBlank(
+                          controller: _reqIoRankCtrl, style: style, width: 100),
                       const SizedBox(width: 4),
                       Text('No:', style: style),
-                      Expanded(child: _inlineBlank(controller: _reqIoNoCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _reqIoNoCtrl, style: style)),
                     ],
                   ),
                   _subLabel('पद                   बक्कल नंबर', marathiStyle),
@@ -2319,7 +2511,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Row(
                     children: [
                       Text('Posting:', style: style),
-                      Expanded(child: _inlineBlank(controller: _reqIoPostingCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _reqIoPostingCtrl, style: style)),
                     ],
                   ),
                   _subLabel('नेमणूक व पत्ता', marathiStyle),
@@ -2332,7 +2526,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.centerRight,
-          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+          child: Text('M.R.W',
+              style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
         ),
       ],
     );
@@ -2384,24 +2579,36 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('पोलीस स्टेशन', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    _inlineBlank(controller: _relPsCtrl, style: style, width: 140),
+                    Text('पोलीस स्टेशन',
+                        style:
+                            marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(
+                        controller: _relPsCtrl, style: style, width: 140),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('कॅम्प :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    _inlineBlank(controller: _relCampCtrl, style: style, width: 155),
+                    Text('कॅम्प :- ',
+                        style:
+                            marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(
+                        controller: _relCampCtrl, style: style, width: 155),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('दिनांक :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    _inlineBlank(controller: _relDateCtrl, style: style, width: 110, hintText: 'DD/MM/20YY'),
+                    Text('दिनांक :- ',
+                        style:
+                            marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(
+                        controller: _relDateCtrl,
+                        style: style,
+                        width: 110,
+                        hintText: 'DD/MM/20YY'),
                   ],
                 ),
               ],
@@ -2414,14 +2621,19 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('नांव  :-   ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text('नांव  :-   ',
+                style: marathiStyle.copyWith(
+                    fontWeight: FontWeight.bold, fontSize: 13)),
             Expanded(
-              child: _multilineBlankBox(controller: _relToNameCtrl, style: style, minLines: 4),
+              child: _multilineBlankBox(
+                  controller: _relToNameCtrl, style: style, minLines: 4),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        Center(child: Text('० ० ० ०', style: marathiStyle.copyWith(letterSpacing: 4))),
+        Center(
+            child: Text('० ० ० ०',
+                style: marathiStyle.copyWith(letterSpacing: 4))),
         const SizedBox(height: 12),
 
         // Body Paragraph
@@ -2432,23 +2644,32 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             runSpacing: 6,
             spacing: 2,
             children: [
-              Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ', style: marathiStyle),
-              _inlineBlank(controller: _relWeNameCtrl, style: style, width: 220),
+              Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ',
+                  style: marathiStyle),
+              _inlineBlank(
+                  controller: _relWeNameCtrl, style: style, width: 220),
               Text(' पोलीस स्टेशन ', style: marathiStyle),
-              _inlineBlank(controller: _relPsNameCtrl, style: style, width: 140),
-              Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ', style: marathiStyle),
-              _inlineBlank(controller: _relCrDiaryNoCtrl, style: style, width: 75),
+              _inlineBlank(
+                  controller: _relPsNameCtrl, style: style, width: 140),
+              Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ',
+                  style: marathiStyle),
+              _inlineBlank(
+                  controller: _relCrDiaryNoCtrl, style: style, width: 75),
               Text('/२०', style: marathiStyle),
               _inlineBlank(controller: _relCrYearCtrl, style: style, width: 45),
               Text(' कलम ', style: marathiStyle),
-              _inlineBlank(controller: _relActSecCtrl, style: style, width: 180),
+              _inlineBlank(
+                  controller: _relActSecCtrl, style: style, width: 180),
               Text(' मधील मृतक नामे ', style: marathiStyle),
-              _inlineBlank(controller: _relDeceasedNameCtrl, style: style, width: 260),
+              _inlineBlank(
+                  controller: _relDeceasedNameCtrl, style: style, width: 260),
               Text(' ता-', style: marathiStyle),
               _inlineBlank(controller: _relTaCtrl, style: style, width: 110),
               Text(' जिल्हा ', style: marathiStyle),
               _inlineBlank(controller: _relDistCtrl, style: style, width: 110),
-              Text(' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण प्रेत ओळखुन देवून मृतकाचे नातेवाईक या नात्याने पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत आमचे सोबत हजर राहावे.', style: marathiStyle),
+              Text(
+                  ' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण प्रेत ओळखुन देवून मृतकाचे नातेवाईक या नात्याने पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत आमचे सोबत हजर राहावे.',
+                  style: marathiStyle),
             ],
           ),
         ),
@@ -2463,33 +2684,51 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('सही', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text('सही',
+                      style: marathiStyle.copyWith(
+                          fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Text('१) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      Expanded(child: _inlineBlank(controller: _relSig1Ctrl, style: style)),
+                      Text('१) ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _relSig1Ctrl, style: style)),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text('२) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      Expanded(child: _inlineBlank(controller: _relSig2Ctrl, style: style)),
+                      Text('२) ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _relSig2Ctrl, style: style)),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text('३) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      Expanded(child: _inlineBlank(controller: _relSig3Ctrl, style: style)),
+                      Text('३) ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _relSig3Ctrl, style: style)),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text('४) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      Expanded(child: _inlineBlank(controller: _relSig4Ctrl, style: style)),
+                      Text('४) ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _relSig4Ctrl, style: style)),
                     ],
                   ),
                 ],
@@ -2501,12 +2740,16 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('तपासी अधिकारी नांव / सही शिक्या', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('तपासी अधिकारी नांव / सही शिक्या',
+                      style:
+                          marathiStyle.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       Text('Name: ', style: style),
-                      Expanded(child: _inlineBlank(controller: _relIoNameCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _relIoNameCtrl, style: style)),
                     ],
                   ),
                   _subLabel('नांव', marathiStyle),
@@ -2514,10 +2757,13 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Row(
                     children: [
                       Text('Rank: ', style: style),
-                      _inlineBlank(controller: _relIoRankCtrl, style: style, width: 100),
+                      _inlineBlank(
+                          controller: _relIoRankCtrl, style: style, width: 100),
                       const SizedBox(width: 4),
                       Text('Number if any:', style: style),
-                      Expanded(child: _inlineBlank(controller: _relIoNoCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _relIoNoCtrl, style: style)),
                     ],
                   ),
                   _subLabel('पद                   बक्कल नंबर', marathiStyle),
@@ -2525,7 +2771,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Row(
                     children: [
                       Text('Posting and Address:', style: style),
-                      Expanded(child: _inlineBlank(controller: _relIoPostingCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _relIoPostingCtrl, style: style)),
                     ],
                   ),
                   _subLabel('नेमणूक व पत्ता', marathiStyle),
@@ -2538,7 +2786,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.centerRight,
-          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+          child: Text('M.R.W',
+              style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
         ),
       ],
     );
@@ -2590,24 +2839,36 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('पोलीस स्टेशन', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    _inlineBlank(controller: _panPsCtrl, style: style, width: 140),
+                    Text('पोलीस स्टेशन',
+                        style:
+                            marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(
+                        controller: _panPsCtrl, style: style, width: 140),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('कॅम्प :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    _inlineBlank(controller: _panCampCtrl, style: style, width: 155),
+                    Text('कॅम्प :- ',
+                        style:
+                            marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(
+                        controller: _panCampCtrl, style: style, width: 155),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('दिनांक :- ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                    _inlineBlank(controller: _panDateCtrl, style: style, width: 110, hintText: 'DD/MM/20YY'),
+                    Text('दिनांक :- ',
+                        style:
+                            marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                    _inlineBlank(
+                        controller: _panDateCtrl,
+                        style: style,
+                        width: 110,
+                        hintText: 'DD/MM/20YY'),
                   ],
                 ),
               ],
@@ -2620,14 +2881,19 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('नांव  :-   ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text('नांव  :-   ',
+                style: marathiStyle.copyWith(
+                    fontWeight: FontWeight.bold, fontSize: 13)),
             Expanded(
-              child: _multilineBlankBox(controller: _panToNameCtrl, style: style, minLines: 4),
+              child: _multilineBlankBox(
+                  controller: _panToNameCtrl, style: style, minLines: 4),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        Center(child: Text('० ० ० ०', style: marathiStyle.copyWith(letterSpacing: 4))),
+        Center(
+            child: Text('० ० ० ०',
+                style: marathiStyle.copyWith(letterSpacing: 4))),
         const SizedBox(height: 12),
 
         // Body Paragraph
@@ -2638,23 +2904,32 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             runSpacing: 6,
             spacing: 2,
             children: [
-              Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ', style: marathiStyle),
-              _inlineBlank(controller: _panWeNameCtrl, style: style, width: 220),
+              Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ',
+                  style: marathiStyle),
+              _inlineBlank(
+                  controller: _panWeNameCtrl, style: style, width: 220),
               Text(' पोलीस स्टेशन ', style: marathiStyle),
-              _inlineBlank(controller: _panPsNameCtrl, style: style, width: 140),
-              Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ', style: marathiStyle),
-              _inlineBlank(controller: _panCrDiaryNoCtrl, style: style, width: 75),
+              _inlineBlank(
+                  controller: _panPsNameCtrl, style: style, width: 140),
+              Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ',
+                  style: marathiStyle),
+              _inlineBlank(
+                  controller: _panCrDiaryNoCtrl, style: style, width: 75),
               Text('/२०', style: marathiStyle),
               _inlineBlank(controller: _panCrYearCtrl, style: style, width: 45),
               Text(' कलम ', style: marathiStyle),
-              _inlineBlank(controller: _panActSecCtrl, style: style, width: 180),
+              _inlineBlank(
+                  controller: _panActSecCtrl, style: style, width: 180),
               Text(' मधील मृतक नामे ', style: marathiStyle),
-              _inlineBlank(controller: _panDeceasedNameCtrl, style: style, width: 260),
+              _inlineBlank(
+                  controller: _panDeceasedNameCtrl, style: style, width: 260),
               Text(' ता-', style: marathiStyle),
               _inlineBlank(controller: _panTaCtrl, style: style, width: 110),
               Text(' जिल्हा ', style: marathiStyle),
               _inlineBlank(controller: _panDistCtrl, style: style, width: 110),
-              Text(' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत पंच म्हणुन आमचे सोबत हजर राहावे.', style: marathiStyle),
+              Text(
+                  ' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत पंच म्हणुन आमचे सोबत हजर राहावे.',
+                  style: marathiStyle),
             ],
           ),
         ),
@@ -2669,33 +2944,51 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('पंच सही', style: marathiStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                  Text('पंच सही',
+                      style: marathiStyle.copyWith(
+                          fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Text('१) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      Expanded(child: _inlineBlank(controller: _panSig1Ctrl, style: style)),
+                      Text('१) ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _panSig1Ctrl, style: style)),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text('२) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      Expanded(child: _inlineBlank(controller: _panSig2Ctrl, style: style)),
+                      Text('२) ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _panSig2Ctrl, style: style)),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text('३) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      Expanded(child: _inlineBlank(controller: _panSig3Ctrl, style: style)),
+                      Text('३) ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _panSig3Ctrl, style: style)),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text('४) ', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-                      Expanded(child: _inlineBlank(controller: _panSig4Ctrl, style: style)),
+                      Text('४) ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _panSig4Ctrl, style: style)),
                     ],
                   ),
                 ],
@@ -2707,12 +3000,16 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('तपासी अधिकारी नांव / सही शिक्या', style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('तपासी अधिकारी नांव / सही शिक्या',
+                      style:
+                          marathiStyle.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       Text('Name: ', style: style),
-                      Expanded(child: _inlineBlank(controller: _panIoNameCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _panIoNameCtrl, style: style)),
                     ],
                   ),
                   _subLabel('नांव', marathiStyle),
@@ -2720,10 +3017,13 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Row(
                     children: [
                       Text('Rank: ', style: style),
-                      _inlineBlank(controller: _panIoRankCtrl, style: style, width: 100),
+                      _inlineBlank(
+                          controller: _panIoRankCtrl, style: style, width: 100),
                       const SizedBox(width: 4),
                       Text('Number if any:', style: style),
-                      Expanded(child: _inlineBlank(controller: _panIoNoCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _panIoNoCtrl, style: style)),
                     ],
                   ),
                   _subLabel('पद                   बक्कल नंबर', marathiStyle),
@@ -2731,7 +3031,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   Row(
                     children: [
                       Text('Posting and Address:', style: style),
-                      Expanded(child: _inlineBlank(controller: _panIoPostingCtrl, style: style)),
+                      Expanded(
+                          child: _inlineBlank(
+                              controller: _panIoPostingCtrl, style: style)),
                     ],
                   ),
                   _subLabel('नेमणूक व पत्ता', marathiStyle),
@@ -2744,12 +3046,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.centerRight,
-          child: Text('M.R.W', style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
+          child: Text('M.R.W',
+              style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic)),
         ),
       ],
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -3850,7 +4152,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       ],
     );
   }
-
 
   // ─────────────────────────────────────────────────────────────────
   // PAGE 11 — मरणांवेषण पंचनामा (Sections 13-18 + Signatures)
