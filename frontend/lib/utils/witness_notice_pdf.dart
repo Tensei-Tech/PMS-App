@@ -83,10 +83,12 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                           child: pw.Container(
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
-                                bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                                bottom: pw.BorderSide(
+                                    color: PdfColors.black, width: 0.8),
                               ),
                             ),
-                            padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
+                            padding:
+                                const pw.EdgeInsets.only(bottom: 2, left: 4),
                             child: renderField('val_policeStation', psName),
                           ),
                         ),
@@ -102,13 +104,16 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                           child: pw.Container(
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
-                                bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                                bottom: pw.BorderSide(
+                                    color: PdfColors.black, width: 0.8),
                               ),
                             ),
-                            padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
+                            padding:
+                                const pw.EdgeInsets.only(bottom: 2, left: 4),
                             child: renderField(
                               'val_noticeDate',
-                              doc['noticeDate']?.toString() ?? doc['date']?.toString(),
+                              doc['noticeDate']?.toString() ??
+                                  doc['date']?.toString(),
                             ),
                           ),
                         ),
@@ -147,7 +152,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                   child: pw.Container(
                     decoration: const pw.BoxDecoration(
                       border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        bottom:
+                            pw.BorderSide(color: PdfColors.black, width: 0.8),
                       ),
                     ),
                     padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
@@ -173,7 +179,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
               padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
               child: renderField(
                 'val_panchAddressLine1',
-                doc['panchAddressLine1']?.toString() ?? doc['address']?.toString(),
+                doc['panchAddressLine1']?.toString() ??
+                    doc['address']?.toString(),
               ),
             ),
             pw.SizedBox(height: 8),
@@ -186,7 +193,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                 ),
               ),
               padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-              child: renderField('val_panchAddressLine2', doc['panchAddressLine2']?.toString()),
+              child: renderField('val_panchAddressLine2',
+                  doc['panchAddressLine2']?.toString()),
             ),
             pw.SizedBox(height: 8),
 
@@ -198,7 +206,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                 ),
               ),
               padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-              child: renderField('val_panchAddressLine3', doc['panchAddressLine3']?.toString()),
+              child: renderField('val_panchAddressLine3',
+                  doc['panchAddressLine3']?.toString()),
             ),
             pw.SizedBox(height: 20),
 
@@ -219,7 +228,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                   child: pw.Container(
                     decoration: const pw.BoxDecoration(
                       border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        bottom:
+                            pw.BorderSide(color: PdfColors.black, width: 0.8),
                       ),
                     ),
                     padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
@@ -258,11 +268,13 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                   child: pw.Container(
                     decoration: const pw.BoxDecoration(
                       border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        bottom:
+                            pw.BorderSide(color: PdfColors.black, width: 0.8),
                       ),
                     ),
                     padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                    child: renderField('val_section', doc['section']?.toString()),
+                    child:
+                        renderField('val_section', doc['section']?.toString()),
                   ),
                 ),
               ],
@@ -287,7 +299,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                     ),
                   ),
                   padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField('val_appearanceDate', doc['appearanceDate']?.toString()),
+                  child: renderField(
+                      'val_appearanceDate', doc['appearanceDate']?.toString()),
                 ),
                 pw.SizedBox(width: 4),
                 mLbl('body_p4_2'),
@@ -300,7 +313,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                     ),
                   ),
                   padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField('val_appearanceTime', doc['appearanceTime']?.toString()),
+                  child: renderField(
+                      'val_appearanceTime', doc['appearanceTime']?.toString()),
                 ),
                 pw.SizedBox(width: 4),
                 mLbl('body_p4_3'),
@@ -358,7 +372,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                   padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
                   child: renderField(
                     'val_ackLine1',
-                    doc['ackLine1']?.toString() ?? doc['witnessSig']?.toString(),
+                    doc['ackLine1']?.toString() ??
+                        doc['witnessSig']?.toString(),
                   ),
                 ),
                 pw.SizedBox(height: 6),
@@ -372,7 +387,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                   padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
                   child: renderField(
                     'val_ackLine2',
-                    doc['ackLine2']?.toString() ?? doc['witnessReceiptDate']?.toString(),
+                    doc['ackLine2']?.toString() ??
+                        doc['witnessReceiptDate']?.toString(),
                   ),
                 ),
                 pw.SizedBox(height: 6),
@@ -384,7 +400,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                     ),
                   ),
                   padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField('val_ackLine3', doc['ackLine3']?.toString()),
+                  child:
+                      renderField('val_ackLine3', doc['ackLine3']?.toString()),
                 ),
                 pw.SizedBox(height: 6),
                 pw.Container(
@@ -395,7 +412,8 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                     ),
                   ),
                   padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField('val_ackLine4', doc['ackLine4']?.toString()),
+                  child:
+                      renderField('val_ackLine4', doc['ackLine4']?.toString()),
                 ),
               ],
             ),
@@ -419,7 +437,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'body_p1_2': 'येथे अपराध',
     'body_p2_cr': 'क्रमांक',
     'body_p2_sec': 'कलम',
-    'body_p3': 'अन्वये गुन्हा नोंद असुन सदर गुन्ह्याचे तपासकामी आपणाकडे चौकशी करून आपला जबाब',
+    'body_p3':
+        'अन्वये गुन्हा नोंद असुन सदर गुन्ह्याचे तपासकामी आपणाकडे चौकशी करून आपला जबाब',
     'body_p4_1': 'नोंदविणे आवश्यक असल्याने, आपण दिनांक :',
     'body_p4_2': 'रोजी',
     'body_p4_3': 'वाजता',
@@ -439,11 +458,14 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   // Values
   addIfDevanagari('val_policeStation', doc['policeStation']);
   addIfDevanagari('val_noticeDate', doc['noticeDate'] ?? doc['date']);
-  addIfDevanagari('val_panchName', doc['panchName'] ?? doc['witnessName'] ?? doc['witnessNameAddress']);
-  addIfDevanagari('val_panchAddressLine1', doc['panchAddressLine1'] ?? doc['address']);
+  addIfDevanagari('val_panchName',
+      doc['panchName'] ?? doc['witnessName'] ?? doc['witnessNameAddress']);
+  addIfDevanagari(
+      'val_panchAddressLine1', doc['panchAddressLine1'] ?? doc['address']);
   addIfDevanagari('val_panchAddressLine2', doc['panchAddressLine2']);
   addIfDevanagari('val_panchAddressLine3', doc['panchAddressLine3']);
-  addIfDevanagari('val_bodyPoliceStation', doc['bodyPoliceStation'] ?? doc['policeStation']);
+  addIfDevanagari('val_bodyPoliceStation',
+      doc['bodyPoliceStation'] ?? doc['policeStation']);
   addIfDevanagari('val_crNoYear', doc['crNoYear'] ?? doc['crNo']);
   addIfDevanagari('val_section', doc['section']);
   addIfDevanagari('val_appearanceDate', doc['appearanceDate']);
@@ -473,11 +495,12 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
         ? 14.0
         : (entry.key == 'symbol_dots'
             ? 12.0
-            : (entry.key == 'ack_header' || entry.key == 'sig_io' ? 10.5 : 9.5));
+            : (entry.key == 'ack_header' || entry.key == 'sig_io'
+                ? 10.5
+                : 9.5));
 
-    final color = entry.key.startsWith('val_')
-        ? const Color(0xFF0D47A1)
-        : Colors.black87;
+    final color =
+        entry.key.startsWith('val_') ? const Color(0xFF0D47A1) : Colors.black87;
 
     final double maxW = entry.key == 'title' || entry.key == 'body_p3'
         ? 500

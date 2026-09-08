@@ -535,14 +535,16 @@ class NcFormState extends State<NcForm> {
     final io = m['investigationOfficer'];
     if (io is Map) {
       _ioName.text = _s(io['name']);
-      _ioDesig.text = _s(io['designation']).isEmpty ? 'PSI' : _s(io['designation']);
+      _ioDesig.text =
+          _s(io['designation']).isEmpty ? 'PSI' : _s(io['designation']);
       _ioMobile.text = _s(io['mobile']);
     }
 
     final rb = m['registeredBy'];
     if (rb is Map) {
       _registrarName.text = _s(rb['name']);
-      _regDesig.text = _s(rb['designation']).isEmpty ? 'HC' : _s(rb['designation']);
+      _regDesig.text =
+          _s(rb['designation']).isEmpty ? 'HC' : _s(rb['designation']);
       _regMobile.text = _s(rb['mobile']);
     }
 
@@ -576,7 +578,8 @@ class NcFormState extends State<NcForm> {
       _preventiveDate.text = _s(prev['preventiveDate']);
       _bondDate.text = _s(prev['bondDate']);
       _bondCancelDate.text = _s(prev['bondCancellationDate']);
-    } else if (m['preventives'] is List && (m['preventives'] as List).isNotEmpty) {
+    } else if (m['preventives'] is List &&
+        (m['preventives'] as List).isNotEmpty) {
       final firstP = (m['preventives'] as List).first;
       if (firstP is Map) {
         _preventiveOutwardNumber.text = _s(firstP['outwardNumber']);
@@ -589,7 +592,8 @@ class NcFormState extends State<NcForm> {
     // Post-NC Action
     final postNc = m['postNcAction'];
     if (postNc is Map) {
-      _crimeRegisteredAfterNc = _s(postNc['crimeRegisteredAfterNc']).toLowerCase();
+      _crimeRegisteredAfterNc =
+          _s(postNc['crimeRegisteredAfterNc']).toLowerCase();
       _postNcCrNo.text = _s(postNc['crNumber']);
       final pCharges = postNc['charges'];
       if (pCharges is Map) {
@@ -629,8 +633,10 @@ class NcFormState extends State<NcForm> {
 
   /// Builds document map from user inputs.
   Map<String, dynamic> buildDocumentMap() {
-    final primaryComplainant = _complainants.isNotEmpty ? _complainants.first.toMap() : {};
-    final primaryNonApplicant = _nonApplicants.isNotEmpty ? _nonApplicants.first.toMap() : {};
+    final primaryComplainant =
+        _complainants.isNotEmpty ? _complainants.first.toMap() : {};
+    final primaryNonApplicant =
+        _nonApplicants.isNotEmpty ? _nonApplicants.first.toMap() : {};
 
     // Extract first act and section for Post-NC Action compatibility
     String postNcFirstAct = '';
@@ -684,7 +690,8 @@ class NcFormState extends State<NcForm> {
       },
       'postNcAction': {
         'crimeRegisteredAfterNc': _crimeRegisteredAfterNc ?? 'no',
-        'crNumber': _crimeRegisteredAfterNc == 'yes' ? _postNcCrNo.text.trim() : '',
+        'crNumber':
+            _crimeRegisteredAfterNc == 'yes' ? _postNcCrNo.text.trim() : '',
         'act': postNcFirstAct,
         'section': postNcFirstSection,
         'charges': _postNcChargeData.map((k, v) => MapEntry(k, {
@@ -1255,7 +1262,8 @@ class NcFormState extends State<NcForm> {
               const Spacer(),
               if (isRemovable)
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 18, color: _kRed),
+                  icon:
+                      const Icon(Icons.delete_outline, size: 18, color: _kRed),
                   tooltip: 'Remove',
                   onPressed: onRemove,
                   padding: EdgeInsets.zero,
@@ -1310,8 +1318,7 @@ class NcFormState extends State<NcForm> {
           _row([
             _tf('Registered By Name', _registrarName),
             _tf('Designation', _regDesig),
-            _tf('Mobile Number', _regMobile,
-                keyboardType: TextInputType.phone),
+            _tf('Mobile Number', _regMobile, keyboardType: TextInputType.phone),
           ]),
         ],
       );
@@ -1323,7 +1330,8 @@ class NcFormState extends State<NcForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('First Information Content / हकीकत (Max 50 characters)',
+              const Text(
+                  'First Information Content / हकीकत (Max 50 characters)',
                   style: _tsLabel),
               VoiceDictationButton(
                 controller: _fic,
@@ -1347,12 +1355,15 @@ class NcFormState extends State<NcForm> {
             inputFormatters: [
               LengthLimitingTextInputFormatter(50),
             ],
-            decoration: _d('Enter First Information Content (Strict 50 chars limit)').copyWith(
+            decoration:
+                _d('Enter First Information Content (Strict 50 chars limit)')
+                    .copyWith(
               counterText: '$_ficCharCount / 50 characters',
               counterStyle: TextStyle(
                 fontSize: 10,
                 color: _ficCharCount >= 50 ? _kRed : _kMuted,
-                fontWeight: _ficCharCount >= 50 ? FontWeight.w700 : FontWeight.w500,
+                fontWeight:
+                    _ficCharCount >= 50 ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ),
@@ -1447,7 +1458,11 @@ class NcFormState extends State<NcForm> {
                   if (_postNcChargeData.isEmpty)
                     _emptyBox('No charges. Tap + Add Charge to begin.')
                   else ...[
-                    ..._postNcChargeData.entries.toList().asMap().entries.map((e) {
+                    ..._postNcChargeData.entries
+                        .toList()
+                        .asMap()
+                        .entries
+                        .map((e) {
                       final id = e.value.key;
                       final data = e.value.value;
                       final num = e.key + 1;
@@ -1534,7 +1549,8 @@ class NcFormState extends State<NcForm> {
                       _card(1, 'Basic Details', _sBasicDetails(),
                           startOpen: true),
                       _card(2, 'Complainant KYC (Max 3)', _sComplainantKyc()),
-                      _card(3, 'Non-Applicant KYC (Max 3)', _sNonApplicantKyc()),
+                      _card(
+                          3, 'Non-Applicant KYC (Max 3)', _sNonApplicantKyc()),
                       _card(4, 'Officer Details', _sOfficerDetails()),
                       _card(5, 'First Information Content', _sFic()),
                       _card(6, 'Preventive Details', _sPreventiveDetails()),

@@ -113,9 +113,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
     setState(() {
       _policeStationCtrl.text = data['policeStation']?.toString() ?? '';
       _districtCtrl.text = data['district']?.toString() ?? 'यवतमाळ';
-      _crNoYearCtrl.text = data['crNoYear']?.toString() ??
-          data['crNo']?.toString() ??
-          '';
+      _crNoYearCtrl.text =
+          data['crNoYear']?.toString() ?? data['crNo']?.toString() ?? '';
       _sectionCtrl.text = data['section']?.toString() ?? '';
       _investigatingOfficerCtrl.text =
           data['investigatingOfficer']?.toString() ??
@@ -130,9 +129,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
           data['seizedDate']?.toString() ??
           data['date']?.toString() ??
           '';
-      _malNumberCtrl.text = data['malNumber']?.toString() ??
-          data['receiptNo']?.toString() ??
-          '';
+      _malNumberCtrl.text =
+          data['malNumber']?.toString() ?? data['receiptNo']?.toString() ?? '';
 
       final dynamic rawItems = data['muddemalItems'];
       if (rawItems is List && rawItems.isNotEmpty) {
@@ -146,14 +144,18 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
         for (int i = 0; i < rawItems.length; i++) {
           final itemMap = rawItems[i] as Map<String, dynamic>;
           _items[i].description.text = itemMap['description']?.toString() ?? '';
-          _items[i].estimatedValue.text = itemMap['estimatedValue']?.toString() ?? '';
+          _items[i].estimatedValue.text =
+              itemMap['estimatedValue']?.toString() ?? '';
           _items[i].malNumber.text = itemMap['malNumber']?.toString() ?? '';
           _items[i].seizedFrom.text = itemMap['seizedFrom']?.toString() ?? '';
         }
-      } else if (data['propertyDescription'] != null || data['propertyValue'] != null) {
+      } else if (data['propertyDescription'] != null ||
+          data['propertyValue'] != null) {
         if (_items.isNotEmpty) {
-          _items[0].description.text = data['propertyDescription']?.toString() ?? '';
-          _items[0].estimatedValue.text = data['propertyValue']?.toString() ?? '';
+          _items[0].description.text =
+              data['propertyDescription']?.toString() ?? '';
+          _items[0].estimatedValue.text =
+              data['propertyValue']?.toString() ?? '';
           _items[0].malNumber.text = data['malNumber']?.toString() ?? '';
           _items[0].seizedFrom.text = data['seizedFrom']?.toString() ?? '';
         }
@@ -162,9 +164,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
       _headMoharirSignCtrl.text = data['headMoharirSign']?.toString() ??
           data['receiverName']?.toString() ??
           '';
-      _ioSignCtrl.text = data['ioSign']?.toString() ??
-          data['ioName']?.toString() ??
-          '';
+      _ioSignCtrl.text =
+          data['ioSign']?.toString() ?? data['ioName']?.toString() ?? '';
     });
   }
 
@@ -195,8 +196,10 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
       'seizedDate': _seizureDateCtrl.text.trim(),
       'malNumber': _malNumberCtrl.text.trim(),
       'muddemalItems': itemsData,
-      'propertyDescription': _items.isNotEmpty ? _items[0].description.text.trim() : '',
-      'propertyValue': _items.isNotEmpty ? _items[0].estimatedValue.text.trim() : '',
+      'propertyDescription':
+          _items.isNotEmpty ? _items[0].description.text.trim() : '',
+      'propertyValue':
+          _items.isNotEmpty ? _items[0].estimatedValue.text.trim() : '',
       'seizedFrom': _items.isNotEmpty ? _items[0].seizedFrom.text.trim() : '',
       'headMoharirSign': _headMoharirSignCtrl.text.trim(),
       'ioSign': _ioSignCtrl.text.trim(),
@@ -299,13 +302,15 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('१) पोलीस स्टेशन', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('१) पोलीस स्टेशन',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 8),
                 Text(':—', style: marathi),
                 const SizedBox(width: 6),
                 Expanded(child: _inlineInput(_policeStationCtrl, serif)),
                 const SizedBox(width: 12),
-                Text('जिल्हा', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('जिल्हा',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 6),
                 SizedBox(width: 120, child: _inlineInput(_districtCtrl, serif)),
               ],
@@ -317,14 +322,17 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('२) अप क्रमांक :—', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('२) अप क्रमांक :—',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 6),
                 SizedBox(
                   width: 140,
-                  child: _inlineInput(_crNoYearCtrl, serif, hintText: '......../२०......'),
+                  child: _inlineInput(_crNoYearCtrl, serif,
+                      hintText: '......../२०......'),
                 ),
                 const SizedBox(width: 16),
-                Text('कलम', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('कलम',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 8),
                 Expanded(child: _inlineInput(_sectionCtrl, serif)),
               ],
@@ -336,17 +344,24 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('३) अन्वेषन अधिकारी:—', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('३) अन्वेषन अधिकारी:—',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 6),
-                Expanded(flex: 3, child: _inlineInput(_investigatingOfficerCtrl, serif)),
+                Expanded(
+                    flex: 3,
+                    child: _inlineInput(_investigatingOfficerCtrl, serif)),
                 const SizedBox(width: 10),
-                Text('पोलीस स्टेशन', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('पोलीस स्टेशन',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 6),
-                Expanded(flex: 2, child: _inlineInput(_ioPoliceStationCtrl, serif)),
+                Expanded(
+                    flex: 2, child: _inlineInput(_ioPoliceStationCtrl, serif)),
                 const SizedBox(width: 10),
-                Text('जिल्हा', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('जिल्हा',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 6),
-                SizedBox(width: 110, child: _inlineInput(_ioDistrictCtrl, serif)),
+                SizedBox(
+                    width: 110, child: _inlineInput(_ioDistrictCtrl, serif)),
               ],
             ),
             const SizedBox(height: 14),
@@ -356,7 +371,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('४) आरोपी नांव :—', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('४) आरोपी नांव :—',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 6),
                 Expanded(child: _inlineInput(_accusedNameCtrl, serif)),
               ],
@@ -368,18 +384,22 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('५) जप्त माल दिनांक :—', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('५) जप्त माल दिनांक :—',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 6),
                 SizedBox(
                   width: 150,
-                  child: _inlineInput(_seizureDateCtrl, serif, hintText: '....../....../२०....'),
+                  child: _inlineInput(_seizureDateCtrl, serif,
+                      hintText: '....../....../२०....'),
                 ),
                 const SizedBox(width: 24),
-                Text('माल नंबर :—', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('माल नंबर :—',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 6),
                 SizedBox(
                   width: 150,
-                  child: _inlineInput(_malNumberCtrl, serif, hintText: '......../२०......'),
+                  child: _inlineInput(_malNumberCtrl, serif,
+                      hintText: '......../२०......'),
                 ),
               ],
             ),
@@ -402,12 +422,18 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     _tableHeader('जप्त मालाचे विवरण', marathi),
                     _tableHeader('मुल्य अंदाजे', marathi),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 6),
                       child: Column(
                         children: [
-                          Text('माल नंबर', style: marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 12.5), textAlign: TextAlign.center),
+                          Text('माल नंबर',
+                              style: marathi.copyWith(
+                                  fontWeight: FontWeight.bold, fontSize: 12.5),
+                              textAlign: TextAlign.center),
                           const SizedBox(height: 2),
-                          Text('....../२०....', style: serif.copyWith(fontSize: 10, color: Colors.grey.shade700)),
+                          Text('....../२०....',
+                              style: serif.copyWith(
+                                  fontSize: 10, color: Colors.grey.shade700)),
                         ],
                       ),
                     ),
@@ -419,10 +445,14 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                 for (int i = 0; i < _items.length; i++)
                   TableRow(
                     children: [
-                      _tableCellInput(_items[i].description, serif, minLines: 2, maxLines: 5),
-                      _tableCellInput(_items[i].estimatedValue, serif, minLines: 2, maxLines: 5),
-                      _tableCellInput(_items[i].malNumber, serif, minLines: 2, maxLines: 5),
-                      _tableCellInput(_items[i].seizedFrom, serif, minLines: 2, maxLines: 5),
+                      _tableCellInput(_items[i].description, serif,
+                          minLines: 2, maxLines: 5),
+                      _tableCellInput(_items[i].estimatedValue, serif,
+                          minLines: 2, maxLines: 5),
+                      _tableCellInput(_items[i].malNumber, serif,
+                          minLines: 2, maxLines: 5),
+                      _tableCellInput(_items[i].seizedFrom, serif,
+                          minLines: 2, maxLines: 5),
                     ],
                   ),
               ],
@@ -436,13 +466,16 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                   TextButton.icon(
                     onPressed: _addItemRow,
                     icon: const Icon(Icons.add, size: 16),
-                    label: Text('आणखी ओळ जोडा (Add Row)', style: marathi.copyWith(fontSize: 11)),
+                    label: Text('आणखी ओळ जोडा (Add Row)',
+                        style: marathi.copyWith(fontSize: 11)),
                   ),
                   if (_items.length > 1)
                     TextButton.icon(
                       onPressed: () => _removeItemRow(_items.length - 1),
                       icon: const Icon(Icons.remove, size: 16),
-                      label: Text('शेवटची ओळ काढा', style: marathi.copyWith(fontSize: 11, color: Colors.red.shade700)),
+                      label: Text('शेवटची ओळ काढा',
+                          style: marathi.copyWith(
+                              fontSize: 11, color: Colors.red.shade700)),
                     ),
                 ],
               ),
@@ -461,7 +494,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                   children: [
                     SizedBox(
                       width: 180,
-                      child: _inlineInput(_headMoharirSignCtrl, serif, hintText: 'नाव / सही'),
+                      child: _inlineInput(_headMoharirSignCtrl, serif,
+                          hintText: 'नाव / सही'),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -480,7 +514,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                   children: [
                     SizedBox(
                       width: 180,
-                      child: _inlineInput(_ioSignCtrl, serif, hintText: 'नाव / सही'),
+                      child: _inlineInput(_ioSignCtrl, serif,
+                          hintText: 'नाव / सही'),
                     ),
                     const SizedBox(height: 6),
                     Text(

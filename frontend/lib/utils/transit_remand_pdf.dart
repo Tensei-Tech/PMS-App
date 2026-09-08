@@ -28,9 +28,12 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
   final loraRegular = await PdfGoogleFonts.loraRegular();
   final loraBold = await PdfGoogleFonts.loraBold();
 
-  final bodyStyle = pw.TextStyle(font: loraRegular, fontSize: 11, lineSpacing: 3);
-  final boldStyle = pw.TextStyle(font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
-  final titleStyle = pw.TextStyle(font: loraBold, fontSize: 12, fontWeight: pw.FontWeight.bold);
+  final bodyStyle =
+      pw.TextStyle(font: loraRegular, fontSize: 11, lineSpacing: 3);
+  final boldStyle = pw.TextStyle(
+      font: loraBold, fontSize: 11, fontWeight: pw.FontWeight.bold);
+  final titleStyle = pw.TextStyle(
+      font: loraBold, fontSize: 12, fontWeight: pw.FontWeight.bold);
 
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
@@ -38,14 +41,20 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
   final outwardYear = v('outwardYear').isNotEmpty ? v('outwardYear') : '2021';
   final psName = v('psName').isNotEmpty ? v('psName') : 'Wakad Police Station,';
   final psCity = v('psCity').isNotEmpty ? v('psCity') : 'Pimpri Chichwad.';
-  final date = v('date').isNotEmpty ? v('date') : '${v('dateDay')} ${v('dateMonthYear')}'.trim();
+  final date = v('date').isNotEmpty
+      ? v('date')
+      : '${v('dateDay')} ${v('dateMonthYear')}'.trim();
 
   final courtLine1 = v('courtLine1');
   final courtLine2 = v('courtLine2');
 
-  final officerName = v('officerName').isNotEmpty ? v('officerName') : 'Jitendra S. Girnar';
-  final officerRank = v('officerRank').isNotEmpty ? v('officerRank') : 'Police Sub Inpector';
-  final officerPs = v('officerPs').isNotEmpty ? v('officerPs') : 'Wakad Police Station, Pimpri Chichwad.';
+  final officerName =
+      v('officerName').isNotEmpty ? v('officerName') : 'Jitendra S. Girnar';
+  final officerRank =
+      v('officerRank').isNotEmpty ? v('officerRank') : 'Police Sub Inpector';
+  final officerPs = v('officerPs').isNotEmpty
+      ? v('officerPs')
+      : 'Wakad Police Station, Pimpri Chichwad.';
   final subjectHours = v('subjectHours').isNotEmpty ? v('subjectHours') : '72';
 
   final bodyText = v('body').isNotEmpty
@@ -67,7 +76,8 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('Outward No.  $outwardNo /$outwardYear', style: boldStyle),
+              pw.Text('Outward No.  $outwardNo /$outwardYear',
+                  style: boldStyle),
               pw.SizedBox(height: 2),
               pw.Text(psName, style: boldStyle),
               pw.SizedBox(height: 2),
@@ -81,7 +91,9 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
           // To
           pw.Text('To,', style: titleStyle),
           pw.SizedBox(height: 6),
-          pw.Text('Hon.- ${courtLine1.isEmpty ? '----------------------------------------' : courtLine1}', style: boldStyle),
+          pw.Text(
+              'Hon.- ${courtLine1.isEmpty ? '----------------------------------------' : courtLine1}',
+              style: boldStyle),
           if (courtLine2.isNotEmpty) ...[
             pw.SizedBox(height: 4),
             pw.Text(courtLine2, style: boldStyle),
@@ -97,7 +109,8 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
           pw.SizedBox(height: 18),
 
           // Sub
-          pw.Text('Sub- To get Transit Remand for $subjectHours hrs.', style: boldStyle),
+          pw.Text('Sub- To get Transit Remand for $subjectHours hrs.',
+              style: boldStyle),
           pw.SizedBox(height: 16),
 
           // ---000---
@@ -122,7 +135,8 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
             children: [
               pw.Text('Your Faithfully', style: boldStyle),
               pw.SizedBox(height: 24),
-              if (signOffName.isNotEmpty) pw.Text(signOffName, style: boldStyle),
+              if (signOffName.isNotEmpty)
+                pw.Text(signOffName, style: boldStyle),
             ],
           ),
         ],

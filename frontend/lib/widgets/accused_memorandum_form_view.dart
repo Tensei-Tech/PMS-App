@@ -259,54 +259,119 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
   void initState() {
     super.initState();
     _relatives = {
-      9: RelativeEntryControllers(itemNumber: 9, title: 'आरोपीच्या आईचे संपुर्ण नांव'),
-      10: RelativeEntryControllers(itemNumber: 10, title: 'आईचे वडीलांचे संपुर्ण नांव'),
-      11: RelativeEntryControllers(itemNumber: 11, title: 'आरोपीच्या वडीलांचे संपुर्ण नांव'),
-      12: RelativeEntryControllers(itemNumber: 12, title: 'आरोपीच्या वडीलांचे वडील यांचे संपुर्ण नांव (आजा)'),
-      13: RelativeEntryControllers(itemNumber: 13, title: 'आरोपीच्या भावाचे संपुर्ण नांव'),
-      14: RelativeEntryControllers(itemNumber: 14, title: 'आरोपीच्या भावाचे संपुर्ण नांव'),
-      15: RelativeEntryControllers(itemNumber: 15, title: 'आरोपीच्या बहिणीचे संपुर्ण नांव'),
-      16: RelativeEntryControllers(itemNumber: 16, title: 'आरोपीच्या बहिणीचे संपुर्ण नांव'),
-      17: RelativeEntryControllers(itemNumber: 17, title: 'आरोपीच्या पत्नीचे संपुर्ण नांव'),
-      18: RelativeEntryControllers(itemNumber: 18, title: 'आरोपीच्या दुसऱ्या पत्नीचे संपुर्ण नांव'),
-      19: RelativeEntryControllers(itemNumber: 19, title: 'आरोपीच्या सासऱ्याचे संपुर्ण नांव'),
-      20: RelativeEntryControllers(itemNumber: 20, title: 'आरोपीच्या मुलाचे संपुर्ण नांव'),
-      21: RelativeEntryControllers(itemNumber: 21, title: 'आरोपीच्या मुलाचे संपुर्ण नांव'),
-      22: RelativeEntryControllers(itemNumber: 22, title: 'आरोपीच्या मुलाचे संपुर्ण नांव'),
-      23: RelativeEntryControllers(itemNumber: 23, title: 'आरोपीच्या मुलीचे संपुर्ण नांव'),
-      24: RelativeEntryControllers(itemNumber: 24, title: 'आरोपीच्या मुलीचे संपुर्ण नांव'),
-      25: RelativeEntryControllers(itemNumber: 25, title: 'आरोपीच्या मुलीचे संपुर्ण नांव'),
-      26: RelativeEntryControllers(itemNumber: 26, title: 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)'),
-      27: RelativeEntryControllers(itemNumber: 27, title: 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)'),
-      28: RelativeEntryControllers(itemNumber: 28, title: 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)'),
-      29: RelativeEntryControllers(itemNumber: 29, title: 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)'),
-      30: RelativeEntryControllers(itemNumber: 30, title: 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)'),
-      31: RelativeEntryControllers(itemNumber: 31, title: 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)'),
-      32: RelativeEntryControllers(itemNumber: 32, title: 'आरोपीच्या मामाचे संपुर्ण नांव'),
-      33: RelativeEntryControllers(itemNumber: 33, title: 'आरोपीच्या मामाचे संपुर्ण नांव'),
-      34: RelativeEntryControllers(itemNumber: 34, title: 'आरोपीच्या मामाचे संपुर्ण नांव'),
-      35: RelativeEntryControllers(itemNumber: 35, title: 'आरोपीच्या मामाचे संपुर्ण नांव'),
-      36: RelativeEntryControllers(itemNumber: 36, title: 'आरोपीच्या मावशीचे संपुर्ण नांव'),
-      37: RelativeEntryControllers(itemNumber: 37, title: 'आरोपीच्या मावशीचे संपुर्ण नांव'),
-      38: RelativeEntryControllers(itemNumber: 38, title: 'आरोपीच्या मावशीचे संपुर्ण नांव'),
-      39: RelativeEntryControllers(itemNumber: 39, title: 'आरोपीच्या काकाचे संपुर्ण नांव'),
-      40: RelativeEntryControllers(itemNumber: 40, title: 'आरोपीच्या काकाचे संपुर्ण नांव'),
-      41: RelativeEntryControllers(itemNumber: 41, title: 'आरोपीच्या काकाचे संपुर्ण नांव'),
-      42: RelativeEntryControllers(itemNumber: 42, title: 'आरोपीच्या आत्याचे संपुर्ण नांव'),
-      43: RelativeEntryControllers(itemNumber: 43, title: 'आरोपीच्या आत्याचे संपुर्ण नांव'),
-      44: RelativeEntryControllers(itemNumber: 44, title: 'आरोपीच्या आत्याचे संपुर्ण नांव'),
-      45: RelativeEntryControllers(itemNumber: 45, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
-      46: RelativeEntryControllers(itemNumber: 46, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
-      47: RelativeEntryControllers(itemNumber: 47, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
-      48: RelativeEntryControllers(itemNumber: 48, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
+      9: RelativeEntryControllers(
+          itemNumber: 9, title: 'आरोपीच्या आईचे संपुर्ण नांव'),
+      10: RelativeEntryControllers(
+          itemNumber: 10, title: 'आईचे वडीलांचे संपुर्ण नांव'),
+      11: RelativeEntryControllers(
+          itemNumber: 11, title: 'आरोपीच्या वडीलांचे संपुर्ण नांव'),
+      12: RelativeEntryControllers(
+          itemNumber: 12,
+          title: 'आरोपीच्या वडीलांचे वडील यांचे संपुर्ण नांव (आजा)'),
+      13: RelativeEntryControllers(
+          itemNumber: 13, title: 'आरोपीच्या भावाचे संपुर्ण नांव'),
+      14: RelativeEntryControllers(
+          itemNumber: 14, title: 'आरोपीच्या भावाचे संपुर्ण नांव'),
+      15: RelativeEntryControllers(
+          itemNumber: 15, title: 'आरोपीच्या बहिणीचे संपुर्ण नांव'),
+      16: RelativeEntryControllers(
+          itemNumber: 16, title: 'आरोपीच्या बहिणीचे संपुर्ण नांव'),
+      17: RelativeEntryControllers(
+          itemNumber: 17, title: 'आरोपीच्या पत्नीचे संपुर्ण नांव'),
+      18: RelativeEntryControllers(
+          itemNumber: 18, title: 'आरोपीच्या दुसऱ्या पत्नीचे संपुर्ण नांव'),
+      19: RelativeEntryControllers(
+          itemNumber: 19, title: 'आरोपीच्या सासऱ्याचे संपुर्ण नांव'),
+      20: RelativeEntryControllers(
+          itemNumber: 20, title: 'आरोपीच्या मुलाचे संपुर्ण नांव'),
+      21: RelativeEntryControllers(
+          itemNumber: 21, title: 'आरोपीच्या मुलाचे संपुर्ण नांव'),
+      22: RelativeEntryControllers(
+          itemNumber: 22, title: 'आरोपीच्या मुलाचे संपुर्ण नांव'),
+      23: RelativeEntryControllers(
+          itemNumber: 23, title: 'आरोपीच्या मुलीचे संपुर्ण नांव'),
+      24: RelativeEntryControllers(
+          itemNumber: 24, title: 'आरोपीच्या मुलीचे संपुर्ण नांव'),
+      25: RelativeEntryControllers(
+          itemNumber: 25, title: 'आरोपीच्या मुलीचे संपुर्ण नांव'),
+      26: RelativeEntryControllers(
+          itemNumber: 26,
+          title: 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)'),
+      27: RelativeEntryControllers(
+          itemNumber: 27,
+          title: 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)'),
+      28: RelativeEntryControllers(
+          itemNumber: 28,
+          title: 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)'),
+      29: RelativeEntryControllers(
+          itemNumber: 29,
+          title: 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)'),
+      30: RelativeEntryControllers(
+          itemNumber: 30,
+          title: 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)'),
+      31: RelativeEntryControllers(
+          itemNumber: 31,
+          title: 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)'),
+      32: RelativeEntryControllers(
+          itemNumber: 32, title: 'आरोपीच्या मामाचे संपुर्ण नांव'),
+      33: RelativeEntryControllers(
+          itemNumber: 33, title: 'आरोपीच्या मामाचे संपुर्ण नांव'),
+      34: RelativeEntryControllers(
+          itemNumber: 34, title: 'आरोपीच्या मामाचे संपुर्ण नांव'),
+      35: RelativeEntryControllers(
+          itemNumber: 35, title: 'आरोपीच्या मामाचे संपुर्ण नांव'),
+      36: RelativeEntryControllers(
+          itemNumber: 36, title: 'आरोपीच्या मावशीचे संपुर्ण नांव'),
+      37: RelativeEntryControllers(
+          itemNumber: 37, title: 'आरोपीच्या मावशीचे संपुर्ण नांव'),
+      38: RelativeEntryControllers(
+          itemNumber: 38, title: 'आरोपीच्या मावशीचे संपुर्ण नांव'),
+      39: RelativeEntryControllers(
+          itemNumber: 39, title: 'आरोपीच्या काकाचे संपुर्ण नांव'),
+      40: RelativeEntryControllers(
+          itemNumber: 40, title: 'आरोपीच्या काकाचे संपुर्ण नांव'),
+      41: RelativeEntryControllers(
+          itemNumber: 41, title: 'आरोपीच्या काकाचे संपुर्ण नांव'),
+      42: RelativeEntryControllers(
+          itemNumber: 42, title: 'आरोपीच्या आत्याचे संपुर्ण नांव'),
+      43: RelativeEntryControllers(
+          itemNumber: 43, title: 'आरोपीच्या आत्याचे संपुर्ण नांव'),
+      44: RelativeEntryControllers(
+          itemNumber: 44, title: 'आरोपीच्या आत्याचे संपुर्ण नांव'),
+      45: RelativeEntryControllers(
+          itemNumber: 45, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
+      46: RelativeEntryControllers(
+          itemNumber: 46, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
+      47: RelativeEntryControllers(
+          itemNumber: 47, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
+      48: RelativeEntryControllers(
+          itemNumber: 48, title: 'आरोपीच्या जिवलग मित्राचे संपुर्ण नांव'),
 
       // Accomplices (Items 74–79)
-      74: RelativeEntryControllers(itemNumber: 74, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
-      75: RelativeEntryControllers(itemNumber: 75, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
-      76: RelativeEntryControllers(itemNumber: 76, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
-      77: RelativeEntryControllers(itemNumber: 77, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
-      78: RelativeEntryControllers(itemNumber: 78, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
-      79: RelativeEntryControllers(itemNumber: 79, title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', hasAccompliceRelation: true),
+      74: RelativeEntryControllers(
+          itemNumber: 74,
+          title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+          hasAccompliceRelation: true),
+      75: RelativeEntryControllers(
+          itemNumber: 75,
+          title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+          hasAccompliceRelation: true),
+      76: RelativeEntryControllers(
+          itemNumber: 76,
+          title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+          hasAccompliceRelation: true),
+      77: RelativeEntryControllers(
+          itemNumber: 77,
+          title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+          hasAccompliceRelation: true),
+      78: RelativeEntryControllers(
+          itemNumber: 78,
+          title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+          hasAccompliceRelation: true),
+      79: RelativeEntryControllers(
+          itemNumber: 79,
+          title: 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता',
+          hasAccompliceRelation: true),
     };
 
     if (widget.existingRecord != null) {
@@ -430,13 +495,19 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
 
   void hydrateFrom(Map<String, dynamic> data) {
     setState(() {
-      _psCtrl.text = data['ps']?.toString() ?? data['policeStation']?.toString() ?? '';
-      _crimeNoSectionCtrl.text = data['crimeNoSection']?.toString() ?? data['crimeNo']?.toString() ?? '';
-      _accusedFullNameCtrl.text = data['accusedFullName']?.toString() ?? data['accusedName']?.toString() ?? '';
+      _psCtrl.text =
+          data['ps']?.toString() ?? data['policeStation']?.toString() ?? '';
+      _crimeNoSectionCtrl.text = data['crimeNoSection']?.toString() ??
+          data['crimeNo']?.toString() ??
+          '';
+      _accusedFullNameCtrl.text = data['accusedFullName']?.toString() ??
+          data['accusedName']?.toString() ??
+          '';
       _accusedAliasCtrl.text = data['accusedAlias']?.toString() ?? '';
       _accusedOccupationCtrl.text = data['accusedOccupation']?.toString() ?? '';
       _accusedPropertyCtrl.text = data['accusedProperty']?.toString() ?? '';
-      _accusedFarmHouseVehicleCtrl.text = data['accusedFarmHouseVehicle']?.toString() ?? '';
+      _accusedFarmHouseVehicleCtrl.text =
+          data['accusedFarmHouseVehicle']?.toString() ?? '';
       _accusedPhoneOtherCtrl.text = data['accusedPhoneOther']?.toString() ?? '';
 
       _currResAddrCtrl.text = data['currResAddr']?.toString() ?? '';
@@ -480,25 +551,35 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       _jobDurationCtrl.text = data['jobDuration']?.toString() ?? '';
       _jobStayAddrCtrl.text = data['jobStayAddr']?.toString() ?? '';
       _prevJobOfficeCtrl.text = data['prevJobOffice']?.toString() ?? '';
-      _prevJobLeaveReasonCtrl.text = data['prevJobLeaveReason']?.toString() ?? '';
+      _prevJobLeaveReasonCtrl.text =
+          data['prevJobLeaveReason']?.toString() ?? '';
       _prevJobDurationCtrl.text = data['prevJobDuration']?.toString() ?? '';
       _prevJobStayAddrCtrl.text = data['prevJobStayAddr']?.toString() ?? '';
-      _currentStayDurationAddrCtrl.text = data['currentStayDurationAddr']?.toString() ?? '';
+      _currentStayDurationAddrCtrl.text =
+          data['currentStayDurationAddr']?.toString() ?? '';
       _prevStayAddrCtrl.text = data['prevStayAddr']?.toString() ?? '';
-      _bankAccountDetailsCtrl.text = data['bankAccountDetails']?.toString() ?? '';
+      _bankAccountDetailsCtrl.text =
+          data['bankAccountDetails']?.toString() ?? '';
       _habitsCtrl.text = data['habits']?.toString() ?? '';
 
       _alcoholPlaceCtrl.text = data['alcoholPlace']?.toString() ?? '';
-      _prostituteMistressDetailsCtrl.text = data['prostituteMistressDetails']?.toString() ?? '';
+      _prostituteMistressDetailsCtrl.text =
+          data['prostituteMistressDetails']?.toString() ?? '';
       _crimeMotiveCtrl.text = data['crimeMotive']?.toString() ?? '';
-      _firstCrimeAccomplicesCtrl.text = data['firstCrimeAccomplices']?.toString() ?? '';
-      _prevArrestCircumstancesCtrl.text = data['prevArrestCircumstances']?.toString() ?? '';
-      _prevArrestPoliceStationsCtrl.text = data['prevArrestPoliceStations']?.toString() ?? '';
-      _prevArrestCrimeDetailsCtrl.text = data['prevArrestCrimeDetails']?.toString() ?? '';
-      _bailSuretyNameAddrNativeCtrl.text = data['bailSuretyNameAddrNative']?.toString() ?? '';
+      _firstCrimeAccomplicesCtrl.text =
+          data['firstCrimeAccomplices']?.toString() ?? '';
+      _prevArrestCircumstancesCtrl.text =
+          data['prevArrestCircumstances']?.toString() ?? '';
+      _prevArrestPoliceStationsCtrl.text =
+          data['prevArrestPoliceStations']?.toString() ?? '';
+      _prevArrestCrimeDetailsCtrl.text =
+          data['prevArrestCrimeDetails']?.toString() ?? '';
+      _bailSuretyNameAddrNativeCtrl.text =
+          data['bailSuretyNameAddrNative']?.toString() ?? '';
       _advocateNameAddrCtrl.text = data['advocateNameAddr']?.toString() ?? '';
       _convictionStatusCtrl.text = data['convictionStatus']?.toString() ?? '';
-      _convictionDurationJailCtrl.text = data['convictionDurationJail']?.toString() ?? '';
+      _convictionDurationJailCtrl.text =
+          data['convictionDurationJail']?.toString() ?? '';
       _modusOperandiCtrl.text = data['modusOperandi']?.toString() ?? '';
       _recceMethodCtrl.text = data['recceMethod']?.toString() ?? '';
       _informerNameAddrCtrl.text = data['informerNameAddr']?.toString() ?? '';
@@ -506,12 +587,16 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       _soloCrimeCtrl.text = data['soloCrime']?.toString() ?? '';
       _groupCrimeCtrl.text = data['groupCrime']?.toString() ?? '';
 
-      _favoriteCrimePlaceCtrl.text = data['favoriteCrimePlace']?.toString() ?? '';
+      _favoriteCrimePlaceCtrl.text =
+          data['favoriteCrimePlace']?.toString() ?? '';
       _gangLeaderNameCtrl.text = data['gangLeaderName']?.toString() ?? '';
-      _travelToCrimeMethodCtrl.text = data['travelToCrimeMethod']?.toString() ?? '';
-      _travelFromCrimeMethodCtrl.text = data['travelFromCrimeMethod']?.toString() ?? '';
+      _travelToCrimeMethodCtrl.text =
+          data['travelToCrimeMethod']?.toString() ?? '';
+      _travelFromCrimeMethodCtrl.text =
+          data['travelFromCrimeMethod']?.toString() ?? '';
 
-      _weaponsVehiclesUsedCtrl.text = data['weaponsVehiclesUsed']?.toString() ?? '';
+      _weaponsVehiclesUsedCtrl.text =
+          data['weaponsVehiclesUsed']?.toString() ?? '';
       _bootyDistributionCtrl.text = data['bootyDistribution']?.toString() ?? '';
       _moneyDisposalCtrl.text = data['moneyDisposal']?.toString() ?? '';
       _valuablesDisposalCtrl.text = data['valuablesDisposal']?.toString() ?? '';
@@ -520,31 +605,43 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         _features[k] = data[k] == true || data[k] == 'true';
       });
 
-      _escapeRoutesTogetherOrApartCtrl.text = data['escapeRoutesTogetherOrApart']?.toString() ?? '';
+      _escapeRoutesTogetherOrApartCtrl.text =
+          data['escapeRoutesTogetherOrApart']?.toString() ?? '';
       _policeArrivalPlanCtrl.text = data['policeArrivalPlan']?.toString() ?? '';
       _peopleWakePlanCtrl.text = data['peopleWakePlan']?.toString() ?? '';
       _resistancePlanCtrl.text = data['resistancePlan']?.toString() ?? '';
       _crimeLanguageCtrl.text = data['crimeLanguage']?.toString() ?? '';
 
       for (int i = 0; i < 5; i++) {
-        _rivalAccompliceReasonCtrls[i].text = data['rivalAccompliceReason${i + 1}']?.toString() ?? '';
+        _rivalAccompliceReasonCtrls[i].text =
+            data['rivalAccompliceReason${i + 1}']?.toString() ?? '';
       }
 
       _gangMergerCtrl.text = data['gangMerger']?.toString() ?? '';
-      _rivalGangDisputeReasonCtrl.text = data['rivalGangDisputeReason']?.toString() ?? '';
-      _injuredAccomplicePlanCtrl.text = data['injuredAccomplicePlan']?.toString() ?? '';
-      _arrestedAccompliceReleasePlanCtrl.text = data['arrestedAccompliceReleasePlan']?.toString() ?? '';
-      _favorableSeasonReasonCtrl.text = data['favorableSeasonReason']?.toString() ?? '';
-      _officersRecognizingCriminalCtrl.text = data['officersRecognizingCriminal']?.toString() ?? '';
+      _rivalGangDisputeReasonCtrl.text =
+          data['rivalGangDisputeReason']?.toString() ?? '';
+      _injuredAccomplicePlanCtrl.text =
+          data['injuredAccomplicePlan']?.toString() ?? '';
+      _arrestedAccompliceReleasePlanCtrl.text =
+          data['arrestedAccompliceReleasePlan']?.toString() ?? '';
+      _favorableSeasonReasonCtrl.text =
+          data['favorableSeasonReason']?.toString() ?? '';
+      _officersRecognizingCriminalCtrl.text =
+          data['officersRecognizingCriminal']?.toString() ?? '';
 
       for (int i = 0; i < 10; i++) {
-        _pastCrimePlaces[i].text = data['pastCrimePlace${i + 1}']?.toString() ?? '';
-        _pastCrimeDateTimes[i].text = data['pastCrimeDateTime${i + 1}']?.toString() ?? '';
-        _pastCrimeGoods[i].text = data['pastCrimeGoods${i + 1}']?.toString() ?? '';
-        _pastCrimeAccomplices[i].text = data['pastCrimeAccomplices${i + 1}']?.toString() ?? '';
+        _pastCrimePlaces[i].text =
+            data['pastCrimePlace${i + 1}']?.toString() ?? '';
+        _pastCrimeDateTimes[i].text =
+            data['pastCrimeDateTime${i + 1}']?.toString() ?? '';
+        _pastCrimeGoods[i].text =
+            data['pastCrimeGoods${i + 1}']?.toString() ?? '';
+        _pastCrimeAccomplices[i].text =
+            data['pastCrimeAccomplices${i + 1}']?.toString() ?? '';
       }
 
-      _investigatingOfficerNameSignCtrl.text = data['investigatingOfficerNameSign']?.toString() ?? '';
+      _investigatingOfficerNameSignCtrl.text =
+          data['investigatingOfficerNameSign']?.toString() ?? '';
 
       for (final rel in _relatives.values) {
         rel.hydrate(data);
@@ -594,7 +691,6 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       'descBurnMarks': _descBurnMarksCtrl.text.trim(),
       'descMainIdMark': _descMainIdMarkCtrl.text.trim(),
       'accusedBirthPlace': _accusedBirthPlaceCtrl.text.trim(),
-
       'edu': _eduCtrl.text.trim(),
       'eduLastYear': _eduLastYearCtrl.text.trim(),
       'schoolNameAddr': _schoolNameAddrCtrl.text.trim(),
@@ -610,7 +706,6 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       'prevStayAddr': _prevStayAddrCtrl.text.trim(),
       'bankAccountDetails': _bankAccountDetailsCtrl.text.trim(),
       'habits': _habitsCtrl.text.trim(),
-
       'alcoholPlace': _alcoholPlaceCtrl.text.trim(),
       'prostituteMistressDetails': _prostituteMistressDetailsCtrl.text.trim(),
       'crimeMotive': _crimeMotiveCtrl.text.trim(),
@@ -628,43 +723,40 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       'rendezvousPlace': _rendezvousPlaceCtrl.text.trim(),
       'soloCrime': _soloCrimeCtrl.text.trim(),
       'groupCrime': _groupCrimeCtrl.text.trim(),
-
       'favoriteCrimePlace': _favoriteCrimePlaceCtrl.text.trim(),
       'gangLeaderName': _gangLeaderNameCtrl.text.trim(),
       'travelToCrimeMethod': _travelToCrimeMethodCtrl.text.trim(),
       'travelFromCrimeMethod': _travelFromCrimeMethodCtrl.text.trim(),
-
       'weaponsVehiclesUsed': _weaponsVehiclesUsedCtrl.text.trim(),
       'bootyDistribution': _bootyDistributionCtrl.text.trim(),
       'moneyDisposal': _moneyDisposalCtrl.text.trim(),
       'valuablesDisposal': _valuablesDisposalCtrl.text.trim(),
-
       ..._features,
-
-      'escapeRoutesTogetherOrApart': _escapeRoutesTogetherOrApartCtrl.text.trim(),
+      'escapeRoutesTogetherOrApart':
+          _escapeRoutesTogetherOrApartCtrl.text.trim(),
       'policeArrivalPlan': _policeArrivalPlanCtrl.text.trim(),
       'peopleWakePlan': _peopleWakePlanCtrl.text.trim(),
       'resistancePlan': _resistancePlanCtrl.text.trim(),
       'crimeLanguage': _crimeLanguageCtrl.text.trim(),
-
       for (int i = 0; i < 5; i++)
-        'rivalAccompliceReason${i + 1}': _rivalAccompliceReasonCtrls[i].text.trim(),
-
+        'rivalAccompliceReason${i + 1}':
+            _rivalAccompliceReasonCtrls[i].text.trim(),
       'gangMerger': _gangMergerCtrl.text.trim(),
       'rivalGangDisputeReason': _rivalGangDisputeReasonCtrl.text.trim(),
       'injuredAccomplicePlan': _injuredAccomplicePlanCtrl.text.trim(),
-      'arrestedAccompliceReleasePlan': _arrestedAccompliceReleasePlanCtrl.text.trim(),
+      'arrestedAccompliceReleasePlan':
+          _arrestedAccompliceReleasePlanCtrl.text.trim(),
       'favorableSeasonReason': _favorableSeasonReasonCtrl.text.trim(),
-      'officersRecognizingCriminal': _officersRecognizingCriminalCtrl.text.trim(),
-
+      'officersRecognizingCriminal':
+          _officersRecognizingCriminalCtrl.text.trim(),
       for (int i = 0; i < 10; i++) ...{
         'pastCrimePlace${i + 1}': _pastCrimePlaces[i].text.trim(),
         'pastCrimeDateTime${i + 1}': _pastCrimeDateTimes[i].text.trim(),
         'pastCrimeGoods${i + 1}': _pastCrimeGoods[i].text.trim(),
         'pastCrimeAccomplices${i + 1}': _pastCrimeAccomplices[i].text.trim(),
       },
-
-      'investigatingOfficerNameSign': _investigatingOfficerNameSignCtrl.text.trim(),
+      'investigatingOfficerNameSign':
+          _investigatingOfficerNameSignCtrl.text.trim(),
     };
 
     for (final rel in _relatives.values) {
@@ -840,7 +932,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
               const SizedBox(),
               Padding(
                 padding: const EdgeInsets.all(6),
-                child: Text('आरोपीचे साथीदाराशी नाते व संबंध', style: marathiLabelStyle),
+                child: Text('आरोपीचे साथीदाराशी नाते व संबंध',
+                    style: marathiLabelStyle),
               ),
               _tableCellInput(rel.relation, serifStyle),
             ],
@@ -904,7 +997,9 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                Expanded(child: Text(label1, style: marathiLabelStyle.copyWith(fontSize: 12))),
+                Expanded(
+                    child: Text(label1,
+                        style: marathiLabelStyle.copyWith(fontSize: 12))),
               ],
             ),
           ),
@@ -936,7 +1031,9 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                Expanded(child: Text(label2, style: marathiLabelStyle.copyWith(fontSize: 12))),
+                Expanded(
+                    child: Text(label2,
+                        style: marathiLabelStyle.copyWith(fontSize: 12))),
               ],
             ),
           ),
@@ -1024,7 +1121,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     _tableHeader('3.', serifStyle),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('आरोपीचे संपुर्ण नांव', style: marathiLabelStyle),
+                      child: Text('आरोपीचे संपुर्ण नांव',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_accusedFullNameCtrl, serifStyle),
                   ],
@@ -1034,7 +1132,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     _tableHeader('4.', serifStyle),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('आरोपीचे टोपण नांव', style: marathiLabelStyle),
+                      child:
+                          Text('आरोपीचे टोपण नांव', style: marathiLabelStyle),
                     ),
                     _tableCellInput(_accusedAliasCtrl, serifStyle),
                   ],
@@ -1054,7 +1153,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     const SizedBox(),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('स्थावर/ जंगम मालमत्ता', style: marathiLabelStyle),
+                      child: Text('स्थावर/ जंगम मालमत्ता',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_accusedPropertyCtrl, serifStyle),
                   ],
@@ -1074,7 +1174,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     const SizedBox(),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('फोन नंबर व इतर माहिती', style: marathiLabelStyle),
+                      child: Text('फोन नंबर व इतर माहिती',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_accusedPhoneOtherCtrl, serifStyle),
                   ],
@@ -1084,7 +1185,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     _tableHeader('5.', serifStyle),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('आरोपीचा संपूर्ण पत्ता व राज्य', style: marathiLabelStyle),
+                      child: Text('आरोपीचा संपूर्ण पत्ता व राज्य',
+                          style: marathiLabelStyle),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(4),
@@ -1104,7 +1206,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     _tableHeader('6.', serifStyle),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('आरोपीचा मुळ गांवचा संपूर्ण पत्ता व राज्य', style: marathiLabelStyle),
+                      child: Text('आरोपीचा मुळ गांवचा संपूर्ण पत्ता व राज्य',
+                          style: marathiLabelStyle),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(4),
@@ -1145,91 +1248,136 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                           Row(
                             children: [
                               Text('रंग— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descColorCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descColorCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('उंच— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descHeightCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descHeightCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('जात— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descCasteCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descCasteCtrl, serifStyle)),
                             ],
                           ),
                           Row(
                             children: [
                               Text('व्यंग— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descDeformityCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descDeformityCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('दात— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descTeethCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descTeethCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('केस— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descHairCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descHairCtrl, serifStyle)),
                             ],
                           ),
                           Row(
                             children: [
                               Text('डोळे— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descEyesCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descEyesCtrl, serifStyle)),
                               const SizedBox(width: 8),
                               Text('पोषख— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descDressCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descDressCtrl, serifStyle)),
                             ],
                           ),
                           Row(
                             children: [
-                              Text('मतदार यादिलीत नांव— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descVoterNameCtrl, serifStyle)),
+                              Text('मतदार यादिलीत नांव— ',
+                                  style: marathiLabelStyle),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descVoterNameCtrl, serifStyle)),
                             ],
                           ),
                           Row(
                             children: [
                               Text('फोड— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descBoilCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descBoilCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('तिळ— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descMoleCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descMoleCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('गोदने— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descTattooCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descTattooCtrl, serifStyle)),
                             ],
                           ),
                           Row(
                             children: [
                               Text('कान— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descEarsCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descEarsCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('नाक— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descNoseCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descNoseCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('मिशी— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descMustacheCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descMustacheCtrl, serifStyle)),
                             ],
                           ),
                           Row(
                             children: [
                               Text('चेहरा— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descFaceCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descFaceCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('भाषा— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descLanguageCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descLanguageCtrl, serifStyle)),
                               const SizedBox(width: 4),
                               Text('जन्म तारीख— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descDobCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descDobCtrl, serifStyle)),
                             ],
                           ),
                           Row(
                             children: [
                               Text('वर्ण— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descComplexionCtrl, serifStyle)),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descComplexionCtrl, serifStyle)),
                               const SizedBox(width: 8),
-                              Text('भाजल्याच्या खुणा— ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descBurnMarksCtrl, serifStyle)),
+                              Text('भाजल्याच्या खुणा— ',
+                                  style: marathiLabelStyle),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descBurnMarksCtrl, serifStyle)),
                             ],
                           ),
                           Row(
                             children: [
-                              Text('मुख्य ओळख चिन्ह: ', style: marathiLabelStyle),
-                              Expanded(child: _tableCellInput(_descMainIdMarkCtrl, serifStyle)),
+                              Text('मुख्य ओळख चिन्ह: ',
+                                  style: marathiLabelStyle),
+                              Expanded(
+                                  child: _tableCellInput(
+                                      _descMainIdMarkCtrl, serifStyle)),
                             ],
                           ),
                         ],
@@ -1242,7 +1390,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     _tableHeader('8.', serifStyle),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('आरोपीचे जन्म ठिकाण', style: marathiLabelStyle),
+                      child:
+                          Text('आरोपीचे जन्म ठिकाण', style: marathiLabelStyle),
                     ),
                     _tableCellInput(_accusedBirthPlaceCtrl, serifStyle),
                   ],
@@ -1267,11 +1416,14 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 2 (Parents & Grandparents)',
           children: [
-            _buildRelativeBlock(_relatives[10]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[10]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[11]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[11]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[12]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[12]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1283,13 +1435,17 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 3 (Siblings Particulars)',
           children: [
-            _buildRelativeBlock(_relatives[13]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[13]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[14]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[14]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[15]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[15]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[16]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[16]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1301,11 +1457,14 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 4 (Spouse & In-Laws)',
           children: [
-            _buildRelativeBlock(_relatives[17]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[17]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[18]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[18]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[19]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[19]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1317,13 +1476,17 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 5 (Children Particulars)',
           children: [
-            _buildRelativeBlock(_relatives[20]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[20]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[21]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[21]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[22]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[22]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[23]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[23]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1335,13 +1498,17 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 6 (Daughters & Sisters-in-law)',
           children: [
-            _buildRelativeBlock(_relatives[24]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[24]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[25]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[25]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[26]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[26]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[27]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[27]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1353,13 +1520,17 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 7 (In-laws — Sali & Sala)',
           children: [
-            _buildRelativeBlock(_relatives[28]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[28]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[29]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[29]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[30]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[30]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[31]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[31]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1371,13 +1542,17 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 8 (Maternal Uncles — Mama)',
           children: [
-            _buildRelativeBlock(_relatives[32]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[32]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[33]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[33]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[34]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[34]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[35]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[35]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1389,13 +1564,17 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 9 (Aunts — Mavashi & Uncle — Kaka)',
           children: [
-            _buildRelativeBlock(_relatives[36]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[36]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[37]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[37]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[38]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[38]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[39]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[39]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1407,13 +1586,17 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 10 (Kaka & Aatya)',
           children: [
-            _buildRelativeBlock(_relatives[40]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[40]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[41]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[41]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[42]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[42]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[43]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[43]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1425,13 +1608,17 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 11 (Aatya & Close Friends)',
           children: [
-            _buildRelativeBlock(_relatives[44]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[44]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[45]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[45]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[46]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[46]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[47]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[47]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1443,9 +1630,9 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 12 (Education, Job & Stay Details)',
           children: [
-            _buildRelativeBlock(_relatives[48]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[48]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-
             Table(
               border: TableBorder.all(color: Colors.black87),
               columnWidths: const {
@@ -1469,18 +1656,26 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     const SizedBox(),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('शेवटचे शैक्षणीक वर्ष', style: marathiLabelStyle),
+                      child: Text('शेवटचे शैक्षणीक वर्ष',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_eduLastYearCtrl, serifStyle),
                   ],
                 ),
-                _buildSimpleRow('50.', 'कोणत्या शाळेत शिकला त्याचे नांव व पत्ता', _schoolNameAddrCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '50.',
+                    'कोणत्या शाळेत शिकला त्याचे नांव व पत्ता',
+                    _schoolNameAddrCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
                 TableRow(
                   children: [
                     _tableHeader('51.', serifStyle),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('नोकरी असल्यास खाजगी मालकाचे किंवा सरकारी कार्यालयाचे संपुर्ण नांव', style: marathiLabelStyle),
+                      child: Text(
+                          'नोकरी असल्यास खाजगी मालकाचे किंवा सरकारी कार्यालयाचे संपुर्ण नांव',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_jobOfficeNameCtrl, serifStyle),
                   ],
@@ -1490,7 +1685,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     const SizedBox(),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('मिळणारा मासीक पगार', style: marathiLabelStyle),
+                      child:
+                          Text('मिळणारा मासीक पगार', style: marathiLabelStyle),
                     ),
                     _tableCellInput(_jobSalaryCtrl, serifStyle),
                   ],
@@ -1500,7 +1696,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     const SizedBox(),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('नोकरी केव्हा पासुन आहे नोकरीचा कालावधी', style: marathiLabelStyle),
+                      child: Text('नोकरी केव्हा पासुन आहे नोकरीचा कालावधी',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_jobDurationCtrl, serifStyle),
                   ],
@@ -1510,7 +1707,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     const SizedBox(),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('नोकरी असतांना राहण्याचा पत्ता', style: marathiLabelStyle),
+                      child: Text('नोकरी असतांना राहण्याचा पत्ता',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_jobStayAddrCtrl, serifStyle),
                   ],
@@ -1520,7 +1718,9 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     _tableHeader('52.', serifStyle),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('त्यापुर्वी नोकरीच्या मालकाचे / कार्यालयाचे नांव व पत्ता', style: marathiLabelStyle),
+                      child: Text(
+                          'त्यापुर्वी नोकरीच्या मालकाचे / कार्यालयाचे नांव व पत्ता',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_prevJobOfficeCtrl, serifStyle),
                   ],
@@ -1530,7 +1730,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     const SizedBox(),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('नोकरी सोडल्याचे कारण', style: marathiLabelStyle),
+                      child: Text('नोकरी सोडल्याचे कारण',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_prevJobLeaveReasonCtrl, serifStyle),
                   ],
@@ -1550,15 +1751,28 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     const SizedBox(),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('नोकरीवर असतांना राहण्याचा पत्ता', style: marathiLabelStyle),
+                      child: Text('नोकरीवर असतांना राहण्याचा पत्ता',
+                          style: marathiLabelStyle),
                     ),
                     _tableCellInput(_prevJobStayAddrCtrl, serifStyle),
                   ],
                 ),
-                _buildSimpleRow('53.', 'सध्या राहत असलेल्या जागी केव्हा पासुन राहत आहे त्या जागेचा पत्ता', _currentStayDurationAddrCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('54.', 'पुर्वी राहत असलेल्या जागेचा पत्ता', _prevStayAddrCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('55.', 'बँक खाते आहे काय असल्यास बँकेचे नांव पत्ता', _bankAccountDetailsCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('56.', 'सवयी', _habitsCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '53.',
+                    'सध्या राहत असलेल्या जागी केव्हा पासुन राहत आहे त्या जागेचा पत्ता',
+                    _currentStayDurationAddrCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow('54.', 'पुर्वी राहत असलेल्या जागेचा पत्ता',
+                    _prevStayAddrCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '55.',
+                    'बँक खाते आहे काय असल्यास बँकेचे नांव पत्ता',
+                    _bankAccountDetailsCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '56.', 'सवयी', _habitsCtrl, marathiLabelStyle, serifStyle),
               ],
             ),
           ],
@@ -1580,23 +1794,72 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                 2: FlexColumnWidth(4.2),
               },
               children: [
-                _buildSimpleRow('57.', 'नेहमी दारू पिण्याचे ठिकाण', _alcoholPlaceCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('58.', 'धंदेवाईक बाई/ रखेल/ प्रेयसी चे संपुर्ण नांव व पत्ता', _prostituteMistressDetailsCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('59.', 'गुन्ह्यात प्रवृत्त होण्याचे कारण', _crimeMotiveCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('60.', 'प्रथम केलेला गुन्हा व त्यातील साथीदार', _firstCrimeAccomplicesCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('61.', 'पुर्वी अटक झाली आहे काय ? कुठल्या परिस्थितीत अटक झाली आहे.', _prevArrestCircumstancesCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('62.', 'कोण कोणत्या पोलीस स्टेशनला अटक होता', _prevArrestPoliceStationsCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('63.', 'कोण कोणत्या गुन्ह्यात अटक होता.', _prevArrestCrimeDetailsCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('64.', 'गुन्ह्यात जामीन घेणाऱ्या जामीनदारांचे नांव व संपुर्ण पत्ता मुळ गावासह', _bailSuretyNameAddrNativeCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('65.', 'गुन्ह्यात लावलेल्या वकीलाचे नांव व पत्ता', _advocateNameAddrCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('66.', 'शिक्षा झाली आहे काय ?', _convictionStatusCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('67.', 'शिक्षेचा कालावधी व कोणत्या कारागृहात', _convictionDurationJailCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('68.', 'गुन्हा करण्याची पध्दत', _modusOperandiCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('69.', 'गुन्हा करण्यापुर्वी जागेची माहिती कशी काढतो ?', _recceMethodCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('70.', 'बातमीदार मार्फत माहिती काढत असल्यास त्याचे नांव व पत्ता', _informerNameAddrCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('71.', 'गुन्हा करण्या अगोदर व केल्यानंतर आरोपींचे एकत्र जमण्याचे ठिकाण', _rendezvousPlaceCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('72.', 'गुन्हा एकटा करतो काय ?', _soloCrimeCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('73.', 'साथीदारासह गुन्हा करतो काय ?', _groupCrimeCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('57.', 'नेहमी दारू पिण्याचे ठिकाण',
+                    _alcoholPlaceCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '58.',
+                    'धंदेवाईक बाई/ रखेल/ प्रेयसी चे संपुर्ण नांव व पत्ता',
+                    _prostituteMistressDetailsCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow('59.', 'गुन्ह्यात प्रवृत्त होण्याचे कारण',
+                    _crimeMotiveCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('60.', 'प्रथम केलेला गुन्हा व त्यातील साथीदार',
+                    _firstCrimeAccomplicesCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '61.',
+                    'पुर्वी अटक झाली आहे काय ? कुठल्या परिस्थितीत अटक झाली आहे.',
+                    _prevArrestCircumstancesCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '62.',
+                    'कोण कोणत्या पोलीस स्टेशनला अटक होता',
+                    _prevArrestPoliceStationsCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow('63.', 'कोण कोणत्या गुन्ह्यात अटक होता.',
+                    _prevArrestCrimeDetailsCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '64.',
+                    'गुन्ह्यात जामीन घेणाऱ्या जामीनदारांचे नांव व संपुर्ण पत्ता मुळ गावासह',
+                    _bailSuretyNameAddrNativeCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '65.',
+                    'गुन्ह्यात लावलेल्या वकीलाचे नांव व पत्ता',
+                    _advocateNameAddrCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow('66.', 'शिक्षा झाली आहे काय ?',
+                    _convictionStatusCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('67.', 'शिक्षेचा कालावधी व कोणत्या कारागृहात',
+                    _convictionDurationJailCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('68.', 'गुन्हा करण्याची पध्दत',
+                    _modusOperandiCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '69.',
+                    'गुन्हा करण्यापुर्वी जागेची माहिती कशी काढतो ?',
+                    _recceMethodCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '70.',
+                    'बातमीदार मार्फत माहिती काढत असल्यास त्याचे नांव व पत्ता',
+                    _informerNameAddrCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '71.',
+                    'गुन्हा करण्या अगोदर व केल्यानंतर आरोपींचे एकत्र जमण्याचे ठिकाण',
+                    _rendezvousPlaceCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow('72.', 'गुन्हा एकटा करतो काय ?', _soloCrimeCtrl,
+                    marathiLabelStyle, serifStyle),
+                _buildSimpleRow('73.', 'साथीदारासह गुन्हा करतो काय ?',
+                    _groupCrimeCtrl, marathiLabelStyle, serifStyle),
               ],
             ),
           ],
@@ -1610,13 +1873,17 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 14 (Accomplices 1–4)',
           children: [
-            _buildRelativeBlock(_relatives[74]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[74]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[75]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[75]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[76]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[76]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[77]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[77]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
           ],
         ),
 
@@ -1628,11 +1895,12 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
         FormPaperPage(
           formLabel: 'Page : 15 (Accomplices 5–6 & Gang/Travel info)',
           children: [
-            _buildRelativeBlock(_relatives[78]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[78]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-            _buildRelativeBlock(_relatives[79]!, marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
+            _buildRelativeBlock(_relatives[79]!,
+                marathiLabelStyle: marathiLabelStyle, serifStyle: serifStyle),
             const SizedBox(height: 12),
-
             Table(
               border: TableBorder.all(color: Colors.black87),
               columnWidths: const {
@@ -1641,14 +1909,29 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                 2: FlexColumnWidth(4.2),
               },
               children: [
-                _buildSimpleRow('80.', 'गुन्हा करण्यासाठी जास्त आवडीचे ठिकाण', _favoriteCrimePlaceCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('81.', 'गुन्हा करणाऱ्या टोळीतील सुत्रधाराचे नांव', _gangLeaderNameCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('82.', 'गुन्हा करण्यासाठी जातांना प्रवास कशाने करतात', _travelToCrimeMethodCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('83.', 'गुन्हा करून परत जातांना प्रवास कशाने करतात', _travelFromCrimeMethodCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow('80.', 'गुन्हा करण्यासाठी जास्त आवडीचे ठिकाण',
+                    _favoriteCrimePlaceCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '81.',
+                    'गुन्हा करणाऱ्या टोळीतील सुत्रधाराचे नांव',
+                    _gangLeaderNameCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '82.',
+                    'गुन्हा करण्यासाठी जातांना प्रवास कशाने करतात',
+                    _travelToCrimeMethodCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '83.',
+                    'गुन्हा करून परत जातांना प्रवास कशाने करतात',
+                    _travelFromCrimeMethodCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
               ],
             ),
             const SizedBox(height: 16),
-
             Align(
               alignment: Alignment.bottomRight,
               child: Text(
@@ -1678,16 +1961,38 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                 2: FlexColumnWidth(4.2),
               },
               children: [
-                _buildSimpleRow('84.', 'गुन्ह्यात कोणत्या हत्याराचा व वाहनाचा वापर करतात', _weaponsVehiclesUsedCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('85.', 'गुन्ह्यात मिळालेल्या मुद्देमालाची वाटणी कोठे व कशी करतात.', _bootyDistributionCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('86.', 'गुन्ह्यात मिळालेल्या पैश्याची विल्हेवाट', _moneyDisposalCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('87.', 'गुन्ह्यात मिळालेल्या मौल्यवान वस्तुंची विल्हेवाट चांदी/ सोने व इतर वस्तु', _valuablesDisposalCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '84.',
+                    'गुन्ह्यात कोणत्या हत्याराचा व वाहनाचा वापर करतात',
+                    _weaponsVehiclesUsedCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '85.',
+                    'गुन्ह्यात मिळालेल्या मुद्देमालाची वाटणी कोठे व कशी करतात.',
+                    _bootyDistributionCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '86.',
+                    'गुन्ह्यात मिळालेल्या पैश्याची विल्हेवाट',
+                    _moneyDisposalCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '87.',
+                    'गुन्ह्यात मिळालेल्या मौल्यवान वस्तुंची विल्हेवाट चांदी/ सोने व इतर वस्तु',
+                    _valuablesDisposalCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
                 TableRow(
                   children: [
                     _tableHeader('88.', serifStyle),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('गुन्ह्याचे वैशिष्टये लागे असल्यास मार्क करणे', style: marathiLabelStyle),
+                      child: Text(
+                          'गुन्ह्याचे वैशिष्टये लागे असल्यास मार्क करणे',
+                          style: marathiLabelStyle),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(2),
@@ -1698,25 +2003,91 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                           1: FlexColumnWidth(1),
                         },
                         children: [
-                          _buildFeatureRow('feat_defecate', 'घटनास्थळी संडास करणे', 'feat_rape', 'घटनास्थळी स्त्रि /मुलीवर बलात्कार करणे', marathiLabelStyle),
-                          _buildFeatureRow('feat_cook', 'स्वयंपाक करण्यास लावणे', 'feat_smoke_spit', 'घटनास्थळी बीडी सिगारेट पिणे थुंकने', marathiLabelStyle),
-                          _buildFeatureRow('feat_spray', 'फिर्यादीचे चेहऱ्यावर स्प्रे मारणे', 'feat_brought_weapon_assault', 'सोबत आणलेल्या हत्याराने मारहाण करणे', marathiLabelStyle),
-                          _buildFeatureRow('feat_tie_victims', 'घरातील लोकांना बांधुन ठेवणे', 'feat_spot_weapon_assault', 'घटनास्थळावरील हत्यार घेवुन मारहाण करणे', marathiLabelStyle),
-                          _buildFeatureRow('feat_latch_neighbors', 'शेजारच्या घरांना कड्या लावणे', 'feat_mask_handkerchief', 'चेहऱ्यावर रूमाल बांधुन गुन्हा करणे', marathiLabelStyle),
-                          _buildFeatureRow('feat_impersonate_police', 'पोलीस असल्याची बतावणी करणे', 'feat_half_pant_baniyan', 'गुन्हा करतांना हाफ पॅन्ट व बनियान वापरणे', marathiLabelStyle),
-                          _buildFeatureRow('feat_theft_with_inhabitants', 'घरात लोक असतांना चोरी करणे', 'feat_theft_locked_house', 'घराला कुलुप असतांना चोरी करणे', marathiLabelStyle),
-                          _buildFeatureRow('feat_wall_hole_theft', 'भिंतीला छिद्र पाडुन चोरी करणे', 'feat_intercept_motorcycle', 'वाहनास मोटार सायकलवर येऊन अडवीणे', marathiLabelStyle),
-                          _buildFeatureRow('feat_target_follow', 'सावज हेरून गुन्हा पाठलाग करणे', 'feat_rope_across_road', 'दोर आडवा लावुन मोटार सायकल अडविणे', marathiLabelStyle),
+                          _buildFeatureRow(
+                              'feat_defecate',
+                              'घटनास्थळी संडास करणे',
+                              'feat_rape',
+                              'घटनास्थळी स्त्रि /मुलीवर बलात्कार करणे',
+                              marathiLabelStyle),
+                          _buildFeatureRow(
+                              'feat_cook',
+                              'स्वयंपाक करण्यास लावणे',
+                              'feat_smoke_spit',
+                              'घटनास्थळी बीडी सिगारेट पिणे थुंकने',
+                              marathiLabelStyle),
+                          _buildFeatureRow(
+                              'feat_spray',
+                              'फिर्यादीचे चेहऱ्यावर स्प्रे मारणे',
+                              'feat_brought_weapon_assault',
+                              'सोबत आणलेल्या हत्याराने मारहाण करणे',
+                              marathiLabelStyle),
+                          _buildFeatureRow(
+                              'feat_tie_victims',
+                              'घरातील लोकांना बांधुन ठेवणे',
+                              'feat_spot_weapon_assault',
+                              'घटनास्थळावरील हत्यार घेवुन मारहाण करणे',
+                              marathiLabelStyle),
+                          _buildFeatureRow(
+                              'feat_latch_neighbors',
+                              'शेजारच्या घरांना कड्या लावणे',
+                              'feat_mask_handkerchief',
+                              'चेहऱ्यावर रूमाल बांधुन गुन्हा करणे',
+                              marathiLabelStyle),
+                          _buildFeatureRow(
+                              'feat_impersonate_police',
+                              'पोलीस असल्याची बतावणी करणे',
+                              'feat_half_pant_baniyan',
+                              'गुन्हा करतांना हाफ पॅन्ट व बनियान वापरणे',
+                              marathiLabelStyle),
+                          _buildFeatureRow(
+                              'feat_theft_with_inhabitants',
+                              'घरात लोक असतांना चोरी करणे',
+                              'feat_theft_locked_house',
+                              'घराला कुलुप असतांना चोरी करणे',
+                              marathiLabelStyle),
+                          _buildFeatureRow(
+                              'feat_wall_hole_theft',
+                              'भिंतीला छिद्र पाडुन चोरी करणे',
+                              'feat_intercept_motorcycle',
+                              'वाहनास मोटार सायकलवर येऊन अडवीणे',
+                              marathiLabelStyle),
+                          _buildFeatureRow(
+                              'feat_target_follow',
+                              'सावज हेरून गुन्हा पाठलाग करणे',
+                              'feat_rope_across_road',
+                              'दोर आडवा लावुन मोटार सायकल अडविणे',
+                              marathiLabelStyle),
                         ],
                       ),
                     ),
                   ],
                 ),
-                _buildSimpleRow('89.', 'गुन्ह्याचे घटनास्थळा पासुन साथीदारांसह एकत्र जातात की वेगवेगळ्या दिशेने जातात', _escapeRoutesTogetherOrApartCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('90.', 'गुन्हा करतेवेळी पोलीस आल्यास कुठली तयारी असते', _policeArrivalPlanCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('91.', 'गुन्हा करतांना लोक जागे झाल्यास कोणती तयारी असते', _peopleWakePlanCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('92.', 'गुन्ह्यात लोकांनी प्रतिकार केल्यास कोणी तयारी असते', _resistancePlanCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('93.', 'गुन्हा करतांना वापरावयाची भाषा', _crimeLanguageCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '89.',
+                    'गुन्ह्याचे घटनास्थळा पासुन साथीदारांसह एकत्र जातात की वेगवेगळ्या दिशेने जातात',
+                    _escapeRoutesTogetherOrApartCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '90.',
+                    'गुन्हा करतेवेळी पोलीस आल्यास कुठली तयारी असते',
+                    _policeArrivalPlanCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '91.',
+                    'गुन्हा करतांना लोक जागे झाल्यास कोणती तयारी असते',
+                    _peopleWakePlanCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '92.',
+                    'गुन्ह्यात लोकांनी प्रतिकार केल्यास कोणी तयारी असते',
+                    _resistancePlanCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow('93.', 'गुन्हा करतांना वापरावयाची भाषा',
+                    _crimeLanguageCtrl, marathiLabelStyle, serifStyle),
               ],
             ),
             const SizedBox(height: 16),
@@ -1754,7 +2125,9 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     _tableHeader('94.', serifStyle),
                     Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Text('विरोधाकाचे व साथीदार यांचे नांव व पत्ता व विरोध करण्याचे त्याचे कारण', style: marathiLabelStyle),
+                      child: Text(
+                          'विरोधाकाचे व साथीदार यांचे नांव व पत्ता व विरोध करण्याचे त्याचे कारण',
+                          style: marathiLabelStyle),
                     ),
                     Column(
                       children: [
@@ -1762,7 +2135,9 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                           Container(
                             decoration: BoxDecoration(
                               border: i < 4
-                                  ? const Border(bottom: BorderSide(color: Colors.black45, width: 0.5))
+                                  ? const Border(
+                                      bottom: BorderSide(
+                                          color: Colors.black45, width: 0.5))
                                   : null,
                             ),
                             child: Row(
@@ -1770,12 +2145,19 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                                 Container(
                                   width: 28,
                                   alignment: Alignment.center,
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
-                                  child: Text(['१', '२', '३', '४', '५'][i], style: marathiLabelStyle),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
+                                  child: Text(['१', '२', '३', '४', '५'][i],
+                                      style: marathiLabelStyle),
                                 ),
-                                Container(width: 1, height: 26, color: Colors.black45),
+                                Container(
+                                    width: 1,
+                                    height: 26,
+                                    color: Colors.black45),
                                 Expanded(
-                                  child: _tableCellInput(_rivalAccompliceReasonCtrls[i], serifStyle),
+                                  child: _tableCellInput(
+                                      _rivalAccompliceReasonCtrls[i],
+                                      serifStyle),
                                 ),
                               ],
                             ),
@@ -1784,12 +2166,42 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     ),
                   ],
                 ),
-                _buildSimpleRow('95.', 'गुन्हा करतांना दोन टोळ्या एकत्र होतात काय', _gangMergerCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('96.', 'दुसऱ्या टोळी बरोबर वाद आहे काय असल्यास वादाचे कारण', _rivalGangDisputeReasonCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('97.', 'गुन्ह्यात एखादा साथीदार जखमी असल्यास कोणती तयारी असते', _injuredAccomplicePlanCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('98.', 'गुन्ह्यात एखादा साथीदार अटक झाल्यास त्याला कोणत्या पध्दतीने सोडवितात', _arrestedAccompliceReleasePlanCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('99.', 'कुठल्या हंगामात गुन्हा करण्याचे सोईचे जाते त्याचे कारण काय', _favorableSeasonReasonCtrl, marathiLabelStyle, serifStyle),
-                _buildSimpleRow('100.', 'गुन्हेगाराला ओळखणारे अधिकारी व कर्मचारी यांचे नांव व मो नं', _officersRecognizingCriminalCtrl, marathiLabelStyle, serifStyle),
+                _buildSimpleRow(
+                    '95.',
+                    'गुन्हा करतांना दोन टोळ्या एकत्र होतात काय',
+                    _gangMergerCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '96.',
+                    'दुसऱ्या टोळी बरोबर वाद आहे काय असल्यास वादाचे कारण',
+                    _rivalGangDisputeReasonCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '97.',
+                    'गुन्ह्यात एखादा साथीदार जखमी असल्यास कोणती तयारी असते',
+                    _injuredAccomplicePlanCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '98.',
+                    'गुन्ह्यात एखादा साथीदार अटक झाल्यास त्याला कोणत्या पध्दतीने सोडवितात',
+                    _arrestedAccompliceReleasePlanCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '99.',
+                    'कुठल्या हंगामात गुन्हा करण्याचे सोईचे जाते त्याचे कारण काय',
+                    _favorableSeasonReasonCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
+                _buildSimpleRow(
+                    '100.',
+                    'गुन्हेगाराला ओळखणारे अधिकारी व कर्मचारी यांचे नांव व मो नं',
+                    _officersRecognizingCriminalCtrl,
+                    marathiLabelStyle,
+                    serifStyle),
               ],
             ),
             const SizedBox(height: 14),
@@ -1797,7 +2209,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
             // Item 101 Table Heading
             Text(
               '101 आज पावेतो किती गुन्हे केले आहे त्याचे वर्णन :—',
-              style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+              style: marathiLabelStyle.copyWith(
+                  fontWeight: FontWeight.bold, fontSize: 13),
             ),
             const SizedBox(height: 6),
 
@@ -1839,7 +2252,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
             // Footer Note
             Text(
               'टिप :— सावत्र आई किंवा इतर विशेष माहिती असल्यास त्याचे करीता पुरवणी कागद वापरावा',
-              style: marathiLabelStyle.copyWith(fontSize: 11, fontStyle: FontStyle.italic),
+              style: marathiLabelStyle.copyWith(
+                  fontSize: 11, fontStyle: FontStyle.italic),
             ),
             const SizedBox(height: 24),
 
@@ -1852,12 +2266,14 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                   children: [
                     SizedBox(
                       width: 220,
-                      child: _tableCellInput(_investigatingOfficerNameSignCtrl, serifStyle),
+                      child: _tableCellInput(
+                          _investigatingOfficerNameSignCtrl, serifStyle),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'तपासी अधिकारी नांव व सही',
-                      style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                      style: marathiLabelStyle.copyWith(
+                          fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   ],
                 ),

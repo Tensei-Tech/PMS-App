@@ -480,9 +480,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     final List<ModuleRecord> filtered;
     if (widget.moduleKey == 'absconded') {
-      if (_filter == 'Disposal' || _filter == 'Closed' || _filter == 'Resolved') {
+      if (_filter == 'Disposal' ||
+          _filter == 'Closed' ||
+          _filter == 'Resolved') {
         filtered = allRecords.where((r) => isAbscondedDisposal(r)).toList();
-      } else if (_filter == 'Pending' || _filter == 'Open' || _filter == 'Active') {
+      } else if (_filter == 'Pending' ||
+          _filter == 'Open' ||
+          _filter == 'Active') {
         filtered = allRecords.where((r) => !isAbscondedDisposal(r)).toList();
       } else {
         filtered = allRecords;
@@ -540,7 +544,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
                         AppSpacing.md, AppSpacing.lg, AppSpacing.md),
-                    child: _buildStatsRow(totalCount, disposalCount, pendingCount),
+                    child:
+                        _buildStatsRow(totalCount, disposalCount, pendingCount),
                   ),
                 ),
               ],

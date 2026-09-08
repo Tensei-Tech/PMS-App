@@ -135,9 +135,8 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
       _switchOffStatusCtrl.text = data['switchOffStatus']?.toString() ?? '';
       _simCardPresentCtrl.text = data['simCardPresent']?.toString() ?? '';
       _simCompanyCtrl.text = data['simCompany']?.toString() ?? '';
-      _simCallingNoCtrl.text = data['simCallingNo']?.toString() ??
-          data['simNo']?.toString() ??
-          '';
+      _simCallingNoCtrl.text =
+          data['simCallingNo']?.toString() ?? data['simNo']?.toString() ?? '';
       _simCardSerialNoCtrl.text = data['simCardSerialNo']?.toString() ?? '';
       _memoryCardPresentCtrl.text = data['memoryCardPresent']?.toString() ?? '';
       _memoryCardCompanyCtrl.text = data['memoryCardCompany']?.toString() ?? '';
@@ -155,9 +154,8 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
       _ioNameSignStampCtrl.text = data['ioNameSignStamp']?.toString() ??
           data['ioName']?.toString() ??
           '';
-      _sealSampleCtrl.text = data['sealSample']?.toString() ??
-          data['remarks']?.toString() ??
-          '';
+      _sealSampleCtrl.text =
+          data['sealSample']?.toString() ?? data['remarks']?.toString() ?? '';
     });
   }
 
@@ -304,19 +302,25 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                 1: FlexColumnWidth(3.2),
               },
               children: [
-                _buildFormRow('पोलीस स्टेशन जिल्हा', _psDistrictCtrl, marathi, serif),
-                _buildFormRow('अपराध क्रमांक व कलम', _crimeNoSectionCtrl, marathi, serif),
-                _buildFormRow('जप्त करणारे अधिकारी नांव हुद्दा पोस्टे', _seizingOfficerCtrl, marathi, serif),
-                _buildFormRow('कोणाकडुन जप्त केले त्याचे नांव पत्ता', _seizedFromCtrl, marathi, serif),
+                _buildFormRow(
+                    'पोलीस स्टेशन जिल्हा', _psDistrictCtrl, marathi, serif),
+                _buildFormRow(
+                    'अपराध क्रमांक व कलम', _crimeNoSectionCtrl, marathi, serif),
+                _buildFormRow('जप्त करणारे अधिकारी नांव हुद्दा पोस्टे',
+                    _seizingOfficerCtrl, marathi, serif),
+                _buildFormRow('कोणाकडुन जप्त केले त्याचे नांव पत्ता',
+                    _seizedFromCtrl, marathi, serif),
                 _buildFormRow('आरोपीचे नाव', _accusedNameCtrl, marathi, serif),
-                _buildFormRow('जप्तीचे ठिकाण तारीख वेळ', _seizurePlaceDateTimeCtrl, marathi, serif),
+                _buildFormRow('जप्तीचे ठिकाण तारीख वेळ',
+                    _seizurePlaceDateTimeCtrl, marathi, serif),
 
                 // Mobile Specs with Left Stamp Column
                 TableRow(
                   children: [
                     Container(
                       alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 120),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 120),
                       child: Text(
                         'पोलीस स्टेशन शिक्का',
                         style: marathi.copyWith(fontWeight: FontWeight.bold),
@@ -331,7 +335,8 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                       },
                       children: [
                         TableRow(
-                          decoration: BoxDecoration(color: Colors.grey.shade100),
+                          decoration:
+                              BoxDecoration(color: Colors.grey.shade100),
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(6),
@@ -347,21 +352,45 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                             const SizedBox(),
                           ],
                         ),
-                        _buildSubRow('मो कंपनी', _mobileCompanyCtrl, marathi, serif),
+                        _buildSubRow(
+                            'मो कंपनी', _mobileCompanyCtrl, marathi, serif),
                         _buildSubRow('IMEI 1', _imei1Ctrl, marathi, serif),
                         _buildSubRow('IMEI 2', _imei2Ctrl, marathi, serif),
-                        _buildSubRow('मोबाईल सिरियल क्र.', _mobileSerialNoCtrl, marathi, serif),
-                        _buildSubRow('पासवर्ड/ पॅटर्न/ पिन', _passwordPatternPinCtrl, marathi, serif, hintText: 'असल्यास नमूद करणे'),
-                        _buildSubRow('मोबाईल स्थिती', _mobileConditionCtrl, marathi, serif, hintText: 'चालु / बंद'),
-                        _buildSubRow('स्विच ऑफ', _switchOffStatusCtrl, marathi, serif, hintText: 'होय / नाही'),
-                        _buildSubRow('सिम कार्ड आहे किं नाही असल्यास खालील माहिती', _simCardPresentCtrl, marathi, serif, hintText: 'होय / नाही'),
-                        _buildSubRow('सिम कंपनी', _simCompanyCtrl, marathi, serif),
-                        _buildSubRow('सिमचा कॉलींग क्रमांक', _simCallingNoCtrl, marathi, serif),
-                        _buildSubRow('सिमकार्डवर दिसणारा सीरीयल क्र', _simCardSerialNoCtrl, marathi, serif),
-                        _buildSubRow('मेमरी कार्ड आहे किं नाही असल्यास खालील माहिती', _memoryCardPresentCtrl, marathi, serif, hintText: 'होय / नाही'),
-                        _buildSubRow('मेमरीकार्ड कंपनी नांव', _memoryCardCompanyCtrl, marathi, serif),
-                        _buildSubRow('मेमरी कार्ड ची क्षमता', _memoryCardCapacityCtrl, marathi, serif),
-                        _buildSubRow('मेमरी कार्डवर दिसणारा सिरीयल क्र', _memoryCardSerialNoCtrl, marathi, serif),
+                        _buildSubRow('मोबाईल सिरियल क्र.', _mobileSerialNoCtrl,
+                            marathi, serif),
+                        _buildSubRow('पासवर्ड/ पॅटर्न/ पिन',
+                            _passwordPatternPinCtrl, marathi, serif,
+                            hintText: 'असल्यास नमूद करणे'),
+                        _buildSubRow('मोबाईल स्थिती', _mobileConditionCtrl,
+                            marathi, serif,
+                            hintText: 'चालु / बंद'),
+                        _buildSubRow(
+                            'स्विच ऑफ', _switchOffStatusCtrl, marathi, serif,
+                            hintText: 'होय / नाही'),
+                        _buildSubRow(
+                            'सिम कार्ड आहे किं नाही असल्यास खालील माहिती',
+                            _simCardPresentCtrl,
+                            marathi,
+                            serif,
+                            hintText: 'होय / नाही'),
+                        _buildSubRow(
+                            'सिम कंपनी', _simCompanyCtrl, marathi, serif),
+                        _buildSubRow('सिमचा कॉलींग क्रमांक', _simCallingNoCtrl,
+                            marathi, serif),
+                        _buildSubRow('सिमकार्डवर दिसणारा सीरीयल क्र',
+                            _simCardSerialNoCtrl, marathi, serif),
+                        _buildSubRow(
+                            'मेमरी कार्ड आहे किं नाही असल्यास खालील माहिती',
+                            _memoryCardPresentCtrl,
+                            marathi,
+                            serif,
+                            hintText: 'होय / नाही'),
+                        _buildSubRow('मेमरीकार्ड कंपनी नांव',
+                            _memoryCardCompanyCtrl, marathi, serif),
+                        _buildSubRow('मेमरी कार्ड ची क्षमता',
+                            _memoryCardCapacityCtrl, marathi, serif),
+                        _buildSubRow('मेमरी कार्डवर दिसणारा सिरीयल क्र',
+                            _memoryCardSerialNoCtrl, marathi, serif),
                       ],
                     ),
                   ],
@@ -371,13 +400,15 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                 TableRow(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 8),
                       child: Text(
                         'एक्झिबीट क्र तपासी अधिकारी यांच्या पत्रानुसार',
                         style: marathi,
                       ),
                     ),
-                    _tableCellInput(_exhibitNoLetterCtrl, serif, hintText: 'उदा “Exhibit – A”'),
+                    _tableCellInput(_exhibitNoLetterCtrl, serif,
+                        hintText: 'उदा “Exhibit – A”'),
                   ],
                 ),
 
@@ -389,7 +420,8 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text('ज्यांचेकडुन जप्त केले त्यांची सही', style: marathi, textAlign: TextAlign.center),
+                          Text('ज्यांचेकडुन जप्त केले त्यांची सही',
+                              style: marathi, textAlign: TextAlign.center),
                           const SizedBox(height: 36),
                           _tableCellInput(_seizedPersonSignCtrl, serif),
                         ],
@@ -401,20 +433,25 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Center(
-                            child: Text('पंचाच्या सह्या', style: marathi, textAlign: TextAlign.center),
+                            child: Text('पंचाच्या सह्या',
+                                style: marathi, textAlign: TextAlign.center),
                           ),
                           const SizedBox(height: 8),
                           Row(
                             children: [
                               Text('१) ', style: marathi),
-                              Expanded(child: _tableCellInput(_panch1SignCtrl, serif)),
+                              Expanded(
+                                  child:
+                                      _tableCellInput(_panch1SignCtrl, serif)),
                             ],
                           ),
                           const SizedBox(height: 6),
                           Row(
                             children: [
                               Text('२) ', style: marathi),
-                              Expanded(child: _tableCellInput(_panch2SignCtrl, serif)),
+                              Expanded(
+                                  child:
+                                      _tableCellInput(_panch2SignCtrl, serif)),
                             ],
                           ),
                         ],
@@ -431,7 +468,8 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text('तपासी अधिकारी यांचे नाव सही शिक्का', style: marathi, textAlign: TextAlign.center),
+                          Text('तपासी अधिकारी यांचे नाव सही शिक्का',
+                              style: marathi, textAlign: TextAlign.center),
                           const SizedBox(height: 36),
                           _tableCellInput(_ioNameSignStampCtrl, serif),
                         ],
@@ -442,7 +480,8 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text('सिल नमुना', style: marathi, textAlign: TextAlign.center),
+                          Text('सिल नमुना',
+                              style: marathi, textAlign: TextAlign.center),
                           const SizedBox(height: 36),
                           _tableCellInput(_sealSampleCtrl, serif),
                         ],

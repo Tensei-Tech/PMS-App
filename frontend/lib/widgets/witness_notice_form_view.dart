@@ -83,9 +83,8 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
   void hydrateFrom(Map<String, dynamic> data) {
     setState(() {
       _policeStationCtrl.text = data['policeStation']?.toString() ?? '';
-      _noticeDateCtrl.text = data['noticeDate']?.toString() ??
-          data['date']?.toString() ??
-          '';
+      _noticeDateCtrl.text =
+          data['noticeDate']?.toString() ?? data['date']?.toString() ?? '';
 
       _panchNameCtrl.text = data['panchName']?.toString() ??
           data['witnessName']?.toString() ??
@@ -100,20 +99,17 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
       _bodyPoliceStationCtrl.text = data['bodyPoliceStation']?.toString() ??
           data['policeStation']?.toString() ??
           '';
-      _crNoYearCtrl.text = data['crNoYear']?.toString() ??
-          data['crNo']?.toString() ??
-          '';
+      _crNoYearCtrl.text =
+          data['crNoYear']?.toString() ?? data['crNo']?.toString() ?? '';
       _sectionCtrl.text = data['section']?.toString() ?? '';
       _appearanceDateCtrl.text = data['appearanceDate']?.toString() ?? '';
       _appearanceTimeCtrl.text = data['appearanceTime']?.toString() ?? '';
 
-      _ioSignCtrl.text = data['ioSign']?.toString() ??
-          data['ioName']?.toString() ??
-          '';
+      _ioSignCtrl.text =
+          data['ioSign']?.toString() ?? data['ioName']?.toString() ?? '';
 
-      _ackLine1Ctrl.text = data['ackLine1']?.toString() ??
-          data['witnessSig']?.toString() ??
-          '';
+      _ackLine1Ctrl.text =
+          data['ackLine1']?.toString() ?? data['witnessSig']?.toString() ?? '';
       _ackLine2Ctrl.text = data['ackLine2']?.toString() ??
           data['witnessReceiptDate']?.toString() ??
           '';
@@ -194,9 +190,12 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text('पोलीस स्टेशन', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                        Text('पोलीस स्टेशन',
+                            style:
+                                marathi.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(width: 6),
-                        Expanded(child: _inlineInput(_policeStationCtrl, serif)),
+                        Expanded(
+                            child: _inlineInput(_policeStationCtrl, serif)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -204,7 +203,9 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text('दिनांक :', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                        Text('दिनांक :',
+                            style:
+                                marathi.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(width: 6),
                         Expanded(
                           child: _inlineInput(
@@ -249,15 +250,19 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('पंच नांव', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text('पंच नांव',
+                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 8),
                 Text(':—', style: marathi),
                 const SizedBox(width: 8),
-                Expanded(child: _inlineInput(_panchNameCtrl, serif, hintText: 'नाव')),
+                Expanded(
+                    child:
+                        _inlineInput(_panchNameCtrl, serif, hintText: 'नाव')),
               ],
             ),
             const SizedBox(height: 12),
-            _inlineInput(_panchAddressLine1Ctrl, serif, hintText: 'पत्ता / व्यवसाय / वय ओळ १'),
+            _inlineInput(_panchAddressLine1Ctrl, serif,
+                hintText: 'पत्ता / व्यवसाय / वय ओळ १'),
             const SizedBox(height: 12),
             _inlineInput(_panchAddressLine2Ctrl, serif, hintText: 'ओळ २'),
             const SizedBox(height: 12),
@@ -362,7 +367,8 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                 children: [
                   SizedBox(
                     width: 200,
-                    child: _inlineInput(_ioSignCtrl, serif, hintText: 'नाव / सही'),
+                    child:
+                        _inlineInput(_ioSignCtrl, serif, hintText: 'नाव / सही'),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -391,12 +397,14 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                 const SizedBox(height: 8),
                 SizedBox(
                   width: 220,
-                  child: _inlineInput(_ackLine1Ctrl, serif, hintText: 'स्वाक्षरी / नाव'),
+                  child: _inlineInput(_ackLine1Ctrl, serif,
+                      hintText: 'स्वाक्षरी / नाव'),
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
                   width: 220,
-                  child: _inlineInput(_ackLine2Ctrl, serif, hintText: 'दिनांक व वेळ'),
+                  child: _inlineInput(_ackLine2Ctrl, serif,
+                      hintText: 'दिनांक व वेळ'),
                 ),
                 const SizedBox(height: 8),
                 SizedBox(

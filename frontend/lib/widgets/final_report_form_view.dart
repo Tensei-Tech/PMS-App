@@ -58,7 +58,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   final _actCtrl = TextEditingController(text: 'भारतीय न्याय संहिता २०२३');
   final _sectionCtrl = TextEditingController();
   final _reportTypeCtrl = TextEditingController();
-  final _reportTypeCustomCtrl = TextEditingController(text: 'आरोपपत्र दाखल केले');
+  final _reportTypeCustomCtrl =
+      TextEditingController(text: 'आरोपपत्र दाखल केले');
   final _frUnoccurredCtrl = TextEditingController();
   final _chargeSheetedCtrl = TextEditingController(text: 'होय');
   final _originalSupplementaryCtrl = TextEditingController(text: 'मुळ');
@@ -148,7 +149,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   final _shoRankCtrl = TextEditingController(text: 'सहायक पोलीस निरीक्षक');
   final _shoNoCtrl = TextEditingController();
   final _shoPsCtrl = TextEditingController(text: 'पोलीस स्टेशन पारवा');
-  final _submitIoNameCtrl = TextEditingController(text: 'श्री. गजानन दशरथ शेजुळकर');
+  final _submitIoNameCtrl =
+      TextEditingController(text: 'श्री. गजानन दशरथ शेजुळकर');
   final _submitIoRankCtrl = TextEditingController(text: 'पोलीस उपनिरीक्षक');
   final _submitIoNoCtrl = TextEditingController(text: '---');
   final _submitIoPsCtrl = TextEditingController(text: 'पोलीस स्टेशन पारवा');
@@ -178,7 +180,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
     _witnessEvidenceCtrls = List.generate(
       _witnessRowCount,
       (i) => TextEditingController(
-        text: i < _defaultWitnessEvidence.length ? _defaultWitnessEvidence[i] : '',
+        text: i < _defaultWitnessEvidence.length
+            ? _defaultWitnessEvidence[i]
+            : '',
       ),
     );
 
@@ -278,7 +282,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   void hydrateFrom(Map<String, dynamic> data) {
     setState(() {
       _courtCtrl.text = data['court']?.toString() ?? _courtCtrl.text;
-      _courtDistCtrl.text = data['courtDist']?.toString() ?? _courtDistCtrl.text;
+      _courtDistCtrl.text =
+          data['courtDist']?.toString() ?? _courtDistCtrl.text;
       _distCtrl.text = data['dist']?.toString() ?? _distCtrl.text;
       _psCtrl.text = data['ps']?.toString() ?? _psCtrl.text;
       _yearCtrl.text = data['year']?.toString() ?? _yearCtrl.text;
@@ -341,7 +346,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
           _propFromCtrls[i].text = data['prop${n}From']?.toString() ?? '';
         }
         if (data.containsKey('prop${n}Disposal')) {
-          _propDisposalCtrls[i].text = data['prop${n}Disposal']?.toString() ?? '';
+          _propDisposalCtrls[i].text =
+              data['prop${n}Disposal']?.toString() ?? '';
         }
       }
 
@@ -368,8 +374,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
           data['accOccupation']?.toString() ?? _accOccupationCtrl.text;
       _accAddressCtrl.text =
           data['accAddress']?.toString() ?? _accAddressCtrl.text;
-      _accAddressVerifiedCtrl.text =
-          data['accAddressVerified']?.toString() ?? _accAddressVerifiedCtrl.text;
+      _accAddressVerifiedCtrl.text = data['accAddressVerified']?.toString() ??
+          _accAddressVerifiedCtrl.text;
       _accProvCriminalNoCtrl.text =
           data['accProvCriminalNo']?.toString() ?? _accProvCriminalNoCtrl.text;
       _accRegularCriminalNoCtrl.text =
@@ -387,9 +393,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
           data['accActsSections']?.toString() ?? _accActsSectionsCtrl.text;
       _accBailersCtrl.text =
           data['accBailers']?.toString() ?? _accBailersCtrl.text;
-      _accPrevConvictionsCtrl.text =
-          data['accPrevConvictions']?.toString() ??
-              _accPrevConvictionsCtrl.text;
+      _accPrevConvictionsCtrl.text = data['accPrevConvictions']?.toString() ??
+          _accPrevConvictionsCtrl.text;
       _accStatusCtrl.text =
           data['accStatus']?.toString() ?? _accStatusCtrl.text;
       _notChargeSheetedCtrl.text =
@@ -632,7 +637,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   ),
                   Text(
                     'मा.वि.न्यायदंडाधिकारी प्रथम श्रेणी,न्यायालय ',
-                    style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold),
+                    style:
+                        marathiLabelStyle.copyWith(fontWeight: FontWeight.bold),
                   ),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
@@ -643,7 +649,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   const SizedBox(width: 8),
                   Text(
                     'जिल्हा ',
-                    style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold),
+                    style:
+                        marathiLabelStyle.copyWith(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(
                     width: 100,
@@ -660,7 +667,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('1.Dist : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('1.Dist : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   SizedBox(
                     width: 90,
                     child: BilingualSimpleUnderlineInput(
@@ -669,7 +677,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('P.S: ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('P.S: ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     flex: 2,
                     child: BilingualSimpleUnderlineInput(
@@ -678,7 +687,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('Year : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Year : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Text('20', style: serifStyle),
                   SizedBox(
                     width: 35,
@@ -688,7 +698,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('FIRNo : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('FIRNo : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     flex: 2,
                     child: BilingualSimpleUnderlineInput(
@@ -705,7 +716,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('Date : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Date : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     flex: 2,
                     child: BilingualSimpleUnderlineInput(
@@ -718,7 +730,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               const SizedBox(height: 2),
               Text(
                 'जिल्हा— यवतमाळ पोलीस ठाणे- ------- वर्ष:-२०.....पहिली खबर क्र......../२०२४ तारीख...../...../२०.....',
-                style: marathiLabelStyle.copyWith(fontSize: 9.5, color: Colors.black87),
+                style: marathiLabelStyle.copyWith(
+                    fontSize: 9.5, color: Colors.black87),
               ),
               const SizedBox(height: 12),
 
@@ -736,7 +749,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           children: [
                             Text(
                               '2. Final Report/Charge Sheet No. ',
-                              style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold),
                             ),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
@@ -756,7 +770,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                         Text(
                           '   अंतिम अहवाल/आरोप पत्र क्र.',
-                          style: marathiLabelStyle.copyWith(fontSize: 10, color: Colors.black87),
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 10, color: Colors.black87),
                         ),
                       ],
                     ),
@@ -772,7 +787,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           children: [
                             Text(
                               '3.Date: ',
-                              style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold),
                             ),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
@@ -784,7 +800,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                         Text(
                           '   दिनांक:',
-                          style: marathiLabelStyle.copyWith(fontSize: 10, color: Colors.black87),
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 10, color: Colors.black87),
                         ),
                       ],
                     ),
@@ -807,7 +824,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           children: [
                             Text(
                               '4. Act : ',
-                              style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold),
                             ),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
@@ -819,7 +837,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                         Text(
                           '   भारतीय न्याय संहिता २०२३',
-                          style: marathiLabelStyle.copyWith(fontSize: 10, color: Colors.black87),
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 10, color: Colors.black87),
                         ),
                       ],
                     ),
@@ -835,7 +854,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           children: [
                             Text(
                               'Section: ',
-                              style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold),
                             ),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
@@ -847,7 +867,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                         Text(
                           '   कलम',
-                          style: marathiLabelStyle.copyWith(fontSize: 10, color: Colors.black87),
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 10, color: Colors.black87),
                         ),
                       ],
                     ),
@@ -916,7 +937,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       Expanded(
                         child: Text(
                           '6. If F.R. Unoccured : False/Mistake of Fact/Mistake of Law/Non-cognizable/Civil Nature :',
-                          style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                          style: serifStyle.copyWith(
+                              fontWeight: FontWeight.bold, fontSize: 11),
                         ),
                       ),
                       SizedBox(
@@ -972,7 +994,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('8. Name of the I.O : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('8. Name of the I.O : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     flex: 3,
                     child: BilingualSimpleUnderlineInput(
@@ -981,7 +1004,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('Rank : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Rank : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     flex: 2,
                     child: BilingualSimpleUnderlineInput(
@@ -990,7 +1014,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('No. : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('No. : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   SizedBox(
                     width: 60,
                     child: BilingualSimpleUnderlineInput(
@@ -1073,7 +1098,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               // 10. Details of Properties recovered/seized Table
               Text(
                 '10. Details of Properties/Articles/Documents recovered/seized during investigation and relied upon : Enclosed with C/S.( separate list can be attached, if necessary )',
-                style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                style: serifStyle.copyWith(
+                    fontWeight: FontWeight.bold, fontSize: 11),
               ),
               Text(
                 'तपासणीच्या वेळी परत मिळविलेल्या/जप्त केलेल्या आणि अवलंबून राहीलेल्या मालमत्तेचा/वस्तूंचा तपशील:\n(आवश्यक असेल तर स्वतंत्र यादी सोबत जोडण्यात येईल )',
@@ -1094,10 +1120,17 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   TableRow(
                     children: [
                       _tableHeader('Sr.No\nअ.क्र', serifStyle),
-                      _tableHeader('Property Description\nमालमत्तेचे वर्णन', serifStyle),
-                      _tableHeader('Estimated\nValue\n( in Rs.)\nअंदाजित मूल्य\n(रुपयात )', serifStyle),
-                      _tableHeader('P.S.\nProperty\nRegister No.\nपोलीस ठाणे\nमालमत्ता नोंदवही\nक्रमांक', serifStyle),
-                      _tableHeader('From whom/\nwhere Recovered\nor Seized\nकोणाकडून/कोठून परत\nमिळविली किंवा जप्त केली.', serifStyle),
+                      _tableHeader(
+                          'Property Description\nमालमत्तेचे वर्णन', serifStyle),
+                      _tableHeader(
+                          'Estimated\nValue\n( in Rs.)\nअंदाजित मूल्य\n(रुपयात )',
+                          serifStyle),
+                      _tableHeader(
+                          'P.S.\nProperty\nRegister No.\nपोलीस ठाणे\nमालमत्ता नोंदवही\nक्रमांक',
+                          serifStyle),
+                      _tableHeader(
+                          'From whom/\nwhere Recovered\nor Seized\nकोणाकडून/कोठून परत\nमिळविली किंवा जप्त केली.',
+                          serifStyle),
                       _tableHeader('Disposal\nविल्हेवाट', serifStyle),
                     ],
                   ),
@@ -1118,10 +1151,12 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           padding: const EdgeInsets.all(8),
                           child: Text('${i + 1}.',
                               textAlign: TextAlign.center,
-                              style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                         ),
                         _tableCellInput(_propDescCtrls[i], serifStyle),
-                        _tableCellInput(_propValueCtrls[i], serifStyle, align: TextAlign.right),
+                        _tableCellInput(_propValueCtrls[i], serifStyle,
+                            align: TextAlign.right),
                         _tableCellInput(_propRegCtrls[i], serifStyle),
                         _tableCellInput(_propFromCtrls[i], serifStyle),
                         _tableCellInput(_propDisposalCtrls[i], serifStyle),
@@ -1145,7 +1180,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           _propDisposalCtrls.add(TextEditingController());
                         });
                       },
-                      icon: const Icon(Icons.add, size: 15, color: Color(0xFF1E3A8A)),
+                      icon: const Icon(Icons.add,
+                          size: 15, color: Color(0xFF1E3A8A)),
                       label: Text(
                         'Add Row (ओळ जोडा)',
                         style: GoogleFonts.poppins(
@@ -1156,9 +1192,11 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       ),
                       style: OutlinedButton.styleFrom(
                         backgroundColor: const Color(0xFFEFF4FA),
-                        side: const BorderSide(color: Color(0xFFD6E4F0), width: 1),
+                        side: const BorderSide(
+                            color: Color(0xFFD6E4F0), width: 1),
                         shape: const StadiumBorder(),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                       ),
                     ),
                     if (_propertyRowCount > 1) ...[
@@ -1174,7 +1212,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                             _propDisposalCtrls.removeLast().dispose();
                           });
                         },
-                        icon: const Icon(Icons.remove, size: 15, color: Color(0xFFB91C1C)),
+                        icon: const Icon(Icons.remove,
+                            size: 15, color: Color(0xFFB91C1C)),
                         label: Text(
                           'Remove Row (ओळ काढा)',
                           style: GoogleFonts.poppins(
@@ -1185,9 +1224,11 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                         style: OutlinedButton.styleFrom(
                           backgroundColor: const Color(0xFFFEEFEE),
-                          side: const BorderSide(color: Color(0xFFFCDADA), width: 1),
+                          side: const BorderSide(
+                              color: Color(0xFFFCDADA), width: 1),
                           shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                         ),
                       ),
                     ],
@@ -1209,7 +1250,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
             children: [
               Text(
                 '11. i) Particulars of accused persons charge-sheeted ( use separate sheet for each accused ) : आरोपपत्र ठेवलेल्या आरोपीचा तपशिल ( प्रत्येक आरोपीसाठी स्वतंत्र कागद वापरावा ) :',
-                style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                style: serifStyle.copyWith(
+                    fontWeight: FontWeight.bold, fontSize: 11),
               ),
               const SizedBox(height: 12),
 
@@ -1217,7 +1259,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(i)  Name : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(i)  Name : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     flex: 3,
                     child: BilingualSimpleUnderlineInput(
@@ -1226,7 +1269,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Text('Where verified : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Where verified : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     flex: 2,
                     child: BilingualSimpleUnderlineInput(
@@ -1238,9 +1282,11 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               ),
               Row(
                 children: [
-                  Text('     नाव : )', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('     नाव : )',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   const Spacer(flex: 3),
-                  Text('पडताळले किंवा काय', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('पडताळले किंवा काय',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   const Spacer(flex: 2),
                 ],
               ),
@@ -1250,7 +1296,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(ii) Father\'s/Husband\'s Name : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(ii) Father\'s/Husband\'s Name : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accFatherCtrl,
@@ -1259,14 +1306,16 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   ),
                 ],
               ),
-              Text('     पित्याचे/पतीचे नाव', style: marathiLabelStyle.copyWith(fontSize: 10)),
+              Text('     पित्याचे/पतीचे नाव',
+                  style: marathiLabelStyle.copyWith(fontSize: 10)),
               const SizedBox(height: 8),
 
               // (iii) Date/Year of Birth / Age
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(iii) Date/Year of Birth ( जन्मतारीख ) : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(iii) Date/Year of Birth ( जन्मतारीख ) : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accDobCtrl,
@@ -1274,7 +1323,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('वय ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('वय ',
+                      style: marathiLabelStyle.copyWith(
+                          fontWeight: FontWeight.bold)),
                   SizedBox(
                     width: 50,
                     child: BilingualSimpleUnderlineInput(
@@ -1282,7 +1333,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       serifStyle: serifStyle,
                     ),
                   ),
-                  Text(' वर्ष', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text(' वर्ष',
+                      style: marathiLabelStyle.copyWith(
+                          fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -1291,7 +1344,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(iv) Sex : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(iv) Sex : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accSexCtrl,
@@ -1299,7 +1353,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Text('(v) Nationality : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(v) Nationality : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accNationalityCtrl,
@@ -1310,9 +1365,11 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               ),
               Row(
                 children: [
-                  Text('     लिंग', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('     लिंग',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   const Spacer(),
-                  Text('राष्ट्रीयत्व', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('राष्ट्रीयत्व',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   const Spacer(),
                 ],
               ),
@@ -1322,7 +1379,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(vi) Passport No. : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(vi) Passport No. : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accPassportCtrl,
@@ -1330,7 +1388,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('Date of issue : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Date of issue : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accPassportDateCtrl,
@@ -1338,7 +1397,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('Place of Issue : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('Place of Issue : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accPassportPlaceCtrl,
@@ -1349,11 +1409,14 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               ),
               Row(
                 children: [
-                  Text('     पारपत्र क्र.', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('     पारपत्र क्र.',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   const Spacer(),
-                  Text('दिल्याची तारीख', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('दिल्याची तारीख',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   const Spacer(),
-                  Text('दिल्याचे ठिकाण', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('दिल्याचे ठिकाण',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   const Spacer(),
                 ],
               ),
@@ -1363,7 +1426,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(vii) Religion : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(vii) Religion : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accReligionCtrl,
@@ -1371,7 +1435,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Text('(viii) Whether SC/ST : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(viii) Whether SC/ST : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accScStCtrl,
@@ -1382,9 +1447,11 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               ),
               Row(
                 children: [
-                  Text('     धर्म', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('     धर्म',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   const Spacer(),
-                  Text('अनुसूचित जातीचा/जमातीचा आहे का', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('अनुसूचित जातीचा/जमातीचा आहे का',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   const Spacer(),
                 ],
               ),
@@ -1394,7 +1461,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(ix) Occupation (व्यवसाय) : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(ix) Occupation (व्यवसाय) : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accOccupationCtrl,
@@ -1409,7 +1477,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(x)  Address ( पत्ता ) : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(x)  Address ( पत्ता ) : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accAddressCtrl,
@@ -1421,7 +1490,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('     Whether verified (पडताळला किंवा काय) : ', style: marathiLabelStyle.copyWith(fontSize: 10)),
+                  Text('     Whether verified (पडताळला किंवा काय) : ',
+                      style: marathiLabelStyle.copyWith(fontSize: 10)),
                   SizedBox(
                     width: 70,
                     child: BilingualSimpleUnderlineInput(
@@ -1437,7 +1507,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(xi) Provisional Criminal No. (तात्पूरता गुन्हेगार क्र.) ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                      '(xi) Provisional Criminal No. (तात्पूरता गुन्हेगार क्र.) ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accProvCriminalNoCtrl,
@@ -1452,7 +1524,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(xii) Regular Criminal No. (if known) ( नियमित गुन्हेगार क्र.) (माहीत असल्यास) : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                      '(xii) Regular Criminal No. (if known) ( नियमित गुन्हेगार क्र.) (माहीत असल्यास) : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accRegularCriminalNoCtrl,
@@ -1467,7 +1541,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(xiii) Date of Arrest (अटकेची तारीख.) : दिनांक ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(xiii) Date of Arrest (अटकेची तारीख.) : दिनांक ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accArrestDateCtrl,
@@ -1491,7 +1566,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(xiv) Date of release on bail (जामीनावर सोडल्याची तारीख.) : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                      '(xiv) Date of release on bail (जामीनावर सोडल्याची तारीख.) : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accBailDateCtrl,
@@ -1506,7 +1583,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(xv) Date on which forwarded to court (न्यायालयात पाठविल्याची तारीख.): ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                      '(xv) Date on which forwarded to court (न्यायालयात पाठविल्याची तारीख.): ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accForwardedCourtCtrl,
@@ -1521,7 +1600,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(xvi) Under Acts & Section : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(xvi) Under Acts & Section : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accActsSectionsCtrl,
@@ -1540,7 +1620,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(xvii) Name (s) of bailers/sureties and Address ( मे ) : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                      '(xvii) Name (s) of bailers/sureties and Address ( मे ) : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accBailersCtrl,
@@ -1549,14 +1631,17 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   ),
                 ],
               ),
-              Text('       जामीनदारांची नांवे व पत्ते :', style: marathiLabelStyle.copyWith(fontSize: 10)),
+              Text('       जामीनदारांची नांवे व पत्ते :',
+                  style: marathiLabelStyle.copyWith(fontSize: 10)),
               const SizedBox(height: 8),
 
               // (xviii) Previous convictions
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(xviii) Previous convictions with case reference (प्रकरणाच्या संदर्भासह पूर्वीची अपराधीही) : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                      '(xviii) Previous convictions with case reference (प्रकरणाच्या संदर्भासह पूर्वीची अपराधीही) : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accPrevConvictionsCtrl,
@@ -1571,7 +1656,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('(xix) Status of the accused (आरोपीची स्थिती) : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('(xix) Status of the accused (आरोपीची स्थिती) : ',
+                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _accStatusCtrl,
@@ -1593,7 +1679,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                 children: [
                   Text(
                     '12. आरोप पत्र न ठेवलेल्या आरोपीचा तपशिल: ',
-                    style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                    style: marathiLabelStyle.copyWith(
+                        fontWeight: FontWeight.bold, fontSize: 11),
                   ),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
@@ -1621,7 +1708,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                 children: [
                   Text(
                     '13. पडताळलेल्या साक्षटारांचे विवरण: ',
-                    style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                    style: marathiLabelStyle.copyWith(
+                        fontWeight: FontWeight.bold, fontSize: 11),
                   ),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
@@ -1661,7 +1749,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       _tableHeader('वय', serifStyle),
                       _tableHeader('व्यवसाय', serifStyle),
                       _tableHeader('राहण्याचा पत्ता', serifStyle),
-                      _tableHeader('सादर करावयाच्या\nपुराव्याचा प्रकार', serifStyle),
+                      _tableHeader(
+                          'सादर करावयाच्या\nपुराव्याचा प्रकार', serifStyle),
                     ],
                   ),
                   TableRow(
@@ -1680,13 +1769,17 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         Padding(
                           padding: const EdgeInsets.all(8),
                           child: Text(
-                            i < _marathiNumbers.length ? _marathiNumbers[i] : '${i + 1}.',
+                            i < _marathiNumbers.length
+                                ? _marathiNumbers[i]
+                                : '${i + 1}.',
                             textAlign: TextAlign.center,
-                            style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold),
+                            style: marathiLabelStyle.copyWith(
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                         _tableCellInput(_witnessNameCtrls[i], serifStyle),
-                        _tableCellInput(_witnessAgeCtrls[i], serifStyle, align: TextAlign.center),
+                        _tableCellInput(_witnessAgeCtrls[i], serifStyle,
+                            align: TextAlign.center),
                         _tableCellInput(_witnessOccupationCtrls[i], serifStyle),
                         _tableCellInput(_witnessAddressCtrls[i], serifStyle),
                         _tableCellInput(_witnessEvidenceCtrls[i], serifStyle),
@@ -1710,7 +1803,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           _witnessEvidenceCtrls.add(TextEditingController());
                         });
                       },
-                      icon: const Icon(Icons.add, size: 15, color: Color(0xFF1E3A8A)),
+                      icon: const Icon(Icons.add,
+                          size: 15, color: Color(0xFF1E3A8A)),
                       label: Text(
                         'Add Row (ओळ जोडा)',
                         style: GoogleFonts.poppins(
@@ -1721,9 +1815,11 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       ),
                       style: OutlinedButton.styleFrom(
                         backgroundColor: const Color(0xFFEFF4FA),
-                        side: const BorderSide(color: Color(0xFFD6E4F0), width: 1),
+                        side: const BorderSide(
+                            color: Color(0xFFD6E4F0), width: 1),
                         shape: const StadiumBorder(),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                       ),
                     ),
                     if (_witnessRowCount > 1) ...[
@@ -1739,7 +1835,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                             _witnessEvidenceCtrls.removeLast().dispose();
                           });
                         },
-                        icon: const Icon(Icons.remove, size: 15, color: Color(0xFFB91C1C)),
+                        icon: const Icon(Icons.remove,
+                            size: 15, color: Color(0xFFB91C1C)),
                         label: Text(
                           'Remove Row (ओळ काढा)',
                           style: GoogleFonts.poppins(
@@ -1750,9 +1847,11 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         ),
                         style: OutlinedButton.styleFrom(
                           backgroundColor: const Color(0xFFFEEFEE),
-                          side: const BorderSide(color: Color(0xFFFCDADA), width: 1),
+                          side: const BorderSide(
+                              color: Color(0xFFFCDADA), width: 1),
                           shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                         ),
                       ),
                     ],
@@ -1764,7 +1863,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               // 14. If FIR is False
               Text(
                 '14. If F. I. R. is False, indicate action taken or proposed to be taken u/s 182/211 I. P. C.',
-                style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                style: serifStyle.copyWith(
+                    fontWeight: FontWeight.bold, fontSize: 11),
               ),
               Text(
                 '(तकार खोटी असेल तर भादंवि १८२/२११ अन्वये केलेली किंवा करावयाची कार्यवाही नमुद करावी.)',
@@ -1813,7 +1913,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               // 16. Brief Facts of the Case
               Text(
                 '16. Brief Facts of the Case (Add separate sheet, if necessary.)',
-                style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                style: serifStyle.copyWith(
+                    fontWeight: FontWeight.bold, fontSize: 12),
               ),
               Text(
                 '     थोडक्यात माहिती ( आवश्यक असल्यास वेगळा कागद जोडावा. ) :',
@@ -1822,7 +1923,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               const SizedBox(height: 8),
               Text(
                 'महोदय,',
-                style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                style: marathiLabelStyle.copyWith(
+                    fontWeight: FontWeight.bold, fontSize: 12),
               ),
               const SizedBox(height: 6),
               Container(
@@ -1841,7 +1943,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     isDense: true,
-                    hintText: 'येथे घटनेची थोडक्यात माहिती व तपासाचे विवरण लिहा...',
+                    hintText:
+                        'येथे घटनेची थोडक्यात माहिती व तपासाचे विवरण लिहा...',
                   ),
                 ),
               ),
@@ -1849,7 +1952,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
 
               Text(
                 'टिप :-',
-                style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                style: marathiLabelStyle.copyWith(
+                    fontWeight: FontWeight.bold, fontSize: 11),
               ),
               const SizedBox(height: 6),
 
@@ -1917,13 +2021,16 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       children: [
                         Text(
                           'Forwarded by Station House\nOfficer/officer in-charge',
-                          style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                          style: serifStyle.copyWith(
+                              fontWeight: FontWeight.bold, fontSize: 11),
                         ),
                         const SizedBox(height: 12),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('Name : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                            Text('Name : ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _shoNameCtrl,
@@ -1936,7 +2043,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('Rank : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                            Text('Rank : ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _shoRankCtrl,
@@ -1944,7 +2053,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text('No : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                            Text('No : ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             SizedBox(
                               width: 45,
                               child: BilingualSimpleUnderlineInput(
@@ -1971,13 +2082,16 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       children: [
                         Text(
                           'Signature of the Investigation Officer\nsubmitting the Final Report/Charge\nSheet.',
-                          style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                          style: serifStyle.copyWith(
+                              fontWeight: FontWeight.bold, fontSize: 11),
                         ),
                         const SizedBox(height: 8),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('Name : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                            Text('Name : ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _submitIoNameCtrl,
@@ -1990,7 +2104,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('Rank : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                            Text('Rank : ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _submitIoRankCtrl,
@@ -1998,7 +2114,9 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text('No. : ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                            Text('No. : ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             SizedBox(
                               width: 45,
                               child: BilingualSimpleUnderlineInput(

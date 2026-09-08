@@ -126,11 +126,13 @@ class _NcFormScreenState extends State<NcFormScreen> {
     return parts.join(', ');
   }
 
-  String _summaryNames(Map<String, dynamic> doc, String listKey, String singleKey) {
+  String _summaryNames(
+      Map<String, dynamic> doc, String listKey, String singleKey) {
     final list = doc[listKey];
     if (list is List && list.isNotEmpty) {
       final names = list
-          .map((item) => item is Map ? item['name']?.toString().trim() ?? '' : '')
+          .map((item) =>
+              item is Map ? item['name']?.toString().trim() ?? '' : '')
           .where((s) => s.isNotEmpty)
           .toList();
       if (names.isNotEmpty) return names.join(', ');
@@ -161,8 +163,9 @@ class _NcFormScreenState extends State<NcFormScreen> {
       complainant: _summaryNames(doc, 'complainants', 'complainant'),
       accused: _summaryNames(doc, 'nonApplicants', 'personComplainedAgainst'),
       location: _locationLine(doc),
-      incidentDate:
-          _parseIncidentDate(doc['registrationDate']?.toString() ?? doc['registrationDateTime']?.toString() ?? ''),
+      incidentDate: _parseIncidentDate(doc['registrationDate']?.toString() ??
+          doc['registrationDateTime']?.toString() ??
+          ''),
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: _isEdit ? widget.existingRecord!.status : 'Open',
       assignedOfficer:
@@ -220,7 +223,8 @@ class _NcFormScreenState extends State<NcFormScreen> {
     extra['moduleDisplayName'] = widget.moduleLabel;
 
     final complainantName = _summaryNames(doc, 'complainants', 'complainant');
-    final accusedName = _summaryNames(doc, 'nonApplicants', 'personComplainedAgainst');
+    final accusedName =
+        _summaryNames(doc, 'nonApplicants', 'personComplainedAgainst');
 
     final record = ModuleRecord(
       id: _isEdit
@@ -233,8 +237,9 @@ class _NcFormScreenState extends State<NcFormScreen> {
       complainant: complainantName,
       accused: accusedName,
       location: _locationLine(doc),
-      incidentDate:
-          _parseIncidentDate(doc['registrationDate']?.toString() ?? doc['registrationDateTime']?.toString() ?? ''),
+      incidentDate: _parseIncidentDate(doc['registrationDate']?.toString() ??
+          doc['registrationDateTime']?.toString() ??
+          ''),
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: _isEdit ? widget.existingRecord!.status : 'Open',
       assignedOfficer:

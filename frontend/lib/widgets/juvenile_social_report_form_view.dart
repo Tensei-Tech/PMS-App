@@ -164,8 +164,8 @@ class JuvenileSocialReportFormViewState
         List.generate(_familyRowCount, (_) => TextEditingController());
     _famAgeCtrls =
         List.generate(_familyRowCount, (_) => TextEditingController());
-    _famSexCtrls =
-        List.generate(_familyRowCount, (_) => TextEditingController(text: 'स्त्रि/ पुरूष'));
+    _famSexCtrls = List.generate(
+        _familyRowCount, (_) => TextEditingController(text: 'स्त्रि/ पुरूष'));
     _famEduCtrls =
         List.generate(_familyRowCount, (_) => TextEditingController());
     _famOccCtrls =
@@ -270,26 +270,40 @@ class JuvenileSocialReportFormViewState
 
   void hydrateFrom(Map<String, dynamic> data) {
     setState(() {
-      _psDistCtrl.text = data['psDist']?.toString() ?? data['policeStation']?.toString() ?? '';
-      _crimeNoCtrl.text = data['crimeNo']?.toString() ?? data['crNo']?.toString() ?? '';
-      _sectionActCtrl.text = data['sectionAct']?.toString() ?? data['section']?.toString() ?? '';
+      _psDistCtrl.text =
+          data['psDist']?.toString() ?? data['policeStation']?.toString() ?? '';
+      _crimeNoCtrl.text =
+          data['crimeNo']?.toString() ?? data['crNo']?.toString() ?? '';
+      _sectionActCtrl.text =
+          data['sectionAct']?.toString() ?? data['section']?.toString() ?? '';
       _crimeDateTimeCtrl.text = data['crimeDateTime']?.toString() ?? '';
       _firDateTimeCtrl.text = data['firDateTime']?.toString() ?? '';
       _ioNameCtrl.text = data['ioName']?.toString() ?? '';
       _cwpoNameCtrl.text = data['cwpoName']?.toString() ?? '';
-      _childNameCtrl.text = data['childName']?.toString() ?? data['juvenileName']?.toString() ?? '';
-      _fatherNameCtrl.text = data['fatherName']?.toString() ?? data['guardianName']?.toString() ?? '';
-      _dobCtrl.text = data['dob']?.toString() ?? data['juvenileAge']?.toString() ?? '';
-      _addressCtrl.text = data['address']?.toString() ?? data['juvenileAddress']?.toString() ?? '';
+      _childNameCtrl.text = data['childName']?.toString() ??
+          data['juvenileName']?.toString() ??
+          '';
+      _fatherNameCtrl.text = data['fatherName']?.toString() ??
+          data['guardianName']?.toString() ??
+          '';
+      _dobCtrl.text =
+          data['dob']?.toString() ?? data['juvenileAge']?.toString() ?? '';
+      _addressCtrl.text = data['address']?.toString() ??
+          data['juvenileAddress']?.toString() ??
+          '';
       _religionCtrl.text = data['religion']?.toString() ?? '';
-      _hasDisabilityCtrl.text = data['hasDisability']?.toString() ?? _hasDisabilityCtrl.text;
+      _hasDisabilityCtrl.text =
+          data['hasDisability']?.toString() ?? _hasDisabilityCtrl.text;
       _deafCtrl.text = data['deaf']?.toString() ?? _deafCtrl.text;
       _dumbCtrl.text = data['dumb']?.toString() ?? _dumbCtrl.text;
-      _physicalDisabilityCtrl.text = data['physicalDisability']?.toString() ?? _physicalDisabilityCtrl.text;
-      _mentalDisabilityCtrl.text = data['mentalDisability']?.toString() ?? _mentalDisabilityCtrl.text;
+      _physicalDisabilityCtrl.text = data['physicalDisability']?.toString() ??
+          _physicalDisabilityCtrl.text;
+      _mentalDisabilityCtrl.text =
+          data['mentalDisability']?.toString() ?? _mentalDisabilityCtrl.text;
       _otherDisabilityCtrl.text = data['otherDisability']?.toString() ?? '';
 
-      final savedFamCount = int.tryParse(data['familyRowCount']?.toString() ?? '');
+      final savedFamCount =
+          int.tryParse(data['familyRowCount']?.toString() ?? '');
       if (savedFamCount != null && savedFamCount > _familyRowCount) {
         while (_familyRowCount < savedFamCount) {
           _familyRowCount++;
@@ -307,43 +321,73 @@ class JuvenileSocialReportFormViewState
 
       for (var i = 0; i < _familyRowCount; i++) {
         final n = '${i + 1}';
-        if (data.containsKey('fam${n}Name')) _famNameRelationCtrls[i].text = data['fam${n}Name']?.toString() ?? '';
-        if (data.containsKey('fam${n}Age')) _famAgeCtrls[i].text = data['fam${n}Age']?.toString() ?? '';
-        if (data.containsKey('fam${n}Sex')) _famSexCtrls[i].text = data['fam${n}Sex']?.toString() ?? '';
-        if (data.containsKey('fam${n}Edu')) _famEduCtrls[i].text = data['fam${n}Edu']?.toString() ?? '';
-        if (data.containsKey('fam${n}Occ')) _famOccCtrls[i].text = data['fam${n}Occ']?.toString() ?? '';
-        if (data.containsKey('fam${n}Income')) _famIncomeCtrls[i].text = data['fam${n}Income']?.toString() ?? '';
-        if (data.containsKey('fam${n}Health')) _famHealthCtrls[i].text = data['fam${n}Health']?.toString() ?? '';
-        if (data.containsKey('fam${n}MentalHist')) _famMentalHistCtrls[i].text = data['fam${n}MentalHist']?.toString() ?? '';
-        if (data.containsKey('fam${n}Addiction')) _famAddictionCtrls[i].text = data['fam${n}Addiction']?.toString() ?? '';
+        if (data.containsKey('fam${n}Name'))
+          _famNameRelationCtrls[i].text = data['fam${n}Name']?.toString() ?? '';
+        if (data.containsKey('fam${n}Age'))
+          _famAgeCtrls[i].text = data['fam${n}Age']?.toString() ?? '';
+        if (data.containsKey('fam${n}Sex'))
+          _famSexCtrls[i].text = data['fam${n}Sex']?.toString() ?? '';
+        if (data.containsKey('fam${n}Edu'))
+          _famEduCtrls[i].text = data['fam${n}Edu']?.toString() ?? '';
+        if (data.containsKey('fam${n}Occ'))
+          _famOccCtrls[i].text = data['fam${n}Occ']?.toString() ?? '';
+        if (data.containsKey('fam${n}Income'))
+          _famIncomeCtrls[i].text = data['fam${n}Income']?.toString() ?? '';
+        if (data.containsKey('fam${n}Health'))
+          _famHealthCtrls[i].text = data['fam${n}Health']?.toString() ?? '';
+        if (data.containsKey('fam${n}MentalHist'))
+          _famMentalHistCtrls[i].text =
+              data['fam${n}MentalHist']?.toString() ?? '';
+        if (data.containsKey('fam${n}Addiction'))
+          _famAddictionCtrls[i].text =
+              data['fam${n}Addiction']?.toString() ?? '';
       }
 
-      _schoolDropReasonPage2Ctrl.text = data['schoolDropReasonPage2']?.toString() ?? '';
+      _schoolDropReasonPage2Ctrl.text =
+          data['schoolDropReasonPage2']?.toString() ?? '';
       _familyInCrimeCtrl.text = data['familyInCrime']?.toString() ?? '';
 
-      _habitsChecked['smoking'] = data['habit_smoking'] == true || data['habit_smoking'] == 'true';
-      _habitsChecked['alcohol'] = data['habit_alcohol'] == true || data['habit_alcohol'] == 'true';
-      _habitsChecked['gambling'] = data['habit_gambling'] == true || data['habit_gambling'] == 'true';
-      _habitsChecked['begging'] = data['habit_begging'] == true || data['habit_begging'] == 'true';
-      _habitsChecked['tobacco_pan'] = data['habit_tobacco_pan'] == true || data['habit_tobacco_pan'] == 'true';
+      _habitsChecked['smoking'] =
+          data['habit_smoking'] == true || data['habit_smoking'] == 'true';
+      _habitsChecked['alcohol'] =
+          data['habit_alcohol'] == true || data['habit_alcohol'] == 'true';
+      _habitsChecked['gambling'] =
+          data['habit_gambling'] == true || data['habit_gambling'] == 'true';
+      _habitsChecked['begging'] =
+          data['habit_begging'] == true || data['habit_begging'] == 'true';
+      _habitsChecked['tobacco_pan'] = data['habit_tobacco_pan'] == true ||
+          data['habit_tobacco_pan'] == 'true';
       _habitOtherCtrl.text = data['habit_other']?.toString() ?? '';
 
-      _hobbiesChecked['watching_tv'] = data['hobby_watching_tv'] == true || data['hobby_watching_tv'] == 'true';
-      _hobbiesChecked['playing_games'] = data['hobby_playing_games'] == true || data['hobby_playing_games'] == 'true';
-      _hobbiesChecked['reading_books'] = data['hobby_reading_books'] == true || data['hobby_reading_books'] == 'true';
-      _hobbiesChecked['drawing'] = data['hobby_drawing'] == true || data['hobby_drawing'] == 'true';
-      _hobbiesChecked['singing_art'] = data['hobby_singing_art'] == true || data['hobby_singing_art'] == 'true';
+      _hobbiesChecked['watching_tv'] = data['hobby_watching_tv'] == true ||
+          data['hobby_watching_tv'] == 'true';
+      _hobbiesChecked['playing_games'] = data['hobby_playing_games'] == true ||
+          data['hobby_playing_games'] == 'true';
+      _hobbiesChecked['reading_books'] = data['hobby_reading_books'] == true ||
+          data['hobby_reading_books'] == 'true';
+      _hobbiesChecked['drawing'] =
+          data['hobby_drawing'] == true || data['hobby_drawing'] == 'true';
+      _hobbiesChecked['singing_art'] = data['hobby_singing_art'] == true ||
+          data['hobby_singing_art'] == 'true';
       _hobbyOtherCtrl.text = data['hobby_other']?.toString() ?? '';
 
       _childJobDetailsCtrl.text = data['childJobDetails']?.toString() ?? '';
 
-      _incomeUsageDetailsCtrl.text = data['incomeUsageDetails']?.toString() ?? '';
-      _incomeUsageFamilyCtrl.text = data['incomeUsageFamily']?.toString() ?? _incomeUsageFamilyCtrl.text;
-      _incomeUsageSelfCtrl.text = data['incomeUsageSelf']?.toString() ?? _incomeUsageSelfCtrl.text;
-      _incomeUsageClothesCtrl.text = data['incomeUsageClothes']?.toString() ?? _incomeUsageClothesCtrl.text;
-      _incomeUsageGamblingCtrl.text = data['incomeUsageGambling']?.toString() ?? _incomeUsageGamblingCtrl.text;
-      _incomeUsageAddictionCtrl.text = data['incomeUsageAddiction']?.toString() ?? _incomeUsageAddictionCtrl.text;
-      _incomeUsageSavingsCtrl.text = data['incomeUsageSavings']?.toString() ?? _incomeUsageSavingsCtrl.text;
+      _incomeUsageDetailsCtrl.text =
+          data['incomeUsageDetails']?.toString() ?? '';
+      _incomeUsageFamilyCtrl.text =
+          data['incomeUsageFamily']?.toString() ?? _incomeUsageFamilyCtrl.text;
+      _incomeUsageSelfCtrl.text =
+          data['incomeUsageSelf']?.toString() ?? _incomeUsageSelfCtrl.text;
+      _incomeUsageClothesCtrl.text = data['incomeUsageClothes']?.toString() ??
+          _incomeUsageClothesCtrl.text;
+      _incomeUsageGamblingCtrl.text = data['incomeUsageGambling']?.toString() ??
+          _incomeUsageGamblingCtrl.text;
+      _incomeUsageAddictionCtrl.text =
+          data['incomeUsageAddiction']?.toString() ??
+              _incomeUsageAddictionCtrl.text;
+      _incomeUsageSavingsCtrl.text = data['incomeUsageSavings']?.toString() ??
+          _incomeUsageSavingsCtrl.text;
 
       _selectedEducationLevel = data['educationLevel']?.toString() ?? '';
       final savedReasons = data['schoolLeavingReasons'];
@@ -351,28 +395,36 @@ class JuvenileSocialReportFormViewState
         _schoolLeavingReasons.clear();
         _schoolLeavingReasons.addAll(savedReasons.map((e) => e.toString()));
       }
-      _schoolLeavingOtherCtrl.text = data['schoolLeavingOther']?.toString() ?? '';
+      _schoolLeavingOtherCtrl.text =
+          data['schoolLeavingOther']?.toString() ?? '';
       _selectedSchoolType = data['schoolType']?.toString() ?? '';
-      _vocationalTrainingCtrl.text = data['vocationalTraining']?.toString() ?? _vocationalTrainingCtrl.text;
+      _vocationalTrainingCtrl.text = data['vocationalTraining']?.toString() ??
+          _vocationalTrainingCtrl.text;
 
       final savedFriends = data['friendTypes'];
       if (savedFriends is List) {
         _friendTypes.clear();
         _friendTypes.addAll(savedFriends.map((e) => e.toString()));
       }
-      _friendsAddictedCtrl.text = data['friendsAddicted']?.toString() ?? _friendsAddictedCtrl.text;
-      _friendsCriminalCtrl.text = data['friendsCriminal']?.toString() ?? _friendsCriminalCtrl.text;
+      _friendsAddictedCtrl.text =
+          data['friendsAddicted']?.toString() ?? _friendsAddictedCtrl.text;
+      _friendsCriminalCtrl.text =
+          data['friendsCriminal']?.toString() ?? _friendsCriminalCtrl.text;
 
-      _childAbusedCtrl.text = data['childAbused']?.toString() ?? _childAbusedCtrl.text;
+      _childAbusedCtrl.text =
+          data['childAbused']?.toString() ?? _childAbusedCtrl.text;
       _abuseVerbalCtrl.text = data['abuseVerbal']?.toString() ?? '';
       _abusePhysicalCtrl.text = data['abusePhysical']?.toString() ?? '';
       _abuseSexualCtrl.text = data['abuseSexual']?.toString() ?? '';
       _abuseOtherCtrl.text = data['abuseOther']?.toString() ?? '';
 
-      _childVictimCtrl.text = data['childVictim']?.toString() ?? _childVictimCtrl.text;
-      _childDrugCarrierCtrl.text = data['childDrugCarrier']?.toString() ?? _childDrugCarrierCtrl.text;
+      _childVictimCtrl.text =
+          data['childVictim']?.toString() ?? _childVictimCtrl.text;
+      _childDrugCarrierCtrl.text =
+          data['childDrugCarrier']?.toString() ?? _childDrugCarrierCtrl.text;
       _crimeReasonCtrl.text = data['crimeReason']?.toString() ?? '';
-      _arrestCircumstancesCtrl.text = data['arrestCircumstances']?.toString() ?? '';
+      _arrestCircumstancesCtrl.text =
+          data['arrestCircumstances']?.toString() ?? '';
       _propertyFromChildCtrl.text = data['propertyFromChild']?.toString() ?? '';
 
       _childRoleInCrimeCtrl.text = data['childRoleInCrime']?.toString() ?? '';
@@ -381,7 +433,8 @@ class JuvenileSocialReportFormViewState
       _signOfficerNameCtrl.text = data['signOfficerName']?.toString() ?? '';
       _signOfficerRankCtrl.text = data['signOfficerRank']?.toString() ?? '';
       _signOfficerBadgeCtrl.text = data['signOfficerBadge']?.toString() ?? '';
-      _signOfficerPostingCtrl.text = data['signOfficerPosting']?.toString() ?? '';
+      _signOfficerPostingCtrl.text =
+          data['signOfficerPosting']?.toString() ?? '';
     });
   }
 
@@ -532,7 +585,20 @@ class JuvenileSocialReportFormViewState
     final TextStyle serifStyle = FormTypography.serifStyle();
     final TextStyle marathiLabelStyle = FormTypography.marathiLabelStyle();
 
-    const marathiNumbers = ['१', '२', '३', '४', '५', '६', '७', '८', '९', '१०', '११', '१२'];
+    const marathiNumbers = [
+      '१',
+      '२',
+      '३',
+      '४',
+      '५',
+      '६',
+      '७',
+      '८',
+      '९',
+      '१०',
+      '११',
+      '१२'
+    ];
 
     return FormViewScaffold(
       readOnly: widget.readOnly,
@@ -561,7 +627,6 @@ class JuvenileSocialReportFormViewState
                 ),
               ),
               const SizedBox(height: 16),
-
               Table(
                 border: TableBorder.all(color: Colors.black87),
                 columnWidths: const {
@@ -582,7 +647,8 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('1.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('पोलीस स्टेशन व जिल्हा', style: marathiLabelStyle),
+                        child: Text('पोलीस स्टेशन व जिल्हा',
+                            style: marathiLabelStyle),
                       ),
                       _tableCellInput(_psDistCtrl, serifStyle),
                     ],
@@ -612,7 +678,8 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('4.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('बालकास ताब्यात घेतल्याची तारीख व वेळ', style: marathiLabelStyle),
+                        child: Text('बालकास ताब्यात घेतल्याची तारीख व वेळ',
+                            style: marathiLabelStyle),
                       ),
                       _tableCellInput(_crimeDateTimeCtrl, serifStyle),
                     ],
@@ -622,7 +689,9 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('5.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('बालकास बाल न्याय मंडळ/ बाल कल्याण समिती समोर हजर केल्याची तारीख व वेळ', style: marathiLabelStyle),
+                        child: Text(
+                            'बालकास बाल न्याय मंडळ/ बाल कल्याण समिती समोर हजर केल्याची तारीख व वेळ',
+                            style: marathiLabelStyle),
                       ),
                       _tableCellInput(_firDateTimeCtrl, serifStyle),
                     ],
@@ -632,7 +701,8 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('6.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('तपास अंमलदाराचे नांव व हुद्दा', style: marathiLabelStyle),
+                        child: Text('तपास अंमलदाराचे नांव व हुद्दा',
+                            style: marathiLabelStyle),
                       ),
                       _tableCellInput(_ioNameCtrl, serifStyle),
                     ],
@@ -642,7 +712,9 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('7.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('बाल कल्याण पोलीस अधिकारी यांचे नांव व हुद्दा', style: marathiLabelStyle),
+                        child: Text(
+                            'बाल कल्याण पोलीस अधिकारी यांचे नांव व हुद्दा',
+                            style: marathiLabelStyle),
                       ),
                       _tableCellInput(_cwpoNameCtrl, serifStyle),
                     ],
@@ -650,7 +722,6 @@ class JuvenileSocialReportFormViewState
                 ],
               ),
               const SizedBox(height: 14),
-
               Text(
                 'बालकाचा तपशिल',
                 style: marathiLabelStyle.copyWith(
@@ -659,7 +730,6 @@ class JuvenileSocialReportFormViewState
                 ),
               ),
               const SizedBox(height: 8),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -673,11 +743,11 @@ class JuvenileSocialReportFormViewState
                 ],
               ),
               const SizedBox(height: 8),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('२) बालकाचे वडिलांचे नाव व पत्ता :- ', style: marathiLabelStyle),
+                  Text('२) बालकाचे वडिलांचे नाव व पत्ता :- ',
+                      style: marathiLabelStyle),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _fatherNameCtrl,
@@ -687,7 +757,6 @@ class JuvenileSocialReportFormViewState
                 ],
               ),
               const SizedBox(height: 8),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -701,11 +770,11 @@ class JuvenileSocialReportFormViewState
                 ],
               ),
               const SizedBox(height: 8),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('४) सध्याचा पत्ता / कायमचा पत्ता :- ', style: marathiLabelStyle),
+                  Text('४) सध्याचा पत्ता / कायमचा पत्ता :- ',
+                      style: marathiLabelStyle),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _addressCtrl,
@@ -715,11 +784,11 @@ class JuvenileSocialReportFormViewState
                 ],
               ),
               const SizedBox(height: 8),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('५) धर्म व जात (अ.जा./ अ.ज./ इ.मा.व./ इतर / खुला ) :- ', style: marathiLabelStyle),
+                  Text('५) धर्म व जात (अ.जा./ अ.ज./ इ.मा.व./ इतर / खुला ) :- ',
+                      style: marathiLabelStyle),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _religionCtrl,
@@ -729,10 +798,10 @@ class JuvenileSocialReportFormViewState
                 ],
               ),
               const SizedBox(height: 12),
-
-              Text('६) बालकामध्ये काही अपंगत्व / व्यंगत्व आहे काय ?', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+              Text('६) बालकामध्ये काही अपंगत्व / व्यंगत्व आहे काय ?',
+                  style:
+                      marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
-
               Table(
                 border: TableBorder.all(color: Colors.black87),
                 columnWidths: const {
@@ -783,7 +852,8 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('4.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('शारीरीक अपंगत्व', style: marathiLabelStyle),
+                        child:
+                            Text('शारीरीक अपंगत्व', style: marathiLabelStyle),
                       ),
                       _tableCellInput(_physicalDisabilityCtrl, serifStyle),
                     ],
@@ -810,7 +880,6 @@ class JuvenileSocialReportFormViewState
                   ),
                 ],
               ),
-
               if (!_showAll)
                 _buildPhaseNavigationFooter(
                   onNext: () => setState(() => _activePhase = kPartII),
@@ -863,22 +932,28 @@ class JuvenileSocialReportFormViewState
                           Padding(
                             padding: const EdgeInsets.all(6),
                             child: Text(
-                              i < marathiNumbers.length ? marathiNumbers[i] : '${i + 1}',
-                              style: serifStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                              i < marathiNumbers.length
+                                  ? marathiNumbers[i]
+                                  : '${i + 1}',
+                              style: serifStyle.copyWith(
+                                  fontSize: 11, fontWeight: FontWeight.bold),
                               textAlign: TextAlign.center,
                             ),
                           ),
                           SizedBox(
                             width: 140,
-                            child: _tableCellInput(_famNameRelationCtrls[i], serifStyle),
+                            child: _tableCellInput(
+                                _famNameRelationCtrls[i], serifStyle),
                           ),
                           SizedBox(
                             width: 50,
-                            child: _tableCellInput(_famAgeCtrls[i], serifStyle, align: TextAlign.center),
+                            child: _tableCellInput(_famAgeCtrls[i], serifStyle,
+                                align: TextAlign.center),
                           ),
                           SizedBox(
                             width: 80,
-                            child: _tableCellInput(_famSexCtrls[i], serifStyle, align: TextAlign.center),
+                            child: _tableCellInput(_famSexCtrls[i], serifStyle,
+                                align: TextAlign.center),
                           ),
                           SizedBox(
                             width: 90,
@@ -890,19 +965,23 @@ class JuvenileSocialReportFormViewState
                           ),
                           SizedBox(
                             width: 80,
-                            child: _tableCellInput(_famIncomeCtrls[i], serifStyle),
+                            child:
+                                _tableCellInput(_famIncomeCtrls[i], serifStyle),
                           ),
                           SizedBox(
                             width: 90,
-                            child: _tableCellInput(_famHealthCtrls[i], serifStyle),
+                            child:
+                                _tableCellInput(_famHealthCtrls[i], serifStyle),
                           ),
                           SizedBox(
                             width: 90,
-                            child: _tableCellInput(_famMentalHistCtrls[i], serifStyle),
+                            child: _tableCellInput(
+                                _famMentalHistCtrls[i], serifStyle),
                           ),
                           SizedBox(
                             width: 90,
-                            child: _tableCellInput(_famAddictionCtrls[i], serifStyle),
+                            child: _tableCellInput(
+                                _famAddictionCtrls[i], serifStyle),
                           ),
                         ],
                       ),
@@ -921,7 +1000,8 @@ class JuvenileSocialReportFormViewState
                           _familyRowCount++;
                           _famNameRelationCtrls.add(TextEditingController());
                           _famAgeCtrls.add(TextEditingController());
-                          _famSexCtrls.add(TextEditingController(text: 'स्त्रि/ पुरूष'));
+                          _famSexCtrls.add(
+                              TextEditingController(text: 'स्त्रि/ पुरूष'));
                           _famEduCtrls.add(TextEditingController());
                           _famOccCtrls.add(TextEditingController());
                           _famIncomeCtrls.add(TextEditingController());
@@ -931,7 +1011,9 @@ class JuvenileSocialReportFormViewState
                         });
                       },
                       icon: const Icon(Icons.add_circle_outline, size: 16),
-                      label: Text('+ ओळ जोडा (Add Row)', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600)),
+                      label: Text('+ ओळ जोडा (Add Row)',
+                          style: GoogleFonts.poppins(
+                              fontSize: 11, fontWeight: FontWeight.w600)),
                     ),
                     if (_familyRowCount > 1) ...[
                       const SizedBox(width: 8),
@@ -950,8 +1032,13 @@ class JuvenileSocialReportFormViewState
                             _famAddictionCtrls.removeLast().dispose();
                           });
                         },
-                        icon: const Icon(Icons.remove_circle_outline, size: 16, color: Colors.red),
-                        label: Text('ओळ काढा (Remove)', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.red)),
+                        icon: const Icon(Icons.remove_circle_outline,
+                            size: 16, color: Colors.red),
+                        label: Text('ओळ काढा (Remove)',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.red)),
                       ),
                     ],
                   ],
@@ -961,7 +1048,8 @@ class JuvenileSocialReportFormViewState
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('८) बालक शिकत असल्यास शाळेत जाणे का बंद केले :- ', style: marathiLabelStyle),
+                  Text('८) बालक शिकत असल्यास शाळेत जाणे का बंद केले :- ',
+                      style: marathiLabelStyle),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _schoolDropReasonPage2Ctrl,
@@ -975,7 +1063,9 @@ class JuvenileSocialReportFormViewState
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('९) कुटुंबातील इतर व्यक्तीवर काही गुन्हे दाखल आहेत का :- ', style: marathiLabelStyle),
+                  Text(
+                      '९) कुटुंबातील इतर व्यक्तीवर काही गुन्हे दाखल आहेत का :- ',
+                      style: marathiLabelStyle),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _familyInCrimeCtrl,
@@ -986,7 +1076,9 @@ class JuvenileSocialReportFormViewState
               ),
               const SizedBox(height: 12),
 
-              Text('१०) बालकाच्या सवयी व छंद :-', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+              Text('१०) बालकाच्या सवयी व छंद :-',
+                  style:
+                      marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
 
               Table(
@@ -1010,41 +1102,51 @@ class JuvenileSocialReportFormViewState
                   TableRow(
                     children: [
                       _tableHeader('1.', serifStyle),
-                      _buildCheckboxCell('धुम्रपान करणे', 'smoking', _habitsChecked, marathiLabelStyle),
+                      _buildCheckboxCell('धुम्रपान करणे', 'smoking',
+                          _habitsChecked, marathiLabelStyle),
                       _tableHeader('1.', serifStyle),
-                      _buildCheckboxCell('टी.व्ही. पाहणे', 'watching_tv', _hobbiesChecked, marathiLabelStyle),
+                      _buildCheckboxCell('टी.व्ही. पाहणे', 'watching_tv',
+                          _hobbiesChecked, marathiLabelStyle),
                     ],
                   ),
                   TableRow(
                     children: [
                       _tableHeader('2.', serifStyle),
-                      _buildCheckboxCell('मद्यपान करणे', 'alcohol', _habitsChecked, marathiLabelStyle),
+                      _buildCheckboxCell('मद्यपान करणे', 'alcohol',
+                          _habitsChecked, marathiLabelStyle),
                       _tableHeader('2.', serifStyle),
-                      _buildCheckboxCell('मैदानी खेळ खेळणे', 'playing_games', _hobbiesChecked, marathiLabelStyle),
+                      _buildCheckboxCell('मैदानी खेळ खेळणे', 'playing_games',
+                          _hobbiesChecked, marathiLabelStyle),
                     ],
                   ),
                   TableRow(
                     children: [
                       _tableHeader('3.', serifStyle),
-                      _buildCheckboxCell('जुगार खेळणे', 'gambling', _habitsChecked, marathiLabelStyle),
+                      _buildCheckboxCell('जुगार खेळणे', 'gambling',
+                          _habitsChecked, marathiLabelStyle),
                       _tableHeader('3.', serifStyle),
-                      _buildCheckboxCell('पुस्तके वाचणे', 'reading_books', _hobbiesChecked, marathiLabelStyle),
+                      _buildCheckboxCell('पुस्तके वाचणे', 'reading_books',
+                          _hobbiesChecked, marathiLabelStyle),
                     ],
                   ),
                   TableRow(
                     children: [
                       _tableHeader('4.', serifStyle),
-                      _buildCheckboxCell('भीक मागणे', 'begging', _habitsChecked, marathiLabelStyle),
+                      _buildCheckboxCell('भीक मागणे', 'begging', _habitsChecked,
+                          marathiLabelStyle),
                       _tableHeader('4.', serifStyle),
-                      _buildCheckboxCell('चित्रे काढणे', 'drawing', _hobbiesChecked, marathiLabelStyle),
+                      _buildCheckboxCell('चित्रे काढणे', 'drawing',
+                          _hobbiesChecked, marathiLabelStyle),
                     ],
                   ),
                   TableRow(
                     children: [
                       _tableHeader('5.', serifStyle),
-                      _buildCheckboxCell('तंबाखु/पान खाणे', 'tobacco_pan', _habitsChecked, marathiLabelStyle),
+                      _buildCheckboxCell('तंबाखु/पान खाणे', 'tobacco_pan',
+                          _habitsChecked, marathiLabelStyle),
                       _tableHeader('5.', serifStyle),
-                      _buildCheckboxCell('गायन/कला', 'singing_art', _hobbiesChecked, marathiLabelStyle),
+                      _buildCheckboxCell('गायन/कला', 'singing_art',
+                          _hobbiesChecked, marathiLabelStyle),
                     ],
                   ),
                   TableRow(
@@ -1062,7 +1164,9 @@ class JuvenileSocialReportFormViewState
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('११) बालकाचे नोकरीचा तपशील :- ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('११) बालकाचे नोकरीचा तपशील :- ',
+                      style: marathiLabelStyle.copyWith(
+                          fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _childJobDetailsCtrl,
@@ -1095,7 +1199,9 @@ class JuvenileSocialReportFormViewState
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('१३) उत्पन्न वापराचा तपशिल :- ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                  Text('१३) उत्पन्न वापराचा तपशिल :- ',
+                      style: marathiLabelStyle.copyWith(
+                          fontWeight: FontWeight.bold)),
                   Expanded(
                     child: BilingualSimpleUnderlineInput(
                       controller: _incomeUsageDetailsCtrl,
@@ -1105,16 +1211,22 @@ class JuvenileSocialReportFormViewState
                 ],
               ),
               const SizedBox(height: 6),
-
-              _buildInlineToggleRow('➤ कौटुंबीक गरजा भागविण्यासाठी', _incomeUsageFamilyCtrl, marathiLabelStyle, serifStyle),
-              _buildInlineToggleRow('➤ स्वतः साठी', _incomeUsageSelfCtrl, marathiLabelStyle, serifStyle),
-              _buildInlineToggleRow('➤ कपडे खरेदी करीता', _incomeUsageClothesCtrl, marathiLabelStyle, serifStyle),
-              _buildInlineToggleRow('➤ जुगार खेळण्यासाठी', _incomeUsageGamblingCtrl, marathiLabelStyle, serifStyle),
-              _buildInlineToggleRow('➤ व्यसन नशा करण्याकरीता', _incomeUsageAddictionCtrl, marathiLabelStyle, serifStyle),
-              _buildInlineToggleRow('➤ साठविणेसाठी', _incomeUsageSavingsCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow('➤ कौटुंबीक गरजा भागविण्यासाठी',
+                  _incomeUsageFamilyCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow('➤ स्वतः साठी', _incomeUsageSelfCtrl,
+                  marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow('➤ कपडे खरेदी करीता',
+                  _incomeUsageClothesCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow('➤ जुगार खेळण्यासाठी',
+                  _incomeUsageGamblingCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow('➤ व्यसन नशा करण्याकरीता',
+                  _incomeUsageAddictionCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow('➤ साठविणेसाठी', _incomeUsageSavingsCtrl,
+                  marathiLabelStyle, serifStyle),
               const SizedBox(height: 12),
-
-              Text('१४) बालकाची शैक्षणीक माहिती   :-', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+              Text('१४) बालकाची शैक्षणीक माहिती   :-',
+                  style:
+                      marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               for (final level in [
                 'अशिक्षीत',
@@ -1131,8 +1243,9 @@ class JuvenileSocialReportFormViewState
                   style: marathiLabelStyle,
                 ),
               const SizedBox(height: 12),
-
-              Text('१५) शाळा सोडल्याचे कारण :-', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+              Text('१५) शाळा सोडल्याचे कारण :-',
+                  style:
+                      marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               for (final r in [
                 'नापास झाल्यामुळे',
@@ -1173,8 +1286,9 @@ class JuvenileSocialReportFormViewState
                 ],
               ),
               const SizedBox(height: 12),
-
-              Text('१६) बालक शिकलेल्या शाळेचा तपशिल :-', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+              Text('१६) बालक शिकलेल्या शाळेचा तपशिल :-',
+                  style:
+                      marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               for (final s in [
                 'महानगरपालीका/ नगरपालीका/ पंचायत',
@@ -1189,14 +1303,15 @@ class JuvenileSocialReportFormViewState
                   style: marathiLabelStyle,
                 ),
               const SizedBox(height: 10),
-
-              _buildInlineToggleRow('१७) व्यावसायीक प्रशिक्षण', _vocationalTrainingCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow('१७) व्यावसायीक प्रशिक्षण',
+                  _vocationalTrainingCtrl, marathiLabelStyle, serifStyle),
               const SizedBox(height: 16),
               Align(
                 alignment: Alignment.bottomRight,
-                child: Text('M.R.W', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 10)),
+                child: Text('M.R.W',
+                    style: serifStyle.copyWith(
+                        fontWeight: FontWeight.bold, fontSize: 10)),
               ),
-
               if (!_showAll)
                 _buildPhaseNavigationFooter(
                   onPrev: () => setState(() => _activePhase = kPartII),
@@ -1217,7 +1332,9 @@ class JuvenileSocialReportFormViewState
           FormPaperPage(
             formLabel: 'Page : 4 (Phase 4 — Reports & Circumstances)',
             children: [
-              Text('१८) कोणत्या प्रकारचे मित्र जास्त आहेत :-', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+              Text('१८) कोणत्या प्रकारचे मित्र जास्त आहेत :-',
+                  style:
+                      marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               for (final f in [
                 'शिक्षीत',
@@ -1239,13 +1356,17 @@ class JuvenileSocialReportFormViewState
                   }),
                   style: marathiLabelStyle,
                 ),
-              _buildInlineToggleRow('➤ व्यसनी', _friendsAddictedCtrl, marathiLabelStyle, serifStyle),
-              _buildInlineToggleRow('➤ गुन्हेगारी पार्श्वभुमी असणारे', _friendsCriminalCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow('➤ व्यसनी', _friendsAddictedCtrl,
+                  marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow('➤ गुन्हेगारी पार्श्वभुमी असणारे',
+                  _friendsCriminalCtrl, marathiLabelStyle, serifStyle),
               const SizedBox(height: 12),
-
-              _buildInlineToggleRow('१९) बालकावर कोणत्या प्रकारचा छळ अत्याचार झाला आहे काय ?', _childAbusedCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow(
+                  '१९) बालकावर कोणत्या प्रकारचा छळ अत्याचार झाला आहे काय ?',
+                  _childAbusedCtrl,
+                  marathiLabelStyle,
+                  serifStyle),
               const SizedBox(height: 6),
-
               Table(
                 border: TableBorder.all(color: Colors.black87),
                 columnWidths: const {
@@ -1266,7 +1387,9 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('1.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('शाब्दीक छळ— पालक/ भावंडे/ नियोक्ता/ इतर नमुद करा', style: marathiLabelStyle),
+                        child: Text(
+                            'शाब्दीक छळ— पालक/ भावंडे/ नियोक्ता/ इतर नमुद करा',
+                            style: marathiLabelStyle),
                       ),
                       _tableCellInput(_abuseVerbalCtrl, serifStyle),
                     ],
@@ -1276,7 +1399,8 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('2.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('शारीरीक छळ — नमुद करा', style: marathiLabelStyle),
+                        child: Text('शारीरीक छळ — नमुद करा',
+                            style: marathiLabelStyle),
                       ),
                       _tableCellInput(_abusePhysicalCtrl, serifStyle),
                     ],
@@ -1286,7 +1410,9 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('3.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('लैंगीक छळ — पालक/ भावंडे/ नियोक्ता/ इतर नमुद करा', style: marathiLabelStyle),
+                        child: Text(
+                            'लैंगीक छळ — पालक/ भावंडे/ नियोक्ता/ इतर नमुद करा',
+                            style: marathiLabelStyle),
                       ),
                       _tableCellInput(_abuseSexualCtrl, serifStyle),
                     ],
@@ -1304,13 +1430,18 @@ class JuvenileSocialReportFormViewState
                 ],
               ),
               const SizedBox(height: 12),
-
-              _buildInlineToggleRow('२०) बालक कोणत्या गुन्ह्यांचा बळी Victim आहे काय', _childVictimCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow(
+                  '२०) बालक कोणत्या गुन्ह्यांचा बळी Victim आहे काय',
+                  _childVictimCtrl,
+                  marathiLabelStyle,
+                  serifStyle),
               const SizedBox(height: 8),
-
-              _buildInlineToggleRow('२१) प्रौढ/ प्रौढांचा गट नशेचे साहित्य वाहतुकीसाठी बालकाचा वापर करतात काय ?', _childDrugCarrierCtrl, marathiLabelStyle, serifStyle),
+              _buildInlineToggleRow(
+                  '२१) प्रौढ/ प्रौढांचा गट नशेचे साहित्य वाहतुकीसाठी बालकाचा वापर करतात काय ?',
+                  _childDrugCarrierCtrl,
+                  marathiLabelStyle,
+                  serifStyle),
               const SizedBox(height: 12),
-
               Text(
                 '२२) बालकाचा आरोप असलेल्या गुन्ह्यामागे कारण जसे की, पालकाकडून दुर्लक्ष, सहकारी मित्राचा प्रभाव :-',
                 style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold),
@@ -1321,16 +1452,18 @@ class JuvenileSocialReportFormViewState
                 serifStyle: serifStyle,
               ),
               const SizedBox(height: 10),
-
-              Text('२३) कोणत्या परिस्थितीत / घटनेमध्ये बालकास पकडले आहे :-', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+              Text('२३) कोणत्या परिस्थितीत / घटनेमध्ये बालकास पकडले आहे :-',
+                  style:
+                      marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               BilingualSimpleUnderlineInput(
                 controller: _arrestCircumstancesCtrl,
                 serifStyle: serifStyle,
               ),
               const SizedBox(height: 10),
-
-              Text('२४) बालकाकडुन मिळालेल्या मालमत्तेची माहिती :-', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+              Text('२४) बालकाकडुन मिळालेल्या मालमत्तेची माहिती :-',
+                  style:
+                      marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               BilingualSimpleUnderlineInput(
                 controller: _propertyFromChildCtrl,
@@ -1339,7 +1472,9 @@ class JuvenileSocialReportFormViewState
               const SizedBox(height: 16),
               Align(
                 alignment: Alignment.bottomRight,
-                child: Text('M.R.W', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 10)),
+                child: Text('M.R.W',
+                    style: serifStyle.copyWith(
+                        fontWeight: FontWeight.bold, fontSize: 10)),
               ),
             ],
           ),
@@ -1354,7 +1489,9 @@ class JuvenileSocialReportFormViewState
           FormPaperPage(
             formLabel: 'Page : 5 (Phase 4 — Role & Signatures)',
             children: [
-              Text('२५) बालकावर आरोप असलेल्या गुन्ह्यामध्ये बालकाची भुमीका :-', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11.5)),
+              Text('२५) बालकावर आरोप असलेल्या गुन्ह्यामध्ये बालकाची भुमीका :-',
+                  style: marathiLabelStyle.copyWith(
+                      fontWeight: FontWeight.bold, fontSize: 11.5)),
               const SizedBox(height: 4),
               BilingualSimpleUnderlineInput(
                 controller: _childRoleInCrimeCtrl,
@@ -1362,7 +1499,9 @@ class JuvenileSocialReportFormViewState
               ),
               const SizedBox(height: 20),
 
-              Text('२६) बाल कल्याण पोलीस अधिकारी मार्फत बालका बाबत सुचना :-', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11.5)),
+              Text('२६) बाल कल्याण पोलीस अधिकारी मार्फत बालका बाबत सुचना :-',
+                  style: marathiLabelStyle.copyWith(
+                      fontWeight: FontWeight.bold, fontSize: 11.5)),
               const SizedBox(height: 4),
               BilingualSimpleUnderlineInput(
                 controller: _cwpoInstructionsCtrl,
@@ -1381,14 +1520,17 @@ class JuvenileSocialReportFormViewState
                       Center(
                         child: Text(
                           'अन्वेषण अधिकारी सही',
-                          style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                          style: marathiLabelStyle.copyWith(
+                              fontWeight: FontWeight.bold, fontSize: 12),
                         ),
                       ),
                       const SizedBox(height: 16),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('नांव :- ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('नांव :- ',
+                              style: marathiLabelStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           Expanded(
                             child: BilingualSimpleUnderlineInput(
                               controller: _signOfficerNameCtrl,
@@ -1401,14 +1543,18 @@ class JuvenileSocialReportFormViewState
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('पद :- ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('पद :- ',
+                              style: marathiLabelStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           Expanded(
                             child: BilingualSimpleUnderlineInput(
                               controller: _signOfficerRankCtrl,
                               serifStyle: serifStyle,
                             ),
                           ),
-                          Text('-ब.नं. ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('-ब.नं. ',
+                              style: marathiLabelStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           SizedBox(
                             width: 60,
                             child: BilingualSimpleUnderlineInput(
@@ -1422,7 +1568,9 @@ class JuvenileSocialReportFormViewState
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('नेमणुक :- ', style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
+                          Text('नेमणुक :- ',
+                              style: marathiLabelStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           Expanded(
                             child: BilingualSimpleUnderlineInput(
                               controller: _signOfficerPostingCtrl,
@@ -1453,7 +1601,11 @@ class JuvenileSocialReportFormViewState
       {'id': kPartI, 'label': 'Phase 1: Part I (Personal)', 'page': 'Page 1'},
       {'id': kPartII, 'label': 'Phase 2: Part II (Family)', 'page': 'Page 2'},
       {'id': kPartIII, 'label': 'Phase 3: Part III (Social)', 'page': 'Page 3'},
-      {'id': kPartIV, 'label': 'Phase 4: Part IV (Reports & Signatures)', 'page': 'Pages 4–5'},
+      {
+        'id': kPartIV,
+        'label': 'Phase 4: Part IV (Reports & Signatures)',
+        'page': 'Pages 4–5'
+      },
       {'id': 'ALL', 'label': 'All Phases (Pages 1–5)', 'page': 'All'},
     ];
 
@@ -1476,9 +1628,8 @@ class JuvenileSocialReportFormViewState
         scrollDirection: Axis.horizontal,
         child: Row(
           children: phases.map((phase) {
-            final isSelected = phase['id'] == 'ALL'
-                ? _showAll
-                : _activePhase == phase['id'];
+            final isSelected =
+                phase['id'] == 'ALL' ? _showAll : _activePhase == phase['id'];
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 3),
               child: ChoiceChip(
@@ -1496,7 +1647,9 @@ class JuvenileSocialReportFormViewState
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
                   side: BorderSide(
-                    color: isSelected ? const Color(0xFF1E3A8A) : const Color(0xFFCBD5E1),
+                    color: isSelected
+                        ? const Color(0xFF1E3A8A)
+                        : const Color(0xFFCBD5E1),
                   ),
                 ),
                 onSelected: (selected) {
@@ -1527,12 +1680,15 @@ class JuvenileSocialReportFormViewState
             ElevatedButton.icon(
               onPressed: onPrev,
               icon: const Icon(Icons.arrow_back, size: 15),
-              label: Text(prevLabel ?? 'Previous', style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600)),
+              label: Text(prevLabel ?? 'Previous',
+                  style: GoogleFonts.poppins(
+                      fontSize: 11.5, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: const Color(0xFF1E3A8A),
                 side: const BorderSide(color: Color(0xFFCBD5E1)),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               ),
             )
           else
@@ -1541,11 +1697,14 @@ class JuvenileSocialReportFormViewState
             ElevatedButton.icon(
               onPressed: onNext,
               icon: const Icon(Icons.arrow_forward, size: 15),
-              label: Text(nextLabel ?? 'Next Phase', style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600)),
+              label: Text(nextLabel ?? 'Next Phase',
+                  style: GoogleFonts.poppins(
+                      fontSize: 11.5, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1E3A8A),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
             )
           else
@@ -1572,7 +1731,8 @@ class JuvenileSocialReportFormViewState
           Expanded(child: Text(label, style: marathiStyle)),
           const Text(' :-  ', style: TextStyle(fontWeight: FontWeight.bold)),
           if (widget.readOnly)
-            Text(val.isEmpty ? 'नाही' : val, style: marathiStyle.copyWith(fontWeight: FontWeight.bold))
+            Text(val.isEmpty ? 'नाही' : val,
+                style: marathiStyle.copyWith(fontWeight: FontWeight.bold))
           else
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -1580,9 +1740,12 @@ class JuvenileSocialReportFormViewState
                 InkWell(
                   onTap: () => setState(() => ctrl.text = 'होय'),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isHoy ? const Color(0xFF1E3A8A) : Colors.grey.shade200,
+                      color: isHoy
+                          ? const Color(0xFF1E3A8A)
+                          : Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -1601,16 +1764,20 @@ class JuvenileSocialReportFormViewState
                 InkWell(
                   onTap: () => setState(() => ctrl.text = 'नाही'),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isNahi ? const Color(0xFF1E3A8A) : Colors.grey.shade200,
+                      color: isNahi
+                          ? const Color(0xFF1E3A8A)
+                          : Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       'नाही',
                       style: marathiStyle.copyWith(
                         color: isNahi ? Colors.white : Colors.black87,
-                        fontWeight: isNahi ? FontWeight.bold : FontWeight.normal,
+                        fontWeight:
+                            isNahi ? FontWeight.bold : FontWeight.normal,
                         fontSize: 11,
                       ),
                     ),
@@ -1631,9 +1798,7 @@ class JuvenileSocialReportFormViewState
   ) {
     final checked = map[key] ?? false;
     return InkWell(
-      onTap: widget.readOnly
-          ? null
-          : () => setState(() => map[key] = !checked),
+      onTap: widget.readOnly ? null : () => setState(() => map[key] = !checked),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         child: Row(

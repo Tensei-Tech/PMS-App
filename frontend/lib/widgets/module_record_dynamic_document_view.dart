@@ -481,7 +481,9 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
     Map<String, dynamic>? ncFormMap;
     final nestedNc = extra[kNcFormExtraFieldsKey];
     if (record.moduleKey == 'nc' || nestedNc is Map) {
-      ncFormMap = nestedNc is Map ? Map<String, dynamic>.from(nestedNc) : <String, dynamic>{};
+      ncFormMap = nestedNc is Map
+          ? Map<String, dynamic>.from(nestedNc)
+          : <String, dynamic>{};
     }
 
     final body = LayoutBuilder(
@@ -518,7 +520,8 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
               const SizedBox(height: 10),
               _card(children: _orderedScalarRows(raw, desktop: desktop)),
               const SizedBox(height: AppSpacing.lg),
-              if (extra.isNotEmpty) _extraFieldsSection(extra, desktop: desktop),
+              if (extra.isNotEmpty)
+                _extraFieldsSection(extra, desktop: desktop),
             ],
             const SizedBox(height: 100),
           ],

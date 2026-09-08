@@ -55,9 +55,8 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   }
 
   // Retrieve raw items
-  final List<dynamic> rawItems = (doc['muddemalItems'] is List)
-      ? (doc['muddemalItems'] as List)
-      : [];
+  final List<dynamic> rawItems =
+      (doc['muddemalItems'] is List) ? (doc['muddemalItems'] as List) : [];
 
   final List<Map<String, String>> items = [];
   if (rawItems.isNotEmpty) {
@@ -127,11 +126,13 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                   child: pw.Container(
                     decoration: const pw.BoxDecoration(
                       border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        bottom:
+                            pw.BorderSide(color: PdfColors.black, width: 0.8),
                       ),
                     ),
                     padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                    child: renderField('val_policeStation', doc['policeStation']?.toString()),
+                    child: renderField(
+                        'val_policeStation', doc['policeStation']?.toString()),
                   ),
                 ),
                 pw.SizedBox(width: 10),
@@ -145,7 +146,8 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                     ),
                   ),
                   padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField('val_district', doc['district']?.toString() ?? 'यवतमाळ'),
+                  child: renderField(
+                      'val_district', doc['district']?.toString() ?? 'यवतमाळ'),
                 ),
               ],
             ),
@@ -177,11 +179,13 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                   child: pw.Container(
                     decoration: const pw.BoxDecoration(
                       border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        bottom:
+                            pw.BorderSide(color: PdfColors.black, width: 0.8),
                       ),
                     ),
                     padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                    child: renderField('val_section', doc['section']?.toString()),
+                    child:
+                        renderField('val_section', doc['section']?.toString()),
                   ),
                 ),
               ],
@@ -199,13 +203,15 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                   child: pw.Container(
                     decoration: const pw.BoxDecoration(
                       border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        bottom:
+                            pw.BorderSide(color: PdfColors.black, width: 0.8),
                       ),
                     ),
                     padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
                     child: renderField(
                       'val_investigatingOfficer',
-                      doc['investigatingOfficer']?.toString() ?? doc['ioName']?.toString(),
+                      doc['investigatingOfficer']?.toString() ??
+                          doc['ioName']?.toString(),
                     ),
                   ),
                 ),
@@ -217,13 +223,15 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                   child: pw.Container(
                     decoration: const pw.BoxDecoration(
                       border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        bottom:
+                            pw.BorderSide(color: PdfColors.black, width: 0.8),
                       ),
                     ),
                     padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
                     child: renderField(
                       'val_ioPoliceStation',
-                      doc['ioPoliceStation']?.toString() ?? doc['policeStation']?.toString(),
+                      doc['ioPoliceStation']?.toString() ??
+                          doc['policeStation']?.toString(),
                     ),
                   ),
                 ),
@@ -257,11 +265,13 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                   child: pw.Container(
                     decoration: const pw.BoxDecoration(
                       border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        bottom:
+                            pw.BorderSide(color: PdfColors.black, width: 0.8),
                       ),
                     ),
                     padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                    child: renderField('val_accusedName', doc['accusedName']?.toString()),
+                    child: renderField(
+                        'val_accusedName', doc['accusedName']?.toString()),
                   ),
                 ),
               ],
@@ -284,7 +294,9 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                   padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
                   child: renderField(
                     'val_seizureDate',
-                    doc['seizureDate']?.toString() ?? doc['seizedDate']?.toString() ?? doc['date']?.toString(),
+                    doc['seizureDate']?.toString() ??
+                        doc['seizedDate']?.toString() ??
+                        doc['date']?.toString(),
                   ),
                 ),
                 pw.SizedBox(width: 20),
@@ -300,7 +312,8 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                   padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
                   child: renderField(
                     'val_malNumber',
-                    doc['malNumber']?.toString() ?? doc['receiptNo']?.toString(),
+                    doc['malNumber']?.toString() ??
+                        doc['receiptNo']?.toString(),
                   ),
                 ),
               ],
@@ -323,17 +336,20 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                   children: [
                     pw.Container(
                       alignment: pw.Alignment.center,
-                      padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                      padding: const pw.EdgeInsets.symmetric(
+                          vertical: 6, horizontal: 4),
                       child: mLbl('th_desc'),
                     ),
                     pw.Container(
                       alignment: pw.Alignment.center,
-                      padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                      padding: const pw.EdgeInsets.symmetric(
+                          vertical: 6, horizontal: 4),
                       child: mLbl('th_val'),
                     ),
                     pw.Container(
                       alignment: pw.Alignment.center,
-                      padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                      padding: const pw.EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 4),
                       child: pw.Column(
                         mainAxisSize: pw.MainAxisSize.min,
                         children: [
@@ -341,14 +357,18 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                           pw.SizedBox(height: 2),
                           pw.Text(
                             '....../२०....',
-                            style: pw.TextStyle(font: lora, fontSize: 8.5, color: PdfColors.grey700),
+                            style: pw.TextStyle(
+                                font: lora,
+                                fontSize: 8.5,
+                                color: PdfColors.grey700),
                           ),
                         ],
                       ),
                     ),
                     pw.Container(
                       alignment: pw.Alignment.center,
-                      padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                      padding: const pw.EdgeInsets.symmetric(
+                          vertical: 6, horizontal: 4),
                       child: mLbl('th_seized_from'),
                     ),
                   ],
@@ -362,25 +382,29 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                         constraints: const pw.BoxConstraints(minHeight: 38),
                         padding: const pw.EdgeInsets.all(4),
                         alignment: pw.Alignment.topLeft,
-                        child: renderField('item_${i}_desc', items[i]['description']),
+                        child: renderField(
+                            'item_${i}_desc', items[i]['description']),
                       ),
                       pw.Container(
                         constraints: const pw.BoxConstraints(minHeight: 38),
                         padding: const pw.EdgeInsets.all(4),
                         alignment: pw.Alignment.topLeft,
-                        child: renderField('item_${i}_val', items[i]['estimatedValue']),
+                        child: renderField(
+                            'item_${i}_val', items[i]['estimatedValue']),
                       ),
                       pw.Container(
                         constraints: const pw.BoxConstraints(minHeight: 38),
                         padding: const pw.EdgeInsets.all(4),
                         alignment: pw.Alignment.topLeft,
-                        child: renderField('item_${i}_mal', items[i]['malNumber']),
+                        child:
+                            renderField('item_${i}_mal', items[i]['malNumber']),
                       ),
                       pw.Container(
                         constraints: const pw.BoxConstraints(minHeight: 38),
                         padding: const pw.EdgeInsets.all(4),
                         alignment: pw.Alignment.topLeft,
-                        child: renderField('item_${i}_from', items[i]['seizedFrom']),
+                        child: renderField(
+                            'item_${i}_from', items[i]['seizedFrom']),
                       ),
                     ],
                   ),
@@ -402,7 +426,8 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                       alignment: pw.Alignment.center,
                       child: renderField(
                         'val_headMoharirSign',
-                        doc['headMoharirSign']?.toString() ?? doc['receiverName']?.toString(),
+                        doc['headMoharirSign']?.toString() ??
+                            doc['receiverName']?.toString(),
                       ),
                     ),
                     pw.Container(
@@ -480,19 +505,22 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   addIfDevanagari('val_district', doc['district'] ?? 'यवतमाळ');
   addIfDevanagari('val_crNoYear', doc['crNoYear'] ?? doc['crNo']);
   addIfDevanagari('val_section', doc['section']);
-  addIfDevanagari('val_investigatingOfficer', doc['investigatingOfficer'] ?? doc['ioName']);
-  addIfDevanagari('val_ioPoliceStation', doc['ioPoliceStation'] ?? doc['policeStation']);
+  addIfDevanagari(
+      'val_investigatingOfficer', doc['investigatingOfficer'] ?? doc['ioName']);
+  addIfDevanagari(
+      'val_ioPoliceStation', doc['ioPoliceStation'] ?? doc['policeStation']);
   addIfDevanagari('val_ioDistrict', doc['ioDistrict'] ?? 'यवतमाळ');
   addIfDevanagari('val_accusedName', doc['accusedName']);
-  addIfDevanagari('val_seizureDate', doc['seizureDate'] ?? doc['seizedDate'] ?? doc['date']);
+  addIfDevanagari('val_seizureDate',
+      doc['seizureDate'] ?? doc['seizedDate'] ?? doc['date']);
   addIfDevanagari('val_malNumber', doc['malNumber'] ?? doc['receiptNo']);
-  addIfDevanagari('val_headMoharirSign', doc['headMoharirSign'] ?? doc['receiverName']);
+  addIfDevanagari(
+      'val_headMoharirSign', doc['headMoharirSign'] ?? doc['receiverName']);
   addIfDevanagari('val_ioSign', doc['ioSign'] ?? doc['ioName']);
 
   // Table items
-  final List<dynamic> rawItems = (doc['muddemalItems'] is List)
-      ? (doc['muddemalItems'] as List)
-      : [];
+  final List<dynamic> rawItems =
+      (doc['muddemalItems'] is List) ? (doc['muddemalItems'] as List) : [];
 
   if (rawItems.isNotEmpty) {
     for (int i = 0; i < rawItems.length; i++) {

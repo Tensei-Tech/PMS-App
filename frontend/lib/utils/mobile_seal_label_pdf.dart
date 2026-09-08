@@ -57,7 +57,8 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
 
   String? val(String key, dynamic v) => v?.toString();
 
-  pw.Widget tableCell(String valKey, String? value, {pw.Alignment alignment = pw.Alignment.centerLeft}) {
+  pw.Widget tableCell(String valKey, String? value,
+      {pw.Alignment alignment = pw.Alignment.centerLeft}) {
     return pw.Container(
       alignment: alignment,
       padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
@@ -117,12 +118,23 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                 1: pw.FlexColumnWidth(3.2),
               },
               children: [
-                buildFormRow('lbl_ps_district', 'val_psDistrict', doc['psDistrict'] ?? doc['policeStation']),
-                buildFormRow('lbl_crime_sec', 'val_crimeNoSection', doc['crimeNoSection'] ?? '${doc['crNo'] ?? ''} ${doc['section'] ?? ''}'.trim()),
-                buildFormRow('lbl_seizing_officer', 'val_seizingOfficer', doc['seizingOfficer'] ?? doc['ioName']),
-                buildFormRow('lbl_seized_from', 'val_seizedFrom', doc['seizedFrom']),
-                buildFormRow('lbl_accused_name', 'val_accusedName', doc['accusedName']),
-                buildFormRow('lbl_seizure_place_datetime', 'val_seizurePlaceDateTime', doc['seizurePlaceDateTime'] ?? doc['seizedDate']),
+                buildFormRow('lbl_ps_district', 'val_psDistrict',
+                    doc['psDistrict'] ?? doc['policeStation']),
+                buildFormRow(
+                    'lbl_crime_sec',
+                    'val_crimeNoSection',
+                    doc['crimeNoSection'] ??
+                        '${doc['crNo'] ?? ''} ${doc['section'] ?? ''}'.trim()),
+                buildFormRow('lbl_seizing_officer', 'val_seizingOfficer',
+                    doc['seizingOfficer'] ?? doc['ioName']),
+                buildFormRow(
+                    'lbl_seized_from', 'val_seizedFrom', doc['seizedFrom']),
+                buildFormRow(
+                    'lbl_accused_name', 'val_accusedName', doc['accusedName']),
+                buildFormRow(
+                    'lbl_seizure_place_datetime',
+                    'val_seizurePlaceDateTime',
+                    doc['seizurePlaceDateTime'] ?? doc['seizedDate']),
 
                 // Mobile Description with Police Station Stamp Box
                 pw.TableRow(
@@ -133,7 +145,8 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                       child: mLbl('lbl_ps_stamp'),
                     ),
                     pw.Table(
-                      border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+                      border: pw.TableBorder.all(
+                          color: PdfColors.black, width: 0.5),
                       columnWidths: const {
                         0: pw.FlexColumnWidth(1.8),
                         1: pw.FlexColumnWidth(1.8),
@@ -148,21 +161,40 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                             pw.SizedBox(),
                           ],
                         ),
-                        buildSubRow('lbl_mobile_company', 'val_mobileCompany', doc['mobileCompany'] ?? doc['mobileMake']),
+                        buildSubRow('lbl_mobile_company', 'val_mobileCompany',
+                            doc['mobileCompany'] ?? doc['mobileMake']),
                         buildSubRow('lbl_imei_1', 'val_imei1', doc['imei1']),
                         buildSubRow('lbl_imei_2', 'val_imei2', doc['imei2']),
-                        buildSubRow('lbl_mobile_serial', 'val_mobileSerialNo', doc['mobileSerialNo'] ?? doc['mobileModel']),
-                        buildSubRow('lbl_password_pattern', 'val_passwordPatternPin', doc['passwordPatternPin']),
-                        buildSubRow('lbl_mobile_condition', 'val_mobileCondition', doc['mobileCondition']),
-                        buildSubRow('lbl_switch_off', 'val_switchOffStatus', doc['switchOffStatus']),
-                        buildSubRow('lbl_sim_present', 'val_simCardPresent', doc['simCardPresent']),
-                        buildSubRow('lbl_sim_company', 'val_simCompany', doc['simCompany']),
-                        buildSubRow('lbl_sim_calling_no', 'val_simCallingNo', doc['simCallingNo'] ?? doc['simNo']),
-                        buildSubRow('lbl_sim_serial', 'val_simCardSerialNo', doc['simCardSerialNo']),
-                        buildSubRow('lbl_memory_present', 'val_memoryCardPresent', doc['memoryCardPresent']),
-                        buildSubRow('lbl_memory_company', 'val_memoryCardCompany', doc['memoryCardCompany']),
-                        buildSubRow('lbl_memory_capacity', 'val_memoryCardCapacity', doc['memoryCardCapacity']),
-                        buildSubRow('lbl_memory_serial', 'val_memoryCardSerialNo', doc['memoryCardSerialNo']),
+                        buildSubRow('lbl_mobile_serial', 'val_mobileSerialNo',
+                            doc['mobileSerialNo'] ?? doc['mobileModel']),
+                        buildSubRow(
+                            'lbl_password_pattern',
+                            'val_passwordPatternPin',
+                            doc['passwordPatternPin']),
+                        buildSubRow('lbl_mobile_condition',
+                            'val_mobileCondition', doc['mobileCondition']),
+                        buildSubRow('lbl_switch_off', 'val_switchOffStatus',
+                            doc['switchOffStatus']),
+                        buildSubRow('lbl_sim_present', 'val_simCardPresent',
+                            doc['simCardPresent']),
+                        buildSubRow('lbl_sim_company', 'val_simCompany',
+                            doc['simCompany']),
+                        buildSubRow('lbl_sim_calling_no', 'val_simCallingNo',
+                            doc['simCallingNo'] ?? doc['simNo']),
+                        buildSubRow('lbl_sim_serial', 'val_simCardSerialNo',
+                            doc['simCardSerialNo']),
+                        buildSubRow('lbl_memory_present',
+                            'val_memoryCardPresent', doc['memoryCardPresent']),
+                        buildSubRow('lbl_memory_company',
+                            'val_memoryCardCompany', doc['memoryCardCompany']),
+                        buildSubRow(
+                            'lbl_memory_capacity',
+                            'val_memoryCardCapacity',
+                            doc['memoryCardCapacity']),
+                        buildSubRow(
+                            'lbl_memory_serial',
+                            'val_memoryCardSerialNo',
+                            doc['memoryCardSerialNo']),
                       ],
                     ),
                   ],
@@ -175,7 +207,10 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                       padding: const pw.EdgeInsets.all(4),
                       child: mLbl('lbl_exhibit_ref'),
                     ),
-                    tableCell('val_exhibitNoLetter', val('val_exhibitNoLetter', doc['exhibitNoLetter'] ?? doc['labelNo'])),
+                    tableCell(
+                        'val_exhibitNoLetter',
+                        val('val_exhibitNoLetter',
+                            doc['exhibitNoLetter'] ?? doc['labelNo'])),
                   ],
                 ),
 
@@ -189,7 +224,10 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                         children: [
                           mLbl('lbl_seized_person_sign'),
                           pw.SizedBox(height: 24),
-                          tableCell('val_seizedPersonSign', val('val_seizedPersonSign', doc['seizedPersonSign'])),
+                          tableCell(
+                              'val_seizedPersonSign',
+                              val('val_seizedPersonSign',
+                                  doc['seizedPersonSign'])),
                         ],
                       ),
                     ),
@@ -203,14 +241,22 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                           pw.Row(
                             children: [
                               mLbl('lbl_panch_1'),
-                              pw.Expanded(child: tableCell('val_panch1Sign', val('val_panch1Sign', doc['panch1Sign']))),
+                              pw.Expanded(
+                                  child: tableCell(
+                                      'val_panch1Sign',
+                                      val('val_panch1Sign',
+                                          doc['panch1Sign']))),
                             ],
                           ),
                           pw.SizedBox(height: 4),
                           pw.Row(
                             children: [
                               mLbl('lbl_panch_2'),
-                              pw.Expanded(child: tableCell('val_panch2Sign', val('val_panch2Sign', doc['panch2Sign']))),
+                              pw.Expanded(
+                                  child: tableCell(
+                                      'val_panch2Sign',
+                                      val('val_panch2Sign',
+                                          doc['panch2Sign']))),
                             ],
                           ),
                         ],
@@ -229,7 +275,10 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                         children: [
                           mLbl('lbl_io_sign_stamp'),
                           pw.SizedBox(height: 24),
-                          tableCell('val_ioNameSignStamp', val('val_ioNameSignStamp', doc['ioNameSignStamp'] ?? doc['ioName'])),
+                          tableCell(
+                              'val_ioNameSignStamp',
+                              val('val_ioNameSignStamp',
+                                  doc['ioNameSignStamp'] ?? doc['ioName'])),
                         ],
                       ),
                     ),
@@ -240,7 +289,10 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                         children: [
                           mLbl('lbl_seal_sample'),
                           pw.SizedBox(height: 24),
-                          tableCell('val_sealSample', val('val_sealSample', doc['sealSample'] ?? doc['remarks'])),
+                          tableCell(
+                              'val_sealSample',
+                              val('val_sealSample',
+                                  doc['sealSample'] ?? doc['remarks'])),
                         ],
                       ),
                     ),
@@ -261,7 +313,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final pairs = <String, String>{
     'hdr_title': 'मोबाईल सिल लेबल नमुना',
     'hdr_subtitle': 'Exhibit च्या पाकीट वरील लेबल चा नमुना',
-    'hdr_notice': 'सुचना :— जप्ती नंतर हॅश व्हॅल्यु किंवा निरीक्षण पंचनामा झाला असेल तर मुद्देमालाच्या लेबल व पहिल्या जप्तीची तारीख त्यानंतर झालेली पंचनामा नंतर सिलबंद केल्याचा तारखा नमुद कराव्यात',
+    'hdr_notice':
+        'सुचना :— जप्ती नंतर हॅश व्हॅल्यु किंवा निरीक्षण पंचनामा झाला असेल तर मुद्देमालाच्या लेबल व पहिल्या जप्तीची तारीख त्यानंतर झालेली पंचनामा नंतर सिलबंद केल्याचा तारखा नमुद कराव्यात',
     'lbl_ps_district': 'पोलीस स्टेशन जिल्हा',
     'lbl_crime_sec': 'अपराध क्रमांक व कलम',
     'lbl_seizing_officer': 'जप्त करणारे अधिकारी नांव हुद्दा पोस्टे',
@@ -269,7 +322,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'lbl_accused_name': 'आरोपीचे नाव',
     'lbl_seizure_place_datetime': 'जप्तीचे ठिकाण तारीख वेळ',
     'lbl_ps_stamp': 'पोलीस स्टेशन शिक्का',
-    'lbl_mobile_section_hdr': 'जप्त मालाचे वर्णन जप्तीपत्रकानुसार मोबाईलच्या बाबतीत',
+    'lbl_mobile_section_hdr':
+        'जप्त मालाचे वर्णन जप्तीपत्रकानुसार मोबाईलच्या बाबतीत',
     'lbl_mobile_company': 'मो कंपनी',
     'lbl_imei_1': 'IMEI 1',
     'lbl_imei_2': 'IMEI 2',
@@ -277,15 +331,18 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'lbl_password_pattern': 'पासवर्ड/ पॅटर्न/ पिन (असल्यास नमूद करणे)',
     'lbl_mobile_condition': 'मोबाईल स्थिती (चालु / बंद)',
     'lbl_switch_off': 'स्विच ऑफ (होय / नाही)',
-    'lbl_sim_present': 'सिम कार्ड आहे किं नाही असल्यास खालील माहिती (होय / नाही)',
+    'lbl_sim_present':
+        'सिम कार्ड आहे किं नाही असल्यास खालील माहिती (होय / नाही)',
     'lbl_sim_company': 'सिम कंपनी',
     'lbl_sim_calling_no': 'सिमचा कॉलींग क्रमांक',
     'lbl_sim_serial': 'सिमकार्डवर दिसणारा सीरीयल क्र',
-    'lbl_memory_present': 'मेमरी कार्ड आहे किं नाही असल्यास खालील माहिती (होय / नाही)',
+    'lbl_memory_present':
+        'मेमरी कार्ड आहे किं नाही असल्यास खालील माहिती (होय / नाही)',
     'lbl_memory_company': 'मेमरीकार्ड कंपनी नांव',
     'lbl_memory_capacity': 'मेमरी कार्ड ची क्षमता',
     'lbl_memory_serial': 'मेमरी कार्डवर दिसणारा सिरीयल क्र',
-    'lbl_exhibit_ref': 'एक्झिबीट क्र तपासी अधिकारी यांच्या पत्रानुसार (उदा “Exhibit – A”)',
+    'lbl_exhibit_ref':
+        'एक्झिबीट क्र तपासी अधिकारी यांच्या पत्रानुसार (उदा “Exhibit – A”)',
     'lbl_seized_person_sign': 'ज्यांचेकडुन जप्त केले त्यांची सही',
     'lbl_panch_signs': 'पंचाच्या सह्या',
     'lbl_panch_1': '१) ',
@@ -333,7 +390,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
         : (entry.key == 'hdr_subtitle'
             ? 11.0
             : (entry.key == 'hdr_notice' ? 8.0 : 8.5));
-    final color = entry.key.startsWith('val_') ? const Color(0xFF0D47A1) : Colors.black87;
+    final color =
+        entry.key.startsWith('val_') ? const Color(0xFF0D47A1) : Colors.black87;
 
     await cache.add(
       entry.key,
@@ -343,7 +401,11 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
         fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
         color: color,
       ),
-      maxWidth: entry.key == 'hdr_title' || entry.key == 'hdr_subtitle' || entry.key == 'hdr_notice' ? 520 : 350,
+      maxWidth: entry.key == 'hdr_title' ||
+              entry.key == 'hdr_subtitle' ||
+              entry.key == 'hdr_notice'
+          ? 520
+          : 350,
     );
   }
 

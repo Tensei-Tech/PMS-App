@@ -44,13 +44,15 @@ class NcViewScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.navyDark),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 18, color: AppColors.navyDark),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
             tooltip: 'Export PDF',
-            icon: const Icon(Icons.picture_as_pdf_outlined, color: AppColors.navyMid),
+            icon: const Icon(Icons.picture_as_pdf_outlined,
+                color: AppColors.navyMid),
             onPressed: () => runWithPdfAuthGate(
               context,
               () => ModulePdfHelper.generatePdf(record),
@@ -286,13 +288,15 @@ class NcViewDocumentView extends StatelessWidget {
     );
   }
 
-  Widget _divider() => const Divider(height: 16, color: _kBorder, thickness: 0.6);
+  Widget _divider() =>
+      const Divider(height: 16, color: _kBorder, thickness: 0.6);
 
   // ── 1. Basic Details & Crime Spot ──────────────────────────────────────────
   Widget _buildBasicDetails() {
     final ncNum = _val(ncMap['ncNumber'] ?? record.caseNumber);
     final incidentDt = record.incidentDate;
-    final fallbackDate = '${incidentDt.day.toString().padLeft(2, '0')}/${incidentDt.month.toString().padLeft(2, '0')}/${incidentDt.year}';
+    final fallbackDate =
+        '${incidentDt.day.toString().padLeft(2, '0')}/${incidentDt.month.toString().padLeft(2, '0')}/${incidentDt.year}';
     final regDate = _val(ncMap['registrationDate'] ??
         ncMap['registrationDateTime'] ??
         fallbackDate);
@@ -354,7 +358,8 @@ class NcViewDocumentView extends StatelessWidget {
           final List<String> secList = [];
           if (secs is Iterable) {
             for (final s in secs) {
-              if (s != null && s.toString().isNotEmpty) secList.add(s.toString());
+              if (s != null && s.toString().isNotEmpty)
+                secList.add(s.toString());
             }
           }
 
@@ -372,7 +377,8 @@ class NcViewDocumentView extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: _kDark,
                         borderRadius: BorderRadius.circular(4),
@@ -408,11 +414,13 @@ class NcViewDocumentView extends StatelessWidget {
                     runSpacing: 4,
                     children: secList.map((sec) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: _kTeal.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: _kTeal.withValues(alpha: 0.4)),
+                          border:
+                              Border.all(color: _kTeal.withValues(alpha: 0.4)),
                         ),
                         child: Text(
                           '§$sec  (${_secLabel(actKey, sec)})',
@@ -436,7 +444,8 @@ class NcViewDocumentView extends StatelessWidget {
   // ── 3. Complainant KYC List ────────────────────────────────────────────────
   Widget _buildComplainantList() {
     final List<Map<String, dynamic>> list = [];
-    if (ncMap['complainants'] is List && (ncMap['complainants'] as List).isNotEmpty) {
+    if (ncMap['complainants'] is List &&
+        (ncMap['complainants'] as List).isNotEmpty) {
       for (final item in ncMap['complainants'] as List) {
         if (item is Map) list.add(Map<String, dynamic>.from(item));
       }
@@ -463,7 +472,8 @@ class NcViewDocumentView extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: _kDark,
                     borderRadius: BorderRadius.circular(4),
@@ -490,8 +500,10 @@ class NcViewDocumentView extends StatelessWidget {
             ),
             _divider(),
             _twoCol('Age', _val(c['age']), 'Gender', _val(c['gender'])),
-            _twoCol('Caste', _val(c['caste']), 'Profession', _val(c['profession'] ?? c['occ'])),
-            _twoCol('Mobile Number', _val(c['mobile']), 'Aadhar Number', _val(c['aadhaar'])),
+            _twoCol('Caste', _val(c['caste']), 'Profession',
+                _val(c['profession'] ?? c['occ'])),
+            _twoCol('Mobile Number', _val(c['mobile']), 'Aadhar Number',
+                _val(c['aadhaar'])),
             _row('Address', _val(c['address'])),
           ],
         );
@@ -508,7 +520,8 @@ class NcViewDocumentView extends StatelessWidget {
         if (item is Map) list.add(Map<String, dynamic>.from(item));
       }
     } else if (ncMap['personComplainedAgainst'] is Map) {
-      list.add(Map<String, dynamic>.from(ncMap['personComplainedAgainst'] as Map));
+      list.add(
+          Map<String, dynamic>.from(ncMap['personComplainedAgainst'] as Map));
     } else if (record.accused.isNotEmpty) {
       list.add({'name': record.accused});
     }
@@ -530,7 +543,8 @@ class NcViewDocumentView extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: const Color(0xFF334155),
                     borderRadius: BorderRadius.circular(4),
@@ -557,8 +571,10 @@ class NcViewDocumentView extends StatelessWidget {
             ),
             _divider(),
             _twoCol('Age', _val(a['age']), 'Gender', _val(a['gender'])),
-            _twoCol('Caste', _val(a['caste']), 'Profession', _val(a['profession'] ?? a['occ'])),
-            _twoCol('Mobile Number', _val(a['mobile']), 'Aadhar Number', _val(a['aadhaar'])),
+            _twoCol('Caste', _val(a['caste']), 'Profession',
+                _val(a['profession'] ?? a['occ'])),
+            _twoCol('Mobile Number', _val(a['mobile']), 'Aadhar Number',
+                _val(a['aadhaar'])),
             _row('Address', _val(a['address'])),
           ],
         );
@@ -586,7 +602,8 @@ class NcViewDocumentView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        _twoCol('Name', _val(io['name'] ?? record.assignedOfficer), 'Designation', _val(io['designation'])),
+        _twoCol('Name', _val(io['name'] ?? record.assignedOfficer),
+            'Designation', _val(io['designation'])),
         _row('Mobile Number', _val(io['mobile'])),
         _divider(),
         Text(
@@ -598,7 +615,8 @@ class NcViewDocumentView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        _twoCol('Name', _val(rb['name']), 'Designation', _val(rb['designation'])),
+        _twoCol(
+            'Name', _val(rb['name']), 'Designation', _val(rb['designation'])),
         _row('Mobile Number', _val(rb['mobile'])),
       ],
     );
@@ -606,7 +624,8 @@ class NcViewDocumentView extends StatelessWidget {
 
   // ── 6. First Information Content ───────────────────────────────────────────
   Widget _buildFic() {
-    final content = _val(ncMap['firstInformationContent'] ?? record.description);
+    final content =
+        _val(ncMap['firstInformationContent'] ?? record.description);
     return _card(
       children: [
         Container(
@@ -649,8 +668,10 @@ class NcViewDocumentView extends StatelessWidget {
         : <String, dynamic>{};
 
     final prevNumber = _val(prev['preventiveNumber']);
-    final outNumber = _val(prev['outwardNumber'] ?? ncMap['caseOutward']?['number']);
-    final prevDate = _val(prev['preventiveDate'] ?? ncMap['caseOutward']?['date']);
+    final outNumber =
+        _val(prev['outwardNumber'] ?? ncMap['caseOutward']?['number']);
+    final prevDate =
+        _val(prev['preventiveDate'] ?? ncMap['caseOutward']?['date']);
     final bondDate = _val(prev['bondDate']);
     final bondCancelDate = _val(prev['bondCancellationDate']);
 
@@ -675,7 +696,8 @@ class NcViewDocumentView extends StatelessWidget {
             final List<String> secList = [];
             if (secs is Iterable) {
               for (final s in secs) {
-                if (s != null && s.toString().isNotEmpty) secList.add(s.toString());
+                if (s != null && s.toString().isNotEmpty)
+                  secList.add(s.toString());
               }
             }
             return Container(
@@ -691,7 +713,9 @@ class NcViewDocumentView extends StatelessWidget {
                 children: [
                   Text(actLabel,
                       style: GoogleFonts.poppins(
-                          fontSize: 12, fontWeight: FontWeight.w700, color: _kDark)),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: _kDark)),
                   if (secList.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Wrap(
@@ -711,7 +735,8 @@ class NcViewDocumentView extends StatelessWidget {
           }),
           _divider(),
         ],
-        _twoCol('Preventive No. / इस्तेगाशा नं.', prevNumber, 'Outward Number', outNumber),
+        _twoCol('Preventive No. / इस्तेगाशा नं.', prevNumber, 'Outward Number',
+            outNumber),
         _twoCol('Preventive Date', prevDate, 'Bond Date', bondDate),
         _row('Bond Cancellation Date', bondCancelDate),
       ],
@@ -724,8 +749,11 @@ class NcViewDocumentView extends StatelessWidget {
         ? Map<String, dynamic>.from(ncMap['postNcAction'] as Map)
         : <String, dynamic>{};
 
-    final isCrimeRegistered = (postNc['crimeRegisteredAfterNc'] ??
-            ncMap['chargesAddedOnNc'])?.toString().toLowerCase() == 'yes';
+    final isCrimeRegistered =
+        (postNc['crimeRegisteredAfterNc'] ?? ncMap['chargesAddedOnNc'])
+                ?.toString()
+                .toLowerCase() ==
+            'yes';
 
     final crNo = _val(postNc['crNumber'] ?? ncMap['crNumberIfChargesAdded']);
     final act = _val(postNc['act']);
@@ -752,13 +780,15 @@ class NcViewDocumentView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader('Basic Details & Crime Spot', Icons.description_outlined),
+        _sectionHeader(
+            'Basic Details & Crime Spot', Icons.description_outlined),
         _buildBasicDetails(),
         _sectionHeader('Acts & Sections Filed', Icons.gavel_outlined),
         _buildActsAndSections(),
         _sectionHeader('Complainant KYC Details', Icons.person_outline),
         _buildComplainantList(),
-        _sectionHeader('Non-Applicant KYC Details', Icons.person_search_outlined),
+        _sectionHeader(
+            'Non-Applicant KYC Details', Icons.person_search_outlined),
         _buildNonApplicantList(),
         _sectionHeader('Officer Details', Icons.badge_outlined),
         _buildOfficerDetails(),
