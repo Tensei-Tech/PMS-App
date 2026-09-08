@@ -358,8 +358,9 @@ class NcViewDocumentView extends StatelessWidget {
           final List<String> secList = [];
           if (secs is Iterable) {
             for (final s in secs) {
-              if (s != null && s.toString().isNotEmpty)
+              if (s != null && s.toString().isNotEmpty) {
                 secList.add(s.toString());
+              }
             }
           }
 
@@ -696,8 +697,9 @@ class NcViewDocumentView extends StatelessWidget {
             final List<String> secList = [];
             if (secs is Iterable) {
               for (final s in secs) {
-                if (s != null && s.toString().isNotEmpty)
+                if (s != null && s.toString().isNotEmpty) {
                   secList.add(s.toString());
+                }
               }
             }
             return Container(

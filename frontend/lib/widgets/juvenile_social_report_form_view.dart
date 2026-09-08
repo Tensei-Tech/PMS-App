@@ -321,26 +321,35 @@ class JuvenileSocialReportFormViewState
 
       for (var i = 0; i < _familyRowCount; i++) {
         final n = '${i + 1}';
-        if (data.containsKey('fam${n}Name'))
+        if (data.containsKey('fam${n}Name')) {
           _famNameRelationCtrls[i].text = data['fam${n}Name']?.toString() ?? '';
-        if (data.containsKey('fam${n}Age'))
+        }
+        if (data.containsKey('fam${n}Age')) {
           _famAgeCtrls[i].text = data['fam${n}Age']?.toString() ?? '';
-        if (data.containsKey('fam${n}Sex'))
+        }
+        if (data.containsKey('fam${n}Sex')) {
           _famSexCtrls[i].text = data['fam${n}Sex']?.toString() ?? '';
-        if (data.containsKey('fam${n}Edu'))
+        }
+        if (data.containsKey('fam${n}Edu')) {
           _famEduCtrls[i].text = data['fam${n}Edu']?.toString() ?? '';
-        if (data.containsKey('fam${n}Occ'))
+        }
+        if (data.containsKey('fam${n}Occ')) {
           _famOccCtrls[i].text = data['fam${n}Occ']?.toString() ?? '';
-        if (data.containsKey('fam${n}Income'))
+        }
+        if (data.containsKey('fam${n}Income')) {
           _famIncomeCtrls[i].text = data['fam${n}Income']?.toString() ?? '';
-        if (data.containsKey('fam${n}Health'))
+        }
+        if (data.containsKey('fam${n}Health')) {
           _famHealthCtrls[i].text = data['fam${n}Health']?.toString() ?? '';
-        if (data.containsKey('fam${n}MentalHist'))
+        }
+        if (data.containsKey('fam${n}MentalHist')) {
           _famMentalHistCtrls[i].text =
               data['fam${n}MentalHist']?.toString() ?? '';
-        if (data.containsKey('fam${n}Addiction'))
+        }
+        if (data.containsKey('fam${n}Addiction')) {
           _famAddictionCtrls[i].text =
               data['fam${n}Addiction']?.toString() ?? '';
+        }
       }
 
       _schoolDropReasonPage2Ctrl.text =
