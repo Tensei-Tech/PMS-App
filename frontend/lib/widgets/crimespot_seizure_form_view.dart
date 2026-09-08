@@ -21,9 +21,7 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
   final _campNoCtrl = TextEditingController();
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
-  final _dateYearCtrl = TextEditingController(
-    text: DateTime.now().year.toString().substring(2),
-  );
+  final _dateYearCtrl = TextEditingController();
   final _panch1NameCtrl = TextEditingController();
   final _panch2NameCtrl = TextEditingController();
   final _bodyCtrl = TextEditingController();

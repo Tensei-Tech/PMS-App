@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
@@ -1339,68 +1340,21 @@ class HousePropertySearchSeizureFormViewState
               ),
               if (!widget.readOnly) ...[
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _propertyPackedControllers
-                              .add(TextEditingController());
-                        });
-                      },
-                      icon: const Icon(Icons.add,
-                          size: 16, color: Color(0xFF1E3A8A)),
-                      label: Text(
-                        'Add Row (ओळ जोडा)',
-                        style: TextStyle(
-                          fontFamily: serifStyle.fontFamily,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1E3A8A),
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEFF4FA),
-                        side: const BorderSide(
-                            color: Color(0xFFD6E4F0), width: 1),
-                        shape: const StadiumBorder(),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                      ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _propertyPackedControllers.add(TextEditingController());
+                      });
+                    },
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(
+                      'Add Row (ओळ जोडा)',
+                      style: GoogleFonts.poppins(
+                          fontSize: 12, fontWeight: FontWeight.w600),
                     ),
-                    if (_propertyPackedControllers.length > 1) ...[
-                      const SizedBox(width: 8),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            final last =
-                                _propertyPackedControllers.removeLast();
-                            last.dispose();
-                          });
-                        },
-                        icon: const Icon(Icons.remove,
-                            size: 16, color: Color(0xFFB91C1C)),
-                        label: Text(
-                          'Remove Row (ओळ काढा)',
-                          style: TextStyle(
-                            fontFamily: serifStyle.fontFamily,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFFB91C1C),
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFEEFEE),
-                          side: const BorderSide(
-                              color: Color(0xFFFCDADA), width: 1),
-                          shape: const StadiumBorder(),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                        ),
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
               ],
               const SizedBox(height: 12),

@@ -49,12 +49,10 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
   final _psCtrl = TextEditingController();
   final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
-  final _firYearSuffixCtrl =
-      TextEditingController(text: DateTime.now().year.toString().substring(2));
+  final _firYearSuffixCtrl = TextEditingController();
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
-  final _dateYearCtrl =
-      TextEditingController(text: DateTime.now().year.toString().substring(2));
+  final _dateYearCtrl = TextEditingController();
 
   final _actSectionCtrl = TextEditingController();
 
@@ -113,9 +111,17 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
     if (fh.isEmpty && fm.isEmpty && th.isEmpty && tm.isEmpty) {
       return _panchnamaTimeCtrl.text.trim();
     }
-    final from = fm.isNotEmpty ? '$fh/$fm' : fh;
-    final to = tm.isNotEmpty ? '$th/$tm' : th;
-    return '$from ते $to पर्यंत'.trim();
+    final from =
+        fh.isNotEmpty && fm.isNotEmpty ? '$fh/$fm' : (fh.isNotEmpty ? fh : fm);
+    final to =
+        th.isNotEmpty && tm.isNotEmpty ? '$th/$tm' : (th.isNotEmpty ? th : tm);
+    if (from.isNotEmpty && to.isNotEmpty) {
+      return '$from ते $to पर्यंत';
+    } else if (from.isNotEmpty) {
+      return from;
+    } else {
+      return to;
+    }
   }
 
   final _pancha1NameCtrl = TextEditingController();
@@ -352,6 +358,38 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
           _panchnamaDateYearCtrl.text = yr;
         }
       }
+
+      // Legacy fallback for panchnamaTime:
+      if (_panchnamaTimeFromHoursCtrl.text.isEmpty &&
+          _panchnamaTimeCtrl.text.isNotEmpty) {
+        final t = _panchnamaTimeCtrl.text;
+        final rangeParts = t.split(RegExp(r'ते|to|-', caseSensitive: false));
+        if (rangeParts.length >= 2) {
+          final fromParts = rangeParts[0].trim().split(RegExp(r'[/.:]'));
+          if (fromParts.isNotEmpty) {
+            _panchnamaTimeFromHoursCtrl.text = fromParts[0].trim();
+          }
+          if (fromParts.length > 1) {
+            _panchnamaTimeFromMinutesCtrl.text = fromParts[1].trim();
+          }
+          final toClean = rangeParts[1].replaceAll('पर्यंत', '').trim();
+          final toParts = toClean.split(RegExp(r'[/.:]'));
+          if (toParts.isNotEmpty) {
+            _panchnamaTimeToHoursCtrl.text = toParts[0].trim();
+          }
+          if (toParts.length > 1) {
+            _panchnamaTimeToMinutesCtrl.text = toParts[1].trim();
+          }
+        } else {
+          final parts = t.split(RegExp(r'[/.:]'));
+          if (parts.isNotEmpty) {
+            _panchnamaTimeFromHoursCtrl.text = parts[0].trim();
+          }
+          if (parts.length > 1) {
+            _panchnamaTimeFromMinutesCtrl.text = parts[1].trim();
+          }
+        }
+      }
       _pancha1NameCtrl.text = data['pancha1Name']?.toString() ?? '';
       _pancha1AddressCtrl.text = data['pancha1Address']?.toString() ?? '';
       _pancha2NameCtrl.text = data['pancha2Name']?.toString() ?? '';
@@ -495,6 +533,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _firYearSuffixCtrl,
                             serifStyle: serifStyle,
+                            hintText: 'YY',
                           ),
                         ),
                       ],
@@ -1182,17 +1221,50 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Date and Time of panchnama:',
+                        Text('Date and Time of panchnama',
                             style: serifStyle.copyWith(
                                 fontWeight: FontWeight.w600)),
-                        Text('घटनास्थळ पंचनाम्याची दिनांक :',
-                            style: marathiLabelStyle),
-                        const SizedBox(height: 6),
-                        BilingualDynamicLinedTextField(
-                          controller: _panchnamaDateCtrl,
-                          minLines: 1,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
+                        const SizedBox(height: 4),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.end,
+                          children: [
+                            Text('घटनास्थळ पंचनाम्याची दिनांक : ',
+                                style: marathiLabelStyle),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchnamaDateDayCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'DD',
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: Text('/', style: serifStyle),
+                            ),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchnamaDateMonthCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'MM',
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: Text('/20', style: serifStyle),
+                            ),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchnamaDateYearCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'YY',
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 20),
                         Text(
@@ -1264,16 +1336,66 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Time:',
+                        Text('Time',
                             style: serifStyle.copyWith(
                                 fontWeight: FontWeight.w600)),
-                        Text('वेळ :', style: marathiLabelStyle),
-                        const SizedBox(height: 6),
-                        BilingualDynamicLinedTextField(
-                          controller: _panchnamaTimeCtrl,
-                          minLines: 1,
-                          serifStyle: serifStyle,
-                          marathiLabelStyle: marathiLabelStyle,
+                        const SizedBox(height: 4),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.end,
+                          children: [
+                            Text('वेळ : ', style: marathiLabelStyle),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchnamaTimeFromHoursCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'HH',
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: Text('/', style: serifStyle),
+                            ),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchnamaTimeFromMinutesCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'MM',
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              child: Text('ते :', style: marathiLabelStyle),
+                            ),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchnamaTimeToHoursCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'HH',
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: Text('/', style: serifStyle),
+                            ),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _panchnamaTimeToMinutesCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'MM',
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Text('पर्यंत', style: marathiLabelStyle),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 20),
                         Text(

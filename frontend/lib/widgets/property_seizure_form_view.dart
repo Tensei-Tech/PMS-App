@@ -46,12 +46,10 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
   final _psCtrl = TextEditingController();
   final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
-  final _firYearSuffixCtrl =
-      TextEditingController(text: DateTime.now().year.toString().substring(2));
+  final _firYearSuffixCtrl = TextEditingController();
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
-  final _dateYearCtrl =
-      TextEditingController(text: DateTime.now().year.toString().substring(2));
+  final _dateYearCtrl = TextEditingController();
 
   final _actSectionCtrl = TextEditingController();
 
@@ -59,8 +57,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
   String _natureOfProperty = 'चोरीला गेलेली';
   final _seizureDateDayCtrl = TextEditingController();
   final _seizureDateMonthCtrl = TextEditingController();
-  final _seizureDateYearCtrl =
-      TextEditingController(text: DateTime.now().year.toString().substring(2));
+  final _seizureDateYearCtrl = TextEditingController();
   final _seizureTimeCtrl = TextEditingController();
   final _seizureTimeHoursCtrl = TextEditingController();
   final _seizureTimeMinutesCtrl = TextEditingController();
@@ -940,80 +937,6 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 '१०) जप्त केलेल्या/परत मिळालेल्या मालाचे वर्णन (योग्य नमुन्यात माहिती भरा व जोडा )',
                 style: marathiStyle,
               ),
-              const SizedBox(height: 16),
-
-              // --- PROPERTY TABLE (section 10 attachment) ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (!widget.readOnly)
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline,
-                          color: Colors.blue),
-                      onPressed: () {
-                        setState(() {
-                          _propertyRows.add(PropertyRow());
-                        });
-                      },
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              Table(
-                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                border: TableBorder.all(color: Colors.black87, width: 1),
-                columnWidths: const {
-                  0: FixedColumnWidth(40),
-                  1: FlexColumnWidth(6.0),
-                  2: FlexColumnWidth(3.0),
-                  3: FixedColumnWidth(40),
-                },
-                children: [
-                  TableRow(
-                    decoration: BoxDecoration(color: Colors.grey.shade100),
-                    children: [
-                      _buildHeaderCell("Sr. No.\nअ. क."),
-                      _buildHeaderCell(
-                          "Property Description\nमालमत्तेचे वर्णन"),
-                      _buildHeaderCell(
-                          "Estimated Value (Rs)\nअंदाजे किंमत (रु.)"),
-                      _buildHeaderCell("Action"),
-                    ],
-                  ),
-                  ...List.generate(_propertyRows.length, (index) {
-                    final row = _propertyRows[index];
-                    return TableRow(
-                      children: [
-                        FormTableSrNoCell(index: index, style: serifStyle),
-                        _buildTableInputCell(
-                            controller: row.descriptionCtrl,
-                            style: serifStyle,
-                            hintText: 'Description'),
-                        _buildTableInputCell(
-                            controller: row.estimatedValueCtrl,
-                            style: serifStyle,
-                            hintText: 'Value in Rs.'),
-                        Center(
-                          child: widget.readOnly
-                              ? const SizedBox(width: 0, height: 40)
-                              : IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: Colors.red, size: 18),
-                                  onPressed: () {
-                                    if (_propertyRows.length > 1) {
-                                      setState(() {
-                                        _propertyRows.removeAt(index);
-                                      });
-                                    }
-                                  },
-                                ),
-                        ),
-                      ],
-                    );
-                  }),
-                ],
-              ),
               const SizedBox(height: 20),
 
               // --- SECTION 11 ---
@@ -1099,21 +1022,6 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               ),
               const SizedBox(height: 16),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (!widget.readOnly)
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline,
-                          color: Colors.blue),
-                      onPressed: () {
-                        setState(() {
-                          _sealPropertyRows.add(SealPropertyRow());
-                        });
-                      },
-                    ),
-                ],
-              ),
               Table(
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 border: TableBorder.all(color: Colors.black87, width: 1),
@@ -1167,7 +1075,26 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                   }),
                 ],
               ),
-              const SizedBox(height: 24),
+              if (!widget.readOnly) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _sealPropertyRows.add(SealPropertyRow());
+                      });
+                    },
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(
+                      'Add Row (ओळ जोडा)',
+                      style: GoogleFonts.poppins(
+                          fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
