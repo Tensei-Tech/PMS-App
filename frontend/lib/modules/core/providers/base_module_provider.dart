@@ -163,6 +163,11 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
+    // Optimistic insert to ensure UI immediately reflects the new case
+    _records.removeWhere((r) => r.id == enriched.id);
+    _records.insert(0, enriched);
+    notifyListeners();
+
     await _caseService.saveCase(enriched, isCreate: true);
     await _fetchCases(forceRefresh: true);
   }
@@ -180,16 +185,21 @@ class BaseModuleProvider extends ChangeNotifier {
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
     // Optimistically update local list so UI reflects status change immediately
-    final idx = _records.indexWhere((r) => r.id == record.id);
+    final idx = _records.indexWhere((r) => r.id == enriched.id);
     if (idx != -1) {
       _records[idx] = enriched;
-      notifyListeners();
+    } else {
+      _records.insert(0, enriched);
     }
+    notifyListeners();
     await _caseService.saveCase(enriched, isCreate: false);
     await _fetchCases(forceRefresh: true);
   }
 
   Future<void> deleteRecord(String id) async {
+    _records.removeWhere((r) => r.id == id);
+    notifyListeners();
+
     await _caseService.deleteCase(id);
     await _fetchCases(forceRefresh: true);
   }
