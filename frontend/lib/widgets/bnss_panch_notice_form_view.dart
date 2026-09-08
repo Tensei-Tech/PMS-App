@@ -135,36 +135,80 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
 
   void hydrateFrom(Map<String, dynamic> data) {
     // Page 1
-    _p1PsCtrl.text = data['p1_policeStation']?.toString() ?? data['policeStation']?.toString() ?? '';
-    _p1DateCtrl.text = data['p1_date']?.toString() ?? data['date']?.toString() ?? '';
-    _p1Panch1Ctrl.text = data['p1_panch1']?.toString() ?? data['panch1']?.toString() ?? '';
-    _p1Panch2Ctrl.text = data['p1_panch2']?.toString() ?? data['panch2']?.toString() ?? '';
-    _p1FirPsCtrl.text = data['p1_firPs']?.toString() ?? data['firPs']?.toString() ?? '';
-    _p1CrimeNoCtrl.text = data['p1_crimeNo']?.toString() ?? data['crimeNo']?.toString() ?? '';
-    _p1ActSecCtrl.text = data['p1_actSec']?.toString() ?? data['actSec']?.toString() ?? '';
-    _p1ComplainantNameCtrl.text = data['p1_complainantName']?.toString() ?? data['complainantName']?.toString() ?? '';
-    _p1ComplainantResidenceCtrl.text = data['p1_complainantResidence']?.toString() ?? data['complainantResidence']?.toString() ?? '';
-    _p1ComplainantTahCtrl.text = data['p1_complainantTah']?.toString() ?? data['complainantTah']?.toString() ?? '';
-    _p1ComplainantDistCtrl.text = data['p1_complainantDist']?.toString() ?? data['complainantDist']?.toString() ?? 'यवतमाळ';
-    _p1IoNameSigCtrl.text = data['p1_ioNameSig']?.toString() ?? data['ioNameSig']?.toString() ?? '';
-    _p1Panch1ReceiptCtrl.text = data['p1_panch1Receipt']?.toString() ?? data['panch1Receipt']?.toString() ?? '';
-    _p1Panch2ReceiptCtrl.text = data['p1_panch2Receipt']?.toString() ?? data['panch2Receipt']?.toString() ?? '';
+    _p1PsCtrl.text = data['p1_policeStation']?.toString() ??
+        data['policeStation']?.toString() ??
+        '';
+    _p1DateCtrl.text =
+        data['p1_date']?.toString() ?? data['date']?.toString() ?? '';
+    _p1Panch1Ctrl.text =
+        data['p1_panch1']?.toString() ?? data['panch1']?.toString() ?? '';
+    _p1Panch2Ctrl.text =
+        data['p1_panch2']?.toString() ?? data['panch2']?.toString() ?? '';
+    _p1FirPsCtrl.text =
+        data['p1_firPs']?.toString() ?? data['firPs']?.toString() ?? '';
+    _p1CrimeNoCtrl.text =
+        data['p1_crimeNo']?.toString() ?? data['crimeNo']?.toString() ?? '';
+    _p1ActSecCtrl.text =
+        data['p1_actSec']?.toString() ?? data['actSec']?.toString() ?? '';
+    _p1ComplainantNameCtrl.text = data['p1_complainantName']?.toString() ??
+        data['complainantName']?.toString() ??
+        '';
+    _p1ComplainantResidenceCtrl.text =
+        data['p1_complainantResidence']?.toString() ??
+            data['complainantResidence']?.toString() ??
+            '';
+    _p1ComplainantTahCtrl.text = data['p1_complainantTah']?.toString() ??
+        data['complainantTah']?.toString() ??
+        '';
+    _p1ComplainantDistCtrl.text = data['p1_complainantDist']?.toString() ??
+        data['complainantDist']?.toString() ??
+        'यवतमाळ';
+    _p1IoNameSigCtrl.text =
+        data['p1_ioNameSig']?.toString() ?? data['ioNameSig']?.toString() ?? '';
+    _p1Panch1ReceiptCtrl.text = data['p1_panch1Receipt']?.toString() ??
+        data['panch1Receipt']?.toString() ??
+        '';
+    _p1Panch2ReceiptCtrl.text = data['p1_panch2Receipt']?.toString() ??
+        data['panch2Receipt']?.toString() ??
+        '';
 
     // Page 2
-    _p2PsCtrl.text = data['p2_policeStation']?.toString() ?? data['policeStation']?.toString() ?? '';
-    _p2DateCtrl.text = data['p2_date']?.toString() ?? data['date']?.toString() ?? '';
-    _p2Panch1Ctrl.text = data['p2_panch1']?.toString() ?? data['panch1']?.toString() ?? '';
-    _p2Panch2Ctrl.text = data['p2_panch2']?.toString() ?? data['panch2']?.toString() ?? '';
-    _p2RaidDateCtrl.text = data['p2_raidDate']?.toString() ?? data['raidDate']?.toString() ?? '';
-    _p2VillageCtrl.text = data['p2_village']?.toString() ?? data['village']?.toString() ?? '';
-    _p2SuspectNameCtrl.text = data['p2_suspectName']?.toString() ?? data['suspectName']?.toString() ?? '';
-    _p2SuspectAgeCtrl.text = data['p2_suspectAge']?.toString() ?? data['suspectAge']?.toString() ?? '';
-    _p2SuspectResidenceCtrl.text = data['p2_suspectResidence']?.toString() ?? data['suspectResidence']?.toString() ?? '';
-    _p2SuspectTahCtrl.text = data['p2_suspectTah']?.toString() ?? data['suspectTah']?.toString() ?? '';
-    _p2SuspectDistCtrl.text = data['p2_suspectDist']?.toString() ?? data['suspectDist']?.toString() ?? 'यवतमाळ';
-    _p2IoNameSigCtrl.text = data['p2_ioNameSig']?.toString() ?? data['ioNameSig']?.toString() ?? '';
-    _p2Panch1ReceiptCtrl.text = data['p2_panch1Receipt']?.toString() ?? data['panch1Receipt']?.toString() ?? '';
-    _p2Panch2ReceiptCtrl.text = data['p2_panch2Receipt']?.toString() ?? data['panch2Receipt']?.toString() ?? '';
+    _p2PsCtrl.text = data['p2_policeStation']?.toString() ??
+        data['policeStation']?.toString() ??
+        '';
+    _p2DateCtrl.text =
+        data['p2_date']?.toString() ?? data['date']?.toString() ?? '';
+    _p2Panch1Ctrl.text =
+        data['p2_panch1']?.toString() ?? data['panch1']?.toString() ?? '';
+    _p2Panch2Ctrl.text =
+        data['p2_panch2']?.toString() ?? data['panch2']?.toString() ?? '';
+    _p2RaidDateCtrl.text =
+        data['p2_raidDate']?.toString() ?? data['raidDate']?.toString() ?? '';
+    _p2VillageCtrl.text =
+        data['p2_village']?.toString() ?? data['village']?.toString() ?? '';
+    _p2SuspectNameCtrl.text = data['p2_suspectName']?.toString() ??
+        data['suspectName']?.toString() ??
+        '';
+    _p2SuspectAgeCtrl.text = data['p2_suspectAge']?.toString() ??
+        data['suspectAge']?.toString() ??
+        '';
+    _p2SuspectResidenceCtrl.text = data['p2_suspectResidence']?.toString() ??
+        data['suspectResidence']?.toString() ??
+        '';
+    _p2SuspectTahCtrl.text = data['p2_suspectTah']?.toString() ??
+        data['suspectTah']?.toString() ??
+        '';
+    _p2SuspectDistCtrl.text = data['p2_suspectDist']?.toString() ??
+        data['suspectDist']?.toString() ??
+        'यवतमाळ';
+    _p2IoNameSigCtrl.text =
+        data['p2_ioNameSig']?.toString() ?? data['ioNameSig']?.toString() ?? '';
+    _p2Panch1ReceiptCtrl.text = data['p2_panch1Receipt']?.toString() ??
+        data['panch1Receipt']?.toString() ??
+        '';
+    _p2Panch2ReceiptCtrl.text = data['p2_panch2Receipt']?.toString() ??
+        data['panch2Receipt']?.toString() ??
+        '';
 
     if (mounted) setState(() {});
   }
@@ -239,7 +283,8 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
             // Panch names
             Text(
               'पंच नांव  :-',
-              style: marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+              style:
+                  marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             const SizedBox(height: 6),
             BilingualMultilineField(
@@ -481,7 +526,8 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
             // Panch names
             Text(
               'पंच नांव  :-',
-              style: marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+              style:
+                  marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             const SizedBox(height: 6),
             BilingualMultilineField(

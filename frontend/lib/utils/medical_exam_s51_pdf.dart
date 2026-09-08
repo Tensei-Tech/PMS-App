@@ -64,7 +64,8 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
         final dateStr = v('date', '......./ ......../२०...');
 
         final toOfficer = v('toOfficer', 'मा. वैद्यकीय अधिकारी');
-        final toHospital = v('toHospital', 'प्राथमकी आरोग्य केंद्र सावळी सदोबा');
+        final toHospital =
+            v('toHospital', 'प्राथमकी आरोग्य केंद्र सावळी सदोबा');
         final toTahDist = v('toTahDist', 'ता आर्णी जिल्हा यवतमाळ.');
 
         final fromLocation = v(
@@ -82,7 +83,8 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
         final victimResidence = v('victimResidence', '__________________');
         final victimTah = v('victimTah', '____________');
         final victimDist = v('victimDist', 'यवतमाळ');
-        final assaultDetails = v('assaultDetails', '___________________________');
+        final assaultDetails =
+            v('assaultDetails', '___________________________');
 
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,

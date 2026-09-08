@@ -121,7 +121,8 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
                   children: [
                     pw.Text('MLC No.:-', style: bold),
                     pw.SizedBox(width: 4),
-                    pw.Expanded(child: underlineValue(v('mlcNo'), minWidth: 100)),
+                    pw.Expanded(
+                        child: underlineValue(v('mlcNo'), minWidth: 100)),
                   ],
                 ),
                 pw.SizedBox(height: 4),
@@ -129,7 +130,8 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
                   children: [
                     pw.Text('Date. ', style: bold),
                     pw.SizedBox(width: 4),
-                    pw.Expanded(child: underlineValue(v('mlcDate'), minWidth: 100)),
+                    pw.Expanded(
+                        child: underlineValue(v('mlcDate'), minWidth: 100)),
                   ],
                 ),
               ],
@@ -156,7 +158,8 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
                 style: bold,
               ),
               const pw.TextSpan(text: '  about years\n'),
-              const pw.TextSpan(text: 'bearing following identification mark R/O.  '),
+              const pw.TextSpan(
+                  text: 'bearing following identification mark R/O.  '),
               pw.TextSpan(
                 text: v('idMarkAndAddress').isEmpty
                     ? '.......................................................'
@@ -170,7 +173,9 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
               ),
               const pw.TextSpan(text: '  dist.  '),
               pw.TextSpan(
-                text: v('dist').isEmpty ? '...........................' : v('dist'),
+                text: v('dist').isEmpty
+                    ? '...........................'
+                    : v('dist'),
                 style: bold,
               ),
               const pw.TextSpan(text: '\nbrought to this hospital by PC/HC.  '),
@@ -257,15 +262,20 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
                   pw.Container(
                     alignment: pw.Alignment.center,
                     padding: const pw.EdgeInsets.symmetric(vertical: 8),
-                    child: pw.Text('${i + 1}', style: bold.copyWith(fontSize: 8)),
+                    child:
+                        pw.Text('${i + 1}', style: bold.copyWith(fontSize: 8)),
                   ),
-                  _buildPdfDataCell(injuryList[i]['typeOfInjury'] ?? '', regular),
+                  _buildPdfDataCell(
+                      injuryList[i]['typeOfInjury'] ?? '', regular),
                   _buildPdfDataCell(injuryList[i]['siteOnBody'] ?? '', regular),
-                  _buildPdfDataCell(injuryList[i]['ageOfInjury'] ?? '', regular),
+                  _buildPdfDataCell(
+                      injuryList[i]['ageOfInjury'] ?? '', regular),
                   _buildPdfDataCell(injuryList[i]['size'] ?? '', regular),
                   _buildPdfDataCell(injuryList[i]['color'] ?? '', regular),
-                  _buildPdfDataCell(injuryList[i]['probableWeapon'] ?? '', regular),
-                  _buildPdfDataCell(injuryList[i]['simpleGrievous'] ?? '', regular),
+                  _buildPdfDataCell(
+                      injuryList[i]['probableWeapon'] ?? '', regular),
+                  _buildPdfDataCell(
+                      injuryList[i]['simpleGrievous'] ?? '', regular),
                   _buildPdfDataCell(injuryList[i]['remark'] ?? '', regular),
                 ],
               ),

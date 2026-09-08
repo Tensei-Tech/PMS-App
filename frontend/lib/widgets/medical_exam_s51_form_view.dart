@@ -95,21 +95,36 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
   }
 
   void hydrateFrom(Map<String, dynamic> data) {
-    if (data.containsKey('outpost')) _outpostCtrl.text = data['outpost']?.toString() ?? '';
-    if (data.containsKey('policeStation')) _psCtrl.text = data['policeStation']?.toString() ?? '';
-    if (data.containsKey('date')) _dateCtrl.text = data['date']?.toString() ?? '';
-    if (data.containsKey('toOfficer')) _toOfficerCtrl.text = data['toOfficer']?.toString() ?? '';
-    if (data.containsKey('toHospital')) _toHospitalCtrl.text = data['toHospital']?.toString() ?? '';
-    if (data.containsKey('toTahDist')) _toTahDistCtrl.text = data['toTahDist']?.toString() ?? '';
-    if (data.containsKey('fromLocation')) _fromLocationCtrl.text = data['fromLocation']?.toString() ?? '';
-    if (data.containsKey('subject')) _subjectCtrl.text = data['subject']?.toString() ?? '';
-    if (data.containsKey('victimName')) _victimNameCtrl.text = data['victimName']?.toString() ?? '';
-    if (data.containsKey('victimAge')) _victimAgeCtrl.text = data['victimAge']?.toString() ?? '';
-    if (data.containsKey('victimResidence')) _victimResidenceCtrl.text = data['victimResidence']?.toString() ?? '';
-    if (data.containsKey('victimTah')) _victimTahCtrl.text = data['victimTah']?.toString() ?? '';
-    if (data.containsKey('victimDist')) _victimDistCtrl.text = data['victimDist']?.toString() ?? '';
-    if (data.containsKey('assaultDetails')) _assaultDetailsCtrl.text = data['assaultDetails']?.toString() ?? '';
-    if (data.containsKey('officerSignature')) _officerSignatureCtrl.text = data['officerSignature']?.toString() ?? '';
+    if (data.containsKey('outpost'))
+      _outpostCtrl.text = data['outpost']?.toString() ?? '';
+    if (data.containsKey('policeStation'))
+      _psCtrl.text = data['policeStation']?.toString() ?? '';
+    if (data.containsKey('date'))
+      _dateCtrl.text = data['date']?.toString() ?? '';
+    if (data.containsKey('toOfficer'))
+      _toOfficerCtrl.text = data['toOfficer']?.toString() ?? '';
+    if (data.containsKey('toHospital'))
+      _toHospitalCtrl.text = data['toHospital']?.toString() ?? '';
+    if (data.containsKey('toTahDist'))
+      _toTahDistCtrl.text = data['toTahDist']?.toString() ?? '';
+    if (data.containsKey('fromLocation'))
+      _fromLocationCtrl.text = data['fromLocation']?.toString() ?? '';
+    if (data.containsKey('subject'))
+      _subjectCtrl.text = data['subject']?.toString() ?? '';
+    if (data.containsKey('victimName'))
+      _victimNameCtrl.text = data['victimName']?.toString() ?? '';
+    if (data.containsKey('victimAge'))
+      _victimAgeCtrl.text = data['victimAge']?.toString() ?? '';
+    if (data.containsKey('victimResidence'))
+      _victimResidenceCtrl.text = data['victimResidence']?.toString() ?? '';
+    if (data.containsKey('victimTah'))
+      _victimTahCtrl.text = data['victimTah']?.toString() ?? '';
+    if (data.containsKey('victimDist'))
+      _victimDistCtrl.text = data['victimDist']?.toString() ?? '';
+    if (data.containsKey('assaultDetails'))
+      _assaultDetailsCtrl.text = data['assaultDetails']?.toString() ?? '';
+    if (data.containsKey('officerSignature'))
+      _officerSignatureCtrl.text = data['officerSignature']?.toString() ?? '';
     if (mounted) setState(() {});
   }
 

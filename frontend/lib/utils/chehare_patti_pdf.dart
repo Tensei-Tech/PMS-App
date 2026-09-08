@@ -140,7 +140,8 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
             },
             children: [
               // Header
-              buildRow('अ.क्र.', 'विवरण', pw.Text('', style: bold), isHeader: true),
+              buildRow('अ.क्र.', 'विवरण', pw.Text('', style: bold),
+                  isHeader: true),
 
               // 1. CR No & Section
               buildRow(
@@ -156,7 +157,8 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
                     pw.Text('कलम ', style: bold),
                     pw.Expanded(
                       child: pw.Text(
-                        v('actSec', '....................................................'),
+                        v('actSec',
+                            '....................................................'),
                         style: regular,
                       ),
                     ),
@@ -172,7 +174,8 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      v('accusedDetails', '___________________________________________________________________\n___________________________________________________________________\n___________________________________________________________________'),
+                      v('accusedDetails',
+                          '___________________________________________________________________\n___________________________________________________________________\n___________________________________________________________________'),
                       style: regular,
                     ),
                   ],
@@ -201,15 +204,20 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
               buildSimpleTextRow('२१.', 'भाजल्याच्या खुना', 'burnMarks'),
               buildSimpleTextRow('२२.', 'कोळ डाग', 'blackSpots'),
               buildSimpleTextRow('२३.', 'तिळ', 'moles'),
-              buildSimpleTextRow('२४.', 'जुण्या जखमाचे व्रण व इतर खुणा', 'scars'),
+              buildSimpleTextRow(
+                  '२४.', 'जुण्या जखमाचे व्रण व इतर खुणा', 'scars'),
               buildSimpleTextRow('२५.', 'गोंदलेले', 'tattoo'),
               buildSimpleTextRow('२६.', 'सवयी', 'habits'),
               buildSimpleTextRow('२७.', 'बोलण्याची पध्दत', 'speech'),
               buildSimpleTextRow('२८.', 'कपडे कसे घालतो', 'clothing'),
-              buildSimpleTextRow('२९.', 'अटकेचा दिनांक व वेळ', 'arrestDateTime'),
-              buildSimpleTextRow('३०.', 'अटक करणारे अंमलदार', 'arrestingOfficer'),
-              buildSimpleTextRow('३१.', 'जमीनावर सोडला असल्यास जामीनदाराचे नांव', 'surety'),
-              buildSimpleTextRow('३२.', 'गुन्हेगारास अगोदर शिक्षा झाली काय व किती', 'pastConviction'),
+              buildSimpleTextRow(
+                  '२९.', 'अटकेचा दिनांक व वेळ', 'arrestDateTime'),
+              buildSimpleTextRow(
+                  '३०.', 'अटक करणारे अंमलदार', 'arrestingOfficer'),
+              buildSimpleTextRow(
+                  '३१.', 'जमीनावर सोडला असल्यास जामीनदाराचे नांव', 'surety'),
+              buildSimpleTextRow('३२.',
+                  'गुन्हेगारास अगोदर शिक्षा झाली काय व किती', 'pastConviction'),
               buildSimpleTextRow('३३.', 'केंसचा निकाल', 'caseResult'),
             ],
           ),

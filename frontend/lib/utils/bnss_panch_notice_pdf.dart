@@ -72,19 +72,26 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
         final crimeNo = v('p1_crimeNo', v('crimeNo', '........'));
         final actSec = v(
           'p1_actSec',
-          v('actSec', '---------------------------------------------------------------------'),
+          v('actSec',
+              '---------------------------------------------------------------------'),
         );
         final complainantName = v(
           'p1_complainantName',
-          v('complainantName', '----------------------------------------------'),
+          v('complainantName',
+              '----------------------------------------------'),
         );
-        final complainantResidence = v('p1_complainantResidence', v('complainantResidence', '----------'));
-        final complainantTah = v('p1_complainantTah', v('complainantTah', '--------'));
-        final complainantDist = v('p1_complainantDist', v('complainantDist', 'यवतमाळ'));
+        final complainantResidence = v(
+            'p1_complainantResidence', v('complainantResidence', '----------'));
+        final complainantTah =
+            v('p1_complainantTah', v('complainantTah', '--------'));
+        final complainantDist =
+            v('p1_complainantDist', v('complainantDist', 'यवतमाळ'));
 
         final ioNameSig = v('p1_ioNameSig', v('ioNameSig'));
-        final panch1Receipt = v('p1_panch1Receipt', v('panch1Receipt', '-----------------------'));
-        final panch2Receipt = v('p1_panch2Receipt', v('panch2Receipt', '-----------------------'));
+        final panch1Receipt = v(
+            'p1_panch1Receipt', v('panch1Receipt', '-----------------------'));
+        final panch2Receipt = v(
+            'p1_panch2Receipt', v('panch2Receipt', '-----------------------'));
 
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -217,7 +224,8 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
 
             // Closing line
             pw.Center(
-              child: pw.Text('करीता सुचनापत्र देण्यात येत आहे.', style: regular),
+              child:
+                  pw.Text('करीता सुचनापत्र देण्यात येत आहे.', style: regular),
             ),
             pw.Spacer(),
 
@@ -282,17 +290,22 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
         final panch1 = v('p2_panch1', v('panch1'));
         final panch2 = v('p2_panch2', v('panch2'));
 
-        final raidDate = v('p2_raidDate', v('raidDate', '......./ ......./२०.....'));
+        final raidDate =
+            v('p2_raidDate', v('raidDate', '......./ ......./२०.....'));
         final village = v('p2_village', v('village', '-------------'));
-        final suspectName = v('p2_suspectName', v('suspectName', '-------------------------------------'));
+        final suspectName = v('p2_suspectName',
+            v('suspectName', '-------------------------------------'));
         final suspectAge = v('p2_suspectAge', v('suspectAge', '........'));
-        final suspectResidence = v('p2_suspectResidence', v('suspectResidence', '-------------'));
+        final suspectResidence =
+            v('p2_suspectResidence', v('suspectResidence', '-------------'));
         final suspectTah = v('p2_suspectTah', v('suspectTah', '--------'));
         final suspectDist = v('p2_suspectDist', v('suspectDist', 'यवतमाळ'));
 
         final ioNameSig = v('p2_ioNameSig', v('ioNameSig'));
-        final panch1Receipt = v('p2_panch1Receipt', v('panch1Receipt', '-----------------------'));
-        final panch2Receipt = v('p2_panch2Receipt', v('panch2Receipt', '-----------------------'));
+        final panch1Receipt = v(
+            'p2_panch1Receipt', v('panch1Receipt', '-----------------------'));
+        final panch2Receipt = v(
+            'p2_panch2Receipt', v('panch2Receipt', '-----------------------'));
 
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -426,7 +439,8 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
 
             // Closing line
             pw.Center(
-              child: pw.Text('करीता सुचनापत्र देण्यात येत आहे.', style: regular),
+              child:
+                  pw.Text('करीता सुचनापत्र देण्यात येत आहे.', style: regular),
             ),
             pw.Spacer(),
 

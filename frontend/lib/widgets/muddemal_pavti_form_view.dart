@@ -492,122 +492,122 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                          Expanded(
-                            flex: 4,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                border: Border(
-                                  right:
-                                      BorderSide(color: Colors.black, width: 1),
+                            Expanded(
+                              flex: 4,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                        color: Colors.black, width: 1),
+                                  ),
                                 ),
-                              ),
-                              child: TextField(
-                                controller: _safeRows[i].description,
-                                readOnly: widget.readOnly,
-                                minLines: 6,
-                                maxLines: null,
-                                style: serif.copyWith(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade900,
-                                ),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: 'मालाचे संपूर्ण वर्णन...',
-                                  hintStyle: serif.copyWith(
-                                      color: Colors.grey.shade400,
-                                      fontSize: 11),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                border: Border(
-                                  right:
-                                      BorderSide(color: Colors.black, width: 1),
-                                ),
-                              ),
-                              child: TextField(
-                                controller: _safeRows[i].estimatedValue,
-                                readOnly: widget.readOnly,
-                                minLines: 2,
-                                maxLines: null,
-                                style: serif.copyWith(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade900,
-                                ),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: 'अंदाजे किंमत...',
-                                  hintStyle: serif.copyWith(
-                                      color: Colors.grey.shade400,
-                                      fontSize: 11),
+                                child: TextField(
+                                  controller: _safeRows[i].description,
+                                  readOnly: widget.readOnly,
+                                  minLines: 6,
+                                  maxLines: null,
+                                  style: serif.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'मालाचे संपूर्ण वर्णन...',
+                                    hintStyle: serif.copyWith(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 11),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                border: Border(
-                                  right:
-                                      BorderSide(color: Colors.black, width: 1),
+                            Expanded(
+                              flex: 2,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                        color: Colors.black, width: 1),
+                                  ),
                                 ),
-                              ),
-                              child: TextField(
-                                controller: _safeRows[i].propertyNo,
-                                readOnly: widget.readOnly,
-                                style: serif.copyWith(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade900,
-                                ),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: '......./२०....',
-                                  hintStyle: serif.copyWith(
-                                      color: Colors.grey.shade400,
-                                      fontSize: 11),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 3,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              child: TextField(
-                                controller: _safeRows[i].seizedFrom,
-                                readOnly: widget.readOnly,
-                                minLines: 4,
-                                maxLines: null,
-                                style: serif.copyWith(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade900,
-                                ),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: 'व्यक्तीचे नाव व पत्ता...',
-                                  hintStyle: serif.copyWith(
-                                      color: Colors.grey.shade400,
-                                      fontSize: 11),
+                                child: TextField(
+                                  controller: _safeRows[i].estimatedValue,
+                                  readOnly: widget.readOnly,
+                                  minLines: 2,
+                                  maxLines: null,
+                                  style: serif.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'अंदाजे किंमत...',
+                                    hintStyle: serif.copyWith(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 11),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                            Expanded(
+                              flex: 2,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                        color: Colors.black, width: 1),
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: _safeRows[i].propertyNo,
+                                  readOnly: widget.readOnly,
+                                  style: serif.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: '......./२०....',
+                                    hintStyle: serif.copyWith(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: TextField(
+                                  controller: _safeRows[i].seizedFrom,
+                                  readOnly: widget.readOnly,
+                                  minLines: 4,
+                                  maxLines: null,
+                                  style: serif.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'व्यक्तीचे नाव व पत्ता...',
+                                    hintStyle: serif.copyWith(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

@@ -206,7 +206,8 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
             // ── PANCH NAMES ──
             Text(
               'पंच नांव :-',
-              style: marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+              style:
+                  marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             const SizedBox(height: 6),
             BilingualMultilineField(

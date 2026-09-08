@@ -53,11 +53,13 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   final ps = v('policeStation');
   final dist = v('district', 'यवतमाळ');
   final crimeNo = v('crimeNo', '........../२०......');
-  final actSec = v('actSec', '________________________________________________');
+  final actSec =
+      v('actSec', '________________________________________________');
   final ioName = v('ioName');
   final ioPs = v('ioPs');
   final ioDist = v('ioDist', 'यवतमाळ');
-  final accusedName = v('accusedName', '____________________________________________________________________');
+  final accusedName = v('accusedName',
+      '____________________________________________________________________');
   final seizureDate = v('seizureDate', '......./ ........./२०.....');
   final propertyNo = v('propertyNo', '........../२०......');
 

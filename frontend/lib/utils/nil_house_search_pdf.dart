@@ -45,7 +45,8 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
 
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
-  pw.Widget underlineField(String label, String value, {double minWidth = 100}) {
+  pw.Widget underlineField(String label, String value,
+      {double minWidth = 100}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
       child: pw.Row(
@@ -166,9 +167,7 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
               ),
               const pw.TextSpan(text: '  येथे अप.क्र.  '),
               pw.TextSpan(
-                text: v('crimeNo').isEmpty
-                    ? '........./ २०....'
-                    : v('crimeNo'),
+                text: v('crimeNo').isEmpty ? '........./ २०....' : v('crimeNo'),
                 style: bold,
               ),
               const pw.TextSpan(text: '  कलम  '),
@@ -295,7 +294,8 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('ज्याचे घराचे झडती घेतली त्याची सही/अंगठा', style: bold),
+                  pw.Text('ज्याचे घराचे झडती घेतली त्याची सही/अंगठा',
+                      style: bold),
                   pw.SizedBox(height: 18),
                   pw.Container(
                     width: 200,

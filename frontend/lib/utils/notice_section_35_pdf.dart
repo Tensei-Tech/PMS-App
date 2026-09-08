@@ -69,13 +69,20 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
   if (showP1) {
     final p1Ps = v('p1PoliceStation', v('policeStation', '_______________'));
     final p1Date = v('p1NoticeDate', v('noticeDate', '......./ ......./२०...'));
-    final p1Recipient1 = v('p1RecipientLine1',
-        v('recipientLine1', '____________________________________________________________________'));
-    final p1Recipient2 = v('p1RecipientLine2',
-        v('recipientLine2', '____________________________________________________________________'));
-    final p1Recipient3 = v('p1RecipientLine3',
-        v('recipientLine3', '____________________________________________________________________'));
-    final p1Aadhaar = v('p1AadhaarNo', v('aadhaarNo', '___________________________'));
+    final p1Recipient1 = v(
+        'p1RecipientLine1',
+        v('recipientLine1',
+            '____________________________________________________________________'));
+    final p1Recipient2 = v(
+        'p1RecipientLine2',
+        v('recipientLine2',
+            '____________________________________________________________________'));
+    final p1Recipient3 = v(
+        'p1RecipientLine3',
+        v('recipientLine3',
+            '____________________________________________________________________'));
+    final p1Aadhaar =
+        v('p1AadhaarNo', v('aadhaarNo', '___________________________'));
     final p1Email = v('p1Email', v('email', '_______________________________'));
 
     final p1IncDate =
@@ -286,26 +293,32 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
   if (showP2) {
     final p2Ps = v('p2PoliceStation', v('policeStation', '_______________'));
     final p2Date = v('p2NoticeDate', v('noticeDate', '......./ ......./२०...'));
-    final p2Recipient1 = v('p2RecipientLine1',
-        v('recipientLine1', '____________________________________________________________________'));
-    final p2Recipient2 = v('p2RecipientLine2',
-        v('recipientLine2', '____________________________________________________________________'));
-    final p2Recipient3 = v('p2RecipientLine3',
-        v('recipientLine3', '____________________________________________________________________'));
+    final p2Recipient1 = v(
+        'p2RecipientLine1',
+        v('recipientLine1',
+            '____________________________________________________________________'));
+    final p2Recipient2 = v(
+        'p2RecipientLine2',
+        v('recipientLine2',
+            '____________________________________________________________________'));
+    final p2Recipient3 = v(
+        'p2RecipientLine3',
+        v('recipientLine3',
+            '____________________________________________________________________'));
 
     final p2IncPs = v('p2IncidentPs', v('incidentPs', '------------------'));
     final p2Dist = v('p2District', v('district', 'यवतमाळ'));
     final p2CrimeNo = v('p2CrimeNo', v('crimeNo', '........./२०........'));
-    final p2ActSec = v('p2ActSec',
-        v('actSec', '.................................................................................'));
+    final p2ActSec = v(
+        'p2ActSec',
+        v('actSec',
+            '.................................................................................'));
 
     final p2CourtDate =
         v('p2CourtDate', v('courtDate', '......./ ......./२०.....'));
     final p2CourtTime = v('p2CourtTime', '१०:३०');
-    final p2CourtPs =
-        v('p2CourtPs', v('courtPs', '------------------'));
-    final p2CourtName =
-        v('p2CourtName', v('courtName', '------------------'));
+    final p2CourtPs = v('p2CourtPs', v('courtPs', '------------------'));
+    final p2CourtName = v('p2CourtName', v('courtName', '------------------'));
 
     final p2IoSig = v('p2IoSig', v('investigatingOfficerSig'));
     final p2AccusedAckSig = v('p2AccusedAckSig');

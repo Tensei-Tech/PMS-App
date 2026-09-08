@@ -65,7 +65,8 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
         final accusedNameAddress = v('accusedNameAddress');
         final mobileNo = v('mobileNo', '..................................');
         final aadhaarNo = v('aadhaarNo', '..................................');
-        final email = v('email', '.........................................................................');
+        final email = v('email',
+            '.........................................................................');
 
         final firPs = v('firPs', '...................');
         final crimeNo = v('crimeNo', '............');
@@ -74,7 +75,8 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
         final firDate = v('firDate', '...../...../२०.....');
 
         final bailType = v('bailType', 'अजमीनपात्र/ जामीनपात्र');
-        final relativeDetails = v('relativeDetails', '.....................................................................................');
+        final relativeDetails = v('relativeDetails',
+            '.....................................................................................');
 
         final accusedSig = v('accusedSig');
         final ioNameSig = v('ioNameSig');
@@ -224,9 +226,7 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                     pw.Text('तपासी अधिकारी नांव व सही', style: bold),
                     pw.SizedBox(height: 4),
                     pw.Text(
-                      ioNameSig.isNotEmpty
-                          ? ioNameSig
-                          : '____________________',
+                      ioNameSig.isNotEmpty ? ioNameSig : '____________________',
                       style: regular,
                     ),
                   ],

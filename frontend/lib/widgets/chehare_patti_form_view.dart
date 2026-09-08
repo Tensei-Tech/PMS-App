@@ -241,8 +241,7 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
               title,
               style: isHeader
                   ? marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13)
-                  : marathi.copyWith(
-                      fontWeight: FontWeight.w600, fontSize: 12),
+                  : marathi.copyWith(fontWeight: FontWeight.w600, fontSize: 12),
             ),
           ),
           Expanded(
@@ -382,11 +381,15 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
                       children: [
                         SizedBox(
                           width: 140,
-                          child: _tableInput(_crNoCtrl, hint: '........../२०.....'),
+                          child: _tableInput(_crNoCtrl,
+                              hint: '........../२०.....'),
                         ),
-                        Text('कलम ', style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                        Text('कलम ',
+                            style:
+                                marathi.copyWith(fontWeight: FontWeight.bold)),
                         Expanded(
-                          child: _tableInput(_actSecCtrl, hint: '....................................'),
+                          child: _tableInput(_actSecCtrl,
+                              hint: '....................................'),
                         ),
                       ],
                     ),
@@ -411,7 +414,8 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
                         contentPadding: const EdgeInsets.symmetric(vertical: 4),
                         border: InputBorder.none,
                         hintText: 'संपूर्ण नांव, पत्ता व मोबाईल नंबर...',
-                        hintStyle: serif.copyWith(color: Colors.grey.shade400, fontSize: 11),
+                        hintStyle: serif.copyWith(
+                            color: Colors.grey.shade400, fontSize: 11),
                       ),
                     ),
                   ),
@@ -429,21 +433,25 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
                   // 8. OCCUPATION
                   _buildTableRow('८.', 'व्यवसाय', _tableInput(_occupationCtrl)),
                   // 9. PHYSIQUE
-                  _buildTableRow('९.', 'शारिर बांधा', _tableInput(_physiqueCtrl)),
+                  _buildTableRow(
+                      '९.', 'शारिर बांधा', _tableInput(_physiqueCtrl)),
                   // 10. HEIGHT
-                  _buildTableRow('१०.', 'उंची सें मी', _tableInput(_heightCtrl)),
+                  _buildTableRow(
+                      '१०.', 'उंची सें मी', _tableInput(_heightCtrl)),
                   // 11. BEARD
                   _buildTableRow('११.', 'दाढी', _tableInput(_beardCtrl)),
                   // 12. COLOR / COMPLEXION
                   _buildTableRow('१२.', 'रंग', _tableInput(_complexionCtrl)),
                   // 13. DISABILITY
-                  _buildTableRow('१३.', 'व्यंग शरिरावर', _tableInput(_disabilityCtrl)),
+                  _buildTableRow(
+                      '१३.', 'व्यंग शरिरावर', _tableInput(_disabilityCtrl)),
                   // 14. EYES
                   _buildTableRow('१४.', 'डोळे', _tableInput(_eyesCtrl)),
                   // 15. FACE
                   _buildTableRow('१५.', 'चेहरा', _tableInput(_faceCtrl)),
                   // 16. HAIR STYLE
-                  _buildTableRow('१६.', 'केसाची ठेवण', _tableInput(_hairStyleCtrl)),
+                  _buildTableRow(
+                      '१६.', 'केसाची ठेवण', _tableInput(_hairStyleCtrl)),
                   // 17. MUSTACHE
                   _buildTableRow('१७.', 'मिशी', _tableInput(_mustacheCtrl)),
                   // 18. NOSE
@@ -453,31 +461,45 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
                   // 20. TEETH
                   _buildTableRow('२०.', 'दात', _tableInput(_teethCtrl)),
                   // 21. BURN MARKS
-                  _buildTableRow('२१.', 'भाजल्याच्या खुना', _tableInput(_burnMarksCtrl)),
+                  _buildTableRow(
+                      '२१.', 'भाजल्याच्या खुना', _tableInput(_burnMarksCtrl)),
                   // 22. BLACK SPOTS
-                  _buildTableRow('२२.', 'कोळ डाग', _tableInput(_blackSpotsCtrl)),
+                  _buildTableRow(
+                      '२२.', 'कोळ डाग', _tableInput(_blackSpotsCtrl)),
                   // 23. MOLE
                   _buildTableRow('२३.', 'तिळ', _tableInput(_molesCtrl)),
                   // 24. OLD SCARS
-                  _buildTableRow('२४.', 'जुण्या जखमाचे व्रण व इतर खुणा', _tableInput(_scarsCtrl)),
+                  _buildTableRow('२४.', 'जुण्या जखमाचे व्रण व इतर खुणा',
+                      _tableInput(_scarsCtrl)),
                   // 25. TATTOO
                   _buildTableRow('२५.', 'गोंदलेले', _tableInput(_tattooCtrl)),
                   // 26. HABITS
                   _buildTableRow('२६.', 'सवयी', _tableInput(_habitsCtrl)),
                   // 27. SPEECH
-                  _buildTableRow('२७.', 'बोलण्याची पध्दत', _tableInput(_speechCtrl)),
+                  _buildTableRow(
+                      '२७.', 'बोलण्याची पध्दत', _tableInput(_speechCtrl)),
                   // 28. DRESSING
-                  _buildTableRow('२८.', 'कपडे कसे घालतो', _tableInput(_clothingCtrl)),
+                  _buildTableRow(
+                      '२८.', 'कपडे कसे घालतो', _tableInput(_clothingCtrl)),
                   // 29. ARREST DATE TIME
-                  _buildTableRow('२९.', 'अटकेचा दिनांक व वेळ', _tableInput(_arrestDateTimeCtrl)),
+                  _buildTableRow('२९.', 'अटकेचा दिनांक व वेळ',
+                      _tableInput(_arrestDateTimeCtrl)),
                   // 30. ARRESTING OFFICER
-                  _buildTableRow('३०.', 'अटक करणारे अंमलदार', _tableInput(_arrestingOfficerCtrl)),
+                  _buildTableRow('३०.', 'अटक करणारे अंमलदार',
+                      _tableInput(_arrestingOfficerCtrl)),
                   // 31. SURETY NAME
-                  _buildTableRow('३१.', 'जमीनावर सोडला असल्यास जामीनदाराचे नांव', _tableInput(_suretyCtrl)),
+                  _buildTableRow(
+                      '३१.',
+                      'जमीनावर सोडला असल्यास जामीनदाराचे नांव',
+                      _tableInput(_suretyCtrl)),
                   // 32. PAST CONVICTIONS
-                  _buildTableRow('३२.', 'गुन्हेगारास अगोदर शिक्षा झाली काय व किती', _tableInput(_pastConvictionCtrl)),
+                  _buildTableRow(
+                      '३२.',
+                      'गुन्हेगारास अगोदर शिक्षा झाली काय व किती',
+                      _tableInput(_pastConvictionCtrl)),
                   // 33. CASE OUTCOME
-                  _buildTableRow('३३.', 'केंसचा निकाल', _tableInput(_caseResultCtrl)),
+                  _buildTableRow(
+                      '३३.', 'केंसचा निकाल', _tableInput(_caseResultCtrl)),
                 ],
               ),
             ),

@@ -162,8 +162,9 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     _p1PsCtrl.text = data['p1PoliceStation']?.toString() ??
         data['policeStation']?.toString() ??
         '';
-    _p1DateCtrl.text =
-        data['p1NoticeDate']?.toString() ?? data['noticeDate']?.toString() ?? '';
+    _p1DateCtrl.text = data['p1NoticeDate']?.toString() ??
+        data['noticeDate']?.toString() ??
+        '';
     _p1RecipientLine1Ctrl.text = data['p1RecipientLine1']?.toString() ??
         data['recipientLine1']?.toString() ??
         '';
@@ -193,8 +194,9 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     _p1AppearanceTimeCtrl.text = data['p1AppearanceTime']?.toString() ??
         data['appearanceTime']?.toString() ??
         '';
-    _p1AccusedSigCtrl.text =
-        data['p1AccusedSig']?.toString() ?? data['accusedSig']?.toString() ?? '';
+    _p1AccusedSigCtrl.text = data['p1AccusedSig']?.toString() ??
+        data['accusedSig']?.toString() ??
+        '';
     _p1IoSigCtrl.text = data['p1IoSig']?.toString() ??
         data['investigatingOfficerSig']?.toString() ??
         '';
@@ -203,8 +205,9 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     _p2PsCtrl.text = data['p2PoliceStation']?.toString() ??
         data['policeStation']?.toString() ??
         '';
-    _p2DateCtrl.text =
-        data['p2NoticeDate']?.toString() ?? data['noticeDate']?.toString() ?? '';
+    _p2DateCtrl.text = data['p2NoticeDate']?.toString() ??
+        data['noticeDate']?.toString() ??
+        '';
     _p2RecipientLine1Ctrl.text = data['p2RecipientLine1']?.toString() ??
         data['recipientLine1']?.toString() ??
         '';

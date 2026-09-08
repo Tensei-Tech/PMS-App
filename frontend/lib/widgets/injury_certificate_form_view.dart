@@ -273,7 +273,8 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
                 BilingualField(
                   label: 'Certified that shri/smt',
                   marathiLabel: '',
-                  hintText: '................................................................',
+                  hintText:
+                      '................................................................',
                   controller: _patientNameCtrl,
                   serifStyle: serif,
                   marathiLabelStyle: serif,
@@ -297,7 +298,8 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
             BilingualField(
               label: 'bearing following identification mark R/O.',
               marathiLabel: '',
-              hintText: '................................................................................',
+              hintText:
+                  '................................................................................',
               controller: _idMarkAndAddressCtrl,
               serifStyle: serif,
               marathiLabelStyle: serif,

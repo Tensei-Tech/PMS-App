@@ -100,7 +100,8 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
     _actSecCtrl.text = data['actSec']?.toString() ?? '';
     _coActSecCtrl.text = data['coActSec']?.toString() ?? '';
     _firDateCtrl.text = data['firDate']?.toString() ?? '';
-    _bailTypeCtrl.text = data['bailType']?.toString() ?? 'अजमीनपात्र/ जामीनपात्र';
+    _bailTypeCtrl.text =
+        data['bailType']?.toString() ?? 'अजमीनपात्र/ जामीनपात्र';
     _relativeDetailsCtrl.text = data['relativeDetails']?.toString() ?? '';
     _accusedSigCtrl.text = data['accusedSig']?.toString() ?? '';
     _ioNameSigCtrl.text = data['ioNameSig']?.toString() ?? '';
