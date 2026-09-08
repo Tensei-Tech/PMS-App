@@ -184,6 +184,7 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
+    // Optimistically update local list so UI reflects status change immediately
     final idx = _records.indexWhere((r) => r.id == enriched.id);
     if (idx != -1) {
       _records[idx] = enriched;
@@ -191,7 +192,6 @@ class BaseModuleProvider extends ChangeNotifier {
       _records.insert(0, enriched);
     }
     notifyListeners();
-
     await _caseService.saveCase(enriched, isCreate: false);
     await _fetchCases(forceRefresh: true);
   }

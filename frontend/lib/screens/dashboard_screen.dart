@@ -139,7 +139,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.userSecret;
     case 'Sand Theft':
       return FontAwesomeIcons.truck;
-    case 'Two/Four Wheeler':
+    case 'Two/Four Wheeler Theft':
       return FontAwesomeIcons.motorcycle;
     case 'Kidnapping':
       return FontAwesomeIcons.userMinus;
@@ -171,6 +171,9 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.clipboardList;
     case 'Muddemal':
       return FontAwesomeIcons.folderOpen;
+    case 'CRPC 1563 / BNSS 1753':
+    case 'CRPC 1563 / 1753 (BNSS)':
+    case 'CRPC 156(3) / BNSS 175(3)':
     case 'Sec 186/175 (BNSS)':
       return FontAwesomeIcons.scaleBalanced;
     case 'Passport/PVR/Lic':
@@ -198,6 +201,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return Icons.call_rounded;
     case 'Tadipar':
       return Icons.gavel_rounded;
+    case 'History Sheeter':
     case 'History Sheet':
       return Icons.assignment_rounded;
     case 'Repeat Offender':
@@ -347,7 +351,7 @@ Widget _buildGridIcon(
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'Two/Four Wheeler') {
+  } else if (labelTrim == 'Two/Four Wheeler Theft') {
     return SvgPicture.asset(
       'assets/icons/2-4wheeler.svg',
       width: size * 1.5,
@@ -2723,7 +2727,7 @@ class _HomeTabState extends State<_HomeTab> {
       ('Undetected', 'undetected', rec<UndetectedProvider>((p) => p.records)),
       ('Disposal', 'disposal', rec<DisposalProvider>((p) => p.records)),
       (
-        'Two/Four Wheeler',
+        'Two/Four Wheeler Theft',
         'two_four_wheeler',
         rec<TwoFourWheelerProvider>((p) => p.records),
       ),

@@ -172,6 +172,9 @@ class CaseService {
     }
   }
 
+  /// Clear in-memory cases cache
+  void clearCache() => invalidateCache();
+
   /// Create a new case record in PostgreSQL backend
   Future<bool> saveCase(ModuleRecord record, {bool isCreate = true}) async {
     try {
@@ -184,7 +187,9 @@ class CaseService {
         final url = '${ApiConfig.cases}${record.id}/';
         response = await _api.put(url, body: payload);
       }
-      invalidateCache();
+      if (response.isSuccess) {
+        invalidateCache();
+      }
       return response.isSuccess;
     } catch (e) {
       if (kDebugMode) {
@@ -200,7 +205,9 @@ class CaseService {
       invalidateCache();
       final url = '${ApiConfig.cases}$id/';
       final response = await _api.delete(url);
-      invalidateCache();
+      if (response.isSuccess) {
+        invalidateCache();
+      }
       return response.isSuccess;
     } catch (e) {
       if (kDebugMode) {
