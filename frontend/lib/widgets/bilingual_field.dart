@@ -6,13 +6,13 @@ import 'responsive_field_row.dart';
 /// All forms must use these widgets — do not copy-paste field helpers locally.
 
 class BilingualSimpleUnderlineInput extends StatelessWidget {
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final TextStyle serifStyle;
   final String? hintText;
 
   const BilingualSimpleUnderlineInput({
     super.key,
-    required this.controller,
+    this.controller,
     required this.serifStyle,
     this.hintText,
   });
@@ -55,19 +55,21 @@ class BilingualSimpleUnderlineInput extends StatelessWidget {
 class BilingualField extends StatelessWidget {
   final String label;
   final String marathiLabel;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final TextStyle serifStyle;
   final TextStyle marathiLabelStyle;
   final bool showMarathiLabel;
+  final String? hintText;
 
   const BilingualField({
     super.key,
     required this.label,
     required this.marathiLabel,
-    required this.controller,
+    this.controller,
     required this.serifStyle,
     required this.marathiLabelStyle,
     this.showMarathiLabel = true,
+    this.hintText,
   });
 
   @override
@@ -84,6 +86,7 @@ class BilingualField extends StatelessWidget {
         BilingualSimpleUnderlineInput(
           controller: controller,
           serifStyle: serifStyle,
+          hintText: hintText,
         ),
       ],
     );
@@ -93,7 +96,7 @@ class BilingualField extends StatelessWidget {
 class BilingualWideField extends StatelessWidget {
   final String label;
   final String marathiLabel;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final TextStyle serifStyle;
   final TextStyle marathiLabelStyle;
 
@@ -101,7 +104,7 @@ class BilingualWideField extends StatelessWidget {
     super.key,
     required this.label,
     required this.marathiLabel,
-    required this.controller,
+    this.controller,
     required this.serifStyle,
     required this.marathiLabelStyle,
   });
@@ -125,14 +128,14 @@ class BilingualWideField extends StatelessWidget {
 }
 
 class BilingualDynamicLinedTextField extends StatelessWidget {
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final int minLines;
   final TextStyle serifStyle;
   final TextStyle? marathiLabelStyle;
 
   const BilingualDynamicLinedTextField({
     super.key,
-    required this.controller,
+    this.controller,
     required this.minLines,
     required this.serifStyle,
     this.marathiLabelStyle,
@@ -142,6 +145,7 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveController = controller ?? TextEditingController();
     final TextStyle textStyle = serifStyle.copyWith(
       fontSize: 14,
       height: _lineHeight / 14.0,
@@ -150,7 +154,7 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
     );
 
     return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: controller,
+      valueListenable: effectiveController,
       builder: (context, value, child) {
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -191,7 +195,7 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
                     ),
                   ),
                   TextField(
-                    controller: controller,
+                    controller: effectiveController,
                     textAlign: TextAlign.start,
                     textAlignVertical: TextAlignVertical.top,
                     minLines: lines,
@@ -260,7 +264,7 @@ class _LinedBackgroundPainter extends CustomPainter {
 class BilingualMultilineField extends StatelessWidget {
   final String label;
   final String marathiLabel;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final int minLines;
   final TextStyle serifStyle;
   final TextStyle marathiLabelStyle;
@@ -269,7 +273,7 @@ class BilingualMultilineField extends StatelessWidget {
     super.key,
     required this.label,
     required this.marathiLabel,
-    required this.controller,
+    this.controller,
     required this.minLines,
     required this.serifStyle,
     required this.marathiLabelStyle,
@@ -361,13 +365,13 @@ class BilingualFieldRow extends StatelessWidget {
 
 class BilingualNumberedMethodField extends StatelessWidget {
   final String number;
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final TextStyle serifStyle;
 
   const BilingualNumberedMethodField({
     super.key,
     required this.number,
-    required this.controller,
+    this.controller,
     required this.serifStyle,
   });
 

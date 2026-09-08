@@ -305,7 +305,7 @@ final List<FormsListEntry> kFormsHierarchyMock = [
       _sub('Pancha Summons — Section 195', 'Page 20',
           sectionId: 'Pancha Summons 195',
           subCategoryOverride: 'Inquest Panchanama'),
-      _sub('Marananveshan Panchanama (मरणान्वेषण)', 'Pages 21–22',
+      _sub('Marananveshan Panchanama (मरणाण्वेषण)', 'Pages 21–22',
           sectionId: 'Marananveshan Panchanama',
           subCategoryOverride: 'Inquest Panchanama'),
       _sub('14-Point Medical Officer Form', 'Page 23',
@@ -353,12 +353,6 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         subCategoryOverride: 'BNSS Panch Notice',
       ),
       _sub(
-        'Panch Notice — Section 189',
-        'Ends at I.O. signature & receipt',
-        sectionId: 'Panch Notice 189',
-        subCategoryOverride: 'BNSS Panch Notice',
-      ),
-      _sub(
         'Notice to Accused (आरोपीस सूचनापत्र)',
         'Ends at I.O. signature',
         sectionId: 'Notice to Accused',
@@ -366,13 +360,13 @@ final List<FormsListEntry> kFormsHierarchyMock = [
       ),
       _sub(
         'Notice — Section 35(3) — Main',
-        'Notice body',
+        'तपास व ९ अटी सूचनापत्र',
         sectionId: 'Notice Section 35 Main',
         subCategoryOverride: 'Notice Section 35',
       ),
       _sub(
         'Notice — Section 35(3) — Rights & signatures',
-        'Ends at I.O. signature',
+        'दोषारोपपत्र न्यायप्रविष्ठ नोटीस',
         sectionId: 'Notice Section 35 Continuation',
         subCategoryOverride: 'Notice Section 35',
       ),
