@@ -12,7 +12,7 @@ class PinCrypto {
   // security and performance (especially pure-Dart implementations on mobile).
   // (NIST SP 800-132 / OWASP) required to protect short 4-6 digit numeric PINs
   // against offline dictionary and brute-force GPU cracking attacks.
-  static const int _iterations = 1000;
+  static const int _iterations = 100000;
   static const int _saltLengthBytes = 32;
   static const int _keyLengthBytes = 32;
 
