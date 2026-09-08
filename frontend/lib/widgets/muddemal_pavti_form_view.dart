@@ -1,26 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
+import 'form_table_helpers.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
 
-/// Item controllers for Muddemal Pavti table rows.
-class MuddemalItemControllers {
-  final TextEditingController description = TextEditingController();
-  final TextEditingController estimatedValue = TextEditingController();
-  final TextEditingController malNumber = TextEditingController();
-  final TextEditingController seizedFrom = TextEditingController();
-
-  void dispose() {
-    description.dispose();
-    estimatedValue.dispose();
-    malNumber.dispose();
-    seizedFrom.dispose();
-  }
-}
-
-/// Muddemal Pavti (—:: मुद्देमाल पावती ::—).
+/// -:: मुद्देमाल पावती ::- (Muddemal Pavti)
 class MuddemalPavtiFormView extends StatefulWidget {
   final bool readOnly;
   final Map<String, dynamic>? existingRecord;
@@ -39,34 +26,71 @@ class MuddemalPavtiFormView extends StatefulWidget {
   State<MuddemalPavtiFormView> createState() => MuddemalPavtiFormViewState();
 }
 
+class MuddemalPropertyRow {
+  final TextEditingController description;
+  final TextEditingController estimatedValue;
+  final TextEditingController propertyNo;
+  final TextEditingController seizedFrom;
+
+  MuddemalPropertyRow({
+    String description = '',
+    String estimatedValue = '',
+    String propertyNo = '',
+    String seizedFrom = '',
+  })  : description = TextEditingController(text: description),
+        estimatedValue = TextEditingController(text: estimatedValue),
+        propertyNo = TextEditingController(text: propertyNo),
+        seizedFrom = TextEditingController(text: seizedFrom);
+
+  void dispose() {
+    description.dispose();
+    estimatedValue.dispose();
+    propertyNo.dispose();
+    seizedFrom.dispose();
+  }
+
+  Map<String, String> toMap() {
+    return {
+      'description': description.text,
+      'estimatedValue': estimatedValue.text,
+      'propertyNo': propertyNo.text,
+      'malNumber': propertyNo.text,
+      'seizedFrom': seizedFrom.text,
+    };
+  }
+}
+
 class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
-  // Header details (१ to ५)
-  final _policeStationCtrl = TextEditingController();
-  final _districtCtrl = TextEditingController(text: 'यवतमाळ');
-  final _crNoYearCtrl = TextEditingController();
-  final _sectionCtrl = TextEditingController();
-  final _investigatingOfficerCtrl = TextEditingController();
-  final _ioPoliceStationCtrl = TextEditingController();
-  final _ioDistrictCtrl = TextEditingController(text: 'यवतमाळ');
+  final _psCtrl = TextEditingController();
+  final _distCtrl = TextEditingController(text: 'यवतमाळ');
+
+  final _crimeNoCtrl = TextEditingController();
+  final _actSecCtrl = TextEditingController();
+
+  final _ioNameCtrl = TextEditingController();
+  final _ioPsCtrl = TextEditingController();
+  final _ioDistCtrl = TextEditingController(text: 'यवतमाळ');
+
   final _accusedNameCtrl = TextEditingController();
+
   final _seizureDateCtrl = TextEditingController();
-  final _malNumberCtrl = TextEditingController();
+  final _propertyNoCtrl = TextEditingController();
 
-  // Table items
-  final List<MuddemalItemControllers> _items = [];
+  List<MuddemalPropertyRow>? _rows;
+  List<MuddemalPropertyRow> get _safeRows {
+    if (_rows == null || _rows!.isEmpty) {
+      _rows = [MuddemalPropertyRow(propertyNo: '......./२०....')];
+    }
+    return _rows!;
+  }
 
-  // Footer / Signatures
-  final _headMoharirSignCtrl = TextEditingController();
-  final _ioSignCtrl = TextEditingController();
+  final _headMohararSigCtrl = TextEditingController();
+  final _investigatingOfficerSigCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Default with 4 rows
-    for (int i = 0; i < 4; i++) {
-      _items.add(MuddemalItemControllers());
-    }
-
+    _rows ??= [MuddemalPropertyRow(propertyNo: '......./२०....')];
     if (widget.existingRecord != null) {
       hydrateFrom(widget.existingRecord!);
     }
@@ -74,193 +98,154 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
 
   @override
   void dispose() {
-    _policeStationCtrl.dispose();
-    _districtCtrl.dispose();
-    _crNoYearCtrl.dispose();
-    _sectionCtrl.dispose();
-    _investigatingOfficerCtrl.dispose();
-    _ioPoliceStationCtrl.dispose();
-    _ioDistrictCtrl.dispose();
+    _psCtrl.dispose();
+    _distCtrl.dispose();
+    _crimeNoCtrl.dispose();
+    _actSecCtrl.dispose();
+    _ioNameCtrl.dispose();
+    _ioPsCtrl.dispose();
+    _ioDistCtrl.dispose();
     _accusedNameCtrl.dispose();
     _seizureDateCtrl.dispose();
-    _malNumberCtrl.dispose();
-
-    for (final item in _items) {
-      item.dispose();
+    _propertyNoCtrl.dispose();
+    if (_rows != null) {
+      for (final row in _rows!) {
+        row.dispose();
+      }
     }
-
-    _headMoharirSignCtrl.dispose();
-    _ioSignCtrl.dispose();
-
+    _headMohararSigCtrl.dispose();
+    _investigatingOfficerSigCtrl.dispose();
     super.dispose();
   }
 
-  void _addItemRow() {
+  void _addRow() {
+    if (widget.readOnly) return;
     setState(() {
-      _items.add(MuddemalItemControllers());
+      _safeRows.add(MuddemalPropertyRow(propertyNo: '......./२०....'));
     });
   }
 
-  void _removeItemRow(int index) {
-    if (_items.length <= 1) return;
+  void _removeRow(int index) {
+    if (widget.readOnly || _safeRows.length <= 1) return;
     setState(() {
-      final removed = _items.removeAt(index);
-      removed.dispose();
-    });
-  }
-
-  void hydrateFrom(Map<String, dynamic> data) {
-    setState(() {
-      _policeStationCtrl.text = data['policeStation']?.toString() ?? '';
-      _districtCtrl.text = data['district']?.toString() ?? 'यवतमाळ';
-      _crNoYearCtrl.text =
-          data['crNoYear']?.toString() ?? data['crNo']?.toString() ?? '';
-      _sectionCtrl.text = data['section']?.toString() ?? '';
-      _investigatingOfficerCtrl.text =
-          data['investigatingOfficer']?.toString() ??
-              data['ioName']?.toString() ??
-              '';
-      _ioPoliceStationCtrl.text = data['ioPoliceStation']?.toString() ??
-          data['policeStation']?.toString() ??
-          '';
-      _ioDistrictCtrl.text = data['ioDistrict']?.toString() ?? 'यवतमाळ';
-      _accusedNameCtrl.text = data['accusedName']?.toString() ?? '';
-      _seizureDateCtrl.text = data['seizureDate']?.toString() ??
-          data['seizedDate']?.toString() ??
-          data['date']?.toString() ??
-          '';
-      _malNumberCtrl.text =
-          data['malNumber']?.toString() ?? data['receiptNo']?.toString() ?? '';
-
-      final dynamic rawItems = data['muddemalItems'];
-      if (rawItems is List && rawItems.isNotEmpty) {
-        while (_items.length < rawItems.length) {
-          _items.add(MuddemalItemControllers());
-        }
-        while (_items.length > rawItems.length && _items.length > 1) {
-          final item = _items.removeLast();
-          item.dispose();
-        }
-        for (int i = 0; i < rawItems.length; i++) {
-          final itemMap = rawItems[i] as Map<String, dynamic>;
-          _items[i].description.text = itemMap['description']?.toString() ?? '';
-          _items[i].estimatedValue.text =
-              itemMap['estimatedValue']?.toString() ?? '';
-          _items[i].malNumber.text = itemMap['malNumber']?.toString() ?? '';
-          _items[i].seizedFrom.text = itemMap['seizedFrom']?.toString() ?? '';
-        }
-      } else if (data['propertyDescription'] != null ||
-          data['propertyValue'] != null) {
-        if (_items.isNotEmpty) {
-          _items[0].description.text =
-              data['propertyDescription']?.toString() ?? '';
-          _items[0].estimatedValue.text =
-              data['propertyValue']?.toString() ?? '';
-          _items[0].malNumber.text = data['malNumber']?.toString() ?? '';
-          _items[0].seizedFrom.text = data['seizedFrom']?.toString() ?? '';
-        }
-      }
-
-      _headMoharirSignCtrl.text = data['headMoharirSign']?.toString() ??
-          data['receiverName']?.toString() ??
-          '';
-      _ioSignCtrl.text =
-          data['ioSign']?.toString() ?? data['ioName']?.toString() ?? '';
+      final r = _safeRows.removeAt(index);
+      r.dispose();
     });
   }
 
   Map<String, dynamic> collectData() {
-    final itemsData = _items
-        .map((item) => {
-              'description': item.description.text.trim(),
-              'estimatedValue': item.estimatedValue.text.trim(),
-              'malNumber': item.malNumber.text.trim(),
-              'seizedFrom': item.seizedFrom.text.trim(),
-            })
-        .toList();
-
+    final itemsList = _safeRows.map((r) => r.toMap()).toList();
+    final firstRow = _safeRows.isNotEmpty ? _safeRows.first : null;
     return {
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
-      'policeStation': _policeStationCtrl.text.trim(),
-      'district': _districtCtrl.text.trim(),
-      'crNoYear': _crNoYearCtrl.text.trim(),
-      'crNo': _crNoYearCtrl.text.trim(),
-      'section': _sectionCtrl.text.trim(),
-      'investigatingOfficer': _investigatingOfficerCtrl.text.trim(),
-      'ioName': _investigatingOfficerCtrl.text.trim(),
-      'ioPoliceStation': _ioPoliceStationCtrl.text.trim(),
-      'ioDistrict': _ioDistrictCtrl.text.trim(),
+      'policeStation': _psCtrl.text.trim(),
+      'district': _distCtrl.text.trim(),
+      'crimeNo': _crimeNoCtrl.text.trim(),
+      'crNoYear': _crimeNoCtrl.text.trim(),
+      'crNo': _crimeNoCtrl.text.trim(),
+      'actSec': _actSecCtrl.text.trim(),
+      'section': _actSecCtrl.text.trim(),
+      'ioName': _ioNameCtrl.text.trim(),
+      'investigatingOfficer': _ioNameCtrl.text.trim(),
+      'ioPs': _ioPsCtrl.text.trim(),
+      'ioPoliceStation': _ioPsCtrl.text.trim(),
+      'ioDist': _ioDistCtrl.text.trim(),
+      'ioDistrict': _ioDistCtrl.text.trim(),
       'accusedName': _accusedNameCtrl.text.trim(),
       'seizureDate': _seizureDateCtrl.text.trim(),
       'seizedDate': _seizureDateCtrl.text.trim(),
-      'malNumber': _malNumberCtrl.text.trim(),
-      'muddemalItems': itemsData,
-      'propertyDescription':
-          _items.isNotEmpty ? _items[0].description.text.trim() : '',
-      'propertyValue':
-          _items.isNotEmpty ? _items[0].estimatedValue.text.trim() : '',
-      'seizedFrom': _items.isNotEmpty ? _items[0].seizedFrom.text.trim() : '',
-      'headMoharirSign': _headMoharirSignCtrl.text.trim(),
-      'ioSign': _ioSignCtrl.text.trim(),
+      'propertyNo': _propertyNoCtrl.text.trim(),
+      'malNumber': _propertyNoCtrl.text.trim(),
+      'items': itemsList,
+      'muddemalItems': itemsList,
+      'propertyDescription': firstRow?.description.text.trim() ?? '',
+      'propertyValue': firstRow?.estimatedValue.text.trim() ?? '',
+      'seizedFrom': firstRow?.seizedFrom.text.trim() ?? '',
+      'headMohararSig': _headMohararSigCtrl.text.trim(),
+      'headMoharirSign': _headMohararSigCtrl.text.trim(),
+      'investigatingOfficerSig': _investigatingOfficerSigCtrl.text.trim(),
+      'ioSign': _investigatingOfficerSigCtrl.text.trim(),
     };
   }
 
-  Widget _inlineInput(
-    TextEditingController ctrl,
-    TextStyle serifStyle, {
-    String? hintText,
-    double minWidth = 100,
-  }) {
-    return Container(
-      constraints: BoxConstraints(minWidth: minWidth),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: BilingualSimpleUnderlineInput(
-        controller: ctrl,
-        hintText: hintText,
-        serifStyle: serifStyle.copyWith(fontSize: 13),
-      ),
-    );
-  }
+  void hydrateFrom(Map<String, dynamic> data) {
+    _psCtrl.text = data['policeStation']?.toString() ?? '';
+    _distCtrl.text = data['district']?.toString() ?? 'यवतमाळ';
+    _crimeNoCtrl.text =
+        (data['crimeNo'] ?? data['crNoYear'] ?? data['crNo'])?.toString() ?? '';
+    _actSecCtrl.text = (data['actSec'] ?? data['section'])?.toString() ?? '';
+    _ioNameCtrl.text =
+        (data['ioName'] ?? data['investigatingOfficer'])?.toString() ?? '';
+    _ioPsCtrl.text =
+        (data['ioPs'] ?? data['ioPoliceStation'] ?? data['policeStation'])
+                ?.toString() ??
+            '';
+    _ioDistCtrl.text =
+        (data['ioDist'] ?? data['ioDistrict'])?.toString() ?? 'यवतमाळ';
+    _accusedNameCtrl.text = data['accusedName']?.toString() ?? '';
+    _seizureDateCtrl.text =
+        (data['seizureDate'] ?? data['seizedDate'] ?? data['date'])
+                ?.toString() ??
+            '';
+    _propertyNoCtrl.text =
+        (data['propertyNo'] ?? data['malNumber'] ?? data['receiptNo'])
+                ?.toString() ??
+            '';
 
-  Widget _tableCellInput(
-    TextEditingController ctrl,
-    TextStyle serifStyle, {
-    String? hintText,
-    int minLines = 1,
-    int maxLines = 4,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      child: TextField(
-        controller: ctrl,
-        readOnly: widget.readOnly,
-        minLines: minLines,
-        maxLines: maxLines,
-        style: serifStyle.copyWith(fontSize: 12),
-        decoration: InputDecoration(
-          isDense: true,
-          hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 11),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 4),
+    final dynamic rawList = data['items'] ?? data['muddemalItems'];
+    if (rawList is List && rawList.isNotEmpty) {
+      if (_rows != null) {
+        for (final r in _rows!) {
+          r.dispose();
+        }
+      }
+      _rows = [];
+      for (final item in rawList) {
+        if (item is Map) {
+          _rows!.add(
+            MuddemalPropertyRow(
+              description: item['description']?.toString() ?? '',
+              estimatedValue: item['estimatedValue']?.toString() ?? '',
+              propertyNo:
+                  (item['propertyNo'] ?? item['malNumber'])?.toString() ?? '',
+              seizedFrom: item['seizedFrom']?.toString() ?? '',
+            ),
+          );
+        }
+      }
+      if (_rows!.isEmpty) {
+        _rows!.add(MuddemalPropertyRow(propertyNo: '......./२०....'));
+      }
+    } else if (data['propertyDescription'] != null ||
+        data['propertyValue'] != null) {
+      if (_rows != null) {
+        for (final r in _rows!) {
+          r.dispose();
+        }
+      }
+      _rows = [
+        MuddemalPropertyRow(
+          description: data['propertyDescription']?.toString() ?? '',
+          estimatedValue: data['propertyValue']?.toString() ?? '',
+          propertyNo:
+              (data['propertyNo'] ?? data['malNumber'])?.toString() ?? '',
+          seizedFrom: data['seizedFrom']?.toString() ?? '',
         ),
-      ),
-    );
-  }
+      ];
+    }
 
-  Widget _tableHeader(String text, TextStyle marathiStyle) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      child: Text(
-        text,
-        style: marathiStyle.copyWith(
-          fontWeight: FontWeight.bold,
-          fontSize: 12.5,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
+    _headMohararSigCtrl.text = (data['headMohararSig'] ??
+                data['headMoharirSign'] ??
+                data['receiverName'])
+            ?.toString() ??
+        '';
+    _investigatingOfficerSigCtrl.text =
+        (data['investigatingOfficerSig'] ?? data['ioSign'] ?? data['ioName'])
+                ?.toString() ??
+            '';
+
+    if (mounted) setState(() {});
   }
 
   @override
@@ -272,264 +257,489 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
       readOnly: widget.readOnly,
       children: [
         FormPaperPage(
-          formLabel: widget.pageRange ?? 'Muddemal Pavti',
+          formLabel: widget.pageRange,
           children: [
-            // Title
+            // ── TITLE ──
             Center(
-              child: Column(
-                children: [
-                  Text(
-                    '—:: मुद्देमाल पावती ::—',
-                    style: marathi.copyWith(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  Container(
-                    width: 180,
-                    height: 1,
-                    margin: const EdgeInsets.only(top: 2),
-                    color: Colors.black87,
-                  ),
-                ],
+              child: Text(
+                '-:: मुद्देमाल पावती ::-',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
             const SizedBox(height: 24),
 
-            // Item 1: Police Station & District
+            // ── ROW 1: पोलीस स्टेशन ──
             Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('१) पोलीस स्टेशन',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  '१) पोलीस स्टेशन   :-  ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                Expanded(
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _psCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Text(':—', style: marathi),
-                const SizedBox(width: 6),
-                Expanded(child: _inlineInput(_policeStationCtrl, serif)),
-                const SizedBox(width: 12),
-                Text('जिल्हा',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 6),
-                SizedBox(width: 120, child: _inlineInput(_districtCtrl, serif)),
+                Text(
+                  'जिल्हा यवतमाळ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
 
-            // Item 2: Crime No & Section
+            // ── ROW 2: अप क्रमांक व कलम ──
             Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('२) अप क्रमांक :—',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 6),
+                Text(
+                  '२) अप क्रमांक :- ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
                 SizedBox(
                   width: 140,
-                  child: _inlineInput(_crNoYearCtrl, serif,
-                      hintText: '......../२०......'),
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _crimeNoCtrl,
+                    serifStyle: serif,
+                    hintText: '........../२०......',
+                  ),
                 ),
-                const SizedBox(width: 16),
-                Text('कलम',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(width: 12),
+                Text(
+                  'कलम ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                Expanded(
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _actSecCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // ── ROW 3: अन्वेषन अधिकारी ──
+            Row(
+              children: [
+                Text(
+                  '३) अन्वेषन अधिकारी:- ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                Expanded(
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _ioNameCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: _inlineInput(_sectionCtrl, serif)),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            // Item 3: Investigating Officer, Police Station & District
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text('३) अन्वेषन अधिकारी:—',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 6),
-                Expanded(
-                    flex: 3,
-                    child: _inlineInput(_investigatingOfficerCtrl, serif)),
-                const SizedBox(width: 10),
-                Text('पोलीस स्टेशन',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 6),
-                Expanded(
-                    flex: 2, child: _inlineInput(_ioPoliceStationCtrl, serif)),
-                const SizedBox(width: 10),
-                Text('जिल्हा',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 6),
+                Text(
+                  'पोलीस स्टेशन ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
                 SizedBox(
-                    width: 110, child: _inlineInput(_ioDistrictCtrl, serif)),
+                  width: 120,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _ioPsCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'जिल्हा यवतमाळ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
 
-            // Item 4: Accused Name
+            // ── ROW 4: आरोपी नांव ──
             Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('४) आरोपी नांव :—',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 6),
-                Expanded(child: _inlineInput(_accusedNameCtrl, serif)),
+                Text(
+                  '४) आरोपी नांव :- ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                Expanded(
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _accusedNameCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
 
-            // Item 5: Seizure Date & Mal Number
+            // ── ROW 5: जप्त माल दिनांक व माल नंबर ──
             Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
               children: [
-                Text('५) जप्त माल दिनांक :—',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 6),
+                Text(
+                  '५) जप्त माल दिनांक :- ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
                 SizedBox(
-                  width: 150,
-                  child: _inlineInput(_seizureDateCtrl, serif,
-                      hintText: '....../....../२०....'),
+                  width: 160,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _seizureDateCtrl,
+                    serifStyle: serif,
+                    hintText: '......./ ........./२०.....',
+                  ),
                 ),
                 const SizedBox(width: 24),
-                Text('माल नंबर :—',
-                    style: marathi.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 6),
+                Text(
+                  'माल नंबर :- ',
+                  style: marathi.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
                 SizedBox(
-                  width: 150,
-                  child: _inlineInput(_malNumberCtrl, serif,
-                      hintText: '......../२०......'),
+                  width: 140,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _propertyNoCtrl,
+                    serifStyle: serif,
+                    hintText: '........../२०......',
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
 
-            // Seized Goods Table
-            Table(
-              border: TableBorder.all(color: Colors.black87),
-              columnWidths: const {
-                0: FlexColumnWidth(3.4),
-                1: FlexColumnWidth(1.4),
-                2: FlexColumnWidth(1.4),
-                3: FlexColumnWidth(2.6),
-              },
-              children: [
-                // Header Row
-                TableRow(
-                  decoration: BoxDecoration(color: Colors.grey.shade100),
-                  children: [
-                    _tableHeader('जप्त मालाचे विवरण', marathi),
-                    _tableHeader('मुल्य अंदाजे', marathi),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 6),
-                      child: Column(
-                        children: [
-                          Text('माल नंबर',
-                              style: marathi.copyWith(
-                                  fontWeight: FontWeight.bold, fontSize: 12.5),
-                              textAlign: TextAlign.center),
-                          const SizedBox(height: 2),
-                          Text('....../२०....',
-                              style: serif.copyWith(
-                                  fontSize: 10, color: Colors.grey.shade700)),
-                        ],
+            // ── MAIN TABLE ──
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black, width: 1.2),
+              ),
+              child: Column(
+                children: [
+                  // Table Header
+                  Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Colors.black, width: 1.2),
                       ),
                     ),
-                    _tableHeader('कोणाकडुन जप्त केले', marathi),
-                  ],
-                ),
-
-                // Data Rows
-                for (int i = 0; i < _items.length; i++)
-                  TableRow(
-                    children: [
-                      _tableCellInput(_items[i].description, serif,
-                          minLines: 2, maxLines: 5),
-                      _tableCellInput(_items[i].estimatedValue, serif,
-                          minLines: 2, maxLines: 5),
-                      _tableCellInput(_items[i].malNumber, serif,
-                          minLines: 2, maxLines: 5),
-                      _tableCellInput(_items[i].seizedFrom, serif,
-                          minLines: 2, maxLines: 5),
-                    ],
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 4),
+                            alignment: Alignment.center,
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                right:
+                                    BorderSide(color: Colors.black, width: 1),
+                              ),
+                            ),
+                            child: Text(
+                              'जप्त मालाचे विवरण',
+                              style: marathi.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 4),
+                            alignment: Alignment.center,
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                right:
+                                    BorderSide(color: Colors.black, width: 1),
+                              ),
+                            ),
+                            child: Text(
+                              'मुल्य अंदाजे',
+                              style: marathi.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 4),
+                            alignment: Alignment.center,
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                right:
+                                    BorderSide(color: Colors.black, width: 1),
+                              ),
+                            ),
+                            child: Text(
+                              'माल नंबर',
+                              style: marathi.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 4),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'कोणाकडुन जप्त केले',
+                              style: marathi.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-              ],
+
+                  // Table Rows
+                  for (int i = 0; i < _safeRows.length; i++)
+                    IntrinsicHeight(
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 180),
+                        decoration: BoxDecoration(
+                          border: i < _safeRows.length - 1
+                              ? const Border(
+                                  bottom:
+                                      BorderSide(color: Colors.black, width: 1),
+                                )
+                              : null,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                        color: Colors.black, width: 1),
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: _safeRows[i].description,
+                                  readOnly: widget.readOnly,
+                                  minLines: 6,
+                                  maxLines: null,
+                                  style: serif.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'मालाचे संपूर्ण वर्णन...',
+                                    hintStyle: serif.copyWith(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                        color: Colors.black, width: 1),
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: _safeRows[i].estimatedValue,
+                                  readOnly: widget.readOnly,
+                                  minLines: 2,
+                                  maxLines: null,
+                                  style: serif.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'अंदाजे किंमत...',
+                                    hintStyle: serif.copyWith(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                        color: Colors.black, width: 1),
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: _safeRows[i].propertyNo,
+                                  readOnly: widget.readOnly,
+                                  style: serif.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: '......./२०....',
+                                    hintStyle: serif.copyWith(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: TextField(
+                                  controller: _safeRows[i].seizedFrom,
+                                  readOnly: widget.readOnly,
+                                  minLines: 4,
+                                  maxLines: null,
+                                  style: serif.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'व्यक्तीचे नाव व पत्ता...',
+                                    hintStyle: serif.copyWith(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 11),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
 
             if (!widget.readOnly) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton.icon(
-                    onPressed: _addItemRow,
+                  OutlinedButton.icon(
+                    onPressed: _addRow,
                     icon: const Icon(Icons.add, size: 16),
-                    label: Text('आणखी ओळ जोडा (Add Row)',
-                        style: marathi.copyWith(fontSize: 11)),
+                    label: const Text('माल नोंद जोडा'),
                   ),
-                  if (_items.length > 1)
-                    TextButton.icon(
-                      onPressed: () => _removeItemRow(_items.length - 1),
+                  if (_safeRows.length > 1) ...[
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: () => _removeRow(_safeRows.length - 1),
                       icon: const Icon(Icons.remove, size: 16),
-                      label: Text('शेवटची ओळ काढा',
-                          style: marathi.copyWith(
-                              fontSize: 11, color: Colors.red.shade700)),
+                      label: const Text('शेवटची नोंद काढा'),
                     ),
+                  ],
                 ],
               ),
             ],
+            const SizedBox(height: 36),
 
-            const SizedBox(height: 48),
-
-            // Signatures
+            // ── SIGNATURES ──
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Head Moharir
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 180,
-                      child: _inlineInput(_headMoharirSignCtrl, serif,
-                          hintText: 'नाव / सही'),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'हेडमोहरर सही',
-                      style: marathi.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                SizedBox(
+                  width: 200,
+                  child: Column(
+                    children: [
+                      Text(
+                        'हेडमोहरर सही',
+                        style: marathi.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      BilingualSimpleUnderlineInput(
+                        controller: _headMohararSigCtrl,
+                        serifStyle: serif,
+                      ),
+                    ],
+                  ),
                 ),
-
-                // Investigating Officer
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 180,
-                      child: _inlineInput(_ioSignCtrl, serif,
-                          hintText: 'नाव / सही'),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'तपास अधिकारी',
-                      style: marathi.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                SizedBox(
+                  width: 200,
+                  child: Column(
+                    children: [
+                      Text(
+                        'तपास अधिकारी',
+                        style: marathi.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      BilingualSimpleUnderlineInput(
+                        controller: _investigatingOfficerSigCtrl,
+                        serifStyle: serif,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 32),
+            FormMrwFooter(serifStyle: serif),
           ],
         ),
       ],

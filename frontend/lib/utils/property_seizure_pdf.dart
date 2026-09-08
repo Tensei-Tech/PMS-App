@@ -567,54 +567,6 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
             if (cache.has('lbl_s10')) cache.img('lbl_s10') else pw.SizedBox(),
             pw.SizedBox(height: 10),
 
-            // --- PROPERTIES TABLE (section 10 attachment) ---
-            pw.Table(
-              defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
-              border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
-              columnWidths: const {
-                0: pw.FixedColumnWidth(40), // Sr No
-                1: pw.FlexColumnWidth(6.0), // Description
-                2: pw.FlexColumnWidth(3.0), // Value
-              },
-              children: [
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey100),
-                  children: [
-                    _buildPdfHeaderCell('th_sr', cache),
-                    _buildPdfHeaderCell('th_desc', cache),
-                    _buildPdfHeaderCell('th_val', cache),
-                  ],
-                ),
-                ...List.generate((doc['properties'] as List? ?? []).length, (
-                  index,
-                ) {
-                  final row = (doc['properties'] as List)[index];
-                  final descKey = 'prop_${index}_desc';
-                  final valKey = 'prop_${index}_val';
-                  return pw.TableRow(
-                    children: [
-                      pw.Center(
-                        child: pw.Text('${index + 1}', style: englishStyle),
-                      ),
-                      _buildPdfValueCell(
-                        row['description']?.toString() ?? '',
-                        descKey,
-                        cache,
-                        valueStyle,
-                      ),
-                      _buildPdfValueCell(
-                        row['value']?.toString() ?? '',
-                        valKey,
-                        cache,
-                        valueStyle,
-                      ),
-                    ],
-                  );
-                }),
-              ],
-            ),
-            pw.SizedBox(height: 14),
-
             // --- SECTION 11 ---
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.end,

@@ -1,11 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-
-import 'marathi_text_renderer.dart';
 
 Future<void> previewMuddemalPavtiPdf(
   BuildContext context,
@@ -28,46 +25,60 @@ Future<void> previewMuddemalPavtiPdf(
 
 Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final lora = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final cache = await _preRenderAllMarathi(doc);
+  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
+  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
 
-  final pw.TextStyle englishValueStyle = pw.TextStyle(
-    font: loraBold,
-    fontSize: 9.5,
-    color: PdfColors.blue900,
+  final regular = pw.TextStyle(
+    font: devanagari,
+    fontSize: 10.5,
+    lineSpacing: 4,
+  );
+  final bold = pw.TextStyle(
+    font: devanagariBold,
+    fontSize: 10.5,
+    fontWeight: pw.FontWeight.bold,
+  );
+  final headerTitle = pw.TextStyle(
+    font: devanagariBold,
+    fontSize: 15,
+    fontWeight: pw.FontWeight.bold,
+    decoration: pw.TextDecoration.underline,
   );
 
-  pw.Widget renderField(String key, String? val) {
-    final text = val?.trim() ?? '';
-    if (text.isEmpty) {
-      return pw.SizedBox();
-    }
-    if (cache.has(key)) {
-      return cache.img(key);
-    }
-    return pw.Text(text, style: englishValueStyle);
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
   }
 
-  pw.Widget mLbl(String key) {
-    if (cache.has(key)) return cache.img(key);
-    return pw.SizedBox();
-  }
+  final ps = v('policeStation');
+  final dist = v('district', 'यवतमाळ');
+  final crimeNo = v('crimeNo', v('crNoYear', v('crNo', '........../२०......')));
+  final actSec = v('actSec',
+      v('section', '________________________________________________'));
+  final ioName = v('ioName', v('investigatingOfficer'));
+  final ioPs = v('ioPs', v('ioPoliceStation', ps));
+  final ioDist = v('ioDist', v('ioDistrict', 'यवतमाळ'));
+  final accusedName = v('accusedName',
+      '____________________________________________________________________');
+  final seizureDate = v(
+      'seizureDate', v('seizedDate', v('date', '......./ ........./२०.....')));
+  final propertyNo =
+      v('propertyNo', v('malNumber', v('receiptNo', '........../२०......')));
 
-  // Retrieve raw items
-  final List<dynamic> rawItems =
-      (doc['muddemalItems'] is List) ? (doc['muddemalItems'] as List) : [];
+  final rawItems = (doc['items'] is List)
+      ? (doc['items'] as List)
+      : ((doc['muddemalItems'] is List) ? (doc['muddemalItems'] as List) : []);
 
-  final List<Map<String, String>> items = [];
+  final items = <Map<String, dynamic>>[];
   if (rawItems.isNotEmpty) {
-    for (int i = 0; i < rawItems.length; i++) {
-      final m = rawItems[i];
-      if (m is Map) {
+    for (final item in rawItems) {
+      if (item is Map) {
         items.add({
-          'description': m['description']?.toString() ?? '',
-          'estimatedValue': m['estimatedValue']?.toString() ?? '',
-          'malNumber': m['malNumber']?.toString() ?? '',
-          'seizedFrom': m['seizedFrom']?.toString() ?? '',
+          'description': item['description']?.toString() ?? '',
+          'estimatedValue': item['estimatedValue']?.toString() ?? '',
+          'propertyNo':
+              (item['propertyNo'] ?? item['malNumber'])?.toString() ?? '',
+          'seizedFrom': item['seizedFrom']?.toString() ?? '',
         });
       }
     }
@@ -76,392 +87,257 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
     items.add({
       'description': doc['propertyDescription']?.toString() ?? '',
       'estimatedValue': doc['propertyValue']?.toString() ?? '',
-      'malNumber': doc['malNumber']?.toString() ?? '',
+      'propertyNo': propertyNo,
       'seizedFrom': doc['seizedFrom']?.toString() ?? '',
     });
   }
 
-  // Ensure at least 4 rows for proper visual receipt layout
-  while (items.length < 4) {
-    items.add({
-      'description': '',
-      'estimatedValue': '',
-      'malNumber': '',
-      'seizedFrom': '',
-    });
-  }
+  final headMohararSig =
+      v('headMohararSig', v('headMoharirSign', v('receiverName')));
+  final investigatingOfficerSig =
+      v('investigatingOfficerSig', v('ioSign', v('ioName')));
 
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 36),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 40),
       build: (pw.Context context) {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
-            // Centered Title
+            // ── TITLE ──
             pw.Center(
-              child: pw.Column(
-                mainAxisSize: pw.MainAxisSize.min,
-                children: [
-                  mLbl('title'),
-                  pw.SizedBox(height: 2),
-                  pw.Container(
-                    width: 140,
-                    height: 1,
-                    color: PdfColors.black,
-                  ),
-                ],
-              ),
+              child: pw.Text('-:: मुद्देमाल पावती ::-', style: headerTitle),
             ),
-            pw.SizedBox(height: 22),
+            pw.SizedBox(height: 24),
 
-            // 1) Police Station & District
+            // ── ROW 1: पोलीस स्टेशन ──
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                mLbl('lbl_1_ps'),
-                pw.SizedBox(width: 6),
+                pw.Text('१) पोलीस स्टेशन   :-  ', style: bold),
                 pw.Expanded(
-                  child: pw.Container(
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(
-                        bottom:
-                            pw.BorderSide(color: PdfColors.black, width: 0.8),
-                      ),
-                    ),
-                    padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                    child: renderField(
-                        'val_policeStation', doc['policeStation']?.toString()),
+                  child: pw.Text(
+                    ps.isNotEmpty ? ps : '______________________',
+                    style: regular,
                   ),
                 ),
-                pw.SizedBox(width: 10),
-                mLbl('lbl_1_district'),
-                pw.SizedBox(width: 6),
-                pw.Container(
-                  width: 90,
-                  decoration: const pw.BoxDecoration(
-                    border: pw.Border(
-                      bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-                    ),
-                  ),
-                  padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField(
-                      'val_district', doc['district']?.toString() ?? 'यवतमाळ'),
+                pw.Text('जिल्हा $dist', style: bold),
+              ],
+            ),
+            pw.SizedBox(height: 12),
+
+            // ── ROW 2: अप क्रमांक व कलम ──
+            pw.Row(
+              children: [
+                pw.Text('२) अप क्रमांक :- ', style: bold),
+                pw.Text(crimeNo, style: regular),
+                pw.SizedBox(width: 16),
+                pw.Text('कलम ', style: bold),
+                pw.Expanded(
+                  child: pw.Text(actSec, style: regular),
                 ),
               ],
             ),
             pw.SizedBox(height: 12),
 
-            // 2) Crime No & Section
+            // ── ROW 3: अन्वेषन अधिकारी ──
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                mLbl('lbl_2_cr_no'),
-                pw.SizedBox(width: 6),
-                pw.Container(
-                  width: 120,
-                  decoration: const pw.BoxDecoration(
-                    border: pw.Border(
-                      bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-                    ),
-                  ),
-                  padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField(
-                    'val_crNoYear',
-                    doc['crNoYear']?.toString() ?? doc['crNo']?.toString(),
+                pw.Text('३) अन्वेषन अधिकारी:- ', style: bold),
+                pw.Expanded(
+                  child: pw.Text(
+                    ioName.isNotEmpty ? ioName : '______________________',
+                    style: regular,
                   ),
                 ),
-                pw.SizedBox(width: 12),
-                mLbl('lbl_2_section'),
-                pw.SizedBox(width: 6),
-                pw.Expanded(
-                  child: pw.Container(
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(
-                        bottom:
-                            pw.BorderSide(color: PdfColors.black, width: 0.8),
-                      ),
-                    ),
-                    padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                    child:
-                        renderField('val_section', doc['section']?.toString()),
-                  ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 12),
-
-            // 3) Investigating Officer, Police Station & District
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                mLbl('lbl_3_io'),
-                pw.SizedBox(width: 6),
-                pw.Expanded(
-                  flex: 3,
-                  child: pw.Container(
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(
-                        bottom:
-                            pw.BorderSide(color: PdfColors.black, width: 0.8),
-                      ),
-                    ),
-                    padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                    child: renderField(
-                      'val_investigatingOfficer',
-                      doc['investigatingOfficer']?.toString() ??
-                          doc['ioName']?.toString(),
-                    ),
-                  ),
+                pw.Text('पोलीस स्टेशन ', style: bold),
+                pw.Text(
+                  ioPs.isNotEmpty ? ioPs : '________',
+                  style: regular,
                 ),
                 pw.SizedBox(width: 8),
-                mLbl('lbl_3_ps'),
-                pw.SizedBox(width: 6),
+                pw.Text('जिल्हा $ioDist', style: bold),
+              ],
+            ),
+            pw.SizedBox(height: 12),
+
+            // ── ROW 4: आरोपी नांव ──
+            pw.Row(
+              children: [
+                pw.Text('४) आरोपी नांव :- ', style: bold),
                 pw.Expanded(
-                  flex: 2,
-                  child: pw.Container(
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(
-                        bottom:
-                            pw.BorderSide(color: PdfColors.black, width: 0.8),
-                      ),
-                    ),
-                    padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                    child: renderField(
-                      'val_ioPoliceStation',
-                      doc['ioPoliceStation']?.toString() ??
-                          doc['policeStation']?.toString(),
-                    ),
-                  ),
-                ),
-                pw.SizedBox(width: 8),
-                mLbl('lbl_3_district'),
-                pw.SizedBox(width: 6),
-                pw.Container(
-                  width: 80,
-                  decoration: const pw.BoxDecoration(
-                    border: pw.Border(
-                      bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-                    ),
-                  ),
-                  padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField(
-                    'val_ioDistrict',
-                    doc['ioDistrict']?.toString() ?? 'यवतमाळ',
-                  ),
+                  child: pw.Text(accusedName, style: regular),
                 ),
               ],
             ),
             pw.SizedBox(height: 12),
 
-            // 4) Accused Name
+            // ── ROW 5: जप्त माल दिनांक व माल नंबर ──
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                mLbl('lbl_4_accused'),
-                pw.SizedBox(width: 6),
-                pw.Expanded(
-                  child: pw.Container(
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(
-                        bottom:
-                            pw.BorderSide(color: PdfColors.black, width: 0.8),
-                      ),
-                    ),
-                    padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                    child: renderField(
-                        'val_accusedName', doc['accusedName']?.toString()),
-                  ),
-                ),
+                pw.Text('५) जप्त माल दिनांक :- ', style: bold),
+                pw.Text(seizureDate, style: regular),
+                pw.SizedBox(width: 32),
+                pw.Text('माल नंबर :- ', style: bold),
+                pw.Text(propertyNo, style: regular),
               ],
             ),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 20),
 
-            // 5) Seizure Date & Mal Number
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                mLbl('lbl_5_date'),
-                pw.SizedBox(width: 6),
-                pw.Container(
-                  width: 140,
-                  decoration: const pw.BoxDecoration(
-                    border: pw.Border(
-                      bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-                    ),
-                  ),
-                  padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField(
-                    'val_seizureDate',
-                    doc['seizureDate']?.toString() ??
-                        doc['seizedDate']?.toString() ??
-                        doc['date']?.toString(),
-                  ),
-                ),
-                pw.SizedBox(width: 20),
-                mLbl('lbl_5_mal_no'),
-                pw.SizedBox(width: 6),
-                pw.Container(
-                  width: 130,
-                  decoration: const pw.BoxDecoration(
-                    border: pw.Border(
-                      bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-                    ),
-                  ),
-                  padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-                  child: renderField(
-                    'val_malNumber',
-                    doc['malNumber']?.toString() ??
-                        doc['receiptNo']?.toString(),
-                  ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 22),
-
-            // Table of Seized Goods
+            // ── MAIN TABLE ──
             pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
+              border: pw.TableBorder.all(color: PdfColors.black, width: 1),
               columnWidths: const {
-                0: pw.FlexColumnWidth(3.4),
-                1: pw.FlexColumnWidth(1.4),
-                2: pw.FlexColumnWidth(1.4),
-                3: pw.FlexColumnWidth(2.6),
+                0: pw.FlexColumnWidth(4),
+                1: pw.FlexColumnWidth(2),
+                2: pw.FlexColumnWidth(2),
+                3: pw.FlexColumnWidth(3),
               },
               children: [
-                // Header Row
+                // Header
                 pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey100),
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(
+                      bottom: pw.BorderSide(color: PdfColors.black, width: 1),
+                    ),
+                  ),
                   children: [
                     pw.Container(
-                      alignment: pw.Alignment.center,
                       padding: const pw.EdgeInsets.symmetric(
                           vertical: 6, horizontal: 4),
-                      child: mLbl('th_desc'),
+                      alignment: pw.Alignment.center,
+                      child: pw.Text('जप्त मालाचे विवरण', style: bold),
                     ),
                     pw.Container(
-                      alignment: pw.Alignment.center,
                       padding: const pw.EdgeInsets.symmetric(
                           vertical: 6, horizontal: 4),
-                      child: mLbl('th_val'),
+                      alignment: pw.Alignment.center,
+                      child: pw.Text('मुल्य अंदाजे', style: bold),
                     ),
                     pw.Container(
-                      alignment: pw.Alignment.center,
-                      padding: const pw.EdgeInsets.symmetric(
-                          vertical: 4, horizontal: 4),
-                      child: pw.Column(
-                        mainAxisSize: pw.MainAxisSize.min,
-                        children: [
-                          mLbl('th_mal_no'),
-                          pw.SizedBox(height: 2),
-                          pw.Text(
-                            '....../२०....',
-                            style: pw.TextStyle(
-                                font: lora,
-                                fontSize: 8.5,
-                                color: PdfColors.grey700),
-                          ),
-                        ],
-                      ),
-                    ),
-                    pw.Container(
-                      alignment: pw.Alignment.center,
                       padding: const pw.EdgeInsets.symmetric(
                           vertical: 6, horizontal: 4),
-                      child: mLbl('th_seized_from'),
+                      alignment: pw.Alignment.center,
+                      child: pw.Text('माल नंबर', style: bold),
+                    ),
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                          vertical: 6, horizontal: 4),
+                      alignment: pw.Alignment.center,
+                      child: pw.Text('कोणाकडुन जप्त केले', style: bold),
                     ),
                   ],
                 ),
 
-                // Data Rows
-                for (int i = 0; i < items.length; i++)
+                // Property Rows
+                if (items.isEmpty)
                   pw.TableRow(
                     children: [
                       pw.Container(
-                        constraints: const pw.BoxConstraints(minHeight: 38),
-                        padding: const pw.EdgeInsets.all(4),
-                        alignment: pw.Alignment.topLeft,
-                        child: renderField(
-                            'item_${i}_desc', items[i]['description']),
+                        height: 240,
+                        padding: const pw.EdgeInsets.all(6),
+                        child: pw.Text('', style: regular),
                       ),
                       pw.Container(
-                        constraints: const pw.BoxConstraints(minHeight: 38),
-                        padding: const pw.EdgeInsets.all(4),
-                        alignment: pw.Alignment.topLeft,
-                        child: renderField(
-                            'item_${i}_val', items[i]['estimatedValue']),
+                        height: 240,
+                        padding: const pw.EdgeInsets.all(6),
+                        child: pw.Text('', style: regular),
                       ),
                       pw.Container(
-                        constraints: const pw.BoxConstraints(minHeight: 38),
-                        padding: const pw.EdgeInsets.all(4),
-                        alignment: pw.Alignment.topLeft,
-                        child:
-                            renderField('item_${i}_mal', items[i]['malNumber']),
+                        height: 240,
+                        padding: const pw.EdgeInsets.all(6),
+                        alignment: pw.Alignment.topCenter,
+                        child: pw.Text('......./२०....', style: regular),
                       ),
                       pw.Container(
-                        constraints: const pw.BoxConstraints(minHeight: 38),
-                        padding: const pw.EdgeInsets.all(4),
-                        alignment: pw.Alignment.topLeft,
-                        child: renderField(
-                            'item_${i}_from', items[i]['seizedFrom']),
+                        height: 240,
+                        padding: const pw.EdgeInsets.all(6),
+                        child: pw.Text('', style: regular),
                       ),
                     ],
-                  ),
+                  )
+                else
+                  for (final item in items)
+                    pw.TableRow(
+                      children: [
+                        pw.Container(
+                          constraints: const pw.BoxConstraints(minHeight: 180),
+                          padding: const pw.EdgeInsets.all(6),
+                          child: pw.Text(
+                            item['description']?.toString() ?? '',
+                            style: regular,
+                          ),
+                        ),
+                        pw.Container(
+                          constraints: const pw.BoxConstraints(minHeight: 180),
+                          padding: const pw.EdgeInsets.all(6),
+                          child: pw.Text(
+                            item['estimatedValue']?.toString() ?? '',
+                            style: regular,
+                          ),
+                        ),
+                        pw.Container(
+                          constraints: const pw.BoxConstraints(minHeight: 180),
+                          padding: const pw.EdgeInsets.all(6),
+                          alignment: pw.Alignment.topCenter,
+                          child: pw.Text(
+                            (item['propertyNo']?.toString().isNotEmpty ?? false)
+                                ? item['propertyNo'].toString()
+                                : '......./२०....',
+                            style: regular,
+                          ),
+                        ),
+                        pw.Container(
+                          constraints: const pw.BoxConstraints(minHeight: 180),
+                          padding: const pw.EdgeInsets.all(6),
+                          child: pw.Text(
+                            item['seizedFrom']?.toString() ?? '',
+                            style: regular,
+                          ),
+                        ),
+                      ],
+                    ),
               ],
             ),
-            pw.SizedBox(height: 50),
+            pw.Spacer(),
 
-            // Signatures
+            // ── SIGNATURES ──
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                // Head Moharir
                 pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Container(
-                      width: 150,
-                      alignment: pw.Alignment.center,
-                      child: renderField(
-                        'val_headMoharirSign',
-                        doc['headMoharirSign']?.toString() ??
-                            doc['receiverName']?.toString(),
-                      ),
-                    ),
-                    pw.Container(
-                      width: 150,
-                      height: 0.8,
-                      color: PdfColors.black,
-                      margin: const pw.EdgeInsets.only(top: 2, bottom: 6),
-                    ),
-                    mLbl('sig_head_moharir'),
+                    pw.Text('हेडमोहरर सही', style: bold),
+                    if (headMohararSig.isNotEmpty) ...[
+                      pw.SizedBox(height: 4),
+                      pw.Text(headMohararSig, style: regular),
+                    ],
                   ],
                 ),
-
-                // Investigating Officer
                 pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Container(
-                      width: 150,
-                      alignment: pw.Alignment.center,
-                      child: renderField(
-                        'val_ioSign',
-                        doc['ioSign']?.toString() ?? doc['ioName']?.toString(),
-                      ),
-                    ),
-                    pw.Container(
-                      width: 150,
-                      height: 0.8,
-                      color: PdfColors.black,
-                      margin: const pw.EdgeInsets.only(top: 2, bottom: 6),
-                    ),
-                    mLbl('sig_io'),
+                    pw.Text('तपास अधिकारी', style: bold),
+                    if (investigatingOfficerSig.isNotEmpty) ...[
+                      pw.SizedBox(height: 4),
+                      pw.Text(investigatingOfficerSig, style: regular),
+                    ],
                   ],
                 ),
               ],
+            ),
+            pw.SizedBox(height: 12),
+
+            // ── MRW FOOTER ──
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text(
+                'M.R.W',
+                style: pw.TextStyle(
+                  font: devanagari,
+                  fontSize: 8,
+                  color: PdfColors.grey700,
+                ),
+              ),
             ),
           ],
         );
@@ -470,127 +346,4 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   );
 
   return pdf.save();
-}
-
-Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
-  final pairs = <String, String>{
-    'title': '—:: मुद्देमाल पावती ::—',
-    'lbl_1_ps': '१) पोलीस स्टेशन :—',
-    'lbl_1_district': 'जिल्हा',
-    'lbl_2_cr_no': '२) अप क्रमांक :—',
-    'lbl_2_section': 'कलम',
-    'lbl_3_io': '३) अन्वेषन अधिकारी:—',
-    'lbl_3_ps': 'पोलीस स्टेशन',
-    'lbl_3_district': 'जिल्हा',
-    'lbl_4_accused': '४) आरोपी नांव :—',
-    'lbl_5_date': '५) जप्त माल दिनांक :—',
-    'lbl_5_mal_no': 'माल नंबर :—',
-    'th_desc': 'जप्त मालाचे विवरण',
-    'th_val': 'मुल्य अंदाजे',
-    'th_mal_no': 'माल नंबर',
-    'th_seized_from': 'कोणाकडुन जप्त केले',
-    'sig_head_moharir': 'हेडमोहरर सही',
-    'sig_io': 'तपास अधिकारी',
-  };
-
-  void addIfDevanagari(String k, dynamic v) {
-    final s = v?.toString().trim() ?? '';
-    if (s.isNotEmpty && containsDevanagari(s)) {
-      pairs[k] = s;
-    }
-  }
-
-  // Header / Form values
-  addIfDevanagari('val_policeStation', doc['policeStation']);
-  addIfDevanagari('val_district', doc['district'] ?? 'यवतमाळ');
-  addIfDevanagari('val_crNoYear', doc['crNoYear'] ?? doc['crNo']);
-  addIfDevanagari('val_section', doc['section']);
-  addIfDevanagari(
-      'val_investigatingOfficer', doc['investigatingOfficer'] ?? doc['ioName']);
-  addIfDevanagari(
-      'val_ioPoliceStation', doc['ioPoliceStation'] ?? doc['policeStation']);
-  addIfDevanagari('val_ioDistrict', doc['ioDistrict'] ?? 'यवतमाळ');
-  addIfDevanagari('val_accusedName', doc['accusedName']);
-  addIfDevanagari('val_seizureDate',
-      doc['seizureDate'] ?? doc['seizedDate'] ?? doc['date']);
-  addIfDevanagari('val_malNumber', doc['malNumber'] ?? doc['receiptNo']);
-  addIfDevanagari(
-      'val_headMoharirSign', doc['headMoharirSign'] ?? doc['receiverName']);
-  addIfDevanagari('val_ioSign', doc['ioSign'] ?? doc['ioName']);
-
-  // Table items
-  final List<dynamic> rawItems =
-      (doc['muddemalItems'] is List) ? (doc['muddemalItems'] as List) : [];
-
-  if (rawItems.isNotEmpty) {
-    for (int i = 0; i < rawItems.length; i++) {
-      final m = rawItems[i];
-      if (m is Map) {
-        addIfDevanagari('item_${i}_desc', m['description']);
-        addIfDevanagari('item_${i}_val', m['estimatedValue']);
-        addIfDevanagari('item_${i}_mal', m['malNumber']);
-        addIfDevanagari('item_${i}_from', m['seizedFrom']);
-      }
-    }
-  } else {
-    addIfDevanagari('item_0_desc', doc['propertyDescription']);
-    addIfDevanagari('item_0_val', doc['propertyValue']);
-    addIfDevanagari('item_0_mal', doc['malNumber']);
-    addIfDevanagari('item_0_from', doc['seizedFrom']);
-  }
-
-  final boldKeys = {
-    'title',
-    'lbl_1_ps',
-    'lbl_1_district',
-    'lbl_2_cr_no',
-    'lbl_2_section',
-    'lbl_3_io',
-    'lbl_3_ps',
-    'lbl_3_district',
-    'lbl_4_accused',
-    'lbl_5_date',
-    'lbl_5_mal_no',
-    'th_desc',
-    'th_val',
-    'th_mal_no',
-    'th_seized_from',
-    'sig_head_moharir',
-    'sig_io',
-  };
-
-  final cache = MarathiImageCache();
-  await GoogleFonts.pendingFonts();
-
-  for (final entry in pairs.entries) {
-    final isBold = boldKeys.contains(entry.key);
-    final double fs = entry.key == 'title'
-        ? 14.0
-        : (entry.key.startsWith('th_')
-            ? 10.5
-            : (entry.key.startsWith('sig_') ? 11.0 : 9.5));
-
-    final color = entry.key.startsWith('val_') || entry.key.startsWith('item_')
-        ? const Color(0xFF0D47A1)
-        : Colors.black87;
-
-    final double maxW = entry.key == 'title'
-        ? 300
-        : (entry.key.contains('desc')
-            ? 220
-            : (entry.key.contains('from') ? 160 : 180));
-
-    await cache.add(
-      entry.key,
-      entry.value,
-      GoogleFonts.notoSansDevanagari(
-        fontSize: fs,
-        fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-        color: color,
-      ),
-      maxWidth: maxW,
-    );
-  }
-
-  return cache;
 }
