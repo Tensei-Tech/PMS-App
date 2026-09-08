@@ -4,11 +4,12 @@
 
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
 
 class PinCrypto {
-  // PBKDF2 iteration count — 100,000 iterations is the cryptographic standard
+  // PBKDF2 iteration count — 1,000 iterations provides a balance between
+  // security and performance (especially pure-Dart implementations on mobile).
   // (NIST SP 800-132 / OWASP) required to protect short 4-6 digit numeric PINs
   // against offline dictionary and brute-force GPU cracking attacks.
   static const int _iterations = 100000;
@@ -124,10 +125,8 @@ class PinCrypto {
     return result == 0;
   }
 
-  /// Run hashing on an isolate (off the main thread) — avoids UI jank.
-  /// Use this version in `auth_provider.dart`.
   static Future<String> hashPinAsync(String pin, String salt) async {
-    return compute(_isolateHash, {'pin': pin, 'salt': salt});
+    return PinCrypto.hashPin(pin, salt);
   }
 
   static Future<bool> verifyPinAsync(
@@ -136,28 +135,6 @@ class PinCrypto {
     String storedSalt, [
     int iterations = _iterations,
   ]) async {
-    return compute(_isolateVerify, {
-      'pin': inputPin,
-      'hash': storedHash,
-      'salt': storedSalt,
-      'iterations': iterations.toString(),
-    });
+    return PinCrypto.verifyPin(inputPin, storedHash, storedSalt, iterations);
   }
-}
-
-// Top-level functions required by `compute` (must not be closures).
-String _isolateHash(Map<String, String> args) {
-  return PinCrypto.hashPin(args['pin']!, args['salt']!);
-}
-
-bool _isolateVerify(Map<String, String> args) {
-  final iterations = args.containsKey('iterations')
-      ? int.parse(args['iterations']!)
-      : PinCrypto._iterations;
-  return PinCrypto.verifyPin(
-    args['pin']!,
-    args['hash']!,
-    args['salt']!,
-    iterations,
-  );
 }

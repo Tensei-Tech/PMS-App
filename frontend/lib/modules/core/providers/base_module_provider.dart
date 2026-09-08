@@ -192,6 +192,12 @@ class BaseModuleProvider extends ChangeNotifier {
     }
     notifyListeners();
 
+    // Optimistically update local list so UI reflects status change immediately
+    final idx = _records.indexWhere((r) => r.id == record.id);
+    if (idx != -1) {
+      _records[idx] = enriched;
+      notifyListeners();
+    }
     await _caseService.saveCase(enriched, isCreate: false);
     await _fetchCases(forceRefresh: true);
   }

@@ -170,6 +170,10 @@ class CaseService {
       _casesCache.clear();
       _casesCacheTime.clear();
     }
+  /// Clear in-memory cases cache
+  void clearCache() {
+    _casesCache.clear();
+    _casesCacheTime.clear();
   }
 
   /// Create a new case record in PostgreSQL backend
@@ -185,6 +189,9 @@ class CaseService {
         response = await _api.put(url, body: payload);
       }
       invalidateCache();
+      if (response.isSuccess) {
+        clearCache();
+      }
       return response.isSuccess;
     } catch (e) {
       if (kDebugMode) {
@@ -201,6 +208,9 @@ class CaseService {
       final url = '${ApiConfig.cases}$id/';
       final response = await _api.delete(url);
       invalidateCache();
+      if (response.isSuccess) {
+        clearCache();
+      }
       return response.isSuccess;
     } catch (e) {
       if (kDebugMode) {

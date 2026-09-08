@@ -12,6 +12,7 @@ import 'package:flutter/material.dart' show BuildContext, TimeOfDay;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+
 import 'pdf_unicode_fonts.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -156,9 +157,7 @@ pw.Widget _footer(pw.Context ctx) => pw.Container(
       margin: const pw.EdgeInsets.only(top: 8),
       padding: const pw.EdgeInsets.only(top: 5),
       decoration: const pw.BoxDecoration(
-        border: pw.Border(
-          top: pw.BorderSide(color: _border, width: 0.5),
-        ),
+        border: pw.Border(top: pw.BorderSide(color: _border, width: 0.5)),
       ),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -194,11 +193,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
         _f('Cr. No.', _v(m['crNo'])),
         _f('Registered Date', _v(m['regDate'])),
         _f('Unknown / Untraced', isUnknown ? 'Yes' : 'No'),
-        _f(
-          'FIR Copy',
-          _v(m['firCopyPath'], or: 'Not uploaded'),
-          full: true,
-        ),
+        _f('FIR Copy', _v(m['firCopyPath'], or: 'Not uploaded'), full: true),
       ]),
     ),
   );
@@ -242,6 +237,23 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     ),
   );
 
+  if (m['stolenProperty'] != null &&
+      (_v(m['stolenProperty']['description']).isNotEmpty ||
+          _v(m['stolenProperty']['recovered']).isNotEmpty)) {
+    sections.add(
+      _card(
+        4,
+        'STOLEN PROPERTY',
+        _teal,
+        _grid2([
+          _f('Description', _v(m['stolenProperty']['description']), full: true),
+          _f('Recovered Property', _v(m['stolenProperty']['recovered']),
+              full: true),
+        ]),
+      ),
+    );
+  }
+
   // ── MODULE EXTRA SECTIONS (auto between Crime Spot and Complainant) ───────
   // Convention: any form-specific payload under keys ending with `_extra`
   // is auto-inserted here for all present/future modules.
@@ -262,7 +274,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       (comp['name']?.toString().contains('Protected') ?? false);
   sections.add(
     _card(
-      4,
+      5,
       'COMPLAINANT KYC',
       _teal,
       comp.isEmpty
@@ -286,11 +298,91 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     ),
   );
 
+  // ── Victim KYC ────────────────────────────────────────────────────────────
+  final victim = m['victim'] as Map? ?? {};
+  if (victim.isNotEmpty) {
+    sections.add(
+      _card(
+        6,
+        'VICTIM KYC',
+        _teal,
+        _grid2([
+          _f('Name', _v(victim['name'])),
+          _f('Age', _v(victim['age'])),
+          _f('Gender', _v(victim['gender'])),
+          _f('Occupation', _v(victim['occ'])),
+          _f('Mobile', _v(victim['mobile'])),
+          _f('Aadhaar', _v(victim['aadhaar'])),
+          _f('Religion', _v(victim['religion'])),
+          _f('Caste', _v(victim['caste'])),
+          _f('PAN Number', _v(victim['pan'])),
+        ]),
+      ),
+    );
+  }
+
+  // ── Deceased KYC (Murder Cases) ───────────────────────────────────────────
+  final deceased = m['deceased'] as Map? ?? {};
+  if (deceased.isNotEmpty) {
+    sections.add(
+      _card(
+        7,
+        'DECEASED KYC',
+        _teal,
+        _grid2([
+          _f('Name', _v(deceased['name'])),
+          _f('Age', _v(deceased['age'])),
+          _f('Gender', _v(deceased['gender'])),
+          _f('Occupation', _v(deceased['occ'])),
+          _f('Mobile', _v(deceased['mobile'])),
+          _f('Aadhaar', _v(deceased['aadhaar'])),
+          _f('Religion', _v(deceased['religion'])),
+          _f('Caste', _v(deceased['caste'])),
+          _f('PAN Number', _v(deceased['pan'])),
+        ]),
+      ),
+    );
+  }
+
+  // ── Injured Person KYC ─────────────────────────────────────────────────────
+  final inj = m['injured'] as Map? ?? {};
+  final hasInj = inj.isNotEmpty &&
+      (inj['name']?.toString().trim().isNotEmpty == true ||
+          inj['mobile']?.toString().trim().isNotEmpty == true ||
+          inj['aadhaar']?.toString().trim().isNotEmpty == true ||
+          inj['age']?.toString().trim().isNotEmpty == true);
+  if (hasInj) {
+    final isDied = inj['isDied'] == true;
+    sections.add(
+      _card(
+        deceased.isNotEmpty ? 8 : 7,
+        'INJURED PERSON KYC',
+        _teal,
+        _grid2([
+          _f('Name', _v(inj['name'])),
+          _f('Age', _v(inj['age'])),
+          _f('Gender', _v(inj['gender'])),
+          _f('Occupation', _v(inj['occ'])),
+          _f('Mobile', _v(inj['mobile'])),
+          _f('Aadhaar', _v(inj['aadhaar'])),
+          _f('Religion', _v(inj['religion'])),
+          _f('Caste', _v(inj['caste'])),
+          _f('PAN Number', _v(inj['pan'])),
+          _f('Person Status', isDied ? 'Died / Deceased (मयत)' : 'Alive'),
+          if (isDied) ...[
+            _f('Date of Death', _v(inj['deathDate'])),
+            _f('Time of Death', _v(inj['deathTime'])),
+          ],
+        ]),
+      ),
+    );
+  }
+
   // ── §5 Accused Details ────────────────────────────────────────────────────
   final accusedList = (m['accused'] as List?) ?? [];
   sections.add(
     _card(
-      5,
+      6,
       'ACCUSED DETAILS',
       _teal,
       pw.Column(
@@ -321,7 +413,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final suspectedList = (m['suspectedAccused'] as List?) ?? [];
   sections.add(
     _card(
-      6,
+      7,
       'SUSPECTED ACCUSED',
       _teal,
       isUnknown
@@ -343,47 +435,65 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     ),
   );
 
-  // ── §7 Unidentified (always printed — mirrors buildDocumentMap['unidentified'])
-  final u = m['unidentified'] as Map? ?? {};
+  // ── §7 Unidentified ───────────────────────────────────────────────────────
+  final unidentifiedList = (m['unidentifiedList'] as List?) ?? [];
   sections.add(
     _card(
-      7,
+      8,
       'UNIDENTIFIED CRIMINAL DESCRIPTION',
       _amber,
-      pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          if (!isUnknown)
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(bottom: 8),
-              child: pw.Text(
-                'Known accused mode - unidentified block still reflects stored values if any.',
-                style: pw.TextStyle(
-                  fontSize: 8,
-                  color: _muted,
-                  fontStyle: pw.FontStyle.italic,
-                ),
-              ),
-            )
-          else
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(bottom: 8),
-              child: _badge(
-                  'Unknown / Untraced - fill all applicable fields', _amber),
+      unidentifiedList.isEmpty
+          ? _empty('No unidentified criminal added.')
+          : pw.Column(
+              children: unidentifiedList.asMap().entries.map((e) {
+                final u = e.value as Map;
+                return _subCard(
+                  _grid2([
+                    _f('Gender', _v(u['gender'])),
+                    _f('Approx Age', _v(u['approxAge'])),
+                    _f('Skin Color', _v(u['skinColor'])),
+                    _f('Approx Height', _v(u['approxHeight'])),
+                    _f('Mobile (if known)', _v(u['mobile'])),
+                    _f('Occupation (possible)', _v(u['occupation'])),
+                    _f('Last Known Address', _v(u['lastKnownAddress']),
+                        full: true),
+                    _f('Other Physical Markers', _v(u['otherPhysicalMarkers']),
+                        full: true),
+                  ]),
+                );
+              }).toList(),
             ),
-          _grid2([
-            _f('Gender', _v(u['gender'])),
-            _f('Approx Age', _v(u['approxAge'])),
-            _f('Skin Color', _v(u['skinColor'])),
-            _f('Approx Height', _v(u['approxHeight'])),
-            _f('Mobile (if known)', _v(u['mobile'])),
-            _f('Occupation (possible)', _v(u['occupation'])),
-            _f('Last Known Address', _v(u['lastKnownAddress']), full: true),
-            _f('Other Physical Markers', _v(u['otherPhysicalMarkers']),
-                full: true),
-          ]),
-        ],
-      ),
+    ),
+  );
+
+  // ── §7b Unknown ───────────────────────────────────────────────────────────
+  final unknownList = (m['unknownList'] as List?) ?? [];
+  sections.add(
+    _card(
+      9,
+      'UNKNOWN CRIMINAL DESCRIPTION',
+      _amber,
+      unknownList.isEmpty
+          ? _empty('No unknown criminal added.')
+          : pw.Column(
+              children: unknownList.asMap().entries.map((e) {
+                final u = e.value as Map;
+                return _subCard(
+                  _grid2([
+                    _f('Gender', _v(u['gender'])),
+                    _f('Approx Age', _v(u['approxAge'])),
+                    _f('Skin Color', _v(u['skinColor'])),
+                    _f('Approx Height', _v(u['approxHeight'])),
+                    _f('Mobile (if known)', _v(u['mobile'])),
+                    _f('Occupation (possible)', _v(u['occupation'])),
+                    _f('Last Known Address', _v(u['lastKnownAddress']),
+                        full: true),
+                    _f('Other Physical Markers', _v(u['otherPhysicalMarkers']),
+                        full: true),
+                  ]),
+                );
+              }).toList(),
+            ),
     ),
   );
 
@@ -391,7 +501,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final cr8 = m['caseResponsibility'] as Map? ?? {};
   sections.add(
     _card(
-      8,
+      10,
       'CASE RESPONSIBILITY',
       _teal,
       _grid2([
@@ -409,7 +519,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final arrests = (m['arrestRelease'] as List?) ?? [];
   sections.add(
     _card(
-      9,
+      11,
       'ARREST & RELEASE STATUS',
       _teal,
       arrests.isEmpty
@@ -445,7 +555,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   };
   sections.add(
     _card(
-      10,
+      12,
       'PROCEDURAL DETAILS',
       _teal,
       pw.Column(
@@ -488,7 +598,15 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             );
           }),
           pw.SizedBox(height: 6),
-          _grid2([_f('E-shaksh', _v(m['eshakshValue'], or: 'Not set'))]),
+          _grid2([
+            _f('E-Shakshya', _v(m['eshakshValue'], or: 'Not set')),
+            if (m['eshakshValue'] == 'yes' &&
+                (m['eshakshDt']?.toString().isNotEmpty ?? false))
+              _f('E-Shakshya Date & Time', _v(m['eshakshDt']))
+            else if (m['eshakshValue'] == 'no' &&
+                (m['eshakshReason']?.toString().isNotEmpty ?? false))
+              _f('Reason for No E-Shakshya', _v(m['eshakshReason'])),
+          ]),
         ],
       ),
     ),
@@ -498,7 +616,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final seizures = (m['seizures'] as List?) ?? [];
   sections.add(
     _card(
-      11,
+      13,
       'SEIZURE RECORDS',
       _teal,
       seizures.isEmpty
@@ -521,7 +639,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   // ── §12 Technical & Custody ────────────────────────────────────────────────
   sections.add(
     _card(
-      12,
+      14,
       'TECHNICAL & CUSTODY',
       _teal,
       _grid2([
@@ -535,45 +653,90 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── §13 Preventive & Bonds ─────────────────────────────────────────────────
   final prev = m['preventive'] as Map? ?? {};
-  sections.add(
-    _card(
-      13,
-      'PREVENTIVE & BONDS',
-      _teal,
-      _grid2([
-        _f('Preventive Action', _v(prev['action'], or: 'Not set')),
-        _f('Outward Number', _v(prev['outwardNumber'])),
-        _f('Bond Date', _v(prev['bondDate'])),
-        _f('Bond Cancellation Date', _v(prev['bondCancellation'])),
-      ]),
+  final isBondYes = (prev['preventiveBonds'] ?? prev['prBond']) == 'yes';
+  final prevFields = <_FD>[
+    _f(
+      'Preventive Bonds',
+      _v(prev['preventiveBonds'] ?? prev['prBond'], or: 'No'),
     ),
-  );
+  ];
+  if (isBondYes) {
+    prevFields.add(_f('PR Bond Date', _v(prev['bondDate'])));
+    prevFields.add(_f('Bond Cancellation Date', _v(prev['bondCancellation'])));
+    prevFields.add(_f('Reason for PR Bond', _v(prev['bondReason'])));
+  }
+  prevFields.add(_f('Action Type', _v(prev['action'], or: 'Not set')));
+  if (prev['actionDate'] != null && prev['actionDate'].toString().isNotEmpty) {
+    prevFields.add(
+      _f(
+        '${prev['action'] ?? 'Action Type'} Date & Time',
+        _v(prev['actionDate']),
+      ),
+    );
+  }
+  sections.add(_card(15, 'PREVENTIVE & BONDS', _teal, _grid2(prevFields)));
 
   // ── §14 Discharge Status ───────────────────────────────────────────────────
   final discharge = (m['dischargeByAccused'] as Map?) ?? {};
+  final disDetails = (m['dischargeDetails'] as Map?) ?? {};
   sections.add(
     _card(
-      14,
+      16,
       'DISCHARGE STATUS',
       _teal,
       discharge.isEmpty
           ? _empty('No discharge data. Add accused names first.')
           : pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: discharge.entries.map((e) {
                 final discharged = e.value == true;
+                final name = e.key.toString();
+                final det = (disDetails[name] as Map?) ?? {};
                 return pw.Padding(
-                  padding: const pw.EdgeInsets.only(bottom: 4),
-                  child: pw.Row(
+                  padding: const pw.EdgeInsets.only(bottom: 6),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      _checkbox(discharged, color: _green),
-                      pw.SizedBox(width: 6),
-                      pw.Text(
-                        '${e.key} - ${discharged ? "Discharged" : "Not discharged"}',
-                        style: pw.TextStyle(
-                          fontSize: 10,
-                          color: discharged ? _dark : _muted,
-                        ),
+                      pw.Row(
+                        children: [
+                          _checkbox(discharged, color: _green),
+                          pw.SizedBox(width: 6),
+                          pw.Text(
+                            '$name - ${discharged ? "Discharged" : "Not discharged"}',
+                            style: pw.TextStyle(
+                              fontSize: 10,
+                              fontWeight: pw.FontWeight.bold,
+                              color: discharged ? _dark : _muted,
+                            ),
+                          ),
+                        ],
                       ),
+                      if (discharged && det.isNotEmpty) ...[
+                        if (det['date'] != null &&
+                            det['date'].toString().isNotEmpty)
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(left: 18, top: 2),
+                            child: pw.Text(
+                              'Discharge Date: ${det['date']}',
+                              style: const pw.TextStyle(
+                                fontSize: 9,
+                                color: _dark,
+                              ),
+                            ),
+                          ),
+                        if (det['reason'] != null &&
+                            det['reason'].toString().isNotEmpty)
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(left: 18, top: 2),
+                            child: pw.Text(
+                              'Reason: ${det['reason']}',
+                              style: const pw.TextStyle(
+                                fontSize: 9,
+                                color: _muted,
+                              ),
+                            ),
+                          ),
+                      ],
                     ],
                   ),
                 );
@@ -586,49 +749,21 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final court = m['court'] as Map? ?? {};
   sections.add(
     _card(
-      15,
+      17,
       'COURT FILING',
       _teal,
       _grid2([
         _f('Charge Sheet No.', _v(court['chargeSheetNumber'])),
-        _f('CC / ST Number', _v(court['ccStNumber'])),
-        _f('Final Summary', _v(court['finalSummary'], or: 'Not set')),
-        _f('Quashed by High Court', _v(court['quashedHighCourt'])),
+        _f('Charge Sheet Date', _v(court['chargeSheetDate'])),
       ]),
     ),
   );
 
-  // ── §16 Final Verdict ──────────────────────────────────────────────────────
-  final verdict = m['verdict'] as Map? ?? {};
-  final acquitted =
-      (verdict['acquitted'] as List?)?.map((x) => x.toString()).toList() ?? [];
-  final convicted =
-      (verdict['convicted'] as List?)?.map((x) => x.toString()).toList() ?? [];
-  sections.add(
-    _card(
-      16,
-      'FINAL VERDICT',
-      _teal,
-      pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Expanded(
-            child: _verdictCol('✓ ACQUITTED', acquitted, _green),
-          ),
-          pw.SizedBox(width: 10),
-          pw.Expanded(
-            child: _verdictCol('✗ CONVICTED', convicted, _red),
-          ),
-        ],
-      ),
-    ),
-  );
-
-  // ── §17 Scrutiny Pipeline ─────────────────────────────────────────────────
+  // ── §16 Scrutiny Pipeline ─────────────────────────────────────────────────
   final sc = m['scrutiny'] as Map? ?? {};
   sections.add(
     _card(
-      17,
+      18,
       'CASE SCRUTINY PIPELINE',
       _teal,
       pw.Column(
@@ -668,6 +803,39 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
               sc['stepDcpActive'] == true ? 'Yes' : 'No',
             ),
           ]),
+        ],
+      ),
+    ),
+  );
+
+  // ── §17 Final Verdict ──────────────────────────────────────────────────────
+  final verdict = m['verdict'] as Map? ?? {};
+  final acquitted =
+      (verdict['acquitted'] as List?)?.map((x) => x.toString()).toList() ?? [];
+  final convicted =
+      (verdict['convicted'] as List?)?.map((x) => x.toString()).toList() ?? [];
+  sections.add(
+    _card(
+      19,
+      'FINAL VERDICT',
+      _teal,
+      pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          _grid2([
+            _f('CC / ST Number', _v(court['ccStNumber'])),
+            _f('Final Summary', _v(court['finalSummary'], or: 'Not set')),
+            _f('Quashed by High Court', _v(court['quashedHighCourt'])),
+          ]),
+          pw.SizedBox(height: 8),
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Expanded(child: _verdictCol('✓ ACQUITTED', acquitted, _green)),
+              pw.SizedBox(width: 10),
+              pw.Expanded(child: _verdictCol('✗ CONVICTED', convicted, _red)),
+            ],
+          ),
         ],
       ),
     ),
@@ -732,8 +900,10 @@ pw.Widget _extraSection(Map<String, dynamic> extra) {
     final isFlat = mapValue.values.every((v) => v is! Map && v is! List);
     if (isFlat) {
       final fields = mapValue.entries
-          .map((entry) =>
-              _f(_labelify(entry.key.toString()), _anyToString(entry.value)))
+          .map(
+            (entry) =>
+                _f(_labelify(entry.key.toString()), _anyToString(entry.value)),
+          )
           .toList();
       const chunkSize = 14;
       for (var i = 0; i < fields.length; i += chunkSize) {
@@ -742,25 +912,13 @@ pw.Widget _extraSection(Map<String, dynamic> extra) {
           (i + chunkSize) > fields.length ? fields.length : (i + chunkSize),
         );
         widgets.add(
-          _card(
-            0,
-            i == 0 ? title : '$title (CONT.)',
-            _amber,
-            _grid2(chunk),
-          ),
+          _card(0, i == 0 ? title : '$title (CONT.)', _amber, _grid2(chunk)),
         );
       }
       continue;
     }
 
-    widgets.add(
-      _card(
-        0,
-        title,
-        _amber,
-        _buildAnyMap(mapValue),
-      ),
-    );
+    widgets.add(_card(0, title, _amber, _buildAnyMap(mapValue)));
   }
 
   return pw.Column(children: widgets);
@@ -820,9 +978,7 @@ List<pw.Widget> _kidnappingExtraCards(Map<dynamic, dynamic> data) {
 
   final fields = <_FD>[];
   for (final pair in ordered) {
-    fields.add(
-      _f(pair.value, _anyToString(data[pair.key])),
-    );
+    fields.add(_f(pair.value, _anyToString(data[pair.key])));
   }
 
   // Keep cards small enough to avoid orphan headers / bad page spacing.
@@ -866,12 +1022,7 @@ pw.Widget _buildAnyMap(Map<dynamic, dynamic> m) {
     widgets.add(
       _grid2(
         flatFields
-            .map(
-              (e) => _f(
-                _labelify(e.key.toString()),
-                _anyToString(e.value),
-              ),
-            )
+            .map((e) => _f(_labelify(e.key.toString()), _anyToString(e.value)))
             .toList(),
       ),
     );
@@ -923,8 +1074,10 @@ pw.Widget _buildAnyMap(Map<dynamic, dynamic> m) {
                         pw.Expanded(
                           child: pw.Text(
                             _anyToString(item.value),
-                            style:
-                                const pw.TextStyle(fontSize: 10, color: _dark),
+                            style: const pw.TextStyle(
+                              fontSize: 10,
+                              color: _dark,
+                            ),
                           ),
                         ),
                       ],
@@ -962,9 +1115,7 @@ pw.Widget _buildAnyMap(Map<dynamic, dynamic> m) {
                 borderRadius: pw.BorderRadius.circular(6),
                 border: pw.Border.all(color: _border, width: 0.5),
               ),
-              child: _buildAnyMap(
-                Map<dynamic, dynamic>.from(e.value as Map),
-              ),
+              child: _buildAnyMap(Map<dynamic, dynamic>.from(e.value as Map)),
             ),
           ],
         ),
@@ -1011,7 +1162,12 @@ String _anyToString(dynamic v) {
 // COMPONENT BUILDERS
 // ══════════════════════════════════════════════════════════════════════════════
 
-pw.Widget _card(int num, String title, PdfColor accent, pw.Widget body) =>
+pw.Widget _card(
+  dynamic num,
+  String title,
+  PdfColor accent,
+  pw.Widget body,
+) =>
     pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -1040,7 +1196,7 @@ pw.Widget _card(int num, String title, PdfColor accent, pw.Widget body) =>
                 ),
                 child: pw.Row(
                   children: [
-                    if (num > 0) ...[
+                    if (num.toString() != '0') ...[
                       pw.Container(
                         width: 18,
                         height: 18,
@@ -1370,10 +1526,7 @@ pw.Widget _scrutinyStep(
               ),
               if (!isLast)
                 pw.Container(
-                  width: 2,
-                  height: 30,
-                  color: active ? _teal : _border,
-                ),
+                    width: 2, height: 30, color: active ? _teal : _border),
             ],
           ),
           pw.SizedBox(width: 10),
@@ -1402,10 +1555,7 @@ pw.Widget _scrutinyStep(
                       ),
                     )
                   else
-                    _grid2([
-                      _f('Send Date', send),
-                      _f('Grant Date', grant),
-                    ]),
+                    _grid2([_f('Send Date', send), _f('Grant Date', grant)]),
                 ],
               ),
             ),
