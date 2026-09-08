@@ -422,10 +422,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     List<ModuleRecord> allRecords;
     int totalCount;
-    int openCount = 0;
-    int activeCount = 0;
-    int resolvedCount = 0;
-    int closedCount = 0;
 
     if (widget.moduleKey == 'pending') {
       // Aggregate across ALL categories and show only active (non-closed) cases
@@ -434,26 +430,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           .where((r) => r.status != 'Closed' && r.moduleKey != 'nc')
           .toList();
       totalCount = allRecords.length;
-      openCount = allRecords.where((r) => r.status == 'Open').length;
-      activeCount = allRecords.where((r) => r.status == 'Active').length;
-      resolvedCount = allRecords.where((r) => r.status == 'Resolved').length;
-      closedCount = 0; // Closed cases are excluded from pending
     } else if (widget.moduleKey == 'disposal') {
       // Aggregate across ALL categories and show only closed cases
       final consolidated = _getConsolidatedRecords(context);
       allRecords = consolidated.where((r) => r.status == 'Closed').toList();
       totalCount = allRecords.length;
-      openCount = 0; // Only closed cases in disposal
-      activeCount = 0;
-      resolvedCount = 0;
-      closedCount = allRecords.length;
     } else if (widget.moduleKey == 'monthly') {
       allRecords = _getConsolidatedRecords(context);
       totalCount = allRecords.length;
-      openCount = allRecords.where((r) => r.status == 'Open').length;
-      activeCount = allRecords.where((r) => r.status == 'Active').length;
-      resolvedCount = allRecords.where((r) => r.status == 'Resolved').length;
-      closedCount = allRecords.where((r) => r.status == 'Closed').length;
     } else if (widget.moduleKey == 'absconded') {
       final abscondedRecords = context.watch<AbscondedProvider>().records;
       final formIVRecords = context.watch<FormIVProvider>().records;
@@ -477,26 +461,22 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       allRecords.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       totalCount = allRecords.length;
-      openCount = allRecords.where((r) => r.status == 'Open').length;
-      activeCount = allRecords.where((r) => r.status == 'Active').length;
-      resolvedCount = allRecords.where((r) => r.status == 'Resolved').length;
-      closedCount = allRecords.where((r) => r.status == 'Closed').length;
     } else {
       final provider = _watchProvider(context);
       allRecords = provider.getFilteredRecords(widget.subCategory);
       totalCount = provider.getFilteredTotalCount(widget.subCategory);
-      openCount = provider.getFilteredOpenCount(widget.subCategory);
-      activeCount = provider.getFilteredActiveCount(widget.subCategory);
-      resolvedCount = provider.getFilteredResolvedCount(widget.subCategory);
-      closedCount = provider.getFilteredClosedCount(widget.subCategory);
     }
 
-    final int abscondedPendingCount = widget.moduleKey == 'absconded'
-        ? allRecords.where((r) => !isAbscondedDisposal(r)).length
-        : 0;
-    final int abscondedDisposalCount = widget.moduleKey == 'absconded'
+    final int disposalCount = widget.moduleKey == 'absconded'
         ? allRecords.where((r) => isAbscondedDisposal(r)).length
-        : 0;
+        : allRecords
+            .where((r) =>
+                r.status == 'Disposal' ||
+                r.status == 'Disposed' ||
+                r.status == 'Closed' ||
+                r.status == 'Resolved')
+            .length;
+    final int pendingCount = allRecords.length - disposalCount;
 
     final List<ModuleRecord> filtered;
     if (widget.moduleKey == 'absconded') {
@@ -507,13 +487,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       } else {
         filtered = allRecords;
       }
-    } else if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
+    } else {
       if (_filter == 'Disposal' ||
           _filter == 'Closed' ||
           _filter == 'Resolved') {
         filtered = allRecords
             .where((r) =>
                 r.status == 'Disposal' ||
+                r.status == 'Disposed' ||
                 r.status == 'Closed' ||
                 r.status == 'Resolved')
             .toList();
@@ -523,16 +504,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         filtered = allRecords
             .where((r) =>
                 r.status != 'Disposal' &&
+                r.status != 'Disposed' &&
                 r.status != 'Closed' &&
                 r.status != 'Resolved')
             .toList();
       } else {
         filtered = allRecords;
       }
-    } else {
-      filtered = _filter == 'All'
-          ? allRecords
-          : allRecords.where((r) => r.status == _filter).toList();
     }
 
     return Scaffold(
@@ -556,26 +534,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               SliverToBoxAdapter(
                   child: _buildMonthlyReport(context, allRecords))
             else ...[
-              if (widget.moduleKey == 'absconded') ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
-                    child: _buildAbscondedStatsRow(
-                      totalCount,
-                      abscondedPendingCount,
-                      abscondedDisposalCount,
-                    ),
-                  ),
-                ),
-              ] else if (widget.moduleKey != 'form_1_5' &&
+              if (widget.moduleKey != 'form_1_5' &&
                   widget.moduleKey != 'disposal') ...[
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
                         AppSpacing.md, AppSpacing.lg, AppSpacing.md),
-                    child: _buildStatsRow(openCount, activeCount, resolvedCount,
-                        closedCount, totalCount),
+                    child: _buildStatsRow(totalCount, disposalCount, pendingCount),
                   ),
                 ),
               ],
@@ -596,28 +561,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
-      floatingActionButton: (widget.readOnly ||
-              widget.moduleKey == 'detected' ||
-              widget.moduleKey == 'undetected' ||
-              widget.moduleKey == 'disposal')
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _openNewEntryForm(context),
-              backgroundColor: AppColors.navyDark,
-              elevation: 4,
-              shape: const StadiumBorder(),
-              icon:
-                  const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-              label: Text(
-                TranslationHelper.translate(context, 'Add Case'),
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ),
+      floatingActionButton: null,
     );
   }
 
@@ -3491,129 +3435,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  Widget _buildAbscondedStatsRow(int total, int pending, int disposal) {
-    return Column(
+  Widget _buildStatsRow(int total, int disposal, int pending) {
+    return Row(
       children: [
-        if (!widget.readOnly) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openNewEntryForm(context),
-                    icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-                    label: Text(
-                      '+ Add New ${widget.moduleLabel} Case',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyDark,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: const StadiumBorder(),
-                      elevation: 3,
-                      shadowColor: AppColors.navyDark.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        Row(
-          children: [
-            _statCard('Total', total, AppColors.infoBlue, 'All'),
-            const SizedBox(width: 8),
-            _statCard('Pending', pending, AppColors.warningOrange, 'Pending'),
-            const SizedBox(width: 8),
-            _statCard('Disposal', disposal, AppColors.successGreen, 'Disposal'),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatsRow(
-      int open, int active, int resolved, int closed, int total) {
-    if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
-      final provider = _watchProvider(context);
-      final allRecs = provider.getFilteredRecords(widget.subCategory);
-      final disposalCount = allRecs
-          .where((r) =>
-              r.status == 'Disposal' ||
-              r.status == 'Closed' ||
-              r.status == 'Resolved')
-          .length;
-      final pendingCount = allRecs.length - disposalCount;
-      final totalCaseCount = allRecs.length;
-
-      return Row(
-        children: [
-          _statCard('Total Case', totalCaseCount, AppColors.infoBlue, 'All'),
-          const SizedBox(width: 8),
-          _statCard(
-              'Pending', pendingCount, AppColors.warningOrange, 'Pending'),
-          const SizedBox(width: 8),
-          _statCard(
-              'Disposal', disposalCount, AppColors.successGreen, 'Disposal'),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        if (!widget.readOnly) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openNewEntryForm(context),
-                    icon: const Icon(Icons.add_rounded,
-                        color: Colors.white, size: 20),
-                    label: Text(
-                      '+ ${TranslationHelper.translate(context, 'Add New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'case')}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyDark,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: const StadiumBorder(),
-                      elevation: 3,
-                      shadowColor: AppColors.navyDark.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        Row(children: [
-          _statCard('Total', total, AppColors.infoBlue, 'All'),
-          const SizedBox(width: 8),
-          _statCard('Open', open, AppColors.warningOrange, 'Open'),
-          const SizedBox(width: 8),
-          _statCard('Active', active, AppColors.goldPrimary, 'Active'),
-        ]),
-        const SizedBox(height: 8),
-        Row(children: [
-          _statCard('Resolved', resolved, AppColors.successGreen, 'Resolved'),
-          const SizedBox(width: 8),
-          _statCard('Closed', closed, const Color(0xFF607D8B), 'Closed'),
-          const SizedBox(width: 8),
-          const Expanded(child: SizedBox()),
-        ]),
+        _statCard('Total', total, AppColors.infoBlue, 'All'),
+        const SizedBox(width: 8),
+        _statCard('Disposal', disposal, AppColors.successGreen, 'Disposal'),
+        const SizedBox(width: 8),
+        _statCard('Pending', pending, AppColors.warningOrange, 'Pending'),
       ],
     );
   }

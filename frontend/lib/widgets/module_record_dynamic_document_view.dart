@@ -8,6 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../modules/core/models/base_record.dart';
+import '../modules/nc/screens/nc_form_screen.dart' show kNcFormExtraFieldsKey;
+import '../modules/nc/screens/nc_view_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/common_form_module.dart';
 import 'ad_form_dynamic_document_view.dart' show humanizeFieldKey;
@@ -476,6 +478,12 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
       extraSansCommon.remove(kCommonFormExtraFieldsKey);
     }
 
+    Map<String, dynamic>? ncFormMap;
+    final nestedNc = extra[kNcFormExtraFieldsKey];
+    if (record.moduleKey == 'nc' || nestedNc is Map) {
+      ncFormMap = nestedNc is Map ? Map<String, dynamic>.from(nestedNc) : <String, dynamic>{};
+    }
+
     final body = LayoutBuilder(
       builder: (context, constraints) {
         final desktop = constraints.maxWidth > _kCaseDetailDesktopBreakpoint;
@@ -490,7 +498,19 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            if (commonFormMap == null) ...[
+            if (ncFormMap != null) ...[
+              NcViewDocumentView(
+                record: record,
+                ncMap: ncFormMap,
+                moduleLabel: moduleLabel,
+              ),
+            ] else if (commonFormMap != null) ...[
+              CommonFormDocumentView(
+                commonMap: commonFormMap,
+                extraMap: extraSansCommon,
+                record: record,
+              ),
+            ] else ...[
               _sectionHeader(
                 'All saved case fields',
                 Icons.fact_check_outlined,
@@ -498,15 +518,7 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
               const SizedBox(height: 10),
               _card(children: _orderedScalarRows(raw, desktop: desktop)),
               const SizedBox(height: AppSpacing.lg),
-            ],
-            if (commonFormMap != null) ...[
-              CommonFormDocumentView(
-                commonMap: commonFormMap,
-                extraMap: extraSansCommon,
-                record: record,
-              ),
-            ] else if (extra.isNotEmpty) ...[
-              _extraFieldsSection(extra, desktop: desktop),
+              if (extra.isNotEmpty) _extraFieldsSection(extra, desktop: desktop),
             ],
             const SizedBox(height: 100),
           ],
