@@ -15,7 +15,7 @@ class PinCrypto {
   static const int _iterations = 1000;
   static const int _saltLengthBytes = 32;
   static const int _keyLengthBytes = 32;
-                                        
+
   /// Generates a cryptographically secure random salt (hex-encoded, 64 chars).
   static String generateSalt() {
     final rng = Random.secure();
@@ -138,4 +138,3 @@ class PinCrypto {
     return PinCrypto.verifyPin(inputPin, storedHash, storedSalt, iterations);
   }
 }
-

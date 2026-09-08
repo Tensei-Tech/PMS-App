@@ -239,7 +239,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   if (m['stolenProperty'] != null &&
       (_v(m['stolenProperty']['description']).isNotEmpty ||
-       _v(m['stolenProperty']['recovered']).isNotEmpty)) {
+          _v(m['stolenProperty']['recovered']).isNotEmpty)) {
     sections.add(
       _card(
         4,
@@ -247,7 +247,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
         _teal,
         _grid2([
           _f('Description', _v(m['stolenProperty']['description']), full: true),
-          _f('Recovered Property', _v(m['stolenProperty']['recovered']), full: true),
+          _f('Recovered Property', _v(m['stolenProperty']['recovered']),
+              full: true),
         ]),
       ),
     );
@@ -444,25 +445,23 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       unidentifiedList.isEmpty
           ? _empty('No unidentified criminal added.')
           : pw.Column(
-              children: unidentifiedList
-                  .asMap()
-                  .entries
-                  .map((e) {
-                    final u = e.value as Map;
-                    return _subCard(
-                      _grid2([
-                        _f('Gender', _v(u['gender'])),
-                        _f('Approx Age', _v(u['approxAge'])),
-                        _f('Skin Color', _v(u['skinColor'])),
-                        _f('Approx Height', _v(u['approxHeight'])),
-                        _f('Mobile (if known)', _v(u['mobile'])),
-                        _f('Occupation (possible)', _v(u['occupation'])),
-                        _f('Last Known Address', _v(u['lastKnownAddress']), full: true),
-                        _f('Other Physical Markers', _v(u['otherPhysicalMarkers']), full: true),
-                      ]),
-                    );
-                  })
-                  .toList(),
+              children: unidentifiedList.asMap().entries.map((e) {
+                final u = e.value as Map;
+                return _subCard(
+                  _grid2([
+                    _f('Gender', _v(u['gender'])),
+                    _f('Approx Age', _v(u['approxAge'])),
+                    _f('Skin Color', _v(u['skinColor'])),
+                    _f('Approx Height', _v(u['approxHeight'])),
+                    _f('Mobile (if known)', _v(u['mobile'])),
+                    _f('Occupation (possible)', _v(u['occupation'])),
+                    _f('Last Known Address', _v(u['lastKnownAddress']),
+                        full: true),
+                    _f('Other Physical Markers', _v(u['otherPhysicalMarkers']),
+                        full: true),
+                  ]),
+                );
+              }).toList(),
             ),
     ),
   );
@@ -477,25 +476,23 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       unknownList.isEmpty
           ? _empty('No unknown criminal added.')
           : pw.Column(
-              children: unknownList
-                  .asMap()
-                  .entries
-                  .map((e) {
-                    final u = e.value as Map;
-                    return _subCard(
-                      _grid2([
-                        _f('Gender', _v(u['gender'])),
-                        _f('Approx Age', _v(u['approxAge'])),
-                        _f('Skin Color', _v(u['skinColor'])),
-                        _f('Approx Height', _v(u['approxHeight'])),
-                        _f('Mobile (if known)', _v(u['mobile'])),
-                        _f('Occupation (possible)', _v(u['occupation'])),
-                        _f('Last Known Address', _v(u['lastKnownAddress']), full: true),
-                        _f('Other Physical Markers', _v(u['otherPhysicalMarkers']), full: true),
-                      ]),
-                    );
-                  })
-                  .toList(),
+              children: unknownList.asMap().entries.map((e) {
+                final u = e.value as Map;
+                return _subCard(
+                  _grid2([
+                    _f('Gender', _v(u['gender'])),
+                    _f('Approx Age', _v(u['approxAge'])),
+                    _f('Skin Color', _v(u['skinColor'])),
+                    _f('Approx Height', _v(u['approxHeight'])),
+                    _f('Mobile (if known)', _v(u['mobile'])),
+                    _f('Occupation (possible)', _v(u['occupation'])),
+                    _f('Last Known Address', _v(u['lastKnownAddress']),
+                        full: true),
+                    _f('Other Physical Markers', _v(u['otherPhysicalMarkers']),
+                        full: true),
+                  ]),
+                );
+              }).toList(),
             ),
     ),
   );

@@ -94,7 +94,8 @@ class Classification {
     Classification('Hurt', 'local_hospital', 'hurt'),
     Classification('Theft', 'no_encryption', 'theft'),
     Classification('Sand Theft', 'terrain', 'sand_theft'),
-    Classification('Two/Four\nWheeler Theft', 'two_wheeler', 'two_four_wheeler'),
+    Classification(
+        'Two/Four\nWheeler Theft', 'two_wheeler', 'two_four_wheeler'),
     Classification('Kidnapping', 'child_care', 'kidnapping'),
     Classification('Missing', 'person_search', 'missing'),
     Classification('N.C', 'report', 'nc'),

@@ -134,7 +134,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   final GlobalKey<FinalReportFormViewState> _finalReportKey =
       GlobalKey<FinalReportFormViewState>();
   final GlobalKey<HousePropertySearchSeizureFormViewState>
-  _housePropertySearchSeizureKey =
+      _housePropertySearchSeizureKey =
       GlobalKey<HousePropertySearchSeizureFormViewState>();
   final GlobalKey<AbFormViewState> _abFormKey = GlobalKey<AbFormViewState>();
   final GlobalKey<Medical376FormViewState> _medical376Key =
@@ -720,8 +720,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     }
     if (_isAbForm) {
       final serial = doc['serialNo']?.toString().trim() ?? '';
-      final name =
-          doc['personName']?.toString().trim() ??
+      final name = doc['personName']?.toString().trim() ??
           doc['subjectName']?.toString().trim() ??
           '';
       final sub = widget.subCategory ?? 'AB Form';
@@ -847,8 +846,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       return DateTime.now();
     }
     if (_isAccusedMemorandumForm) {
-      final dateStr =
-          doc['headerDate']?.toString().trim() ??
+      final dateStr = doc['headerDate']?.toString().trim() ??
           doc['memDate']?.toString().trim() ??
           '';
       final parts = dateStr.split(RegExp(r'[/.-]'));
@@ -865,8 +863,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       return DateTime.now();
     }
     if (_isFinalReportForm) {
-      final dateStr =
-          doc['reportDate']?.toString().trim() ??
+      final dateStr = doc['reportDate']?.toString().trim() ??
           doc['headerDate']?.toString().trim() ??
           '';
       final parts = dateStr.split(RegExp(r'[/.-]'));
@@ -883,8 +880,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       return DateTime.now();
     }
     if (_isHousePropertySearchSeizureForm) {
-      final dateStr =
-          doc['seizeDate']?.toString().trim() ??
+      final dateStr = doc['seizeDate']?.toString().trim() ??
           doc['headerDate']?.toString().trim() ??
           '';
       final parts = dateStr.split(RegExp(r'[/.-]'));
@@ -904,8 +900,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       final dateStr = doc['formADated']?.toString().trim().isNotEmpty == true
           ? doc['formADated']!.trim()
           : doc['examinedDate']?.toString().trim().isNotEmpty == true
-          ? doc['examinedDate']!.trim()
-          : doc['collectionDate']?.toString().trim() ?? '';
+              ? doc['examinedDate']!.trim()
+              : doc['collectionDate']?.toString().trim() ?? '';
       final parts = dateStr.split(RegExp(r'[/.-]'));
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
@@ -1002,8 +998,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       final dateStr = doc['m1Date']?.toString().trim().isNotEmpty == true
           ? doc['m1Date']!.trim()
           : doc['eDate']?.toString().trim().isNotEmpty == true
-          ? doc['eDate']!.trim()
-          : doc['m2Date']?.toString().trim() ?? '';
+              ? doc['eDate']!.trim()
+              : doc['m2Date']?.toString().trim() ?? '';
       final parts = dateStr.split(RegExp(r'[/.-]'));
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
@@ -1037,8 +1033,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     final stationName = _isEdit && widget.existingRecord!.stationName.isNotEmpty
         ? widget.existingRecord!.stationName
         : auth.stationName.isNotEmpty
-        ? auth.stationName
-        : provider.stationId;
+            ? auth.stationName
+            : provider.stationId;
 
     final createdBy = _isEdit && widget.existingRecord!.createdBy.isNotEmpty
         ? widget.existingRecord!.createdBy
@@ -1150,52 +1146,78 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     final String complainantName = _isCrimeDetailForm
         ? (doc['shownByName']?.toString().trim() ?? '')
         : _isPropertySeizureForm
-        ? (doc['personName']?.toString().trim() ?? '')
-        : _isCrimespotSeizureForm
-        ? (doc['panch1Name']?.toString().trim() ?? '')
-        : _isFormE
-        ? (doc['field2']?.toString().trim() ?? '')
-        : _isArrestSurrenderForm
-        ? (doc['accusedName']?.toString().trim() ?? '')
-        : _isInquestPanchanamaForm
-        ? (doc['shownBy']?.toString().trim() ?? '')
-        : _isAccusedMemorandumForm
-        ? (doc['accusedName']?.toString().trim() ?? '')
-        : _isFinalReportForm
-        ? (doc['complainantName']?.toString().trim() ?? '')
-        : _isHousePropertySearchSeizureForm
-        ? (doc['personName']?.toString().trim() ?? '')
-        : _isAbForm
-        ? (doc['personName']?.toString().trim().isNotEmpty == true
-              ? doc['personName']!.trim()
-              : doc['subjectName']?.toString().trim() ?? '')
-        : _is376MedicalForm
-        ? (doc['f_name']?.toString().trim().isNotEmpty == true
-              ? doc['f_name']!.trim()
-              : doc['m_accusedName']?.toString().trim() ?? '')
-        : _isInterrogationForm
-        ? (doc['accusedName']?.toString().trim() ?? '')
-        : _isDraftGroundOfArrestForm
-        ? (doc['accusedName']?.toString().trim() ?? '')
-        : _isGroundOfArrestForm
-        ? (doc['accusedNameAddress']?.toString().trim() ?? '')
-        : _isReasonOfArrestForm
-        ? (doc['accusedNameAddress']?.toString().trim() ?? '')
-        : _isTransitRemandForm
-        ? (doc['eComplainantName']?.toString().trim().isNotEmpty == true
-              ? doc['eComplainantName']!.trim()
-              : doc['m1AccusedName']?.toString().trim() ?? '')
-        : _isBnssDedicatedForm
-        ? BnssDedicatedForms.complainantFromDoc(doc)
-        : (doc['complainant'] is Map
-              ? ((doc['isSexualOffence'] == true ||
-                        (doc['complainant']['name']?.toString().contains(
-                              'Protected',
-                            ) ??
-                            false))
-                    ? '[Victim Identity Protected]'
-                    : (doc['complainant']['name']?.toString().trim() ?? ''))
-              : '');
+            ? (doc['personName']?.toString().trim() ?? '')
+            : _isCrimespotSeizureForm
+                ? (doc['panch1Name']?.toString().trim() ?? '')
+                : _isFormE
+                    ? (doc['field2']?.toString().trim() ?? '')
+                    : _isArrestSurrenderForm
+                        ? (doc['accusedName']?.toString().trim() ?? '')
+                        : _isInquestPanchanamaForm
+                            ? (doc['shownBy']?.toString().trim() ?? '')
+                            : _isAccusedMemorandumForm
+                                ? (doc['accusedName']?.toString().trim() ?? '')
+                                : _isFinalReportForm
+                                    ? (doc['complainantName']?.toString().trim() ??
+                                        '')
+                                    : _isHousePropertySearchSeizureForm
+                                        ? (doc['personName']?.toString().trim() ??
+                                            '')
+                                        : _isAbForm
+                                            ? (doc['personName']
+                                                        ?.toString()
+                                                        .trim()
+                                                        .isNotEmpty ==
+                                                    true
+                                                ? doc['personName']!.trim()
+                                                : doc['subjectName']
+                                                        ?.toString()
+                                                        .trim() ??
+                                                    '')
+                                            : _is376MedicalForm
+                                                ? (doc['f_name']
+                                                            ?.toString()
+                                                            .trim()
+                                                            .isNotEmpty ==
+                                                        true
+                                                    ? doc['f_name']!.trim()
+                                                    : doc['m_accusedName']
+                                                            ?.toString()
+                                                            .trim() ??
+                                                        '')
+                                                : _isInterrogationForm
+                                                    ? (doc['accusedName']
+                                                            ?.toString()
+                                                            .trim() ??
+                                                        '')
+                                                    : _isDraftGroundOfArrestForm
+                                                        ? (doc['accusedName']
+                                                                ?.toString()
+                                                                .trim() ??
+                                                            '')
+                                                        : _isGroundOfArrestForm
+                                                            ? (doc['accusedNameAddress']
+                                                                    ?.toString()
+                                                                    .trim() ??
+                                                                '')
+                                                            : _isReasonOfArrestForm
+                                                                ? (doc['accusedNameAddress']
+                                                                        ?.toString()
+                                                                        .trim() ??
+                                                                    '')
+                                                                : _isTransitRemandForm
+                                                                    ? (doc['eComplainantName']?.toString().trim().isNotEmpty == true ? doc['eComplainantName']!.trim() : doc['m1AccusedName']?.toString().trim() ?? '')
+                                                                    : _isBnssDedicatedForm
+                                                                        ? BnssDedicatedForms.complainantFromDoc(doc)
+                                                                        : (doc['complainant'] is Map
+                                                                            ? ((doc['isSexualOffence'] == true ||
+                                                                                    (doc['complainant']['name']?.toString().contains(
+                                                                                              'Protected',
+                                                                                            ) ??
+                                                                                        false))
+                                                                                ? '[Victim Identity Protected]'
+                                                                                : (doc['complainant']['name']?.toString().trim() ?? ''))
+                                                                            : '');
 
     final String caseNum;
     if (_isCrimeDetailForm || _isPropertySeizureForm) {
@@ -1224,8 +1246,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       caseNum = doc['f_mlc']?.toString().trim().isNotEmpty == true
           ? doc['f_mlc']!.trim()
           : doc['m_mlc']?.toString().trim().isNotEmpty == true
-          ? doc['m_mlc']!.trim()
-          : doc['m_crNo']?.toString().trim() ?? '';
+              ? doc['m_mlc']!.trim()
+              : doc['m_crNo']?.toString().trim() ?? '';
     } else if (_isInterrogationForm) {
       caseNum = doc['gurNo']?.toString().trim().isNotEmpty == true
           ? doc['gurNo']!.trim()
@@ -1246,8 +1268,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       caseNum = doc['m1CrNo']?.toString().trim().isNotEmpty == true
           ? doc['m1CrNo']!.trim()
           : doc['eFirNo']?.toString().trim().isNotEmpty == true
-          ? doc['eFirNo']!.trim()
-          : doc['m2RefCrNo']?.toString().trim() ?? '';
+              ? doc['eFirNo']!.trim()
+              : doc['m2RefCrNo']?.toString().trim() ?? '';
     } else if (_isBnssDedicatedForm) {
       caseNum = BnssDedicatedForms.caseNumFromDoc(doc);
     } else {
@@ -1303,8 +1325,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       loc = doc['m1PsName']?.toString().trim().isNotEmpty == true
           ? doc['m1PsName']!.trim()
           : doc['ePsName']?.toString().trim().isNotEmpty == true
-          ? doc['ePsName']!.trim()
-          : doc['m1PsCity']?.toString().trim() ?? '';
+              ? doc['ePsName']!.trim()
+              : doc['m1PsCity']?.toString().trim() ?? '';
     } else if (_isBnssDedicatedForm) {
       loc = BnssDedicatedForms.locationFromDoc(doc);
     } else {
@@ -1335,16 +1357,13 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     }
 
     final court = (doc['court'] is Map) ? doc['court'] as Map : null;
-    final csNum =
-        court?['chargeSheetNumber']?.toString().trim() ??
+    final csNum = court?['chargeSheetNumber']?.toString().trim() ??
         doc['chargeSheetNumber']?.toString().trim() ??
         '';
-    final csDate =
-        court?['chargeSheetDate']?.toString().trim() ??
+    final csDate = court?['chargeSheetDate']?.toString().trim() ??
         doc['chargeSheetDate']?.toString().trim() ??
         '';
-    final ccStNum =
-        court?['ccStNumber']?.toString().trim() ??
+    final ccStNum = court?['ccStNumber']?.toString().trim() ??
         doc['ccStNumber']?.toString().trim() ??
         court?['ccNumber']?.toString().trim() ??
         doc['ccNumber']?.toString().trim() ??
@@ -1557,8 +1576,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       caseNumber: caseNum,
       description: _isEdit ? widget.existingRecord!.description : '',
       complainant: complainantName,
-      accused:
-          (_isCrimeDetailForm ||
+      accused: (_isCrimeDetailForm ||
               _isPropertySeizureForm ||
               _isCrimespotSeizureForm ||
               _isFormE ||
@@ -1581,19 +1599,16 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       incidentDate: incDate,
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: targetStatus,
-      assignedOfficer: _isEdit
-          ? widget.existingRecord!.assignedOfficer
-          : auth.displayName,
-      subCategory: _isEdit
-          ? widget.existingRecord!.subCategory
-          : widget.subCategory,
+      assignedOfficer:
+          _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
+      subCategory:
+          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: extra,
       stationName: stationName,
       createdBy: createdBy,
-      assignedOfficerUid: _isEdit
-          ? widget.existingRecord!.assignedOfficerUid
-          : auth.uid,
+      assignedOfficerUid:
+          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
     );
 
     try {
@@ -1611,8 +1626,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
             targetStatus.toLowerCase() == 'disposal'
                 ? '${widget.moduleLabel} case moved to Disposal!'
                 : (_isEdit
-                      ? '${widget.moduleLabel} record updated!'
-                      : '${widget.moduleLabel} case registered!'),
+                    ? '${widget.moduleLabel} record updated!'
+                    : '${widget.moduleLabel} case registered!'),
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.successGreen,
@@ -1652,8 +1667,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           widget.readOnly == true
               ? '${TranslationHelper.translate(context, 'View')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
               : (_isEdit
-                    ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
-                    : '${TranslationHelper.translate(context, 'New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'Entry')}'),
+                  ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
+                  : '${TranslationHelper.translate(context, 'New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'Entry')}'),
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -1669,134 +1684,171 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
               pageRange: widget.pageRange,
             )
           : _isPropertySeizureForm
-          ? PropertySeizureFormView(
-              key: _propertySeizureKey,
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isCrimespotSeizureForm
-          ? CrimespotSeizureFormView(
-              key: _crimespotSeizureKey,
-              readOnly: widget.readOnly == true,
-            )
-          : _isFormE
-          ? FormEView(
-              key: _formEKey,
-              existingRecord:
-                  widget.existingRecord?.extraFields[kCommonFormExtraFieldsKey],
-              readOnly: widget.readOnly == true,
-            )
-          : _isArrestSurrenderForm
-          ? ArrestSurrenderFormView(
-              key: _arrestSurrenderKey,
-              existingRecord:
-                  widget.existingRecord?.extraFields[kCommonFormExtraFieldsKey],
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isInquestPanchanamaForm
-          ? InquestPanchanamaFormView(
-              key: _inquestPanchanamaKey,
-              existingRecord:
-                  widget.existingRecord?.extraFields[kCommonFormExtraFieldsKey],
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isAccusedMemorandumForm
-          ? AccusedMemorandumFormView(
-              key: _accusedMemorandumKey,
-              existingRecord:
-                  widget.existingRecord?.extraFields[kCommonFormExtraFieldsKey],
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isFinalReportForm
-          ? FinalReportFormView(
-              key: _finalReportKey,
-              existingRecord:
-                  widget.existingRecord?.extraFields[kCommonFormExtraFieldsKey],
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isHousePropertySearchSeizureForm
-          ? HousePropertySearchSeizureFormView(
-              key: _housePropertySearchSeizureKey,
-              existingRecord:
-                  widget.existingRecord?.extraFields[kCommonFormExtraFieldsKey],
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isAbForm
-          ? AbFormView(
-              key: _abFormKey,
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _is376MedicalForm
-          ? Medical376FormView(
-              key: _medical376Key,
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isInterrogationForm
-          ? InterrogationFormView(
-              key: _interrogationKey,
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isDraftGroundOfArrestForm
-          ? DraftGroundOfArrestFormView(
-              key: _draftGroundOfArrestKey,
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isGroundOfArrestForm
-          ? GroundOfArrestFormView(
-              key: _groundOfArrestKey,
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isReasonOfArrestForm
-          ? ReasonOfArrestFormView(
-              key: _reasonOfArrestKey,
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isTransitRemandForm
-          ? TransitRemandFormView(
-              key: _transitRemandKey,
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : _isBnssDedicatedForm
-          ? BnssDedicatedForms.buildBody(
-              subCategory: widget.subCategory,
-              readOnly: widget.readOnly == true,
-              formSection: widget.formSection,
-              pageRange: widget.pageRange,
-            )
-          : CommonForm(
-              key: _formKey,
-              moduleKey: widget.moduleKey,
-              moduleLabel: widget.moduleLabel,
-              subCategory: widget.subCategory,
-              middleSlot: _hasKidnappingExtras
-                  ? KidnappingExtraFields(key: _kidnappingKey)
-                  : null,
-            ),
+              ? PropertySeizureFormView(
+                  key: _propertySeizureKey,
+                  readOnly: widget.readOnly == true,
+                  formSection: widget.formSection,
+                  pageRange: widget.pageRange,
+                )
+              : _isCrimespotSeizureForm
+                  ? CrimespotSeizureFormView(
+                      key: _crimespotSeizureKey,
+                      readOnly: widget.readOnly == true,
+                    )
+                  : _isFormE
+                      ? FormEView(
+                          key: _formEKey,
+                          existingRecord: widget.existingRecord
+                              ?.extraFields[kCommonFormExtraFieldsKey],
+                          readOnly: widget.readOnly == true,
+                        )
+                      : _isArrestSurrenderForm
+                          ? ArrestSurrenderFormView(
+                              key: _arrestSurrenderKey,
+                              existingRecord: widget.existingRecord
+                                  ?.extraFields[kCommonFormExtraFieldsKey],
+                              readOnly: widget.readOnly == true,
+                              formSection: widget.formSection,
+                              pageRange: widget.pageRange,
+                            )
+                          : _isInquestPanchanamaForm
+                              ? InquestPanchanamaFormView(
+                                  key: _inquestPanchanamaKey,
+                                  existingRecord: widget.existingRecord
+                                      ?.extraFields[kCommonFormExtraFieldsKey],
+                                  readOnly: widget.readOnly == true,
+                                  formSection: widget.formSection,
+                                  pageRange: widget.pageRange,
+                                )
+                              : _isAccusedMemorandumForm
+                                  ? AccusedMemorandumFormView(
+                                      key: _accusedMemorandumKey,
+                                      existingRecord:
+                                          widget.existingRecord?.extraFields[
+                                              kCommonFormExtraFieldsKey],
+                                      readOnly: widget.readOnly == true,
+                                      formSection: widget.formSection,
+                                      pageRange: widget.pageRange,
+                                    )
+                                  : _isFinalReportForm
+                                      ? FinalReportFormView(
+                                          key: _finalReportKey,
+                                          existingRecord: widget
+                                                  .existingRecord?.extraFields[
+                                              kCommonFormExtraFieldsKey],
+                                          readOnly: widget.readOnly == true,
+                                          formSection: widget.formSection,
+                                          pageRange: widget.pageRange,
+                                        )
+                                      : _isHousePropertySearchSeizureForm
+                                          ? HousePropertySearchSeizureFormView(
+                                              key:
+                                                  _housePropertySearchSeizureKey,
+                                              existingRecord: widget
+                                                      .existingRecord
+                                                      ?.extraFields[
+                                                  kCommonFormExtraFieldsKey],
+                                              readOnly: widget.readOnly == true,
+                                              formSection: widget.formSection,
+                                              pageRange: widget.pageRange,
+                                            )
+                                          : _isAbForm
+                                              ? AbFormView(
+                                                  key: _abFormKey,
+                                                  readOnly:
+                                                      widget.readOnly == true,
+                                                  formSection:
+                                                      widget.formSection,
+                                                  pageRange: widget.pageRange,
+                                                )
+                                              : _is376MedicalForm
+                                                  ? Medical376FormView(
+                                                      key: _medical376Key,
+                                                      readOnly:
+                                                          widget.readOnly ==
+                                                              true,
+                                                      formSection:
+                                                          widget.formSection,
+                                                      pageRange:
+                                                          widget.pageRange,
+                                                    )
+                                                  : _isInterrogationForm
+                                                      ? InterrogationFormView(
+                                                          key:
+                                                              _interrogationKey,
+                                                          readOnly:
+                                                              widget.readOnly ==
+                                                                  true,
+                                                          formSection: widget
+                                                              .formSection,
+                                                          pageRange:
+                                                              widget.pageRange,
+                                                        )
+                                                      : _isDraftGroundOfArrestForm
+                                                          ? DraftGroundOfArrestFormView(
+                                                              key:
+                                                                  _draftGroundOfArrestKey,
+                                                              readOnly: widget
+                                                                      .readOnly ==
+                                                                  true,
+                                                              formSection: widget
+                                                                  .formSection,
+                                                              pageRange: widget
+                                                                  .pageRange,
+                                                            )
+                                                          : _isGroundOfArrestForm
+                                                              ? GroundOfArrestFormView(
+                                                                  key:
+                                                                      _groundOfArrestKey,
+                                                                  readOnly:
+                                                                      widget.readOnly ==
+                                                                          true,
+                                                                  formSection:
+                                                                      widget
+                                                                          .formSection,
+                                                                  pageRange: widget
+                                                                      .pageRange,
+                                                                )
+                                                              : _isReasonOfArrestForm
+                                                                  ? ReasonOfArrestFormView(
+                                                                      key:
+                                                                          _reasonOfArrestKey,
+                                                                      readOnly:
+                                                                          widget.readOnly ==
+                                                                              true,
+                                                                      formSection:
+                                                                          widget
+                                                                              .formSection,
+                                                                      pageRange:
+                                                                          widget
+                                                                              .pageRange,
+                                                                    )
+                                                                  : _isTransitRemandForm
+                                                                      ? TransitRemandFormView(
+                                                                          key:
+                                                                              _transitRemandKey,
+                                                                          readOnly:
+                                                                              widget.readOnly == true,
+                                                                          formSection:
+                                                                              widget.formSection,
+                                                                          pageRange:
+                                                                              widget.pageRange,
+                                                                        )
+                                                                      : _isBnssDedicatedForm
+                                                                          ? BnssDedicatedForms
+                                                                              .buildBody(
+                                                                              subCategory: widget.subCategory,
+                                                                              readOnly: widget.readOnly == true,
+                                                                              formSection: widget.formSection,
+                                                                              pageRange: widget.pageRange,
+                                                                            )
+                                                                          : CommonForm(
+                                                                              key: _formKey,
+                                                                              moduleKey: widget.moduleKey,
+                                                                              moduleLabel: widget.moduleLabel,
+                                                                              subCategory: widget.subCategory,
+                                                                              middleSlot: _hasKidnappingExtras ? KidnappingExtraFields(key: _kidnappingKey) : null,
+                                                                            ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(

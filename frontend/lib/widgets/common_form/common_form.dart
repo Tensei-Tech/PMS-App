@@ -312,8 +312,10 @@ class CommonFormState extends State<CommonForm> {
 
   TextEditingController? _victimAddress;
   TextEditingController? _victimMedicalExam;
-  TextEditingController get _vAddress => _victimAddress ??= TextEditingController();
-  TextEditingController get _vMedicalExam => _victimMedicalExam ??= TextEditingController();
+  TextEditingController get _vAddress =>
+      _victimAddress ??= TextEditingController();
+  TextEditingController get _vMedicalExam =>
+      _victimMedicalExam ??= TextEditingController();
 
   // ── §5b Deceased KYC (Murder cases) ───────────────────────────────────────
   TextEditingController? _deceasedName;
@@ -343,8 +345,10 @@ class CommonFormState extends State<CommonForm> {
 
   TextEditingController? _deceasedAddress;
   TextEditingController? _deceasedInquestDetails;
-  TextEditingController get _dAddress => _deceasedAddress ??= TextEditingController();
-  TextEditingController get _dInquest => _deceasedInquestDetails ??= TextEditingController();
+  TextEditingController get _dAddress =>
+      _deceasedAddress ??= TextEditingController();
+  TextEditingController get _dInquest =>
+      _deceasedInquestDetails ??= TextEditingController();
 
   // ── §5c Injured KYC ────────────────────────────────────────────────────────
   TextEditingController? _injuredName;
@@ -382,8 +386,10 @@ class CommonFormState extends State<CommonForm> {
 
   TextEditingController? _injuredAddress;
   TextEditingController? _injuredMedicalExam;
-  TextEditingController get _injAddress => _injuredAddress ??= TextEditingController();
-  TextEditingController get _injMedicalExam => _injuredMedicalExam ??= TextEditingController();
+  TextEditingController get _injAddress =>
+      _injuredAddress ??= TextEditingController();
+  TextEditingController get _injMedicalExam =>
+      _injuredMedicalExam ??= TextEditingController();
 
   bool get _isMurderCase {
     if (widget.isMurder == true) return true;
@@ -751,7 +757,6 @@ class CommonFormState extends State<CommonForm> {
       if (v is TextEditingController) v.dispose();
     }
   }
-
 
   // ─── scroll progress ───────────────────────────────────────────────────────
   bool _onScroll(ScrollNotification n) {
@@ -3257,7 +3262,8 @@ class CommonFormState extends State<CommonForm> {
           ]),
           _row([_tf('Religion', _vReligion), _tf('Caste', _vCaste)]),
           _tf('Address', _vAddress, maxLines: 2),
-          _tf('Medical Examination (Yes/No or Details)', _vMedicalExam, maxLines: 2),
+          _tf('Medical Examination (Yes/No or Details)', _vMedicalExam,
+              maxLines: 2),
         ],
       );
 
@@ -3550,7 +3556,8 @@ class CommonFormState extends State<CommonForm> {
             ]),
           ],
           _tf('Address', _injAddress, maxLines: 2),
-          _tf('Medical Examination (Yes/No or Details)', _injMedicalExam, maxLines: 2),
+          _tf('Medical Examination (Yes/No or Details)', _injMedicalExam,
+              maxLines: 2),
         ],
       );
 

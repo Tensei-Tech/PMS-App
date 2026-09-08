@@ -125,7 +125,7 @@ class UpstashRedisManager:
                 for k in keys:
                     cache.delete(k)
                     deleted_count += 1
-        except Exception as e:
+        except Exception as e: 
             logger.warning(f"[Cache DELETE_PATTERN Error] Pattern delete failed for '{pattern}': {e}")
 
         # REST API Pattern Search & Delete

@@ -2033,7 +2033,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                             width: 82,
                             child: Container(
                               height: 28,
-                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 6),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF1E293B),
                                 borderRadius: BorderRadius.circular(6),
@@ -2072,7 +2073,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                               width: 86,
                               child: Container(
                                 height: 28,
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 6),
                                 decoration: BoxDecoration(
                                   color: AppColors.goldPrimary.withValues(
                                     alpha: 0.12,
@@ -2416,7 +2418,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                   _buildDetailInfoItem(
                                     icon: Icons.person_pin_circle_outlined,
                                     label: 'Complainant',
-                                    value: complainant.isNotEmpty ? complainant : '—',
+                                    value: complainant.isNotEmpty
+                                        ? complainant
+                                        : '—',
                                   ),
                                   _buildDetailInfoItem(
                                     icon: Icons.badge_outlined,
@@ -2426,7 +2430,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                   _buildDetailInfoItem(
                                     icon: Icons.place_outlined,
                                     label: 'Crime Spot',
-                                    value: spotVillage.isNotEmpty ? spotVillage : '—',
+                                    value: spotVillage.isNotEmpty
+                                        ? spotVillage
+                                        : '—',
                                   ),
                                   _buildDetailInfoItem(
                                     icon: Icons.event_note_outlined,
@@ -2453,7 +2459,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                   child: _buildDetailInfoItem(
                                     icon: Icons.person_pin_circle_outlined,
                                     label: 'Complainant',
-                                    value: complainant.isNotEmpty ? complainant : '—',
+                                    value: complainant.isNotEmpty
+                                        ? complainant
+                                        : '—',
                                   ),
                                 ),
                                 _summaryDivider(),
@@ -2469,7 +2477,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                   child: _buildDetailInfoItem(
                                     icon: Icons.place_outlined,
                                     label: 'Crime Spot',
-                                    value: spotVillage.isNotEmpty ? spotVillage : '—',
+                                    value: spotVillage.isNotEmpty
+                                        ? spotVillage
+                                        : '—',
                                   ),
                                 ),
                                 _summaryDivider(),
