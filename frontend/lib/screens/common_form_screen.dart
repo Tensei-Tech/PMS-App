@@ -1343,11 +1343,19 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         court?['chargeSheetDate']?.toString().trim() ??
         doc['chargeSheetDate']?.toString().trim() ??
         '';
+    final ccStNum =
+        court?['ccStNumber']?.toString().trim() ??
+        doc['ccStNumber']?.toString().trim() ??
+        court?['ccNumber']?.toString().trim() ??
+        doc['ccNumber']?.toString().trim() ??
+        '';
 
     String targetStatus = _isEdit ? widget.existingRecord!.status : 'Open';
 
-    if (csNum.isNotEmpty &&
-        csDate.isNotEmpty &&
+    final bool hasFiling =
+        (csNum.isNotEmpty && csDate.isNotEmpty) || ccStNum.isNotEmpty;
+
+    if (hasFiling &&
         targetStatus.toLowerCase() != 'disposal' &&
         targetStatus.toLowerCase() != 'disposed') {
       final bool? moveToDisposal = await showDialog<bool>(
@@ -1393,7 +1401,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
               Text(
                 TranslationHelper.translate(
                   dialogCtx,
-                  'Charge Sheet details have been entered for this case:',
+                  'Court Filing / Charge Sheet details have been entered for this case:',
                 ),
                 style: GoogleFonts.poppins(
                   fontSize: 13,
@@ -1412,51 +1420,80 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          '${TranslationHelper.translate(dialogCtx, 'Charge Sheet No.')}: ',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            csNum,
+                    if (csNum.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Text(
+                            '${TranslationHelper.translate(dialogCtx, 'Charge Sheet No.')}: ',
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyMid,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Text(
-                          '${TranslationHelper.translate(dialogCtx, 'Charge Sheet Date')}: ',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark,
+                          Expanded(
+                            child: Text(
+                              csNum,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            csDate,
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    if (csDate.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Text(
+                            '${TranslationHelper.translate(dialogCtx, 'Charge Sheet Date')}: ',
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyMid,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                          Expanded(
+                            child: Text(
+                              csDate,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    if (ccStNum.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Text(
+                            '${TranslationHelper.translate(dialogCtx, 'CC / ST No.')}: ',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              ccStNum,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1464,7 +1501,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
               Text(
                 TranslationHelper.translate(
                   dialogCtx,
-                  'Submitting a Charge Sheet closes the police investigation. Do you want to mark this case as Disposed and move it to the Disposal tab?',
+                  'Entering Court Filing or CC / ST details completes police investigation. Do you want to mark this case as Disposed and move it to the Disposal tab?',
                 ),
                 style: GoogleFonts.poppins(
                   fontSize: 12.5,
@@ -1505,6 +1542,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (moveToDisposal == null) return;
       if (moveToDisposal == true) {
         targetStatus = 'Disposal';
+        extra['disposedAt'] = DateTime.now().toIso8601String();
+        if (ccStNum.isNotEmpty) extra['disposedCcStNumber'] = ccStNum;
+        if (csNum.isNotEmpty) extra['disposedChargeSheetNumber'] = csNum;
       }
     }
 
@@ -1578,7 +1618,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           backgroundColor: AppColors.successGreen,
         ),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, record);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

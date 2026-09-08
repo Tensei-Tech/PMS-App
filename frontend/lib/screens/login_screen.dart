@@ -144,6 +144,7 @@ class _LoginScreenState extends State<LoginScreen>
         (_) => false,
       );
     } else {
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loginError, style: GoogleFonts.poppins()),

@@ -56,12 +56,13 @@ class BaseModuleProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> _fetchCases() async {
+  Future<void> _fetchCases({bool forceRefresh = false}) async {
     if (_stationId.isEmpty) return;
     try {
       final fetched = await _caseService.fetchCases(
         moduleKey: moduleKey,
         stationId: _stationId,
+        forceRefresh: forceRefresh,
       );
       _records = CaseVisibility.filterRecords(
         fetched,
@@ -74,7 +75,7 @@ class BaseModuleProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> refresh() => _fetchCases();
+  Future<void> refresh() => _fetchCases(forceRefresh: true);
 
   void seedDemoRecords(List<ModuleRecord> demoRecords) {
     if (_records.isEmpty) {
@@ -163,7 +164,7 @@ class BaseModuleProvider extends ChangeNotifier {
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
     await _caseService.saveCase(enriched, isCreate: true);
-    await _fetchCases();
+    await _fetchCases(forceRefresh: true);
   }
 
   Future<void> updateRecord(ModuleRecord record) async {
@@ -178,13 +179,19 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
+    // Optimistically update local list so UI reflects status change immediately
+    final idx = _records.indexWhere((r) => r.id == record.id);
+    if (idx != -1) {
+      _records[idx] = enriched;
+      notifyListeners();
+    }
     await _caseService.saveCase(enriched, isCreate: false);
-    await _fetchCases();
+    await _fetchCases(forceRefresh: true);
   }
 
   Future<void> deleteRecord(String id) async {
     await _caseService.deleteCase(id);
-    await _fetchCases();
+    await _fetchCases(forceRefresh: true);
   }
 
   ModuleRecord createRecord({

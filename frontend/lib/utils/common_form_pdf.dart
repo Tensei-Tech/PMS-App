@@ -12,6 +12,7 @@ import 'package:flutter/material.dart' show BuildContext, TimeOfDay;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+
 import 'pdf_unicode_fonts.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -153,25 +154,25 @@ pw.Widget _header(pw.Context ctx, String title, String subtitle) =>
     );
 
 pw.Widget _footer(pw.Context ctx) => pw.Container(
-  margin: const pw.EdgeInsets.only(top: 8),
-  padding: const pw.EdgeInsets.only(top: 5),
-  decoration: const pw.BoxDecoration(
-    border: pw.Border(top: pw.BorderSide(color: _border, width: 0.5)),
-  ),
-  child: pw.Row(
-    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-    children: [
-      pw.Text(
-        'KHAKHI DIARY - Maharashtra Police',
-        style: const pw.TextStyle(fontSize: 7, color: _muted),
+      margin: const pw.EdgeInsets.only(top: 8),
+      padding: const pw.EdgeInsets.only(top: 5),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(top: pw.BorderSide(color: _border, width: 0.5)),
       ),
-      pw.Text(
-        'Page ${ctx.pageNumber} of ${ctx.pagesCount}',
-        style: const pw.TextStyle(fontSize: 7, color: _muted),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            'KHAKHI DIARY - Maharashtra Police',
+            style: const pw.TextStyle(fontSize: 7, color: _muted),
+          ),
+          pw.Text(
+            'Page ${ctx.pageNumber} of ${ctx.pagesCount}',
+            style: const pw.TextStyle(fontSize: 7, color: _muted),
+          ),
+        ],
       ),
-    ],
-  ),
-);
+    );
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MASTER CONTENT BUILDER
@@ -212,8 +213,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                 final chargeNum = e.key + 1;
                 final data = e.value.value as Map? ?? {};
                 final act = _v(data['act']);
-                final secs =
-                    (data['sections'] as List?)
+                final secs = (data['sections'] as List?)
                         ?.map((s) => s.toString())
                         .toList() ??
                     [];
@@ -237,6 +237,22 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     ),
   );
 
+  if (m['stolenProperty'] != null &&
+      (_v(m['stolenProperty']['description']).isNotEmpty ||
+       _v(m['stolenProperty']['recovered']).isNotEmpty)) {
+    sections.add(
+      _card(
+        4,
+        'STOLEN PROPERTY',
+        _teal,
+        _grid2([
+          _f('Description', _v(m['stolenProperty']['description']), full: true),
+          _f('Recovered Property', _v(m['stolenProperty']['recovered']), full: true),
+        ]),
+      ),
+    );
+  }
+
   // ── MODULE EXTRA SECTIONS (auto between Crime Spot and Complainant) ───────
   // Convention: any form-specific payload under keys ending with `_extra`
   // is auto-inserted here for all present/future modules.
@@ -253,12 +269,11 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── §4 Complainant KYC ────────────────────────────────────────────────────
   final comp = m['complainant'] as Map? ?? {};
-  final bool isSexualComp =
-      m['isSexualOffence'] == true ||
+  final bool isSexualComp = m['isSexualOffence'] == true ||
       (comp['name']?.toString().contains('Protected') ?? false);
   sections.add(
     _card(
-      4,
+      5,
       'COMPLAINANT KYC',
       _teal,
       comp.isEmpty
@@ -287,7 +302,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   if (victim.isNotEmpty) {
     sections.add(
       _card(
-        5,
+        6,
         'VICTIM KYC',
         _teal,
         _grid2([
@@ -310,7 +325,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   if (deceased.isNotEmpty) {
     sections.add(
       _card(
-        6,
+        7,
         'DECEASED KYC',
         _teal,
         _grid2([
@@ -330,8 +345,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── Injured Person KYC ─────────────────────────────────────────────────────
   final inj = m['injured'] as Map? ?? {};
-  final hasInj =
-      inj.isNotEmpty &&
+  final hasInj = inj.isNotEmpty &&
       (inj['name']?.toString().trim().isNotEmpty == true ||
           inj['mobile']?.toString().trim().isNotEmpty == true ||
           inj['aadhaar']?.toString().trim().isNotEmpty == true ||
@@ -340,7 +354,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     final isDied = inj['isDied'] == true;
     sections.add(
       _card(
-        deceased.isNotEmpty ? 7 : 6,
+        deceased.isNotEmpty ? 8 : 7,
         'INJURED PERSON KYC',
         _teal,
         _grid2([
@@ -367,7 +381,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final accusedList = (m['accused'] as List?) ?? [];
   sections.add(
     _card(
-      5,
+      6,
       'ACCUSED DETAILS',
       _teal,
       pw.Column(
@@ -398,74 +412,91 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final suspectedList = (m['suspectedAccused'] as List?) ?? [];
   sections.add(
     _card(
-      6,
+      7,
       'SUSPECTED ACCUSED',
       _teal,
       isUnknown
           ? _badge('Hidden - Unknown/Untraced ON', _muted)
           : suspectedList.isEmpty
-          ? _empty('No suspected accused added.')
+              ? _empty('No suspected accused added.')
+              : pw.Column(
+                  children: suspectedList
+                      .asMap()
+                      .entries
+                      .map(
+                        (e) => _personBlock(
+                          'Suspected #${e.key + 1}',
+                          Map<String, dynamic>.from(e.value as Map),
+                        ),
+                      )
+                      .toList(),
+                ),
+    ),
+  );
+
+  // ── §7 Unidentified ───────────────────────────────────────────────────────
+  final unidentifiedList = (m['unidentifiedList'] as List?) ?? [];
+  sections.add(
+    _card(
+      8,
+      'UNIDENTIFIED CRIMINAL DESCRIPTION',
+      _amber,
+      unidentifiedList.isEmpty
+          ? _empty('No unidentified criminal added.')
           : pw.Column(
-              children: suspectedList
+              children: unidentifiedList
                   .asMap()
                   .entries
-                  .map(
-                    (e) => _personBlock(
-                      'Suspected #${e.key + 1}',
-                      Map<String, dynamic>.from(e.value as Map),
-                    ),
-                  )
+                  .map((e) {
+                    final u = e.value as Map;
+                    return _subCard(
+                      _grid2([
+                        _f('Gender', _v(u['gender'])),
+                        _f('Approx Age', _v(u['approxAge'])),
+                        _f('Skin Color', _v(u['skinColor'])),
+                        _f('Approx Height', _v(u['approxHeight'])),
+                        _f('Mobile (if known)', _v(u['mobile'])),
+                        _f('Occupation (possible)', _v(u['occupation'])),
+                        _f('Last Known Address', _v(u['lastKnownAddress']), full: true),
+                        _f('Other Physical Markers', _v(u['otherPhysicalMarkers']), full: true),
+                      ]),
+                    );
+                  })
                   .toList(),
             ),
     ),
   );
 
-  // ── §7 Unidentified (always printed — mirrors buildDocumentMap['unidentified'])
-  final u = m['unidentified'] as Map? ?? {};
+  // ── §7b Unknown ───────────────────────────────────────────────────────────
+  final unknownList = (m['unknownList'] as List?) ?? [];
   sections.add(
     _card(
-      7,
-      'UNIDENTIFIED CRIMINAL DESCRIPTION',
+      9,
+      'UNKNOWN CRIMINAL DESCRIPTION',
       _amber,
-      pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          if (!isUnknown)
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(bottom: 8),
-              child: pw.Text(
-                'Known accused mode - unidentified block still reflects stored values if any.',
-                style: pw.TextStyle(
-                  fontSize: 8,
-                  color: _muted,
-                  fontStyle: pw.FontStyle.italic,
-                ),
-              ),
-            )
-          else
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(bottom: 8),
-              child: _badge(
-                'Unknown / Untraced - fill all applicable fields',
-                _amber,
-              ),
+      unknownList.isEmpty
+          ? _empty('No unknown criminal added.')
+          : pw.Column(
+              children: unknownList
+                  .asMap()
+                  .entries
+                  .map((e) {
+                    final u = e.value as Map;
+                    return _subCard(
+                      _grid2([
+                        _f('Gender', _v(u['gender'])),
+                        _f('Approx Age', _v(u['approxAge'])),
+                        _f('Skin Color', _v(u['skinColor'])),
+                        _f('Approx Height', _v(u['approxHeight'])),
+                        _f('Mobile (if known)', _v(u['mobile'])),
+                        _f('Occupation (possible)', _v(u['occupation'])),
+                        _f('Last Known Address', _v(u['lastKnownAddress']), full: true),
+                        _f('Other Physical Markers', _v(u['otherPhysicalMarkers']), full: true),
+                      ]),
+                    );
+                  })
+                  .toList(),
             ),
-          _grid2([
-            _f('Gender', _v(u['gender'])),
-            _f('Approx Age', _v(u['approxAge'])),
-            _f('Skin Color', _v(u['skinColor'])),
-            _f('Approx Height', _v(u['approxHeight'])),
-            _f('Mobile (if known)', _v(u['mobile'])),
-            _f('Occupation (possible)', _v(u['occupation'])),
-            _f('Last Known Address', _v(u['lastKnownAddress']), full: true),
-            _f(
-              'Other Physical Markers',
-              _v(u['otherPhysicalMarkers']),
-              full: true,
-            ),
-          ]),
-        ],
-      ),
     ),
   );
 
@@ -473,7 +504,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final cr8 = m['caseResponsibility'] as Map? ?? {};
   sections.add(
     _card(
-      8,
+      10,
       'CASE RESPONSIBILITY',
       _teal,
       _grid2([
@@ -491,7 +522,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final arrests = (m['arrestRelease'] as List?) ?? [];
   sections.add(
     _card(
-      9,
+      11,
       'ARREST & RELEASE STATUS',
       _teal,
       arrests.isEmpty
@@ -527,7 +558,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   };
   sections.add(
     _card(
-      10,
+      12,
       'PROCEDURAL DETAILS',
       _teal,
       pw.Column(
@@ -588,7 +619,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final seizures = (m['seizures'] as List?) ?? [];
   sections.add(
     _card(
-      11,
+      13,
       'SEIZURE RECORDS',
       _teal,
       seizures.isEmpty
@@ -611,7 +642,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   // ── §12 Technical & Custody ────────────────────────────────────────────────
   sections.add(
     _card(
-      12,
+      14,
       'TECHNICAL & CUSTODY',
       _teal,
       _grid2([
@@ -646,14 +677,14 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       ),
     );
   }
-  sections.add(_card(13, 'PREVENTIVE & BONDS', _teal, _grid2(prevFields)));
+  sections.add(_card(15, 'PREVENTIVE & BONDS', _teal, _grid2(prevFields)));
 
   // ── §14 Discharge Status ───────────────────────────────────────────────────
   final discharge = (m['dischargeByAccused'] as Map?) ?? {};
   final disDetails = (m['dischargeDetails'] as Map?) ?? {};
   sections.add(
     _card(
-      14,
+      16,
       'DISCHARGE STATUS',
       _teal,
       discharge.isEmpty
@@ -721,7 +752,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final court = m['court'] as Map? ?? {};
   sections.add(
     _card(
-      15,
+      17,
       'COURT FILING',
       _teal,
       _grid2([
@@ -731,44 +762,11 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     ),
   );
 
-  // ── §16 Final Verdict ──────────────────────────────────────────────────────
-  final verdict = m['verdict'] as Map? ?? {};
-  final acquitted =
-      (verdict['acquitted'] as List?)?.map((x) => x.toString()).toList() ?? [];
-  final convicted =
-      (verdict['convicted'] as List?)?.map((x) => x.toString()).toList() ?? [];
-  sections.add(
-    _card(
-      16,
-      'FINAL VERDICT',
-      _teal,
-      pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          _grid2([
-            _f('CC / ST Number', _v(court['ccStNumber'])),
-            _f('Final Summary', _v(court['finalSummary'], or: 'Not set')),
-            _f('Quashed by High Court', _v(court['quashedHighCourt'])),
-          ]),
-          pw.SizedBox(height: 8),
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Expanded(child: _verdictCol('✓ ACQUITTED', acquitted, _green)),
-              pw.SizedBox(width: 10),
-              pw.Expanded(child: _verdictCol('✗ CONVICTED', convicted, _red)),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
-
-  // ── §17 Scrutiny Pipeline ─────────────────────────────────────────────────
+  // ── §16 Scrutiny Pipeline ─────────────────────────────────────────────────
   final sc = m['scrutiny'] as Map? ?? {};
   sections.add(
     _card(
-      17,
+      18,
       'CASE SCRUTINY PIPELINE',
       _teal,
       pw.Column(
@@ -808,6 +806,39 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
               sc['stepDcpActive'] == true ? 'Yes' : 'No',
             ),
           ]),
+        ],
+      ),
+    ),
+  );
+
+  // ── §17 Final Verdict ──────────────────────────────────────────────────────
+  final verdict = m['verdict'] as Map? ?? {};
+  final acquitted =
+      (verdict['acquitted'] as List?)?.map((x) => x.toString()).toList() ?? [];
+  final convicted =
+      (verdict['convicted'] as List?)?.map((x) => x.toString()).toList() ?? [];
+  sections.add(
+    _card(
+      19,
+      'FINAL VERDICT',
+      _teal,
+      pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          _grid2([
+            _f('CC / ST Number', _v(court['ccStNumber'])),
+            _f('Final Summary', _v(court['finalSummary'], or: 'Not set')),
+            _f('Quashed by High Court', _v(court['quashedHighCourt'])),
+          ]),
+          pw.SizedBox(height: 8),
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Expanded(child: _verdictCol('✓ ACQUITTED', acquitted, _green)),
+              pw.SizedBox(width: 10),
+              pw.Expanded(child: _verdictCol('✗ CONVICTED', convicted, _red)),
+            ],
+          ),
         ],
       ),
     ),
@@ -1121,11 +1152,10 @@ String _anyToString(dynamic v) {
     return v.isEmpty
         ? '-'
         : v.entries
-              .map(
-                (e) =>
-                    '${_labelify(e.key.toString())}: ${_anyToString(e.value)}',
-              )
-              .join(' | ');
+            .map(
+              (e) => '${_labelify(e.key.toString())}: ${_anyToString(e.value)}',
+            )
+            .join(' | ');
   }
   final s = v.toString().trim();
   return s.isEmpty ? '-' : s;
@@ -1136,76 +1166,78 @@ String _anyToString(dynamic v) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 pw.Widget _card(
-  int num,
+  dynamic num,
   String title,
   PdfColor accent,
   pw.Widget body,
-) => pw.Column(
-  crossAxisAlignment: pw.CrossAxisAlignment.start,
-  children: [
-    // If remaining space is too small, move this whole section to next page.
-    // Prevents orphan headings with empty space below.
-    pw.NewPage(freeSpace: 110),
-    pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 10),
-      decoration: pw.BoxDecoration(
-        color: _white,
-        borderRadius: pw.BorderRadius.circular(8),
-        border: pw.Border.all(color: _border, width: 0.5),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Container(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: const pw.BoxDecoration(
-              color: _dark,
-              borderRadius: pw.BorderRadius.only(
-                topLeft: pw.Radius.circular(7),
-                topRight: pw.Radius.circular(7),
-              ),
-            ),
-            child: pw.Row(
-              children: [
-                if (num > 0) ...[
-                  pw.Container(
-                    width: 18,
-                    height: 18,
-                    decoration: pw.BoxDecoration(
-                      color: accent,
-                      shape: pw.BoxShape.circle,
-                    ),
-                    child: pw.Center(
-                      child: pw.Text(
-                        '$num',
-                        style: pw.TextStyle(
-                          fontSize: 9,
-                          fontWeight: pw.FontWeight.bold,
-                          color: _white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  pw.SizedBox(width: 8),
-                ],
-                pw.Text(
-                  title,
-                  style: pw.TextStyle(
-                    fontSize: 11,
-                    fontWeight: pw.FontWeight.bold,
-                    color: _white,
-                    letterSpacing: 0.8,
+) =>
+    pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        // If remaining space is too small, move this whole section to next page.
+        // Prevents orphan headings with empty space below.
+        pw.NewPage(freeSpace: 110),
+        pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 10),
+          decoration: pw.BoxDecoration(
+            color: _white,
+            borderRadius: pw.BorderRadius.circular(8),
+            border: pw.Border.all(color: _border, width: 0.5),
+          ),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Container(
+                padding:
+                    const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: const pw.BoxDecoration(
+                  color: _dark,
+                  borderRadius: pw.BorderRadius.only(
+                    topLeft: pw.Radius.circular(7),
+                    topRight: pw.Radius.circular(7),
                   ),
                 ),
-              ],
-            ),
+                child: pw.Row(
+                  children: [
+                    if (num.toString() != '0') ...[
+                      pw.Container(
+                        width: 18,
+                        height: 18,
+                        decoration: pw.BoxDecoration(
+                          color: accent,
+                          shape: pw.BoxShape.circle,
+                        ),
+                        child: pw.Center(
+                          child: pw.Text(
+                            '$num',
+                            style: pw.TextStyle(
+                              fontSize: 9,
+                              fontWeight: pw.FontWeight.bold,
+                              color: _white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      pw.SizedBox(width: 8),
+                    ],
+                    pw.Text(
+                      title,
+                      style: pw.TextStyle(
+                        fontSize: 11,
+                        fontWeight: pw.FontWeight.bold,
+                        color: _white,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              pw.Padding(padding: const pw.EdgeInsets.all(12), child: body),
+            ],
           ),
-          pw.Padding(padding: const pw.EdgeInsets.all(12), child: body),
-        ],
-      ),
-    ),
-  ],
-);
+        ),
+      ],
+    );
 
 class _FD {
   const _FD(this.label, this.value, {this.full = false});
@@ -1258,47 +1290,47 @@ pw.Widget _grid2(List<_FD> fields) {
 }
 
 pw.Widget _fWidget(String label, String value) => pw.Column(
-  crossAxisAlignment: pw.CrossAxisAlignment.start,
-  children: [
-    pw.Text(
-      label.toUpperCase(),
-      style: pw.TextStyle(
-        fontSize: 7,
-        fontWeight: pw.FontWeight.bold,
-        color: _sec,
-        letterSpacing: 0.5,
-      ),
-    ),
-    pw.SizedBox(height: 2),
-    pw.Container(
-      width: double.infinity,
-      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: pw.BoxDecoration(
-        color: _bg,
-        borderRadius: pw.BorderRadius.circular(4),
-        border: pw.Border.all(color: _border, width: 0.5),
-      ),
-      child: pw.Text(
-        value.isEmpty ? '-' : value,
-        style: pw.TextStyle(
-          fontSize: 10,
-          color: value.isEmpty ? _muted : _dark,
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          label.toUpperCase(),
+          style: pw.TextStyle(
+            fontSize: 7,
+            fontWeight: pw.FontWeight.bold,
+            color: _sec,
+            letterSpacing: 0.5,
+          ),
         ),
-      ),
-    ),
-  ],
-);
+        pw.SizedBox(height: 2),
+        pw.Container(
+          width: double.infinity,
+          padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          decoration: pw.BoxDecoration(
+            color: _bg,
+            borderRadius: pw.BorderRadius.circular(4),
+            border: pw.Border.all(color: _border, width: 0.5),
+          ),
+          child: pw.Text(
+            value.isEmpty ? '-' : value,
+            style: pw.TextStyle(
+              fontSize: 10,
+              color: value.isEmpty ? _muted : _dark,
+            ),
+          ),
+        ),
+      ],
+    );
 
 pw.Widget _subCard(pw.Widget child) => pw.Container(
-  margin: const pw.EdgeInsets.only(bottom: 8),
-  padding: const pw.EdgeInsets.all(8),
-  decoration: pw.BoxDecoration(
-    color: _bg,
-    borderRadius: pw.BorderRadius.circular(6),
-    border: pw.Border.all(color: _border, width: 0.5),
-  ),
-  child: child,
-);
+      margin: const pw.EdgeInsets.only(bottom: 8),
+      padding: const pw.EdgeInsets.all(8),
+      decoration: pw.BoxDecoration(
+        color: _bg,
+        borderRadius: pw.BorderRadius.circular(6),
+        border: pw.Border.all(color: _border, width: 0.5),
+      ),
+      child: child,
+    );
 
 pw.Widget _personBlock(String title, Map<String, dynamic> person) =>
     pw.Container(
@@ -1337,64 +1369,64 @@ pw.Widget _personBlock(String title, Map<String, dynamic> person) =>
     );
 
 pw.Widget _chargeBlock(int num, String act, List<String> secs) => pw.Container(
-  margin: const pw.EdgeInsets.only(bottom: 8),
-  padding: const pw.EdgeInsets.all(8),
-  decoration: pw.BoxDecoration(
-    color: _bg,
-    borderRadius: pw.BorderRadius.circular(6),
-    border: const pw.Border(left: pw.BorderSide(color: _teal, width: 3)),
-  ),
-  child: pw.Column(
-    crossAxisAlignment: pw.CrossAxisAlignment.start,
-    children: [
-      pw.Text(
-        'Charge #$num: ${act.isEmpty ? "No act selected" : act}',
-        style: pw.TextStyle(
-          fontSize: 10,
-          fontWeight: pw.FontWeight.bold,
-          color: _dark,
-        ),
+      margin: const pw.EdgeInsets.only(bottom: 8),
+      padding: const pw.EdgeInsets.all(8),
+      decoration: pw.BoxDecoration(
+        color: _bg,
+        borderRadius: pw.BorderRadius.circular(6),
+        border: const pw.Border(left: pw.BorderSide(color: _teal, width: 3)),
       ),
-      pw.SizedBox(height: 4),
-      secs.isEmpty
-          ? pw.Text(
-              'No sections selected',
-              style: pw.TextStyle(
-                fontSize: 9,
-                color: _muted,
-                fontStyle: pw.FontStyle.italic,
-              ),
-            )
-          : pw.Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: secs
-                  .map(
-                    (s) => pw.Container(
-                      padding: const pw.EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: pw.BoxDecoration(
-                        color: _bg,
-                        borderRadius: pw.BorderRadius.circular(4),
-                        border: pw.Border.all(color: _teal, width: 0.8),
-                      ),
-                      child: pw.Text(
-                        '§$s',
-                        style: pw.TextStyle(
-                          fontSize: 9,
-                          fontWeight: pw.FontWeight.bold,
-                          color: _teal,
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Charge #$num: ${act.isEmpty ? "No act selected" : act}',
+            style: pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+              color: _dark,
             ),
-    ],
-  ),
-);
+          ),
+          pw.SizedBox(height: 4),
+          secs.isEmpty
+              ? pw.Text(
+                  'No sections selected',
+                  style: pw.TextStyle(
+                    fontSize: 9,
+                    color: _muted,
+                    fontStyle: pw.FontStyle.italic,
+                  ),
+                )
+              : pw.Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: secs
+                      .map(
+                        (s) => pw.Container(
+                          padding: const pw.EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: pw.BoxDecoration(
+                            color: _bg,
+                            borderRadius: pw.BorderRadius.circular(4),
+                            border: pw.Border.all(color: _teal, width: 0.8),
+                          ),
+                          child: pw.Text(
+                            '§$s',
+                            style: pw.TextStyle(
+                              fontSize: 9,
+                              fontWeight: pw.FontWeight.bold,
+                              color: _teal,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+        ],
+      ),
+    );
 
 pw.Widget _verdictCol(String title, List<String> names, PdfColor color) =>
     pw.Container(
@@ -1469,127 +1501,129 @@ pw.Widget _scrutinyStep(
   required String grant,
   String? lockedMsg,
   bool isLast = false,
-}) => pw.Padding(
-  padding: pw.EdgeInsets.only(bottom: isLast ? 0 : 10),
-  child: pw.Row(
-    crossAxisAlignment: pw.CrossAxisAlignment.start,
-    children: [
-      pw.Column(
+}) =>
+    pw.Padding(
+      padding: pw.EdgeInsets.only(bottom: isLast ? 0 : 10),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Container(
-            width: 22,
-            height: 22,
-            decoration: pw.BoxDecoration(
-              color: active ? _teal : _border,
-              shape: pw.BoxShape.circle,
-            ),
-            child: pw.Center(
-              child: pw.Text(
-                '$step',
-                style: pw.TextStyle(
-                  fontSize: 9,
-                  fontWeight: pw.FontWeight.bold,
-                  color: _white,
-                ),
-              ),
-            ),
-          ),
-          if (!isLast)
-            pw.Container(width: 2, height: 30, color: active ? _teal : _border),
-        ],
-      ),
-      pw.SizedBox(width: 10),
-      pw.Expanded(
-        child: pw.Padding(
-          padding: pw.EdgeInsets.only(bottom: isLast ? 0 : 4),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+          pw.Column(
             children: [
-              pw.Text(
-                title,
-                style: pw.TextStyle(
-                  fontSize: 10,
-                  fontWeight: pw.FontWeight.bold,
-                  color: active ? _dark : _muted,
+              pw.Container(
+                width: 22,
+                height: 22,
+                decoration: pw.BoxDecoration(
+                  color: active ? _teal : _border,
+                  shape: pw.BoxShape.circle,
+                ),
+                child: pw.Center(
+                  child: pw.Text(
+                    '$step',
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      fontWeight: pw.FontWeight.bold,
+                      color: _white,
+                    ),
+                  ),
                 ),
               ),
-              pw.SizedBox(height: 4),
-              if (!active && lockedMsg != null)
-                pw.Text(
-                  lockedMsg,
-                  style: pw.TextStyle(
-                    fontSize: 8,
-                    color: _muted,
-                    fontStyle: pw.FontStyle.italic,
-                  ),
-                )
-              else
-                _grid2([_f('Send Date', send), _f('Grant Date', grant)]),
+              if (!isLast)
+                pw.Container(
+                    width: 2, height: 30, color: active ? _teal : _border),
             ],
           ),
-        ),
-      ),
-    ],
-  ),
-);
-
-pw.Widget _checkbox(bool checked, {PdfColor color = _teal}) => pw.Container(
-  width: 12,
-  height: 12,
-  decoration: pw.BoxDecoration(
-    color: checked ? color : _bg,
-    borderRadius: pw.BorderRadius.circular(3),
-    border: pw.Border.all(color: checked ? color : _border),
-  ),
-  child: checked
-      ? pw.Center(
-          child: pw.Text(
-            '✓',
-            style: pw.TextStyle(
-              fontSize: 7,
-              color: _white,
-              fontWeight: pw.FontWeight.bold,
+          pw.SizedBox(width: 10),
+          pw.Expanded(
+            child: pw.Padding(
+              padding: pw.EdgeInsets.only(bottom: isLast ? 0 : 4),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    title,
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                      color: active ? _dark : _muted,
+                    ),
+                  ),
+                  pw.SizedBox(height: 4),
+                  if (!active && lockedMsg != null)
+                    pw.Text(
+                      lockedMsg,
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        color: _muted,
+                        fontStyle: pw.FontStyle.italic,
+                      ),
+                    )
+                  else
+                    _grid2([_f('Send Date', send), _f('Grant Date', grant)]),
+                ],
+              ),
             ),
           ),
-        )
-      : pw.SizedBox(),
-);
+        ],
+      ),
+    );
+
+pw.Widget _checkbox(bool checked, {PdfColor color = _teal}) => pw.Container(
+      width: 12,
+      height: 12,
+      decoration: pw.BoxDecoration(
+        color: checked ? color : _bg,
+        borderRadius: pw.BorderRadius.circular(3),
+        border: pw.Border.all(color: checked ? color : _border),
+      ),
+      child: checked
+          ? pw.Center(
+              child: pw.Text(
+                '✓',
+                style: pw.TextStyle(
+                  fontSize: 7,
+                  color: _white,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            )
+          : pw.SizedBox(),
+    );
 
 pw.Widget _badge(String label, PdfColor color) => pw.Container(
-  margin: const pw.EdgeInsets.only(bottom: 6),
-  padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-  decoration: pw.BoxDecoration(
-    borderRadius: pw.BorderRadius.circular(20),
-    border: pw.Border.all(color: color, width: 0.8),
-  ),
-  child: pw.Text(
-    label,
-    style: pw.TextStyle(
-      fontSize: 9,
-      fontWeight: pw.FontWeight.bold,
-      color: color,
-    ),
-  ),
-);
+      margin: const pw.EdgeInsets.only(bottom: 6),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: pw.BoxDecoration(
+        borderRadius: pw.BorderRadius.circular(20),
+        border: pw.Border.all(color: color, width: 0.8),
+      ),
+      child: pw.Text(
+        label,
+        style: pw.TextStyle(
+          fontSize: 9,
+          fontWeight: pw.FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
 
 pw.Widget _empty(String text) => pw.Container(
-  width: double.infinity,
-  padding: const pw.EdgeInsets.all(10),
-  decoration: pw.BoxDecoration(
-    color: _bg,
-    borderRadius: pw.BorderRadius.circular(6),
-    border: pw.Border.all(color: _border, width: 0.5),
-  ),
-  child: pw.Text(
-    text,
-    textAlign: pw.TextAlign.center,
-    style: pw.TextStyle(
-      fontSize: 9,
-      color: _muted,
-      fontStyle: pw.FontStyle.italic,
-    ),
-  ),
-);
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        color: _bg,
+        borderRadius: pw.BorderRadius.circular(6),
+        border: pw.Border.all(color: _border, width: 0.5),
+      ),
+      child: pw.Text(
+        text,
+        textAlign: pw.TextAlign.center,
+        style: pw.TextStyle(
+          fontSize: 9,
+          color: _muted,
+          fontStyle: pw.FontStyle.italic,
+        ),
+      ),
+    );
 
 // ══════════════════════════════════════════════════════════════════════════════
 // HELPERS
