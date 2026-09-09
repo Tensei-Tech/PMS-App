@@ -71,6 +71,7 @@ import 'hurt_cases_screen.dart';
 import 'absconded_cases_screen.dart';
 import 'module_record_detail_screen.dart';
 import 'report_case_list_screen.dart';
+import '../modules/mpda/screens/mpda_form_screen.dart';
 
 class _CategoryMeta {
   final String label;
@@ -386,6 +387,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       );
       return;
     }
+    if (widget.moduleKey == 'mpda') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: MpdaFormScreen(
+            moduleLabel: widget.moduleLabel,
+            subCategory: widget.subCategory,
+          ),
+        ),
+      );
+      return;
+    }
     if (widget.moduleKey == 'form_1_5' && widget.subCategory == null) {
       Navigator.push(
         context,
@@ -461,6 +474,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       allRecords.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       totalCount = allRecords.length;
+    } else if (widget.moduleKey == 'mpda') {
+      final provider = _watchProvider(context);
+      allRecords = provider.records;
+      totalCount = provider.records.length;
     } else {
       final provider = _watchProvider(context);
       allRecords = provider.getFilteredRecords(widget.subCategory);
@@ -491,6 +508,80 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       } else {
         filtered = allRecords;
       }
+    } else if (widget.moduleKey == 'mpda') {
+      if (_filter == 'Approved') {
+        filtered = allRecords.where((r) {
+          final outcome = r.extraFields['proposalOutcome'] ??
+              r.extraFields['mpdaForm']?['investigation']?['proposalOutcome'];
+          return outcome == 'Granted';
+        }).toList();
+      } else if (_filter == 'Rejected') {
+        filtered = allRecords.where((r) {
+          final outcome = r.extraFields['proposalOutcome'] ??
+              r.extraFields['mpdaForm']?['investigation']?['proposalOutcome'];
+          return outcome == 'Rejected';
+        }).toList();
+      } else if (_filter == 'Detained') {
+        filtered = allRecords.where((r) {
+          final isDet = (r.extraFields['isDetained'] ??
+                  r.extraFields['mpdaForm']?['detention']?['isDetained']) ==
+              'Yes';
+          final isRev = (r.extraFields['detentionRevoked'] ??
+                  r.extraFields['mpdaForm']?['detention']
+                      ?['detentionRevoked']) ==
+              'Yes';
+          return isDet && !isRev;
+        }).toList();
+      } else if (_filter == 'InJail') {
+        filtered = allRecords.where((r) {
+          final isDet = (r.extraFields['isDetained'] ??
+                  r.extraFields['mpdaForm']?['detention']?['isDetained']) ==
+              'Yes';
+          final isRev = (r.extraFields['detentionRevoked'] ??
+                  r.extraFields['mpdaForm']?['detention']
+                      ?['detentionRevoked']) ==
+              'Yes';
+          final jail = (r.extraFields['jailName'] ??
+                      r.extraFields['mpdaForm']?['detention']?['jailName'])
+                  ?.toString()
+                  .trim() ??
+              '';
+          return isDet && !isRev && jail.isNotEmpty;
+        }).toList();
+      } else if (_filter == 'Revoked') {
+        filtered = allRecords.where((r) {
+          return (r.extraFields['detentionRevoked'] ??
+                  r.extraFields['mpdaForm']?['detention']
+                      ?['detentionRevoked']) ==
+              'Yes';
+        }).toList();
+      } else if (_filter == 'NextMonth') {
+        final now = DateTime.now();
+        final nextMonthStart = DateTime(now.year, now.month + 1, 1);
+        final nextMonthEnd = DateTime(now.year, now.month + 2, 0, 23, 59, 59);
+        filtered = allRecords.where((r) {
+          final dateStr = (r.extraFields['detentionCompletionDate'] ??
+                  r.extraFields['mpdaForm']?['detention']
+                      ?['detentionCompletionDate'])
+              ?.toString()
+              .trim();
+          if (dateStr == null || dateStr.isEmpty) return false;
+          final parts = dateStr.split('/');
+          if (parts.length == 3) {
+            final d = int.tryParse(parts[0]);
+            final m = int.tryParse(parts[1]);
+            final y = int.tryParse(parts[2]);
+            if (d != null && m != null && y != null) {
+              final compDate = DateTime(y, m, d);
+              return !compDate.isBefore(nextMonthStart) &&
+                  !compDate.isAfter(nextMonthEnd);
+            }
+          }
+          return false;
+        }).toList();
+      } else {
+        filtered = allRecords;
+      }
     } else {
       if (_filter == 'Disposal' ||
           _filter == 'Closed' ||
@@ -513,7 +604,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 r.status != 'Resolved')
             .toList();
       } else {
-        filtered = allRecords;
+        filtered = _filter == 'All'
+            ? allRecords
+            : allRecords.where((r) => r.status == _filter).toList();
       }
     }
 
@@ -3441,6 +3534,140 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   Widget _buildStatsRow(int total, int disposal, int pending) {
+    if (widget.moduleKey == 'mpda') {
+      final provider = _watchProvider(context);
+      final allRecs = provider.records;
+      final totalMpda = allRecs.length;
+      final approvedMpda = allRecs.where((r) {
+        final outcome = r.extraFields['proposalOutcome'] ??
+            r.extraFields['mpdaForm']?['investigation']?['proposalOutcome'];
+        return outcome == 'Granted';
+      }).length;
+      final rejectedMpda = allRecs.where((r) {
+        final outcome = r.extraFields['proposalOutcome'] ??
+            r.extraFields['mpdaForm']?['investigation']?['proposalOutcome'];
+        return outcome == 'Rejected';
+      }).length;
+      final currentlyDetained = allRecs.where((r) {
+        final isDet = (r.extraFields['isDetained'] ??
+                r.extraFields['mpdaForm']?['detention']?['isDetained']) ==
+            'Yes';
+        final isRev = (r.extraFields['detentionRevoked'] ??
+                r.extraFields['mpdaForm']?['detention']?['detentionRevoked']) ==
+            'Yes';
+        return isDet && !isRev;
+      }).length;
+      final inJailMpda = allRecs.where((r) {
+        final isDet = (r.extraFields['isDetained'] ??
+                r.extraFields['mpdaForm']?['detention']?['isDetained']) ==
+            'Yes';
+        final isRev = (r.extraFields['detentionRevoked'] ??
+                r.extraFields['mpdaForm']?['detention']?['detentionRevoked']) ==
+            'Yes';
+        final jail = (r.extraFields['jailName'] ??
+                    r.extraFields['mpdaForm']?['detention']?['jailName'])
+                ?.toString()
+                .trim() ??
+            '';
+        return isDet && !isRev && jail.isNotEmpty;
+      }).length;
+      final revokedMpda = allRecs.where((r) {
+        return (r.extraFields['detentionRevoked'] ??
+                r.extraFields['mpdaForm']?['detention']?['detentionRevoked']) ==
+            'Yes';
+      }).length;
+
+      final now = DateTime.now();
+      final nextMonthStart = DateTime(now.year, now.month + 1, 1);
+      final nextMonthEnd = DateTime(now.year, now.month + 2, 0, 23, 59, 59);
+      final releasedNextMonth = allRecs.where((r) {
+        final dateStr = (r.extraFields['detentionCompletionDate'] ??
+                r.extraFields['mpdaForm']?['detention']
+                    ?['detentionCompletionDate'])
+            ?.toString()
+            .trim();
+        if (dateStr == null || dateStr.isEmpty) return false;
+        final parts = dateStr.split('/');
+        if (parts.length == 3) {
+          final d = int.tryParse(parts[0]);
+          final m = int.tryParse(parts[1]);
+          final y = int.tryParse(parts[2]);
+          if (d != null && m != null && y != null) {
+            final compDate = DateTime(y, m, d);
+            return !compDate.isBefore(nextMonthStart) &&
+                !compDate.isAfter(nextMonthEnd);
+          }
+        }
+        return false;
+      }).length;
+
+      return Column(
+        children: [
+          if (!widget.readOnly) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _openNewEntryForm(context),
+                      icon: const Icon(Icons.add_rounded,
+                          color: Colors.white, size: 20),
+                      label: Text(
+                        '+ ${TranslationHelper.translate(context, 'Add New')} MPDA Proposal',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.navyDark,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: const StadiumBorder(),
+                        elevation: 3,
+                        shadowColor: AppColors.navyDark.withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          // Row 1: Total, Approved, Rejected
+          Row(children: [
+            _statCard(
+                'Total MPDA Proposals', totalMpda, AppColors.infoBlue, 'All'),
+            const SizedBox(width: 8),
+            _statCard('Approved MPDA', approvedMpda, AppColors.successGreen,
+                'Approved'),
+            const SizedBox(width: 8),
+            _statCard('Rejected MPDA', rejectedMpda, const Color(0xFFEF4444),
+                'Rejected'),
+          ]),
+          const SizedBox(height: 8),
+          // Row 2: Currently Detained, Total in Jail, MPDA Revoked
+          Row(children: [
+            _statCard('Persons Currently Detained', currentlyDetained,
+                AppColors.warningOrange, 'Detained'),
+            const SizedBox(width: 8),
+            _statCard('Total Persons in Jail under MPDA', inJailMpda,
+                const Color(0xFF7C3AED), 'InJail'),
+            const SizedBox(width: 8),
+            _statCard('Total MPDA Revoked', revokedMpda,
+                const Color(0xFF64748B), 'Revoked'),
+          ]),
+          const SizedBox(height: 8),
+          // Row 3: Released in Next Month
+          Row(children: [
+            _statCard('Released in Next Month', releasedNextMonth,
+                const Color(0xFF0D9488), 'NextMonth'),
+          ]),
+        ],
+      );
+    }
+
     return Row(
       children: [
         _statCard('Total', total, AppColors.infoBlue, 'All'),
@@ -3852,6 +4079,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   ctx,
                   AppTheme.fadeSlideRoute(
                     page: MissingFormScreen(
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                      subCategory: widget.subCategory,
+                      existingRecord: record,
+                    ),
+                  ),
+                );
+                return;
+              }
+              if (widget.moduleKey == 'mpda') {
+                Navigator.push(
+                  ctx,
+                  AppTheme.fadeSlideRoute(
+                    page: MpdaFormScreen(
                       moduleLabel: record.firestoreCategoryDisplayName,
                       subCategory: widget.subCategory,
                       existingRecord: record,
