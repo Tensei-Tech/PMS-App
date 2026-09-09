@@ -163,6 +163,10 @@ class CaseService {
   /// Create a new case record in PostgreSQL backend
   Future<bool> saveCase(ModuleRecord record, {bool isCreate = true}) async {
     try {
+      final cacheKey = '${record.moduleKey}:${record.stationName}';
+      _casesCache.remove(cacheKey);
+      _casesCacheTime.remove(cacheKey);
+
       final payload = record.toDjangoMap();
       ApiResponse response;
       if (isCreate) {
@@ -183,6 +187,8 @@ class CaseService {
   /// Delete a case record in PostgreSQL backend
   Future<bool> deleteCase(String id) async {
     try {
+      _casesCache.clear();
+      _casesCacheTime.clear();
       final url = '${ApiConfig.cases}$id/';
       final response = await _api.delete(url);
       return response.isSuccess;

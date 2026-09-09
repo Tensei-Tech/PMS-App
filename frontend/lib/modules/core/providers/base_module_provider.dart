@@ -56,25 +56,28 @@ class BaseModuleProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> _fetchCases() async {
+  Future<void> _fetchCases({bool forceRefresh = false}) async {
     if (_stationId.isEmpty) return;
     try {
       final fetched = await _caseService.fetchCases(
         moduleKey: moduleKey,
         stationId: _stationId,
+        forceRefresh: forceRefresh,
       );
-      _records = CaseVisibility.filterRecords(
-        fetched,
-        uid: _uid,
-        mode: _visibilityMode,
-      );
-      notifyListeners();
+      if (fetched.isNotEmpty || forceRefresh) {
+        _records = CaseVisibility.filterRecords(
+          fetched,
+          uid: _uid,
+          mode: _visibilityMode,
+        );
+        notifyListeners();
+      }
     } catch (e) {
       debugPrint('[$moduleKey] CaseService fetch error: $e');
     }
   }
 
-  Future<void> refresh() => _fetchCases();
+  Future<void> refresh() => _fetchCases(forceRefresh: true);
 
   void seedDemoRecords(List<ModuleRecord> demoRecords) {
     if (_records.isEmpty) {
@@ -113,38 +116,68 @@ class BaseModuleProvider extends ChangeNotifier {
   }
 
   List<ModuleRecord> getFilteredRecords(String? subCategory) {
-    if (subCategory == null) return records;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return records;
+    }
     return records.where((r) => r.subCategory == subCategory).toList();
   }
 
   int getFilteredTotalCount(String? subCategory) {
-    if (subCategory == null) return totalCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return totalCount;
+    }
     return records.where((r) => r.subCategory == subCategory).length;
   }
 
   int getFilteredOpenCount(String? subCategory) {
-    if (subCategory == null) return openCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return openCount;
+    }
     return records
         .where((r) => r.subCategory == subCategory && r.status == 'Open')
         .length;
   }
 
   int getFilteredActiveCount(String? subCategory) {
-    if (subCategory == null) return activeCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return activeCount;
+    }
     return records
         .where((r) => r.subCategory == subCategory && r.status == 'Active')
         .length;
   }
 
   int getFilteredResolvedCount(String? subCategory) {
-    if (subCategory == null) return resolvedCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return resolvedCount;
+    }
     return records
         .where((r) => r.subCategory == subCategory && r.status == 'Resolved')
         .length;
   }
 
   int getFilteredClosedCount(String? subCategory) {
-    if (subCategory == null) return closedCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return closedCount;
+    }
     return records
         .where((r) => r.subCategory == subCategory && r.status == 'Closed')
         .length;
@@ -162,8 +195,18 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
+
+    // Optimistic local add so UI updates instantly
+    final existingIdx = _records.indexWhere((r) => r.id == enriched.id);
+    if (existingIdx >= 0) {
+      _records[existingIdx] = enriched;
+    } else {
+      _records.insert(0, enriched);
+    }
+    notifyListeners();
+
     await _caseService.saveCase(enriched, isCreate: true);
-    await _fetchCases();
+    await _fetchCases(forceRefresh: true);
   }
 
   Future<void> updateRecord(ModuleRecord record) async {
@@ -178,13 +221,25 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
+
+    // Optimistic local update so UI updates instantly
+    final existingIdx = _records.indexWhere((r) => r.id == enriched.id);
+    if (existingIdx >= 0) {
+      _records[existingIdx] = enriched;
+    } else {
+      _records.insert(0, enriched);
+    }
+    notifyListeners();
+
     await _caseService.saveCase(enriched, isCreate: false);
-    await _fetchCases();
+    await _fetchCases(forceRefresh: true);
   }
 
   Future<void> deleteRecord(String id) async {
+    _records.removeWhere((r) => r.id == id);
+    notifyListeners();
     await _caseService.deleteCase(id);
-    await _fetchCases();
+    await _fetchCases(forceRefresh: true);
   }
 
   ModuleRecord createRecord({
