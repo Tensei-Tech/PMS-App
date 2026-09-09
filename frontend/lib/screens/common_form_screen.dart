@@ -7,14 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../modules/core/models/base_record.dart';
-import '../modules/core/providers/base_module_provider.dart';
 import '../modules/absconded/providers/absconded_provider.dart';
 import '../modules/accident/providers/accident_provider.dart';
 import '../modules/application/providers/application_provider.dart';
 import '../modules/arrested/providers/arrested_provider.dart';
 import '../modules/bnss/providers/bnss_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
+import '../modules/core/models/base_record.dart';
+import '../modules/core/providers/base_module_provider.dart';
 import '../modules/crime_women/providers/crime_women_provider.dart';
 import '../modules/detected/providers/detected_provider.dart';
 import '../modules/disposal/providers/disposal_provider.dart';
@@ -31,8 +31,8 @@ import '../modules/missing/providers/missing_provider.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/muddemal/providers/muddemal_provider.dart';
-import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/nc/providers/nc_provider.dart';
+import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
@@ -47,42 +47,42 @@ import '../modules/undetected/providers/undetected_provider.dart';
 import '../modules/victim/providers/victim_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
-import '../utils/translation_helper.dart';
+import '../utils/ab_form_pdf.dart';
+import '../utils/accused_memorandum_pdf.dart';
+import '../utils/arrest_surrender_pdf.dart';
 import '../utils/common_form_module.dart';
 import '../utils/common_form_pdf.dart';
 import '../utils/crime_detail_pdf.dart';
-import '../utils/property_seizure_pdf.dart';
 import '../utils/crimespot_seizure_pdf.dart';
-import '../utils/form_e_pdf.dart';
-import '../utils/arrest_surrender_pdf.dart';
-import '../utils/inquest_panchanama_pdf.dart';
-import '../utils/accused_memorandum_pdf.dart';
-import '../utils/final_report_pdf.dart';
-import '../utils/house_property_search_seizure_pdf.dart';
-import '../utils/ab_form_pdf.dart';
-import '../utils/medical_376_form_pdf.dart';
-import '../utils/interrogation_form_pdf.dart';
 import '../utils/draft_ground_of_arrest_pdf.dart';
+import '../utils/final_report_pdf.dart';
+import '../utils/form_e_pdf.dart';
 import '../utils/ground_of_arrest_pdf.dart';
+import '../utils/house_property_search_seizure_pdf.dart';
+import '../utils/inquest_panchanama_pdf.dart';
+import '../utils/interrogation_form_pdf.dart';
+import '../utils/medical_376_form_pdf.dart';
+import '../utils/pdf_auth_gate.dart';
+import '../utils/property_seizure_pdf.dart';
 import '../utils/reason_of_arrest_pdf.dart';
 import '../utils/transit_remand_pdf.dart';
-import '../utils/pdf_auth_gate.dart';
+import '../utils/translation_helper.dart';
+import '../widgets/ab_form_view.dart';
+import '../widgets/accused_memorandum_form_view.dart';
+import '../widgets/arrest_surrender_form_view.dart';
 import '../widgets/common_form/common_form.dart'
     show CommonForm, CommonFormState, commonFormDocumentMapFromState;
 import '../widgets/crime_detail_form_view.dart';
-import '../widgets/property_seizure_form_view.dart';
 import '../widgets/crimespot_seizure_form_view.dart';
-import '../widgets/form_e_view.dart';
-import '../widgets/arrest_surrender_form_view.dart';
-import '../widgets/inquest_panchanama_form_view.dart';
-import '../widgets/accused_memorandum_form_view.dart';
-import '../widgets/final_report_form_view.dart';
-import '../widgets/house_property_search_seizure_form_view.dart';
-import '../widgets/ab_form_view.dart';
-import '../widgets/medical_376_form_view.dart';
-import '../widgets/interrogation_form_view.dart';
 import '../widgets/draft_ground_of_arrest_form_view.dart';
+import '../widgets/final_report_form_view.dart';
+import '../widgets/form_e_view.dart';
 import '../widgets/ground_of_arrest_form_view.dart';
+import '../widgets/house_property_search_seizure_form_view.dart';
+import '../widgets/inquest_panchanama_form_view.dart';
+import '../widgets/interrogation_form_view.dart';
+import '../widgets/medical_376_form_view.dart';
+import '../widgets/property_seizure_form_view.dart';
 import '../widgets/reason_of_arrest_form_view.dart';
 import '../widgets/transit_remand_form_view.dart';
 import 'bnss_dedicated_forms.dart';
@@ -206,128 +206,144 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _crimeDetailKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _crimeDetailKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isPropertySeizureForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _propertySeizureKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _propertySeizureKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isCrimespotSeizureForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _crimespotSeizureKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _crimespotSeizureKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isFormE) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _formEKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _formEKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isArrestSurrenderForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _arrestSurrenderKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _arrestSurrenderKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isInquestPanchanamaForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _inquestPanchanamaKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _inquestPanchanamaKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isAccusedMemorandumForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _accusedMemorandumKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _accusedMemorandumKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isFinalReportForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _finalReportKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _finalReportKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isHousePropertySearchSeizureForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _housePropertySearchSeizureKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _housePropertySearchSeizureKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isAbForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _abFormKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _abFormKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_is376MedicalForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _medical376Key.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _medical376Key.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isInterrogationForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _interrogationKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _interrogationKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isDraftGroundOfArrestForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _draftGroundOfArrestKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _draftGroundOfArrestKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isGroundOfArrestForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _groundOfArrestKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _groundOfArrestKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isReasonOfArrestForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _reasonOfArrestKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _reasonOfArrestKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isTransitRemandForm) {
         if (existing != null) {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
-            _transitRemandKey.currentState
-                ?.hydrateFrom(Map<String, dynamic>.from(nested));
+            _transitRemandKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
           }
         }
       } else if (_isBnssDedicatedForm) {
@@ -477,11 +493,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   }
 
   String _locationLine(Map<String, dynamic> doc) {
-    final parts = [
-      doc['spotVillage'],
-      doc['spotArea'],
-      doc['spotAddress'],
-    ]
+    final parts = [doc['spotVillage'], doc['spotArea'], doc['spotAddress']]
         .map((x) => x?.toString().trim() ?? '')
         .where((s) => s.isNotEmpty)
         .toList();
@@ -576,7 +588,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           final commonMap = BnssDedicatedForms.collect(widget.subCategory);
           if (commonMap == null) return;
           await BnssDedicatedForms.previewPdf(
-              context, widget.subCategory, commonMap);
+            context,
+            widget.subCategory,
+            commonMap,
+          );
         } else {
           final form = _formKey.currentState;
           if (form == null) return;
@@ -789,8 +804,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -805,8 +821,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -819,8 +836,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -835,8 +853,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -851,8 +870,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -867,8 +887,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -885,8 +906,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -901,8 +923,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -915,8 +938,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -931,8 +955,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -945,8 +970,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -959,8 +985,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -977,8 +1004,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        final y =
-            int.tryParse(parts[2].length == 2 ? '20${parts[2]}' : parts[2]);
+        final y = int.tryParse(
+          parts[2].length == 2 ? '20${parts[2]}' : parts[2],
+        );
         if (d != null && m != null && y != null) {
           return DateTime(y, m, d);
         }
@@ -1013,13 +1041,15 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         : auth.uid;
 
     if (!_isEdit && stationName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'Station not assigned. Please log out and log in again.',
-          style: GoogleFonts.poppins(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Station not assigned. Please log out and log in again.',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.red,
         ),
-        backgroundColor: Colors.red,
-      ));
+      );
       return;
     }
 
@@ -1179,7 +1209,15 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                     ? (doc['eComplainantName']?.toString().trim().isNotEmpty == true ? doc['eComplainantName']!.trim() : doc['m1AccusedName']?.toString().trim() ?? '')
                                                                     : _isBnssDedicatedForm
                                                                         ? BnssDedicatedForms.complainantFromDoc(doc)
-                                                                        : (doc['complainant'] is Map ? ((doc['isSexualOffence'] == true || (doc['complainant']['name']?.toString().contains('Protected') ?? false)) ? '[Victim Identity Protected]' : (doc['complainant']['name']?.toString().trim() ?? '')) : '');
+                                                                        : (doc['complainant'] is Map
+                                                                            ? ((doc['isSexualOffence'] == true ||
+                                                                                    (doc['complainant']['name']?.toString().contains(
+                                                                                              'Protected',
+                                                                                            ) ??
+                                                                                        false))
+                                                                                ? '[Victim Identity Protected]'
+                                                                                : (doc['complainant']['name']?.toString().trim() ?? ''))
+                                                                            : '');
 
     final String caseNum;
     if (_isCrimeDetailForm || _isPropertySeizureForm) {
@@ -1318,6 +1356,217 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       incDate = _parseRegDate(doc['regDate']?.toString() ?? '');
     }
 
+    final court = (doc['court'] is Map) ? doc['court'] as Map : null;
+    final csNum = court?['chargeSheetNumber']?.toString().trim() ??
+        doc['chargeSheetNumber']?.toString().trim() ??
+        '';
+    final csDate = court?['chargeSheetDate']?.toString().trim() ??
+        doc['chargeSheetDate']?.toString().trim() ??
+        '';
+    final ccStNum = court?['ccStNumber']?.toString().trim() ??
+        doc['ccStNumber']?.toString().trim() ??
+        court?['ccNumber']?.toString().trim() ??
+        doc['ccNumber']?.toString().trim() ??
+        '';
+
+    String targetStatus = _isEdit ? widget.existingRecord!.status : 'Open';
+
+    final bool hasFiling =
+        (csNum.isNotEmpty && csDate.isNotEmpty) || ccStNum.isNotEmpty;
+
+    if (hasFiling &&
+        targetStatus.toLowerCase() != 'disposal' &&
+        targetStatus.toLowerCase() != 'disposed') {
+      final bool? moveToDisposal = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogCtx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.navyMid.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.gavel_rounded,
+                  color: AppColors.navyMid,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  TranslationHelper.translate(
+                    dialogCtx,
+                    'Move Case to Disposal?',
+                  ),
+                  style: GoogleFonts.poppins(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                TranslationHelper.translate(
+                  dialogCtx,
+                  'Court Filing / Charge Sheet details have been entered for this case:',
+                ),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (csNum.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Text(
+                            '${TranslationHelper.translate(dialogCtx, 'Charge Sheet No.')}: ',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              csNum,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    if (csDate.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Text(
+                            '${TranslationHelper.translate(dialogCtx, 'Charge Sheet Date')}: ',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              csDate,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                    if (ccStNum.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Text(
+                            '${TranslationHelper.translate(dialogCtx, 'CC / ST No.')}: ',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              ccStNum,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                TranslationHelper.translate(
+                  dialogCtx,
+                  'Entering Court Filing or CC / ST details completes police investigation. Do you want to mark this case as Disposed and move it to the Disposal tab?',
+                ),
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  color: AppColors.navyDark,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, false),
+              child: Text(
+                TranslationHelper.translate(dialogCtx, 'Keep as Pending'),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogCtx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.successGreen,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                TranslationHelper.translate(dialogCtx, 'Move to Disposal'),
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (moveToDisposal == null) return;
+      if (moveToDisposal == true) {
+        targetStatus = 'Disposal';
+        extra['disposedAt'] = DateTime.now().toIso8601String();
+        if (ccStNum.isNotEmpty) extra['disposedCcStNumber'] = ccStNum;
+        if (csNum.isNotEmpty) extra['disposedChargeSheetNumber'] = csNum;
+      }
+    }
+
     final record = ModuleRecord(
       id: _isEdit
           ? widget.existingRecord!.id
@@ -1349,7 +1598,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       location: loc,
       incidentDate: incDate,
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
-      status: _isEdit ? widget.existingRecord!.status : 'Open',
+      status: targetStatus,
       assignedOfficer:
           _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
       subCategory:
@@ -1371,25 +1620,31 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          _isEdit
-              ? '${widget.moduleLabel} record updated!'
-              : '${widget.moduleLabel} case registered!',
-          style: GoogleFonts.poppins(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            targetStatus.toLowerCase() == 'disposal'
+                ? '${widget.moduleLabel} case moved to Disposal!'
+                : (_isEdit
+                    ? '${widget.moduleLabel} record updated!'
+                    : '${widget.moduleLabel} case registered!'),
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: AppColors.successGreen,
         ),
-        backgroundColor: AppColors.successGreen,
-      ));
-      Navigator.pop(context);
+      );
+      Navigator.pop(context, record);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'Failed to save record: $e',
-          style: GoogleFonts.poppins(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to save record: $e',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: AppColors.dangerRed,
         ),
-        backgroundColor: AppColors.dangerRed,
-      ));
+      );
     }
   }
 
@@ -1402,8 +1657,11 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.navyDark, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.navyDark,
+            size: 20,
+          ),
         ),
         title: Text(
           widget.readOnly == true
@@ -1412,9 +1670,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                   ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
                   : '${TranslationHelper.translate(context, 'New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'Entry')}'),
           style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.navyDark),
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.navyDark,
+          ),
         ),
       ),
       body: _isCrimeDetailForm
@@ -1592,8 +1851,12 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                             ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding:
-              const EdgeInsets.fromLTRB(AppSpacing.lg, 8, AppSpacing.lg, 12),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            8,
+            AppSpacing.lg,
+            12,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -1613,7 +1876,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                     child: Text(
                       TranslationHelper.translate(context, 'Done'),
                       style: GoogleFonts.poppins(
-                          fontSize: 14, fontWeight: FontWeight.w700),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
@@ -1625,8 +1890,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                 child: OutlinedButton(
                   onPressed: _exportPdf,
                   style: OutlinedButton.styleFrom(
-                    side:
-                        const BorderSide(color: AppColors.navyMid, width: 1.5),
+                    side: const BorderSide(
+                      color: AppColors.navyMid,
+                      width: 1.5,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
@@ -1636,19 +1903,25 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.picture_as_pdf_outlined,
-                          color: AppColors.navyMid, size: 16),
+                      const Icon(
+                        Icons.picture_as_pdf_outlined,
+                        color: AppColors.navyMid,
+                        size: 16,
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        TranslationHelper.translate(context,
-                            widget.readOnly == true ? 'Download PDF' : 'PDF'),
+                        TranslationHelper.translate(
+                          context,
+                          widget.readOnly == true ? 'Download PDF' : 'PDF',
+                        ),
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.visible,
                         style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.navyMid),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyMid,
+                        ),
                       ),
                     ],
                   ),
@@ -1674,7 +1947,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(
-                          color: AppColors.navyMid, width: 1.5),
+                        color: AppColors.navyMid,
+                        width: 1.5,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
@@ -1684,8 +1959,11 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.history_rounded,
-                            color: AppColors.navyMid, size: 16),
+                        const Icon(
+                          Icons.history_rounded,
+                          color: AppColors.navyMid,
+                          size: 16,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           TranslationHelper.translate(context, 'History'),
@@ -1693,9 +1971,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                           softWrap: false,
                           overflow: TextOverflow.visible,
                           style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyMid),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.navyMid,
+                          ),
                         ),
                       ],
                     ),

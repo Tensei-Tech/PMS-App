@@ -1,5 +1,5 @@
 // lib/modules/nc/screens/nc_form_screen.dart
-// NC-specific entry screen — scaffold mirrors CommonFormScreen; body uses NcForm only.
+// NC-specific entry screen (NCFormEntryScreen) — scaffold mirrors CommonFormScreen; body uses NcForm only.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,6 +15,9 @@ import '../providers/nc_provider.dart';
 import '../widgets/nc_form.dart';
 
 const String kNcFormExtraFieldsKey = 'ncForm';
+
+typedef NCFormEntryScreen = NcFormScreen;
+typedef NcFormEntryScreen = NcFormScreen;
 
 class NcFormScreen extends StatefulWidget {
   final String moduleLabel;
@@ -123,10 +126,20 @@ class _NcFormScreenState extends State<NcFormScreen> {
     return parts.join(', ');
   }
 
-  String _personName(Map<String, dynamic> doc, String key) {
-    final m = doc[key];
-    if (m is! Map) return '';
-    return m['name']?.toString().trim() ?? '';
+  String _summaryNames(
+      Map<String, dynamic> doc, String listKey, String singleKey) {
+    final list = doc[listKey];
+    if (list is List && list.isNotEmpty) {
+      final names = list
+          .map((item) =>
+              item is Map ? item['name']?.toString().trim() ?? '' : '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (names.isNotEmpty) return names.join(', ');
+    }
+    final m = doc[singleKey];
+    if (m is Map) return m['name']?.toString().trim() ?? '';
+    return '';
   }
 
   Future<void> _exportPdf() async {
@@ -147,11 +160,12 @@ class _NcFormScreenState extends State<NcFormScreen> {
       title: _titleFromDoc(doc),
       caseNumber: doc['ncNumber']?.toString().trim() ?? '',
       description: doc['firstInformationContent']?.toString().trim() ?? '',
-      complainant: _personName(doc, 'complainant'),
-      accused: _personName(doc, 'personComplainedAgainst'),
+      complainant: _summaryNames(doc, 'complainants', 'complainant'),
+      accused: _summaryNames(doc, 'nonApplicants', 'personComplainedAgainst'),
       location: _locationLine(doc),
-      incidentDate:
-          _parseIncidentDate(doc['registrationDateTime']?.toString() ?? ''),
+      incidentDate: _parseIncidentDate(doc['registrationDate']?.toString() ??
+          doc['registrationDateTime']?.toString() ??
+          ''),
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: _isEdit ? widget.existingRecord!.status : 'Open',
       assignedOfficer:
@@ -208,8 +222,9 @@ class _NcFormScreenState extends State<NcFormScreen> {
     extra[kNcFormExtraFieldsKey] = doc;
     extra['moduleDisplayName'] = widget.moduleLabel;
 
-    final complainantName = _personName(doc, 'complainant');
-    final accusedName = _personName(doc, 'personComplainedAgainst');
+    final complainantName = _summaryNames(doc, 'complainants', 'complainant');
+    final accusedName =
+        _summaryNames(doc, 'nonApplicants', 'personComplainedAgainst');
 
     final record = ModuleRecord(
       id: _isEdit
@@ -222,8 +237,9 @@ class _NcFormScreenState extends State<NcFormScreen> {
       complainant: complainantName,
       accused: accusedName,
       location: _locationLine(doc),
-      incidentDate:
-          _parseIncidentDate(doc['registrationDateTime']?.toString() ?? ''),
+      incidentDate: _parseIncidentDate(doc['registrationDate']?.toString() ??
+          doc['registrationDateTime']?.toString() ??
+          ''),
       priority: _isEdit ? widget.existingRecord!.priority : 'Medium',
       status: _isEdit ? widget.existingRecord!.status : 'Open',
       assignedOfficer:
@@ -259,9 +275,9 @@ class _NcFormScreenState extends State<NcFormScreen> {
   @override
   Widget build(BuildContext context) {
     return BaseFormLayout(
-      title: _isEdit ? 'Edit NC Entry' : 'New NC Entry',
-      onSubmit: _submit,
-      submitLabel: _isEdit ? 'Update record' : 'Register case',
+      title: _isEdit ? 'Edit NC Entry' : 'NC Form Entry',
+      onSubmit: null, // Bottom button removed as requested
+      bottomBar: const SizedBox.shrink(), // No bottom banner button
       backgroundColor: AppColors.lightBg,
       appBarActions: [
         IconButton(

@@ -776,8 +776,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     return filtered;
   }
 
-  void _openForm(String category, {ModuleRecord? existingRecord}) {
-    Navigator.push(
+  void _openForm(String category, {ModuleRecord? existingRecord}) async {
+    final result = await Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
         page: CommonFormScreen(
@@ -789,6 +789,15 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
         ),
       ),
     );
+    if (!mounted) return;
+    await context.read<FormIVProvider>().refresh();
+    if (result is ModuleRecord &&
+        (result.status.toLowerCase() == 'disposal' ||
+            result.status.toLowerCase() == 'disposed')) {
+      setState(() {
+        _selectedStatusTab = FormIVStatusTab.disposal;
+      });
+    }
   }
 
   void _onNewCase() {
@@ -1359,6 +1368,14 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                           return _FormIVCaseCard(
                             record: record,
                             readOnly: _readOnly,
+                            onChargeSheetSubmitted: () async {
+                              if (!mounted) return;
+                              await context.read<FormIVProvider>().refresh();
+                              if (!mounted) return;
+                              setState(() {
+                                _selectedStatusTab = FormIVStatusTab.disposal;
+                              });
+                            },
                             onEdit: () => _openForm(
                               record.subCategory?.isNotEmpty == true
                                   ? record.subCategory!
@@ -1752,12 +1769,14 @@ class FormIVCaseCard extends StatefulWidget {
     required this.onEdit,
     required this.onView,
     this.readOnly = false,
+    this.onChargeSheetSubmitted,
   });
 
   final ModuleRecord record;
   final VoidCallback onEdit;
   final VoidCallback onView;
   final bool readOnly;
+  final VoidCallback? onChargeSheetSubmitted;
 
   @override
   State<FormIVCaseCard> createState() => _FormIVCaseCardState();
@@ -2007,82 +2026,94 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                       }
 
                       return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // 1. CR No. Pill
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'CR ',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF94A3B8),
+                          // 1. Identification: CR No. Pill + Category Badge (Fixed widths so all columns across cards align)
+                          SizedBox(
+                            width: 82,
+                            child: Container(
+                              height: 28,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E293B),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'CR ',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF94A3B8),
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  crNo,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                  Flexible(
+                                    child: Text(
+                                      crNo,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                           if (categoryLabel.isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.goldPrimary.withValues(
-                                  alpha: 0.12,
-                                ),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
+                            const SizedBox(width: 6),
+                            SizedBox(
+                              width: 86,
+                              child: Container(
+                                height: 28,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 6),
+                                decoration: BoxDecoration(
                                   color: AppColors.goldPrimary.withValues(
-                                    alpha: 0.35,
+                                    alpha: 0.12,
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: AppColors.goldPrimary.withValues(
+                                      alpha: 0.35,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              child: Text(
-                                categoryLabel,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.goldPrimary,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  categoryLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.goldPrimary,
+                                  ),
                                 ),
                               ),
                             ),
                           ],
-                          const SizedBox(width: 10),
 
                           // Vertical Divider
+                          const SizedBox(width: 8),
                           Container(
                             width: 1,
                             height: 18,
                             color: const Color(0xFFE2E8F0),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
 
-                          // 2. Section / Act
-                          Expanded(
-                            flex: 3,
+                          // 2. Section / Act (Fixed slot so Accused always starts at the exact same X)
+                          SizedBox(
+                            width: 140,
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(
                                   Icons.gavel_rounded,
@@ -2098,36 +2129,37 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                     color: const Color(0xFF64748B),
                                   ),
                                 ),
-                                Flexible(
-                                  child: Text(
-                                    sectionAct,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF1E293B),
+                                Expanded(
+                                  child: Tooltip(
+                                    message: sectionAct,
+                                    child: Text(
+                                      sectionAct,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF1E293B),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
 
                           // Vertical Divider
+                          const SizedBox(width: 8),
                           Container(
                             width: 1,
                             height: 18,
                             color: const Color(0xFFE2E8F0),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
 
-                          // 3. Name of Accused
+                          // 3. Name of Accused (Expands flexibly in the middle)
                           Expanded(
-                            flex: 4,
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(
                                   Icons.person_outline_rounded,
@@ -2143,59 +2175,73 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                     color: const Color(0xFF64748B),
                                   ),
                                 ),
-                                Flexible(
-                                  child: Text(
-                                    accusedName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF0F172A),
+                                Expanded(
+                                  child: Tooltip(
+                                    message: accusedName,
+                                    child: Text(
+                                      accusedName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF0F172A),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
 
                           // Vertical Divider
+                          const SizedBox(width: 8),
                           Container(
                             width: 1,
                             height: 18,
                             color: const Color(0xFFE2E8F0),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
 
-                          // 4. Crime Date
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.calendar_today_outlined,
-                                size: 12.5,
-                                color: Color(0xFF64748B),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                crimeDate,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF334155),
+                          // 4. Crime Date (Fixed slot)
+                          SizedBox(
+                            width: 106,
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 12.5,
+                                  color: Color(0xFF64748B),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 10),
-
-                          // 5. Status Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3.5,
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    crimeDate,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color(0xFF334155),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
+
+                          // Vertical Divider
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 1,
+                            height: 18,
+                            color: const Color(0xFFE2E8F0),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // 5. Status Badge (Uniform height and fixed width)
+                          Container(
+                            width: 74,
+                            height: 28,
+                            alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: statusColor.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
@@ -2208,6 +2254,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                 context,
                                 record.status,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
@@ -2215,9 +2263,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
 
-                          // 6. Action Buttons: Edit, View, PDF
+                          // 6. Action Buttons: Edit, View, PDF & Chevron
                           if (!widget.readOnly) ...[
                             _buildCompactActionButton(
                               icon: Icons.edit_outlined,
@@ -2240,11 +2288,13 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                               () => ModulePdfHelper.generatePdf(record),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
 
                           // 7. Dropdown Arrow
                           Container(
-                            padding: const EdgeInsets.all(4),
+                            width: 28,
+                            height: 28,
+                            alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: _expanded
                                   ? const Color(0xFFE2E8F0)
@@ -2261,7 +2311,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                               duration: const Duration(milliseconds: 200),
                               child: const Icon(
                                 Icons.keyboard_arrow_down_rounded,
-                                size: 20,
+                                size: 18,
                                 color: Color(0xFF334155),
                               ),
                             ),
@@ -2343,44 +2393,108 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
                       // Quick summary highlights
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
-                        child: Wrap(
-                          spacing: 20,
-                          runSpacing: 10,
-                          children: [
-                            _buildDetailInfoItem(
-                              icon: Icons.local_police_outlined,
-                              label: 'Police Station',
-                              value: station.isNotEmpty ? station : '—',
-                            ),
-                            _buildDetailInfoItem(
-                              icon: Icons.person_pin_circle_outlined,
-                              label: 'Complainant',
-                              value: complainant.isNotEmpty ? complainant : '—',
-                            ),
-                            _buildDetailInfoItem(
-                              icon: Icons.badge_outlined,
-                              label: 'Investigating Officer',
-                              value: ioName.isNotEmpty ? ioName : '—',
-                            ),
-                            _buildDetailInfoItem(
-                              icon: Icons.place_outlined,
-                              label: 'Crime Spot',
-                              value: spotVillage.isNotEmpty ? spotVillage : '—',
-                            ),
-                            _buildDetailInfoItem(
-                              icon: Icons.event_note_outlined,
-                              label: 'Registration Date',
-                              value: DateFormat(
-                                'dd/MM/yyyy, hh:mm a',
-                              ).format(record.createdAt),
-                            ),
-                          ],
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isWide = constraints.maxWidth >= 720;
+                            if (!isWide) {
+                              return Wrap(
+                                spacing: 20,
+                                runSpacing: 10,
+                                children: [
+                                  _buildDetailInfoItem(
+                                    icon: Icons.local_police_outlined,
+                                    label: 'Police Station',
+                                    value: station.isNotEmpty ? station : '—',
+                                  ),
+                                  _buildDetailInfoItem(
+                                    icon: Icons.person_pin_circle_outlined,
+                                    label: 'Complainant',
+                                    value: complainant.isNotEmpty
+                                        ? complainant
+                                        : '—',
+                                  ),
+                                  _buildDetailInfoItem(
+                                    icon: Icons.badge_outlined,
+                                    label: 'Investigating Officer',
+                                    value: ioName.isNotEmpty ? ioName : '—',
+                                  ),
+                                  _buildDetailInfoItem(
+                                    icon: Icons.place_outlined,
+                                    label: 'Crime Spot',
+                                    value: spotVillage.isNotEmpty
+                                        ? spotVillage
+                                        : '—',
+                                  ),
+                                  _buildDetailInfoItem(
+                                    icon: Icons.event_note_outlined,
+                                    label: 'Registration Date',
+                                    value: DateFormat(
+                                      'dd/MM/yyyy, hh:mm a',
+                                    ).format(record.createdAt),
+                                  ),
+                                ],
+                              );
+                            }
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: _buildDetailInfoItem(
+                                    icon: Icons.local_police_outlined,
+                                    label: 'Police Station',
+                                    value: station.isNotEmpty ? station : '—',
+                                  ),
+                                ),
+                                _summaryDivider(),
+                                Expanded(
+                                  child: _buildDetailInfoItem(
+                                    icon: Icons.person_pin_circle_outlined,
+                                    label: 'Complainant',
+                                    value: complainant.isNotEmpty
+                                        ? complainant
+                                        : '—',
+                                  ),
+                                ),
+                                _summaryDivider(),
+                                Expanded(
+                                  child: _buildDetailInfoItem(
+                                    icon: Icons.badge_outlined,
+                                    label: 'Investigating Officer',
+                                    value: ioName.isNotEmpty ? ioName : '—',
+                                  ),
+                                ),
+                                _summaryDivider(),
+                                Expanded(
+                                  child: _buildDetailInfoItem(
+                                    icon: Icons.place_outlined,
+                                    label: 'Crime Spot',
+                                    value: spotVillage.isNotEmpty
+                                        ? spotVillage
+                                        : '—',
+                                  ),
+                                ),
+                                _summaryDivider(),
+                                Expanded(
+                                  child: _buildDetailInfoItem(
+                                    icon: Icons.event_note_outlined,
+                                    label: 'Registration Date',
+                                    value: DateFormat(
+                                      'dd/MM/yyyy, hh:mm a',
+                                    ).format(record.createdAt),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -2399,6 +2513,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                 extraMap: extraSansCommon,
                                 record: record,
                                 readOnly: widget.readOnly,
+                                onChargeSheetSubmitted:
+                                    widget.onChargeSheetSubmitted,
                               )
                             : ModuleRecordDynamicDocumentView(
                                 record: record,
@@ -2522,7 +2638,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
+        height: 28,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(6),
@@ -2535,6 +2652,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             ),
           ],
         ),
+        alignment: Alignment.center,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2554,38 +2672,64 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     );
   }
 
+  Widget _summaryDivider() => Container(
+        width: 1,
+        height: 28,
+        margin: const EdgeInsets.symmetric(horizontal: 10),
+        color: const Color(0xFFE2E8F0),
+      );
+
   Widget _buildDetailInfoItem({
     required IconData icon,
     required String label,
     required String value,
   }) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 14, color: const Color(0xFF1976D2)),
-        const SizedBox(width: 6),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              TranslationHelper.translate(context, label),
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF64748B),
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1976D2).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 16, color: const Color(0xFF1976D2)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                TranslationHelper.translate(context, label).toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF64748B),
+                  letterSpacing: 0.3,
+                ),
               ),
-            ),
-            Text(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1E293B),
+              const SizedBox(height: 1),
+              Tooltip(
+                message: value,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1E293B),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

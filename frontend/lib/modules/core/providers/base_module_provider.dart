@@ -195,7 +195,6 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
-
     // Optimistic local add so UI updates instantly
     final existingIdx = _records.indexWhere((r) => r.id == enriched.id);
     if (existingIdx >= 0) {
@@ -222,10 +221,10 @@ class BaseModuleProvider extends ChangeNotifier {
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
 
-    // Optimistic local update so UI updates instantly
-    final existingIdx = _records.indexWhere((r) => r.id == enriched.id);
-    if (existingIdx >= 0) {
-      _records[existingIdx] = enriched;
+    // Optimistically update local list so UI reflects status change immediately
+    final idx = _records.indexWhere((r) => r.id == enriched.id);
+    if (idx != -1) {
+      _records[idx] = enriched;
     } else {
       _records.insert(0, enriched);
     }
@@ -238,6 +237,7 @@ class BaseModuleProvider extends ChangeNotifier {
   Future<void> deleteRecord(String id) async {
     _records.removeWhere((r) => r.id == id);
     notifyListeners();
+
     await _caseService.deleteCase(id);
     await _fetchCases(forceRefresh: true);
   }

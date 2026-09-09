@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-
 import 'package:provider/provider.dart';
 
 import '../modules/core/models/base_record.dart';
@@ -186,12 +185,12 @@ class CommonFormDocumentView extends StatelessWidget {
 
   Widget _row(String label, String value, {bool fullWidth = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: fullWidth ? 1 : 2,
+          SizedBox(
+            width: 140,
             child: Text(
               label.toUpperCase(),
               style: GoogleFonts.poppins(
@@ -202,41 +201,31 @@ class CommonFormDocumentView extends StatelessWidget {
               ),
             ),
           ),
-          if (!fullWidth)
-            Expanded(
-              flex: 3,
-              child: Text(
-                value,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.lightText,
-                ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value.isNotEmpty ? value : '—',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: value.isNotEmpty && value != '—'
+                    ? AppColors.lightText
+                    : AppColors.lightSubText,
               ),
             ),
-          if (fullWidth)
-            Expanded(
-              flex: 4,
-              child: Text(
-                value,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.lightText,
-                ),
-              ),
-            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _compactLabelValue(String label, String value) {
+    if (label.isEmpty) return const SizedBox();
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
+        SizedBox(
+          width: 140,
           child: Text(
             label.toUpperCase(),
             style: GoogleFonts.poppins(
@@ -247,14 +236,16 @@ class CommonFormDocumentView extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(width: 12),
         Expanded(
-          flex: 3,
           child: Text(
-            value,
+            value.isNotEmpty ? value : '—',
             style: GoogleFonts.poppins(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: AppColors.lightText,
+              color: value.isNotEmpty && value != '—'
+                  ? AppColors.lightText
+                  : AppColors.lightSubText,
             ),
           ),
         ),
@@ -269,13 +260,16 @@ class CommonFormDocumentView extends StatelessWidget {
     String v2,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: _compactLabelValue(l1, v1)),
-          const SizedBox(width: 16),
-          Expanded(child: _compactLabelValue(l2, v2)),
+          const SizedBox(width: 24),
+          Expanded(
+            child:
+                l2.isNotEmpty ? _compactLabelValue(l2, v2) : const SizedBox(),
+          ),
         ],
       ),
     );
@@ -310,7 +304,7 @@ class CommonFormDocumentView extends StatelessWidget {
         i++;
       } else {
         if (out.isNotEmpty) out.add(_divider());
-        out.add(_row(f.label, f.value, fullWidth: false));
+        out.add(_desktopTwoSimpleFieldsRow(f.label, f.value, '', ''));
       }
     }
     return out;
@@ -352,7 +346,9 @@ class CommonFormDocumentView extends StatelessWidget {
           if (headerAction != null) headerAction,
         ],
       ),
+      const SizedBox(height: 10),
       _divider(),
+      const SizedBox(height: 10),
       ...body,
     ]);
   }
@@ -398,7 +394,9 @@ class CommonFormDocumentView extends StatelessWidget {
               color: AppColors.navyDark,
             ),
           ),
+          const SizedBox(height: 8),
           _divider(),
+          const SizedBox(height: 8),
           ..._pairedSimpleFields(context, [
             (label: 'Name', value: _v(p['name']), fullWidth: false),
             (label: 'Age', value: _v(p['age']), fullWidth: false),
@@ -408,8 +406,166 @@ class CommonFormDocumentView extends StatelessWidget {
             (label: 'Aadhaar', value: _v(p['aadhaar']), fullWidth: false),
             (label: 'Religion', value: _v(p['religion']), fullWidth: false),
             (label: 'Caste', value: _v(p['caste']), fullWidth: false),
-            (label: 'PAN', value: _v(p['pan']), fullWidth: false),
+            (label: 'PAN Number', value: _v(p['pan']), fullWidth: false),
           ]),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildProceduralSection(
+    BuildContext context,
+    Map procChecks,
+    Map procDates,
+    Map m,
+  ) {
+    final desktop = _CaseDetailLayoutScope.isDesktop(context);
+    final procEntries = _kProcLabels.entries.toList();
+    final items = <Widget>[];
+
+    for (var i = 0; i < procEntries.length; i += 2) {
+      final e1 = procEntries[i];
+      final on1 = procChecks[e1.key] == true;
+      final d1 = procDates[e1.key]?.toString().trim() ?? '';
+
+      final hasSecond = i + 1 < procEntries.length;
+      final e2 = hasSecond ? procEntries[i + 1] : null;
+      final on2 = hasSecond ? procChecks[e2!.key] == true : false;
+      final d2 = hasSecond ? procDates[e2!.key]?.toString().trim() ?? '' : '';
+
+      if (items.isNotEmpty) {
+        items.add(const SizedBox(height: 8));
+      }
+
+      if (desktop) {
+        items.add(
+          Row(
+            children: [
+              Expanded(child: _proceduralCheckItem(e1.value, on1, d1)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: hasSecond
+                    ? _proceduralCheckItem(e2!.value, on2, d2)
+                    : const SizedBox(),
+              ),
+            ],
+          ),
+        );
+      } else {
+        items.add(_proceduralCheckItem(e1.value, on1, d1));
+        if (hasSecond) {
+          items.add(const SizedBox(height: 8));
+          items.add(_proceduralCheckItem(e2!.value, on2, d2));
+        }
+      }
+    }
+
+    final eshVal = _v(m['eshakshValue'], or: 'Not set');
+    final eshDt = _v(m['eshakshDt']);
+    final eshReason = _v(m['eshakshReason']);
+    final isEshYes =
+        m['eshakshValue']?.toString().trim().toLowerCase() == 'yes';
+    final isEshNo = m['eshakshValue']?.toString().trim().toLowerCase() == 'no';
+
+    final eshakshFields = <({String label, String value, bool fullWidth})>[
+      (
+        label: 'E-Shakshya',
+        value: eshVal.toUpperCase(),
+        fullWidth: false,
+      ),
+      if (isEshYes && eshDt != '—')
+        (
+          label: 'E-Shakshya Date & Time',
+          value: eshDt,
+          fullWidth: false,
+        )
+      else if (isEshNo && eshReason != '—')
+        (
+          label: 'Reason for No E-Shakshya',
+          value: eshReason,
+          fullWidth: false,
+        )
+      else
+        (
+          label: 'E-Shakshya Details',
+          value: '—',
+          fullWidth: false,
+        ),
+    ];
+
+    return [
+      ...items,
+      const SizedBox(height: 14),
+      Text(
+        'E-SHAKSHYA COMPLIANCE',
+        style: GoogleFonts.poppins(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: AppColors.navyMid,
+        ),
+      ),
+      const SizedBox(height: 6),
+      ..._pairedSimpleFields(context, eshakshFields),
+    ];
+  }
+
+  Widget _proceduralCheckItem(String title, bool isDone, String date) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: isDone
+            ? AppColors.infoBlue.withValues(alpha: 0.04)
+            : AppColors.lightBg,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(
+          color: isDone
+              ? AppColors.infoBlue.withValues(alpha: 0.25)
+              : AppColors.lightBorder,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            isDone ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+            size: 18,
+            color: isDone
+                ? AppColors.infoBlue
+                : AppColors.lightSubText.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: isDone ? FontWeight.w600 : FontWeight.w500,
+                    color: isDone
+                        ? AppColors.navyDark
+                        : AppColors.navyDark.withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isDone
+                      ? (date.isNotEmpty && date != '—'
+                          ? 'Conducted on $date'
+                          : 'Conducted (Date not set)')
+                      : 'Not conducted',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: isDone ? FontWeight.w500 : FontWeight.w400,
+                    color: isDone ? AppColors.infoBlue : AppColors.lightSubText,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -778,60 +934,44 @@ class CommonFormDocumentView extends StatelessWidget {
     return rows;
   }
 
-  List<Widget> _buildExtraMapSection(BuildContext context) {
+  List<Widget> _buildExtraMapSection(
+    BuildContext context, [
+    int sectionNumber = 18,
+  ]) {
     if (extraMap.isEmpty) return [];
 
-    final flat = <MapEntry<String, dynamic>>[];
+    final flat = <({String label, String value, bool fullWidth})>[];
     final nested = <MapEntry<String, dynamic>>[];
     for (final e in extraMap.entries) {
       if (e.value is Map) {
         nested.add(e);
       } else {
-        flat.add(e);
+        flat.add((
+          label: _labelifyExtraKey(e.key),
+          value: _disp(e.value),
+          fullWidth: false,
+        ));
       }
     }
 
     final out = <Widget>[];
-    final desktop = _CaseDetailLayoutScope.isDesktop(context);
 
     if (flat.isNotEmpty) {
-      if (!desktop) {
-        out.add(
-          _surfaceCard([
-            for (var i = 0; i < flat.length; i++) ...[
-              if (i > 0) _divider(),
-              _row(_labelifyExtraKey(flat[i].key), _disp(flat[i].value)),
-            ],
-          ]),
-        );
-      } else {
-        final flatRows = <Widget>[];
-        for (var i = 0; i < flat.length; i += 2) {
-          if (flatRows.isNotEmpty) flatRows.add(_divider());
-          if (i + 1 < flat.length) {
-            flatRows.add(
-              _desktopTwoSimpleFieldsRow(
-                _labelifyExtraKey(flat[i].key),
-                _disp(flat[i].value),
-                _labelifyExtraKey(flat[i + 1].key),
-                _disp(flat[i + 1].value),
-              ),
-            );
-          } else {
-            flatRows.add(
-              _row(_labelifyExtraKey(flat[i].key), _disp(flat[i].value)),
-            );
-          }
-        }
-        out.add(_surfaceCard(flatRows));
-      }
+      out.add(
+        _sectionShell(
+          sectionNumber,
+          'CASE DISPOSAL & AUDIT DETAILS',
+          AppColors.infoBlue,
+          _pairedSimpleFields(context, flat),
+          icon: Icons.history_edu_outlined,
+        ),
+      );
     }
 
     for (final e in nested) {
       out.add(_buildDynamicNested(context, e.value));
     }
 
-    out.add(const SizedBox(height: AppSpacing.lg));
     return out;
   }
 
@@ -883,6 +1023,7 @@ class CommonFormDocumentView extends StatelessWidget {
     final arrests = (m['arrestRelease'] as List?) ?? [];
 
     const accent = AppColors.infoBlue;
+    int sIdx = 1;
 
     final children = <Widget>[
       _sectionTitle(
@@ -892,7 +1033,7 @@ class CommonFormDocumentView extends StatelessWidget {
       ),
       const SizedBox(height: 10),
       _sectionShell(
-        1,
+        sIdx++,
         'CRIME REGISTRATION INFO',
         accent,
         _pairedSimpleFields(context, [
@@ -910,7 +1051,7 @@ class CommonFormDocumentView extends StatelessWidget {
           ),
         ]),
       ),
-      _sectionShell(2, 'ACTS & SECTIONS FILED', accent, [
+      _sectionShell(sIdx++, 'ACTS & SECTIONS FILED', accent, [
         if (charges.isEmpty)
           Text(
             'No charges added.',
@@ -927,7 +1068,7 @@ class CommonFormDocumentView extends StatelessWidget {
           }),
       ]),
       _sectionShell(
-        3,
+        sIdx++,
         'CRIME SPOT',
         accent,
         _pairedSimpleFields(context, [
@@ -940,8 +1081,7 @@ class CommonFormDocumentView extends StatelessWidget {
           (label: 'Full Address', value: _v(m['spotAddress']), fullWidth: true),
         ]),
       ),
-      ..._buildExtraMapSection(context),
-      _sectionShell(4, 'COMPLAINANT KYC', accent, [
+      _sectionShell(sIdx++, 'COMPLAINANT KYC', accent, [
         if (comp.isEmpty)
           Text(
             'No complainant data.',
@@ -972,7 +1112,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ],
       ]),
       if (victim.isNotEmpty)
-        _sectionShell(5, 'VICTIM KYC', accent, [
+        _sectionShell(sIdx++, 'VICTIM KYC', accent, [
           ..._pairedSimpleFields(context, [
             (label: 'Name', value: _v(victim['name']), fullWidth: false),
             (label: 'Age', value: _v(victim['age']), fullWidth: false),
@@ -990,7 +1130,7 @@ class CommonFormDocumentView extends StatelessWidget {
           ]),
         ]),
       if (deceased.isNotEmpty)
-        _sectionShell(6, 'DECEASED KYC', accent, [
+        _sectionShell(sIdx++, 'DECEASED KYC', accent, [
           ..._pairedSimpleFields(context, [
             (label: 'Name', value: _v(deceased['name']), fullWidth: false),
             (label: 'Age', value: _v(deceased['age']), fullWidth: false),
@@ -1013,7 +1153,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ]),
       if (hasInj)
         _sectionShell(
-          deceased.isNotEmpty ? 7 : 6,
+          sIdx++,
           'INJURED PERSON KYC',
           accent,
           [
@@ -1048,7 +1188,7 @@ class CommonFormDocumentView extends StatelessWidget {
             ]),
           ],
         ),
-      _sectionShell(5, 'ACCUSED DETAILS', accent, [
+      _sectionShell(sIdx++, 'ACCUSED DETAILS', accent, [
         if (isUnknown)
           _mutedNote('Unknown / Untraced — accused list suppressed in form.'),
         if (!isUnknown)
@@ -1070,7 +1210,7 @@ class CommonFormDocumentView extends StatelessWidget {
                   }).toList(),
                 ),
       ]),
-      _sectionShell(6, 'SUSPECTED ACCUSED', accent, [
+      _sectionShell(sIdx++, 'SUSPECTED ACCUSED', accent, [
         if (isUnknown) _mutedNote('Hidden when Unknown/Untraced is ON.'),
         if (!isUnknown)
           suspectedList.isEmpty
@@ -1091,7 +1231,8 @@ class CommonFormDocumentView extends StatelessWidget {
                   }).toList(),
                 ),
       ]),
-      _sectionShell(7, 'UNIDENTIFIED CRIMINAL DESCRIPTION', Colors.orange, [
+      _sectionShell(
+          sIdx++, 'UNIDENTIFIED CRIMINAL DESCRIPTION', Colors.orange, [
         if (!isUnknown)
           _mutedNote(
             'Known accused mode — unidentified block still reflects saved values.',
@@ -1130,7 +1271,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ]),
       ]),
       _sectionShell(
-        8,
+        sIdx++,
         'CASE RESPONSIBILITY',
         accent,
         _pairedSimpleFields(context, [
@@ -1162,7 +1303,7 @@ class CommonFormDocumentView extends StatelessWidget {
           ),
         ]),
       ),
-      _sectionShell(9, 'ARREST & RELEASE STATUS', accent, [
+      _sectionShell(sIdx++, 'ARREST & RELEASE STATUS', accent, [
         if (arrests.isEmpty)
           Text(
             'No arrest records.',
@@ -1211,62 +1352,13 @@ class CommonFormDocumentView extends StatelessWidget {
             );
           }),
       ]),
-      _sectionShell(10, 'PROCEDURAL DETAILS', accent, [
-        ..._kProcLabels.entries.map((e) {
-          final on = procChecks[e.key] == true;
-          final raw = procDates[e.key]?.toString().trim() ?? '';
-          final dl = raw.isEmpty ? '—' : raw;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      on ? Icons.check_box : Icons.check_box_outline_blank,
-                      size: 22,
-                      color: on ? AppColors.infoBlue : AppColors.lightSubText,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '${e.value} (${on ? 'checked' : 'unchecked'})',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color:
-                              on ? AppColors.navyDark : AppColors.lightSubText,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 30, top: 4),
-                  child: Text(
-                    'Date (proceduralDates.${e.key}): $dl',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: AppColors.lightSubText,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-        const SizedBox(height: 8),
-        _row('E-Shakshya', _v(m['eshakshValue'], or: 'Not set')),
-        if (m['eshakshValue'] == 'yes' &&
-            (m['eshakshDt']?.toString().isNotEmpty ?? false))
-          _row('E-Shakshya Date & Time', _v(m['eshakshDt'])),
-        if (m['eshakshValue'] == 'no' &&
-            (m['eshakshReason']?.toString().isNotEmpty ?? false))
-          _row('Reason for No E-Shakshya', _v(m['eshakshReason'])),
-      ]),
-      _sectionShell(11, 'SEIZURE RECORDS', accent, [
+      _sectionShell(
+        sIdx++,
+        'PROCEDURAL DETAILS',
+        accent,
+        _buildProceduralSection(context, procChecks, procDates, m),
+      ),
+      _sectionShell(sIdx++, 'SEIZURE RECORDS', accent, [
         if (seizures.isEmpty)
           Text(
             'No seizure records.',
@@ -1311,7 +1403,7 @@ class CommonFormDocumentView extends StatelessWidget {
           }),
       ]),
       _sectionShell(
-        12,
+        sIdx++,
         'TECHNICAL & CUSTODY',
         accent,
         _pairedSimpleFields(context, [
@@ -1326,7 +1418,7 @@ class CommonFormDocumentView extends StatelessWidget {
         ]),
       ),
       _sectionShell(
-        13,
+        sIdx++,
         'PREVENTIVE & BONDS',
         accent,
         _pairedSimpleFields(context, [
@@ -1366,7 +1458,7 @@ class CommonFormDocumentView extends StatelessWidget {
             ),
         ]),
       ),
-      _sectionShell(14, 'DISCHARGE STATUS', accent, [
+      _sectionShell(sIdx++, 'DISCHARGE STATUS', accent, [
         if (discharge.isEmpty)
           Text(
             'No discharge data.',
@@ -1454,7 +1546,7 @@ class CommonFormDocumentView extends StatelessWidget {
             );
           }),
       ]),
-      _sectionShell(15, 'COURT FILING', accent, [
+      _sectionShell(sIdx++, 'COURT FILING', accent, [
         _CourtFilingEditableSection(
           court: court,
           record: record,
@@ -1462,35 +1554,7 @@ class CommonFormDocumentView extends StatelessWidget {
           onSubmitted: onChargeSheetSubmitted,
         ),
       ]),
-      _sectionShell(16, 'FINAL VERDICT', accent, [
-        ..._pairedSimpleFields(context, [
-          (
-            label: 'CC / ST Number',
-            value: _v(court['ccStNumber']),
-            fullWidth: false,
-          ),
-          (
-            label: 'Final Summary',
-            value: _v(court['finalSummary'], or: 'Not set'),
-            fullWidth: false,
-          ),
-          (
-            label: 'Quashed by High Court',
-            value: _v(court['quashedHighCourt']),
-            fullWidth: false,
-          ),
-        ]),
-        const SizedBox(height: 12),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _verdictColumn('✓ ACQUITTED', acquitted, AppColors.successGreen),
-            const SizedBox(width: 10),
-            _verdictColumn('✗ CONVICTED', convicted, AppColors.dangerRed),
-          ],
-        ),
-      ]),
-      _sectionShell(17, 'CASE SCRUTINY PIPELINE', accent, [
+      _sectionShell(sIdx++, 'CASE SCRUTINY PIPELINE', accent, [
         _scrutinyStepUi(
           context,
           1,
@@ -1521,17 +1585,46 @@ class CommonFormDocumentView extends StatelessWidget {
         const SizedBox(height: 8),
         ..._pairedSimpleFields(context, [
           (
-            label: 'stepAppActive (scrutiny)',
+            label: 'APP Stage Active',
             value: sc['stepAppActive'] == true ? 'Yes' : 'No',
             fullWidth: false,
           ),
           (
-            label: 'stepDcpActive (scrutiny)',
+            label: 'DCP Stage Active',
             value: sc['stepDcpActive'] == true ? 'Yes' : 'No',
             fullWidth: false,
           ),
         ]),
       ]),
+      _sectionShell(sIdx++, 'FINAL VERDICT', accent, [
+        ..._pairedSimpleFields(context, [
+          (
+            label: 'CC / ST Number',
+            value: _v(court['ccStNumber']),
+            fullWidth: false,
+          ),
+          (
+            label: 'Final Summary',
+            value: _v(court['finalSummary'], or: 'Not set'),
+            fullWidth: false,
+          ),
+          (
+            label: 'Quashed by High Court',
+            value: _v(court['quashedHighCourt']),
+            fullWidth: false,
+          ),
+        ]),
+        const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _verdictColumn('✓ ACQUITTED', acquitted, AppColors.successGreen),
+            const SizedBox(width: 10),
+            _verdictColumn('✗ CONVICTED', convicted, AppColors.dangerRed),
+          ],
+        ),
+      ]),
+      ..._buildExtraMapSection(context, sIdx++),
     ];
 
     return Column(
@@ -1563,6 +1656,7 @@ class _CourtFilingEditableSectionState
     extends State<_CourtFilingEditableSection> {
   late final TextEditingController _numCtrl;
   late final TextEditingController _dateCtrl;
+  late final TextEditingController _ccCtrl;
   bool _isSubmitting = false;
 
   @override
@@ -1578,14 +1672,20 @@ class _CourtFilingEditableSectionState
             ?.toString()
             .trim() ??
         '';
+    final initialCc = widget.court['ccStNumber']?.toString().trim() ??
+        widget.record?.extraFields['court']?['ccStNumber']?.toString().trim() ??
+        widget.record?.extraFields['ccStNumber']?.toString().trim() ??
+        '';
     _numCtrl = TextEditingController(text: initialNum);
     _dateCtrl = TextEditingController(text: initialDate);
+    _ccCtrl = TextEditingController(text: initialCc);
   }
 
   @override
   void dispose() {
     _numCtrl.dispose();
     _dateCtrl.dispose();
+    _ccCtrl.dispose();
     super.dispose();
   }
 
@@ -1618,30 +1718,18 @@ class _CourtFilingEditableSectionState
   Future<void> _submitChargeSheet() async {
     final numVal = _numCtrl.text.trim();
     final dateVal = _dateCtrl.text.trim();
+    final ccVal = _ccCtrl.text.trim();
 
-    if (numVal.isEmpty) {
+    final hasCs = numVal.isNotEmpty && dateVal.isNotEmpty;
+    final hasCc = ccVal.isNotEmpty;
+
+    if (!hasCs && !hasCc) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             TranslationHelper.translate(
               context,
-              'Please enter a Charge Sheet Number',
-            ),
-            style: GoogleFonts.poppins(),
-          ),
-          backgroundColor: AppColors.dangerRed,
-        ),
-      );
-      return;
-    }
-
-    if (dateVal.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            TranslationHelper.translate(
-              context,
-              'Please select a Charge Sheet Date',
+              'Please enter Charge Sheet details (Number & Date) or CC / ST Number',
             ),
             style: GoogleFonts.poppins(),
           ),
@@ -1695,7 +1783,7 @@ class _CourtFilingEditableSectionState
               Text(
                 TranslationHelper.translate(
                   promptCtx,
-                  'Submitting Charge Sheet will mark the case as Disposed and move it to the Disposal tab. Do you want to proceed?',
+                  'Submitting Court Filing details will mark the case as Disposed and move it to the Disposal tab. Do you want to proceed?',
                 ),
                 style: GoogleFonts.poppins(
                   fontSize: 13,
@@ -1714,51 +1802,80 @@ class _CourtFilingEditableSectionState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          '${TranslationHelper.translate(promptCtx, 'Charge Sheet No.')}: ',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            numVal,
+                    if (numVal.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Text(
+                            '${TranslationHelper.translate(promptCtx, 'Charge Sheet No.')}: ',
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyMid,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          '${TranslationHelper.translate(promptCtx, 'Charge Sheet Date')}: ',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark,
+                          Expanded(
+                            child: Text(
+                              numVal,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            dateVal,
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    if (dateVal.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Text(
+                            '${TranslationHelper.translate(promptCtx, 'Charge Sheet Date')}: ',
                             style: GoogleFonts.poppins(
                               fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyMid,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                          Expanded(
+                            child: Text(
+                              dateVal,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    if (ccVal.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Text(
+                            '${TranslationHelper.translate(promptCtx, 'CC / ST No.')}: ',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              ccVal,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1800,8 +1917,9 @@ class _CourtFilingEditableSectionState
     setState(() => _isSubmitting = true);
 
     try {
-      widget.court['chargeSheetNumber'] = numVal;
-      widget.court['chargeSheetDate'] = dateVal;
+      if (numVal.isNotEmpty) widget.court['chargeSheetNumber'] = numVal;
+      if (dateVal.isNotEmpty) widget.court['chargeSheetDate'] = dateVal;
+      if (ccVal.isNotEmpty) widget.court['ccStNumber'] = ccVal;
 
       final currentRecord = widget.record;
       if (currentRecord != null) {
@@ -1810,11 +1928,15 @@ class _CourtFilingEditableSectionState
               ? currentRecord.extraFields['court'] as Map
               : {},
         );
-        newCourt['chargeSheetNumber'] = numVal;
-        newCourt['chargeSheetDate'] = dateVal;
+        if (numVal.isNotEmpty) newCourt['chargeSheetNumber'] = numVal;
+        if (dateVal.isNotEmpty) newCourt['chargeSheetDate'] = dateVal;
+        if (ccVal.isNotEmpty) newCourt['ccStNumber'] = ccVal;
 
         final newExtra = Map<String, dynamic>.from(currentRecord.extraFields);
         newExtra['court'] = newCourt;
+        newExtra['disposedAt'] = DateTime.now().toIso8601String();
+        if (ccVal.isNotEmpty) newExtra['disposedCcStNumber'] = ccVal;
+        if (numVal.isNotEmpty) newExtra['disposedChargeSheetNumber'] = numVal;
 
         if (newExtra[kCommonFormExtraFieldsKey] is Map) {
           final nested = Map<String, dynamic>.from(
@@ -1823,8 +1945,9 @@ class _CourtFilingEditableSectionState
           final nestedCourt = Map<String, dynamic>.from(
             (nested['court'] is Map) ? nested['court'] as Map : {},
           );
-          nestedCourt['chargeSheetNumber'] = numVal;
-          nestedCourt['chargeSheetDate'] = dateVal;
+          if (numVal.isNotEmpty) nestedCourt['chargeSheetNumber'] = numVal;
+          if (dateVal.isNotEmpty) nestedCourt['chargeSheetDate'] = dateVal;
+          if (ccVal.isNotEmpty) nestedCourt['ccStNumber'] = ccVal;
           nested['court'] = nestedCourt;
           newExtra[kCommonFormExtraFieldsKey] = nested;
         }
@@ -1840,10 +1963,13 @@ class _CourtFilingEditableSectionState
         widget.onSubmitted?.call();
 
         if (mounted) {
+          final summaryMsg = ccVal.isNotEmpty
+              ? '${TranslationHelper.translate(context, 'Case moved to Disposal with CC/ST No.')} $ccVal'
+              : '${TranslationHelper.translate(context, 'Case moved to Disposal with Charge Sheet No.')} $numVal';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '${TranslationHelper.translate(context, 'Case moved to Disposal with Charge Sheet No.')} $numVal',
+                summaryMsg,
                 style: GoogleFonts.poppins(),
               ),
               backgroundColor: AppColors.successGreen,
@@ -1856,7 +1982,7 @@ class _CourtFilingEditableSectionState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to update charge sheet: $e',
+              'Failed to update court filing: $e',
               style: GoogleFonts.poppins(),
             ),
             backgroundColor: AppColors.dangerRed,
@@ -1888,13 +2014,20 @@ class _CourtFilingEditableSectionState
                   _dateCtrl.text.trim().isEmpty ? '—' : _dateCtrl.text.trim(),
                 ),
               ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _compactDisplayField(
+                  TranslationHelper.translate(context, 'CC / ST Number'),
+                  _ccCtrl.text.trim().isEmpty ? '—' : _ccCtrl.text.trim(),
+                ),
+              ),
             ],
           ),
         ],
       );
     }
 
-    final isDesktop = MediaQuery.of(context).size.width >= 600;
+    final isDesktop = MediaQuery.of(context).size.width >= 700;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1913,7 +2046,7 @@ class _CourtFilingEditableSectionState
                   controller: _numCtrl,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               Expanded(
                 child: _buildDateField(
                   label: TranslationHelper.translate(
@@ -1923,6 +2056,17 @@ class _CourtFilingEditableSectionState
                   hint: 'DD/MM/YYYY',
                   controller: _dateCtrl,
                   onTap: _pickDate,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _buildTextField(
+                  label: TranslationHelper.translate(
+                    context,
+                    'CC Number / ST Number',
+                  ),
+                  hint: 'e.g. CC 120/2026',
+                  controller: _ccCtrl,
                 ),
               ),
             ],
@@ -1939,6 +2083,15 @@ class _CourtFilingEditableSectionState
             hint: 'DD/MM/YYYY',
             controller: _dateCtrl,
             onTap: _pickDate,
+          ),
+          const SizedBox(height: 12),
+          _buildTextField(
+            label: TranslationHelper.translate(
+              context,
+              'CC Number / ST Number',
+            ),
+            hint: 'e.g. CC 120/2026',
+            controller: _ccCtrl,
           ),
         ],
         const SizedBox(height: 14),
