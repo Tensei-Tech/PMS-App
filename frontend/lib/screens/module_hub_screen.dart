@@ -3584,8 +3584,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         final dateStr = (r.extraFields['detentionCompletionDate'] ??
                 r.extraFields['mpdaForm']?['detention']
                     ?['detentionCompletionDate'])
-              ?.toString()
-              .trim();
+            ?.toString()
+            .trim();
         if (dateStr == null || dateStr.isEmpty) return false;
         final parts = dateStr.split('/');
         if (parts.length == 3) {
