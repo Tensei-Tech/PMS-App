@@ -8,18 +8,23 @@ class FormPaperPage extends StatelessWidget {
   final List<Widget> children;
   final String? formLabel;
   final CrossAxisAlignment crossAxisAlignment;
+  final double? minHeight;
 
   const FormPaperPage({
     super.key,
     required this.children,
     this.formLabel,
     this.crossAxisAlignment = CrossAxisAlignment.start,
+    this.minHeight,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: FormLayout.maxPaperWidth,
+      constraints: BoxConstraints(
+        minHeight: minHeight ?? 1100,
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFFFCFCFA),
         borderRadius: BorderRadius.circular(8),

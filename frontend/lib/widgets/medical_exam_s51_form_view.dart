@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
-import 'form_table_helpers.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
 
@@ -29,10 +28,24 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
   final _outpostCtrl = TextEditingController(text: 'सावळी');
   final _psCtrl = TextEditingController(text: 'पारवा');
   final _dateCtrl = TextEditingController();
+  final _dateDayCtrl = TextEditingController();
+  final _dateMonthCtrl = TextEditingController();
+  final _dateYearCtrl = TextEditingController();
+
+  String get _dateCombined {
+    final d = _dateDayCtrl.text.trim();
+    final m = _dateMonthCtrl.text.trim();
+    final y = _dateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _dateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
 
   final _toOfficerCtrl = TextEditingController(text: 'मा. वैद्यकीय अधिकारी');
   final _toHospitalCtrl =
-      TextEditingController(text: 'प्राथमिक आरोग्य केंद्र सावळी सदोबा');
+      TextEditingController(text: 'प्राथमकी आरोग्य केंद्र सावळी सदोबा');
   final _toTahDistCtrl = TextEditingController(text: 'ता आर्णी जिल्हा यवतमाळ.');
 
   final _fromLocationCtrl = TextEditingController(
@@ -47,9 +60,8 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
   final _victimAgeCtrl = TextEditingController();
   final _victimResidenceCtrl = TextEditingController();
   final _victimTahCtrl = TextEditingController();
-  final _victimDistCtrl = TextEditingController(text: 'यवतमाळ');
+  final _victimDistCtrl = TextEditingController();
   final _assaultDetailsCtrl = TextEditingController();
-
   final _officerSignatureCtrl = TextEditingController();
 
   @override
@@ -57,6 +69,9 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
     _outpostCtrl.dispose();
     _psCtrl.dispose();
     _dateCtrl.dispose();
+    _dateDayCtrl.dispose();
+    _dateMonthCtrl.dispose();
+    _dateYearCtrl.dispose();
     _toOfficerCtrl.dispose();
     _toHospitalCtrl.dispose();
     _toTahDistCtrl.dispose();
@@ -76,48 +91,67 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
     return {
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
-      'outpost': _outpostCtrl.text,
-      'policeStation': _psCtrl.text,
-      'date': _dateCtrl.text,
-      'toOfficer': _toOfficerCtrl.text,
-      'toHospital': _toHospitalCtrl.text,
-      'toTahDist': _toTahDistCtrl.text,
-      'fromLocation': _fromLocationCtrl.text,
-      'subject': _subjectCtrl.text,
-      'victimName': _victimNameCtrl.text,
-      'victimAge': _victimAgeCtrl.text,
-      'victimResidence': _victimResidenceCtrl.text,
-      'victimTah': _victimTahCtrl.text,
-      'victimDist': _victimDistCtrl.text,
-      'assaultDetails': _assaultDetailsCtrl.text,
-      'officerSignature': _officerSignatureCtrl.text,
+      'outpost': _outpostCtrl.text.trim(),
+      'policeStation': _psCtrl.text.trim(),
+      'date': _dateCombined,
+      'dateDay': _dateDayCtrl.text.trim(),
+      'dateMonth': _dateMonthCtrl.text.trim(),
+      'dateYear': _dateYearCtrl.text.trim(),
+      'toOfficer': _toOfficerCtrl.text.trim(),
+      'toHospital': _toHospitalCtrl.text.trim(),
+      'toTahDist': _toTahDistCtrl.text.trim(),
+      'fromLocation': _fromLocationCtrl.text.trim(),
+      'subject': _subjectCtrl.text.trim(),
+      'victimName': _victimNameCtrl.text.trim(),
+      'victimAge': _victimAgeCtrl.text.trim(),
+      'victimResidence': _victimResidenceCtrl.text.trim(),
+      'victimTah': _victimTahCtrl.text.trim(),
+      'victimDist': _victimDistCtrl.text.trim(),
+      'assaultDetails': _assaultDetailsCtrl.text.trim(),
+      'officerSignature': _officerSignatureCtrl.text.trim(),
     };
   }
 
   void hydrateFrom(Map<String, dynamic> data) {
     if (data.containsKey('outpost')) {
-      _outpostCtrl.text = data['outpost']?.toString() ?? '';
+      _outpostCtrl.text = data['outpost']?.toString() ?? 'सावळी';
     }
     if (data.containsKey('policeStation')) {
-      _psCtrl.text = data['policeStation']?.toString() ?? '';
+      _psCtrl.text = data['policeStation']?.toString() ?? 'पारवा';
     }
-    if (data.containsKey('date')) {
-      _dateCtrl.text = data['date']?.toString() ?? '';
+    _dateCtrl.text = data['date']?.toString() ?? '';
+    _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
+    _dateMonthCtrl.text = data['dateMonth']?.toString() ?? '';
+    _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
+    if (_dateDayCtrl.text.isEmpty && _dateCtrl.text.isNotEmpty) {
+      final parts = _dateCtrl.text.split(RegExp(r'[/.-]'));
+      if (parts.length >= 3) {
+        _dateDayCtrl.text = parts[0].trim();
+        _dateMonthCtrl.text = parts[1].trim();
+        var yr = parts[2].trim();
+        if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
+        _dateYearCtrl.text = yr;
+      }
     }
     if (data.containsKey('toOfficer')) {
-      _toOfficerCtrl.text = data['toOfficer']?.toString() ?? '';
+      _toOfficerCtrl.text =
+          data['toOfficer']?.toString() ?? 'मा. वैद्यकीय अधिकारी';
     }
     if (data.containsKey('toHospital')) {
-      _toHospitalCtrl.text = data['toHospital']?.toString() ?? '';
+      _toHospitalCtrl.text = data['toHospital']?.toString() ??
+          'प्राथमकी आरोग्य केंद्र सावळी सदोबा';
     }
     if (data.containsKey('toTahDist')) {
-      _toTahDistCtrl.text = data['toTahDist']?.toString() ?? '';
+      _toTahDistCtrl.text =
+          data['toTahDist']?.toString() ?? 'ता आर्णी जिल्हा यवतमाळ.';
     }
     if (data.containsKey('fromLocation')) {
-      _fromLocationCtrl.text = data['fromLocation']?.toString() ?? '';
+      _fromLocationCtrl.text = data['fromLocation']?.toString() ??
+          'पोलीस दुरक्षेत्र सावळी सदोबा पोलीस स्टेशन पारवा जिल्हा यवतमाळ';
     }
     if (data.containsKey('subject')) {
-      _subjectCtrl.text = data['subject']?.toString() ?? '';
+      _subjectCtrl.text = data['subject']?.toString() ??
+          'जखमी यांचे माराची वैद्यकीय तपासणी करून अहवाल मिळणेबाबत.';
     }
     if (data.containsKey('victimName')) {
       _victimNameCtrl.text = data['victimName']?.toString() ?? '';
@@ -132,7 +166,7 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
       _victimTahCtrl.text = data['victimTah']?.toString() ?? '';
     }
     if (data.containsKey('victimDist')) {
-      _victimDistCtrl.text = data['victimDist']?.toString() ?? '';
+      _victimDistCtrl.text = data['victimDist']?.toString() ?? 'यवतमाळ';
     }
     if (data.containsKey('assaultDetails')) {
       _assaultDetailsCtrl.text = data['assaultDetails']?.toString() ?? '';
@@ -150,12 +184,29 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
     final serif = FormTypography.serifStyle();
     final marathi = FormTypography.marathiLabelStyle();
 
+    final bodyTextStyle = marathi.copyWith(
+      fontSize: 13,
+      height: 2.0,
+      color: Colors.black87,
+    );
+    final headerLabelStyle = marathi.copyWith(
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      color: Colors.black87,
+    );
+    final serifBold = serif.copyWith(
+      fontWeight: FontWeight.bold,
+      color: Colors.black87,
+    );
+
     return FormViewScaffold(
       readOnly: widget.readOnly,
       children: [
         FormPaperPage(
           formLabel: widget.pageRange,
           children: [
+            const SizedBox(height: 8),
+
             // ── HEADER ──
             Center(
               child: Column(
@@ -165,6 +216,8 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -173,42 +226,76 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                     style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             // ── TOP RIGHT POLICE STATION / OUTPOST / DATE ──
             Align(
               alignment: Alignment.centerRight,
               child: SizedBox(
-                width: 300,
+                width: 280,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    BilingualField(
-                      label: '',
-                      marathiLabel: 'पोलीस दुरक्षेत्र :',
-                      controller: _outpostCtrl,
-                      serifStyle: serif,
-                      marathiLabelStyle: marathi,
+                    Row(
+                      children: [
+                        Text('पोलीस दुरक्षेत्र ', style: headerLabelStyle),
+                        Expanded(
+                          child: BilingualSimpleUnderlineInput(
+                            controller: _outpostCtrl,
+                            serifStyle: serif,
+                          ),
+                        ),
+                      ],
                     ),
-                    BilingualField(
-                      label: '',
-                      marathiLabel: 'पोलीस स्टेशन :',
-                      controller: _psCtrl,
-                      serifStyle: serif,
-                      marathiLabelStyle: marathi,
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Text('पोलीस स्टेशन ', style: headerLabelStyle),
+                        Expanded(
+                          child: BilingualSimpleUnderlineInput(
+                            controller: _psCtrl,
+                            serifStyle: serif,
+                          ),
+                        ),
+                      ],
                     ),
-                    BilingualField(
-                      label: '',
-                      marathiLabel: 'दिनांक :-',
-                      hintText: '......./ ......../ २०....',
-                      controller: _dateCtrl,
-                      serifStyle: serif,
-                      marathiLabelStyle: marathi,
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Text('दिनांक : ', style: headerLabelStyle),
+                        SizedBox(
+                          width: 32,
+                          child: BilingualSimpleUnderlineInput(
+                            controller: _dateDayCtrl,
+                            serifStyle: serif,
+                            hintText: 'DD',
+                          ),
+                        ),
+                        Text('/', style: serifBold),
+                        SizedBox(
+                          width: 32,
+                          child: BilingualSimpleUnderlineInput(
+                            controller: _dateMonthCtrl,
+                            serifStyle: serif,
+                            hintText: 'MM',
+                          ),
+                        ),
+                        Text('/ २०', style: headerLabelStyle),
+                        SizedBox(
+                          width: 36,
+                          child: BilingualSimpleUnderlineInput(
+                            controller: _dateYearCtrl,
+                            serifStyle: serif,
+                            hintText: 'YY',
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -219,36 +306,39 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
             // ── RECIPIENT (प्रति,) ──
             Text(
               'प्रति,',
-              style: marathi.copyWith(
+              style: headerLabelStyle.copyWith(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
             ),
+            const SizedBox(height: 4),
             Padding(
-              padding: const EdgeInsets.only(left: 32.0),
+              padding: const EdgeInsets.only(left: 48.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BilingualField(
-                    label: '',
-                    marathiLabel: 'पदनाम :',
-                    controller: _toOfficerCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: marathi,
+                  SizedBox(
+                    width: 320,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _toOfficerCtrl,
+                      serifStyle: serif,
+                    ),
                   ),
-                  BilingualField(
-                    label: '',
-                    marathiLabel: 'रुग्णालय / आरोग्य केंद्र :',
-                    controller: _toHospitalCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: marathi,
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: 360,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _toHospitalCtrl,
+                      serifStyle: serif,
+                    ),
                   ),
-                  BilingualField(
-                    label: '',
-                    marathiLabel: 'ता. / जिल्हा :',
-                    controller: _toTahDistCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: marathi,
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: 320,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _toTahDistCtrl,
+                      serifStyle: serif,
+                    ),
                   ),
                 ],
               ),
@@ -256,24 +346,34 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
             const SizedBox(height: 16),
 
             // ── SENDER (पासुन :-) ──
-            BilingualField(
-              label: '',
-              marathiLabel: 'पासुन :-',
-              controller: _fromLocationCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathi,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('पासुन  :-    ', style: headerLabelStyle),
+                Expanded(
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _fromLocationCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
 
             // ── SUBJECT (विषय :-) ──
-            BilingualField(
-              label: '',
-              marathiLabel: 'विषय :-',
-              controller: _subjectCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathi,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('विषय   :-    ', style: headerLabelStyle),
+                Expanded(
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _subjectCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
 
             // ── DECORATIVE OOOO ──
             Center(
@@ -283,104 +383,94 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 4,
+                  color: Colors.black87,
                 ),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
 
-            // ── PARAGRAPH INTRO ──
-            Text(
-              'उपरोक्त विषयान्वये सादर आहे की,',
-              style: marathi.copyWith(fontSize: 13, height: 1.5),
-            ),
-            const SizedBox(height: 8),
-
-            // ── VICTIM DETAILS ──
-            BilingualField(
-              label: '',
-              marathiLabel: 'जखमी नामे :',
-              controller: _victimNameCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathi,
-            ),
-            const SizedBox(height: 6),
-            BilingualFieldRow(
-              fields: [
-                BilingualField(
-                  label: '',
-                  marathiLabel: 'वय :',
-                  hintText: '...... वर्ष',
-                  controller: _victimAgeCtrl,
-                  serifStyle: serif,
-                  marathiLabelStyle: marathi,
+            // ── MAIN BODY PARAGRAPH ──
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
+              children: [
+                Text(
+                  '        उपरोक्त विषयान्वये सादर आहे की, जखमी नामे ',
+                  style: bodyTextStyle,
                 ),
-                BilingualField(
-                  label: '',
-                  marathiLabel: 'रा. (राहणार) :',
-                  controller: _victimResidenceCtrl,
-                  serifStyle: serif,
-                  marathiLabelStyle: marathi,
+                SizedBox(
+                  width: 280,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _victimNameCtrl,
+                    serifStyle: serif,
+                  ),
                 ),
-                BilingualField(
-                  label: '',
-                  marathiLabel: 'ता. :-',
-                  controller: _victimTahCtrl,
-                  serifStyle: serif,
-                  marathiLabelStyle: marathi,
+                Text(', वय ', style: bodyTextStyle),
+                SizedBox(
+                  width: 44,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _victimAgeCtrl,
+                    serifStyle: serif,
+                    hintText: 'वय',
+                  ),
                 ),
-                BilingualField(
-                  label: '',
-                  marathiLabel: 'जिल्हा :-',
-                  controller: _victimDistCtrl,
-                  serifStyle: serif,
-                  marathiLabelStyle: marathi,
+                Text(' वर्ष रा ', style: bodyTextStyle),
+                SizedBox(
+                  width: 180,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _victimResidenceCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
+                Text(' ता ', style: bodyTextStyle),
+                SizedBox(
+                  width: 130,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _victimTahCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
+                Text(' जिल्हा ', style: bodyTextStyle),
+                SizedBox(
+                  width: 100,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _victimDistCtrl,
+                    serifStyle: serif,
+                    hintText: 'यवतमाळ',
+                  ),
+                ),
+                Text(
+                  ' यांना गैरअर्जदार/ आरोपी यांनी भांडणात मारहाण केल्याचे ',
+                  style: bodyTextStyle,
+                ),
+                SizedBox(
+                  width: 280,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _assaultDetailsCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
+                Text(
+                  ' मारलागल्याचे सांगत आहे. तरी मार कशाचा व किती वेळ पुर्विचा आहे, सदर माराची तपासणी होउन आपला अभिप्राय मिळणेस विनंती आहे.',
+                  style: bodyTextStyle,
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 48),
 
-            Text(
-              'यांना गैरअर्जदार / आरोपी यांनी भांडणात मारहाण केल्याचे व मार लागल्याचे वर्णन :',
-              style: marathi.copyWith(fontSize: 13, height: 1.5),
-            ),
-            const SizedBox(height: 6),
-            BilingualMultilineField(
-              label: '',
-              marathiLabel: 'मारहाण व जखमांचे वर्णन :',
-              controller: _assaultDetailsCtrl,
-              minLines: 3,
-              serifStyle: serif,
-              marathiLabelStyle: marathi,
-            ),
-            const SizedBox(height: 12),
-
-            // ── CLOSING TEXT ──
-            Text(
-              'मार लागल्याचे सांगत आहे. तरी मार कशाचा व किती वेळ पुर्विचा आहे, सदर माराची तपासणी होउन आपला अभिप्राय मिळणेस विनंती आहे.',
-              style: marathi.copyWith(fontSize: 13, height: 1.6),
-            ),
-            const SizedBox(height: 36),
-
-            // ── SIGNATURE / SENDER ──
+            // ── BOTTOM RIGHT M.R.W ──
             Align(
-              alignment: Alignment.centerRight,
-              child: SizedBox(
-                width: 250,
-                child: Column(
-                  children: [
-                    BilingualField(
-                      label: '',
-                      marathiLabel: 'सही व पदनाम',
-                      controller: _officerSignatureCtrl,
-                      serifStyle: serif,
-                      marathiLabelStyle: marathi,
-                    ),
-                  ],
+              alignment: Alignment.bottomRight,
+              child: Text(
+                'M.R.W',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-            FormMrwFooter(serifStyle: serif),
           ],
         ),
       ],
