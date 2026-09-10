@@ -237,19 +237,107 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     ),
   );
 
-  if (m['stolenProperty'] != null &&
-      (_v(m['stolenProperty']['description']).isNotEmpty ||
-          _v(m['stolenProperty']['recovered']).isNotEmpty)) {
+  final List<_FD> propWidgets = [];
+
+  final spList = m['stolenProperties'] as List?;
+  if (spList != null && spList.isNotEmpty) {
+    for (int i = 0; i < spList.length; i++) {
+      final item = spList[i] as Map;
+      propWidgets.add(
+          _f('Stolen Property #${i + 1}', _v(item['property']), full: true));
+      if (_v(item['quantity']).isNotEmpty) {
+        propWidgets.add(_f('Quantity', _v(item['quantity'])));
+      }
+      if (_v(item['estValue']).isNotEmpty) {
+        propWidgets.add(_f('Est. Value', _v(item['estValue'])));
+      }
+      if (_v(item['id']).isNotEmpty) {
+        propWidgets.add(_f('ID / Serial No.', _v(item['id'])));
+      }
+      if (_v(item['date']).isNotEmpty) {
+        propWidgets.add(_f('Date & Time', _v(item['date'])));
+      }
+      if (_v(item['from']).isNotEmpty) {
+        propWidgets.add(_f('Stolen From', _v(item['from'])));
+      }
+    }
+  } else if (m['stolenProperty'] != null) {
+    final prop = _v(m['stolenProperty']['property']).isNotEmpty
+        ? _v(m['stolenProperty']['property'])
+        : _v(m['stolenProperty']['description']);
+    if (prop.isNotEmpty) {
+      propWidgets.add(_f('Description', prop, full: true));
+    }
+    if (_v(m['stolenProperty']['quantity']).isNotEmpty) {
+      propWidgets.add(_f('Quantity', _v(m['stolenProperty']['quantity'])));
+    }
+    if (_v(m['stolenProperty']['estValue']).isNotEmpty) {
+      propWidgets.add(_f('Est. Value', _v(m['stolenProperty']['estValue'])));
+    }
+    if (_v(m['stolenProperty']['id']).isNotEmpty) {
+      propWidgets.add(_f('ID / Serial No.', _v(m['stolenProperty']['id'])));
+    }
+    if (_v(m['stolenProperty']['date']).isNotEmpty) {
+      propWidgets.add(_f('Date & Time', _v(m['stolenProperty']['date'])));
+    }
+    if (_v(m['stolenProperty']['from']).isNotEmpty) {
+      propWidgets.add(_f('Stolen From', _v(m['stolenProperty']['from'])));
+    }
+  }
+
+  final rpList = m['recoveredProperties'] as List?;
+  if (rpList != null && rpList.isNotEmpty) {
+    for (int i = 0; i < rpList.length; i++) {
+      final item = rpList[i] as Map;
+      propWidgets.add(
+          _f('Recovered Property #${i + 1}', _v(item['property']), full: true));
+      if (_v(item['quantity']).isNotEmpty) {
+        propWidgets.add(_f('Quantity', _v(item['quantity'])));
+      }
+      if (_v(item['estValue']).isNotEmpty) {
+        propWidgets.add(_f('Est. Value', _v(item['estValue'])));
+      }
+      if (_v(item['date']).isNotEmpty) {
+        propWidgets.add(_f('Date & Time', _v(item['date'])));
+      }
+      if (_v(item['from']).isNotEmpty) {
+        propWidgets.add(_f('Recovered From', _v(item['from'])));
+      }
+    }
+  } else {
+    final prop = m['recoveredProperty'] != null
+        ? _v(m['recoveredProperty']['property'])
+        : (m['stolenProperty'] != null
+            ? _v(m['stolenProperty']['recovered'])
+            : '');
+    if (prop.isNotEmpty) {
+      propWidgets.add(_f('Recovered Property', prop, full: true));
+    }
+    if (m['recoveredProperty'] != null) {
+      if (_v(m['recoveredProperty']['quantity']).isNotEmpty) {
+        propWidgets.add(_f('Quantity', _v(m['recoveredProperty']['quantity'])));
+      }
+      if (_v(m['recoveredProperty']['estValue']).isNotEmpty) {
+        propWidgets
+            .add(_f('Est. Value', _v(m['recoveredProperty']['estValue'])));
+      }
+      if (_v(m['recoveredProperty']['date']).isNotEmpty) {
+        propWidgets.add(_f('Date & Time', _v(m['recoveredProperty']['date'])));
+      }
+      if (_v(m['recoveredProperty']['from']).isNotEmpty) {
+        propWidgets
+            .add(_f('Recovered From', _v(m['recoveredProperty']['from'])));
+      }
+    }
+  }
+
+  if (propWidgets.isNotEmpty) {
     sections.add(
       _card(
         4,
-        'STOLEN PROPERTY',
+        'STOLEN & RECOVERED PROPERTY',
         _teal,
-        _grid2([
-          _f('Description', _v(m['stolenProperty']['description']), full: true),
-          _f('Recovered Property', _v(m['stolenProperty']['recovered']),
-              full: true),
-        ]),
+        _grid2(propWidgets),
       ),
     );
   }

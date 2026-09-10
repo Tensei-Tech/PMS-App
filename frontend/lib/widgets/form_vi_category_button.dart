@@ -1,45 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Shared Form I-V IPC case-type labels — single source for bottom sheet
-/// and full-screen selection.
-const List<String> kFormIVCaseCategories = [
-  'Murder',
-  'Attempt to Murder',
-  'Dacoity',
-  'Robbery',
-  'HBT',
-  'Theft',
-  'Riot',
-  'Unlawful Assembly',
-  'Kidnapping',
-  'CBT',
-  'Cheating',
-  'Mischief',
-  'Hurt',
-  'Assault on Public Servant',
-  'Rape',
-  'Molestation',
-  'Extortion',
-  'IPC (A) 304',
-  '498 (A) IPC',
-  'Other IPC',
-  'Chain Snatching',
-  'Sand Theft',
-  'Two/Four Wheeler',
-  'Missing',
-  'Crime Against Women',
-  'Accident',
-  'Sec 156(3)/175 (3)(BNSS)',
-  'COIN',
+/// Form VI specific crime categories.
+const List<String> kFormVICaseCategories = [
+  'ST Drugs',
+  'Prohibition',
+  'Gambling',
+  'POCSO',
+  'NDPS',
+  'Gowans',
+  'IT Act',
+  'M.V Act',
+  'UAPA',
 ];
 
-/// Teal gradient category button for Form I-V case-type grids.
-class FormIVCategoryButton extends StatelessWidget {
+/// Purple/Indigo gradient category button for Form VI case-type grids.
+class FormVICategoryButton extends StatelessWidget {
   static const double height = 54;
 
   static const LinearGradient gradient = LinearGradient(
-    colors: [Color(0xFF2193B0), Color(0xFF6DD5ED)],
+    colors: [
+      Color(0xFF654EA3),
+      Color(0xFFEA8D8D)
+    ], // Indigo to soft red/pink gradient for distinction
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -47,7 +30,7 @@ class FormIVCategoryButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const FormIVCategoryButton({
+  const FormVICategoryButton({
     super.key,
     required this.label,
     required this.onTap,
@@ -68,7 +51,7 @@ class FormIVCategoryButton extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF2193B0).withValues(alpha: 0.2),
+              color: const Color(0xFF654EA3).withValues(alpha: 0.2),
               blurRadius: 6,
               offset: const Offset(0, 3),
             ),
@@ -104,8 +87,8 @@ class FormIVCategoryButton extends StatelessWidget {
   }
 }
 
-/// Three-column fixed-height grid for [FormIVCategoryButton].
-class FormIVCategoryButtonGrid extends StatelessWidget {
+/// Three-column fixed-height grid for [FormVICategoryButton].
+class FormVICategoryButtonGrid extends StatelessWidget {
   static const int crossAxisCount = 3;
   static const double spacing = 10;
 
@@ -114,7 +97,7 @@ class FormIVCategoryButtonGrid extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final bool scrollable;
 
-  const FormIVCategoryButtonGrid({
+  const FormVICategoryButtonGrid({
     super.key,
     required this.labels,
     required this.onLabelTap,
@@ -139,11 +122,11 @@ class FormIVCategoryButtonGrid extends StatelessWidget {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: spacing,
         mainAxisSpacing: spacing,
-        mainAxisExtent: FormIVCategoryButton.height,
+        mainAxisExtent: FormVICategoryButton.height,
       ),
       itemBuilder: (context, index) {
         final label = labels[index];
-        return FormIVCategoryButton(
+        return FormVICategoryButton(
           label: label,
           onTap: () => onLabelTap(label),
         );

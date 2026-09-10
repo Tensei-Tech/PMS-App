@@ -97,6 +97,7 @@ import 'case_form_screen.dart';
 import 'common_form_screen.dart';
 import 'feedback_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
+import 'form_vi_selection_screen.dart';
 import 'help_support_screen.dart';
 import 'hurt_cases_screen.dart';
 import 'login_security_screen.dart';
@@ -3937,6 +3938,15 @@ class _HomeTabState extends State<_HomeTab> {
         AppTheme.fadeSlideRoute(
           page: const FormIVSelectionScreen(
             mode: FormIVSelectionMode.browse,
+          ),
+        ),
+      );
+    } else if (item.name == 'VI') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const FormVISelectionScreen(
+            mode: FormVISelectionMode.browse,
           ),
         ),
       );
