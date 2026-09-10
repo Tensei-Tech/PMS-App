@@ -1783,16 +1783,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                   : _isAccusedInterrogationForm
                                       ? AccusedInterrogationFormView(
                                           key: _accusedInterrogationKey,
-                                          existingRecord:
-                                              widget.existingRecord?.extraFields[
-                                                  kCommonFormExtraFieldsKey],
-                                          readOnly: widget.readOnly == true,
-                                          formSection: widget.formSection,
-                                          pageRange: widget.pageRange,
-                                        )
-                                      : _isFinalReportForm
-                                      ? FinalReportFormView(
-                                          key: _finalReportKey,
                                           existingRecord: widget
                                                   .existingRecord?.extraFields[
                                               kCommonFormExtraFieldsKey],
@@ -1800,10 +1790,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                           formSection: widget.formSection,
                                           pageRange: widget.pageRange,
                                         )
-                                      : _isHousePropertySearchSeizureForm
-                                          ? HousePropertySearchSeizureFormView(
-                                              key:
-                                                  _housePropertySearchSeizureKey,
+                                      : _isFinalReportForm
+                                          ? FinalReportFormView(
+                                              key: _finalReportKey,
                                               existingRecord: widget
                                                       .existingRecord
                                                       ?.extraFields[
@@ -1812,18 +1801,23 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                               formSection: widget.formSection,
                                               pageRange: widget.pageRange,
                                             )
-                                          : _isAbForm
-                                              ? AbFormView(
-                                                  key: _abFormKey,
+                                          : _isHousePropertySearchSeizureForm
+                                              ? HousePropertySearchSeizureFormView(
+                                                  key:
+                                                      _housePropertySearchSeizureKey,
+                                                  existingRecord: widget
+                                                          .existingRecord
+                                                          ?.extraFields[
+                                                      kCommonFormExtraFieldsKey],
                                                   readOnly:
                                                       widget.readOnly == true,
                                                   formSection:
                                                       widget.formSection,
                                                   pageRange: widget.pageRange,
                                                 )
-                                              : _is376MedicalForm
-                                                  ? Medical376FormView(
-                                                      key: _medical376Key,
+                                              : _isAbForm
+                                                  ? AbFormView(
+                                                      key: _abFormKey,
                                                       readOnly:
                                                           widget.readOnly ==
                                                               true,
@@ -1832,10 +1826,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                       pageRange:
                                                           widget.pageRange,
                                                     )
-                                                  : _isInterrogationForm
-                                                      ? InterrogationFormView(
-                                                          key:
-                                                              _interrogationKey,
+                                                  : _is376MedicalForm
+                                                      ? Medical376FormView(
+                                                          key: _medical376Key,
                                                           readOnly:
                                                               widget.readOnly ==
                                                                   true,
@@ -1844,10 +1837,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                           pageRange:
                                                               widget.pageRange,
                                                         )
-                                                      : _isDraftGroundOfArrestForm
-                                                          ? DraftGroundOfArrestFormView(
+                                                      : _isInterrogationForm
+                                                          ? InterrogationFormView(
                                                               key:
-                                                                  _draftGroundOfArrestKey,
+                                                                  _interrogationKey,
                                                               readOnly: widget
                                                                       .readOnly ==
                                                                   true,
@@ -1856,10 +1849,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                               pageRange: widget
                                                                   .pageRange,
                                                             )
-                                                          : _isGroundOfArrestForm
-                                                              ? GroundOfArrestFormView(
+                                                          : _isDraftGroundOfArrestForm
+                                                              ? DraftGroundOfArrestFormView(
                                                                   key:
-                                                                      _groundOfArrestKey,
+                                                                      _draftGroundOfArrestKey,
                                                                   readOnly:
                                                                       widget.readOnly ==
                                                                           true,
@@ -1869,10 +1862,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                   pageRange: widget
                                                                       .pageRange,
                                                                 )
-                                                              : _isReasonOfArrestForm
-                                                                  ? ReasonOfArrestFormView(
+                                                              : _isGroundOfArrestForm
+                                                                  ? GroundOfArrestFormView(
                                                                       key:
-                                                                          _reasonOfArrestKey,
+                                                                          _groundOfArrestKey,
                                                                       readOnly:
                                                                           widget.readOnly ==
                                                                               true,
@@ -1883,10 +1876,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                           widget
                                                                               .pageRange,
                                                                     )
-                                                                  : _isTransitRemandForm
-                                                                      ? TransitRemandFormView(
+                                                                  : _isReasonOfArrestForm
+                                                                      ? ReasonOfArrestFormView(
                                                                           key:
-                                                                              _transitRemandKey,
+                                                                              _reasonOfArrestKey,
                                                                           readOnly:
                                                                               widget.readOnly == true,
                                                                           formSection:
@@ -1894,21 +1887,27 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                           pageRange:
                                                                               widget.pageRange,
                                                                         )
-                                                                      : _isBnssDedicatedForm
-                                                                          ? BnssDedicatedForms
-                                                                              .buildBody(
-                                                                              subCategory: widget.subCategory,
+                                                                      : _isTransitRemandForm
+                                                                          ? TransitRemandFormView(
+                                                                              key: _transitRemandKey,
                                                                               readOnly: widget.readOnly == true,
                                                                               formSection: widget.formSection,
                                                                               pageRange: widget.pageRange,
                                                                             )
-                                                                          : CommonForm(
-                                                                              key: _formKey,
-                                                                              moduleKey: widget.moduleKey,
-                                                                              moduleLabel: widget.moduleLabel,
-                                                                              subCategory: widget.subCategory,
-                                                                              middleSlot: _hasKidnappingExtras ? KidnappingExtraFields(key: _kidnappingKey) : null,
-                                                                            ),
+                                                                          : _isBnssDedicatedForm
+                                                                              ? BnssDedicatedForms.buildBody(
+                                                                                  subCategory: widget.subCategory,
+                                                                                  readOnly: widget.readOnly == true,
+                                                                                  formSection: widget.formSection,
+                                                                                  pageRange: widget.pageRange,
+                                                                                )
+                                                                              : CommonForm(
+                                                                                  key: _formKey,
+                                                                                  moduleKey: widget.moduleKey,
+                                                                                  moduleLabel: widget.moduleLabel,
+                                                                                  subCategory: widget.subCategory,
+                                                                                  middleSlot: _hasKidnappingExtras ? KidnappingExtraFields(key: _kidnappingKey) : null,
+                                                                                ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(

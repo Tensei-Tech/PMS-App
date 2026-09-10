@@ -59,8 +59,8 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
   final sectionStr = doc['formSection']?.toString().toLowerCase().trim() ?? '';
   final isPartIOnly = sectionStr == 'accused part i' ||
       (sectionStr.contains('part i') && !sectionStr.contains('part ii'));
-  final isPartIIOnly = sectionStr == 'accused part ii' ||
-      sectionStr.contains('part ii');
+  final isPartIIOnly =
+      sectionStr == 'accused part ii' || sectionStr.contains('part ii');
 
   // Helper to render Marathi or English value
   pw.Widget renderVal(String key, String? val, {pw.TextStyle? style}) {
@@ -81,9 +81,7 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
     bool expand = false,
   }) {
     final v = value?.trim() ?? '';
-    final valWidget = v.isNotEmpty
-        ? renderVal(valKey, v)
-        : pw.SizedBox();
+    final valWidget = v.isNotEmpty ? renderVal(valKey, v) : pw.SizedBox();
 
     final content = pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -149,7 +147,8 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                     else
                       pw.Text(
                         '(आरोपीचे निवेदन पंचनामा)',
-                        style: valStyle.copyWith(fontSize: 12, color: PdfColors.black),
+                        style: valStyle.copyWith(
+                            fontSize: 12, color: PdfColors.black),
                       ),
                     pw.SizedBox(height: 2),
                     if (cache.has('subtitle_panchanama'))
@@ -177,7 +176,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('District:', style: engBold),
-                        cache.has('lbl_dist') ? cache.img('lbl_dist') : pw.SizedBox(),
+                        cache.has('lbl_dist')
+                            ? cache.img('lbl_dist')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_dist',
@@ -190,7 +191,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('P.S.:', style: engBold),
-                        cache.has('lbl_ps') ? cache.img('lbl_ps') : pw.SizedBox(),
+                        cache.has('lbl_ps')
+                            ? cache.img('lbl_ps')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_ps',
@@ -203,7 +206,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('Year:', style: engBold),
-                        cache.has('lbl_year') ? cache.img('lbl_year') : pw.SizedBox(),
+                        cache.has('lbl_year')
+                            ? cache.img('lbl_year')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_year',
@@ -216,7 +221,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('FIR No:', style: engBold),
-                        cache.has('lbl_firNo') ? cache.img('lbl_firNo') : pw.SizedBox(),
+                        cache.has('lbl_firNo')
+                            ? cache.img('lbl_firNo')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_firNo',
@@ -229,7 +236,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('Date:', style: engBold),
-                        cache.has('lbl_date') ? cache.img('lbl_date') : pw.SizedBox(),
+                        cache.has('lbl_date')
+                            ? cache.img('lbl_date')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_firDate',
@@ -271,7 +280,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text('Age:', style: engBold),
-                          cache.has('lbl_age') ? cache.img('lbl_age') : pw.SizedBox(),
+                          cache.has('lbl_age')
+                              ? cache.img('lbl_age')
+                              : pw.SizedBox(),
                         ],
                       ),
                       valKey: 'val_accusedAge',
@@ -284,7 +295,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text('Sex:', style: engBold),
-                          cache.has('lbl_sex') ? cache.img('lbl_sex') : pw.SizedBox(),
+                          cache.has('lbl_sex')
+                              ? cache.img('lbl_sex')
+                              : pw.SizedBox(),
                         ],
                       ),
                       valKey: 'val_accusedSex',
@@ -316,7 +329,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('Date:', style: engBold),
-                        cache.has('lbl_date_s') ? cache.img('lbl_date_s') : pw.SizedBox(),
+                        cache.has('lbl_date_s')
+                            ? cache.img('lbl_date_s')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_arrestDate',
@@ -329,7 +344,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('Time :', style: engBold),
-                        cache.has('lbl_time') ? cache.img('lbl_time') : pw.SizedBox(),
+                        cache.has('lbl_time')
+                            ? cache.img('lbl_time')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_arrestTime',
@@ -355,9 +372,8 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
               // Ruled Lines Box (~16 lines)
               pw.Column(
                 children: List.generate(15, (index) {
-                  final lineContent = index < memoLines.length
-                      ? memoLines[index]
-                      : '';
+                  final lineContent =
+                      index < memoLines.length ? memoLines[index] : '';
                   final isCached = cache.has('memo_line_$index');
 
                   return pw.Container(
@@ -412,7 +428,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text('Date:', style: engBold),
-                          cache.has('lbl_date_s') ? cache.img('lbl_date_s') : pw.SizedBox(),
+                          cache.has('lbl_date_s')
+                              ? cache.img('lbl_date_s')
+                              : pw.SizedBox(),
                         ],
                       ),
                       valKey: 'val_memDate',
@@ -425,7 +443,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text('Time :', style: engBold),
-                          cache.has('lbl_time_from') ? cache.img('lbl_time_from') : pw.SizedBox(),
+                          cache.has('lbl_time_from')
+                              ? cache.img('lbl_time_from')
+                              : pw.SizedBox(),
                         ],
                       ),
                       valKey: 'val_memTimeFrom',
@@ -438,7 +458,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text('to', style: engBold),
-                          cache.has('lbl_time_to') ? cache.img('lbl_time_to') : pw.SizedBox(),
+                          cache.has('lbl_time_to')
+                              ? cache.img('lbl_time_to')
+                              : pw.SizedBox(),
                         ],
                       ),
                       valKey: 'val_memTimeTo',
@@ -461,11 +483,13 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       children: [
                         pw.Row(
                           children: [
-                            pw.Text('6) Name and Address of Panchas: ', style: engBold),
+                            pw.Text('6) Name and Address of Panchas: ',
+                                style: engBold),
                             if (cache.has('lbl_panch_header'))
                               cache.img('lbl_panch_header')
                             else
-                              pw.Text('(पंचांचे नांव व पत्ता)', style: valStyle),
+                              pw.Text('(पंचांचे नांव व पत्ता)',
+                                  style: valStyle),
                           ],
                         ),
                         pw.SizedBox(height: 3),
@@ -530,7 +554,8 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('7) Accused Signature and Thump', style: engBold),
+                        pw.Text('7) Accused Signature and Thump',
+                            style: engBold),
                         if (cache.has('lbl_accused_sig_thumb'))
                           cache.img('lbl_accused_sig_thumb')
                         else
@@ -540,11 +565,13 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                           height: 18,
                           decoration: const pw.BoxDecoration(
                             border: pw.Border(
-                              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                              bottom: pw.BorderSide(
+                                  color: PdfColors.black, width: 0.8),
                             ),
                           ),
                           alignment: pw.Alignment.bottomCenter,
-                          child: renderVal('val_part1AccusedSig', doc['part1AccusedSig']),
+                          child: renderVal(
+                              'val_part1AccusedSig', doc['part1AccusedSig']),
                         ),
                       ],
                     ),
@@ -555,18 +582,22 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('Signature of Investigation Officer', style: engBold),
+                        pw.Text('Signature of Investigation Officer',
+                            style: engBold),
                         if (cache.has('lbl_io_header'))
                           cache.img('lbl_io_header')
                         else
-                          pw.Text('तपासणी करणाऱ्या अधिकाऱ्याची नांव व सह्या', style: valStyle),
+                          pw.Text('तपासणी करणाऱ्या अधिकाऱ्याची नांव व सह्या',
+                              style: valStyle),
                         pw.SizedBox(height: 3),
                         underlineField(
                           label: pw.Column(
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
                               pw.Text('Name:', style: engBold),
-                              cache.has('lbl_name_mr') ? cache.img('lbl_name_mr') : pw.SizedBox(),
+                              cache.has('lbl_name_mr')
+                                  ? cache.img('lbl_name_mr')
+                                  : pw.SizedBox(),
                             ],
                           ),
                           valKey: 'val_part1IoName',
@@ -581,7 +612,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                                 children: [
                                   pw.Text('Rank:', style: engBold),
-                                  cache.has('lbl_rank_mr') ? cache.img('lbl_rank_mr') : pw.SizedBox(),
+                                  cache.has('lbl_rank_mr')
+                                      ? cache.img('lbl_rank_mr')
+                                      : pw.SizedBox(),
                                 ],
                               ),
                               valKey: 'val_part1IoRank',
@@ -594,7 +627,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                                 children: [
                                   pw.Text('Number if any:', style: engBold),
-                                  cache.has('lbl_no_mr') ? cache.img('lbl_no_mr') : pw.SizedBox(),
+                                  cache.has('lbl_no_mr')
+                                      ? cache.img('lbl_no_mr')
+                                      : pw.SizedBox(),
                                 ],
                               ),
                               valKey: 'val_part1IoNo',
@@ -609,7 +644,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
                               pw.Text('Posting and Address:', style: engBold),
-                              cache.has('lbl_posting_mr') ? cache.img('lbl_posting_mr') : pw.SizedBox(),
+                              cache.has('lbl_posting_mr')
+                                  ? cache.img('lbl_posting_mr')
+                                  : pw.SizedBox(),
                             ],
                           ),
                           valKey: 'val_part1IoPosting',
@@ -646,7 +683,8 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
               // ── 8) Details of Further Panchanama ───────────────────────
               pw.Row(
                 children: [
-                  pw.Text('8) Details of Further Panchanama: ', style: engBold.copyWith(fontSize: 10.5)),
+                  pw.Text('8) Details of Further Panchanama: ',
+                      style: engBold.copyWith(fontSize: 10.5)),
                   if (cache.has('lbl_further_header'))
                     cache.img('lbl_further_header')
                   else
@@ -658,9 +696,8 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
               // Ruled Lines Box (~20 lines)
               pw.Column(
                 children: List.generate(20, (index) {
-                  final lineContent = index < furtherLines.length
-                      ? furtherLines[index]
-                      : '';
+                  final lineContent =
+                      index < furtherLines.length ? furtherLines[index] : '';
                   final isCached = cache.has('further_line_$index');
 
                   return pw.Container(
@@ -692,7 +729,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('Date:', style: engBold),
-                        cache.has('lbl_date_s') ? cache.img('lbl_date_s') : pw.SizedBox(),
+                        cache.has('lbl_date_s')
+                            ? cache.img('lbl_date_s')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_furtherDate',
@@ -705,7 +744,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('Time :', style: engBold),
-                        cache.has('lbl_time_from') ? cache.img('lbl_time_from') : pw.SizedBox(),
+                        cache.has('lbl_time_from')
+                            ? cache.img('lbl_time_from')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_furtherTimeFrom',
@@ -718,7 +759,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('to', style: engBold),
-                        cache.has('lbl_time_to') ? cache.img('lbl_time_to') : pw.SizedBox(),
+                        cache.has('lbl_time_to')
+                            ? cache.img('lbl_time_to')
+                            : pw.SizedBox(),
                       ],
                     ),
                     valKey: 'val_furtherTimeTo',
@@ -740,11 +783,13 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                       children: [
                         pw.Row(
                           children: [
-                            pw.Text('9) Name and Address of Panchas:- ', style: engBold),
+                            pw.Text('9) Name and Address of Panchas:- ',
+                                style: engBold),
                             if (cache.has('lbl_panch_header'))
                               cache.img('lbl_panch_header')
                             else
-                              pw.Text('(पंचांचे नांव व पत्ता)', style: valStyle),
+                              pw.Text('(पंचांचे नांव व पत्ता)',
+                                  style: valStyle),
                           ],
                         ),
                         pw.SizedBox(height: 4),
@@ -809,7 +854,8 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('10) Accused Signature and Thump', style: engBold),
+                        pw.Text('10) Accused Signature and Thump',
+                            style: engBold),
                         if (cache.has('lbl_accused_sig_thumb'))
                           cache.img('lbl_accused_sig_thumb')
                         else
@@ -819,7 +865,8 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                           height: 18,
                           decoration: const pw.BoxDecoration(
                             border: pw.Border(
-                              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                              bottom: pw.BorderSide(
+                                  color: PdfColors.black, width: 0.8),
                             ),
                           ),
                           alignment: pw.Alignment.bottomCenter,
@@ -834,18 +881,22 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('Signature of Investigation Officer', style: engBold),
+                        pw.Text('Signature of Investigation Officer',
+                            style: engBold),
                         if (cache.has('lbl_io_header'))
                           cache.img('lbl_io_header')
                         else
-                          pw.Text('तपासणी करणाऱ्या अधिकाऱ्याची नांव व सह्या', style: valStyle),
+                          pw.Text('तपासणी करणाऱ्या अधिकाऱ्याची नांव व सह्या',
+                              style: valStyle),
                         pw.SizedBox(height: 4),
                         underlineField(
                           label: pw.Column(
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
                               pw.Text('Name:', style: engBold),
-                              cache.has('lbl_name_mr') ? cache.img('lbl_name_mr') : pw.SizedBox(),
+                              cache.has('lbl_name_mr')
+                                  ? cache.img('lbl_name_mr')
+                                  : pw.SizedBox(),
                             ],
                           ),
                           valKey: 'val_ioName',
@@ -860,7 +911,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                                 children: [
                                   pw.Text('Rank:', style: engBold),
-                                  cache.has('lbl_rank_mr') ? cache.img('lbl_rank_mr') : pw.SizedBox(),
+                                  cache.has('lbl_rank_mr')
+                                      ? cache.img('lbl_rank_mr')
+                                      : pw.SizedBox(),
                                 ],
                               ),
                               valKey: 'val_ioRank',
@@ -873,7 +926,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                                 children: [
                                   pw.Text('Number if any:', style: engBold),
-                                  cache.has('lbl_no_mr') ? cache.img('lbl_no_mr') : pw.SizedBox(),
+                                  cache.has('lbl_no_mr')
+                                      ? cache.img('lbl_no_mr')
+                                      : pw.SizedBox(),
                                 ],
                               ),
                               valKey: 'val_ioNo',
@@ -888,7 +943,9 @@ Future<Uint8List> generateAccusedMemorandumPdf(Map<String, dynamic> doc) async {
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
                               pw.Text('Posting and Address:', style: engBold),
-                              cache.has('lbl_posting_mr') ? cache.img('lbl_posting_mr') : pw.SizedBox(),
+                              cache.has('lbl_posting_mr')
+                                  ? cache.img('lbl_posting_mr')
+                                  : pw.SizedBox(),
                             ],
                           ),
                           valKey: 'val_ioPosting',
@@ -970,7 +1027,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
 
   await GoogleFonts.pendingFonts();
 
-  Future<void> addLbl(String key, String text, TextStyle style, {double maxWidth = 500}) async {
+  Future<void> addLbl(String key, String text, TextStyle style,
+      {double maxWidth = 500}) async {
     await cache.add(key, text, style, maxWidth: maxWidth);
   }
 
@@ -1008,7 +1066,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addLbl('lbl_memo_made', '(आरोपीने केलेले निवेदन: -)', labelStyle);
 
   // Section 5
-  await addLbl('lbl_place_memo', 'पंचनाम्याचे / निवेदनाचे ठिकाण', subLabelStyle);
+  await addLbl(
+      'lbl_place_memo', 'पंचनाम्याचे / निवेदनाचे ठिकाण', subLabelStyle);
   await addLbl('lbl_time_from', 'वेळ पासून', subLabelStyle);
   await addLbl('lbl_time_to', 'वेळ पर्यंत', subLabelStyle);
 
@@ -1018,7 +1077,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
 
   // Section 7 & 10 (Signatures)
   await addLbl('lbl_accused_sig_thumb', 'आरोपीची सही व अंगठा', subLabelStyle);
-  await addLbl('lbl_io_header', 'तपासणी करणाऱ्या अधिकाऱ्याची नांव व सह्या', labelStyle);
+  await addLbl(
+      'lbl_io_header', 'तपासणी करणाऱ्या अधिकाऱ्याची नांव व सह्या', labelStyle);
   await addLbl('lbl_name_mr', 'नांव', subLabelStyle);
   await addLbl('lbl_rank_mr', 'पद', subLabelStyle);
   await addLbl('lbl_no_mr', 'बकल क्र.', subLabelStyle);

@@ -2312,9 +2312,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                           style: marathiStyle.copyWith(
                               fontWeight: FontWeight.bold)),
                       _inlineBlank(
-                          controller: _reqDistCtrl,
-                          style: style,
-                          width: 80),
+                          controller: _reqDistCtrl, style: style, width: 80),
                       Text(' हिचे/ ह्यांचे प्रेताचे पि.एम',
                           style: marathiStyle.copyWith(
                               fontWeight: FontWeight.bold)),
@@ -2379,8 +2377,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               _inlineBlank(
                   controller: _reqMargTaCtrl, style: style, width: 100),
               Text(' जिल्हा ', style: marathiStyle),
-              _inlineBlank(
-                  controller: _reqDistCtrl, style: style, width: 80),
+              _inlineBlank(controller: _reqDistCtrl, style: style, width: 80),
               Text(' ही/ह्या ', style: marathiStyle),
               _inlineBlank(
                   controller: _reqHospitalNameCtrl,

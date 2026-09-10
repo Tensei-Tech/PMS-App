@@ -25,7 +25,8 @@ Future<void> previewAccusedInterrogationPdf(
   }
 }
 
-Future<Uint8List> generateAccusedInterrogationPdf(Map<String, dynamic> doc) async {
+Future<Uint8List> generateAccusedInterrogationPdf(
+    Map<String, dynamic> doc) async {
   final pdf = pw.Document();
   final loraBold = await PdfGoogleFonts.loraBold();
   final cache = await _preRenderAllMarathi(doc);

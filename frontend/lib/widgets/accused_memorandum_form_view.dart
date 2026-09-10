@@ -365,8 +365,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
 
     // FIR Date
     setField(_firDateCtrl, 'firDate');
-    _populateDate(
-        _firDateCtrl.text, _firDateDayCtrl, _firDateMonthCtrl, _firDateYearCtrl);
+    _populateDate(_firDateCtrl.text, _firDateDayCtrl, _firDateMonthCtrl,
+        _firDateYearCtrl);
 
     // Accused
     setField(_accusedNameCtrl, 'accusedName');
@@ -375,8 +375,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
 
     // Arrest Date & Time
     setField(_arrestDateCtrl, 'arrestDate');
-    _populateDate(_arrestDateCtrl.text, _arrestDateDayCtrl, _arrestDateMonthCtrl,
-        _arrestDateYearCtrl);
+    _populateDate(_arrestDateCtrl.text, _arrestDateDayCtrl,
+        _arrestDateMonthCtrl, _arrestDateYearCtrl);
     setField(_arrestTimeCtrl, 'arrestTime');
     _populateTime(
         _arrestTimeCtrl.text, _arrestTimeHoursCtrl, _arrestTimeMinutesCtrl);
@@ -387,8 +387,8 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
     // Place & Time
     setField(_placeOfMemorandumCtrl, 'placeOfMemorandum');
     setField(_memDateCtrl, 'memDate');
-    _populateDate(
-        _memDateCtrl.text, _memDateDayCtrl, _memDateMonthCtrl, _memDateYearCtrl);
+    _populateDate(_memDateCtrl.text, _memDateDayCtrl, _memDateMonthCtrl,
+        _memDateYearCtrl);
     setField(_memTimeFromCtrl, 'memTimeFrom');
     setField(_memTimeToCtrl, 'memTimeTo');
     _populateTimeRange(

@@ -181,8 +181,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
         (data['ioPs'] ?? data['ioPoliceStation'] ?? data['policeStation'])
                 ?.toString() ??
             '';
-    _ioDistCtrl.text =
-        (data['ioDist'] ?? data['ioDistrict'])?.toString() ?? '';
+    _ioDistCtrl.text = (data['ioDist'] ?? data['ioDistrict'])?.toString() ?? '';
     _accusedNameCtrl.text = data['accusedName']?.toString() ?? '';
     _seizureDateCtrl.text =
         (data['seizureDate'] ?? data['seizedDate'] ?? data['date'])

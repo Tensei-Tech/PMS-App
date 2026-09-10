@@ -146,7 +146,8 @@ class HousePropertySearchSeizureFormViewState
     final d = _sealSampleDateDayCtrl.text.trim();
     final m = _sealSampleDateMonthCtrl.text.trim();
     final y = _sealSampleDateYearCtrl.text.trim();
-    if (d.isEmpty && m.isEmpty && y.isEmpty) return _sealSampleDateCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty)
+      return _sealSampleDateCtrl.text.trim();
     final fullY = y.length == 2 ? '20$y' : y;
     return '${d.padLeft(2, '0')}/${m.padLeft(2, '0')}/$fullY';
   }
@@ -171,7 +172,8 @@ class HousePropertySearchSeizureFormViewState
     final toH = _seizeTimeToHoursCtrl.text.trim();
     final toM = _seizeTimeToMinutesCtrl.text.trim();
     if (fromH.isEmpty && fromM.isEmpty && toH.isEmpty && toM.isEmpty) {
-      if (_seizeTimeFromCtrl.text.isNotEmpty && _seizeTimeToCtrl.text.isNotEmpty) {
+      if (_seizeTimeFromCtrl.text.isNotEmpty &&
+          _seizeTimeToCtrl.text.isNotEmpty) {
         return '${_seizeTimeFromCtrl.text.trim()} to ${_seizeTimeToCtrl.text.trim()}';
       }
       return _seizeTimeFromCtrl.text.trim();
@@ -377,14 +379,16 @@ class HousePropertySearchSeizureFormViewState
       set(_seizeTimeMinutesCtrl, 'seizeTimeMinutes');
       set(_seizeTimeToHoursCtrl, 'seizeTimeToHours');
       set(_seizeTimeToMinutesCtrl, 'seizeTimeToMinutes');
-      if (_seizeTimeHoursCtrl.text.isEmpty && _seizeTimeFromCtrl.text.isNotEmpty) {
+      if (_seizeTimeHoursCtrl.text.isEmpty &&
+          _seizeTimeFromCtrl.text.isNotEmpty) {
         final parts = _seizeTimeFromCtrl.text.split(RegExp(r'[/.:]'));
         if (parts.length >= 2) {
           _seizeTimeHoursCtrl.text = parts[0].trim();
           _seizeTimeMinutesCtrl.text = parts[1].trim();
         }
       }
-      if (_seizeTimeToHoursCtrl.text.isEmpty && _seizeTimeToCtrl.text.isNotEmpty) {
+      if (_seizeTimeToHoursCtrl.text.isEmpty &&
+          _seizeTimeToCtrl.text.isNotEmpty) {
         final parts = _seizeTimeToCtrl.text.split(RegExp(r'[/.:]'));
         if (parts.length >= 2) {
           _seizeTimeToHoursCtrl.text = parts[0].trim();
@@ -418,7 +422,8 @@ class HousePropertySearchSeizureFormViewState
       set(_sealSampleDateDayCtrl, 'sealSampleDateDay');
       set(_sealSampleDateMonthCtrl, 'sealSampleDateMonth');
       set(_sealSampleDateYearCtrl, 'sealSampleDateYear');
-      if (_sealSampleDateDayCtrl.text.isEmpty && _sealSampleDateCtrl.text.isNotEmpty) {
+      if (_sealSampleDateDayCtrl.text.isEmpty &&
+          _sealSampleDateCtrl.text.isNotEmpty) {
         final parts = _sealSampleDateCtrl.text.split(RegExp(r'[/.-]'));
         if (parts.length >= 3) {
           _sealSampleDateDayCtrl.text = parts[0].trim();
@@ -476,14 +481,12 @@ class HousePropertySearchSeizureFormViewState
       'propertyDetails': _propertyDetailsCtrl.text.trim(),
       'propertyDetailsAttach': _propertyDetailsAttachCtrl.text.trim(),
       'circumstances': _circumstancesCtrl.text.trim(),
-
       'propertyPacked': _propertyPackedControllers
           .map((c) => c.text.trim())
           .where((s) => s.isNotEmpty)
           .join('\n---\n'),
       'propertyPackedList':
           _propertyPackedControllers.map((c) => c.text.trim()).toList(),
-
       'seizeDate': _seizeDateCombined,
       'seizeDateDay': _seizeDateDayCtrl.text.trim(),
       'seizeDateMonth': _seizeDateMonthCtrl.text.trim(),
@@ -495,7 +498,6 @@ class HousePropertySearchSeizureFormViewState
       'seizeTimeToMinutes': _seizeTimeToMinutesCtrl.text.trim(),
       'seizeTimeFrom': fromTime,
       'seizeTimeTo': toTime,
-
       'witness1Line1': _witness1Line1Ctrl.text.trim(),
       'witness1Line2': _witness1Line2Ctrl.text.trim(),
       'witness1Line3': _witness1Line3Ctrl.text.trim(),
@@ -504,14 +506,11 @@ class HousePropertySearchSeizureFormViewState
       'witness2Line2': _witness2Line2Ctrl.text.trim(),
       'witness2Line3': _witness2Line3Ctrl.text.trim(),
       'witness2Sig': _witness2SigCtrl.text.trim(),
-
       'sealSampleDate': _sealSampleDateCombined,
       'sealSampleDateDay': _sealSampleDateDayCtrl.text.trim(),
       'sealSampleDateMonth': _sealSampleDateMonthCtrl.text.trim(),
       'sealSampleDateYear': _sealSampleDateYearCtrl.text.trim(),
-
       'seizedPersonSig': _seizedPersonSigCtrl.text.trim(),
-
       'ioName': _ioNameCtrl.text.trim(),
       'ioRank': _ioRankCtrl.text.trim(),
       'ioNo': _ioNoCtrl.text.trim(),
@@ -599,8 +598,12 @@ class HousePropertySearchSeizureFormViewState
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('1) District:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                          Text('जिल्हा', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('1) District:',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                          Text('जिल्हा',
+                              style: marathiLabelStyle.copyWith(
+                                  fontSize: 10, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(width: 4),
@@ -621,8 +624,12 @@ class HousePropertySearchSeizureFormViewState
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('P.S.:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                          Text('पोलीस स्टेशन', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('P.S.:',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                          Text('पोलीस स्टेशन',
+                              style: marathiLabelStyle.copyWith(
+                                  fontSize: 10, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(width: 4),
@@ -643,8 +650,12 @@ class HousePropertySearchSeizureFormViewState
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Year:---------', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                          Text('वर्ष', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('Year:---------',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                          Text('वर्ष',
+                              style: marathiLabelStyle.copyWith(
+                                  fontSize: 10, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(width: 4),
@@ -666,8 +677,12 @@ class HousePropertySearchSeizureFormViewState
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('FIR No:---------', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                          Text('पहिली खबर क्र.', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('FIR No:---------',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                          Text('पहिली खबर क्र.',
+                              style: marathiLabelStyle.copyWith(
+                                  fontSize: 10, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(width: 4),
@@ -680,7 +695,9 @@ class HousePropertySearchSeizureFormViewState
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                        child: Text('/20',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.bold)),
                       ),
                       SizedBox(
                         width: 35,
@@ -700,8 +717,12 @@ class HousePropertySearchSeizureFormViewState
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Date:...../......./20.......', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                          Text('तारीख', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('Date:...../......./20.......',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                          Text('तारीख',
+                              style: marathiLabelStyle.copyWith(
+                                  fontSize: 10, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(width: 6),
@@ -727,7 +748,9 @@ class HousePropertySearchSeizureFormViewState
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                        child: Text('/20',
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.bold)),
                       ),
                       SizedBox(
                         width: 34,
@@ -753,7 +776,8 @@ class HousePropertySearchSeizureFormViewState
                   ),
                   Text(
                     'अधिनियम व कलमे :-',
-                    style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                    style: marathiLabelStyle.copyWith(
+                        fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   BilingualSimpleUnderlineInput(
@@ -774,7 +798,8 @@ class HousePropertySearchSeizureFormViewState
                   ),
                   Text(
                     'जप्त केलेल्या / मिळवलेल्या मालमत्तेचे स्वरूप: चोरीला गेलेली / बेवारशी / बेकायदेशीर ताबा / अंतर्भूत / मृत्युपत्राशिवाय',
-                    style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                    style: marathiLabelStyle.copyWith(
+                        fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
                   if (!widget.readOnly)
@@ -790,7 +815,8 @@ class HousePropertySearchSeizureFormViewState
                       ].map((chip) {
                         return ActionChip(
                           visualDensity: VisualDensity.compact,
-                          label: Text(chip, style: const TextStyle(fontSize: 11)),
+                          label:
+                              Text(chip, style: const TextStyle(fontSize: 11)),
                           onPressed: () {
                             setState(() {
                               _naturePropertyCtrl.text = chip;
@@ -818,7 +844,8 @@ class HousePropertySearchSeizureFormViewState
                   ),
                   Text(
                     'आरोपीचे नांव व पत्ता',
-                    style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                    style: marathiLabelStyle.copyWith(
+                        fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   BilingualSimpleUnderlineInput(
@@ -835,11 +862,13 @@ class HousePropertySearchSeizureFormViewState
                       children: [
                         Text(
                           '(a) Place from where seized/recovered :-',
-                          style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
                           'जेथून जप्त केली / परत मिळवली ती जागा :',
-                          style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         BilingualSimpleUnderlineInput(
@@ -859,11 +888,13 @@ class HousePropertySearchSeizureFormViewState
                       children: [
                         Text(
                           '(b) Description of the place of seizure/recovery :',
-                          style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
                           'जप्तीच्या परत मिळवण्याच्या जागेचे वर्णन /चतुः सिमा',
-                          style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         BilingualDynamicLinedTextField(
@@ -898,11 +929,13 @@ class HousePropertySearchSeizureFormViewState
                         children: [
                           Text(
                             '*Professional Receiver of Stolen Property: -   Yes/No.',
-                            style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'चोरीचा माल घेणारा सराईत                     :-   होय/ नाही',
-                            style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                            style: marathiLabelStyle.copyWith(
+                                fontSize: 11, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -928,8 +961,12 @@ class HousePropertySearchSeizureFormViewState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Name : -', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                            Text('नांव', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('Name : -',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('नांव',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                             BilingualSimpleUnderlineInput(
                               controller: _personNameCtrl,
                               serifStyle: serifStyle,
@@ -943,8 +980,12 @@ class HousePropertySearchSeizureFormViewState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Father's/Husband's Name :", style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                            Text('वडील/ पतीचे नांव', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text("Father's/Husband's Name :",
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('वडील/ पतीचे नांव',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                             BilingualSimpleUnderlineInput(
                               controller: _personFatherCtrl,
                               serifStyle: serifStyle,
@@ -958,8 +999,12 @@ class HousePropertySearchSeizureFormViewState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Sex', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                            Text('लिंग', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('Sex',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('लिंग',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                             BilingualSimpleUnderlineInput(
                               controller: _personSexCtrl,
                               serifStyle: serifStyle,
@@ -981,8 +1026,12 @@ class HousePropertySearchSeizureFormViewState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Age :', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                            Text('वय', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('Age :',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('वय',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                             BilingualSimpleUnderlineInput(
                               controller: _personAgeCtrl,
                               serifStyle: serifStyle,
@@ -996,8 +1045,12 @@ class HousePropertySearchSeizureFormViewState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Occupation :', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                            Text('व्यवसाय', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('Occupation :',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('व्यवसाय',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                             BilingualSimpleUnderlineInput(
                               controller: _personOccupationCtrl,
                               serifStyle: serifStyle,
@@ -1010,8 +1063,12 @@ class HousePropertySearchSeizureFormViewState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Address :', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                            Text('पत्ता', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('Address :',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('पत्ता',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                             BilingualSimpleUnderlineInput(
                               controller: _personAddressCtrl,
                               serifStyle: serifStyle,
@@ -1040,7 +1097,8 @@ class HousePropertySearchSeizureFormViewState
                   ),
                   Text(
                     'नाशवंत मालमत्तेच्या विल्हेवाटीसाठी केलेली शिफारस / केलेली कार्यवाही :',
-                    style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                    style: marathiLabelStyle.copyWith(
+                        fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   BilingualSimpleUnderlineInput(
@@ -1061,7 +1119,8 @@ class HousePropertySearchSeizureFormViewState
                   ),
                   Text(
                     'मौल्यवान मालमत्ता ठेवण्यासाठी केलेली शिफारस / केलेली कार्यवाही :',
-                    style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                    style: marathiLabelStyle.copyWith(
+                        fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   BilingualSimpleUnderlineInput(
@@ -1085,7 +1144,8 @@ class HousePropertySearchSeizureFormViewState
                       ),
                       Text(
                         'ओळख पटवावी लागली काय     : -   होय/ नाही',
-                        style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                        style: marathiLabelStyle.copyWith(
+                            fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -1112,7 +1172,8 @@ class HousePropertySearchSeizureFormViewState
                   ),
                   Text(
                     'जप्त केलेल्या / परत मिळालेल्या मालाचे वर्णन (योग्य नमुन्यात माहिती भरा व जोडा) :',
-                    style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                    style: marathiLabelStyle.copyWith(
+                        fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   BilingualSimpleUnderlineInput(
@@ -1143,7 +1204,8 @@ class HousePropertySearchSeizureFormViewState
                   ),
                   Text(
                     'जप्तीची परिस्थिती / कारणे :',
-                    style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                    style: marathiLabelStyle.copyWith(
+                        fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   BilingualDynamicLinedTextField(
@@ -1159,7 +1221,9 @@ class HousePropertySearchSeizureFormViewState
               // Bottom Right Footer
               Align(
                 alignment: Alignment.centerRight,
-                child: Text('M.R.W', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11)),
+                child: Text('M.R.W',
+                    style: serifStyle.copyWith(
+                        fontWeight: FontWeight.bold, fontSize: 11)),
               ),
             ],
           ),
@@ -1178,7 +1242,8 @@ class HousePropertySearchSeizureFormViewState
               // 11) Clause
               Text(
                 '11) The above mentioned properties were seized in accordance with the provisions of law in the presence of the below said witnesses** and a copy of the seizure memo was given to the person/the occupant of the place from whom seized.',
-                style: serifStyle.copyWith(fontSize: 12, fontWeight: FontWeight.w600, height: 1.4),
+                style: serifStyle.copyWith(
+                    fontSize: 12, fontWeight: FontWeight.w600, height: 1.4),
               ),
               const SizedBox(height: 2),
               Text(
@@ -1190,7 +1255,8 @@ class HousePropertySearchSeizureFormViewState
               // 12) Clause
               Text(
                 '12) The following properties were packed and/of sealed and the signature of the below said witnesses obtained thereon or on the body of the property.',
-                style: serifStyle.copyWith(fontSize: 12, fontWeight: FontWeight.w600, height: 1.4),
+                style: serifStyle.copyWith(
+                    fontSize: 12, fontWeight: FontWeight.w600, height: 1.4),
               ),
               const SizedBox(height: 2),
               Text(
@@ -1213,22 +1279,34 @@ class HousePropertySearchSeizureFormViewState
                     decoration: BoxDecoration(color: Colors.grey.shade100),
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 6, horizontal: 4),
                         child: Column(
                           children: [
-                            Text('Sr.No.', style: serifStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold)),
-                            Text('अनु.क्र', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
-                            Text('1', style: serifStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('Sr.No.',
+                                style: serifStyle.copyWith(
+                                    fontSize: 11, fontWeight: FontWeight.bold)),
+                            Text('अनु.क्र',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('1',
+                                style: serifStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 6, horizontal: 8),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text('Property/ मालमत्ता', style: serifStyle.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
-                            Text('2', style: serifStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('Property/ मालमत्ता',
+                                style: serifStyle.copyWith(
+                                    fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text('2',
+                                style: serifStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -1242,7 +1320,8 @@ class HousePropertySearchSeizureFormViewState
                           padding: const EdgeInsets.all(8),
                           child: Text(
                             '${i + 1}',
-                            style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                            style: serifStyle.copyWith(
+                                fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -1262,11 +1341,14 @@ class HousePropertySearchSeizureFormViewState
                         ),
                         if (!widget.readOnly)
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                            icon: const Icon(Icons.delete_outline,
+                                color: Colors.red, size: 18),
                             onPressed: _propertyPackedControllers.length > 1
                                 ? () {
                                     setState(() {
-                                      _propertyPackedControllers.removeAt(i).dispose();
+                                      _propertyPackedControllers
+                                          .removeAt(i)
+                                          .dispose();
                                     });
                                   }
                                 : null,
@@ -1305,8 +1387,12 @@ class HousePropertySearchSeizureFormViewState
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('13) Property seized : (a) Date :', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                          Text('जप्त केलेली मालमत्ता   दिनांक', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('13) Property seized : (a) Date :',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                          Text('जप्त केलेली मालमत्ता   दिनांक',
+                              style: marathiLabelStyle.copyWith(
+                                  fontSize: 10, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(width: 6),
@@ -1318,7 +1404,9 @@ class HousePropertySearchSeizureFormViewState
                           hintText: 'DD',
                         ),
                       ),
-                      Padding(padding: const EdgeInsets.symmetric(horizontal: 2), child: Text('/', style: serifStyle)),
+                      Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: Text('/', style: serifStyle)),
                       SizedBox(
                         width: 34,
                         child: BilingualSimpleUnderlineInput(
@@ -1327,7 +1415,11 @@ class HousePropertySearchSeizureFormViewState
                           hintText: 'MM',
                         ),
                       ),
-                      Padding(padding: const EdgeInsets.symmetric(horizontal: 2), child: Text('/20', style: serifStyle.copyWith(fontWeight: FontWeight.bold))),
+                      Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: Text('/20',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold))),
                       SizedBox(
                         width: 34,
                         child: BilingualSimpleUnderlineInput(
@@ -1345,8 +1437,12 @@ class HousePropertySearchSeizureFormViewState
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('(b) Time :', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                          Text('वेळ', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('(b) Time :',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                          Text('वेळ',
+                              style: marathiLabelStyle.copyWith(
+                                  fontSize: 10, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(width: 4),
@@ -1358,7 +1454,9 @@ class HousePropertySearchSeizureFormViewState
                           hintText: 'HH',
                         ),
                       ),
-                      Padding(padding: const EdgeInsets.symmetric(horizontal: 1), child: Text(':', style: serifStyle)),
+                      Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 1),
+                          child: Text(':', style: serifStyle)),
                       SizedBox(
                         width: 32,
                         child: BilingualSimpleUnderlineInput(
@@ -1371,8 +1469,12 @@ class HousePropertySearchSeizureFormViewState
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         child: Column(
                           children: [
-                            Text('to', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                            Text('ते', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('to',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('ते',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -1384,7 +1486,9 @@ class HousePropertySearchSeizureFormViewState
                           hintText: 'HH',
                         ),
                       ),
-                      Padding(padding: const EdgeInsets.symmetric(horizontal: 1), child: Text(':', style: serifStyle)),
+                      Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 1),
+                          child: Text(':', style: serifStyle)),
                       SizedBox(
                         width: 32,
                         child: BilingualSimpleUnderlineInput(
@@ -1410,8 +1514,12 @@ class HousePropertySearchSeizureFormViewState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('14) witness –', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                            Text('साक्षीदारांचे नांव व पत्ता', style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold)),
+                            Text('14) witness –',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('साक्षीदारांचे नांव व पत्ता',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 11, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -1420,8 +1528,12 @@ class HousePropertySearchSeizureFormViewState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Signature:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                            Text('सह्या', style: marathiLabelStyle.copyWith(fontSize: 11, fontWeight: FontWeight.bold)),
+                            Text('Signature:',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('सह्या',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 11, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -1441,7 +1553,9 @@ class HousePropertySearchSeizureFormViewState
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text('1) ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                                Text('1) ',
+                                    style: serifStyle.copyWith(
+                                        fontWeight: FontWeight.bold)),
                                 Expanded(
                                   child: BilingualSimpleUnderlineInput(
                                     controller: _witness1Line1Ctrl,
@@ -1468,7 +1582,9 @@ class HousePropertySearchSeizureFormViewState
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('1) ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                            Text('1) ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _witness1SigCtrl,
@@ -1495,7 +1611,9 @@ class HousePropertySearchSeizureFormViewState
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text('2) ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                                Text('2) ',
+                                    style: serifStyle.copyWith(
+                                        fontWeight: FontWeight.bold)),
                                 Expanded(
                                   child: BilingualSimpleUnderlineInput(
                                     controller: _witness2Line1Ctrl,
@@ -1522,7 +1640,9 @@ class HousePropertySearchSeizureFormViewState
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('2) ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                            Text('2) ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _witness2SigCtrl,
@@ -1552,13 +1672,16 @@ class HousePropertySearchSeizureFormViewState
                         // 15
                         Text(
                           '15) शिक्क्याचा नमुना :-',
-                          style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                          style: marathiLabelStyle.copyWith(
+                              fontWeight: FontWeight.bold, fontSize: 11),
                         ),
                         const SizedBox(height: 4),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('दिनांक :- ', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('दिनांक :- ',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
                             SizedBox(
                               width: 32,
                               child: BilingualSimpleUnderlineInput(
@@ -1567,7 +1690,10 @@ class HousePropertySearchSeizureFormViewState
                                 hintText: 'DD',
                               ),
                             ),
-                            Padding(padding: const EdgeInsets.symmetric(horizontal: 1), child: Text('/', style: serifStyle)),
+                            Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 1),
+                                child: Text('/', style: serifStyle)),
                             SizedBox(
                               width: 32,
                               child: BilingualSimpleUnderlineInput(
@@ -1576,7 +1702,13 @@ class HousePropertySearchSeizureFormViewState
                                 hintText: 'MM',
                               ),
                             ),
-                            Padding(padding: const EdgeInsets.symmetric(horizontal: 1), child: Text('/२०', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold))),
+                            Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 1),
+                                child: Text('/२०',
+                                    style: marathiLabelStyle.copyWith(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold))),
                             SizedBox(
                               width: 32,
                               child: BilingualSimpleUnderlineInput(
@@ -1592,13 +1724,16 @@ class HousePropertySearchSeizureFormViewState
                         // 16
                         Text(
                           '16) ज्याच्याकडून माल जप्त केला त्याची सही',
-                          style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11),
+                          style: marathiLabelStyle.copyWith(
+                              fontWeight: FontWeight.bold, fontSize: 11),
                         ),
                         const SizedBox(height: 4),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('Signature: ', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                            Text('Signature: ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _seizedPersonSigCtrl,
@@ -1620,11 +1755,13 @@ class HousePropertySearchSeizureFormViewState
                       children: [
                         Text(
                           'Signature of Investigation Officer',
-                          style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
+                          style: serifStyle.copyWith(
+                              fontWeight: FontWeight.bold, fontSize: 12),
                         ),
                         Text(
                           'तपासणी करणाऱ्या अधिकाऱ्याची नांव व सह्या',
-                          style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 10),
+                          style: marathiLabelStyle.copyWith(
+                              fontWeight: FontWeight.bold, fontSize: 10),
                         ),
                         const SizedBox(height: 8),
 
@@ -1635,8 +1772,13 @@ class HousePropertySearchSeizureFormViewState
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Name:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                                Text('नाव', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                                Text('Name:',
+                                    style: serifStyle.copyWith(
+                                        fontWeight: FontWeight.bold)),
+                                Text('नाव',
+                                    style: marathiLabelStyle.copyWith(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold)),
                               ],
                             ),
                             const SizedBox(width: 4),
@@ -1657,8 +1799,13 @@ class HousePropertySearchSeizureFormViewState
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Rank:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                                Text('पद', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                                Text('Rank:',
+                                    style: serifStyle.copyWith(
+                                        fontWeight: FontWeight.bold)),
+                                Text('पद',
+                                    style: marathiLabelStyle.copyWith(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold)),
                               ],
                             ),
                             const SizedBox(width: 4),
@@ -1673,8 +1820,13 @@ class HousePropertySearchSeizureFormViewState
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Number if any:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                                Text('अंमलदार नंबर', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                                Text('Number if any:',
+                                    style: serifStyle.copyWith(
+                                        fontWeight: FontWeight.bold)),
+                                Text('अंमलदार नंबर',
+                                    style: marathiLabelStyle.copyWith(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold)),
                               ],
                             ),
                             const SizedBox(width: 4),
@@ -1696,8 +1848,13 @@ class HousePropertySearchSeizureFormViewState
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Posting and Address:', style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                                Text('नेमणूक व पत्ता', style: marathiLabelStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                                Text('Posting and Address:',
+                                    style: serifStyle.copyWith(
+                                        fontWeight: FontWeight.bold)),
+                                Text('नेमणूक व पत्ता',
+                                    style: marathiLabelStyle.copyWith(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold)),
                               ],
                             ),
                             const SizedBox(width: 4),
@@ -1719,7 +1876,8 @@ class HousePropertySearchSeizureFormViewState
               // Footnote
               Text(
                 '** In case the property is seized from such a place that no receipt is required to be given to anybody this portion of the sentence should be struck off.',
-                style: serifStyle.copyWith(fontSize: 10, fontStyle: FontStyle.italic),
+                style: serifStyle.copyWith(
+                    fontSize: 10, fontStyle: FontStyle.italic),
               ),
               Text(
                 '** कोणालाही पोच पावती देण्याची आवश्यकता नसेल अशा जागेतून माल जप्त केला असेल हे वाक्य खोडून टाकावे.',
@@ -1730,7 +1888,9 @@ class HousePropertySearchSeizureFormViewState
               // Bottom Right Footer
               Align(
                 alignment: Alignment.centerRight,
-                child: Text('M.R.W', style: serifStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 11)),
+                child: Text('M.R.W',
+                    style: serifStyle.copyWith(
+                        fontWeight: FontWeight.bold, fontSize: 11)),
               ),
             ],
           ),
