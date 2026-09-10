@@ -35,7 +35,8 @@ class PreventiveFormScreen extends StatefulWidget {
 }
 
 class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
-  final GlobalKey<PreventiveFormState> _formKey = GlobalKey<PreventiveFormState>();
+  final GlobalKey<PreventiveFormState> _formKey =
+      GlobalKey<PreventiveFormState>();
   bool _isSaving = false;
 
   bool get _isEdit => widget.existingRecord != null;
@@ -113,7 +114,8 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
     if (crimeNo.isEmpty && preventiveNo.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter Crime No. / FIR No. / NC No. or Preventive No.'),
+          content: Text(
+              'Please enter Crime No. / FIR No. / NC No. or Preventive No.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -139,7 +141,8 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
         ? widget.existingRecord!.createdBy
         : auth.uid;
 
-    final extra = Map<String, dynamic>.from(widget.existingRecord?.extraFields ?? {});
+    final extra =
+        Map<String, dynamic>.from(widget.existingRecord?.extraFields ?? {});
     extra[kPreventiveFormExtraFieldsKey] = docMap;
     extra.addAll(docMap);
     extra['moduleDisplayName'] = widget.moduleLabel;
@@ -183,16 +186,19 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
       complainant: docMap['caseRef']?['crimeCategory']?.toString() ?? 'State',
       accused: accusedNames,
       location: docMap['assignedOfficer']?.toString() ?? '',
-      incidentDate: _isEdit ? widget.existingRecord!.incidentDate : incidentDate,
+      incidentDate:
+          _isEdit ? widget.existingRecord!.incidentDate : incidentDate,
       priority: docMap['priority']?.toString() ?? 'Standard',
       status: docMap['status']?.toString() ?? 'Under Investigation',
-      assignedOfficer: docMap['assignedOfficer']?.toString() ?? auth.displayName,
+      assignedOfficer:
+          docMap['assignedOfficer']?.toString() ?? auth.displayName,
       subCategory: widget.subCategory,
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: extra,
       stationName: stationName,
       createdBy: createdBy,
-      assignedOfficerUid: _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
+      assignedOfficerUid:
+          _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
     );
 
     setState(() => _isSaving = true);
@@ -220,7 +226,8 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
       if (!mounted) return;
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to save record: $e', style: GoogleFonts.poppins()),
+        content:
+            Text('Failed to save record: $e', style: GoogleFonts.poppins()),
         backgroundColor: Colors.red,
       ));
     }
@@ -235,7 +242,8 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.navyDark, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppColors.navyDark, size: 20),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +251,9 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
             Text(
               widget.readOnly
                   ? 'View Preventive Entry'
-                  : (_isEdit ? 'Edit Preventive Entry' : 'New Preventive Entry'),
+                  : (_isEdit
+                      ? 'Edit Preventive Entry'
+                      : 'New Preventive Entry'),
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -290,7 +300,8 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
             children: [
               OutlinedButton.icon(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded, size: 16, color: Color(0xFF64748B)),
+                icon: const Icon(Icons.close_rounded,
+                    size: 16, color: Color(0xFF64748B)),
                 label: Text(
                   'Cancel',
                   style: GoogleFonts.inter(
@@ -301,14 +312,17 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFFE2E8F0)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
               ),
               const SizedBox(width: 12),
               OutlinedButton.icon(
                 onPressed: _exportPdf,
-                icon: const Icon(Icons.picture_as_pdf_rounded, size: 16, color: Color(0xFF0EA5E9)),
+                icon: const Icon(Icons.picture_as_pdf_rounded,
+                    size: 16, color: Color(0xFF0EA5E9)),
                 label: Text(
                   'PDF Preview',
                   style: GoogleFonts.inter(
@@ -319,8 +333,10 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFF0EA5E9)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
               ),
               if (!widget.readOnly) ...[
@@ -331,11 +347,15 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
                       ? const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
                         )
-                      : const Icon(Icons.check_circle_rounded, size: 16, color: Colors.white),
+                      : const Icon(Icons.check_circle_rounded,
+                          size: 16, color: Colors.white),
                   label: Text(
-                    _isSaving ? 'Saving...' : (_isEdit ? 'Update Record' : 'Done / Save Record'),
+                    _isSaving
+                        ? 'Saving...'
+                        : (_isEdit ? 'Update Record' : 'Done / Save Record'),
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -345,8 +365,10 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0EA5E9),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 22, vertical: 12),
                   ),
                 ),
               ],

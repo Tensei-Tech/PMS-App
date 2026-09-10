@@ -36,7 +36,8 @@ class PreventiveFormPdfHelper {
     final sections = formMap['sections'] as Map<String, dynamic>? ?? {};
     final accusedList = formMap['accusedList'] as List<dynamic>? ?? [];
     final istegasha = formMap['istegasha'] as Map<String, dynamic>? ?? {};
-    final riskAndStatus = formMap['riskAndStatus'] as Map<String, dynamic>? ?? {};
+    final riskAndStatus =
+        formMap['riskAndStatus'] as Map<String, dynamic>? ?? {};
 
     final crimeNo = caseRef['crimeNo']?.toString().isNotEmpty == true
         ? caseRef['crimeNo']
@@ -44,29 +45,32 @@ class PreventiveFormPdfHelper {
     final regDate = caseRef['regDate']?.toString().isNotEmpty == true
         ? caseRef['regDate']
         : '—';
-    final crimeCategory = caseRef['crimeCategory']?.toString().isNotEmpty == true
-        ? caseRef['crimeCategory']
-        : '—';
+    final crimeCategory =
+        caseRef['crimeCategory']?.toString().isNotEmpty == true
+            ? caseRef['crimeCategory']
+            : '—';
     final caseStatus = caseRef['caseStatus']?.toString().isNotEmpty == true
         ? caseRef['caseStatus']
         : (data['status'] ?? '—');
 
-    final selectedAct = sections['act']?.toString().isNotEmpty == true
-        ? sections['act']
-        : '—';
+    final selectedAct =
+        sections['act']?.toString().isNotEmpty == true ? sections['act'] : '—';
     final selectedSections = (sections['selectedSections'] is List)
         ? (sections['selectedSections'] as List).join(', ')
         : (sections['selectedSections']?.toString() ?? '—');
-    final otherSections = sections['otherSections']?.toString().isNotEmpty == true
-        ? sections['otherSections']
-        : '—';
+    final otherSections =
+        sections['otherSections']?.toString().isNotEmpty == true
+            ? sections['otherSections']
+            : '—';
 
-    final preventiveNo = istegasha['preventiveNo']?.toString().isNotEmpty == true
-        ? istegasha['preventiveNo']
-        : '—';
-    final preventiveDate = istegasha['preventiveDate']?.toString().isNotEmpty == true
-        ? istegasha['preventiveDate']
-        : '—';
+    final preventiveNo =
+        istegasha['preventiveNo']?.toString().isNotEmpty == true
+            ? istegasha['preventiveNo']
+            : '—';
+    final preventiveDate =
+        istegasha['preventiveDate']?.toString().isNotEmpty == true
+            ? istegasha['preventiveDate']
+            : '—';
     final outwardNo = istegasha['outwardNo']?.toString().isNotEmpty == true
         ? istegasha['outwardNo']
         : '—';
@@ -77,9 +81,10 @@ class PreventiveFormPdfHelper {
     final riskFlag = riskAndStatus['riskFlag']?.toString().isNotEmpty == true
         ? riskAndStatus['riskFlag']
         : (data['priority'] ?? '—');
-    final actionStatus = riskAndStatus['actionStatus']?.toString().isNotEmpty == true
-        ? riskAndStatus['actionStatus']
-        : '—';
+    final actionStatus =
+        riskAndStatus['actionStatus']?.toString().isNotEmpty == true
+            ? riskAndStatus['actionStatus']
+            : '—';
     final remarks = riskAndStatus['remarks']?.toString().isNotEmpty == true
         ? riskAndStatus['remarks']
         : '—';
@@ -116,7 +121,8 @@ class PreventiveFormPdfHelper {
                 margin: const pw.EdgeInsets.only(bottom: 12),
                 padding: const pw.EdgeInsets.only(bottom: 6),
                 decoration: const pw.BoxDecoration(
-                  border: pw.Border(bottom: pw.BorderSide(color: _kBorder, width: 0.5)),
+                  border: pw.Border(
+                      bottom: pw.BorderSide(color: _kBorder, width: 0.5)),
                 ),
                 child: pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -145,12 +151,15 @@ class PreventiveFormPdfHelper {
                   children: [
                     pw.Expanded(
                       flex: 3,
-                      child: _buildKvItem('Crime No. / FIR No. / NC No.', crimeNo.toString(), isHighlight: true),
+                      child: _buildKvItem(
+                          'Crime No. / FIR No. / NC No.', crimeNo.toString(),
+                          isHighlight: true),
                     ),
                     pw.SizedBox(width: 12),
                     pw.Expanded(
                       flex: 2,
-                      child: _buildKvItem('Registration Date', regDate.toString()),
+                      child:
+                          _buildKvItem('Registration Date', regDate.toString()),
                     ),
                   ],
                 ),
@@ -159,7 +168,8 @@ class PreventiveFormPdfHelper {
                   children: [
                     pw.Expanded(
                       flex: 3,
-                      child: _buildKvItem('Crime Category', crimeCategory.toString()),
+                      child: _buildKvItem(
+                          'Crime Category', crimeCategory.toString()),
                     ),
                     pw.SizedBox(width: 12),
                     pw.Expanded(
@@ -185,18 +195,22 @@ class PreventiveFormPdfHelper {
                   children: [
                     pw.Expanded(
                       flex: 1,
-                      child: _buildKvItem('Selected Act', selectedAct.toString()),
+                      child:
+                          _buildKvItem('Selected Act', selectedAct.toString()),
                     ),
                     pw.SizedBox(width: 12),
                     pw.Expanded(
                       flex: 2,
-                      child: _buildKvItem('Sections (कलमे)', selectedSections.toString()),
+                      child: _buildKvItem(
+                          'Sections (कलमे)', selectedSections.toString()),
                     ),
                   ],
                 ),
-                if (otherSections.toString().trim() != '—' && otherSections.toString().trim().isNotEmpty) ...[
+                if (otherSections.toString().trim() != '—' &&
+                    otherSections.toString().trim().isNotEmpty) ...[
                   pw.SizedBox(height: 6),
-                  _buildKvItem('Other / Custom Sections', otherSections.toString()),
+                  _buildKvItem(
+                      'Other / Custom Sections', otherSections.toString()),
                 ],
               ],
             ),
@@ -211,7 +225,8 @@ class PreventiveFormPdfHelper {
             content: accusedList.isEmpty
                 ? pw.Padding(
                     padding: const pw.EdgeInsets.all(8),
-                    child: pw.Text('No accused records entered', style: const pw.TextStyle(fontSize: 9, color: _kSec)),
+                    child: pw.Text('No accused records entered',
+                        style: const pw.TextStyle(fontSize: 9, color: _kSec)),
                   )
                 : pw.Table(
                     border: pw.TableBorder.all(color: _kBorder, width: 0.5),
@@ -236,14 +251,22 @@ class PreventiveFormPdfHelper {
                       for (int i = 0; i < accusedList.length; i++)
                         pw.TableRow(
                           decoration: pw.BoxDecoration(
-                            color: i % 2 == 1 ? const PdfColor.fromInt(0xFFFAFAFA) : _kWhite,
+                            color: i % 2 == 1
+                                ? const PdfColor.fromInt(0xFFFAFAFA)
+                                : _kWhite,
                           ),
                           children: [
                             _buildTd('${i + 1}', alignCenter: true),
-                            _buildTd(accusedList[i]['name']?.toString() ?? '—', isBold: true),
-                            _buildTd(accusedList[i]['actionType']?.toString() ?? '—'),
-                            _buildTd(accusedList[i]['bondTaken']?.toString() ?? '—', alignCenter: true),
-                            _buildTd(accusedList[i]['bondDetails']?.toString() ?? '—'),
+                            _buildTd(accusedList[i]['name']?.toString() ?? '—',
+                                isBold: true),
+                            _buildTd(accusedList[i]['actionType']?.toString() ??
+                                '—'),
+                            _buildTd(
+                                accusedList[i]['bondTaken']?.toString() ?? '—',
+                                alignCenter: true),
+                            _buildTd(
+                                accusedList[i]['bondDetails']?.toString() ??
+                                    '—'),
                           ],
                         ),
                     ],
@@ -261,11 +284,14 @@ class PreventiveFormPdfHelper {
                 pw.Row(
                   children: [
                     pw.Expanded(
-                      child: _buildKvItem('Preventive No. / इस्तेगाशा नंबर', preventiveNo.toString(), isHighlight: true),
+                      child: _buildKvItem('Preventive No. / इस्तेगाशा नंबर',
+                          preventiveNo.toString(),
+                          isHighlight: true),
                     ),
                     pw.SizedBox(width: 12),
                     pw.Expanded(
-                      child: _buildKvItem('Date of Preventive', preventiveDate.toString()),
+                      child: _buildKvItem(
+                          'Date of Preventive', preventiveDate.toString()),
                     ),
                   ],
                 ),
@@ -273,11 +299,13 @@ class PreventiveFormPdfHelper {
                 pw.Row(
                   children: [
                     pw.Expanded(
-                      child: _buildKvItem('Outward Number (जावक क्र.)', outwardNo.toString()),
+                      child: _buildKvItem(
+                          'Outward Number (जावक क्र.)', outwardNo.toString()),
                     ),
                     pw.SizedBox(width: 12),
                     pw.Expanded(
-                      child: _buildKvItem('Investigating Officer (IO)', ioName.toString()),
+                      child: _buildKvItem(
+                          'Investigating Officer (IO)', ioName.toString()),
                     ),
                   ],
                 ),
@@ -297,15 +325,19 @@ class PreventiveFormPdfHelper {
                 pw.Row(
                   children: [
                     pw.Expanded(
-                      child: _buildStatusBadge('Risk Flag', riskFlag.toString(), isRisk: true),
+                      child: _buildStatusBadge('Risk Flag', riskFlag.toString(),
+                          isRisk: true),
                     ),
                     pw.SizedBox(width: 12),
                     pw.Expanded(
-                      child: _buildStatusBadge('Action Status', actionStatus.toString(), isRisk: false),
+                      child: _buildStatusBadge(
+                          'Action Status', actionStatus.toString(),
+                          isRisk: false),
                     ),
                   ],
                 ),
-                if (remarks.toString().trim() != '—' && remarks.toString().trim().isNotEmpty) ...[
+                if (remarks.toString().trim() != '—' &&
+                    remarks.toString().trim().isNotEmpty) ...[
                   pw.SizedBox(height: 8),
                   _buildKvItem('Remarks / Case Summary', remarks.toString()),
                 ],
@@ -323,8 +355,13 @@ class PreventiveFormPdfHelper {
                 children: [
                   pw.Container(width: 140, height: 1, color: _kBorder),
                   pw.SizedBox(height: 4),
-                  pw.Text('Investigating Officer (IO)', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: _kDark)),
-                  pw.Text(ioName.toString(), style: const pw.TextStyle(fontSize: 8, color: _kSec)),
+                  pw.Text('Investigating Officer (IO)',
+                      style: pw.TextStyle(
+                          fontSize: 8,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _kDark)),
+                  pw.Text(ioName.toString(),
+                      style: const pw.TextStyle(fontSize: 8, color: _kSec)),
                 ],
               ),
               pw.Column(
@@ -332,8 +369,13 @@ class PreventiveFormPdfHelper {
                 children: [
                   pw.Container(width: 140, height: 1, color: _kBorder),
                   pw.SizedBox(height: 4),
-                  pw.Text('Police Station In-Charge / PI', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: _kDark)),
-                  pw.Text('Seal & Signature', style: const pw.TextStyle(fontSize: 7, color: _kSec)),
+                  pw.Text('Police Station In-Charge / PI',
+                      style: pw.TextStyle(
+                          fontSize: 8,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _kDark)),
+                  pw.Text('Seal & Signature',
+                      style: const pw.TextStyle(fontSize: 7, color: _kSec)),
                 ],
               ),
             ],
@@ -388,9 +430,14 @@ class PreventiveFormPdfHelper {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              pw.Text('CONFIDENTIAL', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: _kRed)),
+              pw.Text('CONFIDENTIAL',
+                  style: pw.TextStyle(
+                      fontSize: 8,
+                      fontWeight: pw.FontWeight.bold,
+                      color: _kRed)),
               pw.SizedBox(height: 2),
-              pw.Text('Date: $printTime', style: const pw.TextStyle(fontSize: 7, color: _kSec)),
+              pw.Text('Date: $printTime',
+                  style: const pw.TextStyle(fontSize: 7, color: _kSec)),
             ],
           ),
         ],
@@ -408,8 +455,10 @@ class PreventiveFormPdfHelper {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text('Khakhi Diary · Crime Monitoring & Preventive Action System', style: const pw.TextStyle(fontSize: 7, color: _kSec)),
-          pw.Text('Page ${ctx.pageNumber} of ${ctx.pagesCount}', style: const pw.TextStyle(fontSize: 7, color: _kSec)),
+          pw.Text('Khakhi Diary · Crime Monitoring & Preventive Action System',
+              style: const pw.TextStyle(fontSize: 7, color: _kSec)),
+          pw.Text('Page ${ctx.pageNumber} of ${ctx.pagesCount}',
+              style: const pw.TextStyle(fontSize: 7, color: _kSec)),
         ],
       ),
     );
@@ -434,8 +483,10 @@ class PreventiveFormPdfHelper {
             padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: const pw.BoxDecoration(
               color: _kBg,
-              borderRadius: pw.BorderRadius.vertical(top: pw.Radius.circular(5)),
-              border: pw.Border(bottom: pw.BorderSide(color: _kBorder, width: 0.5)),
+              borderRadius:
+                  pw.BorderRadius.vertical(top: pw.Radius.circular(5)),
+              border:
+                  pw.Border(bottom: pw.BorderSide(color: _kBorder, width: 0.5)),
             ),
             child: pw.Row(
               children: [
@@ -449,13 +500,19 @@ class PreventiveFormPdfHelper {
                   ),
                   child: pw.Text(
                     secNum,
-                    style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: _kWhite),
+                    style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                        color: _kWhite),
                   ),
                 ),
                 pw.SizedBox(width: 6),
                 pw.Text(
                   title,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: _kDark),
+                  style: pw.TextStyle(
+                      fontSize: 9,
+                      fontWeight: pw.FontWeight.bold,
+                      color: _kDark),
                 ),
                 pw.SizedBox(width: 6),
                 pw.Text(
@@ -474,13 +531,15 @@ class PreventiveFormPdfHelper {
     );
   }
 
-  static pw.Widget _buildKvItem(String label, String value, {bool isHighlight = false}) {
+  static pw.Widget _buildKvItem(String label, String value,
+      {bool isHighlight = false}) {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: pw.BoxDecoration(
         color: isHighlight ? const PdfColor.fromInt(0xFFF0F9FF) : _kBg,
         borderRadius: pw.BorderRadius.circular(4),
-        border: pw.Border.all(color: isHighlight ? _kTeal : _kBorder, width: 0.5),
+        border:
+            pw.Border.all(color: isHighlight ? _kTeal : _kBorder, width: 0.5),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -491,7 +550,8 @@ class PreventiveFormPdfHelper {
             value.isEmpty ? '—' : value,
             style: pw.TextStyle(
               fontSize: 9,
-              fontWeight: isHighlight ? pw.FontWeight.bold : pw.FontWeight.normal,
+              fontWeight:
+                  isHighlight ? pw.FontWeight.bold : pw.FontWeight.normal,
               color: isHighlight ? _kDark : _kDark,
             ),
           ),
@@ -500,7 +560,8 @@ class PreventiveFormPdfHelper {
     );
   }
 
-  static pw.Widget _buildStatusBadge(String label, String value, {required bool isRisk}) {
+  static pw.Widget _buildStatusBadge(String label, String value,
+      {required bool isRisk}) {
     PdfColor badgeColor = _kTeal;
     PdfColor bgColor = const PdfColor.fromInt(0xFFF0F9FF);
 
@@ -540,7 +601,8 @@ class PreventiveFormPdfHelper {
           pw.SizedBox(height: 2),
           pw.Text(
             value.isEmpty ? '—' : value,
-            style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: badgeColor),
+            style: pw.TextStyle(
+                fontSize: 9, fontWeight: pw.FontWeight.bold, color: badgeColor),
           ),
         ],
       ),
@@ -552,12 +614,14 @@ class PreventiveFormPdfHelper {
       padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 5),
       child: pw.Text(
         text,
-        style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: _kDark),
+        style: pw.TextStyle(
+            fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: _kDark),
       ),
     );
   }
 
-  static pw.Widget _buildTd(String text, {bool isBold = false, bool alignCenter = false}) {
+  static pw.Widget _buildTd(String text,
+      {bool isBold = false, bool alignCenter = false}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 5),
       child: pw.Text(
@@ -578,7 +642,8 @@ class PreventiveFormPdfHelper {
     String? policeStation,
     String? district,
   }) async {
-    final fileName = 'Preventive_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final fileName =
+        'Preventive_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
     final bytes = await generatePdf(
       data: data,
       policeStation: policeStation,

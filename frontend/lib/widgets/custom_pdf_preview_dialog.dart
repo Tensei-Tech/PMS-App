@@ -62,7 +62,8 @@ class CustomPdfPreviewDialog extends StatelessWidget {
         ),
         title: Row(
           children: [
-            const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF0EA5E9), size: 22),
+            const Icon(Icons.picture_as_pdf_rounded,
+                color: Color(0xFF0EA5E9), size: 22),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -88,7 +89,9 @@ class CustomPdfPreviewDialog extends StatelessWidget {
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Download failed: $e'), backgroundColor: Colors.red),
+                    SnackBar(
+                        content: Text('Download failed: $e'),
+                        backgroundColor: Colors.red),
                   );
                 }
               }
@@ -132,11 +135,15 @@ class CustomPdfPreviewDialog extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 48),
+                const Icon(Icons.error_outline_rounded,
+                    color: Color(0xFFEF4444), size: 48),
                 const SizedBox(height: 12),
                 Text(
                   'Failed to render PDF preview',
-                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                  style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -148,7 +155,8 @@ class CustomPdfPreviewDialog extends StatelessWidget {
             ),
           ),
         ),
-        previewPageMargin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        previewPageMargin:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         actionBarTheme: const PdfActionBarTheme(
           backgroundColor: Color(0xFF0F172A),
           iconColor: Colors.white,

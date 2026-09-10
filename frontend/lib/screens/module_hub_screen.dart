@@ -4228,7 +4228,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 );
                 return;
               }
-              if (widget.moduleKey == 'preventive' || record.moduleKey == 'preventive') {
+              if (widget.moduleKey == 'preventive' ||
+                  record.moduleKey == 'preventive') {
                 Navigator.push(
                   ctx,
                   AppTheme.fadeSlideRoute(

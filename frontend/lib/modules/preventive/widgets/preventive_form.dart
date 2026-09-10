@@ -101,7 +101,9 @@ class PreventiveFormState extends State<PreventiveForm> {
   final _otherSectionsCtrl = TextEditingController();
 
   // 3. Accused list
-  final List<PreventiveAccusedEntry> _accusedEntries = [PreventiveAccusedEntry()];
+  final List<PreventiveAccusedEntry> _accusedEntries = [
+    PreventiveAccusedEntry()
+  ];
 
   // 4. Preventive / Istegasha Details
   final _preventiveNoCtrl = TextEditingController();
@@ -110,7 +112,8 @@ class PreventiveFormState extends State<PreventiveForm> {
   final _ioNameCtrl = TextEditingController();
 
   // 5. Risk Flag & Action Status
-  String _riskFlag = '⚡ Standard'; // '🚨 High Priority', '🛑 Sensitive', '⚡ Standard'
+  String _riskFlag =
+      '⚡ Standard'; // '🚨 High Priority', '🛑 Sensitive', '⚡ Standard'
   String _preventiveActionStatus = '🟢 Preventive Action Completed';
   // '🟢 Preventive Action Completed', '🟡 Partially Completed', '🔴 No Preventive Action Recorded'
   final _remarksCtrl = TextEditingController();
@@ -151,7 +154,8 @@ class PreventiveFormState extends State<PreventiveForm> {
     _scroll.addListener(() {
       if (!_scroll.hasClients) return;
       final max = _scroll.position.maxScrollExtent;
-      scrollProgress.value = max > 0 ? (_scroll.offset / max).clamp(0.0, 1.0) : 0;
+      scrollProgress.value =
+          max > 0 ? (_scroll.offset / max).clamp(0.0, 1.0) : 0;
     });
 
     // Default dates
@@ -259,7 +263,8 @@ class PreventiveFormState extends State<PreventiveForm> {
     final sections = formMap['sections'] as Map<String, dynamic>? ?? {};
     final accusedList = formMap['accusedList'] as List<dynamic>? ?? [];
     final istegasha = formMap['istegasha'] as Map<String, dynamic>? ?? {};
-    final riskAndStatus = formMap['riskAndStatus'] as Map<String, dynamic>? ?? {};
+    final riskAndStatus =
+        formMap['riskAndStatus'] as Map<String, dynamic>? ?? {};
 
     setState(() {
       _crimeNoCtrl.text = caseRef['crimeNo']?.toString() ??
@@ -268,7 +273,7 @@ class PreventiveFormState extends State<PreventiveForm> {
           doc['case_number']?.toString() ??
           '';
       _regDateCtrl.text = caseRef['regDate']?.toString() ?? '';
-      
+
       final cat = caseRef['crimeCategory']?.toString() ?? 'Theft';
       if (_kCrimeCategories.contains(cat)) {
         _crimeCategory = cat;
@@ -278,7 +283,8 @@ class PreventiveFormState extends State<PreventiveForm> {
         _customCrimeCategoryCtrl.text = cat;
       }
 
-      final st = caseRef['caseStatus']?.toString() ?? doc['status']?.toString() ?? '';
+      final st =
+          caseRef['caseStatus']?.toString() ?? doc['status']?.toString() ?? '';
       if (_kCaseStatuses.contains(st)) {
         _caseStatus = st;
       }
@@ -306,7 +312,8 @@ class PreventiveFormState extends State<PreventiveForm> {
         }
       }
       if (_accusedEntries.isEmpty) {
-        final legacyAccused = doc['accused']?.toString() ?? doc['accusedNames']?.toString() ?? '';
+        final legacyAccused =
+            doc['accused']?.toString() ?? doc['accusedNames']?.toString() ?? '';
         final entry = PreventiveAccusedEntry();
         entry.name.text = legacyAccused;
         _accusedEntries.add(entry);
@@ -322,7 +329,9 @@ class PreventiveFormState extends State<PreventiveForm> {
           doc['assigned_officer']?.toString() ??
           '';
 
-      final rf = riskAndStatus['riskFlag']?.toString() ?? doc['priority']?.toString() ?? '';
+      final rf = riskAndStatus['riskFlag']?.toString() ??
+          doc['priority']?.toString() ??
+          '';
       if (_kRiskFlags.contains(rf)) {
         _riskFlag = rf;
       } else if (rf.toLowerCase().contains('high')) {
@@ -331,7 +340,9 @@ class PreventiveFormState extends State<PreventiveForm> {
         _riskFlag = '🛑 Sensitive';
       }
 
-      final actSt = riskAndStatus['actionStatus']?.toString() ?? doc['actionStatus']?.toString() ?? '';
+      final actSt = riskAndStatus['actionStatus']?.toString() ??
+          doc['actionStatus']?.toString() ??
+          '';
       if (_kActionStatuses.contains(actSt)) {
         _preventiveActionStatus = actSt;
       } else if (actSt.toLowerCase().contains('partial')) {
@@ -340,7 +351,9 @@ class PreventiveFormState extends State<PreventiveForm> {
         _preventiveActionStatus = '🔴 No Preventive Action Recorded';
       }
 
-      _remarksCtrl.text = riskAndStatus['remarks']?.toString() ?? doc['description']?.toString() ?? '';
+      _remarksCtrl.text = riskAndStatus['remarks']?.toString() ??
+          doc['description']?.toString() ??
+          '';
       saveBarText = 'Saved';
     });
   }
@@ -363,7 +376,8 @@ class PreventiveFormState extends State<PreventiveForm> {
       _accusedEntries.clear();
       _accusedEntries.add(PreventiveAccusedEntry());
       _preventiveNoCtrl.clear();
-      _preventiveDateCtrl.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+      _preventiveDateCtrl.text =
+          DateFormat('dd/MM/yyyy').format(DateTime.now());
       _outwardNoCtrl.clear();
       _ioNameCtrl.clear();
       _riskFlag = '⚡ Standard';
@@ -450,12 +464,16 @@ class PreventiveFormState extends State<PreventiveForm> {
               if (!widget.readOnly) ...[
                 OutlinedButton.icon(
                   onPressed: clearForm,
-                  icon: const Icon(Icons.refresh_rounded, size: 14, color: _kSec),
-                  label: Text('Clear', style: GoogleFonts.inter(fontSize: 12, color: _kSec)),
+                  icon:
+                      const Icon(Icons.refresh_rounded, size: 14, color: _kSec),
+                  label: Text('Clear',
+                      style: GoogleFonts.inter(fontSize: 12, color: _kSec)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: _kBorder),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -469,25 +487,35 @@ class PreventiveFormState extends State<PreventiveForm> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.save_as_rounded, size: 14, color: _kTeal),
-                  label: Text('Save Draft', style: GoogleFonts.inter(fontSize: 12, color: _kTeal)),
+                  icon: const Icon(Icons.save_as_rounded,
+                      size: 14, color: _kTeal),
+                  label: Text('Save Draft',
+                      style: GoogleFonts.inter(fontSize: 12, color: _kTeal)),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: _kTeal),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   ),
                 ),
                 const SizedBox(width: 8),
               ],
               OutlinedButton.icon(
                 onPressed: widget.onExportPdf,
-                icon: const Icon(Icons.picture_as_pdf_rounded, size: 14, color: _kTeal),
+                icon: const Icon(Icons.picture_as_pdf_rounded,
+                    size: 14, color: _kTeal),
                 label: Text('Generate Preventive Form PDF',
-                    style: GoogleFonts.inter(fontSize: 12, color: _kTeal, fontWeight: FontWeight.w600)),
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: _kTeal,
+                        fontWeight: FontWeight.w600)),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: _kTeal, width: 1.2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 ),
               ),
             ],
@@ -572,7 +600,9 @@ class PreventiveFormState extends State<PreventiveForm> {
                                   ),
                                   labelStyle: GoogleFonts.inter(
                                     fontSize: 11,
-                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
                                     color: isSelected ? _kTeal : _kDark,
                                   ),
                                 );
@@ -612,13 +642,19 @@ class PreventiveFormState extends State<PreventiveForm> {
                                   selectedColor: const Color(0xFFE0E7FF),
                                   backgroundColor: _kInputBg,
                                   side: BorderSide(
-                                    color: isSelected ? const Color(0xFF4F46E5) : _kBorder,
+                                    color: isSelected
+                                        ? const Color(0xFF4F46E5)
+                                        : _kBorder,
                                     width: isSelected ? 1.5 : 1,
                                   ),
                                   labelStyle: GoogleFonts.inter(
                                     fontSize: 11,
-                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                    color: isSelected ? const Color(0xFF4F46E5) : _kDark,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isSelected
+                                        ? const Color(0xFF4F46E5)
+                                        : _kDark,
                                   ),
                                 );
                               }).toList(),
@@ -663,7 +699,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                                                 });
                                               }
                                             },
-                                      selectedColor: _kTeal.withValues(alpha: 0.15),
+                                      selectedColor:
+                                          _kTeal.withValues(alpha: 0.15),
                                       backgroundColor: _kInputBg,
                                       side: BorderSide(
                                         color: isSelected ? _kTeal : _kBorder,
@@ -671,7 +708,9 @@ class PreventiveFormState extends State<PreventiveForm> {
                                       ),
                                       labelStyle: GoogleFonts.inter(
                                         fontSize: 11,
-                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
                                         color: isSelected ? _kTeal : _kDark,
                                       ),
                                     ),
@@ -684,7 +723,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                             // Filter / Search section
                             _buildTextField(
                               label: 'Search Sections in $_selectedAct',
-                              hint: 'Type section number or name to filter (e.g. 100, 303, hurt)...',
+                              hint:
+                                  'Type section number or name to filter (e.g. 100, 303, hurt)...',
                               controller: _sectionSearchCtrl,
                               onChanged: (_) => setState(() {}),
                               prefixIcon: Icons.search_rounded,
@@ -713,10 +753,12 @@ class PreventiveFormState extends State<PreventiveForm> {
                                       ),
                                     ),
                                     backgroundColor: const Color(0xFFEEF2FF),
-                                    side: const BorderSide(color: Color(0xFFC7D2FE)),
+                                    side: const BorderSide(
+                                        color: Color(0xFFC7D2FE)),
                                     deleteIcon: widget.readOnly
                                         ? null
-                                        : const Icon(Icons.close_rounded, size: 14, color: _kRed),
+                                        : const Icon(Icons.close_rounded,
+                                            size: 14, color: _kRed),
                                     onDeleted: widget.readOnly
                                         ? null
                                         : () {
@@ -734,7 +776,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                             // Other Acts / Custom Sections textfield
                             _buildTextField(
                               label: 'Other Acts / Custom Sections (इतर कलमे)',
-                              hint: 'e.g. Sec 110/117 BNSS, Sec 107 CrPC, Sec 56/57 MP Act',
+                              hint:
+                                  'e.g. Sec 110/117 BNSS, Sec 107 CrPC, Sec 56/57 MP Act',
                               controller: _otherSectionsCtrl,
                             ),
                           ],
@@ -753,16 +796,22 @@ class PreventiveFormState extends State<PreventiveForm> {
                             ? null
                             : ElevatedButton.icon(
                                 onPressed: _addAccused,
-                                icon: const Icon(Icons.person_add_alt_1_rounded, size: 14, color: Colors.white),
+                                icon: const Icon(Icons.person_add_alt_1_rounded,
+                                    size: 14, color: Colors.white),
                                 label: Text(
                                   '+ Add Accused',
-                                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+                                  style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white),
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: _kTeal,
                                   elevation: 0,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6)),
                                 ),
                               ),
                         child: Column(
@@ -820,7 +869,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: _buildTextField(
-                                    label: 'Investigating Officer (IO) / अमलदार',
+                                    label:
+                                        'Investigating Officer (IO) / अमलदार',
                                     hint: 'e.g. PSI Patil / ASI Deshmukh',
                                     controller: _ioNameCtrl,
                                     suffix: VoiceDictationButton(
@@ -891,7 +941,9 @@ class PreventiveFormState extends State<PreventiveForm> {
                                   ),
                                   labelStyle: GoogleFonts.inter(
                                     fontSize: 12,
-                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
                                     color: isSelected ? activeText : _kDark,
                                   ),
                                 );
@@ -900,14 +952,19 @@ class PreventiveFormState extends State<PreventiveForm> {
                             const SizedBox(height: 16),
 
                             // Action Status Options
-                            _buildLabel('Preventive Action Status (कारवाई स्थिती)'),
+                            _buildLabel(
+                                'Preventive Action Status (कारवाई स्थिती)'),
                             const SizedBox(height: 6),
                             Column(
                               children: _kActionStatuses.map((actionSt) {
-                                final isSelected = _preventiveActionStatus == actionSt;
-                                final isCompleted = actionSt.contains('Completed');
-                                final isPartial = actionSt.contains('Partially');
-                                final isNoAction = actionSt.contains('No Preventive');
+                                final isSelected =
+                                    _preventiveActionStatus == actionSt;
+                                final isCompleted =
+                                    actionSt.contains('Completed');
+                                final isPartial =
+                                    actionSt.contains('Partially');
+                                final isNoAction =
+                                    actionSt.contains('No Preventive');
 
                                 Color borderColor = _kBorder;
                                 Color bg = _kInputBg;
@@ -931,29 +988,41 @@ class PreventiveFormState extends State<PreventiveForm> {
                                         ? null
                                         : () {
                                             setState(() {
-                                              _preventiveActionStatus = actionSt;
+                                              _preventiveActionStatus =
+                                                  actionSt;
                                               _markUnsaved();
                                             });
                                           },
                                     borderRadius: BorderRadius.circular(8),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14, vertical: 10),
                                       decoration: BoxDecoration(
                                         color: bg,
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border(
-                                          top: BorderSide(color: borderColor, width: isSelected ? 1.5 : 1),
-                                          bottom: BorderSide(color: borderColor, width: isSelected ? 1.5 : 1),
-                                          left: BorderSide(color: borderColor, width: isSelected ? 3.5 : 1),
-                                          right: BorderSide(color: borderColor, width: isSelected ? 1.5 : 1),
+                                          top: BorderSide(
+                                              color: borderColor,
+                                              width: isSelected ? 1.5 : 1),
+                                          bottom: BorderSide(
+                                              color: borderColor,
+                                              width: isSelected ? 1.5 : 1),
+                                          left: BorderSide(
+                                              color: borderColor,
+                                              width: isSelected ? 3.5 : 1),
+                                          right: BorderSide(
+                                              color: borderColor,
+                                              width: isSelected ? 1.5 : 1),
                                         ),
                                       ),
                                       child: Row(
                                         children: [
                                           Icon(
                                             isSelected
-                                                ? Icons.radio_button_checked_rounded
-                                                : Icons.radio_button_off_rounded,
+                                                ? Icons
+                                                    .radio_button_checked_rounded
+                                                : Icons
+                                                    .radio_button_off_rounded,
                                             size: 18,
                                             color: isSelected
                                                 ? (isCompleted
@@ -969,7 +1038,9 @@ class PreventiveFormState extends State<PreventiveForm> {
                                               actionSt,
                                               style: GoogleFonts.inter(
                                                 fontSize: 12,
-                                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w700
+                                                    : FontWeight.w500,
                                                 color: _kDark,
                                               ),
                                             ),
@@ -985,8 +1056,10 @@ class PreventiveFormState extends State<PreventiveForm> {
 
                             // Remarks
                             _buildTextField(
-                              label: 'Remarks / Action Summary (तपशील व टिप्पण्या)',
-                              hint: 'Enter preventive order details, court hearing or bond conditions...',
+                              label:
+                                  'Remarks / Action Summary (तपशील व टिप्पण्या)',
+                              hint:
+                                  'Enter preventive order details, court hearing or bond conditions...',
                               controller: _remarksCtrl,
                               maxLines: 3,
                               suffix: VoiceDictationButton(
@@ -1043,7 +1116,8 @@ class PreventiveFormState extends State<PreventiveForm> {
               if (!widget.readOnly && _accusedEntries.length > 1)
                 IconButton(
                   onPressed: () => _removeAccused(index),
-                  icon: const Icon(Icons.delete_outline_rounded, size: 18, color: _kRed),
+                  icon: const Icon(Icons.delete_outline_rounded,
+                      size: 18, color: _kRed),
                   tooltip: 'Remove Accused',
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -1105,7 +1179,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                           ),
                           labelStyle: GoogleFonts.inter(
                             fontSize: 10,
-                            fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight:
+                                isSel ? FontWeight.w700 : FontWeight.w500,
                             color: isSel ? const Color(0xFF15803D) : _kDark,
                           ),
                         );
@@ -1154,7 +1229,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                             ),
                             labelStyle: GoogleFonts.inter(
                               fontSize: 11,
-                              fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight:
+                                  isSel ? FontWeight.w700 : FontWeight.w500,
                               color: isSel ? _kDark : _kMuted,
                             ),
                           ),
@@ -1186,12 +1262,17 @@ class PreventiveFormState extends State<PreventiveForm> {
     final sections = (actInfo?['sections'] as List<dynamic>?) ?? const [];
     final filterQuery = _sectionSearchCtrl.text.trim().toLowerCase();
 
-    final filtered = sections.where((sec) {
-      if (sec is! Map) return false;
-      final val = sec['val']?.toString().toLowerCase() ?? '';
-      final label = sec['label']?.toString().toLowerCase() ?? '';
-      return filterQuery.isEmpty || val.contains(filterQuery) || label.contains(filterQuery);
-    }).take(15).toList();
+    final filtered = sections
+        .where((sec) {
+          if (sec is! Map) return false;
+          final val = sec['val']?.toString().toLowerCase() ?? '';
+          final label = sec['label']?.toString().toLowerCase() ?? '';
+          return filterQuery.isEmpty ||
+              val.contains(filterQuery) ||
+              label.contains(filterQuery);
+        })
+        .take(15)
+        .toList();
 
     if (filtered.isEmpty) {
       return Padding(
@@ -1220,7 +1301,8 @@ class PreventiveFormState extends State<PreventiveForm> {
 
           return ActionChip(
             label: Text(label),
-            backgroundColor: isSelected ? const Color(0xFFC7D2FE) : Colors.white,
+            backgroundColor:
+                isSelected ? const Color(0xFFC7D2FE) : Colors.white,
             side: BorderSide(
               color: isSelected ? const Color(0xFF4F46E5) : _kBorder,
             ),
@@ -1349,7 +1431,9 @@ class PreventiveFormState extends State<PreventiveForm> {
       children: [
         Text(text, style: _tsLabel),
         if (required)
-          const Text(' *', style: TextStyle(color: _kRed, fontSize: 12, fontWeight: FontWeight.bold)),
+          const Text(' *',
+              style: TextStyle(
+                  color: _kRed, fontSize: 12, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -1384,9 +1468,12 @@ class PreventiveFormState extends State<PreventiveForm> {
             isDense: true,
             filled: true,
             fillColor: _kInputBg,
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 16, color: _kSec) : null,
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, size: 16, color: _kSec)
+                : null,
             suffixIcon: suffix,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
               borderSide: const BorderSide(color: _kBorder),
@@ -1429,8 +1516,10 @@ class PreventiveFormState extends State<PreventiveForm> {
                 isDense: true,
                 filled: true,
                 fillColor: _kInputBg,
-                suffixIcon: const Icon(Icons.calendar_month_rounded, size: 18, color: _kTeal),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                suffixIcon: const Icon(Icons.calendar_month_rounded,
+                    size: 18, color: _kTeal),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
                   borderSide: const BorderSide(color: _kBorder),
