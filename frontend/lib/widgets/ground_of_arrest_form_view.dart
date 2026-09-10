@@ -38,7 +38,7 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
 
   // Page 1
   final _outwardNoCtrl = TextEditingController();
-  final _outwardYearCtrl = TextEditingController(text: '2025');
+  final _outwardYearCtrl = TextEditingController();
   final _policeStationCtrl = TextEditingController();
   final _talukaCtrl = TextEditingController();
   final _districtCtrl = TextEditingController();
