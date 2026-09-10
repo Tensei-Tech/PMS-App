@@ -146,8 +146,9 @@ class HousePropertySearchSeizureFormViewState
     final d = _sealSampleDateDayCtrl.text.trim();
     final m = _sealSampleDateMonthCtrl.text.trim();
     final y = _sealSampleDateYearCtrl.text.trim();
-    if (d.isEmpty && m.isEmpty && y.isEmpty)
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
       return _sealSampleDateCtrl.text.trim();
+    }
     final fullY = y.length == 2 ? '20$y' : y;
     return '${d.padLeft(2, '0')}/${m.padLeft(2, '0')}/$fullY';
   }
