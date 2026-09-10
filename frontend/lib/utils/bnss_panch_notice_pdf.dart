@@ -30,22 +30,22 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
 
   final regular = pw.TextStyle(
     font: devanagari,
-    fontSize: 11,
+    fontSize: 10.5,
     lineSpacing: 5,
   );
   final bold = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: pw.FontWeight.bold,
   );
   final headerTitle = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: pw.FontWeight.bold,
   );
   final headerSub = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: pw.FontWeight.bold,
   );
 
@@ -55,35 +55,38 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
   }
 
   // ══════════════════════════════════════════════════════════════════════
-  // ── PAGE 1: घटनास्थळ / जप्ती पंचनामा सुचनापत्र ──
+  // ── PAGE 1: घटनास्थळ / जप्ती पंचनामा सुचनापत्र (Image 1) ──
   // ══════════════════════════════════════════════════════════════════════
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 48),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
       build: (pw.Context context) {
         final ps = v('p1_policeStation', v('policeStation', '--------'));
-        final dateStr = v('p1_date', v('date', '......./ ......../२०...'));
+        final dateStr = v('p1_date', v('date', '......./ ......./२०...'));
 
         final panch1 = v('p1_panch1', v('panch1'));
+        final panch1Line2 = v('p1_panch1Line2');
         final panch2 = v('p1_panch2', v('panch2'));
+        final panch2Line2 = v('p1_panch2Line2');
 
-        final firPs = v('p1_firPs', v('firPs', '-----------------'));
+        final firPs = v('p1_firPs', v('firPs', '-----------'));
         final crimeNo = v('p1_crimeNo', v('crimeNo', '........'));
+        final crimeYear = v('p1_crimeYear', '.....');
         final actSec = v(
           'p1_actSec',
           v('actSec',
-              '---------------------------------------------------------------------'),
+              '---------------------------------'),
         );
         final complainantName = v(
           'p1_complainantName',
           v('complainantName',
-              '----------------------------------------------'),
+              '-------------------------------------'),
         );
         final complainantResidence = v(
-            'p1_complainantResidence', v('complainantResidence', '----------'));
+            'p1_complainantResidence', v('complainantResidence', '-----------'));
         final complainantTah =
-            v('p1_complainantTah', v('complainantTah', '--------'));
+            v('p1_complainantTah', v('complainantTah', '-----------'));
         final complainantDist =
             v('p1_complainantDist', v('complainantDist', 'यवतमाळ'));
 
@@ -105,28 +108,30 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text('पोलीस स्टेशन $ps', style: regular),
-                    pw.SizedBox(height: 2),
-                    pw.Text('दिनांक : $dateStr', style: regular),
+                    pw.SizedBox(height: 3),
+                    pw.Text('दिनांक :$dateStr', style: regular),
                   ],
                 ),
               ),
             ),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 18),
 
             // Header Title
             pw.Center(
               child: pw.Column(
                 children: [
-                  pw.Text('-:: पंच सुचनापत्र ::-', style: headerTitle),
-                  pw.SizedBox(height: 2),
+                  pw.Text('—:: पंच सुचनापत्र ::—', style: headerTitle),
+                  pw.SizedBox(height: 3),
                   pw.Text(
                     '(कलम १७९ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
-                    style: headerSub,
+                    style: headerSub.copyWith(
+                      decoration: pw.TextDecoration.underline,
+                    ),
                   ),
                 ],
               ),
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 22),
 
             // Panch Names
             pw.Row(
@@ -134,8 +139,9 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
               children: [
                 pw.SizedBox(
                   width: 90,
-                  child: pw.Text('पंच नांव  :-', style: bold),
+                  child: pw.Text('पंच नांव', style: bold),
                 ),
+                pw.Text(':-   ', style: bold),
                 pw.Expanded(
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -148,13 +154,22 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                             child: pw.Text(
                               panch1.isNotEmpty
                                   ? panch1
-                                  : '__________________________________________________\n__________________________________________________',
+                                  : '--------------------------------------------------------',
                               style: regular,
                             ),
                           ),
                         ],
                       ),
-                      pw.SizedBox(height: 10),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(left: 14),
+                        child: pw.Text(
+                          panch1Line2.isNotEmpty
+                              ? panch1Line2
+                              : '--------------------------------------------------------',
+                          style: regular,
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
@@ -163,18 +178,27 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                             child: pw.Text(
                               panch2.isNotEmpty
                                   ? panch2
-                                  : '__________________________________________________\n__________________________________________________',
+                                  : '--------------------------------------------------------',
                               style: regular,
                             ),
                           ),
                         ],
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(left: 14),
+                        child: pw.Text(
+                          panch2Line2.isNotEmpty
+                              ? panch2Line2
+                              : '--------------------------------------------------------',
+                          style: regular,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 20),
 
             // Decorative oooo
             pw.Center(
@@ -182,27 +206,30 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 '००००',
                 style: pw.TextStyle(
                   font: devanagariBold,
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: pw.FontWeight.bold,
                   letterSpacing: 4,
                 ),
               ),
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 20),
 
             // Body Paragraph
             pw.RichText(
               textAlign: pw.TextAlign.justify,
               text: pw.TextSpan(
-                style: regular.copyWith(lineSpacing: 5),
+                style: regular.copyWith(lineSpacing: 6),
                 children: [
                   const pw.TextSpan(
                     text:
-                        '        आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन ',
+                        '      आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन',
                   ),
                   pw.TextSpan(text: '$firPs ', style: bold),
-                  const pw.TextSpan(text: 'येथील अप / मर्ग / स्टे.डा क्रमांक '),
-                  pw.TextSpan(text: '$crimeNo/२०..... ', style: bold),
+                  const pw.TextSpan(text: 'येथील अप / मर्ग/ स्टे.डा क्रमांक '),
+                  pw.TextSpan(
+                    text: '$crimeNo/२०$crimeYear ',
+                    style: bold,
+                  ),
                   const pw.TextSpan(text: 'कलम '),
                   pw.TextSpan(text: '$actSec ', style: bold),
                   const pw.TextSpan(text: 'मधील फिर्यादी नामे '),
@@ -215,27 +242,29 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                   pw.TextSpan(text: '$complainantDist ', style: bold),
                   const pw.TextSpan(
                     text:
-                        'यांनी तक्रार दिली वरून सदरचा गुन्हा नोंद होउन तपासात आहे. तरी सदर गुन्ह्यामधील घटनास्थळचा/ जप्ती पंचनामा करावयाचा असल्याने आपण पंच म्हणुन हजर राहा असे सांगीतल्या वरून पंच हजर आले आहे.',
+                        'यांनी तक्रार दिली वरून सदरचा गुन्हा नोंद होउन तपासात आहे. तरी सदर गुन्ह्यामधील घटनास्थळाचा/ जप्ती पंचनामा करावयाचा असल्याने आपण पंच म्हणुन हजर राहा असे सांगीतल्या वरून पंच हजर आले आहे.',
                   ),
                 ],
               ),
             ),
-            pw.SizedBox(height: 18),
+            pw.SizedBox(height: 22),
 
             // Closing line
             pw.Center(
-              child:
-                  pw.Text('करीता सुचनापत्र देण्यात येत आहे.', style: regular),
+              child: pw.Text(
+                'करीता सुचनापत्र देण्यात येत आहे.',
+                style: regular,
+              ),
             ),
             pw.Spacer(),
 
-            // Signature block
+            // Signature block (Right)
             pw.Align(
               alignment: pw.Alignment.topRight,
               child: pw.Column(
                 children: [
                   pw.Text('तपासी अधिकारी नांव व सही', style: bold),
-                  pw.SizedBox(height: 4),
+                  pw.SizedBox(height: 6),
                   pw.Text(
                     ioNameSig.isNotEmpty ? ioNameSig : '____________________',
                     style: regular,
@@ -243,16 +272,16 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 18),
 
-            // Receipt Acknowledgement
+            // Receipt Acknowledgement (Left)
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text('सुचनापत्र मिळाले आहे.', style: bold),
-                pw.SizedBox(height: 6),
+                pw.SizedBox(height: 8),
                 pw.Text('१) $panch1Receipt', style: regular),
-                pw.SizedBox(height: 4),
+                pw.SizedBox(height: 6),
                 pw.Text('२) $panch2Receipt', style: regular),
               ],
             ),
@@ -277,28 +306,31 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
   );
 
   // ══════════════════════════════════════════════════════════════════════
-  // ── PAGE 2: दारूबाबत प्रोहिबीशन रेड पंच सुचनापत्र ──
+  // ── PAGE 2: दारूबाबत प्रोहिबीशन रेड सुचनापत्र (Image 2) ──
   // ══════════════════════════════════════════════════════════════════════
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 48),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
       build: (pw.Context context) {
         final ps = v('p2_policeStation', v('policeStation', '--------'));
-        final dateStr = v('p2_date', v('date', '......./ ......../२०...'));
+        final dateStr = v('p2_date', v('date', '......./ ......./२०...'));
 
         final panch1 = v('p2_panch1', v('panch1'));
+        final panch1Line2 = v('p2_panch1Line2');
         final panch2 = v('p2_panch2', v('panch2'));
+        final panch2Line2 = v('p2_panch2Line2');
 
         final raidDate =
             v('p2_raidDate', v('raidDate', '......./ ......./२०.....'));
         final village = v('p2_village', v('village', '-------------'));
         final suspectName = v('p2_suspectName',
-            v('suspectName', '-------------------------------------'));
+            v('suspectName', '---------------------------------------'));
         final suspectAge = v('p2_suspectAge', v('suspectAge', '........'));
         final suspectResidence =
-            v('p2_suspectResidence', v('suspectResidence', '-------------'));
-        final suspectTah = v('p2_suspectTah', v('suspectTah', '--------'));
+            v('p2_suspectResidence', v('suspectResidence', '--------------'));
+        final suspectTah =
+            v('p2_suspectTah', v('suspectTah', '-----------'));
         final suspectDist = v('p2_suspectDist', v('suspectDist', 'यवतमाळ'));
 
         final ioNameSig = v('p2_ioNameSig', v('ioNameSig'));
@@ -319,28 +351,30 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text('पोलीस स्टेशन $ps', style: regular),
-                    pw.SizedBox(height: 2),
-                    pw.Text('दिनांक : $dateStr', style: regular),
+                    pw.SizedBox(height: 3),
+                    pw.Text('दिनांक :$dateStr', style: regular),
                   ],
                 ),
               ),
             ),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 18),
 
             // Header Title
             pw.Center(
               child: pw.Column(
                 children: [
-                  pw.Text('-:: पंच सुचनापत्र ::-', style: headerTitle),
-                  pw.SizedBox(height: 2),
+                  pw.Text('—:: पंच सुचनापत्र ::—', style: headerTitle),
+                  pw.SizedBox(height: 3),
                   pw.Text(
                     '(कलम १७९ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
-                    style: headerSub,
+                    style: headerSub.copyWith(
+                      decoration: pw.TextDecoration.underline,
+                    ),
                   ),
                 ],
               ),
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 22),
 
             // Panch Names
             pw.Row(
@@ -348,8 +382,9 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
               children: [
                 pw.SizedBox(
                   width: 90,
-                  child: pw.Text('पंच नांव  :-', style: bold),
+                  child: pw.Text('पंच नांव', style: bold),
                 ),
+                pw.Text(':-   ', style: bold),
                 pw.Expanded(
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -362,13 +397,22 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                             child: pw.Text(
                               panch1.isNotEmpty
                                   ? panch1
-                                  : '__________________________________________________\n__________________________________________________',
+                                  : '--------------------------------------------------------',
                               style: regular,
                             ),
                           ),
                         ],
                       ),
-                      pw.SizedBox(height: 10),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(left: 14),
+                        child: pw.Text(
+                          panch1Line2.isNotEmpty
+                              ? panch1Line2
+                              : '--------------------------------------------------------',
+                          style: regular,
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
@@ -377,18 +421,27 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                             child: pw.Text(
                               panch2.isNotEmpty
                                   ? panch2
-                                  : '__________________________________________________\n__________________________________________________',
+                                  : '--------------------------------------------------------',
                               style: regular,
                             ),
                           ),
                         ],
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(left: 14),
+                        child: pw.Text(
+                          panch2Line2.isNotEmpty
+                              ? panch2Line2
+                              : '--------------------------------------------------------',
+                          style: regular,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 20),
 
             // Decorative oooo
             pw.Center(
@@ -396,33 +449,33 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 '००००',
                 style: pw.TextStyle(
                   font: devanagariBold,
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: pw.FontWeight.bold,
                   letterSpacing: 4,
                 ),
               ),
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 20),
 
             // Body Paragraph
             pw.RichText(
               textAlign: pw.TextAlign.justify,
               text: pw.TextSpan(
-                style: regular.copyWith(lineSpacing: 5),
+                style: regular.copyWith(lineSpacing: 6),
                 children: [
                   const pw.TextSpan(
                     text:
-                        '        आपणास या सुचनापत्र देण्यात येते की, आज दिनांक:',
+                        '      आपणास या सुचनापत्र देण्यात येते की, आज दिनांक:',
                   ),
                   pw.TextSpan(text: '$raidDate ', style: bold),
-                  const pw.TextSpan(text: 'रोजी ग्राम '),
+                  const pw.TextSpan(text: 'रोजी ग्राम'),
                   pw.TextSpan(text: '$village ', style: bold),
-                  const pw.TextSpan(text: 'येथीलनामे '),
+                  const pw.TextSpan(text: 'येथीलनामे'),
                   pw.TextSpan(text: '$suspectName ', style: bold),
-                  const pw.TextSpan(text: 'वय '),
+                  const pw.TextSpan(text: 'वय'),
                   pw.TextSpan(text: '$suspectAge ', style: bold),
-                  const pw.TextSpan(text: 'वर्ष '),
-                  const pw.TextSpan(text: 'रा. '),
+                  const pw.TextSpan(text: 'वर्ष'),
+                  const pw.TextSpan(text: '----------- रा.'),
                   pw.TextSpan(text: '$suspectResidence ', style: bold),
                   const pw.TextSpan(text: 'ता '),
                   pw.TextSpan(text: '$suspectTah ', style: bold),
@@ -435,22 +488,24 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 18),
+            pw.SizedBox(height: 22),
 
             // Closing line
             pw.Center(
-              child:
-                  pw.Text('करीता सुचनापत्र देण्यात येत आहे.', style: regular),
+              child: pw.Text(
+                'करीता सुचनापत्र देण्यात येत आहे.',
+                style: regular,
+              ),
             ),
             pw.Spacer(),
 
-            // Signature block
+            // Signature block (Right)
             pw.Align(
               alignment: pw.Alignment.topRight,
               child: pw.Column(
                 children: [
                   pw.Text('तपासी अधिकारी नांव व सही', style: bold),
-                  pw.SizedBox(height: 4),
+                  pw.SizedBox(height: 6),
                   pw.Text(
                     ioNameSig.isNotEmpty ? ioNameSig : '____________________',
                     style: regular,
@@ -458,16 +513,16 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 18),
 
-            // Receipt Acknowledgement
+            // Receipt Acknowledgement (Left)
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text('सुचनापत्र मिळाले आहे.', style: bold),
-                pw.SizedBox(height: 6),
+                pw.SizedBox(height: 8),
                 pw.Text('१) $panch1Receipt', style: regular),
-                pw.SizedBox(height: 4),
+                pw.SizedBox(height: 6),
                 pw.Text('२) $panch2Receipt', style: regular),
               ],
             ),

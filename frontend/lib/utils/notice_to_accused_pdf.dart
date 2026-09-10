@@ -30,17 +30,17 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
 
   final regular = pw.TextStyle(
     font: devanagari,
-    fontSize: 11,
-    lineSpacing: 5,
+    fontSize: 10.5,
+    lineSpacing: 4,
   );
   final bold = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: pw.FontWeight.bold,
   );
   final headerTitle = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: pw.FontWeight.bold,
   );
   final headerSub = pw.TextStyle(
@@ -54,22 +54,28 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
     return val.isEmpty ? fallback : val;
   }
 
+  const borderLine = pw.BorderSide(color: PdfColors.black, width: 0.8);
+
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 48),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 44),
       build: (pw.Context context) {
         final ps = v('policeStation', '--------');
-        final dateStr = v('date', '......./ ......../२०...');
+        final dateStr = v('date', '......./ ......../२०....');
 
-        final accusedNameAddress = v('accusedNameAddress');
+        final accusedLine1 = v('accusedName', v('accusedNameAddress'));
+        final accusedLine2 = v('accusedNameLine2');
+
         final mobileNo = v('mobileNo', '..................................');
         final aadhaarNo = v('aadhaarNo', '..................................');
         final email = v('email',
             '.........................................................................');
 
         final firPs = v('firPs', '...................');
-        final crimeNo = v('crimeNo', '............');
+        final firDist = v('firDist', 'यवतमाळ');
+        final crimeNo = v('crimeNumberOnly', v('crimeNo', '............'));
+        final crimeYear = v('crimeYear', '२५');
         final actSec = v('actSec', '...................................');
         final coActSec = v('coActSec', '.............................');
         final firDate = v('firDate', '...../...../२०.....');
@@ -84,37 +90,66 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
-            // ── TOP RIGHT ──
+            // ── TOP RIGHT POLICE STATION & DATE ──
             pw.Align(
               alignment: pw.Alignment.topRight,
               child: pw.Container(
-                width: 220,
+                width: 250,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('पोलीस स्टेशन $ps', style: regular),
-                    pw.SizedBox(height: 2),
-                    pw.Text('दिनांक : $dateStr', style: regular),
+                    pw.Row(
+                      children: [
+                        pw.Text('पोलीस स्टेशन ', style: bold),
+                        pw.Expanded(
+                          child: pw.Container(
+                            decoration: const pw.BoxDecoration(
+                              border: pw.Border(bottom: borderLine),
+                            ),
+                            alignment: pw.Alignment.centerLeft,
+                            child: pw.Text(ps, style: regular),
+                          ),
+                        ),
+                      ],
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Row(
+                      children: [
+                        pw.Text('दिनांक :', style: bold),
+                        pw.SizedBox(width: 4),
+                        pw.Expanded(
+                          child: pw.Container(
+                            decoration: const pw.BoxDecoration(
+                              border: pw.Border(bottom: borderLine),
+                            ),
+                            alignment: pw.Alignment.centerLeft,
+                            child: pw.Text(dateStr, style: regular),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 24),
 
             // ── HEADER TITLE ──
             pw.Center(
               child: pw.Column(
                 children: [
                   pw.Text('-:: आरोपीस सुचनापत्र ::-', style: headerTitle),
-                  pw.SizedBox(height: 2),
+                  pw.SizedBox(height: 3),
                   pw.Text(
                     '(भारतीय नागरी सुरक्षा संहिता २०२३ कलम ४७ (१)(२))',
-                    style: headerSub,
+                    style: headerSub.copyWith(
+                      decoration: pw.TextDecoration.underline,
+                    ),
                   ),
                 ],
               ),
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 28),
 
             // ── ACCUSED SECTION ──
             pw.Row(
@@ -122,42 +157,96 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
               children: [
                 pw.Text('नांव :- ', style: bold),
                 pw.Expanded(
-                  child: pw.Text(
-                    accusedNameAddress.isNotEmpty
-                        ? accusedNameAddress
-                        : '__________________________________________________________________\n__________________________________________________________________',
-                    style: regular,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                    children: [
+                      pw.Container(
+                        decoration: const pw.BoxDecoration(
+                          border: pw.Border(bottom: borderLine),
+                        ),
+                        child: pw.Text(
+                          accusedLine1.isNotEmpty ? accusedLine1 : ' ',
+                          style: regular,
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
+                      pw.Container(
+                        decoration: const pw.BoxDecoration(
+                          border: pw.Border(bottom: borderLine),
+                        ),
+                        child: pw.Text(
+                          accusedLine2.isNotEmpty ? accusedLine2 : ' ',
+                          style: regular,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 14),
 
+            // Mobile & Aadhaar
             pw.Row(
               children: [
-                pw.Text('मो.नं.:- $mobileNo', style: regular),
-                pw.SizedBox(width: 24),
-                pw.Text('आधार क्र :- $aadhaarNo', style: regular),
+                pw.Text('मो.नं.:-', style: bold),
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  flex: 5,
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(bottom: borderLine),
+                    ),
+                    child: pw.Text(mobileNo, style: regular),
+                  ),
+                ),
+                pw.SizedBox(width: 20),
+                pw.Text('आधार क्र :-', style: bold),
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  flex: 5,
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(bottom: borderLine),
+                    ),
+                    child: pw.Text(aadhaarNo, style: regular),
+                  ),
+                ),
               ],
             ),
-            pw.SizedBox(height: 6),
-            pw.Text('ईमेल :- $email', style: regular),
+            pw.SizedBox(height: 10),
+
+            // Email
+            pw.Row(
+              children: [
+                pw.Text('ईमेल :-', style: bold),
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(bottom: borderLine),
+                    ),
+                    child: pw.Text(email, style: regular),
+                  ),
+                ),
+              ],
+            ),
             pw.SizedBox(height: 24),
 
             // ── BODY PARAGRAPH 1 ──
             pw.RichText(
               textAlign: pw.TextAlign.justify,
               text: pw.TextSpan(
-                style: regular.copyWith(lineSpacing: 5),
+                style: regular.copyWith(lineSpacing: 6),
                 children: [
                   const pw.TextSpan(
                     text:
-                        '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरुध्द पोलीस स्टेशन ',
+                        '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन ',
                   ),
                   pw.TextSpan(text: '$firPs ', style: bold),
-                  const pw.TextSpan(text: 'जिल्हा यवतमाळ येथे अपराध क्रमांक'),
-                  pw.TextSpan(text: '$crimeNo/२०...... ', style: bold),
-                  const pw.TextSpan(text: 'कलम'),
+                  pw.TextSpan(text: 'जिल्हा $firDist येथे अपराध क्रमांक'),
+                  pw.TextSpan(text: ' $crimeNo / २०$crimeYear ', style: bold),
+                  const pw.TextSpan(text: 'कलम '),
                   pw.TextSpan(text: '$actSec ', style: bold),
                   const pw.TextSpan(
                     text: 'भा.न्या.संहिता २०२३ व सह कलम ',
@@ -172,13 +261,13 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 14),
+            pw.SizedBox(height: 16),
 
             // ── BODY PARAGRAPH 2 ──
             pw.RichText(
               textAlign: pw.TextAlign.justify,
               text: pw.TextSpan(
-                style: regular.copyWith(lineSpacing: 5),
+                style: regular.copyWith(lineSpacing: 6),
                 children: [
                   const pw.TextSpan(
                     text: '        सदर गुन्हा दखलपात्र असुन ',
@@ -196,10 +285,11 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 14),
+            pw.SizedBox(height: 16),
 
-            // ── BODY PARAGRAPH 3 ──
-            pw.Center(
+            // ── BODY PARAGRAPH 3 (Closing Line) ──
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 28),
               child: pw.Text(
                 'करीता आपणास सुचनापत्र देण्यात येत आहे.',
                 style: regular,
@@ -215,25 +305,38 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                 pw.Column(
                   children: [
                     pw.Text('आरोपीची स्वाक्षरी', style: bold),
-                    if (accusedSig.isNotEmpty) ...[
-                      pw.SizedBox(height: 4),
-                      pw.Text(accusedSig, style: regular),
-                    ],
+                    pw.SizedBox(height: 12),
+                    if (accusedSig.isNotEmpty)
+                      pw.Text(accusedSig, style: regular)
+                    else
+                      pw.Container(
+                        width: 150,
+                        decoration: const pw.BoxDecoration(
+                          border: pw.Border(bottom: borderLine),
+                        ),
+                        height: 1,
+                      ),
                   ],
                 ),
                 pw.Column(
                   children: [
                     pw.Text('तपासी अधिकारी नांव व सही', style: bold),
-                    pw.SizedBox(height: 4),
-                    pw.Text(
-                      ioNameSig.isNotEmpty ? ioNameSig : '____________________',
-                      style: regular,
-                    ),
+                    pw.SizedBox(height: 12),
+                    if (ioNameSig.isNotEmpty)
+                      pw.Text(ioNameSig, style: regular)
+                    else
+                      pw.Container(
+                        width: 170,
+                        decoration: const pw.BoxDecoration(
+                          border: pw.Border(bottom: borderLine),
+                        ),
+                        height: 1,
+                      ),
                   ],
                 ),
               ],
             ),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 24),
 
             // ── MRW FOOTER ──
             pw.Align(

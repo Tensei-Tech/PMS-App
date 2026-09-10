@@ -167,7 +167,12 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
               ),
               const pw.TextSpan(text: '  येथे अप.क्र.  '),
               pw.TextSpan(
-                text: v('crimeNo').isEmpty ? '........./ २०....' : v('crimeNo'),
+                text: v('crimeNo').isEmpty ? '.........' : v('crimeNo'),
+                style: bold,
+              ),
+              const pw.TextSpan(text: ' / २०'),
+              pw.TextSpan(
+                text: v('crimeYear').isEmpty ? '....' : v('crimeYear'),
                 style: bold,
               ),
               const pw.TextSpan(text: '  कलम  '),
@@ -194,9 +199,14 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
                     : v('accusedTah'),
                 style: bold,
               ),
+              const pw.TextSpan(text: '  जि '),
+              pw.TextSpan(
+                text: v('accusedDist').isEmpty ? 'यवतमाळ' : v('accusedDist'),
+                style: bold,
+              ),
               const pw.TextSpan(
                 text:
-                    '  जि यवतमाळ याचे घराचे झडती घेणे असल्याने आपण पंच म्हणुन हजर राहावे. असे पंचाना कळवुन नमुद पंच सहमत होवून हजर आले.',
+                    ' याचे घराचे झडती घेणे असल्याने आपण पंच म्हणुन हजर राहावे. असे पंचाना कळवुन नमुद पंच सहमत होवून हजर आले.',
               ),
             ],
           ),
