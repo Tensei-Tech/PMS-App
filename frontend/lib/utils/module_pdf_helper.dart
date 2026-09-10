@@ -9,6 +9,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/mpda/utils/mpda_form_pdf.dart';
+import '../modules/preventive/utils/preventive_form_pdf.dart';
 import 'ad_firestore_payload.dart';
 import 'app_constants.dart';
 import 'common_form_module.dart';
@@ -22,6 +23,7 @@ class ModulePdfHelper {
   static const String _kNcFormExtraFieldsKey = 'ncForm';
   static const String _kMissingFormExtraFieldsKey = 'missingForm';
   static const String _kMpdaFormExtraFieldsKey = 'mpdaForm';
+  static const String _kPreventiveFormExtraFieldsKey = 'preventiveForm';
 
   /// When [_kNcFormExtraFieldsKey] is present — NC standalone form map + extraMap PDF.
   static Future<bool> printNcFormStoredPdf(ModuleRecord record) async {
@@ -113,6 +115,18 @@ class ModulePdfHelper {
     return true;
   }
 
+  /// When [_kPreventiveFormExtraFieldsKey] is present — Preventive / Istegasha Form PDF.
+  static Future<bool> printPreventiveFormStoredPdf(ModuleRecord record) async {
+    if (record.moduleKey != 'preventive') return false;
+    final nested = record.extraFields[_kPreventiveFormExtraFieldsKey];
+    if (nested is! Map && record.extraFields.isEmpty) return false;
+    await PreventiveFormPdfHelper.printPdf(
+      data: record.extraFields,
+      policeStation: record.stationName,
+    );
+    return true;
+  }
+
   /// When [_kMpdaFormExtraFieldsKey] is present — MPDA Form PDF.
   static Future<bool> printMpdaFormStoredPdf(ModuleRecord record) async {
     if (record.moduleKey != 'mpda') return false;
@@ -131,6 +145,7 @@ class ModulePdfHelper {
     final displayName = record.firestoreCategoryDisplayName;
     if (await printNcFormStoredPdf(record)) return;
     if (await printMissingFormStoredPdf(record)) return;
+    if (await printPreventiveFormStoredPdf(record)) return;
     if (await printMpdaFormStoredPdf(record)) return;
     if (await printCommonFormStoredPdf(record)) return;
 

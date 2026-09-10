@@ -52,6 +52,7 @@ import '../modules/passport/providers/passport_provider.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
+import '../modules/preventive/screens/preventive_form_screen.dart';
 import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
 import '../modules/sand_theft/providers/sand_theft_provider.dart';
 import '../modules/theft/providers/theft_provider.dart';
@@ -87,6 +88,7 @@ import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/voice_search_dialog.dart';
 import 'about_app_screen.dart';
 import 'absconded_cases_screen.dart';
+import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
 import 'add_members_screen.dart';
 import 'admin_panel_screen.dart';
@@ -9279,6 +9281,12 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   page: const FormIVSelectionScreen(
                 mode: FormIVSelectionMode.add,
               )));
+        } else if (item.moduleKey == 'ad') {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const ADFormScreen(),
+              ));
         } else if (item.moduleKey == 'nc') {
           Navigator.push(
               context,
@@ -9292,6 +9300,14 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
               context,
               AppTheme.fadeSlideRoute(
                 page: MissingFormScreen(
+                  moduleLabel: item.name,
+                ),
+              ));
+        } else if (item.moduleKey == 'preventive') {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: PreventiveFormScreen(
                   moduleLabel: item.name,
                 ),
               ));

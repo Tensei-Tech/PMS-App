@@ -72,6 +72,7 @@ import 'absconded_cases_screen.dart';
 import 'module_record_detail_screen.dart';
 import 'report_case_list_screen.dart';
 import '../modules/mpda/screens/mpda_form_screen.dart';
+import '../modules/preventive/screens/preventive_form_screen.dart';
 
 class _CategoryMeta {
   final String label;
@@ -380,6 +381,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         context,
         AppTheme.fadeSlideRoute(
           page: MissingFormScreen(
+            moduleLabel: widget.moduleLabel,
+            subCategory: widget.subCategory,
+          ),
+        ),
+      );
+      return;
+    }
+    if (widget.moduleKey == 'preventive') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: PreventiveFormScreen(
             moduleLabel: widget.moduleLabel,
             subCategory: widget.subCategory,
           ),
@@ -4215,7 +4228,21 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 );
                 return;
               }
-              if (widget.moduleKey == 'mpda') {
+              if (widget.moduleKey == 'preventive' ||
+                  record.moduleKey == 'preventive') {
+                Navigator.push(
+                  ctx,
+                  AppTheme.fadeSlideRoute(
+                    page: PreventiveFormScreen(
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                      subCategory: widget.subCategory,
+                      existingRecord: record,
+                    ),
+                  ),
+                );
+                return;
+              }
+              if (widget.moduleKey == 'mpda' || record.moduleKey == 'mpda') {
                 Navigator.push(
                   ctx,
                   AppTheme.fadeSlideRoute(
