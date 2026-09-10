@@ -1595,17 +1595,24 @@ class CommonFormState extends State<CommonForm> {
 
     final propDet = m['propertyDetails'] as Map?;
     if (propDet != null) {
-      if (_stolenQuantity.text.isEmpty)
+      if (_stolenQuantity.text.isEmpty) {
         _stolenQuantity.text = _s(propDet['quantity']);
-      if (_stolenId.text.isEmpty) _stolenId.text = _s(propDet['id']);
-      if (_stolenEstValue.text.isEmpty)
+      }
+      if (_stolenId.text.isEmpty) {
+        _stolenId.text = _s(propDet['id']);
+      }
+      if (_stolenEstValue.text.isEmpty) {
         _stolenEstValue.text = _s(propDet['estValue']);
-      if (_recoveredDate.text.isEmpty)
+      }
+      if (_recoveredDate.text.isEmpty) {
         _recoveredDate.text = _s(propDet['recDate']);
-      if (_recoveredFrom.text.isEmpty)
+      }
+      if (_recoveredFrom.text.isEmpty) {
         _recoveredFrom.text = _s(propDet['recFrom']);
-      if (_recoveredProperty.text.isEmpty && sp != null)
+      }
+      if (_recoveredProperty.text.isEmpty && sp != null) {
         _recoveredProperty.text = _s(sp['recovered']);
+      }
     }
 
     final comp = m['complainant'] as Map?;

@@ -1921,25 +1921,30 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     }
   }
 
-  Future<void> _showQuickDisposeDialog(BuildContext context, ModuleRecord record) async {
+  Future<void> _showQuickDisposeDialog(
+      BuildContext context, ModuleRecord record) async {
     final ccCtrl = TextEditingController();
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text('Quick Dispose', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+        title: Text('Quick Dispose',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Enter CC / ST Number (Optional) to mark this case as disposed.', style: GoogleFonts.poppins(fontSize: 13)),
+            Text(
+                'Enter CC / ST Number (Optional) to mark this case as disposed.',
+                style: GoogleFonts.poppins(fontSize: 13)),
             const SizedBox(height: 16),
             TextField(
               controller: ccCtrl,
               decoration: InputDecoration(
                 labelText: 'CC / ST No.',
                 labelStyle: GoogleFonts.poppins(fontSize: 13),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 isDense: true,
               ),
             ),
@@ -1948,16 +1953,19 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: GoogleFonts.poppins(color: AppColors.lightSubText)),
+            child: Text('Cancel',
+                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.successGreen,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
-            child: Text('Dispose Case', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            child: Text('Dispose Case',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -1967,7 +1975,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
     final ccVal = ccCtrl.text.trim();
     final currentRecord = record;
-    
+
     final newCourt = Map<String, dynamic>.from(
       (currentRecord.extraFields['court'] is Map)
           ? currentRecord.extraFields['court'] as Map
@@ -1999,13 +2007,15 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
     await context.read<FormIVProvider>().updateRecord(updatedRecord);
     if (!context.mounted) return;
-    
+
     widget.onChargeSheetSubmitted?.call();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          ccVal.isNotEmpty ? 'Case disposed with CC/ST No. $ccVal' : 'Case marked as disposed',
+          ccVal.isNotEmpty
+              ? 'Case disposed with CC/ST No. $ccVal'
+              : 'Case marked as disposed',
           style: GoogleFonts.poppins(),
         ),
         backgroundColor: AppColors.successGreen,
@@ -2130,7 +2140,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: const Color(0xFFCBD5E1)),
+                                border:
+                                    Border.all(color: const Color(0xFFCBD5E1)),
                               ),
                               alignment: Alignment.center,
                               child: Row(
@@ -2359,11 +2370,13 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           const SizedBox(width: 8),
 
                           // 6. Action Buttons: Edit, View, PDF & Chevron
-                          if (!widget.readOnly && record.status != 'Disposal') ...[
+                          if (!widget.readOnly &&
+                              record.status != 'Disposal') ...[
                             _buildCompactActionButton(
                               icon: Icons.gavel_outlined,
                               label: 'Dispose',
-                              onTap: () => _showQuickDisposeDialog(context, record),
+                              onTap: () =>
+                                  _showQuickDisposeDialog(context, record),
                             ),
                             const SizedBox(width: 6),
                           ],

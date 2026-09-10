@@ -609,7 +609,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             ? allRecords
             : allRecords.where((r) => r.status == _filter).toList();
       }
-
     }
 
     return Scaffold(
@@ -629,12 +628,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               slivers: [
                 if (widget.moduleKey == 'monthly') ...[
                   // Monthly module is report-only (no records section).
-                  SliverToBoxAdapter(child: _buildMonthlyReport(context, allRecords)),
+                  SliverToBoxAdapter(
+                      child: _buildMonthlyReport(context, allRecords)),
                 ] else if (widget.moduleKey == 'pending') ...[
-                  SliverToBoxAdapter(child: _buildPendingModuleReportOnly(context)),
+                  SliverToBoxAdapter(
+                      child: _buildPendingModuleReportOnly(context)),
                 ] else if (widget.moduleLabel == 'Forms' &&
                     widget.moduleKey == 'form_1_5') ...[
-                  SliverToBoxAdapter(child: _buildFormsModuleReportOnly(context)),
+                  SliverToBoxAdapter(
+                      child: _buildFormsModuleReportOnly(context)),
                 ] else ...[
                   if (widget.moduleKey == 'disposal')
                     SliverToBoxAdapter(child: _buildModuleTabs()),
@@ -642,26 +644,26 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     SliverToBoxAdapter(
                         child: _buildMonthlyReport(context, allRecords))
                   else ...[
-              if (filtered.isEmpty)
-                SliverToBoxAdapter(child: _buildEmpty())
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (ctx, i) => _buildCard(ctx, filtered[i]),
-                      childCount: filtered.length,
-                    ),
-                  ),
-                ),
-            ],
-          ],
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                    if (filtered.isEmpty)
+                      SliverToBoxAdapter(child: _buildEmpty())
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (ctx, i) => _buildCard(ctx, filtered[i]),
+                            childCount: filtered.length,
+                          ),
+                        ),
+                      ),
+                  ],
+                ],
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ],
+            ),
+          ),
         ],
       ),
-    ),
-  ],
-),
       floatingActionButton: (widget.readOnly ||
               widget.moduleKey == 'detected' ||
               widget.moduleKey == 'undetected' ||
@@ -3557,7 +3559,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-
   Widget _buildStatsRow(int total, int disposal, int pending) {
     if (widget.moduleKey == 'mpda') {
       final provider = _watchProvider(context);
@@ -3737,8 +3738,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         child: Row(
           children: tabs.map((item) {
             String currentFilter = _filter;
-            if (currentFilter == 'Open' || currentFilter == 'Active') currentFilter = 'Pending';
-            if (currentFilter == 'Closed' || currentFilter == 'Resolved') currentFilter = 'Disposal';
+            if (currentFilter == 'Open' || currentFilter == 'Active')
+              currentFilter = 'Pending';
+            if (currentFilter == 'Closed' || currentFilter == 'Resolved')
+              currentFilter = 'Disposal';
             final isSelected = currentFilter == item.filterKey;
 
             return Padding(
@@ -3752,9 +3755,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
-                        color: isSelected
-                            ? item.activeBorder
-                            : Colors.transparent,
+                        color:
+                            isSelected ? item.activeBorder : Colors.transparent,
                         width: 2.5,
                       ),
                     ),
@@ -3798,6 +3800,72 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               ),
             );
           }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _statCard(String label, int value, Color color, String filterKey) {
+    final isSelected = _filter == filterKey;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _filter = filterKey),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? color.withValues(alpha: 0.22)
+                : color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(
+              color: isSelected ? color : color.withValues(alpha: 0.3),
+              width: isSelected ? 2.0 : 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.18),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    )
+                  ]
+                : null,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$value',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (isSelected) ...[
+                    Icon(Icons.check_circle_rounded, size: 10, color: color),
+                    const SizedBox(width: 3),
+                  ],
+                  Text(
+                    TranslationHelper.translate(context, label),
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.navyDark
+                          : AppColors.lightSubText,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
