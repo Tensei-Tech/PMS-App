@@ -1921,6 +1921,98 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     }
   }
 
+  Future<void> _showQuickDisposeDialog(BuildContext context, ModuleRecord record) async {
+    final ccCtrl = TextEditingController();
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Text('Quick Dispose', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Enter CC / ST Number (Optional) to mark this case as disposed.', style: GoogleFonts.poppins(fontSize: 13)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: ccCtrl,
+              decoration: InputDecoration(
+                labelText: 'CC / ST No.',
+                labelStyle: GoogleFonts.poppins(fontSize: 13),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                isDense: true,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: GoogleFonts.poppins(color: AppColors.lightSubText)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.successGreen,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('Dispose Case', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final ccVal = ccCtrl.text.trim();
+    final currentRecord = record;
+    
+    final newCourt = Map<String, dynamic>.from(
+      (currentRecord.extraFields['court'] is Map)
+          ? currentRecord.extraFields['court'] as Map
+          : {},
+    );
+    if (ccVal.isNotEmpty) newCourt['ccStNumber'] = ccVal;
+
+    final newExtra = Map<String, dynamic>.from(currentRecord.extraFields);
+    newExtra['court'] = newCourt;
+    newExtra['disposedAt'] = DateTime.now().toIso8601String();
+    if (ccVal.isNotEmpty) newExtra['disposedCcStNumber'] = ccVal;
+
+    if (newExtra[kCommonFormExtraFieldsKey] is Map) {
+      final nested = Map<String, dynamic>.from(
+        newExtra[kCommonFormExtraFieldsKey] as Map,
+      );
+      final nestedCourt = Map<String, dynamic>.from(
+        (nested['court'] is Map) ? nested['court'] as Map : {},
+      );
+      if (ccVal.isNotEmpty) nestedCourt['ccStNumber'] = ccVal;
+      nested['court'] = nestedCourt;
+      newExtra[kCommonFormExtraFieldsKey] = nested;
+    }
+
+    final updatedRecord = currentRecord.copyWith(
+      status: 'Disposal',
+      extraFields: newExtra,
+    );
+
+    await context.read<FormIVProvider>().updateRecord(updatedRecord);
+    if (!context.mounted) return;
+    
+    widget.onChargeSheetSubmitted?.call();
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ccVal.isNotEmpty ? 'Case disposed with CC/ST No. $ccVal' : 'Case marked as disposed',
+          style: GoogleFonts.poppins(),
+        ),
+        backgroundColor: AppColors.successGreen,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final record = widget.record;
@@ -2036,8 +2128,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1E293B),
+                                color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFFCBD5E1)),
                               ),
                               alignment: Alignment.center,
                               child: Row(
@@ -2048,7 +2141,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 9.5,
                                       fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF94A3B8),
+                                      color: const Color(0xFF64748B),
                                     ),
                                   ),
                                   Flexible(
@@ -2059,7 +2152,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                       style: GoogleFonts.poppins(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w700,
-                                        color: Colors.white,
+                                        color: const Color(0xFF0F172A),
                                       ),
                                     ),
                                   ),
@@ -2266,6 +2359,14 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           const SizedBox(width: 8),
 
                           // 6. Action Buttons: Edit, View, PDF & Chevron
+                          if (!widget.readOnly && record.status != 'Disposal') ...[
+                            _buildCompactActionButton(
+                              icon: Icons.gavel_outlined,
+                              label: 'Dispose',
+                              onTap: () => _showQuickDisposeDialog(context, record),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
                           if (!widget.readOnly) ...[
                             _buildCompactActionButton(
                               icon: Icons.edit_outlined,
@@ -2634,39 +2735,28 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     Color? color,
   }) {
     final fg = color ?? const Color(0xFF1E293B);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        height: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 13, color: fg),
-            const SizedBox(width: 4),
-            Text(
-              TranslationHelper.translate(context, label),
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: fg,
+    return Tooltip(
+      message: TranslationHelper.translate(context, label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 28,
+          width: 32, // Fixed width for square buttons
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
               ),
-            ),
-          ],
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 15, color: fg),
         ),
       ),
     );
@@ -2753,16 +2843,30 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
               ),
-              child: Text(
-                'CR $crNo',
-                style: GoogleFonts.poppins(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'CR ',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  Text(
+                    crNo,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (categoryLabel.isNotEmpty) ...[

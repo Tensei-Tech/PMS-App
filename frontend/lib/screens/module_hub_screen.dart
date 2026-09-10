@@ -465,66 +465,59 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     final List<ModuleRecord> filtered;
-    if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
-      if (_filter == 'Disposal' ||
-          _filter == 'Closed' ||
-          _filter == 'Resolved') {
-        filtered = allRecords
-            .where((r) =>
-                r.status == 'Disposal' ||
-                r.status == 'Closed' ||
-                r.status == 'Resolved')
-            .toList();
-      } else if (_filter == 'Pending' ||
-          _filter == 'Open' ||
-          _filter == 'Active') {
-        filtered = allRecords
-            .where((r) =>
-                r.status != 'Disposal' &&
-                r.status != 'Closed' &&
-                r.status != 'Resolved')
-            .toList();
-      } else {
-        filtered = allRecords;
-      }
+    if (_filter == 'Disposal' ||
+        _filter == 'Closed' ||
+        _filter == 'Resolved') {
+      filtered = allRecords
+          .where((r) =>
+              r.status == 'Disposal' ||
+              r.status == 'Closed' ||
+              r.status == 'Resolved')
+          .toList();
+    } else if (_filter == 'Pending' ||
+        _filter == 'Open' ||
+        _filter == 'Active') {
+      filtered = allRecords
+          .where((r) =>
+              r.status != 'Disposal' &&
+              r.status != 'Closed' &&
+              r.status != 'Resolved')
+          .toList();
     } else {
-      filtered = _filter == 'All'
-          ? allRecords
-          : allRecords.where((r) => r.status == _filter).toList();
+      filtered = allRecords;
     }
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: _buildAppBar(context, totalCount),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          if (widget.moduleKey == 'monthly') ...[
-            // Monthly module is report-only (no records section).
-            SliverToBoxAdapter(child: _buildMonthlyReport(context, allRecords)),
-          ] else if (widget.moduleKey == 'pending') ...[
-            SliverToBoxAdapter(child: _buildPendingModuleReportOnly(context)),
-          ] else if (widget.moduleLabel == 'Forms' &&
-              widget.moduleKey == 'form_1_5') ...[
-            SliverToBoxAdapter(child: _buildFormsModuleReportOnly(context)),
-          ] else ...[
-            if (widget.moduleKey == 'disposal')
-              SliverToBoxAdapter(child: _buildModuleTabs()),
-            if (_isReportMode && widget.moduleKey == 'disposal')
-              SliverToBoxAdapter(
-                  child: _buildMonthlyReport(context, allRecords))
-            else ...[
-              if (widget.moduleKey != 'form_1_5' &&
-                  widget.moduleKey != 'disposal') ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
-                        AppSpacing.md, AppSpacing.lg, AppSpacing.md),
-                    child: _buildStatsRow(openCount, activeCount, resolvedCount,
-                        closedCount, totalCount),
-                  ),
-                ),
-              ],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (widget.moduleKey != 'form_1_5' &&
+              widget.moduleKey != 'disposal' &&
+              widget.moduleKey != 'monthly' &&
+              widget.moduleKey != 'pending')
+            _buildStatsRow(openCount, activeCount, resolvedCount,
+                closedCount, totalCount),
+          Expanded(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                if (widget.moduleKey == 'monthly') ...[
+                  // Monthly module is report-only (no records section).
+                  SliverToBoxAdapter(child: _buildMonthlyReport(context, allRecords)),
+                ] else if (widget.moduleKey == 'pending') ...[
+                  SliverToBoxAdapter(child: _buildPendingModuleReportOnly(context)),
+                ] else if (widget.moduleLabel == 'Forms' &&
+                    widget.moduleKey == 'form_1_5') ...[
+                  SliverToBoxAdapter(child: _buildFormsModuleReportOnly(context)),
+                ] else ...[
+                  if (widget.moduleKey == 'disposal')
+                    SliverToBoxAdapter(child: _buildModuleTabs()),
+                  if (_isReportMode && widget.moduleKey == 'disposal')
+                    SliverToBoxAdapter(
+                        child: _buildMonthlyReport(context, allRecords))
+                  else ...[
               if (filtered.isEmpty)
                 SliverToBoxAdapter(child: _buildEmpty())
               else
@@ -542,6 +535,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
+    ),
+  ],
+),
       floatingActionButton: (widget.readOnly ||
               widget.moduleKey == 'detected' ||
               widget.moduleKey == 'undetected' ||
@@ -576,7 +572,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       title: transTitle,
       subtitle: '$total $transRecord $transReg',
       badgeLabel: transTitle.toUpperCase(),
-      onAddPressed: widget.readOnly ? null : () => _openNewEntryForm(context),
       backgroundColor: (widget.moduleKey == 'detected' ||
               widget.moduleKey == 'undetected' ||
               widget.moduleKey == 'disposal')
@@ -3439,145 +3434,123 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   Widget _buildStatsRow(
       int open, int active, int resolved, int closed, int total) {
-    if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
-      final provider = _watchProvider(context);
-      final allRecs = provider.getFilteredRecords(widget.subCategory);
-      final disposalCount = allRecs
-          .where((r) =>
-              r.status == 'Disposal' ||
-              r.status == 'Closed' ||
-              r.status == 'Resolved')
-          .length;
-      final pendingCount = allRecs.length - disposalCount;
-      final totalCaseCount = allRecs.length;
+    final provider = _watchProvider(context);
+    final allRecs = provider.getFilteredRecords(widget.subCategory);
+    
+    final disposalCount = allRecs
+        .where((r) =>
+            r.status == 'Disposal' ||
+            r.status == 'Closed' ||
+            r.status == 'Resolved')
+        .length;
+    final pendingCount = allRecs.length - disposalCount;
+    final totalCaseCount = allRecs.length;
 
-      return Row(
-        children: [
-          _statCard('Total Case', totalCaseCount, AppColors.infoBlue, 'All'),
-          const SizedBox(width: 8),
-          _statCard(
-              'Pending', pendingCount, AppColors.warningOrange, 'Pending'),
-          const SizedBox(width: 8),
-          _statCard(
-              'Disposal', disposalCount, AppColors.successGreen, 'Disposal'),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        if (!widget.readOnly) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openNewEntryForm(context),
-                    icon: const Icon(Icons.add_rounded,
-                        color: Colors.white, size: 20),
-                    label: Text(
-                      '+ ${TranslationHelper.translate(context, 'Add New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'case')}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyDark,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: const StadiumBorder(),
-                      elevation: 3,
-                      shadowColor: AppColors.navyDark.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        Row(children: [
-          _statCard('Total', total, AppColors.infoBlue, 'All'),
-          const SizedBox(width: 8),
-          _statCard('Open', open, AppColors.warningOrange, 'Open'),
-          const SizedBox(width: 8),
-          _statCard('Active', active, AppColors.goldPrimary, 'Active'),
-        ]),
-        const SizedBox(height: 8),
-        Row(children: [
-          _statCard('Resolved', resolved, AppColors.successGreen, 'Resolved'),
-          const SizedBox(width: 8),
-          _statCard('Closed', closed, const Color(0xFF607D8B), 'Closed'),
-          const SizedBox(width: 8),
-          const Expanded(child: SizedBox()),
-        ]),
-      ],
-    );
+    return _statusTabBar(totalCaseCount, pendingCount, disposalCount);
   }
 
-  Widget _statCard(String label, int value, Color color, String filterKey) {
-    final isSelected = _filter == filterKey;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _filter = filterKey),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? color.withValues(alpha: 0.22)
-                : color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(
-              color: isSelected ? color : color.withValues(alpha: 0.3),
-              width: isSelected ? 2.0 : 1.0,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.18),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    )
-                  ]
-                : null,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$value',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (isSelected) ...[
-                    Icon(Icons.check_circle_rounded, size: 10, color: color),
-                    const SizedBox(width: 3),
-                  ],
-                  Text(
-                    TranslationHelper.translate(context, label),
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w600,
-                      color: isSelected
-                          ? AppColors.navyDark
-                          : AppColors.lightSubText,
+  Widget _statusTabBar(int totalCount, int pendingCount, int disposalCount) {
+    final tabs = [
+      (
+        label: 'Total Cases',
+        count: totalCount,
+        filterKey: 'All',
+        badgeBg: const Color(0xFFE8F1FC),
+        badgeFg: const Color(0xFF1976D2),
+        activeBorder: const Color(0xFF1976D2),
+      ),
+      (
+        label: 'Pending',
+        count: pendingCount,
+        filterKey: 'Pending',
+        badgeBg: const Color(0xFFFFF3E0),
+        badgeFg: const Color(0xFFE65100),
+        activeBorder: const Color(0xFFE65100),
+      ),
+      (
+        label: 'Disposal',
+        count: disposalCount,
+        filterKey: 'Disposal',
+        badgeBg: const Color(0xFFE8F5E9),
+        badgeFg: const Color(0xFF2E7D32),
+        activeBorder: const Color(0xFF2E7D32),
+      ),
+    ];
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+        ),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: tabs.map((item) {
+            String currentFilter = _filter;
+            if (currentFilter == 'Open' || currentFilter == 'Active') currentFilter = 'Pending';
+            if (currentFilter == 'Closed' || currentFilter == 'Resolved') currentFilter = 'Disposal';
+            final isSelected = currentFilter == item.filterKey;
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 24),
+              child: InkWell(
+                onTap: () => setState(() => _filter = item.filterKey),
+                hoverColor: Colors.transparent,
+                splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: isSelected
+                            ? item.activeBorder
+                            : Colors.transparent,
+                        width: 2.5,
+                      ),
                     ),
                   ),
-                ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        TranslationHelper.translate(context, item.label),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13.5,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.navyDark
+                              : AppColors.lightSubText,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: item.badgeBg,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${item.count}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: item.badgeFg,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ],
-          ),
+            );
+          }).toList(),
         ),
       ),
     );

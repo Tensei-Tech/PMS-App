@@ -6,15 +6,15 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
-import '../utils/state_language_helper.dart';
-import 'package:provider/provider.dart';
 import '../screens/my_cases_screen.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
+import '../utils/state_language_helper.dart';
 
 /// Summary cards: total active, pending cases, disposed — filtered by role/visibility.
 class DashboardStatsWidget extends StatefulWidget {

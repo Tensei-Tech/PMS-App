@@ -176,6 +176,11 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         'Ends at I.O. signature',
         sectionId: 'Duty Pass',
       ),
+      _sub(
+        'Exhumation Panchanama',
+        'Ends at I.O. signature',
+        sectionId: 'Exhumation Panchanama',
+      ),
     ],
   ),
   FormsListEntry(
