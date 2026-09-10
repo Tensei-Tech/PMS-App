@@ -238,13 +238,11 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
       }
     }
 
-    _p1Panch1Line1Ctrl.text = data['p1_panch1']?.toString() ??
-        data['panch1']?.toString() ??
-        '';
+    _p1Panch1Line1Ctrl.text =
+        data['p1_panch1']?.toString() ?? data['panch1']?.toString() ?? '';
     _p1Panch1Line2Ctrl.text = data['p1_panch1Line2']?.toString() ?? '';
-    _p1Panch2Line1Ctrl.text = data['p1_panch2']?.toString() ??
-        data['panch2']?.toString() ??
-        '';
+    _p1Panch2Line1Ctrl.text =
+        data['p1_panch2']?.toString() ?? data['panch2']?.toString() ?? '';
     _p1Panch2Line2Ctrl.text = data['p1_panch2Line2']?.toString() ?? '';
 
     _p1FirPsCtrl.text =
@@ -306,13 +304,11 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
       }
     }
 
-    _p2Panch1Line1Ctrl.text = data['p2_panch1']?.toString() ??
-        data['panch1']?.toString() ??
-        '';
+    _p2Panch1Line1Ctrl.text =
+        data['p2_panch1']?.toString() ?? data['panch1']?.toString() ?? '';
     _p2Panch1Line2Ctrl.text = data['p2_panch1Line2']?.toString() ?? '';
-    _p2Panch2Line1Ctrl.text = data['p2_panch2']?.toString() ??
-        data['panch2']?.toString() ??
-        '';
+    _p2Panch2Line1Ctrl.text =
+        data['p2_panch2']?.toString() ?? data['panch2']?.toString() ?? '';
     _p2Panch2Line2Ctrl.text = data['p2_panch2Line2']?.toString() ?? '';
 
     _p2RaidDateCtrl.text =

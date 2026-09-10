@@ -337,13 +337,13 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
                 style: regular,
                 children: [
                   const pw.TextSpan(
-                    text:
-                        '        आपल्या अटकेची माहीती आपले नातेवाईक/ मित्र ',
+                    text: '        आपल्या अटकेची माहीती आपले नातेवाईक/ मित्र ',
                   ),
                   pw.TextSpan(text: '$relativeName ', style: bold),
                   const pw.TextSpan(text: 'रा.'),
                   pw.TextSpan(text: '$relativeAddress ', style: bold),
-                  const pw.TextSpan(text: 'यांना लेखी सुचनेद्वारे/फोन क्रमांक '),
+                  const pw.TextSpan(
+                      text: 'यांना लेखी सुचनेद्वारे/फोन क्रमांक '),
                   pw.TextSpan(text: '$relativePhone ', style: bold),
                   const pw.TextSpan(
                     text: 'यावर संपर्क करुन देण्यांत आली आहे.',

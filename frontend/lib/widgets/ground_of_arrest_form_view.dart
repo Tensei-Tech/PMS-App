@@ -803,7 +803,8 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                     serifStyle: serif,
                   ),
                 ),
-                Text('यांना लेखी सुचनेद्वारे/फोन क्रमांक', style: bodyTextStyle),
+                Text('यांना लेखी सुचनेद्वारे/फोन क्रमांक',
+                    style: bodyTextStyle),
                 SizedBox(
                   width: 140,
                   child: BilingualSimpleUnderlineInput(

@@ -187,9 +187,8 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
 
   void hydrateFrom(Map<String, dynamic> data) {
     setState(() {
-      _psCtrl.text = data['policeStation']?.toString() ??
-          data['ps']?.toString() ??
-          '';
+      _psCtrl.text =
+          data['policeStation']?.toString() ?? data['ps']?.toString() ?? '';
 
       _dateCtrl.text = data['date']?.toString() ?? '';
       _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
@@ -214,9 +213,9 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
         _accusedNameLine1Ctrl.text = p[0].trim();
         _accusedNameLine2Ctrl.text = p.sublist(1).join(' ').trim();
       } else {
-        _accusedNameLine1Ctrl.text = data['accusedName']?.toString() ?? rawAccused;
-        _accusedNameLine2Ctrl.text =
-            data['accusedNameLine2']?.toString() ?? '';
+        _accusedNameLine1Ctrl.text =
+            data['accusedName']?.toString() ?? rawAccused;
+        _accusedNameLine2Ctrl.text = data['accusedNameLine2']?.toString() ?? '';
       }
 
       _mobileNoCtrl.text = data['mobileNo']?.toString() ?? '';
@@ -238,9 +237,8 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
         _crimeYearCtrl.text = data['crimeYear']?.toString() ?? '२५';
       }
 
-      _actSecCtrl.text = data['actSecLine1']?.toString() ??
-          data['actSec']?.toString() ??
-          '';
+      _actSecCtrl.text =
+          data['actSecLine1']?.toString() ?? data['actSec']?.toString() ?? '';
       _actSecLine2Ctrl.text = data['actSecLine2']?.toString() ?? '';
 
       _coActSecCtrl.text = data['coActSecLine1']?.toString() ??
@@ -648,8 +646,7 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                   width: 270,
                   child: Column(
                     children: [
-                      Text('तपासी अधिकारी नांव व सही',
-                          style: headerLabelStyle),
+                      Text('तपासी अधिकारी नांव व सही', style: headerLabelStyle),
                       const SizedBox(height: 10),
                       BilingualSimpleUnderlineInput(
                         controller: _ioNameSigCtrl,

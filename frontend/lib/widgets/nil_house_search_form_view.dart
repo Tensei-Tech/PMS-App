@@ -650,7 +650,8 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
               spacing: 6,
               runSpacing: 10,
               children: [
-                Text('       निल घरझडती पंचनामा आज दिनांक ', style: bodyTextStyle),
+                Text('       निल घरझडती पंचनामा आज दिनांक ',
+                    style: bodyTextStyle),
                 SizedBox(
                   width: 32,
                   child: BilingualSimpleUnderlineInput(

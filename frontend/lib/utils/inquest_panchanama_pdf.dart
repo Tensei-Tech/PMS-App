@@ -1782,17 +1782,20 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Row(children: [
-                      pw.Text('पोलीस स्टेशन  : ', style: mrBold.copyWith(fontSize: 10)),
+                      pw.Text('पोलीस स्टेशन  : ',
+                          style: mrBold.copyWith(fontSize: 10)),
                       pw.Expanded(child: underlineField(v('dpPs'))),
                     ]),
                     pw.SizedBox(height: 4),
                     pw.Row(children: [
-                      pw.Text('कॅम्प            : ', style: mrBold.copyWith(fontSize: 10)),
+                      pw.Text('कॅम्प            : ',
+                          style: mrBold.copyWith(fontSize: 10)),
                       pw.Expanded(child: underlineField(v('dpCamp'))),
                     ]),
                     pw.SizedBox(height: 4),
                     pw.Row(children: [
-                      pw.Text('दिनांक          : ', style: mrBold.copyWith(fontSize: 10)),
+                      pw.Text('दिनांक          : ',
+                          style: mrBold.copyWith(fontSize: 10)),
                       pw.Expanded(child: underlineField(v('dpDate'))),
                     ]),
                   ],
@@ -1801,7 +1804,8 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ),
             pw.SizedBox(height: 14),
             pw.Row(children: [
-              pw.Text('पो अंमलदाराचे नांव  : ', style: mrBold.copyWith(fontSize: 10)),
+              pw.Text('पो अंमलदाराचे नांव  : ',
+                  style: mrBold.copyWith(fontSize: 10)),
               pw.Expanded(child: underlineField(v('dpAmaldaarName'))),
             ]),
             pw.SizedBox(height: 8),
@@ -1811,11 +1815,14 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               underlineField(v('dpDutyPs'), width: 140),
               pw.SizedBox(width: 14),
               pw.Text('जिल्हा ', style: mrBold.copyWith(fontSize: 10)),
-              underlineField(v('dpDutyDist').isEmpty ? 'यवतमाळ' : v('dpDutyDist'), width: 110),
+              underlineField(
+                  v('dpDutyDist').isEmpty ? 'यवतमाळ' : v('dpDutyDist'),
+                  width: 110),
             ]),
             pw.SizedBox(height: 8),
             pw.Row(children: [
-              pw.Text('नोकरीचा दिनांक व वेळ    :- ', style: mrBold.copyWith(fontSize: 10)),
+              pw.Text('नोकरीचा दिनांक व वेळ    :- ',
+                  style: mrBold.copyWith(fontSize: 10)),
               underlineField(v('dpDutyDateTime'), width: 220),
             ]),
             pw.SizedBox(height: 18),
@@ -1823,21 +1830,54 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               text: pw.TextSpan(
                 style: mrStyle.copyWith(fontSize: 10, lineSpacing: 4),
                 children: [
-                  const pw.TextSpan(text: '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक '),
-                  pw.TextSpan(text: v('dpMargNo').isEmpty ? '.......' : v('dpMargNo'), style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(
+                      text:
+                          '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक '),
+                  pw.TextSpan(
+                      text: v('dpMargNo').isEmpty ? '.......' : v('dpMargNo'),
+                      style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' / २०'),
-                  pw.TextSpan(text: v('dpMargYear').isEmpty ? '....' : v('dpMargYear'), style: mrBold.copyWith(fontSize: 10)),
+                  pw.TextSpan(
+                      text: v('dpMargYear').isEmpty ? '....' : v('dpMargYear'),
+                      style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' कलम '),
-                  pw.TextSpan(text: v('dpKalam').isEmpty ? '--------------------' : v('dpKalam'), style: mrBold.copyWith(fontSize: 10)),
+                  pw.TextSpan(
+                      text: v('dpKalam').isEmpty
+                          ? '--------------------'
+                          : v('dpKalam'),
+                      style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' मधील मृतक नामे '),
-                  pw.TextSpan(text: v('dpDeceasedName').isEmpty ? '------------------------------' : v('dpDeceasedName'), style: mrBold.copyWith(fontSize: 10)),
+                  pw.TextSpan(
+                      text: v('dpDeceasedName').isEmpty
+                          ? '------------------------------'
+                          : v('dpDeceasedName'),
+                      style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' रा. '),
-                  pw.TextSpan(text: v('dpDeceasedRa').isEmpty ? '-------------------' : v('dpDeceasedRa'), style: mrBold.copyWith(fontSize: 10)),
+                  pw.TextSpan(
+                      text: v('dpDeceasedRa').isEmpty
+                          ? '-------------------'
+                          : v('dpDeceasedRa'),
+                      style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' ता आणि जिल्हा '),
-                  pw.TextSpan(text: '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'.trim().isEmpty ? '-------------------' : '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'.trim(), style: mrBold.copyWith(fontSize: 10)),
-                  const pw.TextSpan(text: ' हयाचे / हिचे प्रेत सोबत घेउन मा.वैद्यकीय अधिकारी '),
-                  pw.TextSpan(text: v('dpMedOfficerName').isEmpty ? '----------------------------' : v('dpMedOfficerName'), style: mrBold.copyWith(fontSize: 10)),
-                  const pw.TextSpan(text: ' यांचेकडे शवविच्छेदनाकरीता दाखल करावे. व शवविच्छेदनानंतर प्रेत मृतकाचे वारसदारास ताब्यात देउन मा. वैद्यकीय अधिकारी यांनी पि. एम दरम्यान व्हिसेरा कपडा बंडल दिल्यास ताब्यात घेउन तपासी अंमलदार यांचेकडे दाखल करावे.'),
+                  pw.TextSpan(
+                      text: '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'
+                              .trim()
+                              .isEmpty
+                          ? '-------------------'
+                          : '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'
+                              .trim(),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(
+                      text:
+                          ' हयाचे / हिचे प्रेत सोबत घेउन मा.वैद्यकीय अधिकारी '),
+                  pw.TextSpan(
+                      text: v('dpMedOfficerName').isEmpty
+                          ? '----------------------------'
+                          : v('dpMedOfficerName'),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(
+                      text:
+                          ' यांचेकडे शवविच्छेदनाकरीता दाखल करावे. व शवविच्छेदनानंतर प्रेत मृतकाचे वारसदारास ताब्यात देउन मा. वैद्यकीय अधिकारी यांनी पि. एम दरम्यान व्हिसेरा कपडा बंडल दिल्यास ताब्यात घेउन तपासी अंमलदार यांचेकडे दाखल करावे.'),
                 ],
               ),
             ),
@@ -1849,7 +1889,8 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('ड्युटी पास घेणाऱ्याची सही', style: mrBold.copyWith(fontSize: 10)),
+                      pw.Text('ड्युटी पास घेणाऱ्याची सही',
+                          style: mrBold.copyWith(fontSize: 10)),
                       pw.SizedBox(height: 36),
                       underlineField(v('dpAmaldaarSig'), width: 140),
                     ],
@@ -1859,20 +1900,24 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('तपासी अधिकारी नांव व सही शिक्का', style: mrBold.copyWith(fontSize: 10)),
+                      pw.Text('तपासी अधिकारी नांव व सही शिक्का',
+                          style: mrBold.copyWith(fontSize: 10)),
                       pw.SizedBox(height: 8),
                       pw.Row(children: [
-                        pw.Text('नांव :- ', style: mrBold.copyWith(fontSize: 9)),
+                        pw.Text('नांव :- ',
+                            style: mrBold.copyWith(fontSize: 9)),
                         pw.Expanded(child: underlineField(v('dpIoName'))),
                       ]),
                       pw.SizedBox(height: 4),
                       pw.Row(children: [
-                        pw.Text('हुद्दा :- ', style: mrBold.copyWith(fontSize: 9)),
+                        pw.Text('हुद्दा :- ',
+                            style: mrBold.copyWith(fontSize: 9)),
                         pw.Expanded(child: underlineField(v('dpIoRank'))),
                       ]),
                       pw.SizedBox(height: 4),
                       pw.Row(children: [
-                        pw.Text('पोलीस स्टेशन :- ', style: mrBold.copyWith(fontSize: 9)),
+                        pw.Text('पोलीस स्टेशन :- ',
+                            style: mrBold.copyWith(fontSize: 9)),
                         pw.Expanded(child: underlineField(v('dpIoPs'))),
                       ]),
                     ],

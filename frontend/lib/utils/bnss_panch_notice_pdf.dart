@@ -75,16 +75,14 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
         final crimeYear = v('p1_crimeYear', '.....');
         final actSec = v(
           'p1_actSec',
-          v('actSec',
-              '---------------------------------'),
+          v('actSec', '---------------------------------'),
         );
         final complainantName = v(
           'p1_complainantName',
-          v('complainantName',
-              '-------------------------------------'),
+          v('complainantName', '-------------------------------------'),
         );
-        final complainantResidence = v(
-            'p1_complainantResidence', v('complainantResidence', '-----------'));
+        final complainantResidence = v('p1_complainantResidence',
+            v('complainantResidence', '-----------'));
         final complainantTah =
             v('p1_complainantTah', v('complainantTah', '-----------'));
         final complainantDist =
@@ -329,8 +327,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
         final suspectAge = v('p2_suspectAge', v('suspectAge', '........'));
         final suspectResidence =
             v('p2_suspectResidence', v('suspectResidence', '--------------'));
-        final suspectTah =
-            v('p2_suspectTah', v('suspectTah', '-----------'));
+        final suspectTah = v('p2_suspectTah', v('suspectTah', '-----------'));
         final suspectDist = v('p2_suspectDist', v('suspectDist', 'यवतमाळ'));
 
         final ioNameSig = v('p2_ioNameSig', v('ioNameSig'));

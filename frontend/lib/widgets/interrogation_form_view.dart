@@ -619,7 +619,6 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
                             ],
                           ),
                         ),
-
                         Container(
                           decoration: const BoxDecoration(
                             border: Border(top: _borderSide),
@@ -1099,8 +1098,7 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
                         Text('कोड नंबर :- ',
                             style: marathi.copyWith(
                                 fontSize: 13, fontWeight: FontWeight.w600)),
-                        SizedBox(
-                            width: 70, child: _cellInput(_ioSigCodeCtrl)),
+                        SizedBox(width: 70, child: _cellInput(_ioSigCodeCtrl)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -1140,8 +1138,8 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
                     decoration: const BoxDecoration(
                       border: Border(bottom: _borderSide),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 8, horizontal: 12),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     child: Column(
                       children: [
                         Text(

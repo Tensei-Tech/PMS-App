@@ -71,13 +71,15 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
         children: [
           pw.Container(
             width: 32,
-            decoration: const pw.BoxDecoration(border: pw.Border(right: border)),
+            decoration:
+                const pw.BoxDecoration(border: pw.Border(right: border)),
             alignment: pw.Alignment.center,
             child: pw.Text(srNo, style: bold),
           ),
           pw.Container(
             width: 170,
-            decoration: const pw.BoxDecoration(border: pw.Border(right: border)),
+            decoration:
+                const pw.BoxDecoration(border: pw.Border(right: border)),
             padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             alignment: pw.Alignment.centerLeft,
             child: pw.Text(label, style: bold),
@@ -174,9 +176,8 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
           return pw.Container(
             height: 24,
             decoration: pw.BoxDecoration(
-              border: isLast
-                  ? const pw.Border()
-                  : const pw.Border(bottom: border),
+              border:
+                  isLast ? const pw.Border() : const pw.Border(bottom: border),
             ),
             child: pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -223,8 +224,8 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
             // Main Table
             pw.Container(
               decoration: pw.BoxDecoration(
-                border: pw.Border.all(
-                    color: PdfColors.black, width: border.width),
+                border:
+                    pw.Border.all(color: PdfColors.black, width: border.width),
               ),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -315,9 +316,10 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
                             ),
                             pw.Expanded(
                               child: pw.Container(
-                                padding:
-                                    const pw.EdgeInsets.symmetric(horizontal: 6),
-                                child: pw.Text('चेहरे पट्टी माहीती', style: bold),
+                                padding: const pw.EdgeInsets.symmetric(
+                                    horizontal: 6),
+                                child:
+                                    pw.Text('चेहरे पट्टी माहीती', style: bold),
                               ),
                             ),
                           ],
@@ -440,7 +442,10 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   final page2List = doc['page2Rows'] is List
       ? (doc['page2Rows'] as List).map((e) => e?.toString() ?? '').toList()
       : (doc['familyRows'] is List
-          ? (doc['familyRows'] as List).take(5).map((e) => e?.toString() ?? '').toList()
+          ? (doc['familyRows'] as List)
+              .take(5)
+              .map((e) => e?.toString() ?? '')
+              .toList()
           : <String>[]);
 
   String p2Val(int idx) => idx < page2List.length ? page2List[idx] : '';
@@ -452,8 +457,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
       build: (pw.Context context) {
         return pw.Container(
           decoration: pw.BoxDecoration(
-            border:
-                pw.Border.all(color: PdfColors.black, width: border.width),
+            border: pw.Border.all(color: PdfColors.black, width: border.width),
           ),
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -506,7 +510,11 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   final page3List = doc['page3Rows'] is List
       ? (doc['page3Rows'] as List).map((e) => e?.toString() ?? '').toList()
       : (doc['familyRows'] is List
-          ? (doc['familyRows'] as List).skip(5).take(6).map((e) => e?.toString() ?? '').toList()
+          ? (doc['familyRows'] as List)
+              .skip(5)
+              .take(6)
+              .map((e) => e?.toString() ?? '')
+              .toList()
           : <String>[]);
 
   String p3Val(int idx) => idx < page3List.length ? page3List[idx] : '';
@@ -518,8 +526,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
       build: (pw.Context context) {
         return pw.Container(
           decoration: pw.BoxDecoration(
-            border:
-                pw.Border.all(color: PdfColors.black, width: border.width),
+            border: pw.Border.all(color: PdfColors.black, width: border.width),
           ),
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -580,7 +587,9 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   final page4List = doc['page4Rows'] is List
       ? (doc['page4Rows'] as List).map((e) => e?.toString() ?? '').toList()
       : (doc['idHistoryRows'] is List
-          ? (doc['idHistoryRows'] as List).map((e) => e?.toString() ?? '').toList()
+          ? (doc['idHistoryRows'] as List)
+              .map((e) => e?.toString() ?? '')
+              .toList()
           : <String>[]);
 
   String p4Val(int idx) => idx < page4List.length ? page4List[idx] : '';
@@ -592,8 +601,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
       build: (pw.Context context) {
         return pw.Container(
           decoration: pw.BoxDecoration(
-            border:
-                pw.Border.all(color: PdfColors.black, width: border.width),
+            border: pw.Border.all(color: PdfColors.black, width: border.width),
           ),
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -681,8 +689,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
       build: (pw.Context context) {
         return pw.Container(
           decoration: pw.BoxDecoration(
-            border:
-                pw.Border.all(color: PdfColors.black, width: border.width),
+            border: pw.Border.all(color: PdfColors.black, width: border.width),
           ),
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -739,7 +746,11 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   final page6List = doc['page6Rows'] is List
       ? (doc['page6Rows'] as List).map((e) => e?.toString() ?? '').toList()
       : (doc['crimeRows'] is List
-          ? (doc['crimeRows'] as List).skip(6).take(4).map((e) => e?.toString() ?? '').toList()
+          ? (doc['crimeRows'] as List)
+              .skip(6)
+              .take(4)
+              .map((e) => e?.toString() ?? '')
+              .toList()
           : <String>[]);
 
   String p6Val(int idx) => idx < page6List.length ? page6List[idx] : '';
@@ -780,8 +791,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
                   ),
                   buildTableRow(
                     srNo: '३९',
-                    label:
-                        'आरोपीस ओळखणारे पोलीस अधिकारी/अंमलदार,पोलीस पाटील',
+                    label: 'आरोपीस ओळखणारे पोलीस अधिकारी/अंमलदार,पोलीस पाटील',
                     value: p6Val(2),
                     minHeight: 90,
                   ),
@@ -843,8 +853,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
       build: (pw.Context context) {
         return pw.Container(
           decoration: pw.BoxDecoration(
-            border:
-                pw.Border.all(color: PdfColors.black, width: border.width),
+            border: pw.Border.all(color: PdfColors.black, width: border.width),
           ),
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,

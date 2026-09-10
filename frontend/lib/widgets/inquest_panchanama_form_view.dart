@@ -5006,7 +5006,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     ),
                     Text('/',
                         style: serifStyle.copyWith(
-                            fontWeight: FontWeight.bold, color: Colors.black87)),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87)),
                     SizedBox(
                       width: 32,
                       child: BilingualSimpleUnderlineInput(
@@ -5136,7 +5137,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           spacing: 6,
           runSpacing: 10,
           children: [
-            Text('       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक ',
+            Text(
+                '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक ',
                 style: bodyTextStyle),
             SizedBox(
               width: 100,
