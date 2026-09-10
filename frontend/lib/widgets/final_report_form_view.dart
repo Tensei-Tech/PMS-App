@@ -45,24 +45,23 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
 
   // ─── PAGE 1 CONTROLLERS (Sections 1–10) ──────────────────────────────────
   final _courtCtrl = TextEditingController();
-  final _courtDistCtrl = TextEditingController(text: 'यवतमाळ');
-  final _distCtrl = TextEditingController(text: 'यवतमाळ');
+  final _courtDistCtrl = TextEditingController();
+  final _distCtrl = TextEditingController();
   final _psCtrl = TextEditingController();
-  final _yearCtrl = TextEditingController(text: '24');
+  final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
-  final _firYearSuffixCtrl = TextEditingController(text: '२०२४');
+  final _firYearSuffixCtrl = TextEditingController();
   final _headerDateCtrl = TextEditingController();
   final _reportNoCtrl = TextEditingController();
-  final _reportYearSuffixCtrl = TextEditingController(text: '20');
+  final _reportYearSuffixCtrl = TextEditingController();
   final _reportDateCtrl = TextEditingController();
-  final _actCtrl = TextEditingController(text: 'भारतीय न्याय संहिता २०२३');
+  final _actCtrl = TextEditingController();
   final _sectionCtrl = TextEditingController();
   final _reportTypeCtrl = TextEditingController();
-  final _reportTypeCustomCtrl =
-      TextEditingController(text: 'आरोपपत्र दाखल केले');
+  final _reportTypeCustomCtrl = TextEditingController();
   final _frUnoccurredCtrl = TextEditingController();
-  final _chargeSheetedCtrl = TextEditingController(text: 'होय');
-  final _originalSupplementaryCtrl = TextEditingController(text: 'मुळ');
+  final _chargeSheetedCtrl = TextEditingController();
+  final _originalSupplementaryCtrl = TextEditingController();
   final _ioNameCtrl = TextEditingController();
   final _ioRankCtrl = TextEditingController();
   final _ioNoCtrl = TextEditingController();
@@ -85,24 +84,24 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   final _accAgeCtrl = TextEditingController();
   final _accSexCtrl = TextEditingController();
   final _accNationalityCtrl = TextEditingController();
-  final _accPassportCtrl = TextEditingController(text: '---');
-  final _accPassportDateCtrl = TextEditingController(text: '----');
-  final _accPassportPlaceCtrl = TextEditingController(text: '----');
+  final _accPassportCtrl = TextEditingController();
+  final _accPassportDateCtrl = TextEditingController();
+  final _accPassportPlaceCtrl = TextEditingController();
   final _accReligionCtrl = TextEditingController();
-  final _accScStCtrl = TextEditingController(text: '--- --');
+  final _accScStCtrl = TextEditingController();
   final _accOccupationCtrl = TextEditingController();
   final _accAddressCtrl = TextEditingController();
-  final _accAddressVerifiedCtrl = TextEditingController(text: 'होय');
-  final _accProvCriminalNoCtrl = TextEditingController(text: '-----');
-  final _accRegularCriminalNoCtrl = TextEditingController(text: '----');
+  final _accAddressVerifiedCtrl = TextEditingController();
+  final _accProvCriminalNoCtrl = TextEditingController();
+  final _accRegularCriminalNoCtrl = TextEditingController();
   final _accArrestDateCtrl = TextEditingController();
   final _accArrestTimeCtrl = TextEditingController();
   final _accBailDateCtrl = TextEditingController();
-  final _accForwardedCourtCtrl = TextEditingController(text: '-निरंक');
+  final _accForwardedCourtCtrl = TextEditingController();
   final _accActsSectionsCtrl = TextEditingController();
   final _accBailersCtrl = TextEditingController();
-  final _accPrevConvictionsCtrl = TextEditingController(text: '----');
-  final _accStatusCtrl = TextEditingController(text: 'सुचनापत्र दिले.');
+  final _accPrevConvictionsCtrl = TextEditingController();
+  final _accStatusCtrl = TextEditingController();
   final _notChargeSheetedCtrl = TextEditingController();
 
   // ─── PAGE 3 CONTROLLERS (Sections 13–15) ─────────────────────────────────
@@ -113,16 +112,6 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   late final List<TextEditingController> _witnessOccupationCtrls;
   late final List<TextEditingController> _witnessAddressCtrls;
   late final List<TextEditingController> _witnessEvidenceCtrls;
-
-  static const List<String> _defaultWitnessEvidence = [
-    'तक्रारदार/ साक्षीदार',
-    'पंच क्रमांक १',
-    'पंच क्रमांक २',
-    'साक्षीदार',
-    'साक्षीदार',
-    'गुन्हा दाखल करणार अधिकारी',
-    'तपासी अधिकारी',
-  ];
 
   static const List<String> _marathiNumbers = [
     '1.',
@@ -138,22 +127,21 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
   ];
 
   final _falseFirActionCtrl = TextEditingController();
-  final _labAnalysisCtrl = TextEditingController(text: 'निरंक');
+  final _labAnalysisCtrl = TextEditingController();
 
   // ─── PAGE 4 CONTROLLERS (Sections 16–18 & Signatures) ────────────────────
   final _briefFactsCtrl = TextEditingController();
-  final _referNoticeServedCtrl = TextEditingController(text: 'Yes / No :');
-  final _referNoticeDateCtrl = TextEditingController(text: '/ /2024');
+  final _referNoticeServedCtrl = TextEditingController();
+  final _referNoticeDateCtrl = TextEditingController();
   final _dispatchedOnCtrl = TextEditingController();
-  final _shoNameCtrl = TextEditingController(text: 'श्री. संदिप नरसाळे');
-  final _shoRankCtrl = TextEditingController(text: 'सहायक पोलीस निरीक्षक');
+  final _shoNameCtrl = TextEditingController();
+  final _shoRankCtrl = TextEditingController();
   final _shoNoCtrl = TextEditingController();
-  final _shoPsCtrl = TextEditingController(text: 'पोलीस स्टेशन पारवा');
-  final _submitIoNameCtrl =
-      TextEditingController(text: 'श्री. गजानन दशरथ शेजुळकर');
-  final _submitIoRankCtrl = TextEditingController(text: 'पोलीस उपनिरीक्षक');
-  final _submitIoNoCtrl = TextEditingController(text: '---');
-  final _submitIoPsCtrl = TextEditingController(text: 'पोलीस स्टेशन पारवा');
+  final _shoPsCtrl = TextEditingController();
+  final _submitIoNameCtrl = TextEditingController();
+  final _submitIoRankCtrl = TextEditingController();
+  final _submitIoNoCtrl = TextEditingController();
+  final _submitIoPsCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -177,14 +165,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
         List.generate(_witnessRowCount, (_) => TextEditingController());
     _witnessAddressCtrls =
         List.generate(_witnessRowCount, (_) => TextEditingController());
-    _witnessEvidenceCtrls = List.generate(
-      _witnessRowCount,
-      (i) => TextEditingController(
-        text: i < _defaultWitnessEvidence.length
-            ? _defaultWitnessEvidence[i]
-            : '',
-      ),
-    );
+    _witnessEvidenceCtrls =
+        List.generate(_witnessRowCount, (_) => TextEditingController());
 
     if (widget.existingRecord != null) {
       hydrateFrom(widget.existingRecord!);

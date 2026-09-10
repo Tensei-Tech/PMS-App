@@ -62,14 +62,14 @@ class MuddemalPropertyRow {
 
 class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
   final _psCtrl = TextEditingController();
-  final _distCtrl = TextEditingController(text: 'यवतमाळ');
+  final _distCtrl = TextEditingController();
 
   final _crimeNoCtrl = TextEditingController();
   final _actSecCtrl = TextEditingController();
 
   final _ioNameCtrl = TextEditingController();
   final _ioPsCtrl = TextEditingController();
-  final _ioDistCtrl = TextEditingController(text: 'यवतमाळ');
+  final _ioDistCtrl = TextEditingController();
 
   final _accusedNameCtrl = TextEditingController();
 
@@ -171,7 +171,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
 
   void hydrateFrom(Map<String, dynamic> data) {
     _psCtrl.text = data['policeStation']?.toString() ?? '';
-    _distCtrl.text = data['district']?.toString() ?? 'यवतमाळ';
+    _distCtrl.text = data['district']?.toString() ?? '';
     _crimeNoCtrl.text =
         (data['crimeNo'] ?? data['crNoYear'] ?? data['crNo'])?.toString() ?? '';
     _actSecCtrl.text = (data['actSec'] ?? data['section'])?.toString() ?? '';
@@ -182,7 +182,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                 ?.toString() ??
             '';
     _ioDistCtrl.text =
-        (data['ioDist'] ?? data['ioDistrict'])?.toString() ?? 'यवतमाळ';
+        (data['ioDist'] ?? data['ioDistrict'])?.toString() ?? '';
     _accusedNameCtrl.text = data['accusedName']?.toString() ?? '';
     _seizureDateCtrl.text =
         (data['seizureDate'] ?? data['seizedDate'] ?? data['date'])
@@ -290,10 +290,16 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'जिल्हा यवतमाळ',
+                  'जिल्हा :- ',
                   style: marathi.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
+                  ),
+                ),
+                Expanded(
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _distCtrl,
+                    serifStyle: serif,
                   ),
                 ),
               ],
@@ -369,10 +375,17 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'जिल्हा यवतमाळ',
+                  'जिल्हा :- ',
                   style: marathi.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
+                  ),
+                ),
+                SizedBox(
+                  width: 120,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _ioDistCtrl,
+                    serifStyle: serif,
                   ),
                 ),
               ],

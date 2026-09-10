@@ -48,6 +48,7 @@ import '../modules/victim/providers/victim_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/ab_form_pdf.dart';
+import '../utils/accused_interrogation_pdf.dart';
 import '../utils/accused_memorandum_pdf.dart';
 import '../utils/arrest_surrender_pdf.dart';
 import '../utils/common_form_module.dart';
@@ -68,6 +69,7 @@ import '../utils/reason_of_arrest_pdf.dart';
 import '../utils/transit_remand_pdf.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/ab_form_view.dart';
+import '../widgets/accused_interrogation_form_view.dart';
 import '../widgets/accused_memorandum_form_view.dart';
 import '../widgets/arrest_surrender_form_view.dart';
 import '../widgets/common_form/common_form.dart'
@@ -131,6 +133,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       GlobalKey<InquestPanchanamaFormViewState>();
   final GlobalKey<AccusedMemorandumFormViewState> _accusedMemorandumKey =
       GlobalKey<AccusedMemorandumFormViewState>();
+  final GlobalKey<AccusedInterrogationFormViewState> _accusedInterrogationKey =
+      GlobalKey<AccusedInterrogationFormViewState>();
   final GlobalKey<FinalReportFormViewState> _finalReportKey =
       GlobalKey<FinalReportFormViewState>();
   final GlobalKey<HousePropertySearchSeizureFormViewState>
@@ -173,9 +177,13 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   bool get _isArrestSurrenderForm =>
       widget.subCategory == 'Arrest/Court Surrender Form';
   bool get _isInquestPanchanamaForm =>
-      widget.subCategory == 'Inquest Panchanama';
+      widget.subCategory == 'Inquest Panchanama' ||
+      widget.subCategory == 'Vinanti Arj — PM Opinion Request' ||
+      widget.subCategory == 'Vinanti Arj';
   bool get _isAccusedMemorandumForm =>
       widget.subCategory == 'Accused Memorandum Form';
+  bool get _isAccusedInterrogationForm =>
+      widget.subCategory == 'Accused Interrogation / Memorandum';
   bool get _isFinalReportForm => widget.subCategory == 'Final Report Form';
   bool get _isHousePropertySearchSeizureForm =>
       widget.subCategory == 'House/Property Search & Seizure';
@@ -261,6 +269,15 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           final nested = existing.extraFields[kCommonFormExtraFieldsKey];
           if (nested is Map) {
             _accusedMemorandumKey.currentState?.hydrateFrom(
+              Map<String, dynamic>.from(nested),
+            );
+          }
+        }
+      } else if (_isAccusedInterrogationForm) {
+        if (existing != null) {
+          final nested = existing.extraFields[kCommonFormExtraFieldsKey];
+          if (nested is Map) {
+            _accusedInterrogationKey.currentState?.hydrateFrom(
               Map<String, dynamic>.from(nested),
             );
           }
@@ -539,6 +556,11 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           if (detailState == null) return;
           final commonMap = detailState.collectData();
           await previewAccusedMemorandumPdf(context, commonMap);
+        } else if (_isAccusedInterrogationForm) {
+          final detailState = _accusedInterrogationKey.currentState;
+          if (detailState == null) return;
+          final commonMap = detailState.collectData();
+          await previewAccusedInterrogationPdf(context, commonMap);
         } else if (_isFinalReportForm) {
           final detailState = _finalReportKey.currentState;
           if (detailState == null) return;
@@ -677,12 +699,16 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     }
     if (_isAccusedMemorandumForm) {
       final firNo = doc['firNo']?.toString().trim() ?? '';
-      final yr = doc['firYearSuffix']?.toString().trim().isNotEmpty == true
-          ? doc['firYearSuffix']!.trim()
-          : doc['year']?.toString().trim() ?? '';
+      final yr = doc['year']?.toString().trim() ?? '';
       final sub = widget.subCategory ?? 'Form';
       if (firNo.isEmpty) return sub;
       return '$sub — $firNo/$yr';
+    }
+    if (_isAccusedInterrogationForm) {
+      final firNo = doc['crimeNoSection']?.toString().trim() ?? '';
+      final sub = widget.subCategory ?? 'Form';
+      if (firNo.isEmpty) return sub;
+      return '$sub — $firNo';
     }
     if (_isFinalReportForm) {
       final reportNo = doc['reportNo']?.toString().trim() ?? '';
@@ -831,7 +857,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       return DateTime.now();
     }
     if (_isInquestPanchanamaForm) {
-      final dateStr = doc['foundDate']?.toString().trim() ?? '';
+      final dateStr = (doc['foundDate']?.toString().trim().isNotEmpty == true)
+          ? doc['foundDate']!.toString().trim()
+          : (doc['reqDate']?.toString().trim() ?? '');
       final parts = dateStr.split(RegExp(r'[/.-]'));
       if (parts.length >= 3) {
         final d = int.tryParse(parts[0]);
@@ -1082,6 +1110,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       final detailState = _accusedMemorandumKey.currentState;
       if (detailState == null) return;
       doc = detailState.collectData();
+    } else if (_isAccusedInterrogationForm) {
+      final detailState = _accusedInterrogationKey.currentState;
+      if (detailState == null) return;
+      doc = detailState.collectData();
     } else if (_isFinalReportForm) {
       final detailState = _finalReportKey.currentState;
       if (detailState == null) return;
@@ -1229,9 +1261,13 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     } else if (_isArrestSurrenderForm) {
       caseNum = doc['firNo']?.toString().trim() ?? '';
     } else if (_isInquestPanchanamaForm) {
-      caseNum = doc['firNo']?.toString().trim() ?? '';
+      caseNum = doc['firNo']?.toString().trim().isNotEmpty == true
+          ? doc['firNo']!.toString().trim()
+          : doc['reqMargDiaryNo']?.toString().trim() ?? '';
     } else if (_isAccusedMemorandumForm) {
       caseNum = doc['firNo']?.toString().trim() ?? '';
+    } else if (_isAccusedInterrogationForm) {
+      caseNum = doc['crimeNoSection']?.toString().trim() ?? '';
     } else if (_isFinalReportForm) {
       caseNum = doc['reportNo']?.toString().trim().isNotEmpty == true
           ? doc['reportNo']!.trim()
@@ -1288,9 +1324,17 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           ? doc['arrestPlace']!.trim()
           : doc['presAddress']?.toString().trim() ?? '';
     } else if (_isInquestPanchanamaForm) {
-      loc = doc['foundPlace']?.toString().trim() ?? '';
+      loc = doc['foundPlace']?.toString().trim().isNotEmpty == true
+          ? doc['foundPlace']!.toString().trim()
+          : doc['reqPs']?.toString().trim() ?? '';
     } else if (_isAccusedMemorandumForm) {
-      loc = doc['memPlace']?.toString().trim() ?? '';
+      loc = doc['placeOfMemorandum']?.toString().trim().isNotEmpty == true
+          ? doc['placeOfMemorandum']!.trim()
+          : doc['memPlace']?.toString().trim() ?? '';
+    } else if (_isAccusedInterrogationForm) {
+      loc = doc['ps']?.toString().trim().isNotEmpty == true
+          ? doc['ps']!.trim()
+          : '';
     } else if (_isFinalReportForm) {
       loc = doc['ps']?.toString().trim().isNotEmpty == true
           ? doc['ps']!.trim()
@@ -1717,7 +1761,13 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                   existingRecord: widget.existingRecord
                                       ?.extraFields[kCommonFormExtraFieldsKey],
                                   readOnly: widget.readOnly == true,
-                                  formSection: widget.formSection,
+                                  formSection: widget.formSection ??
+                                      ((widget.subCategory ==
+                                                  'Vinanti Arj — PM Opinion Request' ||
+                                              widget.subCategory ==
+                                                  'Vinanti Arj')
+                                          ? 'Vinanti Arj'
+                                          : null),
                                   pageRange: widget.pageRange,
                                 )
                               : _isAccusedMemorandumForm
@@ -1730,7 +1780,17 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                       formSection: widget.formSection,
                                       pageRange: widget.pageRange,
                                     )
-                                  : _isFinalReportForm
+                                  : _isAccusedInterrogationForm
+                                      ? AccusedInterrogationFormView(
+                                          key: _accusedInterrogationKey,
+                                          existingRecord:
+                                              widget.existingRecord?.extraFields[
+                                                  kCommonFormExtraFieldsKey],
+                                          readOnly: widget.readOnly == true,
+                                          formSection: widget.formSection,
+                                          pageRange: widget.pageRange,
+                                        )
+                                      : _isFinalReportForm
                                       ? FinalReportFormView(
                                           key: _finalReportKey,
                                           existingRecord: widget

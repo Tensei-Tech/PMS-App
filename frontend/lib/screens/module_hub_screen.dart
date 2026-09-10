@@ -908,7 +908,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     void onFormSelect(FormsListEntry entry, {FormsSubSection? subSection}) {
       final subCategory = subSection?.subCategoryOverride ?? entry.subCategory;
       final moduleLabel = subSection != null
-          ? '${entry.title} — ${subSection.label}'
+          ? (entry.title == subSection.label
+              ? entry.title
+              : '${entry.title} — ${subSection.label}')
           : entry.title;
       if (subSection == null) {
         debugPrint('Opened ${entry.title} (subCategory: $subCategory)');

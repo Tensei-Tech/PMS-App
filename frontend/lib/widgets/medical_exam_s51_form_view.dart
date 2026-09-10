@@ -47,7 +47,7 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
   final _victimAgeCtrl = TextEditingController();
   final _victimResidenceCtrl = TextEditingController();
   final _victimTahCtrl = TextEditingController();
-  final _victimDistCtrl = TextEditingController(text: 'यवतमाळ');
+  final _victimDistCtrl = TextEditingController();
   final _assaultDetailsCtrl = TextEditingController();
 
   final _officerSignatureCtrl = TextEditingController();
