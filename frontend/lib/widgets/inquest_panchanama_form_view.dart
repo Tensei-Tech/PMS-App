@@ -446,6 +446,21 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   final _dpPsCtrl = TextEditingController();
   final _dpCampCtrl = TextEditingController();
   final _dpDateCtrl = TextEditingController();
+  final _dpDateDayCtrl = TextEditingController();
+  final _dpDateMonthCtrl = TextEditingController();
+  final _dpDateYearCtrl = TextEditingController();
+
+  String get _dpDateCombined {
+    final d = _dpDateDayCtrl.text.trim();
+    final m = _dpDateMonthCtrl.text.trim();
+    final y = _dpDateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _dpDateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
   final _dpAmaldaarNameCtrl = TextEditingController();
   final _dpDutyPsCtrl = TextEditingController();
   final _dpDutyDistCtrl = TextEditingController();
@@ -857,9 +872,22 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _dpPsCtrl.text = doc['dpPs'] ?? '';
     _dpCampCtrl.text = doc['dpCamp'] ?? '';
     _dpDateCtrl.text = doc['dpDate'] ?? '';
+    _dpDateDayCtrl.text = doc['dpDateDay']?.toString() ?? '';
+    _dpDateMonthCtrl.text = doc['dpDateMonth']?.toString() ?? '';
+    _dpDateYearCtrl.text = doc['dpDateYear']?.toString() ?? '';
+    if (_dpDateDayCtrl.text.isEmpty && _dpDateCtrl.text.isNotEmpty) {
+      final parts = _dpDateCtrl.text.split(RegExp(r'[/.-]'));
+      if (parts.length >= 3) {
+        _dpDateDayCtrl.text = parts[0].trim();
+        _dpDateMonthCtrl.text = parts[1].trim();
+        var yr = parts[2].trim();
+        if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
+        _dpDateYearCtrl.text = yr;
+      }
+    }
     _dpAmaldaarNameCtrl.text = doc['dpAmaldaarName'] ?? '';
     _dpDutyPsCtrl.text = doc['dpDutyPs'] ?? '';
-    _dpDutyDistCtrl.text = doc['dpDutyDist'] ?? '';
+    _dpDutyDistCtrl.text = doc['dpDutyDist'] ?? 'यवतमाळ';
     _dpDutyDateTimeCtrl.text = doc['dpDutyDateTime'] ?? '';
     _dpDutyDateDayCtrl.text = doc['dpDutyDateDay']?.toString() ?? '';
     _dpDutyDateMonthCtrl.text = doc['dpDutyDateMonth']?.toString() ?? '';
@@ -1161,7 +1189,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       // Page 15
       'dpPs': _dpPsCtrl.text.trim(),
       'dpCamp': _dpCampCtrl.text.trim(),
-      'dpDate': _dpDateCtrl.text.trim(),
+      'dpDate': _dpDateCombined,
+      'dpDateDay': _dpDateDayCtrl.text.trim(),
+      'dpDateMonth': _dpDateMonthCtrl.text.trim(),
+      'dpDateYear': _dpDateYearCtrl.text.trim(),
       'dpAmaldaarName': _dpAmaldaarNameCtrl.text.trim(),
       'dpDutyPs': _dpDutyPsCtrl.text.trim(),
       'dpDutyDist': _dpDutyDistCtrl.text.trim(),
@@ -1461,6 +1492,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _dpPsCtrl.dispose();
     _dpCampCtrl.dispose();
     _dpDateCtrl.dispose();
+    _dpDateDayCtrl.dispose();
+    _dpDateMonthCtrl.dispose();
+    _dpDateYearCtrl.dispose();
     _dpAmaldaarNameCtrl.dispose();
     _dpDutyPsCtrl.dispose();
     _dpDutyDistCtrl.dispose();
@@ -4895,256 +4929,282 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     required TextStyle serifStyle,
     required TextStyle marathiLabelStyle,
   }) {
+    final bodyTextStyle = marathiLabelStyle.copyWith(
+      fontSize: 13,
+      height: 2.0,
+      color: Colors.black87,
+    );
+    final headerLabelStyle = marathiLabelStyle.copyWith(
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      color: Colors.black87,
+    );
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 32),
-        const Align(
-          alignment: Alignment.centerRight,
-          child: Text(
-            'Page 15 (ड्युटी पास)',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          ),
-        ),
-        const Divider(color: Colors.black, thickness: 1.5),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+        // Title centered
         Center(
-          child: Column(
-            children: [
-              Text(
-                'Duty Pass',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                  color: Colors.black87,
-                ),
-              ),
-              Text(
-                'ड्युटी पास',
-                style: GoogleFonts.poppins(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
+          child: Text(
+            'ड्युटी पास',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline,
+              color: Colors.black87,
+            ),
           ),
         ),
         const SizedBox(height: 16),
+
+        // Top-right aligned Police Station / Camp / Date
         Align(
           alignment: Alignment.centerRight,
           child: SizedBox(
-            width: 420,
+            width: 320,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                BilingualField(
-                  label: 'Police Station :-',
-                  marathiLabel: 'पोलीस स्टेशन :',
-                  controller: _dpPsCtrl,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiLabelStyle,
+                Row(
+                  children: [
+                    Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _dpPsCtrl,
+                        serifStyle: serifStyle,
+                      ),
+                    ),
+                  ],
                 ),
-                BilingualField(
-                  label: 'Camp :-',
-                  marathiLabel: 'कॅम्प :',
-                  controller: _dpCampCtrl,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiLabelStyle,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('कॅम्प            :', style: headerLabelStyle),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _dpCampCtrl,
+                        serifStyle: serifStyle,
+                      ),
+                    ),
+                  ],
                 ),
-                BilingualField(
-                  label: 'Date :-',
-                  marathiLabel: 'दिनांक :',
-                  controller: _dpDateCtrl,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiLabelStyle,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('दिनांक          :', style: headerLabelStyle),
+                    const SizedBox(width: 6),
+                    SizedBox(
+                      width: 32,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _dpDateDayCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'DD',
+                      ),
+                    ),
+                    Text('/',
+                        style: serifStyle.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87)),
+                    SizedBox(
+                      width: 32,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _dpDateMonthCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'MM',
+                      ),
+                    ),
+                    Text('/ २०', style: headerLabelStyle),
+                    SizedBox(
+                      width: 36,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _dpDateYearCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'YY',
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        BilingualField(
-          label: 'Name of Police Constable :-',
-          marathiLabel: 'पो अंमलदाराचे नांव :',
-          controller: _dpAmaldaarNameCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
+        const SizedBox(height: 20),
+
+        // Upper info lines
+        Row(
+          children: [
+            Text('पो अंमलदाराचे नांव  :', style: headerLabelStyle),
+            const SizedBox(width: 8),
+            Expanded(
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpAmaldaarNameCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+          ],
         ),
-        BilingualField(
-          label: 'Police Station (duty) :-',
-          marathiLabel: 'पोलीस स्टेशन :',
-          controller: _dpDutyPsCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualField(
-          label: 'District :-',
-          marathiLabel: 'जिल्हा',
-          controller: _dpDutyDistCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
+        const SizedBox(height: 10),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.only(left: 60.0),
+          child: Row(
             children: [
-              Text(
-                'Duty date and time :-',
-                style: serifStyle.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                  color: Colors.black87,
+              Text('पोलीस स्टेशन ', style: headerLabelStyle),
+              SizedBox(
+                width: 180,
+                child: BilingualSimpleUnderlineInput(
+                  controller: _dpDutyPsCtrl,
+                  serifStyle: serifStyle,
                 ),
               ),
-              const SizedBox(height: 2),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.end,
-                spacing: 4,
-                runSpacing: 6,
-                children: [
-                  Text('नोकरीचा दिनांक व वेळ :-', style: marathiLabelStyle),
-                  SizedBox(
-                    width: 32,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _dpDutyDateDayCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'DD',
-                    ),
-                  ),
-                  Text('/',
-                      style: serifStyle.copyWith(
-                          fontWeight: FontWeight.bold, color: Colors.black87)),
-                  SizedBox(
-                    width: 32,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _dpDutyDateMonthCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'MM',
-                    ),
-                  ),
-                  Text('/ २०', style: marathiLabelStyle),
-                  SizedBox(
-                    width: 32,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _dpDutyDateYearCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'YY',
-                    ),
-                  ),
-                  Text('रोजी चे', style: marathiLabelStyle),
-                  SizedBox(
-                    width: 32,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _dpDutyTimeHoursCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'HH',
-                    ),
-                  ),
-                  Text('/',
-                      style: serifStyle.copyWith(
-                          fontWeight: FontWeight.bold, color: Colors.black87)),
-                  SizedBox(
-                    width: 32,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _dpDutyTimeMinutesCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'MM',
-                    ),
-                  ),
-                  Text('वा', style: marathiLabelStyle),
-                ],
+              const SizedBox(width: 24),
+              Text('जिल्हा ', style: headerLabelStyle),
+              SizedBox(
+                width: 140,
+                child: BilingualSimpleUnderlineInput(
+                  controller: _dpDutyDistCtrl,
+                  serifStyle: serifStyle,
+                  hintText: 'यवतमाळ',
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
-        Text(
-          'You are hereby ordered to take the dead body along with you and produce it before the Medical Officer for post-mortem examination.',
-          style: serifStyle.copyWith(fontSize: 13, color: Colors.black87),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'आपणास आदेश देण्यात येतो की, आपण ... हयाचे / हिचे प्रेत सोबत घेवून मा.वैद्यकीय अधिकारी यांचेकडे शवविच्छेदनाकरीता दाखल करावे.',
-          style:
-              marathiLabelStyle.copyWith(fontSize: 11, color: Colors.black87),
-        ),
-        const SizedBox(height: 12),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Accidental / Death / Station Diary No. :-',
-              marathiLabel: 'अप/ मर्ग/ स्टे.डायरी क्रमांक :',
-              controller: _dpMargNoCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Text('नोकरीचा दिनांक व वेळ    :- ', style: headerLabelStyle),
+            SizedBox(
+              width: 32,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpDutyDateDayCtrl,
+                serifStyle: serifStyle,
+                hintText: 'DD',
+              ),
             ),
-            BilingualField(
-              label: 'Year :-',
-              marathiLabel: 'वर्ष :',
-              controller: _dpMargYearCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
+            Text('/',
+                style: serifStyle.copyWith(
+                    fontWeight: FontWeight.bold, color: Colors.black87)),
+            SizedBox(
+              width: 32,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpDutyDateMonthCtrl,
+                serifStyle: serifStyle,
+                hintText: 'MM',
+              ),
             ),
+            Text('/ २०', style: headerLabelStyle),
+            SizedBox(
+              width: 36,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpDutyDateYearCtrl,
+                serifStyle: serifStyle,
+                hintText: 'YY',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text('रोजी चे ', style: headerLabelStyle),
+            SizedBox(
+              width: 36,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpDutyTimeHoursCtrl,
+                serifStyle: serifStyle,
+                hintText: 'HH',
+              ),
+            ),
+            Text('/',
+                style: serifStyle.copyWith(
+                    fontWeight: FontWeight.bold, color: Colors.black87)),
+            SizedBox(
+              width: 36,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpDutyTimeMinutesCtrl,
+                serifStyle: serifStyle,
+                hintText: 'MM',
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text('वा', style: headerLabelStyle),
           ],
-        ),
-        BilingualField(
-          label: 'Section (Kalam) :-',
-          marathiLabel: 'कलम :',
-          controller: _dpKalamCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualField(
-          label: 'Deceased name :-',
-          marathiLabel: 'मधील मृतक नामे :',
-          controller: _dpDeceasedNameCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Village (R.) :-',
-              marathiLabel: 'र. :',
-              controller: _dpDeceasedRaCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-            BilingualField(
-              label: 'Taluka (Ta.) :-',
-              marathiLabel: 'ता :',
-              controller: _dpDeceasedTaCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-            BilingualField(
-              label: 'District :-',
-              marathiLabel: 'जिल्हा :',
-              controller: _dpDeceasedDistCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-          ],
-        ),
-        BilingualField(
-          label: 'Medical Officer (for post-mortem) :-',
-          marathiLabel: 'मा.वैद्यकीय अधिकारी :',
-          controller: _dpMedOfficerNameCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'After post-mortem, hand over the body to the heir of the deceased. If clothing bundle is given by M.O. during P.M., take custody and hand over to investigating constable.',
-          style: serifStyle.copyWith(fontSize: 12, color: Colors.black87),
-        ),
-        Text(
-          'शवविच्छेदनांनतर प्रेत मृतकाचे वारसदारास ताब्यात देवन मा. वैद्यकीय अधिकारी यांनी पी.एम दरम्यान दिलेला कपडा बंडल दिल्यास ताब्यात घेवून तपासी अंमलदार यांचेकडे दाखल करावे.',
-          style: marathiLabelStyle,
         ),
         const SizedBox(height: 24),
+
+        // Main context paragraph
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 10,
+          children: [
+            Text(
+                '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक ',
+                style: bodyTextStyle),
+            SizedBox(
+              width: 100,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpMargNoCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('/ २०', style: bodyTextStyle),
+            SizedBox(
+              width: 44,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpMargYearCtrl,
+                serifStyle: serifStyle,
+                hintText: 'YY',
+              ),
+            ),
+            Text('कलम', style: bodyTextStyle),
+            SizedBox(
+              width: 180,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpKalamCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('मधील मृतक नामे ', style: bodyTextStyle),
+            SizedBox(
+              width: 260,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpDeceasedNameCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('रा.', style: bodyTextStyle),
+            SizedBox(
+              width: 180,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpDeceasedRaCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('ता आणि जिल्हा', style: bodyTextStyle),
+            SizedBox(
+              width: 180,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpDeceasedTaCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('हयाचे / हिचे प्रेत सोबत घेउन मा.वैद्यकीय अधिकारी',
+                style: bodyTextStyle),
+            SizedBox(
+              width: 240,
+              child: BilingualSimpleUnderlineInput(
+                controller: _dpMedOfficerNameCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text(
+                'यांचेकडे शवविच्छेदनाकरीता दाखल करावे. व शवविच्छेदनानंतर प्रेत मृतकाचे वारसदारास ताब्यात देउन मा. वैद्यकीय अधिकारी यांनी पि. एम दरम्यान व्हिसेरा कपडा बंडल दिल्यास ताब्यात घेउन तपासी अंमलदार यांचेकडे दाखल करावे.',
+                style: bodyTextStyle),
+          ],
+        ),
+        const SizedBox(height: 48),
+
+        // Footer signatures
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -5153,66 +5213,90 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Signature of duty pass holder',
-                    style: GoogleFonts.poppins(
+                    'ड्युटी पास घेणाऱ्याची सही',
+                    style: marathiLabelStyle.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: Colors.black87,
+                      fontSize: 13,
                     ),
                   ),
-                  Text('ड्युटी पास घेणाऱ्याची सही', style: marathiLabelStyle),
-                  const SizedBox(height: 8),
-                  BilingualField(
-                    label: 'Signature :-',
-                    marathiLabel: 'सही :',
-                    controller: _dpAmaldaarSigCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 36),
+                  SizedBox(
+                    width: 220,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _dpAmaldaarSigCtrl,
+                      serifStyle: serifStyle,
+                      hintText: 'सही',
+                    ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 40),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'I.O. Name, Rank & Signature / Seal',
-                    style: GoogleFonts.poppins(
+                    'तपासी अधिकारी नांव व सही शिक्का',
+                    style: marathiLabelStyle.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 13,
                     ),
                   ),
-                  Text(
-                    FormIoTerminology.signatureHeaderSeal,
-                    style: marathiLabelStyle,
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Text('नांव :- ', style: bodyTextStyle),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _dpIoNameCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  BilingualField(
-                    label: 'Name :-',
-                    marathiLabel: '${FormIoTerminology.name} :',
-                    controller: _dpIoNameCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('हुद्दा :- ', style: bodyTextStyle),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _dpIoRankCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  BilingualField(
-                    label: 'Rank :-',
-                    marathiLabel: '${FormIoTerminology.rank} :',
-                    controller: _dpIoRankCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Police Station :-',
-                    marathiLabel: 'पोलीस स्टेशन :',
-                    controller: _dpIoPsCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('पोलीस स्टेशन :- ', style: bodyTextStyle),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _dpIoPsCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 36),
+
+        // Bottom Right tag
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Text(
+            'M.R.W',
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );
