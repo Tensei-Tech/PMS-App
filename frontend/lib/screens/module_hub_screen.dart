@@ -72,6 +72,7 @@ import 'absconded_cases_screen.dart';
 import 'module_record_detail_screen.dart';
 import 'report_case_list_screen.dart';
 import '../modules/mpda/screens/mpda_form_screen.dart';
+import '../modules/preventive/screens/preventive_form_screen.dart';
 
 class _CategoryMeta {
   final String label;
@@ -387,6 +388,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       );
       return;
     }
+    if (widget.moduleKey == 'preventive') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: PreventiveFormScreen(
+            moduleLabel: widget.moduleLabel,
+            subCategory: widget.subCategory,
+          ),
+        ),
+      );
+      return;
+    }
     if (widget.moduleKey == 'mpda') {
       Navigator.push(
         context,
@@ -496,6 +509,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final int pendingCount = allRecords.length - disposalCount;
 
     final List<ModuleRecord> filtered;
+    // Filtering logic combined
     if (widget.moduleKey == 'absconded') {
       if (_filter == 'Disposal' ||
           _filter == 'Closed' ||
@@ -613,53 +627,79 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: _buildAppBar(context, totalCount),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          if (widget.moduleKey == 'monthly') ...[
-            // Monthly module is report-only (no records section).
-            SliverToBoxAdapter(child: _buildMonthlyReport(context, allRecords)),
-          ] else if (widget.moduleKey == 'pending') ...[
-            SliverToBoxAdapter(child: _buildPendingModuleReportOnly(context)),
-          ] else if (widget.moduleLabel == 'Forms' &&
-              widget.moduleKey == 'form_1_5') ...[
-            SliverToBoxAdapter(child: _buildFormsModuleReportOnly(context)),
-          ] else ...[
-            if (widget.moduleKey == 'disposal')
-              SliverToBoxAdapter(child: _buildModuleTabs()),
-            if (_isReportMode && widget.moduleKey == 'disposal')
-              SliverToBoxAdapter(
-                  child: _buildMonthlyReport(context, allRecords))
-            else ...[
-              if (widget.moduleKey != 'form_1_5' &&
-                  widget.moduleKey != 'disposal') ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
-                        AppSpacing.md, AppSpacing.lg, AppSpacing.md),
-                    child:
-                        _buildStatsRow(totalCount, disposalCount, pendingCount),
-                  ),
-                ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (widget.moduleKey != 'form_1_5' &&
+              widget.moduleKey != 'disposal' &&
+              widget.moduleKey != 'monthly' &&
+              widget.moduleKey != 'pending')
+            _buildStatsRow(totalCount, disposalCount, pendingCount),
+          Expanded(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                if (widget.moduleKey == 'monthly') ...[
+                  // Monthly module is report-only (no records section).
+                  SliverToBoxAdapter(
+                      child: _buildMonthlyReport(context, allRecords)),
+                ] else if (widget.moduleKey == 'pending') ...[
+                  SliverToBoxAdapter(
+                      child: _buildPendingModuleReportOnly(context)),
+                ] else if (widget.moduleLabel == 'Forms' &&
+                    widget.moduleKey == 'form_1_5') ...[
+                  SliverToBoxAdapter(
+                      child: _buildFormsModuleReportOnly(context)),
+                ] else ...[
+                  if (widget.moduleKey == 'disposal')
+                    SliverToBoxAdapter(child: _buildModuleTabs()),
+                  if (_isReportMode && widget.moduleKey == 'disposal')
+                    SliverToBoxAdapter(
+                        child: _buildMonthlyReport(context, allRecords))
+                  else ...[
+                    if (filtered.isEmpty)
+                      SliverToBoxAdapter(child: _buildEmpty())
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (ctx, i) => _buildCard(ctx, filtered[i]),
+                            childCount: filtered.length,
+                          ),
+                        ),
+                      ),
+                  ],
+                ],
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
-              if (filtered.isEmpty)
-                SliverToBoxAdapter(child: _buildEmpty())
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (ctx, i) => _buildCard(ctx, filtered[i]),
-                      childCount: filtered.length,
-                    ),
-                  ),
-                ),
-            ],
-          ],
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ),
+          ),
         ],
       ),
-      floatingActionButton: null,
+      floatingActionButton: (widget.readOnly ||
+              widget.moduleKey == 'detected' ||
+              widget.moduleKey == 'undetected' ||
+              widget.moduleKey == 'disposal' ||
+              widget.moduleKey == 'mpda')
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _openNewEntryForm(context),
+              backgroundColor: AppColors.navyDark,
+              elevation: 4,
+              shape: const StadiumBorder(),
+              icon:
+                  const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+              label: Text(
+                TranslationHelper.translate(context, 'Add Case'),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
     );
   }
 
@@ -672,7 +712,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       title: transTitle,
       subtitle: '$total $transRecord $transReg',
       badgeLabel: transTitle.toUpperCase(),
-      onAddPressed: widget.readOnly ? null : () => _openNewEntryForm(context),
       backgroundColor: (widget.moduleKey == 'detected' ||
               widget.moduleKey == 'undetected' ||
               widget.moduleKey == 'disposal')
@@ -1001,7 +1040,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     void onFormSelect(FormsListEntry entry, {FormsSubSection? subSection}) {
       final subCategory = subSection?.subCategoryOverride ?? entry.subCategory;
       final moduleLabel = subSection != null
-          ? '${entry.title} — ${subSection.label}'
+          ? (entry.title == subSection.label
+              ? entry.title
+              : '${entry.title} — ${subSection.label}')
           : entry.title;
       if (subSection == null) {
         debugPrint('Opened ${entry.title} (subCategory: $subCategory)');
@@ -3668,14 +3709,116 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       );
     }
 
-    return Row(
-      children: [
-        _statCard('Total', total, AppColors.infoBlue, 'All'),
-        const SizedBox(width: 8),
-        _statCard('Disposal', disposal, AppColors.successGreen, 'Disposal'),
-        const SizedBox(width: 8),
-        _statCard('Pending', pending, AppColors.warningOrange, 'Pending'),
-      ],
+    return _statusTabBar(total, pending, disposal);
+  }
+
+  Widget _statusTabBar(int totalCount, int pendingCount, int disposalCount) {
+    final tabs = [
+      (
+        label: 'Total Cases',
+        count: totalCount,
+        filterKey: 'All',
+        badgeBg: const Color(0xFFE8F1FC),
+        badgeFg: const Color(0xFF1976D2),
+        activeBorder: const Color(0xFF1976D2),
+      ),
+      (
+        label: 'Pending',
+        count: pendingCount,
+        filterKey: 'Pending',
+        badgeBg: const Color(0xFFFFF3E0),
+        badgeFg: const Color(0xFFE65100),
+        activeBorder: const Color(0xFFE65100),
+      ),
+      (
+        label: 'Disposal',
+        count: disposalCount,
+        filterKey: 'Disposal',
+        badgeBg: const Color(0xFFE8F5E9),
+        badgeFg: const Color(0xFF2E7D32),
+        activeBorder: const Color(0xFF2E7D32),
+      ),
+    ];
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+        ),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: tabs.map((item) {
+            String currentFilter = _filter;
+            if (currentFilter == 'Open' || currentFilter == 'Active') {
+              currentFilter = 'Pending';
+            }
+            if (currentFilter == 'Closed' || currentFilter == 'Resolved') {
+              currentFilter = 'Disposal';
+            }
+            final isSelected = currentFilter == item.filterKey;
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 24),
+              child: InkWell(
+                onTap: () => setState(() => _filter = item.filterKey),
+                hoverColor: Colors.transparent,
+                splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color:
+                            isSelected ? item.activeBorder : Colors.transparent,
+                        width: 2.5,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        TranslationHelper.translate(context, item.label),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13.5,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.navyDark
+                              : AppColors.lightSubText,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: item.badgeBg,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${item.count}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: item.badgeFg,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 
@@ -4087,7 +4230,21 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 );
                 return;
               }
-              if (widget.moduleKey == 'mpda') {
+              if (widget.moduleKey == 'preventive' ||
+                  record.moduleKey == 'preventive') {
+                Navigator.push(
+                  ctx,
+                  AppTheme.fadeSlideRoute(
+                    page: PreventiveFormScreen(
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                      subCategory: widget.subCategory,
+                      existingRecord: record,
+                    ),
+                  ),
+                );
+                return;
+              }
+              if (widget.moduleKey == 'mpda' || record.moduleKey == 'mpda') {
                 Navigator.push(
                   ctx,
                   AppTheme.fadeSlideRoute(

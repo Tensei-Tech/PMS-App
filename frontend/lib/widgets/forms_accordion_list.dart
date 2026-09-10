@@ -38,10 +38,14 @@ class FormsListEntry {
 
   final List<FormsSubSection> subSections;
 
+  /// When true, renders as an expandable folder accordion even if it has only 1 subsection.
+  final bool isFolder;
+
   const FormsListEntry({
     required this.title,
     String? subCategory,
     this.subSections = const [],
+    this.isFolder = false,
   }) : subCategory = subCategory ?? title;
 
   bool get hasSubSections => subSections.isNotEmpty;
@@ -51,7 +55,9 @@ class FormsListEntry {
 
   /// True when opening the parent without a sub-section is a valid full form.
   bool get allowCompleteForm {
-    if (!hasSubSections || subSections.length == 1) return false;
+    if (!hasSubSections) return false;
+    if (isFolder) return true;
+    if (subSections.length == 1) return false;
     if (subCategory == 'BNSS Forms Compendium') return false;
     final distinct = subSections.map(_effectiveSubCategory).toSet();
     return distinct.length == 1;
@@ -59,7 +65,7 @@ class FormsListEntry {
 
   /// Single-part forms open directly instead of an accordion wrapper.
   bool get opensSingleSubSectionDirectly =>
-      hasSubSections && subSections.length == 1;
+      !isFolder && hasSubSections && subSections.length == 1;
 }
 
 FormsSubSection _sub(
@@ -105,12 +111,7 @@ final List<FormsListEntry> kFormsHierarchyMock = [
           sectionId: 'Search Seizure Panchanama'),
     ],
   ),
-  FormsListEntry(
-    title: 'Crimespot Seizure Panchanama',
-    subSections: [
-      _sub('घटनास्थळ जप्ती पंचनामा', 'Ends at I.O. signature'),
-    ],
-  ),
+
   FormsListEntry(
     title: 'Form E',
     subSections: [
@@ -142,11 +143,6 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         sectionId: 'Civil Surgeon PM Report',
       ),
       _sub(
-        'Vinanti Arj — PM Opinion Request',
-        'Ends at I.O. signature',
-        sectionId: 'Vinanti Arj',
-      ),
-      _sub(
         'Summons to Relatives (u/s 179 BNSS)',
         'Ends at I.O. signature',
         sectionId: 'Relative Summons 179',
@@ -176,14 +172,33 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         'Ends at I.O. signature',
         sectionId: 'Duty Pass',
       ),
+      _sub(
+        'Exhumation Panchanama',
+        'Ends at I.O. signature',
+        sectionId: 'Exhumation Panchanama',
+      ),
+    ],
+  ),
+  FormsListEntry(
+    title: 'Vinanti Arj — PM Opinion Request',
+    subCategory: 'Vinanti Arj — PM Opinion Request',
+    isFolder: true,
+    subSections: [
+      _sub(
+        'Vinanti Arj — PM Opinion Request',
+        'Ends at I.O. signature',
+        sectionId: 'Vinanti Arj',
+      ),
     ],
   ),
   FormsListEntry(
     title: 'Accused Memorandum Form',
     subSections: [
-      _sub('Part I — Personal Info & Memorandum', 'Ends at I.O. signature',
+      _sub('Part I — Accused Memorandum (आरोपीचे निवेदन)',
+          'Ends at I.O. signature',
           sectionId: 'Accused Part I'),
-      _sub('Part II — Further Panchanama', 'Ends at I.O. signature',
+      _sub('Part II — Further Panchanama (अधिक पंचनामा)',
+          'Ends at I.O. signature',
           sectionId: 'Accused Part II'),
     ],
   ),
@@ -389,7 +404,7 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         subCategoryOverride: 'Mobile Seal Label',
       ),
       _sub('Accused Interrogation / Memorandum', 'Pages 47–64',
-          subCategoryOverride: 'Accused Memorandum Form'),
+          subCategoryOverride: 'Accused Interrogation / Memorandum'),
       _sub(
         'Juvenile Social — Part I (Personal)',
         'Personal particulars',

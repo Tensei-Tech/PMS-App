@@ -2296,7 +2296,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 style: style,
                 width: 120,
                 hintText: 'जिल्हा'),
-            Text('  जिल्हा यवतमाळ.',
+            Text('  .',
                 style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
           ],
         ),
@@ -2342,7 +2342,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                           controller: _reqSubjectTaCtrl,
                           style: style,
                           width: 100),
-                      Text('  जिल्हा यवतमाळ हिचे/ ह्यांचे प्रेताचे पि.एम',
+                      Text('  जिल्हा ',
+                          style: marathiStyle.copyWith(
+                              fontWeight: FontWeight.bold)),
+                      _inlineBlank(
+                          controller: _reqDistCtrl, style: style, width: 80),
+                      Text(' हिचे/ ह्यांचे प्रेताचे पि.एम',
                           style: marathiStyle.copyWith(
                               fontWeight: FontWeight.bold)),
                     ],
@@ -2405,7 +2410,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               Text(' ता-', style: marathiStyle),
               _inlineBlank(
                   controller: _reqMargTaCtrl, style: style, width: 100),
-              Text(' जिल्हा यवतमाळ ही/ह्या ', style: marathiStyle),
+              Text(' जिल्हा ', style: marathiStyle),
+              _inlineBlank(controller: _reqDistCtrl, style: style, width: 80),
+              Text(' ही/ह्या ', style: marathiStyle),
               _inlineBlank(
                   controller: _reqHospitalNameCtrl,
                   style: style,

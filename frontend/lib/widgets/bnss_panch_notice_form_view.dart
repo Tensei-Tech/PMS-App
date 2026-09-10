@@ -62,7 +62,6 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
   final _p1ComplainantResidenceCtrl = TextEditingController();
   final _p1ComplainantTahCtrl = TextEditingController();
   final _p1ComplainantDistCtrl = TextEditingController(text: 'यवतमाळ');
-
   final _p1IoNameSigCtrl = TextEditingController();
   final _p1Panch1ReceiptCtrl = TextEditingController();
   final _p1Panch2ReceiptCtrl = TextEditingController();
@@ -114,7 +113,6 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
   final _p2SuspectResidenceCtrl = TextEditingController();
   final _p2SuspectTahCtrl = TextEditingController();
   final _p2SuspectDistCtrl = TextEditingController(text: 'यवतमाळ');
-
   final _p2IoNameSigCtrl = TextEditingController();
   final _p2Panch1ReceiptCtrl = TextEditingController();
   final _p2Panch2ReceiptCtrl = TextEditingController();
@@ -278,7 +276,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
         '';
     _p1ComplainantDistCtrl.text = data['p1_complainantDist']?.toString() ??
         data['complainantDist']?.toString() ??
-        'यवतमाळ';
+        '';
     _p1IoNameSigCtrl.text =
         data['p1_ioNameSig']?.toString() ?? data['ioNameSig']?.toString() ?? '';
     _p1Panch1ReceiptCtrl.text = data['p1_panch1Receipt']?.toString() ??
@@ -349,7 +347,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
         '';
     _p2SuspectDistCtrl.text = data['p2_suspectDist']?.toString() ??
         data['suspectDist']?.toString() ??
-        'यवतमाळ';
+        '';
     _p2IoNameSigCtrl.text =
         data['p2_ioNameSig']?.toString() ?? data['ioNameSig']?.toString() ?? '';
     _p2Panch1ReceiptCtrl.text = data['p2_panch1Receipt']?.toString() ??

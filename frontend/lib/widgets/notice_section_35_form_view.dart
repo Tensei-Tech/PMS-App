@@ -70,7 +70,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
   final _p2RecipientLine3Ctrl = TextEditingController();
 
   final _p2IncidentPsCtrl = TextEditingController();
-  final _p2DistCtrl = TextEditingController(text: 'यवतमाळ');
+  final _p2DistCtrl = TextEditingController();
   final _p2CrimeNoCtrl = TextEditingController();
   final _p2ActSecCtrl = TextEditingController();
 
@@ -220,7 +220,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     _p2IncidentPsCtrl.text = data['p2IncidentPs']?.toString() ??
         data['incidentPs']?.toString() ??
         '';
-    _p2DistCtrl.text = data['p2District']?.toString() ?? 'यवतमाळ';
+    _p2DistCtrl.text = data['p2District']?.toString() ?? '';
     _p2CrimeNoCtrl.text =
         data['p2CrimeNo']?.toString() ?? data['crimeNo']?.toString() ?? '';
     _p2ActSecCtrl.text =
