@@ -64,12 +64,14 @@ class BaseModuleProvider extends ChangeNotifier {
         stationId: _stationId,
         forceRefresh: forceRefresh,
       );
-      _records = CaseVisibility.filterRecords(
-        fetched,
-        uid: _uid,
-        mode: _visibilityMode,
-      );
-      notifyListeners();
+      if (fetched.isNotEmpty || forceRefresh) {
+        _records = CaseVisibility.filterRecords(
+          fetched,
+          uid: _uid,
+          mode: _visibilityMode,
+        );
+        notifyListeners();
+      }
     } catch (e) {
       debugPrint('[$moduleKey] CaseService fetch error: $e');
     }
@@ -114,38 +116,68 @@ class BaseModuleProvider extends ChangeNotifier {
   }
 
   List<ModuleRecord> getFilteredRecords(String? subCategory) {
-    if (subCategory == null) return records;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return records;
+    }
     return records.where((r) => r.subCategory == subCategory).toList();
   }
 
   int getFilteredTotalCount(String? subCategory) {
-    if (subCategory == null) return totalCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return totalCount;
+    }
     return records.where((r) => r.subCategory == subCategory).length;
   }
 
   int getFilteredOpenCount(String? subCategory) {
-    if (subCategory == null) return openCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return openCount;
+    }
     return records
         .where((r) => r.subCategory == subCategory && r.status == 'Open')
         .length;
   }
 
   int getFilteredActiveCount(String? subCategory) {
-    if (subCategory == null) return activeCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return activeCount;
+    }
     return records
         .where((r) => r.subCategory == subCategory && r.status == 'Active')
         .length;
   }
 
   int getFilteredResolvedCount(String? subCategory) {
-    if (subCategory == null) return resolvedCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return resolvedCount;
+    }
     return records
         .where((r) => r.subCategory == subCategory && r.status == 'Resolved')
         .length;
   }
 
   int getFilteredClosedCount(String? subCategory) {
-    if (subCategory == null) return closedCount;
+    if (subCategory == null ||
+        subCategory.trim().isEmpty ||
+        subCategory == 'All' ||
+        subCategory.toLowerCase() == moduleKey.toLowerCase()) {
+      return closedCount;
+    }
     return records
         .where((r) => r.subCategory == subCategory && r.status == 'Closed')
         .length;
@@ -163,9 +195,13 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
-    // Optimistic insert to ensure UI immediately reflects the new case
-    _records.removeWhere((r) => r.id == enriched.id);
-    _records.insert(0, enriched);
+    // Optimistic local add so UI updates instantly
+    final existingIdx = _records.indexWhere((r) => r.id == enriched.id);
+    if (existingIdx >= 0) {
+      _records[existingIdx] = enriched;
+    } else {
+      _records.insert(0, enriched);
+    }
     notifyListeners();
 
     await _caseService.saveCase(enriched, isCreate: true);
@@ -184,6 +220,7 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
+
     // Optimistically update local list so UI reflects status change immediately
     final idx = _records.indexWhere((r) => r.id == enriched.id);
     if (idx != -1) {
@@ -192,6 +229,7 @@ class BaseModuleProvider extends ChangeNotifier {
       _records.insert(0, enriched);
     }
     notifyListeners();
+
     await _caseService.saveCase(enriched, isCreate: false);
     await _fetchCases(forceRefresh: true);
   }

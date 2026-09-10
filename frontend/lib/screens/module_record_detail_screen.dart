@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/missing/screens/missing_form_screen.dart';
+import '../modules/mpda/screens/mpda_form_screen.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/preventive/screens/preventive_form_screen.dart';
 import '../providers/auth_provider.dart';
@@ -302,11 +303,19 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
       );
       return;
     }
+<<<<<<< HEAD
     if (_record.moduleKey == 'preventive') {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: PreventiveFormScreen(
+=======
+    if (_record.moduleKey == 'mpda') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: MpdaFormScreen(
+>>>>>>> origin/dev
             moduleLabel: moduleLabel,
             subCategory: _record.subCategory,
             existingRecord: _record,

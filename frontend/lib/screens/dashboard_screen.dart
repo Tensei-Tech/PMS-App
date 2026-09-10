@@ -3,27 +3,21 @@
 // Profile icon dropdown, News carousel, functional search, "Case Types" rename.
 
 import 'dart:async';
-import 'package:intl/intl.dart';
+
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:khakhi_diary/providers/settings_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:provider/provider.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:printing/printing.dart';
-import '../l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import '../providers/auth_provider.dart';
-import '../providers/theme_provider.dart';
-import '../providers/news_provider.dart';
-import '../services/firestore_service.dart';
-import 'package:khakhi_diary/providers/settings_provider.dart';
-import '../utils/state_language_helper.dart';
-import '../theme/app_theme.dart';
-import '../utils/app_constants.dart';
 
+<<<<<<< HEAD
 // Navigation targets for Hamburger Menu
 import 'profile_screen.dart';
 import 'login_security_screen.dart';
@@ -107,10 +101,100 @@ import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/uapa/providers/uapa_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
+=======
+>>>>>>> origin/dev
 import '../data/india_districts_repository.dart';
 import '../data/india_states.dart';
 import '../data/maharashtra_police_stations_repository.dart';
+import '../l10n/app_localizations.dart';
+import '../modules/absconded/providers/absconded_provider.dart';
+import '../modules/accident/providers/accident_provider.dart';
+import '../modules/ad/providers/ad_provider.dart';
+import '../modules/application/providers/application_provider.dart';
+import '../modules/arrested/providers/arrested_provider.dart';
+import '../modules/bnss/providers/bnss_provider.dart';
+import '../modules/coin/providers/coin_provider.dart';
+import '../modules/core/models/base_record.dart';
+import '../modules/crime_women/providers/crime_women_provider.dart';
+import '../modules/detected/providers/detected_provider.dart';
+import '../modules/disposal/providers/disposal_provider.dart';
+import '../modules/form_iv/providers/form_iv_provider.dart';
+import '../modules/form_vi/providers/form_vi_provider.dart';
+import '../modules/gowans/providers/gowans_provider.dart';
+import '../modules/hurt/providers/hurt_provider.dart';
+import '../modules/it_act/providers/it_act_provider.dart';
+import '../modules/juvenile/providers/juvenile_provider.dart';
+import '../modules/kidnapping/providers/kidnapping_provider.dart';
+import '../modules/mcoca/providers/mcoca_provider.dart';
+import '../modules/missing/providers/missing_provider.dart';
+import '../modules/missing/screens/missing_form_screen.dart';
+import '../modules/monthly/providers/monthly_provider.dart';
+import '../modules/mpda/providers/mpda_provider.dart';
+import '../modules/muddemal/providers/muddemal_provider.dart';
+import '../modules/nc/providers/nc_provider.dart';
+import '../modules/nc/screens/nc_form_screen.dart';
+import '../modules/ndps/providers/ndps_provider.dart';
+import '../modules/passport/providers/passport_provider.dart';
+import '../modules/pending/providers/pending_provider.dart';
+import '../modules/pocso/providers/pocso_provider.dart';
+import '../modules/preventive/providers/preventive_provider.dart';
+import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
+import '../modules/sand_theft/providers/sand_theft_provider.dart';
+import '../modules/theft/providers/theft_provider.dart';
+import '../modules/traffic/providers/traffic_provider.dart';
+import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
+import '../modules/uapa/providers/uapa_provider.dart';
+import '../modules/undetected/providers/undetected_provider.dart';
+import '../modules/victim/providers/victim_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/news_provider.dart';
+import '../providers/theme_provider.dart';
+import '../services/firestore_service.dart';
+import '../theme/app_theme.dart';
+import '../utils/app_constants.dart';
+import '../utils/case_visibility_ui.dart';
+import '../utils/common_form_module.dart';
+import '../utils/module_pdf_helper.dart';
+import '../utils/pdf_auth_gate.dart';
+import '../utils/pdf_helper.dart';
+import '../utils/police_hierarchy_helper.dart';
+import '../utils/police_rbac_helper.dart';
+import '../utils/state_branding_helper.dart';
+import '../utils/state_language_helper.dart';
+import '../utils/translation_helper.dart';
+import '../utils/universal_search.dart';
+import '../widgets/app_logo.dart';
+import '../widgets/bell_icon_widget.dart';
+import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
+import '../widgets/send_broadcast_alert_dialog.dart';
+import '../widgets/send_reminder_dialog.dart';
+import '../widgets/state_police_banner_dialog.dart';
+import '../widgets/voice_search_dialog.dart';
+import 'about_app_screen.dart';
+import 'absconded_cases_screen.dart';
+import 'ad_record_detail_screen.dart';
+import 'add_members_screen.dart';
+import 'admin_panel_screen.dart';
+import 'analytics_performance_screen.dart';
+import 'app_settings_screen.dart';
+import 'case_detail_screen.dart';
+import 'case_form_screen.dart';
+import 'common_form_screen.dart';
+import 'feedback_form_screen.dart';
+import 'form_i_v_selection_screen.dart';
+import 'help_support_screen.dart';
+import 'hurt_cases_screen.dart';
+import 'login_security_screen.dart';
+import 'module_form_screen.dart';
+import 'module_hub_screen.dart';
+import 'module_record_detail_screen.dart';
+import 'my_cases_screen.dart';
+import 'pending_transfers_screen.dart';
+// Navigation targets for Hamburger Menu
+import 'profile_screen.dart';
+import 'report_case_list_screen.dart';
+import 'station_access_grants_screen.dart';
 
 dynamic _dashboardTileIcon(String label, dynamic fallback) {
   final k = label.replaceAll('\n', ' ').trim();
@@ -2923,8 +3007,6 @@ class _HomeTabState extends State<_HomeTab> {
               const SizedBox(height: AppSpacing.md),
               _buildCaseVisibilityBanner(),
               const SizedBox(height: AppSpacing.md),
-              DashboardStatsWidget(auth: widget.auth),
-              const SizedBox(height: AppSpacing.lg),
               _buildSearchBar(),
               if (_hasActiveSearch) ...[
                 const SizedBox(height: AppSpacing.md),

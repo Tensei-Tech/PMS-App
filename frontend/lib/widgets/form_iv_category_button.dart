@@ -9,14 +9,14 @@ const List<String> kFormIVCaseCategories = [
   'Dacoity',
   'Robbery',
   'HBT',
-  'Thefts',
+  'Theft',
   'Riot',
   'Unlawful Assembly',
   'Kidnapping',
   'CBT',
   'Cheating',
   'Mischief',
-  'Hurts',
+  'Hurt',
   'Assault on Public Servant',
   'Rape',
   'Molestation',
@@ -26,6 +26,10 @@ const List<String> kFormIVCaseCategories = [
   'IPC (A) 304',
   '498 (A) IPC',
   'Other IPC',
+  'A.D.',
+  'ST Drugs',
+  'Chain Snatching',
+  'VI (details TBD)',
 ];
 
 /// Teal gradient category button for Form I-V case-type grids.
