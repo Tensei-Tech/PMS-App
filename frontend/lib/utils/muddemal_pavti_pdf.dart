@@ -52,18 +52,50 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
 
   final ps = v('policeStation');
   final dist = v('district', 'यवतमाळ');
-  final crimeNo = v('crimeNo', '........../२०......');
-  final actSec =
-      v('actSec', '________________________________________________');
-  final ioName = v('ioName');
-  final ioPs = v('ioPs');
-  final ioDist = v('ioDist', 'यवतमाळ');
+  final crimeNo = v('crimeNo', v('crNoYear', v('crNo', '........../२०......')));
+  final actSec = v('actSec',
+      v('section', '________________________________________________'));
+  final ioName = v('ioName', v('investigatingOfficer'));
+  final ioPs = v('ioPs', v('ioPoliceStation', ps));
+  final ioDist = v('ioDist', v('ioDistrict', 'यवतमाळ'));
   final accusedName = v('accusedName',
       '____________________________________________________________________');
-  final seizureDate = v('seizureDate', '......./ ........./२०.....');
-  final propertyNo = v('propertyNo', '........../२०......');
+  final seizureDate = v(
+      'seizureDate', v('seizedDate', v('date', '......./ ........./२०.....')));
+  final propertyNo =
+      v('propertyNo', v('malNumber', v('receiptNo', '........../२०......')));
 
-  final items = (doc['items'] is List) ? (doc['items'] as List) : [];
+  final rawItems = (doc['items'] is List)
+      ? (doc['items'] as List)
+      : ((doc['muddemalItems'] is List) ? (doc['muddemalItems'] as List) : []);
+
+  final items = <Map<String, dynamic>>[];
+  if (rawItems.isNotEmpty) {
+    for (final item in rawItems) {
+      if (item is Map) {
+        items.add({
+          'description': item['description']?.toString() ?? '',
+          'estimatedValue': item['estimatedValue']?.toString() ?? '',
+          'propertyNo':
+              (item['propertyNo'] ?? item['malNumber'])?.toString() ?? '',
+          'seizedFrom': item['seizedFrom']?.toString() ?? '',
+        });
+      }
+    }
+  } else if ((doc['propertyDescription']?.toString() ?? '').isNotEmpty ||
+      (doc['propertyValue']?.toString() ?? '').isNotEmpty) {
+    items.add({
+      'description': doc['propertyDescription']?.toString() ?? '',
+      'estimatedValue': doc['propertyValue']?.toString() ?? '',
+      'propertyNo': propertyNo,
+      'seizedFrom': doc['seizedFrom']?.toString() ?? '',
+    });
+  }
+
+  final headMohararSig =
+      v('headMohararSig', v('headMoharirSign', v('receiverName')));
+  final investigatingOfficerSig =
+      v('investigatingOfficerSig', v('ioSign', v('ioName')));
 
   pdf.addPage(
     pw.Page(
@@ -276,18 +308,18 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                 pw.Column(
                   children: [
                     pw.Text('हेडमोहरर सही', style: bold),
-                    if (v('headMohararSig').isNotEmpty) ...[
+                    if (headMohararSig.isNotEmpty) ...[
                       pw.SizedBox(height: 4),
-                      pw.Text(v('headMohararSig'), style: regular),
+                      pw.Text(headMohararSig, style: regular),
                     ],
                   ],
                 ),
                 pw.Column(
                   children: [
                     pw.Text('तपास अधिकारी', style: bold),
-                    if (v('investigatingOfficerSig').isNotEmpty) ...[
+                    if (investigatingOfficerSig.isNotEmpty) ...[
                       pw.SizedBox(height: 4),
-                      pw.Text(v('investigatingOfficerSig'), style: regular),
+                      pw.Text(investigatingOfficerSig, style: regular),
                     ],
                   ],
                 ),

@@ -415,14 +415,8 @@ final List<FormsListEntry> kFormsHierarchyMock = [
       ),
       _sub(
         'Juvenile Social — Part IV (Reports)',
-        'Neighbourhood & school',
+        'Neighbourhood, school & signatures',
         sectionId: 'Juvenile Social Part IV',
-        subCategoryOverride: 'Juvenile Social Background Report',
-      ),
-      _sub(
-        'Juvenile Social — Part V (Signatures)',
-        'Ends at I.O. & SHO signatures',
-        sectionId: 'Juvenile Social Part V',
         subCategoryOverride: 'Juvenile Social Background Report',
       ),
       _sub('Final Report Form', 'Pages 70–73',

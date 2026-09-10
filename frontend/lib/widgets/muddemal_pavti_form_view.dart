@@ -10,12 +10,14 @@ import 'form_view_scaffold.dart';
 /// -:: मुद्देमाल पावती ::- (Muddemal Pavti)
 class MuddemalPavtiFormView extends StatefulWidget {
   final bool readOnly;
+  final Map<String, dynamic>? existingRecord;
   final String? formSection;
   final String? pageRange;
 
   const MuddemalPavtiFormView({
     super.key,
     this.readOnly = false,
+    this.existingRecord,
     this.formSection,
     this.pageRange,
   });
@@ -52,6 +54,7 @@ class MuddemalPropertyRow {
       'description': description.text,
       'estimatedValue': estimatedValue.text,
       'propertyNo': propertyNo.text,
+      'malNumber': propertyNo.text,
       'seizedFrom': seizedFrom.text,
     };
   }
@@ -88,6 +91,9 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
   void initState() {
     super.initState();
     _rows ??= [MuddemalPropertyRow(propertyNo: '......./२०....')];
+    if (widget.existingRecord != null) {
+      hydrateFrom(widget.existingRecord!);
+    }
   }
 
   @override
@@ -128,63 +134,116 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
   }
 
   Map<String, dynamic> collectData() {
+    final itemsList = _safeRows.map((r) => r.toMap()).toList();
+    final firstRow = _safeRows.isNotEmpty ? _safeRows.first : null;
     return {
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
-      'policeStation': _psCtrl.text,
-      'district': _distCtrl.text,
-      'crimeNo': _crimeNoCtrl.text,
-      'actSec': _actSecCtrl.text,
-      'ioName': _ioNameCtrl.text,
-      'ioPs': _ioPsCtrl.text,
-      'ioDist': _ioDistCtrl.text,
-      'accusedName': _accusedNameCtrl.text,
-      'seizureDate': _seizureDateCtrl.text,
-      'propertyNo': _propertyNoCtrl.text,
-      'items': _safeRows.map((r) => r.toMap()).toList(),
-      'headMohararSig': _headMohararSigCtrl.text,
-      'investigatingOfficerSig': _investigatingOfficerSigCtrl.text,
+      'policeStation': _psCtrl.text.trim(),
+      'district': _distCtrl.text.trim(),
+      'crimeNo': _crimeNoCtrl.text.trim(),
+      'crNoYear': _crimeNoCtrl.text.trim(),
+      'crNo': _crimeNoCtrl.text.trim(),
+      'actSec': _actSecCtrl.text.trim(),
+      'section': _actSecCtrl.text.trim(),
+      'ioName': _ioNameCtrl.text.trim(),
+      'investigatingOfficer': _ioNameCtrl.text.trim(),
+      'ioPs': _ioPsCtrl.text.trim(),
+      'ioPoliceStation': _ioPsCtrl.text.trim(),
+      'ioDist': _ioDistCtrl.text.trim(),
+      'ioDistrict': _ioDistCtrl.text.trim(),
+      'accusedName': _accusedNameCtrl.text.trim(),
+      'seizureDate': _seizureDateCtrl.text.trim(),
+      'seizedDate': _seizureDateCtrl.text.trim(),
+      'propertyNo': _propertyNoCtrl.text.trim(),
+      'malNumber': _propertyNoCtrl.text.trim(),
+      'items': itemsList,
+      'muddemalItems': itemsList,
+      'propertyDescription': firstRow?.description.text.trim() ?? '',
+      'propertyValue': firstRow?.estimatedValue.text.trim() ?? '',
+      'seizedFrom': firstRow?.seizedFrom.text.trim() ?? '',
+      'headMohararSig': _headMohararSigCtrl.text.trim(),
+      'headMoharirSign': _headMohararSigCtrl.text.trim(),
+      'investigatingOfficerSig': _investigatingOfficerSigCtrl.text.trim(),
+      'ioSign': _investigatingOfficerSigCtrl.text.trim(),
     };
   }
 
   void hydrateFrom(Map<String, dynamic> data) {
     _psCtrl.text = data['policeStation']?.toString() ?? '';
     _distCtrl.text = data['district']?.toString() ?? 'यवतमाळ';
-    _crimeNoCtrl.text = data['crimeNo']?.toString() ?? '';
-    _actSecCtrl.text = data['actSec']?.toString() ?? '';
-    _ioNameCtrl.text = data['ioName']?.toString() ?? '';
-    _ioPsCtrl.text = data['ioPs']?.toString() ?? '';
-    _ioDistCtrl.text = data['ioDist']?.toString() ?? 'यवतमाळ';
+    _crimeNoCtrl.text =
+        (data['crimeNo'] ?? data['crNoYear'] ?? data['crNo'])?.toString() ?? '';
+    _actSecCtrl.text = (data['actSec'] ?? data['section'])?.toString() ?? '';
+    _ioNameCtrl.text =
+        (data['ioName'] ?? data['investigatingOfficer'])?.toString() ?? '';
+    _ioPsCtrl.text =
+        (data['ioPs'] ?? data['ioPoliceStation'] ?? data['policeStation'])
+                ?.toString() ??
+            '';
+    _ioDistCtrl.text =
+        (data['ioDist'] ?? data['ioDistrict'])?.toString() ?? 'यवतमाळ';
     _accusedNameCtrl.text = data['accusedName']?.toString() ?? '';
-    _seizureDateCtrl.text = data['seizureDate']?.toString() ?? '';
-    _propertyNoCtrl.text = data['propertyNo']?.toString() ?? '';
+    _seizureDateCtrl.text =
+        (data['seizureDate'] ?? data['seizedDate'] ?? data['date'])
+                ?.toString() ??
+            '';
+    _propertyNoCtrl.text =
+        (data['propertyNo'] ?? data['malNumber'] ?? data['receiptNo'])
+                ?.toString() ??
+            '';
 
-    if (data['items'] is List) {
-      for (final r in _safeRows) {
-        r.dispose();
+    final dynamic rawList = data['items'] ?? data['muddemalItems'];
+    if (rawList is List && rawList.isNotEmpty) {
+      if (_rows != null) {
+        for (final r in _rows!) {
+          r.dispose();
+        }
       }
-      _safeRows.clear();
-      final list = data['items'] as List;
-      for (final item in list) {
+      _rows = [];
+      for (final item in rawList) {
         if (item is Map) {
-          _safeRows.add(
+          _rows!.add(
             MuddemalPropertyRow(
               description: item['description']?.toString() ?? '',
               estimatedValue: item['estimatedValue']?.toString() ?? '',
-              propertyNo: item['propertyNo']?.toString() ?? '',
+              propertyNo:
+                  (item['propertyNo'] ?? item['malNumber'])?.toString() ?? '',
               seizedFrom: item['seizedFrom']?.toString() ?? '',
             ),
           );
         }
       }
-      if (_safeRows.isEmpty) {
-        _safeRows.add(MuddemalPropertyRow(propertyNo: '......./२०....'));
+      if (_rows!.isEmpty) {
+        _rows!.add(MuddemalPropertyRow(propertyNo: '......./२०....'));
       }
+    } else if (data['propertyDescription'] != null ||
+        data['propertyValue'] != null) {
+      if (_rows != null) {
+        for (final r in _rows!) {
+          r.dispose();
+        }
+      }
+      _rows = [
+        MuddemalPropertyRow(
+          description: data['propertyDescription']?.toString() ?? '',
+          estimatedValue: data['propertyValue']?.toString() ?? '',
+          propertyNo:
+              (data['propertyNo'] ?? data['malNumber'])?.toString() ?? '',
+          seizedFrom: data['seizedFrom']?.toString() ?? '',
+        ),
+      ];
     }
 
-    _headMohararSigCtrl.text = data['headMohararSig']?.toString() ?? '';
+    _headMohararSigCtrl.text = (data['headMohararSig'] ??
+                data['headMoharirSign'] ??
+                data['receiverName'])
+            ?.toString() ??
+        '';
     _investigatingOfficerSigCtrl.text =
-        data['investigatingOfficerSig']?.toString() ?? '';
+        (data['investigatingOfficerSig'] ?? data['ioSign'] ?? data['ioName'])
+                ?.toString() ??
+            '';
 
     if (mounted) setState(() {});
   }
