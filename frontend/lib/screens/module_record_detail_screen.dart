@@ -303,19 +303,24 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
       );
       return;
     }
-<<<<<<< HEAD
     if (_record.moduleKey == 'preventive') {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: PreventiveFormScreen(
-=======
+            moduleLabel: moduleLabel,
+            subCategory: _record.subCategory,
+            existingRecord: _record,
+          ),
+        ),
+      );
+      return;
+    }
     if (_record.moduleKey == 'mpda') {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: MpdaFormScreen(
->>>>>>> origin/dev
             moduleLabel: moduleLabel,
             subCategory: _record.subCategory,
             existingRecord: _record,

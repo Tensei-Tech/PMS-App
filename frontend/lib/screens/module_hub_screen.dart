@@ -71,11 +71,8 @@ import 'hurt_cases_screen.dart';
 import 'absconded_cases_screen.dart';
 import 'module_record_detail_screen.dart';
 import 'report_case_list_screen.dart';
-<<<<<<< HEAD
-import '../modules/preventive/screens/preventive_form_screen.dart';
-=======
 import '../modules/mpda/screens/mpda_form_screen.dart';
->>>>>>> origin/dev
+import '../modules/preventive/screens/preventive_form_screen.dart';
 
 class _CategoryMeta {
   final String label;
@@ -391,19 +388,23 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       );
       return;
     }
-<<<<<<< HEAD
     if (widget.moduleKey == 'preventive') {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: PreventiveFormScreen(
-=======
+            moduleLabel: widget.moduleLabel,
+            subCategory: widget.subCategory,
+          ),
+        ),
+      );
+      return;
+    }
     if (widget.moduleKey == 'mpda') {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: MpdaFormScreen(
->>>>>>> origin/dev
             moduleLabel: widget.moduleLabel,
             subCategory: widget.subCategory,
           ),
@@ -4227,19 +4228,24 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 );
                 return;
               }
-<<<<<<< HEAD
               if (widget.moduleKey == 'preventive' || record.moduleKey == 'preventive') {
                 Navigator.push(
                   ctx,
                   AppTheme.fadeSlideRoute(
                     page: PreventiveFormScreen(
-=======
-              if (widget.moduleKey == 'mpda') {
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                      subCategory: widget.subCategory,
+                      existingRecord: record,
+                    ),
+                  ),
+                );
+                return;
+              }
+              if (widget.moduleKey == 'mpda' || record.moduleKey == 'mpda') {
                 Navigator.push(
                   ctx,
                   AppTheme.fadeSlideRoute(
                     page: MpdaFormScreen(
->>>>>>> origin/dev
                       moduleLabel: record.firestoreCategoryDisplayName,
                       subCategory: widget.subCategory,
                       existingRecord: record,

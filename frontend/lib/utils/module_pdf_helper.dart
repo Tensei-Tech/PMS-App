@@ -8,11 +8,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../modules/core/models/base_record.dart';
-<<<<<<< HEAD
-import '../modules/preventive/utils/preventive_form_pdf.dart';
-=======
 import '../modules/mpda/utils/mpda_form_pdf.dart';
->>>>>>> origin/dev
+import '../modules/preventive/utils/preventive_form_pdf.dart';
 import 'ad_firestore_payload.dart';
 import 'app_constants.dart';
 import 'common_form_module.dart';
@@ -25,11 +22,8 @@ import 'pdf_unicode_fonts.dart';
 class ModulePdfHelper {
   static const String _kNcFormExtraFieldsKey = 'ncForm';
   static const String _kMissingFormExtraFieldsKey = 'missingForm';
-<<<<<<< HEAD
-  static const String _kPreventiveFormExtraFieldsKey = 'preventiveForm';
-=======
   static const String _kMpdaFormExtraFieldsKey = 'mpdaForm';
->>>>>>> origin/dev
+  static const String _kPreventiveFormExtraFieldsKey = 'preventiveForm';
 
   /// When [_kNcFormExtraFieldsKey] is present — NC standalone form map + extraMap PDF.
   static Future<bool> printNcFormStoredPdf(ModuleRecord record) async {
@@ -121,21 +115,24 @@ class ModulePdfHelper {
     return true;
   }
 
-<<<<<<< HEAD
   /// When [_kPreventiveFormExtraFieldsKey] is present — Preventive / Istegasha Form PDF.
   static Future<bool> printPreventiveFormStoredPdf(ModuleRecord record) async {
     if (record.moduleKey != 'preventive') return false;
     final nested = record.extraFields[_kPreventiveFormExtraFieldsKey];
     if (nested is! Map && record.extraFields.isEmpty) return false;
     await PreventiveFormPdfHelper.printPdf(
-=======
+      data: record.extraFields,
+      policeStation: record.stationName,
+    );
+    return true;
+  }
+
   /// When [_kMpdaFormExtraFieldsKey] is present — MPDA Form PDF.
   static Future<bool> printMpdaFormStoredPdf(ModuleRecord record) async {
     if (record.moduleKey != 'mpda') return false;
     final nested = record.extraFields[_kMpdaFormExtraFieldsKey];
     if (nested is! Map) return false;
     await MpdaFormPdfHelper.printPdf(
->>>>>>> origin/dev
       data: record.extraFields,
       policeStation: record.stationName,
     );
@@ -148,11 +145,8 @@ class ModulePdfHelper {
     final displayName = record.firestoreCategoryDisplayName;
     if (await printNcFormStoredPdf(record)) return;
     if (await printMissingFormStoredPdf(record)) return;
-<<<<<<< HEAD
     if (await printPreventiveFormStoredPdf(record)) return;
-=======
     if (await printMpdaFormStoredPdf(record)) return;
->>>>>>> origin/dev
     if (await printCommonFormStoredPdf(record)) return;
 
     if (record.moduleKey == 'ad') {
