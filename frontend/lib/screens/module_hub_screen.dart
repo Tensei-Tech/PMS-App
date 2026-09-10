@@ -3738,10 +3738,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         child: Row(
           children: tabs.map((item) {
             String currentFilter = _filter;
-            if (currentFilter == 'Open' || currentFilter == 'Active')
+            if (currentFilter == 'Open' || currentFilter == 'Active') {
               currentFilter = 'Pending';
-            if (currentFilter == 'Closed' || currentFilter == 'Resolved')
+            }
+            if (currentFilter == 'Closed' || currentFilter == 'Resolved') {
               currentFilter = 'Disposal';
+            }
             final isSelected = currentFilter == item.filterKey;
 
             return Padding(
