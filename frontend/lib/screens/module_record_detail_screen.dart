@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/missing/screens/missing_form_screen.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
+import '../modules/preventive/screens/preventive_form_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
@@ -293,6 +294,19 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
         context,
         AppTheme.fadeSlideRoute(
           page: MissingFormScreen(
+            moduleLabel: moduleLabel,
+            subCategory: _record.subCategory,
+            existingRecord: _record,
+          ),
+        ),
+      );
+      return;
+    }
+    if (_record.moduleKey == 'preventive') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: PreventiveFormScreen(
             moduleLabel: moduleLabel,
             subCategory: _record.subCategory,
             existingRecord: _record,

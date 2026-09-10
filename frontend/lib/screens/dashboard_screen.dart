@@ -67,6 +67,8 @@ import '../widgets/app_logo.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/dashboard_stats_widget.dart';
 import '../widgets/form_iv_category_button.dart';
+import 'ad_form_screen.dart';
+import '../modules/preventive/screens/preventive_form_screen.dart';
 import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../modules/form_vi/providers/form_vi_provider.dart';
 import '../modules/nc/providers/nc_provider.dart';
@@ -9281,6 +9283,12 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   page: const FormIVSelectionScreen(
                 mode: FormIVSelectionMode.add,
               )));
+        } else if (item.moduleKey == 'ad') {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const ADFormScreen(),
+              ));
         } else if (item.moduleKey == 'nc') {
           Navigator.push(
               context,
@@ -9294,6 +9302,14 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
               context,
               AppTheme.fadeSlideRoute(
                 page: MissingFormScreen(
+                  moduleLabel: item.name,
+                ),
+              ));
+        } else if (item.moduleKey == 'preventive') {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: PreventiveFormScreen(
                   moduleLabel: item.name,
                 ),
               ));
