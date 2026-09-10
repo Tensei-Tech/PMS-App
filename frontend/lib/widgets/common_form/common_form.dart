@@ -264,18 +264,8 @@ class CommonFormState extends State<CommonForm> {
   final _spotVillage = TextEditingController();
   final _spotArea = TextEditingController();
   final _spotAddress = TextEditingController();
-  final _stolenProperty = TextEditingController();
-  final _stolenQuantity = TextEditingController();
-  final _stolenEstValue = TextEditingController();
-  final _stolenId = TextEditingController();
-  final _stolenDate = TextEditingController();
-  final _stolenFrom = TextEditingController();
-
-  final _recoveredProperty = TextEditingController();
-  final _recoveredQuantity = TextEditingController();
-  final _recoveredEstValue = TextEditingController();
-  final _recoveredDate = TextEditingController();
-  final _recoveredFrom = TextEditingController();
+  final List<Map<String, dynamic>> _stolenProperties = [];
+  final List<Map<String, dynamic>> _recoveredProperties = [];
 
   // ── §4 Complainant KYC ────────────────────────────────────────────────────
   final _compName = TextEditingController();
@@ -623,17 +613,6 @@ class CommonFormState extends State<CommonForm> {
       _spotVillage,
       _spotArea,
       _spotAddress,
-      _stolenProperty,
-      _stolenQuantity,
-      _stolenEstValue,
-      _stolenId,
-      _stolenDate,
-      _stolenFrom,
-      _recoveredProperty,
-      _recoveredQuantity,
-      _recoveredEstValue,
-      _recoveredDate,
-      _recoveredFrom,
       _compName,
       _compAge,
       _compOcc,
@@ -1159,17 +1138,6 @@ class CommonFormState extends State<CommonForm> {
       _spotVillage,
       _spotArea,
       _spotAddress,
-      _stolenProperty,
-      _stolenQuantity,
-      _stolenEstValue,
-      _stolenId,
-      _stolenDate,
-      _stolenFrom,
-      _recoveredProperty,
-      _recoveredQuantity,
-      _recoveredEstValue,
-      _recoveredDate,
-      _recoveredFrom,
       _compName,
       _compAge,
       _compOcc,
@@ -1322,21 +1290,25 @@ class CommonFormState extends State<CommonForm> {
       'spotVillage': _spotVillage.text,
       'spotArea': _spotArea.text,
       'spotAddress': _spotAddress.text,
-      'stolenProperty': {
-        'property': _stolenProperty.text,
-        'quantity': _stolenQuantity.text,
-        'estValue': _stolenEstValue.text,
-        'id': _stolenId.text,
-        'date': _stolenDate.text,
-        'from': _stolenFrom.text,
-      },
-      'recoveredProperty': {
-        'property': _recoveredProperty.text,
-        'quantity': _recoveredQuantity.text,
-        'estValue': _recoveredEstValue.text,
-        'date': _recoveredDate.text,
-        'from': _recoveredFrom.text,
-      },
+      'stolenProperties': _stolenProperties
+          .map((e) => {
+                'property': (e['property'] as TextEditingController).text,
+                'quantity': (e['quantity'] as TextEditingController).text,
+                'estValue': (e['estValue'] as TextEditingController).text,
+                'id': (e['id'] as TextEditingController).text,
+                'date': (e['date'] as TextEditingController).text,
+                'from': (e['from'] as TextEditingController).text,
+              })
+          .toList(),
+      'recoveredProperties': _recoveredProperties
+          .map((e) => {
+                'property': (e['property'] as TextEditingController).text,
+                'quantity': (e['quantity'] as TextEditingController).text,
+                'estValue': (e['estValue'] as TextEditingController).text,
+                'date': (e['date'] as TextEditingController).text,
+                'from': (e['from'] as TextEditingController).text,
+              })
+          .toList(),
       'isSexualOffence': _hasSexualOffenceAct,
       'complainant': {
         'name': _hasSexualOffenceAct
@@ -1573,45 +1545,66 @@ class CommonFormState extends State<CommonForm> {
     _spotArea.text = _s(m['spotArea']);
     _spotAddress.text = _s(m['spotAddress']);
 
-    final sp = m['stolenProperty'] as Map?;
-    if (sp != null) {
-      _stolenProperty.text =
-          _s(sp['property']) != '' ? _s(sp['property']) : _s(sp['description']);
-      _stolenQuantity.text = _s(sp['quantity']);
-      _stolenEstValue.text = _s(sp['estValue']);
-      _stolenId.text = _s(sp['id']);
-      _stolenDate.text = _s(sp['date']);
-      _stolenFrom.text = _s(sp['from']);
+    _stolenProperties.clear();
+    final spList = m['stolenProperties'] as List?;
+    if (spList != null && spList.isNotEmpty) {
+      for (final sp in spList) {
+        if (sp is Map) _stolenProperties.add(_createStolenPropRow(sp));
+      }
+    } else {
+      // Backwards compatibility
+      final sp = m['stolenProperty'] as Map?;
+      final propDet = m['propertyDetails'] as Map?;
+      if (sp != null || propDet != null) {
+        final stMap = _createStolenPropRow({});
+        (stMap['property'] as TextEditingController).text =
+            _s(sp?['property']) != ''
+                ? _s(sp?['property'])
+                : _s(sp?['description']);
+        (stMap['quantity'] as TextEditingController).text =
+            _s(sp?['quantity']) != ''
+                ? _s(sp?['quantity'])
+                : _s(propDet?['quantity']);
+        (stMap['estValue'] as TextEditingController).text =
+            _s(sp?['estValue']) != ''
+                ? _s(sp?['estValue'])
+                : _s(propDet?['estValue']);
+        (stMap['id'] as TextEditingController).text =
+            _s(sp?['id']) != '' ? _s(sp?['id']) : _s(propDet?['id']);
+        (stMap['date'] as TextEditingController).text = _s(sp?['date']);
+        (stMap['from'] as TextEditingController).text = _s(sp?['from']);
+        _stolenProperties.add(stMap);
+      }
     }
 
-    final rp = m['recoveredProperty'] as Map?;
-    if (rp != null) {
-      _recoveredProperty.text = _s(rp['property']);
-      _recoveredQuantity.text = _s(rp['quantity']);
-      _recoveredEstValue.text = _s(rp['estValue']);
-      _recoveredDate.text = _s(rp['date']);
-      _recoveredFrom.text = _s(rp['from']);
-    }
-
-    final propDet = m['propertyDetails'] as Map?;
-    if (propDet != null) {
-      if (_stolenQuantity.text.isEmpty) {
-        _stolenQuantity.text = _s(propDet['quantity']);
+    _recoveredProperties.clear();
+    final rpList = m['recoveredProperties'] as List?;
+    if (rpList != null && rpList.isNotEmpty) {
+      for (final rp in rpList) {
+        if (rp is Map) _recoveredProperties.add(_createRecoveredPropRow(rp));
       }
-      if (_stolenId.text.isEmpty) {
-        _stolenId.text = _s(propDet['id']);
-      }
-      if (_stolenEstValue.text.isEmpty) {
-        _stolenEstValue.text = _s(propDet['estValue']);
-      }
-      if (_recoveredDate.text.isEmpty) {
-        _recoveredDate.text = _s(propDet['recDate']);
-      }
-      if (_recoveredFrom.text.isEmpty) {
-        _recoveredFrom.text = _s(propDet['recFrom']);
-      }
-      if (_recoveredProperty.text.isEmpty && sp != null) {
-        _recoveredProperty.text = _s(sp['recovered']);
+    } else {
+      // Backwards compatibility
+      final rp = m['recoveredProperty'] as Map?;
+      final propDet = m['propertyDetails'] as Map?;
+      final sp = m['stolenProperty'] as Map?;
+      if (rp != null ||
+          propDet != null ||
+          (sp != null && _s(sp['recovered']).isNotEmpty)) {
+        final recMap = _createRecoveredPropRow({});
+        (recMap['property'] as TextEditingController).text =
+            _s(rp?['property']) != ''
+                ? _s(rp?['property'])
+                : _s(sp?['recovered']);
+        (recMap['quantity'] as TextEditingController).text =
+            _s(rp?['quantity']);
+        (recMap['estValue'] as TextEditingController).text =
+            _s(rp?['estValue']);
+        (recMap['date'] as TextEditingController).text =
+            _s(rp?['date']) != '' ? _s(rp?['date']) : _s(propDet?['recDate']);
+        (recMap['from'] as TextEditingController).text =
+            _s(rp?['from']) != '' ? _s(rp?['from']) : _s(propDet?['recFrom']);
+        _recoveredProperties.add(recMap);
       }
     }
 
@@ -3098,42 +3091,166 @@ class CommonFormState extends State<CommonForm> {
         ],
       );
 
+  Map<String, dynamic> _createStolenPropRow(Map m) {
+    return {
+      'property': TextEditingController(text: m['property']?.toString() ?? ''),
+      'quantity': TextEditingController(text: m['quantity']?.toString() ?? ''),
+      'estValue': TextEditingController(text: m['estValue']?.toString() ?? ''),
+      'id': TextEditingController(text: m['id']?.toString() ?? ''),
+      'date': TextEditingController(text: m['date']?.toString() ?? ''),
+      'from': TextEditingController(text: m['from']?.toString() ?? ''),
+    };
+  }
+
+  Map<String, dynamic> _createRecoveredPropRow(Map m) {
+    return {
+      'property': TextEditingController(text: m['property']?.toString() ?? ''),
+      'quantity': TextEditingController(text: m['quantity']?.toString() ?? ''),
+      'estValue': TextEditingController(text: m['estValue']?.toString() ?? ''),
+      'date': TextEditingController(text: m['date']?.toString() ?? ''),
+      'from': TextEditingController(text: m['from']?.toString() ?? ''),
+    };
+  }
+
+  Widget _stolenPropCard(int i, Map<String, dynamic> r) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _kInputBg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _kBorder, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Stolen Property #${i + 1}',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: _kDark)),
+              InkWell(
+                onTap: () => setState(() => _stolenProperties.removeAt(i)),
+                child: const Icon(Icons.delete_outline_rounded,
+                    size: 18, color: _kRed),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _row([
+            _tf('Property Description', r['property'] as TextEditingController,
+                maxLines: 2)
+          ]),
+          _row([
+            _tf('Quantity', r['quantity'] as TextEditingController),
+            _tf('Est Value', r['estValue'] as TextEditingController,
+                keyboardType: TextInputType.number),
+          ]),
+          _row([
+            _tf('Identification / Serial No.', r['id'] as TextEditingController)
+          ]),
+          _row([
+            _dateTimeField(
+                'Stolen Date & Time', r['date'] as TextEditingController),
+            _tf('Stolen From', r['from'] as TextEditingController),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _recoveredPropCard(int i, Map<String, dynamic> r) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _kInputBg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _kBorder, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Recovered Property #${i + 1}',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: _kDark)),
+              InkWell(
+                onTap: () => setState(() => _recoveredProperties.removeAt(i)),
+                child: const Icon(Icons.delete_outline_rounded,
+                    size: 18, color: _kRed),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _row([
+            _tf('Property Description', r['property'] as TextEditingController,
+                maxLines: 2)
+          ]),
+          _row([
+            _tf('Quantity', r['quantity'] as TextEditingController),
+            _tf('Est Value', r['estValue'] as TextEditingController,
+                keyboardType: TextInputType.number),
+          ]),
+          _row([
+            _dateTimeField(
+                'Recovered Date & Time', r['date'] as TextEditingController),
+            _tf('Recovered From', r['from'] as TextEditingController),
+          ]),
+        ],
+      ),
+    );
+  }
+
   Widget _sStolenProperty() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text('Stolen Property',
-                style: _tsSection.copyWith(fontSize: 13, color: _kTeal)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('STOLEN PROPERTIES',
+                  style: _tsSection.copyWith(fontSize: 13, color: _kTeal)),
+              _headerBtn('Add Stolen', () {
+                setState(() => _stolenProperties.add(_createStolenPropRow({})));
+              }),
+            ],
           ),
-          _row([_tf('Stolen Property', _stolenProperty, maxLines: 2)]),
-          _row([
-            _tf('Quantity', _stolenQuantity),
-            _tf('Est Value', _stolenEstValue,
-                keyboardType: TextInputType.number),
-          ]),
-          _row([_tf('Identification / Serial No.', _stolenId)]),
-          _row([
-            _dateTimeField('Stolen Date & Time', _stolenDate),
-            _tf('Stolen From', _stolenFrom),
-          ]),
+          const SizedBox(height: 8),
+          if (_stolenProperties.isEmpty)
+            _emptyBox('No stolen properties added.')
+          else
+            ..._stolenProperties
+                .asMap()
+                .entries
+                .map((e) => _stolenPropCard(e.key, e.value)),
           const SizedBox(height: 10),
           _divider(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text('Recovered Property',
-                style: _tsSection.copyWith(fontSize: 13, color: _kTeal)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('RECOVERED PROPERTIES',
+                  style: _tsSection.copyWith(fontSize: 13, color: _kTeal)),
+              _headerBtn('Add Recovered', () {
+                setState(() =>
+                    _recoveredProperties.add(_createRecoveredPropRow({})));
+              }),
+            ],
           ),
-          _row([_tf('Recovered Property', _recoveredProperty, maxLines: 2)]),
-          _row([
-            _tf('Quantity', _recoveredQuantity),
-            _tf('Est Value', _recoveredEstValue,
-                keyboardType: TextInputType.number),
-          ]),
-          _row([
-            _dateTimeField('Recovered Date & Time', _recoveredDate),
-            _tf('Recovered From', _recoveredFrom),
-          ]),
+          const SizedBox(height: 8),
+          if (_recoveredProperties.isEmpty)
+            _emptyBox('No recovered properties added.')
+          else
+            ..._recoveredProperties
+                .asMap()
+                .entries
+                .map((e) => _recoveredPropCard(e.key, e.value)),
         ],
       );
 

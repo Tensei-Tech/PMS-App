@@ -67,6 +67,7 @@ import 'module_form_screen.dart';
 import 'common_form_screen.dart';
 import '../utils/common_form_module.dart';
 import 'form_i_v_selection_screen.dart';
+import 'form_vi_selection_screen.dart';
 import 'hurt_cases_screen.dart';
 import 'absconded_cases_screen.dart';
 import 'module_record_detail_screen.dart';
@@ -418,6 +419,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         AppTheme.fadeSlideRoute(
           page: const FormIVSelectionScreen(
             mode: FormIVSelectionMode.add,
+          ),
+        ),
+      );
+    } else if (widget.moduleKey == 'form_6' && widget.subCategory == null) {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const FormVISelectionScreen(
+            mode: FormVISelectionMode.add,
           ),
         ),
       );
