@@ -195,8 +195,10 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
     return total;
   }
 
-  List<String> get _stolenPropertyNames =>
-      _stolenProps.map((e) => e.name.text.trim()).where((n) => n.isNotEmpty).toList();
+  List<String> get _stolenPropertyNames => _stolenProps
+      .map((e) => e.name.text.trim())
+      .where((n) => n.isNotEmpty)
+      .toList();
 
   @override
   void dispose() {
@@ -409,8 +411,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: _kTeal, width: 2),
       ),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     );
   }
 
@@ -528,8 +529,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
         minimumSize: const Size.fromHeight(42),
         foregroundColor: _kSec,
         side: const BorderSide(color: _kBorder),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         textStyle:
             GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700),
       ),
@@ -578,8 +578,8 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
               height: 20,
               decoration: BoxDecoration(
                 color: selected ? _kTeal : Colors.transparent,
-                border: Border.all(
-                    color: selected ? _kTeal : _kBorder, width: 2),
+                border:
+                    Border.all(color: selected ? _kTeal : _kBorder, width: 2),
                 borderRadius: BorderRadius.circular(5),
               ),
               child: selected
@@ -624,8 +624,8 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
               height: 18,
               decoration: BoxDecoration(
                 color: selected ? _kAmber : Colors.transparent,
-                border: Border.all(
-                    color: selected ? _kAmber : _kBorder, width: 2),
+                border:
+                    Border.all(color: selected ? _kAmber : _kBorder, width: 2),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: selected
@@ -638,8 +638,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                 label,
                 style: GoogleFonts.poppins(
                   fontSize: 11.5,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                   color: selected ? _kDark : _kSec,
                 ),
               ),
@@ -699,8 +698,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
           const SizedBox(height: 12),
           // Total Value display
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: const Color(0xFFF0FDF4),
               borderRadius: BorderRadius.circular(10),
@@ -802,8 +800,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                     style: GoogleFonts.poppins(fontSize: 12),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d*'))
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
                     ],
                     decoration: _dec('Value (Rs.)'),
                     onChanged: (_) => setState(() {}),
@@ -870,8 +867,8 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
               const SizedBox(height: 6),
               if (names.isEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF7ED),
                     borderRadius: BorderRadius.circular(10),
@@ -905,9 +902,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                         name,
                         style: GoogleFonts.poppins(
                           fontSize: 11.5,
-                          fontWeight: sel
-                              ? FontWeight.w700
-                              : FontWeight.w400,
+                          fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
                           color: sel ? Colors.white : _kDark,
                         ),
                       ),
@@ -917,8 +912,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                       selectedColor: _kTeal,
                       backgroundColor: _kFill,
                       checkmarkColor: Colors.white,
-                      side: BorderSide(
-                          color: sel ? _kTeal : _kBorder),
+                      side: BorderSide(color: sel ? _kTeal : _kBorder),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                     );
@@ -1000,12 +994,11 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFF7ED),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                  color: const Color(0xFFFED7AA)),
+                              border:
+                                  Border.all(color: const Color(0xFFFED7AA)),
                             ),
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   'Vehicle Type:',
@@ -1016,8 +1009,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                ..._kVehicleSubTypes
-                                    .map(_vehicleSubCheckbox),
+                                ..._kVehicleSubTypes.map(_vehicleSubCheckbox),
                               ],
                             ),
                           )
@@ -1042,10 +1034,11 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                               controller: _theftTypeOther,
                               style: GoogleFonts.poppins(fontSize: 12),
                               maxLength: 25,
-                              decoration: _dec(
-                                      'Other Theft Type (max 25 chars)')
-                                  .copyWith(
-                                counterText: '${_theftTypeOther.text.length}/25',
+                              decoration:
+                                  _dec('Other Theft Type (max 25 chars)')
+                                      .copyWith(
+                                counterText:
+                                    '${_theftTypeOther.text.length}/25',
                               ),
                               onChanged: (_) => setState(() {}),
                             ),
@@ -1096,8 +1089,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                   loc,
                   style: GoogleFonts.poppins(
                     fontSize: 11.5,
-                    fontWeight:
-                        sel ? FontWeight.w700 : FontWeight.w400,
+                    fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
                     color: sel ? Colors.white : _kDark,
                   ),
                 ),
@@ -1124,10 +1116,9 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                       controller: _locationTypeOther,
                       style: GoogleFonts.poppins(fontSize: 12),
                       maxLength: 25,
-                      decoration: _dec('Other Location (max 25 chars)')
-                          .copyWith(
-                        counterText:
-                            '${_locationTypeOther.text.length}/25',
+                      decoration:
+                          _dec('Other Location (max 25 chars)').copyWith(
+                        counterText: '${_locationTypeOther.text.length}/25',
                       ),
                       onChanged: (_) => setState(() {}),
                     ),
@@ -1309,8 +1300,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
           const SizedBox(height: 16),
           // Ornament total value display
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: const Color(0xFFFFFBEB),
               borderRadius: BorderRadius.circular(10),
@@ -1403,8 +1393,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                       style: GoogleFonts.poppins(fontSize: 12),
                       keyboardType: TextInputType.number,
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d*'))
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
                       ],
                       decoration: _dec('Value of Ornament (Rs.)'),
                       onChanged: (_) => setState(() {}),
@@ -1418,8 +1407,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () =>
-                  setState(() => _ornaments.add(_OrnamentEntry())),
+              onPressed: () => setState(() => _ornaments.add(_OrnamentEntry())),
               icon: const Icon(Icons.add_circle_outline, size: 18),
               label: Text(
                 'Add Ornament',
@@ -1508,13 +1496,12 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                     decoration: BoxDecoration(
                       color: _kTeal.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: _kTeal.withValues(alpha: 0.4)),
+                      border: Border.all(color: _kTeal.withValues(alpha: 0.4)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -1568,9 +1555,8 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            child: _cashSelected
-                ? _buildCashSection()
-                : const SizedBox.shrink(),
+            child:
+                _cashSelected ? _buildCashSection() : const SizedBox.shrink(),
           ),
 
           // §9 Conditional: Jewellery Details
