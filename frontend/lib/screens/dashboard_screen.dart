@@ -2557,115 +2557,6 @@ class _HomeTabState extends State<_HomeTab> {
   bool get _hasActiveSearch =>
       _searchQuery.isNotEmpty || _explicitSearchDate != null;
 
-  /// Banner showing resolved case visibility mode for the signed-in officer.
-  Widget _buildCaseVisibilityBanner() {
-    final mode = CaseVisibility.resolveFor(widget.auth);
-    final label = CaseVisibility.chipPrefix(mode);
-    final showAskPi = CaseVisibility.showAskPiHint(mode);
-
-    return Material(
-      elevation: 1,
-      shadowColor: AppColors.navyMid.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      color: Colors.white,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.infoBlue.withValues(alpha: 0.22)),
-          gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [
-              AppColors.infoBlue.withValues(alpha: 0.07),
-              AppColors.navyMid.withValues(alpha: 0.04),
-            ],
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: AppColors.infoBlue.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: const Icon(Icons.info_outline_rounded,
-                      size: 18, color: AppColors.infoBlue),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        MenuLocalizations.get(
-                            context
-                                .read<SettingsProvider>()
-                                .locale
-                                .languageCode,
-                            'caseVisibility'),
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.lightSubText,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        TranslationHelper.translate(context, label),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navyDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.visibility_rounded,
-                    size: 20, color: AppColors.navyMid.withValues(alpha: 0.7)),
-              ],
-            ),
-            if (showAskPi) ...[
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Ask your PI or API for station-wide dashboard access.',
-                        style: GoogleFonts.poppins(),
-                      ),
-                      backgroundColor: AppColors.infoBlue,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
-                },
-                child: Text(
-                  TranslationHelper.translate(context,
-                      'Need full station view? Ask your PI for access.'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: AppColors.infoBlue,
-                    fontWeight: FontWeight.w500,
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppColors.infoBlue,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
 
   String _moduleDisplayLabel(ModuleRecord record) {
     final name = record.firestoreCategoryDisplayName.trim();
@@ -2920,11 +2811,9 @@ class _HomeTabState extends State<_HomeTab> {
           ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              _buildNewsCarousel(newsProvider, isWide),
-              const SizedBox(height: AppSpacing.md),
-              _buildCaseVisibilityBanner(),
-              const SizedBox(height: AppSpacing.md),
               _buildSearchBar(),
+              const SizedBox(height: AppSpacing.md),
+              _buildNewsCarousel(newsProvider, isWide),
               if (_hasActiveSearch) ...[
                 const SizedBox(height: AppSpacing.md),
                 _buildMatchingModuleTabs(_searchQuery),
