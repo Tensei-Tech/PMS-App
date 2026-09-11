@@ -1504,7 +1504,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
             padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
             child: Row(
               children: [
-                Expanded(child: Divider(color: _kBorder, thickness: 1)),
+                const Expanded(child: Divider(color: _kBorder, thickness: 1)),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Container(
@@ -1535,7 +1535,7 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                     ),
                   ),
                 ),
-                Expanded(child: Divider(color: _kBorder, thickness: 1)),
+                const Expanded(child: Divider(color: _kBorder, thickness: 1)),
               ],
             ),
           ),
