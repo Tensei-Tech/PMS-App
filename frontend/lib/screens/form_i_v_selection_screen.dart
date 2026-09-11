@@ -1149,6 +1149,31 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
           '$transCategory · ${visibleRecords.length} $transCases$dateSuffix';
     }
 
+    final isMobile = MediaQuery.of(context).size.width < 500;
+
+    final Widget? actionWidget = (isMobile && _showNewCaseFab)
+        ? ElevatedButton.icon(
+            onPressed: _onNewCase,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.navyMid,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            icon: const Icon(Icons.add_rounded, size: 16),
+            label: Text(
+              TranslationHelper.translate(context, 'New Case'),
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          )
+        : null;
+
     return PopScope(
       canPop: _selectedCategory == null,
       onPopInvokedWithResult: (didPop, result) {
@@ -1166,6 +1191,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
             context,
             'i to v',
           ).toUpperCase(),
+          actionWidget: actionWidget,
           onBackPressed: () {
             if (_selectedCategory != null) {
               setState(() => _selectedCategory = null);
@@ -1174,7 +1200,6 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
             }
           },
         ),
-
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1186,43 +1211,28 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               onTabChanged: (tab) {
                 setState(() => _selectedStatusTab = tab);
               },
-              trailingWidget: _showNewCaseFab
-                  ? (MediaQuery.of(context).size.width < 500
-                      ? ElevatedButton(
-                          onPressed: _onNewCase,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.navyMid,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.all(12),
-                            minimumSize: Size.zero,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Icon(Icons.add_rounded, size: 20),
-                        )
-                      : ElevatedButton.icon(
-                          onPressed: _onNewCase,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.navyMid,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          icon: const Icon(Icons.add_rounded, size: 18),
-                          label: Text(
-                            TranslationHelper.translate(context, 'New Case'),
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ))
+              trailingWidget: (_showNewCaseFab && !isMobile)
+                  ? ElevatedButton.icon(
+                      onPressed: _onNewCase,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.navyMid,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: Text(
+                        TranslationHelper.translate(context, 'New Case'),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
                   : null,
             ),
             if (_selectedCategory == null) ...[
@@ -1486,64 +1496,66 @@ class FormIVStatusTabBar extends StatelessWidget {
               padding: const EdgeInsets.only(left: 16, right: 8),
               child: Row(
                 children: tabs.map((item) {
-            final isSelected = selectedTab == item.tab;
-            return Padding(
-              padding: const EdgeInsets.only(right: 24),
-              child: InkWell(
-                onTap: () => onTabChanged(item.tab),
-                hoverColor: Colors.transparent,
-                splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: isSelected
-                            ? const Color(0xFF1976D2)
-                            : Colors.transparent,
-                        width: 2.5,
-                      ),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        TranslationHelper.translate(context, item.label),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13.5,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected
-                              ? AppColors.navyDark
-                              : AppColors.lightSubText,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
+                  final isSelected = selectedTab == item.tab;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 24),
+                    child: InkWell(
+                      onTap: () => onTabChanged(item.tab),
+                      hoverColor: Colors.transparent,
+                      splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: item.badgeBg,
-                          borderRadius: BorderRadius.circular(AppRadius.full),
-                        ),
-                        child: Text(
-                          '${item.count}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: item.badgeFg,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: isSelected
+                                  ? const Color(0xFF1976D2)
+                                  : Colors.transparent,
+                              width: 2.5,
+                            ),
                           ),
                         ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              TranslationHelper.translate(context, item.label),
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.5,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? AppColors.navyDark
+                                    : AppColors.lightSubText,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: item.badgeBg,
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.full),
+                              ),
+                              child: Text(
+                                '${item.count}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: item.badgeFg,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
           ),
