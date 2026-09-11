@@ -26,6 +26,7 @@ import '../modules/it_act/providers/it_act_provider.dart';
 import '../modules/juvenile/providers/juvenile_provider.dart';
 import '../modules/kidnapping/providers/kidnapping_provider.dart';
 import '../modules/kidnapping/widgets/kidnapping_extra_fields.dart';
+import '../modules/theft/widgets/theft_extra_fields.dart';
 import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/missing/providers/missing_provider.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
@@ -155,6 +156,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       GlobalKey<TransitRemandFormViewState>();
   final GlobalKey<KidnappingExtraFieldsState> _kidnappingKey =
       GlobalKey<KidnappingExtraFieldsState>();
+  final GlobalKey<TheftExtraFieldsState> _theftKey =
+      GlobalKey<TheftExtraFieldsState>();
 
   bool get _isEdit => widget.existingRecord != null;
   bool get _isAbForm => widget.subCategory == 'AB Form';
@@ -196,6 +199,16 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         key.contains('kidnap') ||
         sub.contains('kidnap') ||
         label.contains('kidnap');
+  }
+
+  bool get _hasTheftExtras {
+    final key = widget.moduleKey.trim().toLowerCase();
+    final sub = (widget.subCategory ?? '').trim().toLowerCase();
+    final label = widget.moduleLabel.trim().toLowerCase();
+    return key == 'theft' ||
+        key.contains('theft') ||
+        sub.contains('theft') ||
+        label.contains('theft');
   }
 
   @override
@@ -391,6 +404,17 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
               if (!mounted) return;
               _kidnappingKey.currentState?.hydrateFrom(
                 Map<String, dynamic>.from(kRaw),
+              );
+            });
+          }
+        }
+        if (_hasTheftExtras && existing != null) {
+          final tRaw = existing.extraFields['theft_extra'];
+          if (tRaw is Map) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              _theftKey.currentState?.hydrateFrom(
+                Map<String, dynamic>.from(tRaw),
               );
             });
           }
@@ -1174,6 +1198,12 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         extra['kidnapping_extra'] = kData;
       }
     }
+    if (!_isCrimeDetailForm && _hasTheftExtras) {
+      final tData = _theftKey.currentState?.collectData();
+      if (tData != null && tData.isNotEmpty) {
+        extra['theft_extra'] = tData;
+      }
+    }
 
     final String complainantName = _isCrimeDetailForm
         ? (doc['shownByName']?.toString().trim() ?? '')
@@ -1906,7 +1936,11 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                   moduleKey: widget.moduleKey,
                                                                                   moduleLabel: widget.moduleLabel,
                                                                                   subCategory: widget.subCategory,
-                                                                                  middleSlot: _hasKidnappingExtras ? KidnappingExtraFields(key: _kidnappingKey) : null,
+                                                                                  middleSlot: _hasKidnappingExtras
+                                                                                      ? KidnappingExtraFields(key: _kidnappingKey)
+                                                                                      : _hasTheftExtras
+                                                                                          ? TheftExtraFields(key: _theftKey)
+                                                                                          : null,
                                                                                 ),
       bottomNavigationBar: SafeArea(
         child: Padding(
