@@ -9507,7 +9507,7 @@ class _SearchModuleGroup extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: sc.withValues(alpha: 0.3)),
           ),
-          child: Text(record.status,
+          child: Text(record.status == 'Open' ? 'Pending' : record.status,
               style: GoogleFonts.poppins(
                   fontSize: 10, fontWeight: FontWeight.w700, color: sc)),
         ),

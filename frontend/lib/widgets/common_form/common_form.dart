@@ -253,7 +253,6 @@ class CommonFormState extends State<CommonForm> {
   // ── §1 Crime Registration ─────────────────────────────────────────────────
   final _crNo = TextEditingController();
   final _regDate = TextEditingController();
-  final _briefDescription = TextEditingController(); // NEW
   String? _firPath;
 
   // ── §2 Acts & Sections ────────────────────────────────────────────────────
@@ -675,7 +674,6 @@ class CommonFormState extends State<CommonForm> {
       _appGrant,
       _dcpSend,
       _dcpGrant,
-      _briefDescription,
       _compAddress,
       _compStatement,
       if (_victimAddress != null) _vAddress,
@@ -1280,7 +1278,6 @@ class CommonFormState extends State<CommonForm> {
       'crNo': _crNo.text,
       'regDate': _regDate.text,
       'firCopyPath': _firPath,
-      'briefDescription': _briefDescription.text,
       'charges': _chargeData.map(
         (k, v) => MapEntry(k, {
           'act': v['act'],
@@ -1521,7 +1518,6 @@ class CommonFormState extends State<CommonForm> {
     _crNo.text = _s(m['crNo']);
     _regDate.text = _s(m['regDate']);
     _firPath = m['firCopyPath'] as String?;
-    _briefDescription.text = _s(m['briefDescription']);
 
     final ch = m['charges'];
     if (ch is Map) {
@@ -2626,7 +2622,7 @@ class CommonFormState extends State<CommonForm> {
                             _s2(),
                             startOpen: true,
                             headerAction: _headerBtn(
-                              'Add Charge',
+                              'Add',
                               addChargeRow,
                             ),
                           ),
@@ -2908,9 +2904,6 @@ class CommonFormState extends State<CommonForm> {
               ),
             )
           ]),
-          _row([
-            _tf('Brief Description of Offence', _briefDescription, maxLines: 3)
-          ]),
         ],
       );
 
@@ -2919,7 +2912,7 @@ class CommonFormState extends State<CommonForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_chargeData.isEmpty)
-            _emptyBox('No charges. Tap + Add Charge to begin.')
+            _emptyBox('No charges. Tap + Add to begin.')
           else ...[
             ..._chargeData.entries.toList().asMap().entries.map((e) {
               final id = e.value.key;

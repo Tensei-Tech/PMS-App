@@ -23,7 +23,10 @@ class TranslationHelper {
       } catch (_) {}
     }
 
-    if (locale == 'en') return text;
+    if (locale == 'en') {
+      if (text.trim().toLowerCase() == 'open') return 'Pending';
+      return text;
+    }
 
     final cleanText = text.replaceAll('\n', ' ').trim().toLowerCase();
 
