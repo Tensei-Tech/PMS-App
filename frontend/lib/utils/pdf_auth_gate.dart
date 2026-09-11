@@ -14,4 +14,3 @@ Future<void> runWithPdfAuthGate(
   if (!context.mounted) return;
   await action();
 }
-

@@ -2557,7 +2557,6 @@ class _HomeTabState extends State<_HomeTab> {
   bool get _hasActiveSearch =>
       _searchQuery.isNotEmpty || _explicitSearchDate != null;
 
-
   String _moduleDisplayLabel(ModuleRecord record) {
     final name = record.firestoreCategoryDisplayName.trim();
     if (name.isNotEmpty) return name;
