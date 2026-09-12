@@ -99,6 +99,7 @@ import 'case_form_screen.dart';
 import 'common_form_screen.dart';
 import 'feedback_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
+import 'form_vi_selection_screen.dart';
 import 'help_support_screen.dart';
 import 'hurt_cases_screen.dart';
 import 'login_security_screen.dart';
@@ -2556,116 +2557,6 @@ class _HomeTabState extends State<_HomeTab> {
   bool get _hasActiveSearch =>
       _searchQuery.isNotEmpty || _explicitSearchDate != null;
 
-  /// Banner showing resolved case visibility mode for the signed-in officer.
-  Widget _buildCaseVisibilityBanner() {
-    final mode = CaseVisibility.resolveFor(widget.auth);
-    final label = CaseVisibility.chipPrefix(mode);
-    final showAskPi = CaseVisibility.showAskPiHint(mode);
-
-    return Material(
-      elevation: 1,
-      shadowColor: AppColors.navyMid.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      color: Colors.white,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.infoBlue.withValues(alpha: 0.22)),
-          gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [
-              AppColors.infoBlue.withValues(alpha: 0.07),
-              AppColors.navyMid.withValues(alpha: 0.04),
-            ],
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: AppColors.infoBlue.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: const Icon(Icons.info_outline_rounded,
-                      size: 18, color: AppColors.infoBlue),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        MenuLocalizations.get(
-                            context
-                                .read<SettingsProvider>()
-                                .locale
-                                .languageCode,
-                            'caseVisibility'),
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.lightSubText,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        TranslationHelper.translate(context, label),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navyDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.visibility_rounded,
-                    size: 20, color: AppColors.navyMid.withValues(alpha: 0.7)),
-              ],
-            ),
-            if (showAskPi) ...[
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Ask your PI or API for station-wide dashboard access.',
-                        style: GoogleFonts.poppins(),
-                      ),
-                      backgroundColor: AppColors.infoBlue,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
-                },
-                child: Text(
-                  TranslationHelper.translate(context,
-                      'Need full station view? Ask your PI for access.'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: AppColors.infoBlue,
-                    fontWeight: FontWeight.w500,
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppColors.infoBlue,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
   String _moduleDisplayLabel(ModuleRecord record) {
     final name = record.firestoreCategoryDisplayName.trim();
     if (name.isNotEmpty) return name;
@@ -2919,11 +2810,9 @@ class _HomeTabState extends State<_HomeTab> {
           ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              _buildNewsCarousel(newsProvider, isWide),
-              const SizedBox(height: AppSpacing.md),
-              _buildCaseVisibilityBanner(),
-              const SizedBox(height: AppSpacing.md),
               _buildSearchBar(),
+              const SizedBox(height: AppSpacing.md),
+              _buildNewsCarousel(newsProvider, isWide),
               if (_hasActiveSearch) ...[
                 const SizedBox(height: AppSpacing.md),
                 _buildMatchingModuleTabs(_searchQuery),
@@ -3939,6 +3828,15 @@ class _HomeTabState extends State<_HomeTab> {
         AppTheme.fadeSlideRoute(
           page: const FormIVSelectionScreen(
             mode: FormIVSelectionMode.browse,
+          ),
+        ),
+      );
+    } else if (item.name == 'VI') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const FormVISelectionScreen(
+            mode: FormVISelectionMode.browse,
           ),
         ),
       );
@@ -9497,7 +9395,7 @@ class _SearchModuleGroup extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: sc.withValues(alpha: 0.3)),
           ),
-          child: Text(record.status,
+          child: Text(record.status == 'Open' ? 'Pending' : record.status,
               style: GoogleFonts.poppins(
                   fontSize: 10, fontWeight: FontWeight.w700, color: sc)),
         ),

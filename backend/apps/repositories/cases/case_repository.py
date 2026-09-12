@@ -1,7 +1,7 @@
 from typing import List, Optional
 from django.db import models
 from apps.repositories.base import BaseRepository
-from apps.cases.models import CaseRecord
+from apps.cases.models import CaseRecord, is_ad_case_disposed
 
 
 class CaseRepository(BaseRepository[CaseRecord]):
@@ -19,9 +19,10 @@ class CaseRepository(BaseRepository[CaseRecord]):
     def get_assigned_cases_for_officer(self, officer_uid: str, active_only: bool = True) -> models.QuerySet[CaseRecord]:
         """Fetch cases assigned to an officer as Investigating Officer."""
         qs = self.model.objects.filter(assigned_officer_uid=officer_uid)
+        disposed_ids = [c.id for c in qs if c.status in ['Closed', 'Disposal', 'Resolved', 'Disposed'] or is_ad_case_disposed(c)]
         if active_only:
-            return qs.filter(status__in=['Open', 'Pending', 'Active'])
-        return qs.filter(status__in=['Closed', 'Disposal', 'Resolved'])
+            return qs.filter(status__in=['Open', 'Pending', 'Active']).exclude(id__in=disposed_ids)
+        return qs.filter(models.Q(id__in=disposed_ids) | models.Q(status__in=['Closed', 'Disposal', 'Resolved', 'Disposed']))
 
     def can_officer_edit_case(self, user, case_record: CaseRecord) -> bool:
         """

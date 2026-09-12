@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../modules/core/models/base_record.dart';
 import 'common_form_module.dart';
+import 'ad_disposal_helper.dart';
 
 bool _trimmedNonEmpty(dynamic v) {
   if (v == null) return false;
@@ -129,7 +130,7 @@ bool pendingRecordMatchesDashboardCategory({
 /// Non-closed, in category, has IO name, CC empty → IO Wise row.
 bool pendingIoWiseEligibleInCategory(ModuleRecord r, String dashboardCategory) {
   if (r.moduleKey == 'nc') return false;
-  if (r.status == 'Closed') return false;
+  if (isRecordDisposal(r)) return false;
   if (!pendingRecordMatchesDashboardCategory(
     r: r,
     dashboardCategory: dashboardCategory,

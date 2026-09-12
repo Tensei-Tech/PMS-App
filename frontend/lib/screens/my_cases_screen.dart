@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
 import 'ad_record_detail_screen.dart';
 import 'module_record_detail_screen.dart';
+import '../utils/ad_disposal_helper.dart';
 
 /// Tab indices for [MyCasesScreen].
 abstract final class MyCasesTab {
@@ -689,11 +690,7 @@ class _CaseCardState extends State<_CaseCard> {
   bool _isHovered = false;
 
   String get _displayStatus {
-    final s = widget.record.status.trim().toLowerCase();
-    if (s == 'closed' ||
-        s == 'resolved' ||
-        s == 'disposed' ||
-        s == 'disposal' ||
+    if (isRecordDisposal(widget.record) ||
         widget.listKind == _CaseListKind.closed) {
       return 'Disposal';
     }

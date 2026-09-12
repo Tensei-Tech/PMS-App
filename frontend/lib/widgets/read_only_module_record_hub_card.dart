@@ -112,7 +112,8 @@ class ReadOnlyModuleRecordHubCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: sc.withValues(alpha: 0.3)),
                   ),
-                  child: Text(record.status,
+                  child: Text(
+                      record.status == 'Open' ? 'Pending' : record.status,
                       style: GoogleFonts.poppins(
                           fontSize: 9, fontWeight: FontWeight.w700, color: sc)),
                 ),

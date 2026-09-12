@@ -237,19 +237,107 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     ),
   );
 
-  if (m['stolenProperty'] != null &&
-      (_v(m['stolenProperty']['description']).isNotEmpty ||
-          _v(m['stolenProperty']['recovered']).isNotEmpty)) {
+  final List<_FD> propWidgets = [];
+
+  final spList = m['stolenProperties'] as List?;
+  if (spList != null && spList.isNotEmpty) {
+    for (int i = 0; i < spList.length; i++) {
+      final item = spList[i] as Map;
+      propWidgets.add(
+          _f('Stolen Property #${i + 1}', _v(item['property']), full: true));
+      if (_v(item['quantity']).isNotEmpty) {
+        propWidgets.add(_f('Quantity', _v(item['quantity'])));
+      }
+      if (_v(item['estValue']).isNotEmpty) {
+        propWidgets.add(_f('Est. Value', _v(item['estValue'])));
+      }
+      if (_v(item['id']).isNotEmpty) {
+        propWidgets.add(_f('ID / Serial No.', _v(item['id'])));
+      }
+      if (_v(item['date']).isNotEmpty) {
+        propWidgets.add(_f('Date & Time', _v(item['date'])));
+      }
+      if (_v(item['from']).isNotEmpty) {
+        propWidgets.add(_f('Stolen From', _v(item['from'])));
+      }
+    }
+  } else if (m['stolenProperty'] != null) {
+    final prop = _v(m['stolenProperty']['property']).isNotEmpty
+        ? _v(m['stolenProperty']['property'])
+        : _v(m['stolenProperty']['description']);
+    if (prop.isNotEmpty) {
+      propWidgets.add(_f('Description', prop, full: true));
+    }
+    if (_v(m['stolenProperty']['quantity']).isNotEmpty) {
+      propWidgets.add(_f('Quantity', _v(m['stolenProperty']['quantity'])));
+    }
+    if (_v(m['stolenProperty']['estValue']).isNotEmpty) {
+      propWidgets.add(_f('Est. Value', _v(m['stolenProperty']['estValue'])));
+    }
+    if (_v(m['stolenProperty']['id']).isNotEmpty) {
+      propWidgets.add(_f('ID / Serial No.', _v(m['stolenProperty']['id'])));
+    }
+    if (_v(m['stolenProperty']['date']).isNotEmpty) {
+      propWidgets.add(_f('Date & Time', _v(m['stolenProperty']['date'])));
+    }
+    if (_v(m['stolenProperty']['from']).isNotEmpty) {
+      propWidgets.add(_f('Stolen From', _v(m['stolenProperty']['from'])));
+    }
+  }
+
+  final rpList = m['recoveredProperties'] as List?;
+  if (rpList != null && rpList.isNotEmpty) {
+    for (int i = 0; i < rpList.length; i++) {
+      final item = rpList[i] as Map;
+      propWidgets.add(
+          _f('Recovered Property #${i + 1}', _v(item['property']), full: true));
+      if (_v(item['quantity']).isNotEmpty) {
+        propWidgets.add(_f('Quantity', _v(item['quantity'])));
+      }
+      if (_v(item['estValue']).isNotEmpty) {
+        propWidgets.add(_f('Est. Value', _v(item['estValue'])));
+      }
+      if (_v(item['date']).isNotEmpty) {
+        propWidgets.add(_f('Date & Time', _v(item['date'])));
+      }
+      if (_v(item['from']).isNotEmpty) {
+        propWidgets.add(_f('Recovered From', _v(item['from'])));
+      }
+    }
+  } else {
+    final prop = m['recoveredProperty'] != null
+        ? _v(m['recoveredProperty']['property'])
+        : (m['stolenProperty'] != null
+            ? _v(m['stolenProperty']['recovered'])
+            : '');
+    if (prop.isNotEmpty) {
+      propWidgets.add(_f('Recovered Property', prop, full: true));
+    }
+    if (m['recoveredProperty'] != null) {
+      if (_v(m['recoveredProperty']['quantity']).isNotEmpty) {
+        propWidgets.add(_f('Quantity', _v(m['recoveredProperty']['quantity'])));
+      }
+      if (_v(m['recoveredProperty']['estValue']).isNotEmpty) {
+        propWidgets
+            .add(_f('Est. Value', _v(m['recoveredProperty']['estValue'])));
+      }
+      if (_v(m['recoveredProperty']['date']).isNotEmpty) {
+        propWidgets.add(_f('Date & Time', _v(m['recoveredProperty']['date'])));
+      }
+      if (_v(m['recoveredProperty']['from']).isNotEmpty) {
+        propWidgets
+            .add(_f('Recovered From', _v(m['recoveredProperty']['from'])));
+      }
+    }
+  }
+
+  if (propWidgets.isNotEmpty) {
     sections.add(
       _card(
         4,
-        'STOLEN PROPERTY',
+        'STOLEN & RECOVERED PROPERTY',
         _teal,
-        _grid2([
-          _f('Description', _v(m['stolenProperty']['description']), full: true),
-          _f('Recovered Property', _v(m['stolenProperty']['recovered']),
-              full: true),
-        ]),
+        _grid2(propWidgets),
       ),
     );
   }
@@ -517,14 +605,27 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── §9 Arrest & Release ───────────────────────────────────────────────────
   final arrests = (m['arrestRelease'] as List?) ?? [];
+  final sec8283 = m['section8283Action']?.toString();
   sections.add(
     _card(
       11,
       'ARREST & RELEASE STATUS',
       _teal,
-      arrests.isEmpty
-          ? _empty('No arrest records. Add accused names first.')
-          : pw.Column(
+      pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          _grid2([
+            _f(
+              'Section 82/83 Action (if untraceable)',
+              _v(sec8283, or: 'Not set').toUpperCase(),
+              full: true,
+            ),
+          ]),
+          pw.SizedBox(height: 6),
+          if (arrests.isEmpty)
+            _empty('No arrest records. Add accused names first.')
+          else
+            pw.Column(
               children: arrests.map((r) {
                 final row = r as Map;
                 return _subCard(
@@ -537,12 +638,15 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                 );
               }).toList(),
             ),
+        ],
+      ),
     ),
   );
 
   // ── §10 Procedural Details ────────────────────────────────────────────────
   final procChecks = (m['proceduralChecks'] as Map?) ?? {};
   final procDates = (m['proceduralDates'] as Map?) ?? {};
+  final vuPdf = (m['vehicleUsage'] as Map?) ?? {};
   const procLabels = {
     'chkMemo': 'Memorandum Panchanama',
     'chkPanchSpot': 'Panchanama Spot',
@@ -606,6 +710,30 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             else if (m['eshakshValue'] == 'no' &&
                 (m['eshakshReason']?.toString().isNotEmpty ?? false))
               _f('Reason for No E-Shakshya', _v(m['eshakshReason'])),
+          ]),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'GOVERNMENT VEHICLE USAGE',
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
+              color: _dark,
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          _grid2([
+            _f(
+              'SD Entry of Vehicle No & Time',
+              _v(vuPdf['sdEntry'], or: 'Not set').toUpperCase(),
+            ),
+            _f(
+              'Log Book of Vehicle Entry',
+              _v(vuPdf['logBookEntry'], or: 'Not set').toUpperCase(),
+            ),
+            _f(
+              'Case Diary Vehicle Entry',
+              _v(vuPdf['caseDiaryEntry'], or: 'Not set').toUpperCase(),
+            ),
           ]),
         ],
       ),

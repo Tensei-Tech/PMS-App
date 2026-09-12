@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db import connection, transaction
-from apps.cases.models import CaseRecord
+from apps.cases.models import CaseRecord, is_ad_case_disposed
 from apps.cases.serializers import CaseRecordSerializer, CreateCaseSerializer
 from apps.core.permissions import check_dynamic_permission, HasPermission
 from apps.repositories import CaseRepository
@@ -85,7 +85,15 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
 
         status_param = self.request.query_params.get('status')
         if status_param:
-            queryset = queryset.filter(status__iexact=status_param)
+            st_lower = status_param.lower()
+            if st_lower in ['disposal', 'disposed', 'closed', 'resolved']:
+                disposed_ids = [c.id for c in queryset if c.status in ['Disposal', 'Disposed', 'Closed', 'Resolved'] or is_ad_case_disposed(c)]
+                queryset = queryset.filter(id__in=disposed_ids)
+            elif st_lower in ['pending', 'open', 'active']:
+                disposed_ids = [c.id for c in queryset if c.status in ['Disposal', 'Disposed', 'Closed', 'Resolved'] or is_ad_case_disposed(c)]
+                queryset = queryset.exclude(id__in=disposed_ids)
+            else:
+                queryset = queryset.filter(status__iexact=status_param)
 
         assigned_uid = self.request.query_params.get('assigned_officer_uid')
         if assigned_uid:
@@ -130,6 +138,11 @@ class PendingCasesView(APIView):
                 columns = [col[0] for col in cursor.description]
                 rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+            # Exclude any AD cases from cases_caserecord that qualify as disposal
+            disposed_ad_ids = {c.id for c in CaseRecord.objects.filter(module_key='ad') if is_ad_case_disposed(c)}
+            if disposed_ad_ids:
+                rows = [r for r in rows if r.get('case_id') not in disposed_ad_ids]
+
             paginator = PageNumberPagination()
             page = paginator.paginate_queryset(rows, request)
             if page is not None:
@@ -152,6 +165,24 @@ class DisposalCasesView(APIView):
                 """)
                 columns = [col[0] for col in cursor.description]
                 rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            # Include any AD cases from CaseRecord table that qualify as disposal
+            existing_ids = {r.get('case_id') for r in rows if r.get('case_id')}
+            ad_cases = CaseRecord.objects.filter(module_key='ad')
+            for c in ad_cases:
+                if c.id not in existing_ids and is_ad_case_disposed(c):
+                    rows.append({
+                        'source': 'cases',
+                        'case_id': c.id,
+                        'case_number': c.case_number,
+                        'title': c.title,
+                        'case_type': c.module_key,
+                        'priority': c.priority,
+                        'station_name': c.station_name,
+                        'assigned_officer': c.assigned_officer,
+                        'status': 'Disposal',
+                    })
+                    existing_ids.add(c.id)
 
             paginator = PageNumberPagination()
             page = paginator.paginate_queryset(rows, request)

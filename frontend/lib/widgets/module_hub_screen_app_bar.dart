@@ -11,6 +11,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
   final String subtitle;
   final String badgeLabel;
   final VoidCallback? onAddPressed;
+  final Widget? actionWidget;
   final VoidCallback? onBackPressed;
   final Color? backgroundColor;
 
@@ -20,6 +21,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
     required this.subtitle,
     required this.badgeLabel,
     this.onAddPressed,
+    this.actionWidget,
     this.onBackPressed,
     this.backgroundColor,
   });
@@ -29,6 +31,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 500;
     final bg = backgroundColor ?? Colors.white;
     final isDarkHeader = bg != Colors.white;
     final textColor = isDarkHeader ? Colors.white : AppColors.navyDark;
@@ -72,7 +75,12 @@ class ModuleHubScreenAppBar extends StatelessWidget
         ],
       ),
       actions: [
-        if (onAddPressed != null)
+        if (actionWidget != null)
+          Padding(
+            padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+            child: actionWidget!,
+          )
+        else if (onAddPressed != null)
           Padding(
             padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
             child: ElevatedButton.icon(
@@ -100,32 +108,33 @@ class ModuleHubScreenAppBar extends StatelessWidget
               ),
             ),
           ),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 100),
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: AppColors.goldPrimary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-              border: Border.all(
-                color: AppColors.goldPrimary.withValues(alpha: 0.3),
+        if (!isMobile || (actionWidget == null && onAddPressed == null))
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 100),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: AppColors.goldPrimary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(
+                  color: AppColors.goldPrimary.withValues(alpha: 0.3),
+                ),
               ),
-            ),
-            child: Center(
-              child: Text(
-                badgeLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.goldPrimary,
+              child: Center(
+                child: Text(
+                  badgeLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.goldPrimary,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

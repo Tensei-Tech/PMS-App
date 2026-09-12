@@ -840,13 +840,12 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                             child: BilingualSimpleUnderlineInput(
                               controller: _distCtrl,
                               serifStyle: serifStyle,
-                              hintText: 'YAVATMAL',
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 2),
-                      Text('जिल्हा :- यवतमाळ', style: marathiLabelStyle),
+                      Text('जिल्हा :-', style: marathiLabelStyle),
                     ],
                   ),
                   Column(

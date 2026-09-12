@@ -10,6 +10,9 @@ import 'package:intl/intl.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/nc/screens/nc_form_screen.dart' show kNcFormExtraFieldsKey;
 import '../modules/nc/screens/nc_view_screen.dart';
+import '../modules/preventive/screens/preventive_form_screen.dart'
+    show kPreventiveFormExtraFieldsKey;
+import '../modules/preventive/screens/preventive_view_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/common_form_module.dart';
 import 'ad_form_dynamic_document_view.dart' show humanizeFieldKey;
@@ -486,6 +489,14 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
           : <String, dynamic>{};
     }
 
+    Map<String, dynamic>? preventiveFormMap;
+    final nestedPrev = extra[kPreventiveFormExtraFieldsKey];
+    if (record.moduleKey == 'preventive' || nestedPrev is Map) {
+      preventiveFormMap = nestedPrev is Map
+          ? Map<String, dynamic>.from(nestedPrev)
+          : Map<String, dynamic>.from(extra);
+    }
+
     final body = LayoutBuilder(
       builder: (context, constraints) {
         final desktop = constraints.maxWidth > _kCaseDetailDesktopBreakpoint;
@@ -504,6 +515,12 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
               NcViewDocumentView(
                 record: record,
                 ncMap: ncFormMap,
+                moduleLabel: moduleLabel,
+              ),
+            ] else if (preventiveFormMap != null) ...[
+              PreventiveViewDocumentView(
+                record: record,
+                prevMap: preventiveFormMap,
                 moduleLabel: moduleLabel,
               ),
             ] else if (commonFormMap != null) ...[

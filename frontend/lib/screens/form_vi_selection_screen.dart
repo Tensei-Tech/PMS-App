@@ -4,26 +4,25 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../modules/core/models/base_record.dart';
-import '../modules/form_iv/providers/form_iv_provider.dart';
+import '../modules/form_vi/providers/form_vi_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/common_form_module.dart';
-import '../utils/ad_disposal_helper.dart';
 import '../utils/module_pdf_helper.dart';
 import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/common_form_document_view.dart';
-import '../widgets/form_iv_category_button.dart';
+import '../widgets/form_vi_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/module_record_dynamic_document_view.dart';
 import 'common_form_screen.dart';
 import 'module_record_detail_screen.dart';
 
-/// Controls where a Form I-V category tap navigates.
-enum FormIVSelectionMode {
+/// Controls where a Form VI category tap navigates.
+enum FormVISelectionMode {
   /// Home grid browse — filter bar + cases list on this screen.
   browse,
 
-  /// Drawer / FAB add-entry — same layout; New Case opens Form I-V entry.
+  /// Drawer / FAB add-entry — same layout; New Case opens Form VI entry.
   add,
 
   /// Read-only hub browse.
@@ -31,42 +30,46 @@ enum FormIVSelectionMode {
 }
 
 /// Status filter tabs matching dashboard metrics.
-enum FormIVStatusTab { total, pending, disposal }
+enum FormVIStatusTab { total, pending, disposal }
 
 /// Target date field for filtering and sorting cases.
-enum FormIVDateField { incidentDate, createdAt }
+enum FormVIDateField { incidentDate, createdAt }
 
 /// Date sorting direction.
-enum FormIVDateSortOrder { newestFirst, oldestFirst }
+enum FormVIDateSortOrder { newestFirst, oldestFirst }
 
-class FormIVSelectionScreen extends StatefulWidget {
+class FormVISelectionScreen extends StatefulWidget {
   static const allFilterLabel = 'All';
 
-  final FormIVSelectionMode mode;
+  final FormVISelectionMode mode;
 
-  const FormIVSelectionScreen({super.key, this.mode = FormIVSelectionMode.add});
+  const FormVISelectionScreen({super.key, this.mode = FormVISelectionMode.add});
 
   @override
-  State<FormIVSelectionScreen> createState() => _FormIVSelectionScreenState();
+  State<FormVISelectionScreen> createState() => _FormVISelectionScreenState();
 }
 
-class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
-  FormIVStatusTab _selectedStatusTab = FormIVStatusTab.total;
+class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
+  FormVIStatusTab _selectedStatusTab = FormVIStatusTab.total;
   String? _selectedCategory;
 
   // Date filtering & sorting state
   DateTimeRange? _selectedDateRange;
   String? _datePresetLabel;
-  FormIVDateField _dateField = FormIVDateField.incidentDate;
-  FormIVDateSortOrder _dateSortOrder = FormIVDateSortOrder.newestFirst;
+  FormVIDateField _dateField = FormVIDateField.incidentDate;
+  FormVIDateSortOrder _dateSortOrder = FormVIDateSortOrder.newestFirst;
 
-  bool get _readOnly => widget.mode == FormIVSelectionMode.readOnly;
+  bool get _readOnly => widget.mode == FormVISelectionMode.readOnly;
   bool get _showNewCaseFab => !_readOnly;
 
-  List<String> get _filterOptions => kFormIVCaseCategories;
+  List<String> get _filterOptions => kFormVICaseCategories;
 
   bool _isDisposalRecord(ModuleRecord r) {
-    return isRecordDisposal(r);
+    final s = r.status.trim().toLowerCase();
+    return s == 'disposal' ||
+        s == 'disposed' ||
+        s == 'closed' ||
+        s == 'resolved';
   }
 
   bool _isPendingRecord(ModuleRecord r) {
@@ -74,7 +77,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   }
 
   DateTime _recordTargetDate(ModuleRecord r) {
-    return _dateField == FormIVDateField.incidentDate
+    return _dateField == FormVIDateField.incidentDate
         ? r.incidentDate
         : r.createdAt;
   }
@@ -116,9 +119,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   // ignore: unused_element
   void _toggleSortOrder() {
     setState(() {
-      _dateSortOrder = _dateSortOrder == FormIVDateSortOrder.newestFirst
-          ? FormIVDateSortOrder.oldestFirst
-          : FormIVDateSortOrder.newestFirst;
+      _dateSortOrder = _dateSortOrder == FormVIDateSortOrder.newestFirst
+          ? FormVIDateSortOrder.oldestFirst
+          : FormVIDateSortOrder.newestFirst;
     });
   }
 
@@ -505,10 +508,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                 title: 'Incident Date',
                                 subtitle: 'Crime date',
                                 isSelected:
-                                    _dateField == FormIVDateField.incidentDate,
+                                    _dateField == FormVIDateField.incidentDate,
                                 onTap: () {
                                   setState(() {
-                                    _dateField = FormIVDateField.incidentDate;
+                                    _dateField = FormVIDateField.incidentDate;
                                   });
                                   setModalState(() {});
                                 },
@@ -520,10 +523,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                 title: 'Registration Date',
                                 subtitle: 'Filing date',
                                 isSelected:
-                                    _dateField == FormIVDateField.createdAt,
+                                    _dateField == FormVIDateField.createdAt,
                                 onTap: () {
                                   setState(() {
-                                    _dateField = FormIVDateField.createdAt;
+                                    _dateField = FormVIDateField.createdAt;
                                   });
                                   setModalState(() {});
                                 },
@@ -551,11 +554,11 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                 title: 'Newest First',
                                 subtitle: 'Descending (↓)',
                                 isSelected: _dateSortOrder ==
-                                    FormIVDateSortOrder.newestFirst,
+                                    FormVIDateSortOrder.newestFirst,
                                 onTap: () {
                                   setState(() {
                                     _dateSortOrder =
-                                        FormIVDateSortOrder.newestFirst;
+                                        FormVIDateSortOrder.newestFirst;
                                   });
                                   setModalState(() {});
                                 },
@@ -567,11 +570,11 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                 title: 'Oldest First',
                                 subtitle: 'Ascending (↑)',
                                 isSelected: _dateSortOrder ==
-                                    FormIVDateSortOrder.oldestFirst,
+                                    FormVIDateSortOrder.oldestFirst,
                                 onTap: () {
                                   setState(() {
                                     _dateSortOrder =
-                                        FormIVDateSortOrder.oldestFirst;
+                                        FormVIDateSortOrder.oldestFirst;
                                   });
                                   setModalState(() {});
                                 },
@@ -741,14 +744,14 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
 
   List<ModuleRecord> _recordsForStatus(
     List<ModuleRecord> records,
-    FormIVStatusTab tab,
+    FormVIStatusTab tab,
   ) {
     switch (tab) {
-      case FormIVStatusTab.total:
+      case FormVIStatusTab.total:
         return records;
-      case FormIVStatusTab.pending:
+      case FormVIStatusTab.pending:
         return records.where(_isPendingRecord).toList();
-      case FormIVStatusTab.disposal:
+      case FormVIStatusTab.disposal:
         return records.where(_isDisposalRecord).toList();
     }
   }
@@ -757,7 +760,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     List<ModuleRecord> records,
     String category,
   ) {
-    final categoryRecords = category == FormIVSelectionScreen.allFilterLabel
+    final categoryRecords = category == FormVISelectionScreen.allFilterLabel
         ? records.toList()
         : records.where((r) => r.subCategory == category).toList();
 
@@ -766,7 +769,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     filtered.sort((a, b) {
       final dateA = _recordTargetDate(a);
       final dateB = _recordTargetDate(b);
-      return _dateSortOrder == FormIVDateSortOrder.newestFirst
+      return _dateSortOrder == FormVIDateSortOrder.newestFirst
           ? dateB.compareTo(dateA)
           : dateA.compareTo(dateB);
     });
@@ -787,21 +790,21 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       ),
     );
     if (!mounted) return;
-    await context.read<FormIVProvider>().refresh();
+    await context.read<FormVIProvider>().refresh();
     if (result is ModuleRecord &&
         (result.status.toLowerCase() == 'disposal' ||
             result.status.toLowerCase() == 'disposed')) {
       setState(() {
-        _selectedStatusTab = FormIVStatusTab.disposal;
+        _selectedStatusTab = FormVIStatusTab.disposal;
       });
     }
   }
 
   void _onNewCase() {
     final category = (_selectedCategory != null &&
-            _selectedCategory != FormIVSelectionScreen.allFilterLabel)
+            _selectedCategory != FormVISelectionScreen.allFilterLabel)
         ? _selectedCategory!
-        : kFormIVCaseCategories.first;
+        : kFormVICaseCategories.first;
     _openForm(category);
   }
 
@@ -895,20 +898,20 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
             setState(() {
               switch (val) {
                 case 'newest_incident':
-                  _dateField = FormIVDateField.incidentDate;
-                  _dateSortOrder = FormIVDateSortOrder.newestFirst;
+                  _dateField = FormVIDateField.incidentDate;
+                  _dateSortOrder = FormVIDateSortOrder.newestFirst;
                   break;
                 case 'oldest_incident':
-                  _dateField = FormIVDateField.incidentDate;
-                  _dateSortOrder = FormIVDateSortOrder.oldestFirst;
+                  _dateField = FormVIDateField.incidentDate;
+                  _dateSortOrder = FormVIDateSortOrder.oldestFirst;
                   break;
                 case 'newest_created':
-                  _dateField = FormIVDateField.createdAt;
-                  _dateSortOrder = FormIVDateSortOrder.newestFirst;
+                  _dateField = FormVIDateField.createdAt;
+                  _dateSortOrder = FormVIDateSortOrder.newestFirst;
                   break;
                 case 'oldest_created':
-                  _dateField = FormIVDateField.createdAt;
-                  _dateSortOrder = FormIVDateSortOrder.oldestFirst;
+                  _dateField = FormVIDateField.createdAt;
+                  _dateSortOrder = FormVIDateSortOrder.oldestFirst;
                   break;
               }
             });
@@ -919,8 +922,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               child: Row(
                 children: [
                   Icon(
-                    _dateField == FormIVDateField.incidentDate &&
-                            _dateSortOrder == FormIVDateSortOrder.newestFirst
+                    _dateField == FormVIDateField.incidentDate &&
+                            _dateSortOrder == FormVIDateSortOrder.newestFirst
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     size: 16,
@@ -939,8 +942,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               child: Row(
                 children: [
                   Icon(
-                    _dateField == FormIVDateField.incidentDate &&
-                            _dateSortOrder == FormIVDateSortOrder.oldestFirst
+                    _dateField == FormVIDateField.incidentDate &&
+                            _dateSortOrder == FormVIDateSortOrder.oldestFirst
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     size: 16,
@@ -960,8 +963,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               child: Row(
                 children: [
                   Icon(
-                    _dateField == FormIVDateField.createdAt &&
-                            _dateSortOrder == FormIVDateSortOrder.newestFirst
+                    _dateField == FormVIDateField.createdAt &&
+                            _dateSortOrder == FormVIDateSortOrder.newestFirst
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     size: 16,
@@ -980,8 +983,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               child: Row(
                 children: [
                   Icon(
-                    _dateField == FormIVDateField.createdAt &&
-                            _dateSortOrder == FormIVDateSortOrder.oldestFirst
+                    _dateField == FormVIDateField.createdAt &&
+                            _dateSortOrder == FormVIDateSortOrder.oldestFirst
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     size: 16,
@@ -1014,7 +1017,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  _dateSortOrder == FormIVDateSortOrder.newestFirst
+                  _dateSortOrder == FormVIDateSortOrder.newestFirst
                       ? Icons.arrow_downward_rounded
                       : Icons.arrow_upward_rounded,
                   size: 14,
@@ -1022,7 +1025,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  _dateSortOrder == FormIVDateSortOrder.newestFirst
+                  _dateSortOrder == FormVIDateSortOrder.newestFirst
                       ? TranslationHelper.translate(context, 'Newest')
                       : TranslationHelper.translate(context, 'Oldest'),
                   style: GoogleFonts.poppins(
@@ -1047,7 +1050,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
 
   Widget _buildActiveDateFilterBanner(int count) {
     if (_selectedDateRange == null) return const SizedBox.shrink();
-    final fieldName = _dateField == FormIVDateField.incidentDate
+    final fieldName = _dateField == FormVIDateField.incidentDate
         ? TranslationHelper.translate(context, 'incident date')
         : TranslationHelper.translate(context, 'registration date');
     final label =
@@ -1111,7 +1114,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<FormIVProvider>();
+    final provider = context.watch<FormVIProvider>();
     final allRecords = provider.records;
 
     final totalCount = allRecords.length;
@@ -1132,8 +1135,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       final transCases = TranslationHelper.translate(context, 'cases');
       final transTypes = TranslationHelper.translate(context, 'types');
       subtitle =
-          '${statusRecords.length} $transCases · ${kFormIVCaseCategories.length} $transTypes';
-    } else if (_selectedCategory == FormIVSelectionScreen.allFilterLabel) {
+          '${statusRecords.length} $transCases · ${kFormVICaseCategories.length} $transTypes';
+    } else if (_selectedCategory == FormVISelectionScreen.allFilterLabel) {
       final transCases = TranslationHelper.translate(context, 'cases');
       subtitle = 'All Cases · ${visibleRecords.length} $transCases$dateSuffix';
     } else {
@@ -1182,7 +1185,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
         appBar: ModuleHubScreenAppBar(
-          title: TranslationHelper.translate(context, 'Form I-V Cases'),
+          title: TranslationHelper.translate(context, 'Form VI Cases'),
           subtitle: subtitle,
           badgeLabel: TranslationHelper.translate(
             context,
@@ -1398,10 +1401,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                             readOnly: _readOnly,
                             onChargeSheetSubmitted: () async {
                               if (!mounted) return;
-                              await context.read<FormIVProvider>().refresh();
+                              await context.read<FormVIProvider>().refresh();
                               if (!mounted) return;
                               setState(() {
-                                _selectedStatusTab = FormIVStatusTab.disposal;
+                                _selectedStatusTab = FormVIStatusTab.disposal;
                               });
                             },
                             onEdit: () => _openForm(
@@ -1432,10 +1435,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   }
 }
 
-typedef _StatusTabBar = FormIVStatusTabBar;
+typedef _StatusTabBar = FormVIStatusTabBar;
 
-class FormIVStatusTabBar extends StatelessWidget {
-  const FormIVStatusTabBar({
+class FormVIStatusTabBar extends StatelessWidget {
+  const FormVIStatusTabBar({
     super.key,
     required this.selectedTab,
     required this.totalCount,
@@ -1445,32 +1448,32 @@ class FormIVStatusTabBar extends StatelessWidget {
     this.trailingWidget,
   });
 
-  final FormIVStatusTab selectedTab;
+  final FormVIStatusTab selectedTab;
   final int totalCount;
   final int pendingCount;
   final int disposalCount;
-  final ValueChanged<FormIVStatusTab> onTabChanged;
+  final ValueChanged<FormVIStatusTab> onTabChanged;
   final Widget? trailingWidget;
 
   @override
   Widget build(BuildContext context) {
     final tabs = [
       (
-        tab: FormIVStatusTab.total,
+        tab: FormVIStatusTab.total,
         label: 'Total Cases',
         count: totalCount,
         badgeBg: const Color(0xFFE8F1FC),
         badgeFg: const Color(0xFF1976D2),
       ),
       (
-        tab: FormIVStatusTab.pending,
+        tab: FormVIStatusTab.pending,
         label: 'Pending',
         count: pendingCount,
         badgeBg: const Color(0xFFFFF3E0),
         badgeFg: const Color(0xFFE65100),
       ),
       (
-        tab: FormIVStatusTab.disposal,
+        tab: FormVIStatusTab.disposal,
         label: 'Disposal',
         count: disposalCount,
         badgeBg: const Color(0xFFE8F5E9),
@@ -1579,7 +1582,7 @@ class _CategoryGridView extends StatelessWidget {
   final ValueChanged<String> onCategorySelected;
 
   int _countFor(String category) {
-    if (category == FormIVSelectionScreen.allFilterLabel) {
+    if (category == FormVISelectionScreen.allFilterLabel) {
       return records.length;
     }
     return records.where((r) => r.subCategory == category).length;
@@ -1587,32 +1590,23 @@ class _CategoryGridView extends StatelessWidget {
 
   IconData _iconForCategory(String category) {
     switch (category.toLowerCase()) {
-      case 'murder':
-      case 'attempt to murder':
-        return Icons.warning_amber_rounded;
-      case 'dacoity':
-      case 'robbery':
-      case 'thefts':
-      case 'hbt':
-        return Icons.lock_outline_rounded;
-      case 'kidnapping':
-        return Icons.person_search_rounded;
-      case 'cheating':
-      case 'cbt':
-      case 'extortion':
-        return Icons.receipt_long_outlined;
-      case 'riot':
-      case 'unlawful assembly':
-        return Icons.groups_rounded;
-      case 'rape':
-      case 'molestation':
-        return Icons.shield_outlined;
-      case 'suicide':
-      case 'death due to rash driving':
-        return Icons.medical_services_outlined;
-      case 'hurts':
-      case 'assault on public servant':
-        return Icons.healing_outlined;
+      case 'st drugs':
+      case 'ndps':
+        return Icons.medication_outlined;
+      case 'prohibition':
+        return Icons.local_bar_outlined;
+      case 'gambling':
+        return Icons.casino_outlined;
+      case 'pocso':
+        return Icons.escalator_warning_outlined;
+      case 'gowans':
+        return Icons.pets_outlined;
+      case 'it act':
+        return Icons.computer_outlined;
+      case 'm.v act':
+        return Icons.directions_car_outlined;
+      case 'uapa':
+        return Icons.gavel_outlined;
       default:
         return Icons.folder_outlined;
     }
@@ -1635,7 +1629,7 @@ class _CategoryGridView extends StatelessWidget {
       itemBuilder: (context, index) {
         final category = categories[index];
         final count = _countFor(category);
-        final isAll = category == FormIVSelectionScreen.allFilterLabel;
+        final isAll = category == FormVISelectionScreen.allFilterLabel;
         final transCategory = TranslationHelper.translate(context, category);
 
         return _CategoryGridCard(
@@ -2048,7 +2042,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
       extraFields: newExtra,
     );
 
-    await context.read<FormIVProvider>().updateRecord(updatedRecord);
+    await context.read<FormVIProvider>().updateRecord(updatedRecord);
     if (!context.mounted) return;
 
     widget.onChargeSheetSubmitted?.call();
@@ -3061,7 +3055,7 @@ class FormIVEmptyCasesState extends StatelessWidget {
     super.key,
     required this.category,
     required this.readOnly,
-    this.statusTab = FormIVStatusTab.total,
+    this.statusTab = FormVIStatusTab.total,
     this.onNewCase,
     this.selectedDateRange,
     this.onClearDateFilter,
@@ -3069,20 +3063,20 @@ class FormIVEmptyCasesState extends StatelessWidget {
 
   final String category;
   final bool readOnly;
-  final FormIVStatusTab statusTab;
+  final FormVIStatusTab statusTab;
   final VoidCallback? onNewCase;
   final DateTimeRange? selectedDateRange;
   final VoidCallback? onClearDateFilter;
 
   @override
   Widget build(BuildContext context) {
-    final isAll = category == FormIVSelectionScreen.allFilterLabel;
+    final isAll = category == FormVISelectionScreen.allFilterLabel;
     final transCategory = TranslationHelper.translate(context, category);
 
     String statusLabel = '';
-    if (statusTab == FormIVStatusTab.pending) {
+    if (statusTab == FormVIStatusTab.pending) {
       statusLabel = '${TranslationHelper.translate(context, 'pending')} ';
-    } else if (statusTab == FormIVStatusTab.disposal) {
+    } else if (statusTab == FormVIStatusTab.disposal) {
       statusLabel = '${TranslationHelper.translate(context, 'disposed')} ';
     }
 
@@ -3091,16 +3085,16 @@ class FormIVEmptyCasesState extends StatelessWidget {
         ? (isAll
             ? TranslationHelper.translate(
                 context,
-                'No Form I-V cases in selected date range',
+                'No Form VI cases in selected date range',
               )
             : '${TranslationHelper.translate(context, 'No')} $statusLabel$transCategory ${TranslationHelper.translate(context, 'cases in date range')}')
         : (isAll
-            ? (statusTab == FormIVStatusTab.total
+            ? (statusTab == FormVIStatusTab.total
                 ? TranslationHelper.translate(
                     context,
-                    'No Form I-V cases yet',
+                    'No Form VI cases yet',
                   )
-                : '${TranslationHelper.translate(context, 'No')} $statusLabel${TranslationHelper.translate(context, 'Form I-V cases yet')}')
+                : '${TranslationHelper.translate(context, 'No')} $statusLabel${TranslationHelper.translate(context, 'Form VI cases yet')}')
             : '${TranslationHelper.translate(context, 'No')} $statusLabel$transCategory ${TranslationHelper.translate(context, 'cases yet')}');
 
     final descText = hasDateFilter

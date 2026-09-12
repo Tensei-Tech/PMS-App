@@ -27,7 +27,7 @@ class CheharePattiFormView extends StatefulWidget {
 class CheharePattiFormViewState extends State<CheharePattiFormView> {
   final _dateCtrl = TextEditingController();
   final _psCtrl = TextEditingController();
-  final _distCtrl = TextEditingController(text: 'यवतमाळ');
+  final _distCtrl = TextEditingController();
 
   final _crNoCtrl = TextEditingController();
   final _actSecCtrl = TextEditingController();
@@ -161,7 +161,7 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
   void hydrateFrom(Map<String, dynamic> data) {
     _dateCtrl.text = data['date']?.toString() ?? '';
     _psCtrl.text = data['policeStation']?.toString() ?? '';
-    _distCtrl.text = data['district']?.toString() ?? 'यवतमाळ';
+    _distCtrl.text = data['district']?.toString() ?? '';
     _crNoCtrl.text = data['crNo']?.toString() ?? '';
     _actSecCtrl.text = data['actSec']?.toString() ?? '';
     _accusedDetailsCtrl.text = data['accusedDetails']?.toString() ?? '';
@@ -343,10 +343,16 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'जिल्हा यवतमाळ',
+                      'जिल्हा :- ',
                       style: marathi.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
+                      ),
+                    ),
+                    Expanded(
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _distCtrl,
+                        serifStyle: serif,
                       ),
                     ),
                   ],

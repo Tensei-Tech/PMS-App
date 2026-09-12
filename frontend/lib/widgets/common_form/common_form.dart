@@ -25,6 +25,8 @@ import '../../utils/app_constants.dart';
 import '../../utils/crime_detail_pdf.dart';
 import '../../utils/translation_helper.dart';
 import '../../utils/validators.dart';
+import 'government_vehicle_usage_widget.dart';
+import 'section_82_83_action_widget.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const Color _kDark = Color(0xFF0f172a);
@@ -145,7 +147,22 @@ const _kFinalSummaryItems = [
   'C – Mistake of fact',
   'Abeted Summary',
 ];
-const _kPreventiveItems = ['BNSS 126', 'BNSS 129', 'Bond Cancellation'];
+const _kPreventiveItems = [
+  '107 Crpc/126 BNSS',
+  '109 Crpc/128 BNSS',
+  '110 Crpc/129 BNSS',
+  '151 (3) Crpc/170(3) BNSS',
+  '55 to 57 B P Act',
+  'U/s 122 B P Act',
+  'U/s 124 B P Act',
+  '142 B P Act',
+  'M H O R',
+  '93 Pro Act',
+  'N S A',
+  'M P D A',
+  'M.C.O.C.A.',
+  'Bond Cancellation',
+];
 const _kReleaseTypes = ['Anticipatory', 'Regular'];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -250,10 +267,16 @@ class CommonFormState extends State<CommonForm> {
     return false;
   }
 
+  bool get _isPocsoCase {
+    final key = (widget.moduleKey ?? '').trim().toLowerCase();
+    final sub = (widget.subCategory ?? '').trim().toLowerCase();
+    final label = (widget.moduleLabel ?? '').trim().toLowerCase();
+    return key == 'pocso' || sub.contains('pocso') || label.contains('pocso');
+  }
+
   // ── §1 Crime Registration ─────────────────────────────────────────────────
   final _crNo = TextEditingController();
   final _regDate = TextEditingController();
-  final _briefDescription = TextEditingController(); // NEW
   String? _firPath;
 
   // ── §2 Acts & Sections ────────────────────────────────────────────────────
@@ -264,18 +287,8 @@ class CommonFormState extends State<CommonForm> {
   final _spotVillage = TextEditingController();
   final _spotArea = TextEditingController();
   final _spotAddress = TextEditingController();
-  final _stolenProperty = TextEditingController();
-  final _stolenQuantity = TextEditingController();
-  final _stolenEstValue = TextEditingController();
-  final _stolenId = TextEditingController();
-  final _stolenDate = TextEditingController();
-  final _stolenFrom = TextEditingController();
-
-  final _recoveredProperty = TextEditingController();
-  final _recoveredQuantity = TextEditingController();
-  final _recoveredEstValue = TextEditingController();
-  final _recoveredDate = TextEditingController();
-  final _recoveredFrom = TextEditingController();
+  final List<Map<String, dynamic>> _stolenProperties = [];
+  final List<Map<String, dynamic>> _recoveredProperties = [];
 
   // ── §4 Complainant KYC ────────────────────────────────────────────────────
   final _compName = TextEditingController();
@@ -350,11 +363,8 @@ class CommonFormState extends State<CommonForm> {
   TextEditingController get _dPan => _deceasedPan ??= TextEditingController();
 
   TextEditingController? _deceasedAddress;
-  TextEditingController? _deceasedInquestDetails;
   TextEditingController get _dAddress =>
       _deceasedAddress ??= TextEditingController();
-  TextEditingController get _dInquest =>
-      _deceasedInquestDetails ??= TextEditingController();
 
   // ── §5c Injured KYC ────────────────────────────────────────────────────────
   TextEditingController? _injuredName;
@@ -539,6 +549,12 @@ class CommonFormState extends State<CommonForm> {
   final _fingerprintDate = TextEditingController();
   final _fingerprintReason = TextEditingController();
 
+  // ── Shared Cross-Cutting Components ──────────────────────────────────────
+  GovernmentVehicleUsageData? _vehicleUsage;
+  GovernmentVehicleUsageData get _effectiveVehicleUsage =>
+      _vehicleUsage ??= GovernmentVehicleUsageData();
+  String? _section8283Action;
+
   // ── §11 Seizure ───────────────────────────────────────────────────────────
   final List<Map<String, dynamic>> _seizures = [];
 
@@ -623,17 +639,6 @@ class CommonFormState extends State<CommonForm> {
       _spotVillage,
       _spotArea,
       _spotAddress,
-      _stolenProperty,
-      _stolenQuantity,
-      _stolenEstValue,
-      _stolenId,
-      _stolenDate,
-      _stolenFrom,
-      _recoveredProperty,
-      _recoveredQuantity,
-      _recoveredEstValue,
-      _recoveredDate,
-      _recoveredFrom,
       _compName,
       _compAge,
       _compOcc,
@@ -696,13 +701,11 @@ class CommonFormState extends State<CommonForm> {
       _appGrant,
       _dcpSend,
       _dcpGrant,
-      _briefDescription,
       _compAddress,
       _compStatement,
       if (_victimAddress != null) _vAddress,
       if (_victimMedicalExam != null) _vMedicalExam,
       if (_deceasedAddress != null) _dAddress,
-      if (_deceasedInquestDetails != null) _dInquest,
       if (_injuredAddress != null) _injAddress,
       if (_injuredMedicalExam != null) _injMedicalExam,
       _fingerprintDate,
@@ -737,7 +740,6 @@ class CommonFormState extends State<CommonForm> {
   }
 
   void _disposeUnidRow(Map<String, dynamic> m) {
-    (m['name'] as TextEditingController?)?.dispose();
     (m['age'] as TextEditingController).dispose();
     (m['height'] as TextEditingController).dispose();
     (m['skin'] as TextEditingController).dispose();
@@ -1105,6 +1107,12 @@ class CommonFormState extends State<CommonForm> {
     });
   }
 
+  void setVictimName(String name) {
+    setState(() {
+      _vName.text = name;
+    });
+  }
+
   // ─── procedural helpers ────────────────────────────────────────────────────
   void toggleProcedural(String key, bool v) {
     setState(() {
@@ -1159,17 +1167,6 @@ class CommonFormState extends State<CommonForm> {
       _spotVillage,
       _spotArea,
       _spotAddress,
-      _stolenProperty,
-      _stolenQuantity,
-      _stolenEstValue,
-      _stolenId,
-      _stolenDate,
-      _stolenFrom,
-      _recoveredProperty,
-      _recoveredQuantity,
-      _recoveredEstValue,
-      _recoveredDate,
-      _recoveredFrom,
       _compName,
       _compAge,
       _compOcc,
@@ -1253,6 +1250,8 @@ class CommonFormState extends State<CommonForm> {
     _regDesig = 'HC';
     _cctvVal = null;
     _eshaksh = null;
+    _effectiveVehicleUsage.clear();
+    _section8283Action = null;
     _prevAction = 'BNSS 129';
     _prevBondsVal = 'no';
     _finalSummary = null;
@@ -1294,7 +1293,6 @@ class CommonFormState extends State<CommonForm> {
     List<Map<String, dynamic>> unidRows(List<Map<String, dynamic>> src) => src
         .map(
           (p) => {
-            'name': (p['name'] as TextEditingController?)?.text ?? '',
             'gender': p['gender'],
             'approxAge': (p['age'] as TextEditingController).text,
             'approxHeight': (p['height'] as TextEditingController).text,
@@ -1312,7 +1310,6 @@ class CommonFormState extends State<CommonForm> {
       'crNo': _crNo.text,
       'regDate': _regDate.text,
       'firCopyPath': _firPath,
-      'briefDescription': _briefDescription.text,
       'charges': _chargeData.map(
         (k, v) => MapEntry(k, {
           'act': v['act'],
@@ -1322,21 +1319,25 @@ class CommonFormState extends State<CommonForm> {
       'spotVillage': _spotVillage.text,
       'spotArea': _spotArea.text,
       'spotAddress': _spotAddress.text,
-      'stolenProperty': {
-        'property': _stolenProperty.text,
-        'quantity': _stolenQuantity.text,
-        'estValue': _stolenEstValue.text,
-        'id': _stolenId.text,
-        'date': _stolenDate.text,
-        'from': _stolenFrom.text,
-      },
-      'recoveredProperty': {
-        'property': _recoveredProperty.text,
-        'quantity': _recoveredQuantity.text,
-        'estValue': _recoveredEstValue.text,
-        'date': _recoveredDate.text,
-        'from': _recoveredFrom.text,
-      },
+      'stolenProperties': _stolenProperties
+          .map((e) => {
+                'property': (e['property'] as TextEditingController).text,
+                'quantity': (e['quantity'] as TextEditingController).text,
+                'estValue': (e['estValue'] as TextEditingController).text,
+                'id': (e['id'] as TextEditingController).text,
+                'date': (e['date'] as TextEditingController).text,
+                'from': (e['from'] as TextEditingController).text,
+              })
+          .toList(),
+      'recoveredProperties': _recoveredProperties
+          .map((e) => {
+                'property': (e['property'] as TextEditingController).text,
+                'quantity': (e['quantity'] as TextEditingController).text,
+                'estValue': (e['estValue'] as TextEditingController).text,
+                'date': (e['date'] as TextEditingController).text,
+                'from': (e['from'] as TextEditingController).text,
+              })
+          .toList(),
       'isSexualOffence': _hasSexualOffenceAct,
       'complainant': {
         'name': _hasSexualOffenceAct
@@ -1377,7 +1378,6 @@ class CommonFormState extends State<CommonForm> {
         'caste': _dCaste.text,
         'pan': _dPan.text,
         'address': _dAddress.text,
-        'inquestDetails': _dInquest.text,
       },
       'injured': {
         'name': _injName.text,
@@ -1431,6 +1431,8 @@ class CommonFormState extends State<CommonForm> {
       'eshakshValue': _eshaksh,
       'eshakshDt': _eDt.text,
       'eshakshReason': _eReason.text,
+      'vehicleUsage': _effectiveVehicleUsage.toMap(),
+      'section8283Action': _section8283Action,
       'investigationNotes': {
         'fingerprintVal': _fingerprintVal,
         'fingerprintDate': _fingerprintDate.text,
@@ -1549,7 +1551,6 @@ class CommonFormState extends State<CommonForm> {
     _crNo.text = _s(m['crNo']);
     _regDate.text = _s(m['regDate']);
     _firPath = m['firCopyPath'] as String?;
-    _briefDescription.text = _s(m['briefDescription']);
 
     final ch = m['charges'];
     if (ch is Map) {
@@ -1573,45 +1574,66 @@ class CommonFormState extends State<CommonForm> {
     _spotArea.text = _s(m['spotArea']);
     _spotAddress.text = _s(m['spotAddress']);
 
-    final sp = m['stolenProperty'] as Map?;
-    if (sp != null) {
-      _stolenProperty.text =
-          _s(sp['property']) != '' ? _s(sp['property']) : _s(sp['description']);
-      _stolenQuantity.text = _s(sp['quantity']);
-      _stolenEstValue.text = _s(sp['estValue']);
-      _stolenId.text = _s(sp['id']);
-      _stolenDate.text = _s(sp['date']);
-      _stolenFrom.text = _s(sp['from']);
+    _stolenProperties.clear();
+    final spList = m['stolenProperties'] as List?;
+    if (spList != null && spList.isNotEmpty) {
+      for (final sp in spList) {
+        if (sp is Map) _stolenProperties.add(_createStolenPropRow(sp));
+      }
+    } else {
+      // Backwards compatibility
+      final sp = m['stolenProperty'] as Map?;
+      final propDet = m['propertyDetails'] as Map?;
+      if (sp != null || propDet != null) {
+        final stMap = _createStolenPropRow({});
+        (stMap['property'] as TextEditingController).text =
+            _s(sp?['property']) != ''
+                ? _s(sp?['property'])
+                : _s(sp?['description']);
+        (stMap['quantity'] as TextEditingController).text =
+            _s(sp?['quantity']) != ''
+                ? _s(sp?['quantity'])
+                : _s(propDet?['quantity']);
+        (stMap['estValue'] as TextEditingController).text =
+            _s(sp?['estValue']) != ''
+                ? _s(sp?['estValue'])
+                : _s(propDet?['estValue']);
+        (stMap['id'] as TextEditingController).text =
+            _s(sp?['id']) != '' ? _s(sp?['id']) : _s(propDet?['id']);
+        (stMap['date'] as TextEditingController).text = _s(sp?['date']);
+        (stMap['from'] as TextEditingController).text = _s(sp?['from']);
+        _stolenProperties.add(stMap);
+      }
     }
 
-    final rp = m['recoveredProperty'] as Map?;
-    if (rp != null) {
-      _recoveredProperty.text = _s(rp['property']);
-      _recoveredQuantity.text = _s(rp['quantity']);
-      _recoveredEstValue.text = _s(rp['estValue']);
-      _recoveredDate.text = _s(rp['date']);
-      _recoveredFrom.text = _s(rp['from']);
-    }
-
-    final propDet = m['propertyDetails'] as Map?;
-    if (propDet != null) {
-      if (_stolenQuantity.text.isEmpty) {
-        _stolenQuantity.text = _s(propDet['quantity']);
+    _recoveredProperties.clear();
+    final rpList = m['recoveredProperties'] as List?;
+    if (rpList != null && rpList.isNotEmpty) {
+      for (final rp in rpList) {
+        if (rp is Map) _recoveredProperties.add(_createRecoveredPropRow(rp));
       }
-      if (_stolenId.text.isEmpty) {
-        _stolenId.text = _s(propDet['id']);
-      }
-      if (_stolenEstValue.text.isEmpty) {
-        _stolenEstValue.text = _s(propDet['estValue']);
-      }
-      if (_recoveredDate.text.isEmpty) {
-        _recoveredDate.text = _s(propDet['recDate']);
-      }
-      if (_recoveredFrom.text.isEmpty) {
-        _recoveredFrom.text = _s(propDet['recFrom']);
-      }
-      if (_recoveredProperty.text.isEmpty && sp != null) {
-        _recoveredProperty.text = _s(sp['recovered']);
+    } else {
+      // Backwards compatibility
+      final rp = m['recoveredProperty'] as Map?;
+      final propDet = m['propertyDetails'] as Map?;
+      final sp = m['stolenProperty'] as Map?;
+      if (rp != null ||
+          propDet != null ||
+          (sp != null && _s(sp['recovered']).isNotEmpty)) {
+        final recMap = _createRecoveredPropRow({});
+        (recMap['property'] as TextEditingController).text =
+            _s(rp?['property']) != ''
+                ? _s(rp?['property'])
+                : _s(sp?['recovered']);
+        (recMap['quantity'] as TextEditingController).text =
+            _s(rp?['quantity']);
+        (recMap['estValue'] as TextEditingController).text =
+            _s(rp?['estValue']);
+        (recMap['date'] as TextEditingController).text =
+            _s(rp?['date']) != '' ? _s(rp?['date']) : _s(propDet?['recDate']);
+        (recMap['from'] as TextEditingController).text =
+            _s(rp?['from']) != '' ? _s(rp?['from']) : _s(propDet?['recFrom']);
+        _recoveredProperties.add(recMap);
       }
     }
 
@@ -1662,7 +1684,6 @@ class CommonFormState extends State<CommonForm> {
       _dCaste.text = _s(deceased['caste']);
       _dPan.text = _s(deceased['pan']);
       _dAddress.text = _s(deceased['address']);
-      _dInquest.text = _s(deceased['inquestDetails']);
     }
 
     final inj = m['injured'] as Map?;
@@ -1699,8 +1720,6 @@ class CommonFormState extends State<CommonForm> {
     }
 
     void applyUnid(Map<String, dynamic> row, Map raw) {
-      row['name'] ??= TextEditingController();
-      (row['name'] as TextEditingController).text = _s(raw['name']);
       final g = raw['gender']?.toString();
       if (g != null && _kGenders.contains(g)) row['gender'] = g;
       (row['age'] as TextEditingController).text = _s(raw['approxAge']);
@@ -1802,6 +1821,15 @@ class CommonFormState extends State<CommonForm> {
     _eshaksh = m['eshakshValue'] as String?;
     _eDt.text = _s(m['eshakshDt']);
     _eReason.text = _s(m['eshakshReason']);
+    if (m['vehicleUsage'] is Map) {
+      final vu = GovernmentVehicleUsageData.fromMap(m['vehicleUsage'] as Map);
+      _effectiveVehicleUsage.sdEntry = vu.sdEntry;
+      _effectiveVehicleUsage.logBookEntry = vu.logBookEntry;
+      _effectiveVehicleUsage.caseDiaryEntry = vu.caseDiaryEntry;
+    } else {
+      _effectiveVehicleUsage.clear();
+    }
+    _section8283Action = m['section8283Action']?.toString();
 
     final inv = m['investigationNotes'] as Map?;
     if (inv != null) {
@@ -2243,6 +2271,16 @@ class CommonFormState extends State<CommonForm> {
     );
   }
 
+  Widget _relationField(String label, TextEditingController ctrl) {
+    return _RelationField(
+      label: TranslationHelper.translate(context, label),
+      ctrl: ctrl,
+      decoration: _d(label).copyWith(fillColor: _kInputBg),
+      style: _tsBody,
+      otherLabel: TranslationHelper.translate(context, 'Specify Relationship'),
+    );
+  }
+
   String _formatDateDdMmYyyy(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
@@ -2629,28 +2667,30 @@ class CommonFormState extends State<CommonForm> {
                           ),
                           _card(
                             2,
-                            'Acts & Sections Filed',
+                            'Acts & Sections',
                             _s2(),
                             startOpen: true,
                             headerAction: _headerBtn(
-                              'Add Charge',
+                              'Add',
                               addChargeRow,
                             ),
                           ),
                           _card(3, 'Crime Spot', _s3()),
-                          _card(4, 'Stolen Property', _sStolenProperty()),
+                          if (!_isPocsoCase)
+                            _card(4, 'Stolen Property', _sStolenProperty()),
                           if (widget.middleSlot != null) widget.middleSlot!,
                           _card(5, 'Complainant KYC', _s4()),
-                          _card(
-                            6,
-                            'Victim KYC',
-                            _sVictim(),
-                            headerAction: _headerBtn(
-                              'Same as Complainant',
-                              _copyComplainantToVictim,
-                              icon: Icons.copy_rounded,
+                          if (!_isPocsoCase)
+                            _card(
+                              6,
+                              'Victim KYC',
+                              _sVictim(),
+                              headerAction: _headerBtn(
+                                'Same as Complainant',
+                                _copyComplainantToVictim,
+                                icon: Icons.copy_rounded,
+                              ),
                             ),
-                          ),
                           if (_isMurderCase)
                             _card(
                               7,
@@ -2662,27 +2702,28 @@ class CommonFormState extends State<CommonForm> {
                                 icon: Icons.copy_rounded,
                               ),
                             ),
-                          _card(
-                            _isMurderCase ? 8 : 7,
-                            'Injured KYC',
-                            _sInjured(),
-                            headerAction: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _headerBtn(
-                                  'Same as Complainant',
-                                  _copyComplainantToInjured,
-                                  icon: Icons.copy_rounded,
-                                ),
-                                const SizedBox(width: 6),
-                                _headerBtn(
-                                  'Same as Victim',
-                                  _copyVictimToInjured,
-                                  icon: Icons.copy_rounded,
-                                ),
-                              ],
+                          if (!_isPocsoCase)
+                            _card(
+                              _isMurderCase ? 8 : 7,
+                              'Injured KYC',
+                              _sInjured(),
+                              headerAction: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _headerBtn(
+                                    'Same as Complainant',
+                                    _copyComplainantToInjured,
+                                    icon: Icons.copy_rounded,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _headerBtn(
+                                    'Same as Victim',
+                                    _copyVictimToInjured,
+                                    icon: Icons.copy_rounded,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
                           _card(
                             _isMurderCase ? 9 : 8,
                             'Accused Details',
@@ -2915,9 +2956,6 @@ class CommonFormState extends State<CommonForm> {
               ),
             )
           ]),
-          _row([
-            _tf('Brief Description of Offence', _briefDescription, maxLines: 3)
-          ]),
         ],
       );
 
@@ -2926,7 +2964,7 @@ class CommonFormState extends State<CommonForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_chargeData.isEmpty)
-            _emptyBox('No charges. Tap + Add Charge to begin.')
+            _emptyBox('No charges. Tap + Add to begin.')
           else ...[
             ..._chargeData.entries.toList().asMap().entries.map((e) {
               final id = e.value.key;
@@ -3098,42 +3136,239 @@ class CommonFormState extends State<CommonForm> {
         ],
       );
 
+  Map<String, dynamic> _createStolenPropRow(Map m) {
+    return {
+      'property': TextEditingController(text: m['property']?.toString() ?? ''),
+      'quantity': TextEditingController(text: m['quantity']?.toString() ?? ''),
+      'estValue': TextEditingController(text: m['estValue']?.toString() ?? ''),
+      'id': TextEditingController(text: m['id']?.toString() ?? ''),
+      'date': TextEditingController(text: m['date']?.toString() ?? ''),
+      'from': TextEditingController(text: m['from']?.toString() ?? ''),
+    };
+  }
+
+  Map<String, dynamic> _createRecoveredPropRow(Map m) {
+    return {
+      'property': TextEditingController(text: m['property']?.toString() ?? ''),
+      'quantity': TextEditingController(text: m['quantity']?.toString() ?? ''),
+      'estValue': TextEditingController(text: m['estValue']?.toString() ?? ''),
+      'date': TextEditingController(text: m['date']?.toString() ?? ''),
+      'from': TextEditingController(text: m['from']?.toString() ?? ''),
+    };
+  }
+
+  void _copyStolenToRecovered(
+      Map<String, dynamic> src, Map<String, dynamic> dest) {
+    (dest['property'] as TextEditingController).text =
+        (src['property'] as TextEditingController).text;
+    (dest['quantity'] as TextEditingController).text =
+        (src['quantity'] as TextEditingController).text;
+    (dest['estValue'] as TextEditingController).text =
+        (src['estValue'] as TextEditingController).text;
+  }
+
+  Widget _stolenPropCard(int i, Map<String, dynamic> r) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _kInputBg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _kBorder, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Stolen Property #${i + 1}',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: _kDark)),
+              InkWell(
+                onTap: () => setState(() => _stolenProperties.removeAt(i)),
+                child: const Icon(Icons.delete_outline_rounded,
+                    size: 18, color: _kRed),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _row([
+            _tf('Property Description', r['property'] as TextEditingController,
+                maxLines: 2)
+          ]),
+          _row([
+            _tf('Quantity', r['quantity'] as TextEditingController),
+            _tf('Est Value', r['estValue'] as TextEditingController,
+                keyboardType: TextInputType.number),
+          ]),
+          _row([
+            _tf('Identification / Serial No.', r['id'] as TextEditingController)
+          ]),
+          _row([
+            _dateTimeField(
+                'Stolen Date & Time', r['date'] as TextEditingController),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _recoveredPropCard(int i, Map<String, dynamic> r) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _kInputBg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _kBorder, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Recovered Property #${i + 1}',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: _kDark)),
+              InkWell(
+                onTap: () => setState(() => _recoveredProperties.removeAt(i)),
+                child: const Icon(Icons.delete_outline_rounded,
+                    size: 18, color: _kRed),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _row([
+            _tf('Property Description', r['property'] as TextEditingController,
+                maxLines: 2)
+          ]),
+          _row([
+            _tf('Quantity', r['quantity'] as TextEditingController),
+            _tf('Est Value', r['estValue'] as TextEditingController,
+                keyboardType: TextInputType.number),
+          ]),
+          _row([
+            _dateTimeField(
+                'Recovered Date & Time', r['date'] as TextEditingController),
+            _tf('Recovered From', r['from'] as TextEditingController),
+          ]),
+        ],
+      ),
+    );
+  }
+
   Widget _sStolenProperty() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text('Stolen Property',
-                style: _tsSection.copyWith(fontSize: 13, color: _kTeal)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('STOLEN PROPERTIES',
+                  style: _tsSection.copyWith(fontSize: 13, color: _kTeal)),
+              _headerBtn('Add Stolen', () {
+                setState(() => _stolenProperties.add(_createStolenPropRow({})));
+              }),
+            ],
           ),
-          _row([_tf('Stolen Property', _stolenProperty, maxLines: 2)]),
-          _row([
-            _tf('Quantity', _stolenQuantity),
-            _tf('Est Value', _stolenEstValue,
-                keyboardType: TextInputType.number),
-          ]),
-          _row([_tf('Identification / Serial No.', _stolenId)]),
-          _row([
-            _dateTimeField('Stolen Date & Time', _stolenDate),
-            _tf('Stolen From', _stolenFrom),
-          ]),
+          const SizedBox(height: 8),
+          if (_stolenProperties.isEmpty)
+            _emptyBox('No stolen properties added.')
+          else
+            ..._stolenProperties
+                .asMap()
+                .entries
+                .map((e) => _stolenPropCard(e.key, e.value)),
           const SizedBox(height: 10),
           _divider(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text('Recovered Property',
-                style: _tsSection.copyWith(fontSize: 13, color: _kTeal)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('RECOVERED PROPERTIES',
+                  style: _tsSection.copyWith(fontSize: 13, color: _kTeal)),
+              if (_stolenProperties.isNotEmpty)
+                PopupMenuButton<int>(
+                  tooltip: 'Recover a Stolen Property',
+                  onSelected: (idx) => setState(() {
+                    final newProp = _createRecoveredPropRow({});
+                    _copyStolenToRecovered(_stolenProperties[idx], newProp);
+                    _recoveredProperties.add(newProp);
+                  }),
+                  itemBuilder: (ctx) => _stolenProperties.asMap().entries.map((
+                    entry,
+                  ) {
+                    final p =
+                        (entry.value['property'] as TextEditingController?)
+                                ?.text
+                                .trim() ??
+                            '';
+                    final displayName = p.isNotEmpty
+                        ? (p.length > 20 ? '${p.substring(0, 20)}...' : p)
+                        : 'Stolen #${entry.key + 1}';
+                    return PopupMenuItem<int>(
+                      value: entry.key,
+                      child: Text(
+                        '${TranslationHelper.translate(ctx, 'Recover')} $displayName',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    );
+                  }).toList(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _kTeal.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: _kTeal.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.add,
+                          size: 13,
+                          color: _kTeal,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          TranslationHelper.translate(
+                            context,
+                            'Recover Stolen Property',
+                          ),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: _kTeal,
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_drop_down,
+                          size: 14,
+                          color: _kTeal,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
-          _row([_tf('Recovered Property', _recoveredProperty, maxLines: 2)]),
-          _row([
-            _tf('Quantity', _recoveredQuantity),
-            _tf('Est Value', _recoveredEstValue,
-                keyboardType: TextInputType.number),
-          ]),
-          _row([
-            _dateTimeField('Recovered Date & Time', _recoveredDate),
-            _tf('Recovered From', _recoveredFrom),
-          ]),
+          const SizedBox(height: 8),
+          if (_recoveredProperties.isEmpty)
+            _emptyBox('No recovered properties added.')
+          else
+            ..._recoveredProperties
+                .asMap()
+                .entries
+                .map((e) => _recoveredPropCard(e.key, e.value)),
         ],
       );
 
@@ -3292,8 +3527,12 @@ class CommonFormState extends State<CommonForm> {
             _tf(
               'Name',
               _vName,
-              enabled: !_isRapeCase,
-              hintText: _isRapeCase ? 'Identity Protected by Law' : null,
+              enabled: !_isRapeCase && !_isPocsoCase,
+              hintText: _isRapeCase
+                  ? 'Identity Protected by Law'
+                  : _isPocsoCase
+                      ? 'Selected in POCSO Section'
+                      : null,
             ),
             _tf('Age', _vAge, keyboardType: TextInputType.number),
           ]),
@@ -3466,7 +3705,6 @@ class CommonFormState extends State<CommonForm> {
           ]),
           _row([_tf('Religion', _dReligion), _tf('Caste', _dCaste)]),
           _row([_tf('Address', _dAddress, maxLines: 2)]),
-          _row([_tf('Inquest Details', _dInquest, maxLines: 3)]),
         ],
       );
 
@@ -4012,13 +4250,6 @@ class CommonFormState extends State<CommonForm> {
           const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _tf(
-                'Name (if known later)',
-                (row['name'] ??= TextEditingController())
-                    as TextEditingController),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
             child: _chipSelector(
               label: 'Gender',
               items: _kGenders,
@@ -4118,112 +4349,142 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §9 Arrest & Release Status ────────────────────────────────────────────
   Widget _s9() {
-    if (allAccusedNames.isEmpty) {
-      return _emptyBox(
-        'Add accused/suspected names above to see arrest fields.',
-      );
-    }
     return Column(
-      children: _arrestRows.map((r) {
-        r['arrestLoc'] ??= TextEditingController();
-        r['arrestOfficer'] ??= TextEditingController();
-        r['relName'] ??= TextEditingController();
-        r['relationship'] ??= TextEditingController();
-        r['noticeIssued'] ??= 'no';
-        r['noticeDt'] ??= TextEditingController();
-        r['relOnNotice'] ??= 'no';
-        r['wantedStatus'] ??= 'Not Wanted';
-        final name = r['accusedName'] as String;
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _kBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _kTeal.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.person_rounded, size: 16, color: _kTeal),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Accused: $name',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _kTeal,
-                        letterSpacing: 0.5,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Section8283ActionWidget(
+          value: _section8283Action,
+          onChanged: (v) => setState(() => _section8283Action = v),
+        ),
+        const SizedBox(height: 12),
+        if (allAccusedNames.isEmpty)
+          _emptyBox(
+            'Add accused/suspected names above to see arrest fields.',
+          )
+        else
+          for (final r in _arrestRows)
+            Builder(
+              builder: (context) {
+                r['arrestLoc'] ??= TextEditingController();
+                r['arrestOfficer'] ??= TextEditingController();
+                r['relName'] ??= TextEditingController();
+                r['relationship'] ??= TextEditingController();
+                r['noticeIssued'] ??= 'no';
+                r['noticeDt'] ??= TextEditingController();
+                r['relOnNotice'] ??= 'no';
+                r['wantedStatus'] ??= 'Not Wanted';
+                r['releaseTypeDt'] ??= TextEditingController();
+                r['dateOfDeath'] ??= TextEditingController();
+                final name = r['accusedName'] as String;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: _kBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _kTeal.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.person_rounded,
+                                size: 16, color: _kTeal),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Accused: $name',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _kTeal,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              _row([
-                _dateTimeField(
-                  'Arrest Date & Time (dd/mm/yyyy hh:mm)',
-                  r['arrestDt'] as TextEditingController,
-                ),
-                _dateField(
-                  'Release Date',
-                  r['releaseDt'] as TextEditingController,
-                ),
-              ]),
-              _row([
-                _tf('Arrest Location', r['arrestLoc'] as TextEditingController),
-                _tf('Arresting Officer',
-                    r['arrestOfficer'] as TextEditingController),
-              ]),
-              _row([
-                _tf('Relative Name', r['relName'] as TextEditingController),
-                _tf('Relationship', r['relationship'] as TextEditingController),
-              ]),
-              _yesNo(
-                'Notice Issued?',
-                r['noticeIssued'] as String?,
-                (v) => setState(() => r['noticeIssued'] = v),
-              ),
-              if (r['noticeIssued'] == 'yes') ...[
-                const SizedBox(height: 10),
-                _dateTimeField('Notice Date & Time',
-                    r['noticeDt'] as TextEditingController),
-                const SizedBox(height: 10),
-                _yesNo(
-                  'Released on Notice?',
-                  r['relOnNotice'] as String?,
-                  (v) => setState(() => r['relOnNotice'] = v),
-                ),
-              ],
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _chipSelector(
-                  label: 'Wanted / Absconding Status',
-                  items: const ['Not Wanted', 'Wanted', 'Absconding'],
-                  selected: r['wantedStatus'] as String?,
-                  onSelect: (v) => setState(() => r['wantedStatus'] = v),
-                ),
-              ),
-              _chipSelector(
-                label: 'Release Type',
-                items: _kReleaseTypes,
-                selected: r['releaseType'] as String?,
-                onSelect: (v) => setState(() => r['releaseType'] = v),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+                      _row([
+                        _dateTimeField(
+                          'Arrest Date & Time (dd/mm/yyyy hh:mm)',
+                          r['arrestDt'] as TextEditingController,
+                        ),
+                        _dateField(
+                          'Release Date',
+                          r['releaseDt'] as TextEditingController,
+                        ),
+                      ]),
+                      _row([
+                        _tf('Arrest Location',
+                            r['arrestLoc'] as TextEditingController),
+                        _tf('Arresting Officer',
+                            r['arrestOfficer'] as TextEditingController),
+                      ]),
+                      _row([
+                        _tf('Relative Name',
+                            r['relName'] as TextEditingController),
+                        _relationField('Relationship',
+                            r['relationship'] as TextEditingController),
+                      ]),
+                      _yesNo(
+                        'Notice Issued?',
+                        r['noticeIssued'] as String?,
+                        (v) => setState(() => r['noticeIssued'] = v),
+                      ),
+                      if (r['noticeIssued'] == 'yes') ...[
+                        const SizedBox(height: 10),
+                        _dateTimeField('Notice Date & Time',
+                            r['noticeDt'] as TextEditingController),
+                        const SizedBox(height: 10),
+                        _yesNo(
+                          'Released on Notice?',
+                          r['relOnNotice'] as String?,
+                          (v) => setState(() => r['relOnNotice'] = v),
+                        ),
+                      ],
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _chipSelector(
+                          label: 'Wanted / Absconding Status',
+                          items: const ['Not Wanted', 'Wanted', 'Absconding'],
+                          selected: r['wantedStatus'] as String?,
+                          onSelect: (v) =>
+                              setState(() => r['wantedStatus'] = v),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _chipSelector(
+                          label: 'Release Type',
+                          items: _kReleaseTypes,
+                          selected: r['releaseType'] as String?,
+                          onSelect: (v) => setState(() => r['releaseType'] = v),
+                        ),
+                      ),
+                      if (r['releaseType'] != null)
+                        _row([
+                          _dateField('${r['releaseType']} Bail Date',
+                              r['releaseTypeDt'] as TextEditingController),
+                        ]),
+                      _row([
+                        _dateField('Date of Death (if applicable)',
+                            r['dateOfDeath'] as TextEditingController),
+                      ]),
+                    ],
+                  ),
+                );
+              },
+            ),
+      ],
     );
   }
 
@@ -4361,6 +4622,11 @@ class CommonFormState extends State<CommonForm> {
               _tf('Reason for No Fingerprint', _fingerprintReason, maxLines: 2)
             ]),
           ],
+          _divider(),
+          GovernmentVehicleUsageWidget(
+            data: _effectiveVehicleUsage,
+            onChanged: (v) => setState(() => _vehicleUsage = v),
+          ),
         ],
       );
 
@@ -4550,8 +4816,9 @@ class CommonFormState extends State<CommonForm> {
                   ]),
                   const SizedBox(height: 10),
                   _subHeader('BAIL DETAILS'),
-                  _row([
-                    _chipSelector(
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _chipSelector(
                       label: 'Bail Type',
                       items: const [
                         'None',
@@ -4561,18 +4828,18 @@ class CommonFormState extends State<CommonForm> {
                       selected: c['bailType'] as String?,
                       onSelect: (v) => setState(() => c['bailType'] = v),
                     ),
-                    if (c['bailType'] != 'None')
+                  ),
+                  if (c['bailType'] != 'None') ...[
+                    _row([
                       _dateField(
-                          'Bail Date', c['bailDate'] as TextEditingController)
-                    else
-                      const SizedBox.shrink(),
-                  ]),
-                  if (c['bailType'] != 'None')
+                          'Bail Date', c['bailDate'] as TextEditingController),
+                    ]),
                     _row([
                       _tf('Bail Order/Details',
                           c['bailDetails'] as TextEditingController,
                           maxLines: 2),
                     ]),
+                  ],
                   const SizedBox(height: 10),
                   _subHeader('PR BOND'),
                   _row([
@@ -4663,42 +4930,55 @@ class CommonFormState extends State<CommonForm> {
   }
 
   // ── §13 Preventive & Bonds ─────────────────────────────────────────────────
-  Widget _s13() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _subHeader('PREVENTIVE BONDS'),
-          _yesNo(
-            'Preventive Bonds',
-            _prevBondsVal ?? 'no',
-            (v) => setState(() => _prevBondsVal = v),
-          ),
-          if (_prevBondsVal == 'yes') ...[
-            const SizedBox(height: 10),
-            _row([
-              _dateField('PR Bond Date', _bondDate),
-              _dateField('Bond Cancellation Date', _bondCancel),
-            ]),
-            _row([_tf('Reason for PR Bond', _bReason)]),
-          ],
-          const SizedBox(height: 14),
-          _subHeader('PREVENTIVE ACTIONS'),
-          _chipSelector(
-            label: 'Action Type',
-            items: _kPreventiveItems,
-            selected: _prevAction ?? 'BNSS 129',
-            onSelect: (v) => setState(() => _prevAction = v),
-            activeColor: const Color(0xFF0284C7),
-          ),
-          const SizedBox(height: 10),
-          _row([
-            _dateTimeField(
-              '${_prevAction ?? 'BNSS 129'} Date & Time',
-              _prevActionDt,
-              hintText: 'dd/mm/yyyy hh:mm',
+  Widget _s13() {
+    final validPrevAction =
+        (_prevAction != null && _kPreventiveItems.contains(_prevAction))
+            ? _prevAction
+            : _kPreventiveItems.first;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _subHeader('PREVENTIVE BONDS'),
+        _row([
+          _dateField('PR Bond Date', _bondDate),
+          _dateField('Bond Cancellation Date', _bondCancel),
+        ]),
+        _row([_tf('Reason for PR Bond', _bReason)]),
+        const SizedBox(height: 14),
+        _subHeader('PREVENTIVE ACTIONS'),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: DropdownButtonFormField<String>(
+            initialValue: validPrevAction,
+            decoration: _d('Preventive Action').copyWith(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              fillColor: _kInputBg,
             ),
-          ]),
-        ],
-      );
+            dropdownColor: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            isExpanded: true,
+            style: _tsBody,
+            icon: const Icon(Icons.arrow_drop_down, size: 20),
+            items: _kPreventiveItems
+                .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e, style: const TextStyle(fontSize: 12))))
+                .toList(),
+            onChanged: (v) => setState(() => _prevAction = v),
+          ),
+        ),
+        _row([
+          _dateTimeField(
+            '$validPrevAction Date & Time',
+            _prevActionDt,
+            hintText: 'dd/mm/yyyy hh:mm',
+          ),
+        ]),
+      ],
+    );
+  }
 
   // ── §14 Discharge Status ───────────────────────────────────────────────────
   Widget _s14() {
@@ -5106,6 +5386,120 @@ class CommonFormState extends State<CommonForm> {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// _RelationField — relationship dropdown with 'Other' option
+// ══════════════════════════════════════════════════════════════════════════════
+class _RelationField extends StatefulWidget {
+  const _RelationField({
+    required this.label,
+    required this.ctrl,
+    required this.decoration,
+    required this.style,
+    required this.otherLabel,
+  });
+  final String label;
+  final TextEditingController ctrl;
+  final InputDecoration decoration;
+  final TextStyle style;
+  final String otherLabel;
+
+  @override
+  State<_RelationField> createState() => _RelationFieldState();
+}
+
+class _RelationFieldState extends State<_RelationField> {
+  static const _options = [
+    'Father',
+    'Mother',
+    'Husband',
+    'Wife',
+    'Son',
+    'Daughter',
+    'Brother',
+    'Sister',
+    'Other'
+  ];
+  String? _selected;
+  final _otherCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _initSelected();
+  }
+
+  void _initSelected() {
+    final t = widget.ctrl.text.trim();
+    if (t.isEmpty) {
+      _selected = null;
+    } else if (_options.contains(t)) {
+      _selected = t;
+    } else {
+      _selected = 'Other';
+      _otherCtrl.text = t;
+    }
+  }
+
+  @override
+  void dispose() {
+    _otherCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isOther = _selected == 'Other';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<String>(
+          initialValue: _selected,
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          menuMaxHeight: 300,
+          isExpanded: true,
+          decoration: widget.decoration.copyWith(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          ),
+          style: widget.style,
+          icon: const Icon(Icons.arrow_drop_down,
+              size: 20, color: Color(0xFF64748B)),
+          items: _options
+              .map((e) => DropdownMenuItem(
+                  value: e,
+                  child: Text(e, style: const TextStyle(fontSize: 12))))
+              .toList(),
+          onChanged: (v) {
+            setState(() {
+              _selected = v;
+              if (v != 'Other') {
+                widget.ctrl.text = v ?? '';
+              } else {
+                widget.ctrl.text = _otherCtrl.text;
+              }
+            });
+          },
+        ),
+        if (isOther) ...[
+          const SizedBox(height: 10),
+          TextFormField(
+            controller: _otherCtrl,
+            style: widget.style,
+            decoration: widget.decoration.copyWith(
+              hintText: widget.otherLabel,
+              labelText: widget.otherLabel,
+            ),
+            onChanged: (v) {
+              widget.ctrl.text = v;
+            },
+          ),
+        ]
+      ],
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // _SectionSearchPicker — searchable sections (replaces Select2 from web form)
 // ══════════════════════════════════════════════════════════════════════════════
 class _SectionSearchPicker extends StatefulWidget {
@@ -5166,7 +5560,7 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
               );
               return InputChip(
                 label: Text(
-                  '§${sec['val']}',
+                  sec['val'] as String,
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -5271,7 +5665,7 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
                           width: 32,
                           margin: const EdgeInsets.only(right: 8),
                           child: Text(
-                            '§$v',
+                            v,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
