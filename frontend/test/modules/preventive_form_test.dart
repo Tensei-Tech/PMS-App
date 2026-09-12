@@ -101,8 +101,8 @@ void main() {
       expect(exported['istegasha']['preventiveNo'], 'IST/99/2026');
       expect(exported['istegasha']['ioName'], 'PI Kadam');
       expect(exported['riskAndStatus']['riskFlag'], '🛑 Sensitive');
-      expect(exported['riskAndStatus']['actionStatus'],
-          '🟡 Partially Completed');
+      expect(
+          exported['riskAndStatus']['actionStatus'], '🟡 Partially Completed');
     });
 
     testWidgets('PreventiveViewDocumentView renders all 14 statutory fields',
@@ -169,7 +169,8 @@ void main() {
             body: SingleChildScrollView(
               child: PreventiveViewDocumentView(
                 record: mockRecord,
-                prevMap: mockRecord.extraFields['preventiveForm'] as Map<String, dynamic>,
+                prevMap: mockRecord.extraFields['preventiveForm']
+                    as Map<String, dynamic>,
                 moduleLabel: 'Preventive Action',
               ),
             ),

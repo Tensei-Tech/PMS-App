@@ -64,8 +64,7 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
         final dateStr = v('date', '......./ ......../२०...');
 
         final toOfficer = v('toOfficer', '________________________');
-        final toHospital =
-            v('toHospital', '________________________________');
+        final toHospital = v('toHospital', '________________________________');
         final toTahDist = v('toTahDist', '________________________');
 
         final fromLocation = v(

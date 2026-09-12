@@ -387,6 +387,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     }
     return '$h:$min';
   }
+
   final _marPanchNameAddressCtrl = TextEditingController();
   final _marPsCtrl = TextEditingController();
   final _marDistCtrl = TextEditingController();
@@ -949,7 +950,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _ptpMoNoCtrl.text = doc['ptpMoNo'] ?? '';
     _ptpReceiptDateCtrl.text = doc['ptpReceiptDate'] ?? '';
     _ptpReceiptDateDayCtrl.text = doc['ptpReceiptDateDay']?.toString() ?? '';
-    _ptpReceiptDateMonthCtrl.text = doc['ptpReceiptDateMonth']?.toString() ?? '';
+    _ptpReceiptDateMonthCtrl.text =
+        doc['ptpReceiptDateMonth']?.toString() ?? '';
     _ptpReceiptDateYearCtrl.text = doc['ptpReceiptDateYear']?.toString() ?? '';
     if (_ptpReceiptDateDayCtrl.text.isEmpty &&
         _ptpReceiptDateCtrl.text.contains('/')) {
@@ -4568,7 +4570,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('तपासी अधिकारी नांव व सही शिक्का', style: sectionHeadingStyle),
+                  Text('तपासी अधिकारी नांव व सही शिक्का',
+                      style: sectionHeadingStyle),
                   const SizedBox(height: 12),
                   _marathiFieldRow(
                     'नांव :-',
@@ -5174,8 +5177,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 serifStyle: serifStyle,
               ),
             ),
-            Text(
-                'प्रेत ताबा पावती लिहून देतो की, आज दिनांक ',
+            Text('प्रेत ताबा पावती लिहून देतो की, आज दिनांक ',
                 style: bodyTextStyle),
             SizedBox(
               width: 32,

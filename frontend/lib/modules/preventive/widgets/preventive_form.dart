@@ -466,16 +466,16 @@ class PreventiveFormState extends State<PreventiveForm> {
                 if (!widget.readOnly) ...[
                   OutlinedButton.icon(
                     onPressed: clearForm,
-                    icon:
-                        const Icon(Icons.refresh_rounded, size: 14, color: _kSec),
+                    icon: const Icon(Icons.refresh_rounded,
+                        size: 14, color: _kSec),
                     label: Text('Clear',
                         style: GoogleFonts.inter(fontSize: 12, color: _kSec)),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: _kBorder),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(6)),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -497,8 +497,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                       side: const BorderSide(color: _kTeal),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(6)),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                     ),
                   ),
                   const SizedBox(width: 8),

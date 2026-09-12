@@ -1727,12 +1727,14 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Row(children: [
-                      pw.Text('ठिकाण : ', style: mrBold.copyWith(fontSize: 9.5)),
+                      pw.Text('ठिकाण : ',
+                          style: mrBold.copyWith(fontSize: 9.5)),
                       pw.Expanded(child: underlineField(v('marThikan'))),
                     ]),
                     pw.SizedBox(height: 3),
                     pw.Row(children: [
-                      pw.Text('दिनांक : ', style: mrBold.copyWith(fontSize: 9.5)),
+                      pw.Text('दिनांक : ',
+                          style: mrBold.copyWith(fontSize: 9.5)),
                       pw.Expanded(
                         child: underlineField(
                           v('marDate').isEmpty
@@ -1857,8 +1859,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             pw.Spacer(),
             pw.Align(
               alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W',
-                  style: engStyle.copyWith(fontSize: 8)),
+              child: pw.Text('M.R.W', style: engStyle.copyWith(fontSize: 8)),
             ),
           ],
         ),
@@ -1933,32 +1934,28 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                       pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
-                          pw.Text('१)- ',
-                              style: mrBold.copyWith(fontSize: 9)),
+                          pw.Text('१)- ', style: mrBold.copyWith(fontSize: 9)),
                           pw.Expanded(child: underlineField(v('mar11Panch1'))),
                         ],
                       ),
                       pw.SizedBox(height: 5),
                       pw.Row(
                         children: [
-                          pw.Text('२)- ',
-                              style: mrBold.copyWith(fontSize: 9)),
+                          pw.Text('२)- ', style: mrBold.copyWith(fontSize: 9)),
                           pw.Expanded(child: underlineField(v('mar11Panch2'))),
                         ],
                       ),
                       pw.SizedBox(height: 5),
                       pw.Row(
                         children: [
-                          pw.Text('३)- ',
-                              style: mrBold.copyWith(fontSize: 9)),
+                          pw.Text('३)- ', style: mrBold.copyWith(fontSize: 9)),
                           pw.Expanded(child: underlineField(v('mar11Panch3'))),
                         ],
                       ),
                       pw.SizedBox(height: 5),
                       pw.Row(
                         children: [
-                          pw.Text('४)- ',
-                              style: mrBold.copyWith(fontSize: 9)),
+                          pw.Text('४)- ', style: mrBold.copyWith(fontSize: 9)),
                           pw.Expanded(child: underlineField(v('mar11Panch4'))),
                         ],
                       ),
@@ -2015,8 +2012,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             pw.Spacer(),
             pw.Align(
               alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W',
-                  style: engStyle.copyWith(fontSize: 8)),
+              child: pw.Text('M.R.W', style: engStyle.copyWith(fontSize: 8)),
             ),
           ],
         ),

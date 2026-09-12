@@ -4,7 +4,9 @@ import 'package:khakhi_diary/utils/ad_disposal_helper.dart';
 
 void main() {
   group('AD Disposal Helper Tests', () {
-    test('AD Case with both summaryNo and summaryDate is classified as Disposal', () {
+    test(
+        'AD Case with both summaryNo and summaryDate is classified as Disposal',
+        () {
       final record = ModuleRecord(
         id: 'ad-1',
         moduleKey: 'ad',
@@ -30,7 +32,9 @@ void main() {
       expect(isRecordPending(record), isFalse);
     });
 
-    test('AD Case with Marathi keys (मर्ग समरी No. + मर्ग समरी दिनांक) is classified as Disposal', () {
+    test(
+        'AD Case with Marathi keys (मर्ग समरी No. + मर्ग समरी दिनांक) is classified as Disposal',
+        () {
       final record = ModuleRecord(
         id: 'ad-marathi',
         moduleKey: 'ad',
@@ -55,7 +59,9 @@ void main() {
       expect(isRecordPending(record), isFalse);
     });
 
-    test('AD Case with nested summary fields in extraFields is classified as Disposal', () {
+    test(
+        'AD Case with nested summary fields in extraFields is classified as Disposal',
+        () {
       final record = ModuleRecord(
         id: 'ad-nested',
         moduleKey: 'ad',
@@ -81,7 +87,9 @@ void main() {
       expect(isRecordDisposal(record), isTrue);
     });
 
-    test('AD Case with only summaryNo missing summaryDate is NOT classified as Disposal', () {
+    test(
+        'AD Case with only summaryNo missing summaryDate is NOT classified as Disposal',
+        () {
       final record = ModuleRecord(
         id: 'ad-missing-date',
         moduleKey: 'ad',
@@ -106,7 +114,9 @@ void main() {
       expect(isRecordPending(record), isTrue);
     });
 
-    test('AD Case with only summaryDate missing summaryNo is NOT classified as Disposal', () {
+    test(
+        'AD Case with only summaryDate missing summaryNo is NOT classified as Disposal',
+        () {
       final record = ModuleRecord(
         id: 'ad-missing-no',
         moduleKey: 'ad',
@@ -158,7 +168,8 @@ void main() {
       expect(isRecordPending(theftRecord), isTrue);
     });
 
-    test('Non-AD cases with status Closed/Disposal are recognized as Disposal', () {
+    test('Non-AD cases with status Closed/Disposal are recognized as Disposal',
+        () {
       final theftClosed = ModuleRecord(
         id: 'theft-2',
         moduleKey: 'theft',

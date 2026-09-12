@@ -87,10 +87,11 @@ bool isAdCase(dynamic recordOrMap) {
         .trim()
         .toLowerCase();
     if (mod == 'ad') return true;
-    final sub = (recordOrMap['subCategory'] ?? recordOrMap['sub_category'] ?? '')
-        .toString()
-        .trim()
-        .toLowerCase();
+    final sub =
+        (recordOrMap['subCategory'] ?? recordOrMap['sub_category'] ?? '')
+            .toString()
+            .trim()
+            .toLowerCase();
     return sub == 'ad' || sub == 'accidental death';
   }
   // Try dynamic object properties (ModuleRecord, CaseRecord, etc.)

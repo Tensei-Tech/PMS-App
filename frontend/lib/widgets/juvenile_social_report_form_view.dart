@@ -584,11 +584,11 @@ class JuvenileSocialReportFormViewState
                     'होय',
                     style: marathiLabelStyle.copyWith(
                       fontSize: 11,
-                      fontWeight:
-                          isHoy ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isHoy ? FontWeight.bold : FontWeight.normal,
                       color: isHoy ? const Color(0xFF1E3A8A) : Colors.black87,
-                      decoration:
-                          isHoy ? TextDecoration.underline : TextDecoration.none,
+                      decoration: isHoy
+                          ? TextDecoration.underline
+                          : TextDecoration.none,
                     ),
                   ),
                 ),
@@ -613,12 +613,11 @@ class JuvenileSocialReportFormViewState
                     'नाही',
                     style: marathiLabelStyle.copyWith(
                       fontSize: 11,
-                      fontWeight:
-                          isNahi ? FontWeight.bold : FontWeight.normal,
-                      color:
-                          isNahi ? const Color(0xFF1E3A8A) : Colors.black87,
-                      decoration:
-                          isNahi ? TextDecoration.underline : TextDecoration.none,
+                      fontWeight: isNahi ? FontWeight.bold : FontWeight.normal,
+                      color: isNahi ? const Color(0xFF1E3A8A) : Colors.black87,
+                      decoration: isNahi
+                          ? TextDecoration.underline
+                          : TextDecoration.none,
                     ),
                   ),
                 ),
@@ -886,7 +885,8 @@ class JuvenileSocialReportFormViewState
                       _tableHeader('', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('शारीरीक अपंगत्व', style: marathiLabelStyle),
+                        child:
+                            Text('शारीरीक अपंगत्व', style: marathiLabelStyle),
                       ),
                       _tableCellHoyNahi(
                           _physicalDisabilityCtrl, marathiLabelStyle),

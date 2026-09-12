@@ -4388,8 +4388,8 @@ class CommonFormState extends State<CommonForm> {
                     children: [
                       Container(
                         margin: const EdgeInsets.only(bottom: 12),
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: _kTeal.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
@@ -4397,7 +4397,8 @@ class CommonFormState extends State<CommonForm> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.person_rounded, size: 16, color: _kTeal),
+                            const Icon(Icons.person_rounded,
+                                size: 16, color: _kTeal),
                             const SizedBox(width: 8),
                             Text(
                               'Accused: $name',
@@ -4422,14 +4423,16 @@ class CommonFormState extends State<CommonForm> {
                         ),
                       ]),
                       _row([
-                        _tf('Arrest Location', r['arrestLoc'] as TextEditingController),
+                        _tf('Arrest Location',
+                            r['arrestLoc'] as TextEditingController),
                         _tf('Arresting Officer',
                             r['arrestOfficer'] as TextEditingController),
                       ]),
                       _row([
-                        _tf('Relative Name', r['relName'] as TextEditingController),
-                        _relationField(
-                            'Relationship', r['relationship'] as TextEditingController),
+                        _tf('Relative Name',
+                            r['relName'] as TextEditingController),
+                        _relationField('Relationship',
+                            r['relationship'] as TextEditingController),
                       ]),
                       _yesNo(
                         'Notice Issued?',
@@ -4454,7 +4457,8 @@ class CommonFormState extends State<CommonForm> {
                           label: 'Wanted / Absconding Status',
                           items: const ['Not Wanted', 'Wanted', 'Absconding'],
                           selected: r['wantedStatus'] as String?,
-                          onSelect: (v) => setState(() => r['wantedStatus'] = v),
+                          onSelect: (v) =>
+                              setState(() => r['wantedStatus'] = v),
                         ),
                       ),
                       Padding(

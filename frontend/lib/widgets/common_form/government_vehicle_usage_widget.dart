@@ -73,8 +73,7 @@ class _GovernmentVehicleUsageWidgetState
   late final GovernmentVehicleUsageData _fallbackData =
       GovernmentVehicleUsageData();
 
-  GovernmentVehicleUsageData get _effectiveData =>
-      widget.data ?? _fallbackData;
+  GovernmentVehicleUsageData get _effectiveData => widget.data ?? _fallbackData;
 
   Widget _yesNoChip(
     String label,

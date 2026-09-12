@@ -8,7 +8,8 @@ import 'package:khakhi_diary/widgets/common_form/section_82_83_action_widget.dar
 
 void main() {
   group('POCSO Extra Data & Widgets Tests', () {
-    testWidgets('PocsoExtraFields widget renders all 8 sections and collects data',
+    testWidgets(
+        'PocsoExtraFields widget renders all 8 sections and collects data',
         (WidgetTester tester) async {
       final GlobalKey<PocsoExtraFieldsState> pocsoKey =
           GlobalKey<PocsoExtraFieldsState>();

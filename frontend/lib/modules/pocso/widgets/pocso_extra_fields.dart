@@ -609,8 +609,7 @@ class PocsoExtraFieldsState extends State<PocsoExtraFields> {
           ),
           child: const Row(
             children: [
-              Icon(Icons.shield_outlined,
-                  size: 14, color: Color(0xFFB45309)),
+              Icon(Icons.shield_outlined, size: 14, color: Color(0xFFB45309)),
               SizedBox(width: 6),
               Expanded(
                 child: Text(

@@ -26,8 +26,7 @@ class PreventiveDetailViewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final extra = Map<String, dynamic>.from(record.extraFields);
     final prevMap = extra[kPreventiveFormExtraFieldsKey] is Map
-        ? Map<String, dynamic>.from(
-            extra[kPreventiveFormExtraFieldsKey] as Map)
+        ? Map<String, dynamic>.from(extra[kPreventiveFormExtraFieldsKey] as Map)
         : extra;
 
     return Scaffold(
@@ -136,9 +135,8 @@ class PreventiveViewDocumentView extends StatelessWidget {
     final riskAndStatus =
         formMap['riskAndStatus'] as Map<String, dynamic>? ?? {};
 
-    final fallbackCrimeNo = record.caseNumber.trim().isNotEmpty
-        ? record.caseNumber
-        : record.title;
+    final fallbackCrimeNo =
+        record.caseNumber.trim().isNotEmpty ? record.caseNumber : record.title;
     final crimeNo = _val(
       caseRef['crimeNo'] ?? prevMap['crimeNo'] ?? fallbackCrimeNo,
     );
@@ -154,7 +152,8 @@ class PreventiveViewDocumentView extends StatelessWidget {
       fallback: 'Under Investigation',
     );
 
-    final selectedAct = _val(sections['act'] ?? prevMap['act'], fallback: 'BNS');
+    final selectedAct =
+        _val(sections['act'] ?? prevMap['act'], fallback: 'BNS');
     final List<String> selectedSectionsList = [];
     if (sections['selectedSections'] is List) {
       selectedSectionsList.addAll(
@@ -176,18 +175,13 @@ class PreventiveViewDocumentView extends StatelessWidget {
     final preventiveDate = _val(
       istegasha['preventiveDate'] ?? prevMap['preventiveDate'],
     );
-    final outwardNo =
-        _val(istegasha['outwardNo'] ?? prevMap['outwardNo']);
+    final outwardNo = _val(istegasha['outwardNo'] ?? prevMap['outwardNo']);
     final ioName = _val(
-      istegasha['ioName'] ??
-          prevMap['ioName'] ??
-          record.assignedOfficer,
+      istegasha['ioName'] ?? prevMap['ioName'] ?? record.assignedOfficer,
     );
 
     final riskFlag = _val(
-      riskAndStatus['riskFlag'] ??
-          prevMap['riskFlag'] ??
-          record.priority,
+      riskAndStatus['riskFlag'] ?? prevMap['riskFlag'] ?? record.priority,
       fallback: '🚨 High Priority',
     );
     final actionStatus = _val(
@@ -196,8 +190,8 @@ class PreventiveViewDocumentView extends StatelessWidget {
           prevMap['status'],
       fallback: '🟢 Preventive Action Completed',
     );
-    final remarks =
-        _val(riskAndStatus['remarks'] ?? prevMap['remarks'] ?? record.description);
+    final remarks = _val(
+        riskAndStatus['remarks'] ?? prevMap['remarks'] ?? record.description);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -498,8 +492,7 @@ class PreventiveViewDocumentView extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: _kDark,
                   borderRadius: BorderRadius.circular(4),
@@ -557,9 +550,7 @@ class PreventiveViewDocumentView extends StatelessWidget {
                         border: Border.all(
                           color: isArrested
                               ? _kGreen
-                              : (isNotice
-                                  ? const Color(0xFF6366F1)
-                                  : _kBorder),
+                              : (isNotice ? const Color(0xFF6366F1) : _kBorder),
                         ),
                       ),
                       child: Text(
@@ -569,9 +560,7 @@ class PreventiveViewDocumentView extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: isArrested
                               ? const Color(0xFF15803D)
-                              : (isNotice
-                                  ? const Color(0xFF4338CA)
-                                  : _kSec),
+                              : (isNotice ? const Color(0xFF4338CA) : _kSec),
                         ),
                       ),
                     ),
@@ -611,9 +600,7 @@ class PreventiveViewDocumentView extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: isBondYes
-                              ? const Color(0xFF15803D)
-                              : _kSec,
+                          color: isBondYes ? const Color(0xFF15803D) : _kSec,
                         ),
                       ),
                     ),

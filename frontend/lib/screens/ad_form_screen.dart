@@ -2304,7 +2304,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
       final record = _moduleRecordForCaseList();
 
       // Primary Save to PostgreSQL backend
-      await CaseService().saveCase(record, isCreate: widget.existingRecord == null);
+      await CaseService()
+          .saveCase(record, isCreate: widget.existingRecord == null);
       await _caseFirestore.saveCase(record);
 
       try {
@@ -2803,8 +2804,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
                         'chkIdent', 'Identification Panchanama')),
                 SizedBox(
                     width: 360,
-                    child: _buildProceduralLine(
-                        'chkSearch', 'Search Panchanama')),
+                    child:
+                        _buildProceduralLine('chkSearch', 'Search Panchanama')),
                 SizedBox(
                     width: 360,
                     child: _buildProceduralLine(

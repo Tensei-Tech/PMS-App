@@ -104,7 +104,8 @@ class BaseModuleProvider extends ChangeNotifier {
 
   List<ModuleRecord> get records => _records;
   int get totalCount => _records.length;
-  int get openCount => _records.where((r) => isRecordPending(r) && r.status == 'Open').length;
+  int get openCount =>
+      _records.where((r) => isRecordPending(r) && r.status == 'Open').length;
   int get activeCount => _records.where((r) => isRecordPending(r)).length;
   int get resolvedCount => _records.where((r) => r.status == 'Resolved').length;
   int get closedCount => _records.where(isRecordDisposal).length;
@@ -190,7 +191,8 @@ class BaseModuleProvider extends ChangeNotifier {
         'Cannot add a ${record.moduleKey} record into $moduleKey module!',
       );
     }
-    final autoStatus = isAdDisposalCase(record) && (record.status == 'Open' || record.status == 'Pending')
+    final autoStatus = isAdDisposalCase(record) &&
+            (record.status == 'Open' || record.status == 'Pending')
         ? 'Disposal'
         : record.status;
     final enriched = record.copyWith(
@@ -219,7 +221,8 @@ class BaseModuleProvider extends ChangeNotifier {
         'Cannot update a ${record.moduleKey} record in $moduleKey module!',
       );
     }
-    final autoStatus = isAdDisposalCase(record) && (record.status == 'Open' || record.status == 'Pending')
+    final autoStatus = isAdDisposalCase(record) &&
+            (record.status == 'Open' || record.status == 'Pending')
         ? 'Disposal'
         : record.status;
     final enriched = record.copyWith(
