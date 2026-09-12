@@ -59,30 +59,29 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 48),
       build: (pw.Context context) {
-        final outpost = v('outpost', 'सावळी');
-        final ps = v('policeStation', 'पारवा');
+        final outpost = v('outpost', '____________');
+        final ps = v('policeStation', '____________');
         final dateStr = v('date', '......./ ......../२०...');
 
-        final toOfficer = v('toOfficer', 'मा. वैद्यकीय अधिकारी');
-        final toHospital =
-            v('toHospital', 'प्राथमकी आरोग्य केंद्र सावळी सदोबा');
-        final toTahDist = v('toTahDist', 'ता आर्णी जिल्हा यवतमाळ.');
+        final toOfficer = v('toOfficer', '________________________');
+        final toHospital = v('toHospital', '________________________________');
+        final toTahDist = v('toTahDist', '________________________');
 
         final fromLocation = v(
           'fromLocation',
-          'पोलीस दुरक्षेत्र सावळी सदोबा पोलीस स्टेशन पारवा जिल्हा यवतमाळ',
+          '________________________________________________________',
         );
 
         final subject = v(
           'subject',
-          'जखमी यांचे माराची वैद्यकीय तपासणी करून अहवाल मिळणेबाबत.',
+          '________________________________________________________',
         );
 
         final victimName = v('victimName', '____________________________');
         final victimAge = v('victimAge', '..........');
         final victimResidence = v('victimResidence', '__________________');
         final victimTah = v('victimTah', '____________');
-        final victimDist = v('victimDist', 'यवतमाळ');
+        final victimDist = v('victimDist', '____________');
         final assaultDetails =
             v('assaultDetails', '___________________________');
 

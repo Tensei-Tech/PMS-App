@@ -37,6 +37,7 @@ import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
+import '../modules/pocso/widgets/pocso_extra_fields.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
 import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
 import '../modules/sand_theft/providers/sand_theft_provider.dart';
@@ -158,6 +159,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       GlobalKey<KidnappingExtraFieldsState>();
   final GlobalKey<TheftExtraFieldsState> _theftKey =
       GlobalKey<TheftExtraFieldsState>();
+  final GlobalKey<PocsoExtraFieldsState> _pocsoKey =
+      GlobalKey<PocsoExtraFieldsState>();
 
   bool get _isEdit => widget.existingRecord != null;
   bool get _isAbForm => widget.subCategory == 'AB Form';
@@ -209,6 +212,13 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         key.contains('theft') ||
         sub.contains('theft') ||
         label.contains('theft');
+  }
+
+  bool get _hasPocsoExtras {
+    final key = widget.moduleKey.trim().toLowerCase();
+    final sub = (widget.subCategory ?? '').trim().toLowerCase();
+    final label = widget.moduleLabel.trim().toLowerCase();
+    return key == 'pocso' || sub.contains('pocso') || label.contains('pocso');
   }
 
   @override
@@ -415,6 +425,17 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
               if (!mounted) return;
               _theftKey.currentState?.hydrateFrom(
                 Map<String, dynamic>.from(tRaw),
+              );
+            });
+          }
+        }
+        if (_hasPocsoExtras && existing != null) {
+          final pRaw = existing.extraFields['pocso_extra'];
+          if (pRaw is Map) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              _pocsoKey.currentState?.hydrateFrom(
+                Map<String, dynamic>.from(pRaw),
               );
             });
           }
@@ -652,6 +673,12 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
             final kData = _kidnappingKey.currentState?.collectData();
             if (kData != null && kData.isNotEmpty) {
               extraMap['kidnapping_extra'] = kData;
+            }
+          }
+          if (_hasPocsoExtras) {
+            final pData = _pocsoKey.currentState?.collectData();
+            if (pData != null && pData.isNotEmpty) {
+              extraMap['pocso_extra'] = pData;
             }
           }
 
@@ -1202,6 +1229,12 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       final tData = _theftKey.currentState?.collectData();
       if (tData != null && tData.isNotEmpty) {
         extra['theft_extra'] = tData;
+      }
+    }
+    if (!_isCrimeDetailForm && _hasPocsoExtras) {
+      final pData = _pocsoKey.currentState?.collectData();
+      if (pData != null && pData.isNotEmpty) {
+        extra['pocso_extra'] = pData;
       }
     }
 
@@ -1940,7 +1973,14 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                       ? KidnappingExtraFields(key: _kidnappingKey)
                                                                                       : _hasTheftExtras
                                                                                           ? TheftExtraFields(key: _theftKey)
-                                                                                          : null,
+                                                                                          : _hasPocsoExtras
+                                                                                              ? PocsoExtraFields(
+                                                                                                  key: _pocsoKey,
+                                                                                                  onVictimNameChanged: (v) {
+                                                                                                    _formKey.currentState?.setVictimName(v);
+                                                                                                  },
+                                                                                                )
+                                                                                              : null,
                                                                                 ),
       bottomNavigationBar: SafeArea(
         child: Padding(

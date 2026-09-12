@@ -5,6 +5,7 @@ import 'dart:async';
 import '../models/base_record.dart';
 import '../../../services/case_service.dart';
 import '../../../utils/case_visibility.dart';
+import '../../../utils/ad_disposal_helper.dart';
 
 class BaseModuleProvider extends ChangeNotifier {
   final String moduleKey;
@@ -103,10 +104,11 @@ class BaseModuleProvider extends ChangeNotifier {
 
   List<ModuleRecord> get records => _records;
   int get totalCount => _records.length;
-  int get openCount => _records.where((r) => r.status == 'Open').length;
-  int get activeCount => _records.where((r) => r.status == 'Active').length;
+  int get openCount =>
+      _records.where((r) => isRecordPending(r) && r.status == 'Open').length;
+  int get activeCount => _records.where((r) => isRecordPending(r)).length;
   int get resolvedCount => _records.where((r) => r.status == 'Resolved').length;
-  int get closedCount => _records.where((r) => r.status == 'Closed').length;
+  int get closedCount => _records.where(isRecordDisposal).length;
 
   String get stationId => _stationId;
   String get createdBy => _uid;
@@ -179,7 +181,7 @@ class BaseModuleProvider extends ChangeNotifier {
       return closedCount;
     }
     return records
-        .where((r) => r.subCategory == subCategory && r.status == 'Closed')
+        .where((r) => r.subCategory == subCategory && isRecordDisposal(r))
         .length;
   }
 
@@ -189,7 +191,12 @@ class BaseModuleProvider extends ChangeNotifier {
         'Cannot add a ${record.moduleKey} record into $moduleKey module!',
       );
     }
+    final autoStatus = isAdDisposalCase(record) &&
+            (record.status == 'Open' || record.status == 'Pending')
+        ? 'Disposal'
+        : record.status;
     final enriched = record.copyWith(
+      status: autoStatus,
       stationName: record.stationName.isEmpty ? _stationId : record.stationName,
       createdBy: record.createdBy.isEmpty ? _uid : record.createdBy,
       assignedOfficerUid: record.assignedOfficerUid ??
@@ -214,7 +221,12 @@ class BaseModuleProvider extends ChangeNotifier {
         'Cannot update a ${record.moduleKey} record in $moduleKey module!',
       );
     }
+    final autoStatus = isAdDisposalCase(record) &&
+            (record.status == 'Open' || record.status == 'Pending')
+        ? 'Disposal'
+        : record.status;
     final enriched = record.copyWith(
+      status: autoStatus,
       stationName: record.stationName.isEmpty ? _stationId : record.stationName,
       createdBy: record.createdBy.isEmpty ? _uid : record.createdBy,
       assignedOfficerUid: record.assignedOfficerUid ??
