@@ -35,6 +35,21 @@ class PreventiveFormPdfHelper {
     final caseRef = formMap['caseRef'] as Map<String, dynamic>? ?? {};
     final sections = formMap['sections'] as Map<String, dynamic>? ?? {};
     final accusedList = formMap['accusedList'] as List<dynamic>? ?? [];
+    List<dynamic> effectiveAccusedList = List<dynamic>.from(accusedList);
+    if (effectiveAccusedList.isEmpty) {
+      final legacyAccused =
+          (data['accusedNames'] ?? data['accused'])?.toString().trim() ?? '';
+      if (legacyAccused.isNotEmpty) {
+        effectiveAccusedList = [
+          {
+            'name': legacyAccused,
+            'actionType': '—',
+            'bondTaken': '—',
+            'bondDetails': '—',
+          }
+        ];
+      }
+    }
     final istegasha = formMap['istegasha'] as Map<String, dynamic>? ?? {};
     final riskAndStatus =
         formMap['riskAndStatus'] as Map<String, dynamic>? ?? {};
@@ -97,14 +112,29 @@ class PreventiveFormPdfHelper {
 
     pw.ThemeData theme;
     try {
+      final fonts = await Future.wait([
+        PdfGoogleFonts.openSansRegular(),
+        PdfGoogleFonts.openSansBold(),
+        PdfGoogleFonts.notoSansDevanagariRegular(),
+        PdfGoogleFonts.notoSansDevanagariBold(),
+      ]).timeout(const Duration(seconds: 2));
+
       theme = pw.ThemeData.withFont(
-        base: await PdfGoogleFonts.openSansRegular(),
-        bold: await PdfGoogleFonts.openSansBold(),
-        italic: await PdfGoogleFonts.openSansItalic(),
-        boldItalic: await PdfGoogleFonts.openSansBoldItalic(),
+        base: fonts[0],
+        bold: fonts[1],
+        fontFallback: [fonts[2], fonts[3]],
       );
     } catch (_) {
-      theme = await PdfUnicodeFonts.openSansTheme();
+      try {
+        final unicode = await PdfUnicodeFonts.openSansTheme()
+            .timeout(const Duration(seconds: 2));
+        theme = unicode;
+      } catch (_) {
+        theme = pw.ThemeData.withFont(
+          base: pw.Font.helvetica(),
+          bold: pw.Font.helveticaBold(),
+        );
+      }
     }
 
     final doc = pw.Document(theme: theme);
@@ -113,6 +143,7 @@ class PreventiveFormPdfHelper {
     doc.addPage(
       pw.MultiPage(
         maxPages: 100,
+        theme: theme,
         pageFormat: format,
         margin: const pw.EdgeInsets.all(32),
         header: (pw.Context ctx) => ctx.pageNumber == 1
@@ -222,7 +253,7 @@ class PreventiveFormPdfHelper {
             secNum: '3',
             title: 'ACCUSED & PREVENTIVE ACTION DETAILS',
             marathiTitle: 'आरोपी व प्रतिबंधक कारवाई तपशील',
-            content: accusedList.isEmpty
+            content: effectiveAccusedList.isEmpty
                 ? pw.Padding(
                     padding: const pw.EdgeInsets.all(8),
                     child: pw.Text('No accused records entered',
@@ -248,7 +279,7 @@ class PreventiveFormPdfHelper {
                           _buildTh('Bond Amount / Surety Details'),
                         ],
                       ),
-                      for (int i = 0; i < accusedList.length; i++)
+                      for (int i = 0; i < effectiveAccusedList.length; i++)
                         pw.TableRow(
                           decoration: pw.BoxDecoration(
                             color: i % 2 == 1
@@ -257,16 +288,30 @@ class PreventiveFormPdfHelper {
                           ),
                           children: [
                             _buildTd('${i + 1}', alignCenter: true),
-                            _buildTd(accusedList[i]['name']?.toString() ?? '—',
+                            _buildTd(
+                                (effectiveAccusedList[i] is Map
+                                        ? effectiveAccusedList[i]['name']
+                                            ?.toString()
+                                        : effectiveAccusedList[i]?.toString()) ??
+                                    '—',
                                 isBold: true),
-                            _buildTd(accusedList[i]['actionType']?.toString() ??
+                            _buildTd((effectiveAccusedList[i] is Map
+                                    ? effectiveAccusedList[i]['actionType']
+                                        ?.toString()
+                                    : null) ??
                                 '—'),
                             _buildTd(
-                                accusedList[i]['bondTaken']?.toString() ?? '—',
+                                (effectiveAccusedList[i] is Map
+                                        ? effectiveAccusedList[i]['bondTaken']
+                                            ?.toString()
+                                        : null) ??
+                                    '—',
                                 alignCenter: true),
-                            _buildTd(
-                                accusedList[i]['bondDetails']?.toString() ??
-                                    '—'),
+                            _buildTd((effectiveAccusedList[i] is Map
+                                    ? effectiveAccusedList[i]['bondDetails']
+                                        ?.toString()
+                                    : null) ??
+                                '—'),
                           ],
                         ),
                     ],
@@ -483,8 +528,6 @@ class PreventiveFormPdfHelper {
             padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: const pw.BoxDecoration(
               color: _kBg,
-              borderRadius:
-                  pw.BorderRadius.vertical(top: pw.Radius.circular(5)),
               border:
                   pw.Border(bottom: pw.BorderSide(color: _kBorder, width: 0.5)),
             ),
@@ -636,25 +679,32 @@ class PreventiveFormPdfHelper {
     );
   }
 
-  /// Prints or opens share sheet with generated PDF.
+  /// Prints or directly downloads generated PDF to local PC.
   static Future<void> printPdf({
     required Map<String, dynamic> data,
     String? policeStation,
     String? district,
   }) async {
-    final fileName =
-        'Preventive_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final pForm = data['preventiveForm'];
+    final caseRef = (pForm is Map) ? pForm['caseRef'] : null;
+    final crimeNo = ((caseRef is Map) ? caseRef['crimeNo'] : null) ??
+        data['crimeNo'] ??
+        data['caseNumber'] ??
+        '';
+    final sanitizeNo = crimeNo.toString().replaceAll(RegExp(r'[^\w\d_-]'), '_');
+    final fileName = sanitizeNo.isNotEmpty
+        ? 'Preventive_Report_${sanitizeNo}_${DateTime.now().millisecondsSinceEpoch}.pdf'
+        : 'Preventive_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+
     final bytes = await generatePdf(
       data: data,
       policeStation: policeStation,
       district: district,
     );
+
     try {
       if (kIsWeb) {
-        await Printing.layoutPdf(
-          onLayout: (_) async => bytes,
-          name: fileName,
-        );
+        await Printing.sharePdf(bytes: bytes, filename: fileName);
       } else {
         await Printing.layoutPdf(
           onLayout: (_) async => bytes,

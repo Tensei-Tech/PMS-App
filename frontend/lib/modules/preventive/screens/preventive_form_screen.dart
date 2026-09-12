@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import '../../../modules/core/models/base_record.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/app_theme.dart';
-import '../../../utils/pdf_auth_gate.dart';
 import '../../../widgets/custom_pdf_preview_dialog.dart';
 import '../providers/preventive_provider.dart';
 import '../utils/preventive_form_pdf.dart';
@@ -69,7 +68,7 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
     });
   }
 
-  Future<void> _exportPdf() async {
+  Future<void> _previewPdf() async {
     final form = _formKey.currentState;
     if (form == null) return;
 
@@ -86,9 +85,8 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
         ? 'Preventive Report - $crimeNo'
         : 'Preventive Action Report';
 
-    await runWithPdfAuthGate(
-      context,
-      () => CustomPdfPreviewDialog.show(
+    try {
+      await CustomPdfPreviewDialog.show(
         context: context,
         title: title,
         fileName: '${title.replaceAll(' ', '_')}.pdf',
@@ -98,8 +96,55 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
           district: auth.district,
           format: format,
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to open PDF preview: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _downloadPdf() async {
+    final form = _formKey.currentState;
+    if (form == null) return;
+
+    final doc = form.buildDocumentMap();
+    final auth = context.read<AuthProvider>();
+    final stationName = _isEdit
+        ? widget.existingRecord!.stationName
+        : auth.stationName.isNotEmpty
+            ? auth.stationName
+            : context.read<PreventiveProvider>().stationId;
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Downloading Preventive Report PDF...'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Color(0xFF0EA5E9),
+        ),
+      );
+    }
+
+    try {
+      await PreventiveFormPdfHelper.printPdf(
+        data: doc,
+        policeStation: stationName,
+        district: auth.district,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate PDF: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _submit() async {
@@ -278,7 +323,7 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
       body: PreventiveForm(
         key: _formKey,
         onSave: _submit,
-        onExportPdf: _exportPdf,
+        onExportPdf: _downloadPdf,
         readOnly: widget.readOnly,
       ),
       bottomNavigationBar: Container(
@@ -320,7 +365,7 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
               ),
               const SizedBox(width: 12),
               OutlinedButton.icon(
-                onPressed: _exportPdf,
+                onPressed: _previewPdf,
                 icon: const Icon(Icons.picture_as_pdf_rounded,
                     size: 16, color: Color(0xFF0EA5E9)),
                 label: Text(
