@@ -210,7 +210,8 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
   }
 
   void hydrateFrom(Map<String, dynamic> data) {
-    void set(TextEditingController c, List<String> keys, [String fallback = '']) {
+    void set(TextEditingController c, List<String> keys,
+        [String fallback = '']) {
       for (final k in keys) {
         final val = data[k]?.toString();
         if (val != null && val.trim().isNotEmpty) {
@@ -277,7 +278,8 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
     if (mounted) setState(() {});
   }
 
-  Widget _buildPage1(TextStyle serif, TextStyle marathiBody, TextStyle marathiBold) {
+  Widget _buildPage1(
+      TextStyle serif, TextStyle marathiBody, TextStyle marathiBold) {
     return FormPaperPage(
       formLabel: widget.pageRange ?? 'Page 1 — नोटीस बी.एन.एस.एस.कलम ४७(१)',
       children: [
@@ -537,7 +539,8 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
     );
   }
 
-  Widget _buildPage2(TextStyle serif, TextStyle marathiBody, TextStyle marathiBold) {
+  Widget _buildPage2(
+      TextStyle serif, TextStyle marathiBody, TextStyle marathiBold) {
     return FormPaperPage(
       formLabel: widget.pageRange ?? 'Page 2 — नोटीस बी.एन.एस.एस.कलम ४८',
       children: [
@@ -618,7 +621,8 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
               hintText: '....................',
               readOnly: widget.readOnly,
             ),
-            Text('या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे', style: marathiBody),
+            Text('या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे',
+                style: marathiBody),
             _UnderlineInput(
               controller: _p2AccusedNameCtrl,
               width: 260,

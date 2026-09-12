@@ -81,7 +81,9 @@ class AbFormViewState extends State<AbFormView> {
   bool get _showFormB {
     final s = (widget.formSection ?? '').toLowerCase();
     if (s.isEmpty || s.contains('complete')) return true;
-    return s.contains('continuation') || s.contains('form b') || s.contains('2');
+    return s.contains('continuation') ||
+        s.contains('form b') ||
+        s.contains('2');
   }
 
   bool get _showAll => !_showFormA && !_showFormB;
@@ -199,7 +201,8 @@ class AbFormViewState extends State<AbFormView> {
   }
 
   void hydrateFrom(Map<String, dynamic> data) {
-    void set(TextEditingController c, List<String> keys, [String fallback = '']) {
+    void set(TextEditingController c, List<String> keys,
+        [String fallback = '']) {
       for (final k in keys) {
         final val = data[k]?.toString();
         if (val != null && val.trim().isNotEmpty) {
@@ -242,13 +245,16 @@ class AbFormViewState extends State<AbFormView> {
 
     // Form B
     set(_formBNoCtrl, ['formBNo']);
-    set(_fromPractitionerLine1Ctrl, ['fromPractitionerLine1', 'fromPractitioner', 'moSignature']);
+    set(_fromPractitionerLine1Ctrl,
+        ['fromPractitionerLine1', 'fromPractitioner', 'moSignature']);
     set(_fromPractitionerLine2Ctrl, ['fromPractitionerLine2', 'dispensary']);
-    set(_toTestingOfficerLine1Ctrl, ['toTestingOfficerLine1', 'toTestingOfficer']);
+    set(_toTestingOfficerLine1Ctrl,
+        ['toTestingOfficerLine1', 'toTestingOfficer']);
     set(_toTestingOfficerLine2Ctrl, ['toTestingOfficerLine2']);
     set(_formBDateCtrl, ['formBDate', 'formADated']);
     set(_messengerNameCtrl, ['messengerName']);
-    set(_policeStationCtrl, ['policeStation', 'police_station', 'policeStationName']);
+    set(_policeStationCtrl,
+        ['policeStation', 'police_station', 'policeStationName']);
     set(_phialSerialCtrl, ['phialSerial', 'serialNo']);
     set(_bloodAmountCcCtrl, ['bloodAmountCc'], '5');
     set(_collectionDateCtrl, ['collectionDate', 'examinedDate']);
@@ -316,7 +322,8 @@ class AbFormViewState extends State<AbFormView> {
         const SizedBox(height: 12),
 
         // Hospital / Dispensary
-        Text('(Name and location of the Dispensary of Hospital)', style: boldStyle),
+        Text('(Name and location of the Dispensary of Hospital)',
+            style: boldStyle),
         const SizedBox(height: 2),
         _UnderlineInput(
           controller: _dispensaryCtrl,
@@ -349,7 +356,8 @@ class AbFormViewState extends State<AbFormView> {
           spacing: 4,
           runSpacing: 6,
           children: [
-            Text('was brought to this hospital /dispensary by', style: bodyStyle),
+            Text('was brought to this hospital /dispensary by',
+                style: bodyStyle),
             _UnderlineInput(
               controller: _broughtByOfficerCtrl,
               width: 250,
@@ -579,7 +587,8 @@ class AbFormViewState extends State<AbFormView> {
         const SizedBox(height: 16),
 
         // Signature/Thumb impression of person examined
-        Text('Signature/Thumb impression of the person examined', style: boldStyle),
+        Text('Signature/Thumb impression of the person examined',
+            style: boldStyle),
         const SizedBox(height: 2),
         _UnderlineInput(
           controller: _examinedSigCtrl,
@@ -801,7 +810,9 @@ class AbFormViewState extends State<AbFormView> {
               width: 260,
               readOnly: widget.readOnly,
             ),
-            Text('who was produced before me for medical examination and / or collection of blood from his / her body by', style: bodyStyle),
+            Text(
+                'who was produced before me for medical examination and / or collection of blood from his / her body by',
+                style: bodyStyle),
             _UnderlineInput(
               controller: _producedByCtrl,
               width: 180,
@@ -865,7 +876,8 @@ class AbFormViewState extends State<AbFormView> {
             border: Border.all(color: Colors.black54, width: 1),
           ),
           child: const Center(
-            child: Text('[ SEAL / STAMP ]', style: TextStyle(color: Colors.black38, fontSize: 11)),
+            child: Text('[ SEAL / STAMP ]',
+                style: TextStyle(color: Colors.black38, fontSize: 11)),
           ),
         ),
         const SizedBox(height: 18),

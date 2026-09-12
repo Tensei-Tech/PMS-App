@@ -82,9 +82,11 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
 
   // ── Form B Values ──
   final formBNo = v('formBNo');
-  final fromPractitionerLine1 = v('fromPractitionerLine1', v('fromPractitioner', moSignature));
+  final fromPractitionerLine1 =
+      v('fromPractitionerLine1', v('fromPractitioner', moSignature));
   final fromPractitionerLine2 = v('fromPractitionerLine2', dispensary);
-  final toTestingOfficerLine1 = v('toTestingOfficerLine1', v('toTestingOfficer'));
+  final toTestingOfficerLine1 =
+      v('toTestingOfficerLine1', v('toTestingOfficer'));
   final toTestingOfficerLine2 = v('toTestingOfficerLine2');
   final formBDate = v('formBDate', formADated);
   final messengerName = v('messengerName');
@@ -101,13 +103,25 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
   final formBSignature = v('formBSignature', moSignature);
 
   final section = v('formSection').toLowerCase();
-  final isAExplicit = section.contains('main') || section.contains('form a') || section.contains('1');
-  final isBExplicit = section.contains('continuation') || section.contains('form b') || section.contains('2');
-  final showA = section.isEmpty || section.contains('complete') || isAExplicit || !isBExplicit;
-  final showB = section.isEmpty || section.contains('complete') || isBExplicit || !isAExplicit;
+  final isAExplicit = section.contains('main') ||
+      section.contains('form a') ||
+      section.contains('1');
+  final isBExplicit = section.contains('continuation') ||
+      section.contains('form b') ||
+      section.contains('2');
+  final showA = section.isEmpty ||
+      section.contains('complete') ||
+      isAExplicit ||
+      !isBExplicit;
+  final showB = section.isEmpty ||
+      section.contains('complete') ||
+      isBExplicit ||
+      !isAExplicit;
 
-  const line = '------------------------------------------------------------------------------------------------------------------';
-  const midLine = '--------------------------------------------------------------------';
+  const line =
+      '------------------------------------------------------------------------------------------------------------------';
+  const midLine =
+      '--------------------------------------------------------------------';
 
   // ══════════════════════════════════════════════════════════════════════════
   // PAGE 1: Form A
@@ -124,7 +138,8 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             pw.Center(
               child: pw.Text(
                 'Form A',
-                style: titleStyle.copyWith(decoration: pw.TextDecoration.underline),
+                style: titleStyle.copyWith(
+                    decoration: pw.TextDecoration.underline),
               ),
             ),
             pw.SizedBox(height: 2),
@@ -150,7 +165,9 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                   children: [
                     const pw.TextSpan(text: 'Serial No : '),
                     pw.TextSpan(
-                      text: serialNo.isNotEmpty ? serialNo : '....................',
+                      text: serialNo.isNotEmpty
+                          ? serialNo
+                          : '....................',
                       style: serialNo.isNotEmpty ? bold : body,
                     ),
                   ],
@@ -160,9 +177,11 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 6),
 
             // Hospital / Dispensary
-            pw.Text('(Name and location of the Dispensary of Hospital)', style: bold),
+            pw.Text('(Name and location of the Dispensary of Hospital)',
+                style: bold),
             pw.SizedBox(height: 1),
-            pw.Text(dispensary.isNotEmpty ? dispensary : line, style: dispensary.isNotEmpty ? bold : body),
+            pw.Text(dispensary.isNotEmpty ? dispensary : line,
+                style: dispensary.isNotEmpty ? bold : body),
             pw.SizedBox(height: 6),
 
             // Main Certification Paragraph
@@ -171,17 +190,23 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
               text: pw.TextSpan(
                 style: body,
                 children: [
-                  const pw.TextSpan(text: '•   Certified that Shri/Smt/Kumari '),
+                  const pw.TextSpan(
+                      text: '•   Certified that Shri/Smt/Kumari '),
                   pw.TextSpan(
-                    text: personName.isNotEmpty ? personName : '...........................................................................................',
+                    text: personName.isNotEmpty
+                        ? personName
+                        : '...........................................................................................',
                     style: personName.isNotEmpty ? bold : body,
                   ),
                   if (personNameCont.isNotEmpty) ...[
                     pw.TextSpan(text: ' $personNameCont'),
                   ],
-                  const pw.TextSpan(text: ' was brought to this hospital /dispensary by '),
+                  const pw.TextSpan(
+                      text: ' was brought to this hospital /dispensary by '),
                   pw.TextSpan(
-                    text: broughtBy.isNotEmpty ? broughtBy : '.................................',
+                    text: broughtBy.isNotEmpty
+                        ? broughtBy
+                        : '.................................',
                     style: broughtBy.isNotEmpty ? bold : body,
                   ),
                   pw.TextSpan(
@@ -192,22 +217,31 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                   ),
                   const pw.TextSpan(text: 'on '),
                   pw.TextSpan(
-                    text: broughtDate.isNotEmpty ? broughtDate : '............................................................',
+                    text: broughtDate.isNotEmpty
+                        ? broughtDate
+                        : '............................................................',
                     style: broughtDate.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(text: ' at '),
                   pw.TextSpan(
-                    text: broughtTime.isNotEmpty ? broughtTime : '..............................',
+                    text: broughtTime.isNotEmpty
+                        ? broughtTime
+                        : '..............................',
                     style: broughtTime.isNotEmpty ? bold : body,
                   ),
-                  const pw.TextSpan(text: ' (a.m./p.m. and was examined by MO ) on '),
+                  const pw.TextSpan(
+                      text: ' (a.m./p.m. and was examined by MO ) on '),
                   pw.TextSpan(
-                    text: examinedDate.isNotEmpty ? examinedDate : '.........................',
+                    text: examinedDate.isNotEmpty
+                        ? examinedDate
+                        : '.........................',
                     style: examinedDate.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(text: ' at '),
                   pw.TextSpan(
-                    text: examinedTime.isNotEmpty ? examinedTime : '................',
+                    text: examinedTime.isNotEmpty
+                        ? examinedTime
+                        : '................',
                     style: examinedTime.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(text: ' a.m./p.m.'),
@@ -228,13 +262,17 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 3),
             _pdfExamRow('Weight:', weight, bold, body),
             pw.SizedBox(height: 3),
-            _pdfExamRow('Breath :', breath, bold, body, suffix: 'smelling/Not smelling of Alcohol/Opium/Charas/Ganja/Bhang'),
+            _pdfExamRow('Breath :', breath, bold, body,
+                suffix:
+                    'smelling/Not smelling of Alcohol/Opium/Charas/Ganja/Bhang'),
             pw.SizedBox(height: 3),
-            _pdfExamRow('Speech :', speech, bold, body, suffix: 'Incoherent/Normal'),
+            _pdfExamRow('Speech :', speech, bold, body,
+                suffix: 'Incoherent/Normal'),
             pw.SizedBox(height: 3),
             _pdfExamRow('Gait  :', gait, bold, body, suffix: 'unstead/Steady.'),
             pw.SizedBox(height: 3),
-            _pdfExamRow('Pupiles.', pupils, bold, body, suffix: 'Dilated/Normal'),
+            _pdfExamRow('Pupiles.', pupils, bold, body,
+                suffix: 'Dilated/Normal'),
             pw.SizedBox(height: 3),
             pw.RichText(
               text: pw.TextSpan(
@@ -242,7 +280,9 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                 children: [
                   const pw.TextSpan(text: 'Additional remarks any '),
                   pw.TextSpan(
-                    text: additionalRemarks.isNotEmpty ? additionalRemarks : '.........................................................................',
+                    text: additionalRemarks.isNotEmpty
+                        ? additionalRemarks
+                        : '.........................................................................',
                     style: additionalRemarks.isNotEmpty ? bold : body,
                   ),
                 ],
@@ -276,11 +316,14 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                 children: [
                   const pw.TextSpan(text: '(N.B. '),
                   pw.TextSpan(
-                    text: bloodCollected.isNotEmpty ? bloodCollected : '.............',
+                    text: bloodCollected.isNotEmpty
+                        ? bloodCollected
+                        : '.............',
                     style: bloodCollected.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(
-                    text: ' Blood from the body of the above named was/was not collected by MO for Chemical examination )',
+                    text:
+                        ' Blood from the body of the above named was/was not collected by MO for Chemical examination )',
                   ),
                 ],
               ),
@@ -301,7 +344,9 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                         children: [
                           const pw.TextSpan(text: 'Dated '),
                           pw.TextSpan(
-                            text: formADated.isNotEmpty ? formADated : '.................................................',
+                            text: formADated.isNotEmpty
+                                ? formADated
+                                : '.................................................',
                             style: formADated.isNotEmpty ? bold : body,
                           ),
                         ],
@@ -314,7 +359,9 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                         children: [
                           const pw.TextSpan(text: 'Time  '),
                           pw.TextSpan(
-                            text: formATime.isNotEmpty ? formATime : '.................................................',
+                            text: formATime.isNotEmpty
+                                ? formATime
+                                : '.................................................',
                             style: formATime.isNotEmpty ? bold : body,
                           ),
                         ],
@@ -331,7 +378,9 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                         children: [
                           const pw.TextSpan(text: 'Signature '),
                           pw.TextSpan(
-                            text: moSignature.isNotEmpty ? moSignature : '.................................................',
+                            text: moSignature.isNotEmpty
+                                ? moSignature
+                                : '.................................................',
                             style: moSignature.isNotEmpty ? bold : body,
                           ),
                         ],
@@ -344,7 +393,9 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                         children: [
                           const pw.TextSpan(text: 'Designation '),
                           pw.TextSpan(
-                            text: moDesignation.isNotEmpty ? moDesignation : '.................................................',
+                            text: moDesignation.isNotEmpty
+                                ? moDesignation
+                                : '.................................................',
                             style: moDesignation.isNotEmpty ? bold : body,
                           ),
                         ],
@@ -357,16 +408,19 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 10),
 
             // Person examined signature & ID marks
-            pw.Text('Signature/Thumb impression of the person examined', style: bold),
+            pw.Text('Signature/Thumb impression of the person examined',
+                style: bold),
             pw.SizedBox(height: 1),
-            pw.Text(examinedSignature.isNotEmpty ? examinedSignature : line, style: examinedSignature.isNotEmpty ? bold : body),
+            pw.Text(examinedSignature.isNotEmpty ? examinedSignature : line,
+                style: examinedSignature.isNotEmpty ? bold : body),
             pw.SizedBox(height: 6),
             pw.Text(
               'Marks of Identification of the person examined in case he refuses to given his signature\n/Thumb impression',
               style: bold,
             ),
             pw.SizedBox(height: 1),
-            pw.Text(identificationMarks.isNotEmpty ? identificationMarks : line, style: identificationMarks.isNotEmpty ? bold : body),
+            pw.Text(identificationMarks.isNotEmpty ? identificationMarks : line,
+                style: identificationMarks.isNotEmpty ? bold : body),
           ],
         ),
       ),
@@ -388,7 +442,8 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             pw.Center(
               child: pw.Text(
                 'FORM "B"',
-                style: titleStyle.copyWith(decoration: pw.TextDecoration.underline),
+                style: titleStyle.copyWith(
+                    decoration: pw.TextDecoration.underline),
               ),
             ),
             pw.SizedBox(height: 2),
@@ -404,7 +459,9 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                   children: [
                     const pw.TextSpan(text: 'No. '),
                     pw.TextSpan(
-                      text: formBNo.isNotEmpty ? formBNo : '........................................',
+                      text: formBNo.isNotEmpty
+                          ? formBNo
+                          : '........................................',
                       style: formBNo.isNotEmpty ? bold : body,
                     ),
                   ],
@@ -416,11 +473,21 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             // From
             pw.Text('From,', style: bold),
             pw.SizedBox(height: 1),
-            pw.Text('(Name, Designation and address of the registred medical practioner)', style: bold),
+            pw.Text(
+                '(Name, Designation and address of the registred medical practioner)',
+                style: bold),
             pw.SizedBox(height: 1),
-            pw.Text(fromPractitionerLine1.isNotEmpty ? fromPractitionerLine1 : midLine, style: fromPractitionerLine1.isNotEmpty ? bold : body),
+            pw.Text(
+                fromPractitionerLine1.isNotEmpty
+                    ? fromPractitionerLine1
+                    : midLine,
+                style: fromPractitionerLine1.isNotEmpty ? bold : body),
             pw.SizedBox(height: 1),
-            pw.Text(fromPractitionerLine2.isNotEmpty ? fromPractitionerLine2 : midLine, style: fromPractitionerLine2.isNotEmpty ? bold : body),
+            pw.Text(
+                fromPractitionerLine2.isNotEmpty
+                    ? fromPractitionerLine2
+                    : midLine,
+                style: fromPractitionerLine2.isNotEmpty ? bold : body),
             pw.SizedBox(height: 6),
 
             // To
@@ -428,9 +495,17 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 1),
             pw.Text('(Name and address of the Testing Officer)', style: bold),
             pw.SizedBox(height: 1),
-            pw.Text(toTestingOfficerLine1.isNotEmpty ? toTestingOfficerLine1 : midLine, style: toTestingOfficerLine1.isNotEmpty ? bold : body),
+            pw.Text(
+                toTestingOfficerLine1.isNotEmpty
+                    ? toTestingOfficerLine1
+                    : midLine,
+                style: toTestingOfficerLine1.isNotEmpty ? bold : body),
             pw.SizedBox(height: 1),
-            pw.Text(toTestingOfficerLine2.isNotEmpty ? toTestingOfficerLine2 : midLine, style: toTestingOfficerLine2.isNotEmpty ? bold : body),
+            pw.Text(
+                toTestingOfficerLine2.isNotEmpty
+                    ? toTestingOfficerLine2
+                    : midLine,
+                style: toTestingOfficerLine2.isNotEmpty ? bold : body),
             pw.SizedBox(height: 6),
 
             // Date
@@ -442,7 +517,9 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                   children: [
                     const pw.TextSpan(text: 'Date :- '),
                     pw.TextSpan(
-                      text: formBDate.isNotEmpty ? formBDate : '....................',
+                      text: formBDate.isNotEmpty
+                          ? formBDate
+                          : '....................',
                       style: formBDate.isNotEmpty ? bold : body,
                     ),
                   ],
@@ -461,29 +538,46 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
               text: pw.TextSpan(
                 style: body,
                 children: [
-                  const pw.TextSpan(text: '        I forward here with by post / with Shri. '),
+                  const pw.TextSpan(
+                      text:
+                          '        I forward here with by post / with Shri. '),
                   pw.TextSpan(
-                    text: messengerName.isNotEmpty ? messengerName : '..............................................',
+                    text: messengerName.isNotEmpty
+                        ? messengerName
+                        : '..............................................',
                     style: messengerName.isNotEmpty ? bold : body,
                   ),
-                  pw.TextSpan(text: ' of ${policeStation.isNotEmpty ? policeStation : '....................................'} Police station a phial bearing serial No. '),
                   pw.TextSpan(
-                    text: phialSerial.isNotEmpty ? phialSerial : '........................................',
+                      text:
+                          ' of ${policeStation.isNotEmpty ? policeStation : '....................................'} Police station a phial bearing serial No. '),
+                  pw.TextSpan(
+                    text: phialSerial.isNotEmpty
+                        ? phialSerial
+                        : '........................................',
                     style: phialSerial.isNotEmpty ? bold : body,
                   ),
-                  pw.TextSpan(text: ' containing ${bloodAmountCc.isNotEmpty ? bloodAmountCc : '.....'} c.c. of venues blood collected by me on '),
                   pw.TextSpan(
-                    text: collectionDate.isNotEmpty ? collectionDate : '.......................................',
+                      text:
+                          ' containing ${bloodAmountCc.isNotEmpty ? bloodAmountCc : '.....'} c.c. of venues blood collected by me on '),
+                  pw.TextSpan(
+                    text: collectionDate.isNotEmpty
+                        ? collectionDate
+                        : '.......................................',
                     style: collectionDate.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(text: ' at '),
                   pw.TextSpan(
-                    text: collectionTime.isNotEmpty ? collectionTime : '.....................',
+                    text: collectionTime.isNotEmpty
+                        ? collectionTime
+                        : '.....................',
                     style: collectionTime.isNotEmpty ? bold : body,
                   ),
-                  const pw.TextSpan(text: ' a.m./p.m. from the body of Shri/smt/Kumari '),
+                  const pw.TextSpan(
+                      text: ' a.m./p.m. from the body of Shri/smt/Kumari '),
                   pw.TextSpan(
-                    text: subjectName.isNotEmpty ? subjectName : '.......................................',
+                    text: subjectName.isNotEmpty
+                        ? subjectName
+                        : '.......................................',
                     style: subjectName.isNotEmpty ? bold : body,
                   ),
                   if (subjectNameCont.isNotEmpty) ...[
@@ -491,18 +585,26 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                   ],
                   const pw.TextSpan(text: ' of '),
                   pw.TextSpan(
-                    text: subjectAddress.isNotEmpty ? subjectAddress : '...........................................................',
+                    text: subjectAddress.isNotEmpty
+                        ? subjectAddress
+                        : '...........................................................',
                     style: subjectAddress.isNotEmpty ? bold : body,
                   ),
-                  const pw.TextSpan(text: ' who was produced before me for medical examination and / or collection of blood from his / her body by '),
+                  const pw.TextSpan(
+                      text:
+                          ' who was produced before me for medical examination and / or collection of blood from his / her body by '),
                   pw.TextSpan(
-                    text: producedBy.isNotEmpty ? producedBy : '...................',
+                    text: producedBy.isNotEmpty
+                        ? producedBy
+                        : '...................',
                     style: producedBy.isNotEmpty ? bold : body,
                   ),
                   if (producedByCont.isNotEmpty) ...[
                     pw.TextSpan(text: ' $producedByCont'),
                   ],
-                  const pw.TextSpan(text: ' and request you to test the blood and issue a certificate ( in duplicates ) regarding the result of the test.'),
+                  const pw.TextSpan(
+                      text:
+                          ' and request you to test the blood and issue a certificate ( in duplicates ) regarding the result of the test.'),
                 ],
               ),
             ),
@@ -549,7 +651,9 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                 border: pw.Border.all(color: PdfColors.grey600, width: 0.8),
               ),
               child: pw.Center(
-                child: pw.Text('[ SEAL ]', style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 8)),
+                child: pw.Text('[ SEAL ]',
+                    style: const pw.TextStyle(
+                        color: PdfColors.grey600, fontSize: 8)),
               ),
             ),
             pw.SizedBox(height: 10),
@@ -597,7 +701,9 @@ pw.Widget _pdfExamRow(
         child: pw.Text(label, style: bold),
       ),
       pw.Text(
-        value.isNotEmpty ? '  $value  ' : '................................... ',
+        value.isNotEmpty
+            ? '  $value  '
+            : '................................... ',
         style: value.isNotEmpty ? bold : body,
       ),
       if (suffix != null) ...[

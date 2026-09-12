@@ -111,13 +111,23 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
   final p2IoSig = v('p2IoSig', ioName);
 
   final section = v('formSection').toLowerCase();
-  final isP1Explicit = section.contains('47') || section.contains('main') || section.contains('1');
+  final isP1Explicit = section.contains('47') ||
+      section.contains('main') ||
+      section.contains('1');
   final isP2Explicit = section.contains('48') || section.contains('2');
-  final showP1 = section.isEmpty || section.contains('complete') || isP1Explicit || !isP2Explicit;
-  final showP2 = section.isEmpty || section.contains('complete') || isP2Explicit || !isP1Explicit;
+  final showP1 = section.isEmpty ||
+      section.contains('complete') ||
+      isP1Explicit ||
+      !isP2Explicit;
+  final showP2 = section.isEmpty ||
+      section.contains('complete') ||
+      isP2Explicit ||
+      !isP1Explicit;
 
-  const longLine = '-----------------------------------------------------------------------------------------------------------------';
-  const mediumLine = '---------------------------------------------------------------------------';
+  const longLine =
+      '-----------------------------------------------------------------------------------------------------------------';
+  const mediumLine =
+      '---------------------------------------------------------------------------';
 
   // ══════════════════════════════════════════════════════════════════════════
   // PAGE 1: नोटीस बी.एन.एस.एस.कलम ४७(१)
@@ -133,17 +143,21 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
             // Top Center Header
             pw.Center(child: pw.Text('नोटीस', style: headerStyle)),
             pw.SizedBox(height: 2),
-            pw.Center(child: pw.Text('बी.एन.एस.एस.कलम ४७(१)', style: subHeaderStyle)),
+            pw.Center(
+                child: pw.Text('बी.एन.एस.एस.कलम ४७(१)', style: subHeaderStyle)),
             pw.SizedBox(height: 10),
 
             // Recipient block
             pw.Text('प्रति,', style: bold),
             pw.SizedBox(height: 1),
-            pw.Text(p1To1.isNotEmpty ? p1To1 : mediumLine, style: p1To1.isNotEmpty ? bold : regular),
+            pw.Text(p1To1.isNotEmpty ? p1To1 : mediumLine,
+                style: p1To1.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 1),
-            pw.Text(p1To2.isNotEmpty ? p1To2 : mediumLine, style: p1To2.isNotEmpty ? bold : regular),
+            pw.Text(p1To2.isNotEmpty ? p1To2 : mediumLine,
+                style: p1To2.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 1),
-            pw.Text(p1To3.isNotEmpty ? p1To3 : mediumLine, style: p1To3.isNotEmpty ? bold : regular),
+            pw.Text(p1To3.isNotEmpty ? p1To3 : mediumLine,
+                style: p1To3.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 8),
 
             // Subject
@@ -159,9 +173,12 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
               text: pw.TextSpan(
                 style: regular,
                 children: [
-                  const pw.TextSpan(text: '        आपणास याद्वारे कळविण्यात येते की, '),
+                  const pw.TextSpan(
+                      text: '        आपणास याद्वारे कळविण्यात येते की, '),
                   pw.TextSpan(
-                    text: policeStation.isNotEmpty ? policeStation : 'म्हाळुंगे एम.आय.डी.सी.',
+                    text: policeStation.isNotEmpty
+                        ? policeStation
+                        : 'म्हाळुंगे एम.आय.डी.सी.',
                     style: bold,
                   ),
                   const pw.TextSpan(text: ' पोलीस स्टेशन गुन्हा रजि.नंबर '),
@@ -186,7 +203,9 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
                     text: arrestTime.isNotEmpty ? arrestTime : '..........',
                     style: bold,
                   ),
-                  const pw.TextSpan(text: ' वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे.'),
+                  const pw.TextSpan(
+                      text:
+                          ' वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे.'),
                 ],
               ),
             ),
@@ -195,11 +214,14 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
             // अ) गुन्ह्याची थोडक्यात हकीगत :-
             pw.Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: sectionHeader),
             pw.SizedBox(height: 2),
-            pw.Text(p1Fact1.isNotEmpty ? p1Fact1 : longLine, style: p1Fact1.isNotEmpty ? bold : regular),
+            pw.Text(p1Fact1.isNotEmpty ? p1Fact1 : longLine,
+                style: p1Fact1.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 2),
-            pw.Text(p1Fact2.isNotEmpty ? p1Fact2 : longLine, style: p1Fact2.isNotEmpty ? bold : regular),
+            pw.Text(p1Fact2.isNotEmpty ? p1Fact2 : longLine,
+                style: p1Fact2.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 2),
-            pw.Text(p1Fact3.isNotEmpty ? p1Fact3 : longLine, style: p1Fact3.isNotEmpty ? bold : regular),
+            pw.Text(p1Fact3.isNotEmpty ? p1Fact3 : longLine,
+                style: p1Fact3.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 8),
 
             // ब) अटक करण्यासंबंधाने आधार :-
@@ -273,11 +295,13 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
                 children: [
                   const pw.TextSpan(text: 'इ) आपणास दिनांक '),
                   pw.TextSpan(
-                    text: p1RemandDate.isNotEmpty ? p1RemandDate : '   /   /२०  ',
+                    text:
+                        p1RemandDate.isNotEmpty ? p1RemandDate : '   /   /२०  ',
                     style: bold,
                   ),
                   const pw.TextSpan(
-                    text: ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+                    text:
+                        ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
                   ),
                 ],
               ),
@@ -342,17 +366,21 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
             // Top Center Header
             pw.Center(child: pw.Text('नोटीस', style: headerStyle)),
             pw.SizedBox(height: 2),
-            pw.Center(child: pw.Text('बी.एन.एस.एस.कलम ४८', style: subHeaderStyle)),
+            pw.Center(
+                child: pw.Text('बी.एन.एस.एस.कलम ४८', style: subHeaderStyle)),
             pw.SizedBox(height: 10),
 
             // Recipient block
             pw.Text('प्रति,', style: bold),
             pw.SizedBox(height: 1),
-            pw.Text(p2To1.isNotEmpty ? p2To1 : mediumLine, style: p2To1.isNotEmpty ? bold : regular),
+            pw.Text(p2To1.isNotEmpty ? p2To1 : mediumLine,
+                style: p2To1.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 1),
-            pw.Text(p2To2.isNotEmpty ? p2To2 : mediumLine, style: p2To2.isNotEmpty ? bold : regular),
+            pw.Text(p2To2.isNotEmpty ? p2To2 : mediumLine,
+                style: p2To2.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 1),
-            pw.Text(p2To3.isNotEmpty ? p2To3 : mediumLine, style: p2To3.isNotEmpty ? bold : regular),
+            pw.Text(p2To3.isNotEmpty ? p2To3 : mediumLine,
+                style: p2To3.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 8),
 
             // Subject
@@ -368,9 +396,12 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
               text: pw.TextSpan(
                 style: regular,
                 children: [
-                  const pw.TextSpan(text: '        आपणास याद्वारे कळविण्यात येते की, '),
+                  const pw.TextSpan(
+                      text: '        आपणास याद्वारे कळविण्यात येते की, '),
                   pw.TextSpan(
-                    text: policeStation.isNotEmpty ? policeStation : 'म्हाळुंगे एम.आय.डी.सी.',
+                    text: policeStation.isNotEmpty
+                        ? policeStation
+                        : 'म्हाळुंगे एम.आय.डी.सी.',
                     style: bold,
                   ),
                   const pw.TextSpan(text: ' पोलीस स्टेशन,गुन्हा रजि.नंबर '),
@@ -385,7 +416,9 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
                         : '....................................................................................',
                     style: bold,
                   ),
-                  const pw.TextSpan(text: ' या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे '),
+                  const pw.TextSpan(
+                      text:
+                          ' या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे '),
                   pw.TextSpan(
                     text: p2AccusedName.isNotEmpty
                         ? p2AccusedName
@@ -411,11 +444,14 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
             // अ) गुन्ह्याची थोडक्यात हकीगत :-
             pw.Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: sectionHeader),
             pw.SizedBox(height: 2),
-            pw.Text(p2Fact1.isNotEmpty ? p2Fact1 : longLine, style: p2Fact1.isNotEmpty ? bold : regular),
+            pw.Text(p2Fact1.isNotEmpty ? p2Fact1 : longLine,
+                style: p2Fact1.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 2),
-            pw.Text(p2Fact2.isNotEmpty ? p2Fact2 : longLine, style: p2Fact2.isNotEmpty ? bold : regular),
+            pw.Text(p2Fact2.isNotEmpty ? p2Fact2 : longLine,
+                style: p2Fact2.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 2),
-            pw.Text(p2Fact3.isNotEmpty ? p2Fact3 : longLine, style: p2Fact3.isNotEmpty ? bold : regular),
+            pw.Text(p2Fact3.isNotEmpty ? p2Fact3 : longLine,
+                style: p2Fact3.isNotEmpty ? bold : regular),
             pw.SizedBox(height: 8),
 
             // ब) अटक करण्यासंबंधाने आधार :-
@@ -489,11 +525,13 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
                 children: [
                   const pw.TextSpan(text: 'इ) अटक व्यक्तीला दिनांक '),
                   pw.TextSpan(
-                    text: p2RemandDate.isNotEmpty ? p2RemandDate : '   /   /२०  ',
+                    text:
+                        p2RemandDate.isNotEmpty ? p2RemandDate : '   /   /२०  ',
                     style: bold,
                   ),
                   const pw.TextSpan(
-                    text: ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+                    text:
+                        ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
                   ),
                 ],
               ),

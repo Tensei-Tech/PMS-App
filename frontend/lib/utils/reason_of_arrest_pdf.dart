@@ -111,7 +111,9 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
                       children: [
                         const pw.TextSpan(text: 'जावक.क्रमांक- '),
                         pw.TextSpan(
-                          text: outwardNo.isNotEmpty ? '  $outwardNo  ' : '          ',
+                          text: outwardNo.isNotEmpty
+                              ? '  $outwardNo  '
+                              : '          ',
                           style: bold,
                         ),
                         pw.TextSpan(text: '/$outwardYear'),
@@ -125,7 +127,9 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
                       children: [
                         const pw.TextSpan(text: 'पोलीस स्टेशन '),
                         pw.TextSpan(
-                          text: policeStation.isNotEmpty ? policeStation : '-------------',
+                          text: policeStation.isNotEmpty
+                              ? policeStation
+                              : '-------------',
                           style: bold,
                         ),
                       ],
@@ -156,7 +160,9 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
                       children: [
                         const pw.TextSpan(text: 'दिनांक:- '),
                         pw.TextSpan(
-                          text: noticeDate.isNotEmpty ? noticeDate : '    /    /२०२५',
+                          text: noticeDate.isNotEmpty
+                              ? noticeDate
+                              : '    /    /२०२५',
                           style: bold,
                         ),
                       ],
@@ -223,10 +229,13 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
                 style: regular,
                 children: [
                   const pw.TextSpan(
-                    text: '       आपणास या सुचनापत्राद्वारे कळविण्यात येते की,आपल्या विरुद्ध पोलीस ठाणे ',
+                    text:
+                        '       आपणास या सुचनापत्राद्वारे कळविण्यात येते की,आपल्या विरुद्ध पोलीस ठाणे ',
                   ),
                   pw.TextSpan(
-                    text: policeStation.isNotEmpty ? policeStation : '-------------',
+                    text: policeStation.isNotEmpty
+                        ? policeStation
+                        : '-------------',
                     style: bold,
                   ),
                   const pw.TextSpan(text: 'येथे गुन्हा रजि.क्र.'),
@@ -236,7 +245,9 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
                   ),
                   const pw.TextSpan(text: '/-- कलम '),
                   pw.TextSpan(
-                    text: subjectSection.isNotEmpty ? subjectSection : '------------',
+                    text: subjectSection.isNotEmpty
+                        ? subjectSection
+                        : '------------',
                     style: bold,
                   ),
                   const pw.TextSpan(
@@ -372,9 +383,8 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
                     text: 'यांना लेखी सुचनेव्दारे/फोन क्रमांक ',
                   ),
                   pw.TextSpan(
-                    text: relativePhone.isNotEmpty
-                        ? relativePhone
-                        : '---------',
+                    text:
+                        relativePhone.isNotEmpty ? relativePhone : '---------',
                     style: bold,
                   ),
                   const pw.TextSpan(
@@ -497,9 +507,8 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
                         children: [
                           const pw.TextSpan(text: 'ता.'),
                           pw.TextSpan(
-                            text: ioTaluka.isNotEmpty
-                                ? ' $ioTaluka '
-                                : '-------',
+                            text:
+                                ioTaluka.isNotEmpty ? ' $ioTaluka ' : '-------',
                             style: bold,
                           ),
                           const pw.TextSpan(text: ' जिल्हा'),
