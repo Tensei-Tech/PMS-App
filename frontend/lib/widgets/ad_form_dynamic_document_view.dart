@@ -97,12 +97,12 @@ const Map<String, String> kAdUnknownSubLabels = {
 
 const Map<String, String> kAdProceduralSubLabels = {
   'chkMemo': 'Memorandum Panchanama',
-  'chkPanchSpot': 'Panchanama Spot',
-  'chkInquest': 'Inquest',
-  'chkIdent': 'Identification',
-  'chkSearch': 'Search',
-  'chkPersSearch': 'Personal Search',
-  'chkExhumation': 'Exhumation',
+  'chkPanchSpot': 'Spot Panchanama',
+  'chkInquest': 'Inquest Panchanama',
+  'chkIdent': 'Identification Panchanama',
+  'chkSearch': 'Search Panchanama',
+  'chkPersSearch': 'Personal Search Panchanama',
+  'chkExhumation': 'Exhumation Panchanama',
 };
 
 /// Keys written by `buildAdDocumentMap` (exported for callers that need the set).

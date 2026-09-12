@@ -7,6 +7,7 @@ import '../modules/core/models/base_record.dart';
 import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/common_form_module.dart';
+import '../utils/ad_disposal_helper.dart';
 import '../utils/module_pdf_helper.dart';
 import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
@@ -65,11 +66,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   List<String> get _filterOptions => kFormIVCaseCategories;
 
   bool _isDisposalRecord(ModuleRecord r) {
-    final s = r.status.trim().toLowerCase();
-    return s == 'disposal' ||
-        s == 'disposed' ||
-        s == 'closed' ||
-        s == 'resolved';
+    return isRecordDisposal(r);
   }
 
   bool _isPendingRecord(ModuleRecord r) {

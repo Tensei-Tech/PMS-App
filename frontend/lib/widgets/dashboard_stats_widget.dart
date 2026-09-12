@@ -15,6 +15,7 @@ import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
 import '../utils/state_language_helper.dart';
+import '../utils/ad_disposal_helper.dart';
 
 /// Summary cards: total active, pending cases, disposed — filtered by role/visibility.
 class DashboardStatsWidget extends StatefulWidget {
@@ -104,28 +105,9 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
         mode: mode,
       );
 
-      final total = filtered
-          .where(
-            (r) =>
-                r.status.toLowerCase() != 'closed' &&
-                r.status.toLowerCase() != 'resolved',
-          )
-          .length;
-      final pending = filtered
-          .where(
-            (r) =>
-                r.status.toLowerCase() == 'pending' ||
-                r.status.toLowerCase() == 'open',
-          )
-          .length;
-      final disposed = filtered
-          .where(
-            (r) =>
-                r.status.toLowerCase() == 'disposal' ||
-                r.status.toLowerCase() == 'closed' ||
-                r.status.toLowerCase() == 'resolved',
-          )
-          .length;
+      final total = filtered.where(isRecordPending).length;
+      final pending = filtered.where(isRecordPending).length;
+      final disposed = filtered.where(isRecordDisposal).length;
 
       if (!mounted) return;
       setState(() {

@@ -52,7 +52,7 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
 
   // ── PARAGRAPH 1 ──
   final _firPsCtrl = TextEditingController();
-  final _firDistCtrl = TextEditingController(text: 'यवतमाळ');
+  final _firDistCtrl = TextEditingController();
   final _crimeNoCtrl = TextEditingController();
   final _crimeYearCtrl = TextEditingController(text: '२५');
   final _actSecCtrl = TextEditingController();
@@ -223,7 +223,7 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
       _emailCtrl.text = data['email']?.toString() ?? '';
 
       _firPsCtrl.text = data['firPs']?.toString() ?? '';
-      _firDistCtrl.text = data['firDist']?.toString() ?? 'यवतमाळ';
+      _firDistCtrl.text = data['firDist']?.toString() ?? '';
 
       final rawCr = data['crimeNo']?.toString() ?? '';
       if (rawCr.contains('/')) {

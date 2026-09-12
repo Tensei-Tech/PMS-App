@@ -259,7 +259,7 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
     _actSecCtrl.text = data['actSec']?.toString() ?? '';
     _accusedNameCtrl.text = data['accusedName']?.toString() ?? '';
     _accusedTahCtrl.text = data['accusedTah']?.toString() ?? '';
-    _accusedDistCtrl.text = data['accusedDist']?.toString() ?? 'यवतमाळ';
+    _accusedDistCtrl.text = data['accusedDist']?.toString() ?? '';
     _searchPlaceCtrl.text = data['searchPlace']?.toString() ?? '';
     _personFoundCtrl.text = data['personFound']?.toString() ?? '';
     _searchPremisesCtrl.text = data['searchPremises']?.toString() ?? '';
@@ -579,7 +579,6 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                   child: BilingualSimpleUnderlineInput(
                     controller: _accusedDistCtrl,
                     serifStyle: serif,
-                    hintText: 'यवतमाळ',
                   ),
                 ),
                 Text(

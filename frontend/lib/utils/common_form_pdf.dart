@@ -605,14 +605,27 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── §9 Arrest & Release ───────────────────────────────────────────────────
   final arrests = (m['arrestRelease'] as List?) ?? [];
+  final sec8283 = m['section8283Action']?.toString();
   sections.add(
     _card(
       11,
       'ARREST & RELEASE STATUS',
       _teal,
-      arrests.isEmpty
-          ? _empty('No arrest records. Add accused names first.')
-          : pw.Column(
+      pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          _grid2([
+            _f(
+              'Section 82/83 Action (if untraceable)',
+              _v(sec8283, or: 'Not set').toUpperCase(),
+              full: true,
+            ),
+          ]),
+          pw.SizedBox(height: 6),
+          if (arrests.isEmpty)
+            _empty('No arrest records. Add accused names first.')
+          else
+            pw.Column(
               children: arrests.map((r) {
                 final row = r as Map;
                 return _subCard(
@@ -625,12 +638,15 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                 );
               }).toList(),
             ),
+        ],
+      ),
     ),
   );
 
   // ── §10 Procedural Details ────────────────────────────────────────────────
   final procChecks = (m['proceduralChecks'] as Map?) ?? {};
   final procDates = (m['proceduralDates'] as Map?) ?? {};
+  final vuPdf = (m['vehicleUsage'] as Map?) ?? {};
   const procLabels = {
     'chkMemo': 'Memorandum Panchanama',
     'chkPanchSpot': 'Panchanama Spot',
@@ -694,6 +710,30 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             else if (m['eshakshValue'] == 'no' &&
                 (m['eshakshReason']?.toString().isNotEmpty ?? false))
               _f('Reason for No E-Shakshya', _v(m['eshakshReason'])),
+          ]),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'GOVERNMENT VEHICLE USAGE',
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
+              color: _dark,
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          _grid2([
+            _f(
+              'SD Entry of Vehicle No & Time',
+              _v(vuPdf['sdEntry'], or: 'Not set').toUpperCase(),
+            ),
+            _f(
+              'Log Book of Vehicle Entry',
+              _v(vuPdf['logBookEntry'], or: 'Not set').toUpperCase(),
+            ),
+            _f(
+              'Case Diary Vehicle Entry',
+              _v(vuPdf['caseDiaryEntry'], or: 'Not set').toUpperCase(),
+            ),
           ]),
         ],
       ),

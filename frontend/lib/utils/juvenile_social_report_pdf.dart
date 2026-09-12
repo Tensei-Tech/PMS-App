@@ -130,7 +130,7 @@ Future<Uint8List> generateJuvenileSocialReportPdf(
                 ],
               ),
               _pdfTableRow(
-                  '1.',
+                  '१.',
                   'पोलीस स्टेशन व जिल्हा',
                   val(
                       'val_psDist',
@@ -138,13 +138,13 @@ Future<Uint8List> generateJuvenileSocialReportPdf(
                           doc['policeStation']?.toString()),
                   englishBold),
               _pdfTableRow(
-                  '2.',
+                  '२.',
                   'अपराध क्रमांक',
                   val('val_crimeNo',
                       doc['crimeNo']?.toString() ?? doc['crNo']?.toString()),
                   englishBold),
               _pdfTableRow(
-                  '3.',
+                  '३.',
                   'कलम व अधिनियम',
                   val(
                       'val_sectionAct',
@@ -152,19 +152,19 @@ Future<Uint8List> generateJuvenileSocialReportPdf(
                           doc['section']?.toString()),
                   englishBold),
               _pdfTableRow(
-                  '4.',
+                  '४.',
                   'गुन्हा घडला ता व वेळ',
                   val('val_crimeDateTime', doc['crimeDateTime']?.toString()),
                   englishBold),
               _pdfTableRow(
-                  '5.',
+                  '५.',
                   'गुन्हा दाखल ता व वेळ',
                   val('val_firDateTime', doc['firDateTime']?.toString()),
                   englishBold),
-              _pdfTableRow('6.', 'तपासी अधिकारी यांचे नांव',
+              _pdfTableRow('६.', 'तपासी अधिकारी यांचे नांव',
                   val('val_ioName', doc['ioName']?.toString()), englishBold),
               _pdfTableRow(
-                  '7.',
+                  '७.',
                   'बाल कल्याण पोलीस अधिकारी नांव',
                   val('val_cwpoName', doc['cwpoName']?.toString()),
                   englishBold),
@@ -238,6 +238,11 @@ Future<Uint8List> generateJuvenileSocialReportPdf(
                       doc['otherDisability']?.toString()),
                   englishBold),
             ],
+          ),
+          pw.Spacer(),
+          pw.Align(
+            alignment: pw.Alignment.bottomRight,
+            child: pw.Text('M.R.W', style: englishStyle.copyWith(fontSize: 8)),
           ),
         ],
       ),

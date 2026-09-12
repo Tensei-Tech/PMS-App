@@ -112,8 +112,7 @@ class PreventiveFormState extends State<PreventiveForm> {
   final _ioNameCtrl = TextEditingController();
 
   // 5. Risk Flag & Action Status
-  String _riskFlag =
-      '⚡ Standard'; // '🚨 High Priority', '🛑 Sensitive', '⚡ Standard'
+  String _riskFlag = '🚨 High Priority'; // '🚨 High Priority', '🛑 Sensitive'
   String _preventiveActionStatus = '🟢 Preventive Action Completed';
   // '🟢 Preventive Action Completed', '🟡 Partially Completed', '🔴 No Preventive Action Recorded'
   final _remarksCtrl = TextEditingController();
@@ -380,7 +379,7 @@ class PreventiveFormState extends State<PreventiveForm> {
           DateFormat('dd/MM/yyyy').format(DateTime.now());
       _outwardNoCtrl.clear();
       _ioNameCtrl.clear();
-      _riskFlag = '⚡ Standard';
+      _riskFlag = '🚨 High Priority';
       _preventiveActionStatus = '🟢 Preventive Action Completed';
       _remarksCtrl.clear();
       saveBarText = 'Form cleared';
@@ -448,77 +447,81 @@ class PreventiveFormState extends State<PreventiveForm> {
 
         // Sub-Header Bar (Save state + Quick Action buttons)
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           color: Colors.white,
-          child: Row(
-            children: [
-              Text(
-                saveBarText,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: _kSec,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              if (!widget.readOnly) ...[
-                OutlinedButton.icon(
-                  onPressed: clearForm,
-                  icon:
-                      const Icon(Icons.refresh_rounded, size: 14, color: _kSec),
-                  label: Text('Clear',
-                      style: GoogleFonts.inter(fontSize: 12, color: _kSec)),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: _kBorder),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6)),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  saveBarText,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: _kSec,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 16),
+                if (!widget.readOnly) ...[
+                  OutlinedButton.icon(
+                    onPressed: clearForm,
+                    icon:
+                        const Icon(Icons.refresh_rounded, size: 14, color: _kSec),
+                    label: Text('Clear',
+                        style: GoogleFonts.inter(fontSize: 12, color: _kSec)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: _kBorder),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6)),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      setState(() => saveBarText = 'Draft saved locally');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Draft saved locally'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.save_as_rounded,
+                        size: 14, color: _kTeal),
+                    label: Text('Save Draft',
+                        style: GoogleFonts.inter(fontSize: 12, color: _kTeal)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: _kTeal),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6)),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 OutlinedButton.icon(
-                  onPressed: () {
-                    setState(() => saveBarText = 'Draft saved locally');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Draft saved locally'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.save_as_rounded,
+                  onPressed: widget.onExportPdf,
+                  icon: const Icon(Icons.picture_as_pdf_rounded,
                       size: 14, color: _kTeal),
-                  label: Text('Save Draft',
-                      style: GoogleFonts.inter(fontSize: 12, color: _kTeal)),
+                  label: Text('Generate Preventive Form PDF',
+                      style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: _kTeal,
+                          fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: _kTeal),
+                    side: const BorderSide(color: _kTeal, width: 1.2),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6)),
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   ),
                 ),
-                const SizedBox(width: 8),
               ],
-              OutlinedButton.icon(
-                onPressed: widget.onExportPdf,
-                icon: const Icon(Icons.picture_as_pdf_rounded,
-                    size: 14, color: _kTeal),
-                label: Text('Generate Preventive Form PDF',
-                    style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: _kTeal,
-                        fontWeight: FontWeight.w600)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: _kTeal, width: 1.2),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
 
@@ -1427,14 +1430,22 @@ class PreventiveFormState extends State<PreventiveForm> {
 
   // ── Inputs Builders ────────────────────────────────────────────────────────
   Widget _buildLabel(String text, {bool required = false}) {
-    return Row(
-      children: [
-        Text(text, style: _tsLabel),
-        if (required)
-          const Text(' *',
+    return RichText(
+      text: TextSpan(
+        text: text,
+        style: _tsLabel,
+        children: [
+          if (required)
+            const TextSpan(
+              text: ' *',
               style: TextStyle(
-                  color: _kRed, fontSize: 12, fontWeight: FontWeight.bold)),
-      ],
+                color: _kRed,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+        ],
+      ),
     );
   }
 

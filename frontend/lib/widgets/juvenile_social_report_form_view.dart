@@ -556,6 +556,80 @@ class JuvenileSocialReportFormViewState
     );
   }
 
+  Widget _tableCellHoyNahi(
+    TextEditingController ctrl,
+    TextStyle marathiLabelStyle,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: ValueListenableBuilder<TextEditingValue>(
+        valueListenable: ctrl,
+        builder: (context, val, _) {
+          final text = val.text.trim();
+          final isHoy = text == 'होय';
+          final isNahi = text == 'नाही';
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                onTap: widget.readOnly
+                    ? null
+                    : () {
+                        ctrl.text = isHoy ? '' : 'होय';
+                      },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Text(
+                    'होय',
+                    style: marathiLabelStyle.copyWith(
+                      fontSize: 11,
+                      fontWeight:
+                          isHoy ? FontWeight.bold : FontWeight.normal,
+                      color: isHoy ? const Color(0xFF1E3A8A) : Colors.black87,
+                      decoration:
+                          isHoy ? TextDecoration.underline : TextDecoration.none,
+                    ),
+                  ),
+                ),
+              ),
+              Text(
+                ' / ',
+                style: marathiLabelStyle.copyWith(
+                  fontSize: 11,
+                  color: Colors.black54,
+                ),
+              ),
+              InkWell(
+                onTap: widget.readOnly
+                    ? null
+                    : () {
+                        ctrl.text = isNahi ? '' : 'नाही';
+                      },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Text(
+                    'नाही',
+                    style: marathiLabelStyle.copyWith(
+                      fontSize: 11,
+                      fontWeight:
+                          isNahi ? FontWeight.bold : FontWeight.normal,
+                      color:
+                          isNahi ? const Color(0xFF1E3A8A) : Colors.black87,
+                      decoration:
+                          isNahi ? TextDecoration.underline : TextDecoration.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Widget _bulletOption({
     required String text,
     required bool isSelected,
@@ -653,7 +727,7 @@ class JuvenileSocialReportFormViewState
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('1.', serifStyle),
+                      _tableHeader('१.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
                         child: Text('पोलीस स्टेशन व जिल्हा',
@@ -664,7 +738,7 @@ class JuvenileSocialReportFormViewState
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('2.', serifStyle),
+                      _tableHeader('२.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
                         child: Text('अपराध क्रमांक', style: marathiLabelStyle),
@@ -674,7 +748,7 @@ class JuvenileSocialReportFormViewState
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('3.', serifStyle),
+                      _tableHeader('३.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
                         child: Text('कलम व अधिनियम', style: marathiLabelStyle),
@@ -684,10 +758,10 @@ class JuvenileSocialReportFormViewState
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('4.', serifStyle),
+                      _tableHeader('४.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('बालकास ताब्यात घेतल्याची तारीख व वेळ',
+                        child: Text('गुन्हा घडला ता व वेळ',
                             style: marathiLabelStyle),
                       ),
                       _tableCellInput(_crimeDateTimeCtrl, serifStyle),
@@ -695,11 +769,10 @@ class JuvenileSocialReportFormViewState
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('5.', serifStyle),
+                      _tableHeader('५.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text(
-                            'बालकास बाल न्याय मंडळ/ बाल कल्याण समिती समोर हजर केल्याची तारीख व वेळ',
+                        child: Text('गुन्हा दाखल ता व वेळ',
                             style: marathiLabelStyle),
                       ),
                       _tableCellInput(_firDateTimeCtrl, serifStyle),
@@ -707,10 +780,10 @@ class JuvenileSocialReportFormViewState
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('6.', serifStyle),
+                      _tableHeader('६.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('तपास अंमलदाराचे नांव व हुद्दा',
+                        child: Text('तपासी अधिकारी यांचे नांव',
                             style: marathiLabelStyle),
                       ),
                       _tableCellInput(_ioNameCtrl, serifStyle),
@@ -718,168 +791,121 @@ class JuvenileSocialReportFormViewState
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('7.', serifStyle),
+                      _tableHeader('७.', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text(
-                            'बाल कल्याण पोलीस अधिकारी यांचे नांव व हुद्दा',
+                        child: Text('बाल कल्याण पोलीस अधिकारी नांव',
                             style: marathiLabelStyle),
                       ),
                       _tableCellInput(_cwpoNameCtrl, serifStyle),
                     ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                'बालकाचा तपशिल',
-                style: marathiLabelStyle.copyWith(
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('१) बालकाचे नाव :- ', style: marathiLabelStyle),
-                  Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _childNameCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('२) बालकाचे वडिलांचे नाव व पत्ता :- ',
-                      style: marathiLabelStyle),
-                  Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _fatherNameCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('३) जन्म तारीख व वय :- ', style: marathiLabelStyle),
-                  Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _dobCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('४) सध्याचा पत्ता / कायमचा पत्ता :- ',
-                      style: marathiLabelStyle),
-                  Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _addressCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('५) धर्म व जात (अ.जा./ अ.ज./ इ.मा.व./ इतर / खुला ) :- ',
-                      style: marathiLabelStyle),
-                  Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _religionCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text('६) बालकामध्ये काही अपंगत्व / व्यंगत्व आहे काय ?',
-                  style:
-                      marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              Table(
-                border: TableBorder.all(color: Colors.black87),
-                columnWidths: const {
-                  0: FixedColumnWidth(36),
-                  1: FlexColumnWidth(2.5),
-                  2: FlexColumnWidth(3.5),
-                },
-                children: [
                   TableRow(
                     children: [
-                      _tableHeader('अ.क्र.', serifStyle),
-                      _tableHeader('अपंगत्व प्रकार', serifStyle),
-                      _tableHeader('होय / नाही', serifStyle),
-                    ],
-                  ),
-                  TableRow(
-                    children: [
-                      _tableHeader('1.', serifStyle),
+                      _tableHeader('', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child: Text('अंधत्व', style: marathiLabelStyle),
+                        child: Text('बालक', style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_hasDisabilityCtrl, serifStyle),
+                      _tableCellInput(_childNameCtrl, serifStyle),
                     ],
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('2.', serifStyle),
+                      _tableHeader('', serifStyle),
+                      Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Text('वडील', style: marathiLabelStyle),
+                      ),
+                      _tableCellInput(_fatherNameCtrl, serifStyle),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      _tableHeader('', serifStyle),
+                      Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Text('जन्म तारीख', style: marathiLabelStyle),
+                      ),
+                      _tableCellInput(_dobCtrl, serifStyle),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      _tableHeader('', serifStyle),
+                      Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Text('पत्ता', style: marathiLabelStyle),
+                      ),
+                      _tableCellInput(_addressCtrl, serifStyle),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      _tableHeader('', serifStyle),
+                      Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Text('धर्म', style: marathiLabelStyle),
+                      ),
+                      _tableCellInput(_religionCtrl, serifStyle),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      _tableHeader('', serifStyle),
+                      Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Text('बालकास अपंगत्व आहे काय ?',
+                            style: marathiLabelStyle),
+                      ),
+                      _tableCellHoyNahi(_hasDisabilityCtrl, marathiLabelStyle),
+                    ],
+                  ),
+                  TableRow(
+                    children: [
+                      _tableHeader('', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
                         child: Text('कर्णबधीर', style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_deafCtrl, serifStyle),
+                      _tableCellHoyNahi(_deafCtrl, marathiLabelStyle),
                     ],
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('3.', serifStyle),
+                      _tableHeader('', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
                         child: Text('मुक', style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_dumbCtrl, serifStyle),
+                      _tableCellHoyNahi(_dumbCtrl, marathiLabelStyle),
                     ],
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('4.', serifStyle),
+                      _tableHeader('', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
-                        child:
-                            Text('शारीरीक अपंगत्व', style: marathiLabelStyle),
+                        child: Text('शारीरीक अपंगत्व', style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_physicalDisabilityCtrl, serifStyle),
+                      _tableCellHoyNahi(
+                          _physicalDisabilityCtrl, marathiLabelStyle),
                     ],
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('5.', serifStyle),
+                      _tableHeader('', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
                         child: Text('मानसीक अपंगत्व', style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_mentalDisabilityCtrl, serifStyle),
+                      _tableCellHoyNahi(
+                          _mentalDisabilityCtrl, marathiLabelStyle),
                     ],
                   ),
                   TableRow(
                     children: [
-                      _tableHeader('6.', serifStyle),
+                      _tableHeader('', serifStyle),
                       Padding(
                         padding: const EdgeInsets.all(6),
                         child: Text('इतर', style: marathiLabelStyle),
@@ -888,6 +914,18 @@ class JuvenileSocialReportFormViewState
                     ],
                   ),
                 ],
+              ),
+              const SizedBox(height: 30),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Text(
+                  'M.R.W',
+                  style: GoogleFonts.notoSansDevanagari(
+                    fontSize: 10,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black87,
+                  ),
+                ),
               ),
               if (!_showAll)
                 _buildPhaseNavigationFooter(
