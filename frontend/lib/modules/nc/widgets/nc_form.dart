@@ -1634,7 +1634,7 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
                   orElse: () => {'val': v, 'label': v, 'cat': ''});
               return InputChip(
                 label: Text(
-                  '§${sec['val']}',
+                  sec['val'] as String,
                   style: const TextStyle(
                       fontSize: 10, fontWeight: FontWeight.w700),
                 ),
@@ -1726,7 +1726,7 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
                           width: 32,
                           margin: const EdgeInsets.only(right: 8),
                           child: Text(
-                            '§$v',
+                            v,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,

@@ -1149,6 +1149,31 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
           '$transCategory · ${visibleRecords.length} $transCases$dateSuffix';
     }
 
+    final isMobile = MediaQuery.of(context).size.width < 500;
+
+    final Widget? actionWidget = (isMobile && _showNewCaseFab)
+        ? ElevatedButton.icon(
+            onPressed: _onNewCase,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.navyMid,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            icon: const Icon(Icons.add_rounded, size: 16),
+            label: Text(
+              TranslationHelper.translate(context, 'New Case'),
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          )
+        : null;
+
     return PopScope(
       canPop: _selectedCategory == null,
       onPopInvokedWithResult: (didPop, result) {
@@ -1166,6 +1191,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
             context,
             'i to v',
           ).toUpperCase(),
+          actionWidget: actionWidget,
           onBackPressed: () {
             if (_selectedCategory != null) {
               setState(() => _selectedCategory = null);
@@ -1174,22 +1200,6 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
             }
           },
         ),
-        floatingActionButton: _showNewCaseFab
-            ? FloatingActionButton.extended(
-                onPressed: _onNewCase,
-                backgroundColor: AppColors.navyMid,
-                foregroundColor: Colors.white,
-                elevation: 6,
-                icon: const Icon(Icons.add_rounded),
-                label: Text(
-                  TranslationHelper.translate(context, 'New Case'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              )
-            : null,
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1201,6 +1211,29 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               onTabChanged: (tab) {
                 setState(() => _selectedStatusTab = tab);
               },
+              trailingWidget: (_showNewCaseFab && !isMobile)
+                  ? ElevatedButton.icon(
+                      onPressed: _onNewCase,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.navyMid,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: Text(
+                        TranslationHelper.translate(context, 'New Case'),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
+                  : null,
             ),
             if (_selectedCategory == null) ...[
               Padding(
@@ -1247,7 +1280,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                   color: Colors.white,
                   border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
                 ),
-                child: Row(
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     InkWell(
                       onTap: () => setState(() => _selectedCategory = null),
@@ -1286,55 +1322,50 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Text(
-                            '/',
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '/',
+                          style: GoogleFonts.poppins(
+                            color: AppColors.lightSubText,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          TranslationHelper.translate(
+                            context,
+                            _selectedCategory!,
+                          ),
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F1FC),
+                            borderRadius: BorderRadius.circular(
+                              AppRadius.full,
+                            ),
+                          ),
+                          child: Text(
+                            '${visibleRecords.length}',
                             style: GoogleFonts.poppins(
-                              color: AppColors.lightSubText,
-                              fontSize: 13,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1976D2),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              TranslationHelper.translate(
-                                context,
-                                _selectedCategory!,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.navyDark,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F1FC),
-                              borderRadius: BorderRadius.circular(
-                                AppRadius.full,
-                              ),
-                            ),
-                            child: Text(
-                              '${visibleRecords.length}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF1976D2),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                     _buildDateAndSortControls(),
                   ],
@@ -1414,6 +1445,7 @@ class FormVIStatusTabBar extends StatelessWidget {
     required this.pendingCount,
     required this.disposalCount,
     required this.onTabChanged,
+    this.trailingWidget,
   });
 
   final FormVIStatusTab selectedTab;
@@ -1421,6 +1453,7 @@ class FormVIStatusTabBar extends StatelessWidget {
   final int pendingCount;
   final int disposalCount;
   final ValueChanged<FormVIStatusTab> onTabChanged;
+  final Widget? trailingWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -1455,70 +1488,83 @@ class FormVIStatusTabBar extends StatelessWidget {
           bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
         ),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: tabs.map((item) {
-            final isSelected = selectedTab == item.tab;
-            return Padding(
-              padding: const EdgeInsets.only(right: 24),
-              child: InkWell(
-                onTap: () => onTabChanged(item.tab),
-                hoverColor: Colors.transparent,
-                splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: isSelected
-                            ? const Color(0xFF1976D2)
-                            : Colors.transparent,
-                        width: 2.5,
-                      ),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        TranslationHelper.translate(context, item.label),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13.5,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected
-                              ? AppColors.navyDark
-                              : AppColors.lightSubText,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(left: 16, right: 8),
+              child: Row(
+                children: tabs.map((item) {
+                  final isSelected = selectedTab == item.tab;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 24),
+                    child: InkWell(
+                      onTap: () => onTabChanged(item.tab),
+                      hoverColor: Colors.transparent,
+                      splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: item.badgeBg,
-                          borderRadius: BorderRadius.circular(AppRadius.full),
-                        ),
-                        child: Text(
-                          '${item.count}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: item.badgeFg,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: isSelected
+                                  ? const Color(0xFF1976D2)
+                                  : Colors.transparent,
+                              width: 2.5,
+                            ),
                           ),
                         ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              TranslationHelper.translate(context, item.label),
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.5,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? AppColors.navyDark
+                                    : AppColors.lightSubText,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: item.badgeBg,
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.full),
+                              ),
+                              child: Text(
+                                '${item.count}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: item.badgeFg,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                }).toList(),
               ),
-            );
-          }).toList(),
-        ),
+            ),
+          ),
+          if (trailingWidget != null) ...[
+            const SizedBox(width: 8),
+            trailingWidget!,
+            const SizedBox(width: 16),
+          ],
+        ],
       ),
     );
   }
@@ -2364,7 +2410,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           if (!widget.readOnly &&
                               record.status != 'Disposal') ...[
                             _buildCompactActionButton(
-                              icon: Icons.gavel_outlined,
+                              icon: Icons.fact_check_outlined,
                               label: 'Dispose',
                               onTap: () =>
                                   _showQuickDisposeDialog(context, record),
