@@ -283,3 +283,103 @@ class CaseManagementAPITests(TestCase):
         )
         resp_ka = self.client.get('/api/cases/crime-types/')
         self.assertEqual(resp_ka.status_code, status.HTTP_200_OK)
+
+    # --------------------------------------------------------------------------
+    # Test 9: AD Disposal Detection and Status Setting
+    # --------------------------------------------------------------------------
+    def test_09_ad_disposal_detection_and_model_save(self):
+        """AD cases with both summary number and date are classified as Disposal."""
+        from apps.cases.models import CaseRecord, is_ad_case_disposed
+
+        # 1. AD case with English summary number and date in extra_fields
+        ad_case_full = CaseRecord.objects.create(
+            module_key='ad',
+            title='AD Case 01',
+            case_number='AD/01/2026',
+            status='Pending',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'adSummaryNo': 'SUM-12345', 'adSummaryDate': '2026-09-10'}
+        )
+        self.assertTrue(is_ad_case_disposed(ad_case_full))
+        self.assertEqual(ad_case_full.status, 'Disposal')
+
+        # 2. AD case with Marathi keys in extra_fields
+        ad_case_marathi = CaseRecord.objects.create(
+            module_key='ad',
+            title='AD Case 02 Marathi',
+            case_number='AD/02/2026',
+            status='Pending',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'मर्ग समरी No.': 'MARG-999', 'मर्ग समरी दिनांक': '10/09/2026'}
+        )
+        self.assertTrue(is_ad_case_disposed(ad_case_marathi))
+        self.assertEqual(ad_case_marathi.status, 'Disposal')
+
+        # 3. Incomplete AD cases stay Pending
+        ad_missing_date = CaseRecord.objects.create(
+            module_key='ad',
+            title='AD Case Missing Date',
+            case_number='AD/03/2026',
+            status='Pending',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'adSummaryNo': 'SUM-999'}
+        )
+        self.assertFalse(is_ad_case_disposed(ad_missing_date))
+        self.assertEqual(ad_missing_date.status, 'Pending')
+
+        # 4. Non-AD case with summary fields is unaffected
+        theft_case = CaseRecord.objects.create(
+            module_key='theft',
+            title='Theft Case',
+            case_number='TH-100',
+            status='Pending',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'adSummaryNo': 'SUM-999', 'adSummaryDate': '2026-09-10'}
+        )
+        self.assertFalse(is_ad_case_disposed(theft_case))
+        self.assertEqual(theft_case.status, 'Pending')
+
+    # --------------------------------------------------------------------------
+    # Test 10: AD Disposal API Queryset Filtering
+    # --------------------------------------------------------------------------
+    def test_10_ad_disposal_api_queryset_filtering(self):
+        """API endpoints filter disposal and pending correctly for AD cases."""
+        from apps.cases.models import CaseRecord
+
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.officer_token}',
+            HTTP_X_STATE_CODE='MH'
+        )
+
+        # Create disposed AD case and pending AD case
+        CaseRecord.objects.create(
+            module_key='ad',
+            title='Disposed AD 10',
+            case_number='AD/10/2026',
+            status='Pending',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'adSummaryNo': 'SUM-10', 'adSummaryDate': '2026-09-10'}
+        )
+        CaseRecord.objects.create(
+            module_key='ad',
+            title='Pending AD 11',
+            case_number='AD/11/2026',
+            status='Pending',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'otherField': 'value'}
+        )
+
+        # Query /api/cases/?status=disposal
+        resp_disp = self.client.get('/api/cases/?status=disposal')
+        self.assertEqual(resp_disp.status_code, status.HTTP_200_OK)
+        disp_case_numbers = [c.get('case_number') for c in resp_disp.data.get('results', resp_disp.data if isinstance(resp_disp.data, list) else [])]
+        self.assertIn('AD/10/2026', disp_case_numbers)
+        self.assertNotIn('AD/11/2026', disp_case_numbers)
+
+        # Query /api/cases/?status=pending
+        resp_pend = self.client.get('/api/cases/?status=pending')
+        self.assertEqual(resp_pend.status_code, status.HTTP_200_OK)
+        pend_case_numbers = [c.get('case_number') for c in resp_pend.data.get('results', resp_pend.data if isinstance(resp_pend.data, list) else [])]
+        self.assertNotIn('AD/10/2026', pend_case_numbers)
+        self.assertIn('AD/11/2026', pend_case_numbers)
+

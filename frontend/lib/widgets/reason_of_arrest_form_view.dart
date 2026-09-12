@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
-import '../utils/form_io_terminology.dart';
 
 /// Reason of Arrest notice u/s 35(1)(b)(ii) BNSS — 2 pages.
 class ReasonOfArrestFormView extends StatefulWidget {
@@ -177,309 +176,465 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
     if (mounted) setState(() {});
   }
 
-  Widget _buildPage1(TextStyle serif, TextStyle marathiLabel) {
+  Widget _buildPage1(
+    TextStyle serif,
+    TextStyle marathiBody,
+    TextStyle marathiBold,
+  ) {
     return FormPaperPage(
-      formLabel: widget.pageRange ?? 'Page 1',
+      formLabel: widget.pageRange ?? 'Page 1 — सुचनापत्र',
       children: [
+        // Top Header
         Center(
+          child: Text(
+            'भारतीय नागरीक सुरक्षा संहिता,२०२३ चे कलम ३५ (१)(ब)(ii) नुसार अन्वये',
+            style: marathiBold.copyWith(fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        // Title
+        Center(
+          child: Text(
+            'सुचनापत्र',
+            style: marathiBold.copyWith(fontSize: 17),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Right-aligned dispatch details
+        Align(
+          alignment: Alignment.centerRight,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Under Section 35(1)(b)(ii) BNSS, 2023',
-                style: serif.copyWith(fontSize: 12),
-                textAlign: TextAlign.center,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('जावक.क्रमांक- ', style: marathiBold),
+                  _UnderlineInput(
+                    controller: _outwardNoCtrl,
+                    width: 90,
+                    readOnly: widget.readOnly,
+                  ),
+                  Text(' /', style: marathiBold),
+                  _UnderlineInput(
+                    controller: _outwardYearCtrl,
+                    width: 55,
+                    readOnly: widget.readOnly,
+                  ),
+                ],
               ),
-              Text(
-                'भारतीय नागरिक सुरक्षा संहिता, २०२३ चे कलम ३५ (१)(ब)(ii) अन्वये',
-                style: marathiLabel.copyWith(fontSize: 11),
-                textAlign: TextAlign.center,
+              const SizedBox(height: 6),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('पोलीस स्टेशन ', style: marathiBold),
+                  _UnderlineInput(
+                    controller: _policeStationCtrl,
+                    width: 150,
+                    readOnly: widget.readOnly,
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                'NOTICE / सूचनापत्र',
-                style: serif.copyWith(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('ता.', style: marathiBold),
+                  _UnderlineInput(
+                    controller: _talukaCtrl,
+                    width: 85,
+                    readOnly: widget.readOnly,
+                  ),
+                  Text(' -जिल्हा', style: marathiBold),
+                  _UnderlineInput(
+                    controller: _districtCtrl,
+                    width: 85,
+                    readOnly: widget.readOnly,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('दिनांक:- ', style: marathiBold),
+                  _UnderlineInput(
+                    controller: _noticeDateCtrl,
+                    width: 120,
+                    readOnly: widget.readOnly,
+                  ),
+                ],
               ),
             ],
           ),
         ),
+        const SizedBox(height: 14),
+
+        // Recipient (प्रति)
+        Text('प्रति,', style: marathiBold),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text('नाव व पत्ता: ', style: marathiBold),
+            ),
+            Expanded(
+              child: _UnderlineInput(
+                controller: _accusedNameAddressCtrl,
+                readOnly: widget.readOnly,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Outward No.',
-              marathiLabel: 'जावक क्रमांक',
-              controller: _outwardNoCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-            BilingualField(
-              label: 'Year',
-              marathiLabel: 'वर्ष',
-              controller: _outwardYearCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        BilingualField(
-          label: 'Police Station',
-          marathiLabel: 'पोलीस स्टेशन',
-          controller: _policeStationCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Taluka',
-              marathiLabel: 'ता.',
-              controller: _talukaCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-            BilingualField(
-              label: 'District',
-              marathiLabel: 'जिल्हा',
-              controller: _districtCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-          ],
-        ),
-        BilingualField(
-          label: 'Date',
-          marathiLabel: 'दिनांक',
-          controller: _noticeDateCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 12),
-        BilingualMultilineField(
-          label: 'To — Name & Address',
-          marathiLabel: 'प्रति, नाव व पत्ता',
-          controller: _accusedNameAddressCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-          minLines: 2,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Subject: Grounds and reasons for arrest (BNS)',
-          style: serif.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Police Station',
-              marathiLabel: 'पोलीस स्टेशन',
+
+        // Subject (विषय)
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 8,
+          children: [
+            Text('विषय:- पोलीस स्टेशन', style: marathiBold),
+            _UnderlineInput(
               controller: _subjectPsCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+              width: 140,
+              hintText: '[पोलीस स्टेशन]',
+              readOnly: widget.readOnly,
             ),
-            BilingualField(
-              label: 'CR No.',
-              marathiLabel: 'गुन्हा रजि.क्र.',
+            Text('गुन्हा रजि.क्र.', style: marathiBold),
+            _UnderlineInput(
               controller: _subjectCrNoCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+              width: 100,
+              readOnly: widget.readOnly,
             ),
-          ],
-        ),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Section',
-              marathiLabel: 'कलम',
+            Text('कलम', style: marathiBold),
+            _UnderlineInput(
               controller: _subjectSectionCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+              width: 90,
+              readOnly: widget.readOnly,
             ),
-            BilingualField(
-              label: 'BNS',
-              marathiLabel: 'भा.न्या.स.',
-              controller: _subjectBnsCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+            Text(
+              '--- भा.न्या.स. नुसार दाखल असलेल्या गुन्ह्यांचे अनुषंगाने आरोपीस अटक करतांना अटक करण्यासाठी आधारभूत मुद्दे आणि अटकेची कारणे कळविणे बाबत.',
+              style: marathiBody,
             ),
           ],
-        ),
-        BilingualField(
-          label: 'Investigating Officer',
-          marathiLabel: 'तपासी अधिकारी',
-          controller: _ioNameCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 12),
-        BilingualMultilineField(
-          label: 'Brief description of offences',
-          marathiLabel: 'गुन्ह्यांचे संक्षिप्त विवरण',
-          controller: _briefDescriptionCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-          minLines: 3,
         ),
         const SizedBox(height: 16),
-        BilingualSectionHeader(
-          label: 'Reasons for Arrest',
-          marathiLabel: 'अटकेची कारणे',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
+
+        // Main Notice Paragraph (Flowing paragraph with inline blanks)
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 10,
+          children: [
+            const SizedBox(width: 24), // Indent
+            Text(
+              'आपणास या सुचनापत्राद्वारे कळविण्यात येते की,आपल्या विरुद्ध पोलीस ठाणे',
+              style: marathiBody,
+            ),
+            _UnderlineInput(
+              controller: _policeStationCtrl,
+              width: 140,
+              hintText: '[पोलीस ठाणे]',
+              readOnly: widget.readOnly,
+            ),
+            Text('येथे गुन्हा रजि.क्र.', style: marathiBody),
+            _UnderlineInput(
+              controller: _subjectCrNoCtrl,
+              width: 100,
+              readOnly: widget.readOnly,
+            ),
+            Text('/-- कलम', style: marathiBody),
+            _UnderlineInput(
+              controller: _subjectSectionCtrl,
+              width: 100,
+              readOnly: widget.readOnly,
+            ),
+            Text(
+              'भारतीय न्याय संहिता २०२३ अन्वये गुन्हा नोंद करण्यात आला असुन,आम्ही',
+              style: marathiBody,
+            ),
+            _UnderlineInput(
+              controller: _ioNameCtrl,
+              width: 150,
+              hintText: '[तपासी अधिकारी]',
+              readOnly: widget.readOnly,
+            ),
+            Text(
+              'तपासी अधिकारी म्हणून सदर गुन्ह्यांचा तपास करीत आहोत.सदर गुन्ह्यांचे तपासकामी आपणास अटक करणे गरजेचे असून भारतीय नागरीक सुरक्षा संहिता २०२३ चे कलम ३५ (१)(ब)(ii) नुसार ) अटकेची कारणे खालील प्रमाणे आहेत.',
+              style: marathiBody,
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        for (final e in [
-          ('Reason 1', '१.', _reason1Ctrl),
-          ('Reason 2', '२.', _reason2Ctrl),
-          ('Reason 3', '३.', _reason3Ctrl),
-          ('Reason 4', '४.', _reason4Ctrl),
-          ('Reason 5', '५.', _reason5Ctrl),
-        ]) ...[
-          BilingualMultilineField(
-            label: e.$1,
-            marathiLabel: e.$2,
-            controller: e.$3,
-            serifStyle: serif,
-            marathiLabelStyle: marathiLabel,
-            minLines: 2,
+        const SizedBox(height: 20),
+
+        // Reasons Heading
+        Center(
+          child: Text(
+            'अटकेची कारणे (REASONS FOR ARREST)',
+            style: marathiBold.copyWith(fontSize: 14.5),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+        ),
+        const SizedBox(height: 12),
+
+        // Reasons 1 to 5
+        for (final item in [
+          ('१.', _reason1Ctrl),
+          ('२.', _reason2Ctrl),
+          ('३.', _reason3Ctrl),
+          ('४.', _reason4Ctrl),
+          ('५.', _reason5Ctrl),
+        ]) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Text('${item.$1} ', style: marathiBold),
+                ),
+                Expanded(
+                  child: _UnderlineInput(
+                    controller: item.$2,
+                    readOnly: widget.readOnly,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
+        const SizedBox(height: 14),
+
+        // Bottom right continuation marker
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('२..', style: marathiBold),
+        ),
       ],
     );
   }
 
-  Widget _buildPage2(TextStyle serif, TextStyle marathiLabel) {
+  Widget _buildPage2(
+    TextStyle serif,
+    TextStyle marathiBody,
+    TextStyle marathiBold,
+  ) {
     return FormPaperPage(
-      formLabel: widget.pageRange ?? 'Page 2',
+      formLabel: widget.pageRange ?? 'Page 2 — सुचनापत्र (पृष्ठ २)',
       children: [
-        Text(
-          'The offence is cognizable and bailable; you may apply for bail in court. '
-          'Your relative/friend has been informed of the arrest.',
-          style: serif.copyWith(fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'नमुद गुन्हा दखलपात्र असून जामीनपात्र आहे. '
-          'आपल्या अटकेची माहिती नातेवाईक/मित्र यांना देण्यात आली आहे.',
-          style: marathiLabel.copyWith(
-            fontSize: 11,
-            fontWeight: FontWeight.normal,
+        Center(
+          child: Text(
+            '..२..',
+            style: marathiBold.copyWith(fontSize: 16),
+            textAlign: TextAlign.center,
           ),
         ),
-        const SizedBox(height: 16),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Relative / friend name',
-              marathiLabel: 'नातेवाईक/मित्र',
-              controller: _relativeNameCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-            BilingualField(
-              label: 'Address',
-              marathiLabel: 'रा.',
-              controller: _relativeAddressCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-          ],
-        ),
-        BilingualField(
-          label: 'Phone number',
-          marathiLabel: 'फोन क्रमांक',
-          controller: _relativePhoneCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
+
+        // Paragraph 1
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(width: 32),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'I have received the notice',
-                    style: marathiLabel.copyWith(fontSize: 11),
-                  ),
-                  BilingualField(
-                    label: 'Accused signature',
-                    marathiLabel: 'आरोपीची सही',
-                    controller: _accusedSigCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: marathiLabel,
-                  ),
-                  BilingualField(
-                    label: 'Accused name',
-                    marathiLabel: 'आरोपीचे नाव',
-                    controller: _accusedNameSigCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: marathiLabel,
-                  ),
-                  BilingualField(
-                    label: 'Date & time',
-                    marathiLabel: 'दिनांक व वेळ',
-                    controller: _accusedDateTimeCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: marathiLabel,
-                  ),
-                ],
+              child: Text(
+                'आपणास असेही कळविण्यांत येते की, नमुद गुन्हा हा दखलपात्र असुन अजामीनपात्र आहे आणि त्यामुळे आपण त्या गुन्ह्यात न्यायालयात जामिनाचा अर्ज सादर करुन न्यायालयाचे आदेशाने जामिनावर मुक्त होवु शकता.',
+                style: marathiBody,
+                textAlign: TextAlign.justify,
               ),
             ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  BilingualField(
-                    label: 'IO signature',
-                    marathiLabel:
-                        '${FormIoTerminology.officer} — ${FormIoTerminology.signature}',
-                    controller: _ioSigCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: marathiLabel,
-                  ),
-                  BilingualField(
-                    label: 'Name / rank',
-                    marathiLabel: 'नाव/हुद्दा',
-                    controller: _ioNameRankCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: marathiLabel,
-                  ),
-                  BilingualField(
-                    label: 'Police station',
-                    marathiLabel: 'पोलीस स्टेशन',
-                    controller: _ioPsCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: marathiLabel,
-                  ),
-                  BilingualFieldRow(
-                    fields: [
-                      BilingualField(
-                        label: 'Taluka',
-                        marathiLabel: 'ता.',
-                        controller: _ioTalukaCtrl,
-                        serifStyle: serif,
-                        marathiLabelStyle: marathiLabel,
-                      ),
-                      BilingualField(
-                        label: 'District',
-                        marathiLabel: 'जिल्हा',
-                        controller: _ioDistrictCtrl,
-                        serifStyle: serif,
-                        marathiLabelStyle: marathiLabel,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+          ],
+        ),
+        const SizedBox(height: 18),
+
+        // Paragraph 2 (with inline relative/friend name, address, phone number blanks)
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 10,
+          children: [
+            const SizedBox(width: 32), // Indent
+            Text(
+              'आपल्या अटकेची माहीती आपले नातेवाईक/ मित्र',
+              style: marathiBody,
+            ),
+            _UnderlineInput(
+              controller: _relativeNameCtrl,
+              width: 170,
+              hintText: '[नातेवाईक/मित्र नाव]',
+              readOnly: widget.readOnly,
+            ),
+            Text('रा.', style: marathiBody),
+            _UnderlineInput(
+              controller: _relativeAddressCtrl,
+              width: 180,
+              hintText: '[पत्ता]',
+              readOnly: widget.readOnly,
+            ),
+            Text('यांना लेखी सुचनेव्दारे/फोन क्रमांक', style: marathiBody),
+            _UnderlineInput(
+              controller: _relativePhoneCtrl,
+              width: 130,
+              hintText: '[फोन क्रमांक]',
+              readOnly: widget.readOnly,
+            ),
+            Text('यावर संपर्क करुन देण्यांत आली आहे.', style: marathiBody),
+          ],
+        ),
+        const SizedBox(height: 18),
+
+        // Paragraph 3
+        Row(
+          children: [
+            const SizedBox(width: 32),
+            Text(
+              'याकरीता आपणास सुचनापत्र देण्यांत येत आहे.',
+              style: marathiBody,
+            ),
+          ],
+        ),
+        const SizedBox(height: 36),
+
+        // Signatures (Two Columns)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left Column (Accused)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('मला सुचनापत्र प्राप्त झाले', style: marathiBold),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text('(आरोपीची सही', style: marathiBold),
+                    ),
+                    _UnderlineInput(
+                      controller: _accusedSigCtrl,
+                      width: 130,
+                      readOnly: widget.readOnly,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(')', style: marathiBold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text('आरोपीचे नांव ', style: marathiBold),
+                    ),
+                    _UnderlineInput(
+                      controller: _accusedNameSigCtrl,
+                      width: 150,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text('दिनांक:व वेळ ', style: marathiBold),
+                    ),
+                    _UnderlineInput(
+                      controller: _accusedDateTimeCtrl,
+                      width: 160,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            // Right Column (IO)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('तपास अधि सही/-', style: marathiBold),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text('नाव/हुद्दा', style: marathiBold),
+                    ),
+                    _UnderlineInput(
+                      controller: _ioNameRankCtrl,
+                      width: 140,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text('पोलीस स्टेशन', style: marathiBold),
+                    ),
+                    _UnderlineInput(
+                      controller: _ioPsCtrl,
+                      width: 140,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text('ता.', style: marathiBold),
+                    ),
+                    _UnderlineInput(
+                      controller: _ioTalukaCtrl,
+                      width: 75,
+                      readOnly: widget.readOnly,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(' जिल्हा', style: marathiBold),
+                    ),
+                    _UnderlineInput(
+                      controller: _ioDistrictCtrl,
+                      width: 75,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -490,17 +645,81 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
   @override
   Widget build(BuildContext context) {
     final serif = FormTypography.serifStyle();
-    final marathiLabel = FormTypography.marathiLabelStyle();
+    final marathiBold = GoogleFonts.notoSansDevanagari(
+      fontSize: 14,
+      fontWeight: FontWeight.bold,
+      color: Colors.black87,
+    );
+    final marathiBody = GoogleFonts.notoSansDevanagari(
+      fontSize: 14,
+      fontWeight: FontWeight.normal,
+      color: Colors.black87,
+      height: 1.7,
+    );
 
     final pages = <Widget>[];
     if (_showMain) {
-      pages.add(_buildPage1(serif, marathiLabel));
+      pages.add(_buildPage1(serif, marathiBody, marathiBold));
       if (_showContinuation) pages.add(const SizedBox(height: 24));
     }
     if (_showContinuation) {
-      pages.add(_buildPage2(serif, marathiLabel));
+      pages.add(_buildPage2(serif, marathiBody, marathiBold));
     }
 
     return FormViewScaffold(readOnly: widget.readOnly, children: pages);
+  }
+}
+
+class _UnderlineInput extends StatelessWidget {
+  final TextEditingController controller;
+  final double? width;
+  final String? hintText;
+  final bool readOnly;
+
+  const _UnderlineInput({
+    required this.controller,
+    this.width,
+    this.hintText,
+    this.readOnly = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final field = TextField(
+      controller: controller,
+      readOnly: readOnly,
+      maxLines: 1,
+      textAlign: TextAlign.start,
+      scrollPhysics: const NeverScrollableScrollPhysics(),
+      scrollPadding: EdgeInsets.zero,
+      style: GoogleFonts.notoSansDevanagari(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Colors.blue.shade900,
+      ),
+      decoration: InputDecoration(
+        isDense: true,
+        contentPadding: const EdgeInsets.only(bottom: 0, top: 2),
+        hintText: hintText,
+        hintStyle: GoogleFonts.notoSansDevanagari(
+          fontSize: 13,
+          color: Colors.black38,
+        ),
+        border: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black54, width: 1),
+        ),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black54, width: 1),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.blue, width: 1.5),
+        ),
+      ),
+    );
+
+    if (width != null) {
+      return SizedBox(width: width, child: field);
+    }
+    return field;
   }
 }

@@ -11,6 +11,7 @@ import '../widgets/module_hub_screen_app_bar.dart';
 import 'common_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
 import 'module_record_detail_screen.dart';
+import '../utils/ad_disposal_helper.dart';
 
 class HurtCasesScreen extends StatefulWidget {
   final bool readOnly;
@@ -34,11 +35,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
   bool get _showNewCaseFab => !_readOnly;
 
   bool _isDisposalRecord(ModuleRecord r) {
-    final s = r.status.trim().toLowerCase();
-    return s == 'disposal' ||
-        s == 'disposed' ||
-        s == 'closed' ||
-        s == 'resolved';
+    return isRecordDisposal(r);
   }
 
   bool _isPendingRecord(ModuleRecord r) {

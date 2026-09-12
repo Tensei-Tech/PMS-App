@@ -25,19 +25,22 @@ class BilingualSimpleUnderlineInput extends StatelessWidget {
       scrollPhysics: const NeverScrollableScrollPhysics(),
       scrollPadding: EdgeInsets.zero,
       maxLines: 1,
+      cursorColor: Colors.black87,
       style: serifStyle.copyWith(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        color: Colors.blue.shade900,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: serifStyle.color ?? Colors.black87,
       ),
       decoration: InputDecoration(
         isDense: true,
+        filled: false,
+        fillColor: Colors.transparent,
         contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
         border: const UnderlineInputBorder(
           borderSide: BorderSide(color: Colors.black54, width: 1),
         ),
         focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          borderSide: BorderSide(color: Colors.black87, width: 1.5),
         ),
         enabledBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: Colors.black54, width: 0.8),
@@ -149,7 +152,7 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
     final TextStyle textStyle = serifStyle.copyWith(
       fontSize: 14,
       height: _lineHeight / 14.0,
-      color: Colors.blue.shade900,
+      color: serifStyle.color ?? Colors.black87,
       fontWeight: FontWeight.bold,
     );
 

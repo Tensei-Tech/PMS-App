@@ -5,7 +5,10 @@ import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
 
-/// Draft Ground of Arrest — 12-page BNSS reference & notice templates.
+/// Draft Ground of Arrest:
+/// Page 9: अटकेचा आधार (कलम ४७ BNSS) — Notice to Accused
+/// Page 10: नातेवाईक/ मित्रांसाठी अटकेच्या माहितीची नोटीस (कलम ४८ BNSS) — Notice to Relative
+/// Page 11: अटकेचे कारणे [कलम ३५(१)(ब) BNSS ] — Reasons of Arrest to Accused
 class DraftGroundOfArrestFormView extends StatefulWidget {
   final bool readOnly;
   final String? formSection;
@@ -25,22 +28,7 @@ class DraftGroundOfArrestFormView extends StatefulWidget {
 
 class DraftGroundOfArrestFormViewState
     extends State<DraftGroundOfArrestFormView> {
-  int? get _activeSection {
-    final s = widget.formSection?.toLowerCase().trim() ?? '';
-    if (s.isEmpty) return null;
-    if (s.contains('pcr') || s.contains('police custody')) return 3;
-    if (s.contains('reason of arrest') || s.contains('reason for arrest')) {
-      return 2;
-    }
-    if (s.contains('ground of arrest')) return 1;
-    return null;
-  }
-
-  bool get _showSectionI => _activeSection == null || _activeSection == 1;
-  bool get _showSectionII => _activeSection == null || _activeSection == 2;
-  bool get _showSectionIII => _activeSection == null || _activeSection == 3;
-
-  // Shared case / accused fields (pages 9–11)
+  // Shared Accused & Arrest fields
   final _accusedNameCtrl = TextEditingController();
   final _accusedAgeCtrl = TextEditingController();
   final _accusedAddressCtrl = TextEditingController();
@@ -49,62 +37,40 @@ class DraftGroundOfArrestFormViewState
   final _bnsSectionCtrl = TextEditingController();
   final _arrestDateCtrl = TextEditingController();
   final _arrestTimeCtrl = TextEditingController();
+  final _custodyPsCtrl = TextEditingController();
+
+  // Brief facts (shared)
   final _briefFactsCtrl = TextEditingController();
 
-  // Page 9 — Ground of Arrest u/s 47 BNSS
-  bool _goaG1 = false;
-  bool _goaG2 = false;
-  bool _goaG3 = false;
-  bool _goaG4 = false;
-  bool _goaG5 = false;
-  bool _goaG6 = false;
-  bool _goaG7 = false;
-  final _goaWitnessNameCtrl = TextEditingController();
-  final _goaCoAccusedCtrl = TextEditingController();
-  final _goaKinNameCtrl = TextEditingController();
-  final _goaFooterDateCtrl = TextEditingController();
-  final _goaOfficerNameCtrl = TextEditingController();
-  final _goaOfficerRankCtrl = TextEditingController();
-  final _goaAccusedSigCtrl = TextEditingController();
+  // Page 10: Relative / Friend fields
+  final _relativeNameCtrl = TextEditingController();
+  final _relativeAgeCtrl = TextEditingController();
+  final _relativeAddressCtrl = TextEditingController();
+  final _relationshipCtrl = TextEditingController();
 
-  // Page 10 — Relative notice u/s 48 BNSS
-  final _s48RelativeNameCtrl = TextEditingController();
-  final _s48RelativeAgeCtrl = TextEditingController();
-  final _s48RelativeAddressCtrl = TextEditingController();
-  final _s48RelationshipCtrl = TextEditingController();
-  final _s48CustodyPsCtrl = TextEditingController();
-  bool _s48G1 = false;
-  bool _s48G2 = false;
-  bool _s48G3 = false;
-  bool _s48G5 = false;
-  bool _s48G6 = false;
-  final _s48WitnessNameCtrl = TextEditingController();
-  final _s48CoAccusedCtrl = TextEditingController();
-  final _s48DateCtrl = TextEditingController();
-  final _s48PlaceCtrl = TextEditingController();
-  final _s48OfficerSigCtrl = TextEditingController();
-  final _s48RelativeSigCtrl = TextEditingController();
+  // Grounds of arrest (Page 9 & 10)
+  bool _g1Fir = true;
+  bool _g2Witness = true;
+  final _witnessNameCtrl = TextEditingController();
+  bool _g3Cctv = true;
+  bool _g4Recovery = true;
+  bool _g5Confession = true;
+  bool _g6CoAccused = true;
+  final _coAccusedNameCtrl = TextEditingController();
+  bool _g7Cdr = true;
 
-  // Page 11 — Reason of Arrest u/s 35(1)(b) BNSS
-  bool _roaR1 = false;
-  bool _roaR2 = false;
-  bool _roaR3 = false;
-  bool _roaR4 = false;
-  bool _roaR5 = false;
-  final _roaDateCtrl = TextEditingController();
-  final _roaPlaceCtrl = TextEditingController();
-  final _roaOfficerSigCtrl = TextEditingController();
-  final _roaAccusedSigCtrl = TextEditingController();
+  // Reasons of arrest (Page 11)
+  bool _roaR1 = true;
+  bool _roaR2 = true;
+  bool _roaR3 = true;
+  bool _roaR4 = true;
+  bool _roaR5 = true;
 
-  // Page 12 — PCR reasons
-  bool _pcr1 = false;
-  bool _pcr2 = false;
-  bool _pcr3 = false;
-  bool _pcr4 = false;
-  bool _pcr5 = false;
-  bool _pcr6 = false;
-  bool _pcr7 = false;
-  final _pcrOtherCtrl = TextEditingController();
+  // Footer / Signatures
+  final _noticeDateCtrl = TextEditingController();
+  final _noticePlaceCtrl = TextEditingController();
+  final _officerNameCtrl = TextEditingController();
+  final _relativeSigCtrl = TextEditingController();
 
   @override
   void dispose() {
@@ -117,30 +83,18 @@ class DraftGroundOfArrestFormViewState
       _bnsSectionCtrl,
       _arrestDateCtrl,
       _arrestTimeCtrl,
+      _custodyPsCtrl,
       _briefFactsCtrl,
-      _goaWitnessNameCtrl,
-      _goaCoAccusedCtrl,
-      _goaKinNameCtrl,
-      _goaFooterDateCtrl,
-      _goaOfficerNameCtrl,
-      _goaOfficerRankCtrl,
-      _goaAccusedSigCtrl,
-      _s48RelativeNameCtrl,
-      _s48RelativeAgeCtrl,
-      _s48RelativeAddressCtrl,
-      _s48RelationshipCtrl,
-      _s48CustodyPsCtrl,
-      _s48WitnessNameCtrl,
-      _s48CoAccusedCtrl,
-      _s48DateCtrl,
-      _s48PlaceCtrl,
-      _s48OfficerSigCtrl,
-      _s48RelativeSigCtrl,
-      _roaDateCtrl,
-      _roaPlaceCtrl,
-      _roaOfficerSigCtrl,
-      _roaAccusedSigCtrl,
-      _pcrOtherCtrl,
+      _relativeNameCtrl,
+      _relativeAgeCtrl,
+      _relativeAddressCtrl,
+      _relationshipCtrl,
+      _witnessNameCtrl,
+      _coAccusedNameCtrl,
+      _noticeDateCtrl,
+      _noticePlaceCtrl,
+      _officerNameCtrl,
+      _relativeSigCtrl,
     ]) {
       c.dispose();
     }
@@ -151,6 +105,7 @@ class DraftGroundOfArrestFormViewState
     return {
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
+      // Accused details
       'accusedName': _accusedNameCtrl.text.trim(),
       'accusedAge': _accusedAgeCtrl.text.trim(),
       'accusedAddress': _accusedAddressCtrl.text.trim(),
@@ -159,787 +114,1202 @@ class DraftGroundOfArrestFormViewState
       'bnsSection': _bnsSectionCtrl.text.trim(),
       'arrestDate': _arrestDateCtrl.text.trim(),
       'arrestTime': _arrestTimeCtrl.text.trim(),
+      'custodyPs': _custodyPsCtrl.text.trim(),
+      // Facts
       'briefFacts': _briefFactsCtrl.text.trim(),
-      'goaG1': _goaG1,
-      'goaG2': _goaG2,
-      'goaG3': _goaG3,
-      'goaG4': _goaG4,
-      'goaG5': _goaG5,
-      'goaG6': _goaG6,
-      'goaG7': _goaG7,
-      'goaWitnessName': _goaWitnessNameCtrl.text.trim(),
-      'goaCoAccused': _goaCoAccusedCtrl.text.trim(),
-      'goaKinName': _goaKinNameCtrl.text.trim(),
-      'goaFooterDate': _goaFooterDateCtrl.text.trim(),
-      'goaOfficerName': _goaOfficerNameCtrl.text.trim(),
-      'goaOfficerRank': _goaOfficerRankCtrl.text.trim(),
-      'goaAccusedSig': _goaAccusedSigCtrl.text.trim(),
-      's48RelativeName': _s48RelativeNameCtrl.text.trim(),
-      's48RelativeAge': _s48RelativeAgeCtrl.text.trim(),
-      's48RelativeAddress': _s48RelativeAddressCtrl.text.trim(),
-      's48Relationship': _s48RelationshipCtrl.text.trim(),
-      's48CustodyPs': _s48CustodyPsCtrl.text.trim(),
-      's48G1': _s48G1,
-      's48G2': _s48G2,
-      's48G3': _s48G3,
-      's48G5': _s48G5,
-      's48G6': _s48G6,
-      's48WitnessName': _s48WitnessNameCtrl.text.trim(),
-      's48CoAccused': _s48CoAccusedCtrl.text.trim(),
-      's48Date': _s48DateCtrl.text.trim(),
-      's48Place': _s48PlaceCtrl.text.trim(),
-      's48OfficerSig': _s48OfficerSigCtrl.text.trim(),
-      's48RelativeSig': _s48RelativeSigCtrl.text.trim(),
+      // Relative details
+      'relativeName': _relativeNameCtrl.text.trim(),
+      'relativeAge': _relativeAgeCtrl.text.trim(),
+      'relativeAddress': _relativeAddressCtrl.text.trim(),
+      'relationship': _relationshipCtrl.text.trim(),
+      // Grounds
+      'g1Fir': _g1Fir,
+      'g2Witness': _g2Witness,
+      'witnessName': _witnessNameCtrl.text.trim(),
+      'g3Cctv': _g3Cctv,
+      'g4Recovery': _g4Recovery,
+      'g5Confession': _g5Confession,
+      'g6CoAccused': _g6CoAccused,
+      'coAccusedName': _coAccusedNameCtrl.text.trim(),
+      'g7Cdr': _g7Cdr,
+      // Reasons (Section 35(1)(b))
       'roaR1': _roaR1,
       'roaR2': _roaR2,
       'roaR3': _roaR3,
       'roaR4': _roaR4,
       'roaR5': _roaR5,
-      'roaDate': _roaDateCtrl.text.trim(),
-      'roaPlace': _roaPlaceCtrl.text.trim(),
-      'roaOfficerSig': _roaOfficerSigCtrl.text.trim(),
-      'roaAccusedSig': _roaAccusedSigCtrl.text.trim(),
-      'pcr1': _pcr1,
-      'pcr2': _pcr2,
-      'pcr3': _pcr3,
-      'pcr4': _pcr4,
-      'pcr5': _pcr5,
-      'pcr6': _pcr6,
-      'pcr7': _pcr7,
-      'pcrOther': _pcrOtherCtrl.text.trim(),
+      // Footer
+      'noticeDate': _noticeDateCtrl.text.trim(),
+      'noticePlace': _noticePlaceCtrl.text.trim(),
+      'officerName': _officerNameCtrl.text.trim(),
+      'relativeSig': _relativeSigCtrl.text.trim(),
+      // Backward compatibility aliases
+      's48RelativeName': _relativeNameCtrl.text.trim(),
+      's48RelativeAge': _relativeAgeCtrl.text.trim(),
+      's48RelativeAddress': _relativeAddressCtrl.text.trim(),
+      's48Relationship': _relationshipCtrl.text.trim(),
+      's48CustodyPs': _custodyPsCtrl.text.trim(),
+      's48G1': _g1Fir,
+      's48G2': _g2Witness,
+      's48G3': _g3Cctv,
+      's48G5': _g5Confession,
+      's48G6': _g6CoAccused,
+      's48WitnessName': _witnessNameCtrl.text.trim(),
+      's48CoAccused': _coAccusedNameCtrl.text.trim(),
+      's48Date': _noticeDateCtrl.text.trim(),
+      's48Place': _noticePlaceCtrl.text.trim(),
+      's48OfficerSig': _officerNameCtrl.text.trim(),
+      's48RelativeSig': _relativeSigCtrl.text.trim(),
+      'roaDate': _noticeDateCtrl.text.trim(),
+      'roaPlace': _noticePlaceCtrl.text.trim(),
+      'roaOfficerSig': _officerNameCtrl.text.trim(),
+      'roaAccusedSig': _accusedNameCtrl.text.trim(),
     };
   }
 
   void hydrateFrom(Map<String, dynamic> data) {
-    void setCtrl(TextEditingController c, String key) {
-      c.text = data[key]?.toString() ?? '';
+    void setCtrl(TextEditingController c, List<String> keys) {
+      for (final k in keys) {
+        final v = data[k];
+        if (v != null && v.toString().trim().isNotEmpty) {
+          c.text = v.toString().trim();
+          return;
+        }
+      }
     }
 
-    void setBool(void Function(bool) setter, String key) {
-      final v = data[key];
-      if (v is bool) setter(v);
+    void setBool(
+      void Function(bool) setter,
+      List<String> keys,
+      bool defaultVal,
+    ) {
+      for (final k in keys) {
+        final v = data[k];
+        if (v is bool) {
+          setter(v);
+          return;
+        }
+      }
+      setter(defaultVal);
     }
 
-    setCtrl(_accusedNameCtrl, 'accusedName');
-    setCtrl(_accusedAgeCtrl, 'accusedAge');
-    setCtrl(_accusedAddressCtrl, 'accusedAddress');
-    setCtrl(_psNameCtrl, 'psName');
-    setCtrl(_crNoCtrl, 'crNo');
-    setCtrl(_bnsSectionCtrl, 'bnsSection');
-    setCtrl(_arrestDateCtrl, 'arrestDate');
-    setCtrl(_arrestTimeCtrl, 'arrestTime');
-    setCtrl(_briefFactsCtrl, 'briefFacts');
-    setBool((v) => _goaG1 = v, 'goaG1');
-    setBool((v) => _goaG2 = v, 'goaG2');
-    setBool((v) => _goaG3 = v, 'goaG3');
-    setBool((v) => _goaG4 = v, 'goaG4');
-    setBool((v) => _goaG5 = v, 'goaG5');
-    setBool((v) => _goaG6 = v, 'goaG6');
-    setBool((v) => _goaG7 = v, 'goaG7');
-    setCtrl(_goaWitnessNameCtrl, 'goaWitnessName');
-    setCtrl(_goaCoAccusedCtrl, 'goaCoAccused');
-    setCtrl(_goaKinNameCtrl, 'goaKinName');
-    setCtrl(_goaFooterDateCtrl, 'goaFooterDate');
-    setCtrl(_goaOfficerNameCtrl, 'goaOfficerName');
-    setCtrl(_goaOfficerRankCtrl, 'goaOfficerRank');
-    setCtrl(_goaAccusedSigCtrl, 'goaAccusedSig');
-    setCtrl(_s48RelativeNameCtrl, 's48RelativeName');
-    setCtrl(_s48RelativeAgeCtrl, 's48RelativeAge');
-    setCtrl(_s48RelativeAddressCtrl, 's48RelativeAddress');
-    setCtrl(_s48RelationshipCtrl, 's48Relationship');
-    setCtrl(_s48CustodyPsCtrl, 's48CustodyPs');
-    setBool((v) => _s48G1 = v, 's48G1');
-    setBool((v) => _s48G2 = v, 's48G2');
-    setBool((v) => _s48G3 = v, 's48G3');
-    setBool((v) => _s48G5 = v, 's48G5');
-    setBool((v) => _s48G6 = v, 's48G6');
-    setCtrl(_s48WitnessNameCtrl, 's48WitnessName');
-    setCtrl(_s48CoAccusedCtrl, 's48CoAccused');
-    setCtrl(_s48DateCtrl, 's48Date');
-    setCtrl(_s48PlaceCtrl, 's48Place');
-    setCtrl(_s48OfficerSigCtrl, 's48OfficerSig');
-    setCtrl(_s48RelativeSigCtrl, 's48RelativeSig');
-    setBool((v) => _roaR1 = v, 'roaR1');
-    setBool((v) => _roaR2 = v, 'roaR2');
-    setBool((v) => _roaR3 = v, 'roaR3');
-    setBool((v) => _roaR4 = v, 'roaR4');
-    setBool((v) => _roaR5 = v, 'roaR5');
-    setCtrl(_roaDateCtrl, 'roaDate');
-    setCtrl(_roaPlaceCtrl, 'roaPlace');
-    setCtrl(_roaOfficerSigCtrl, 'roaOfficerSig');
-    setCtrl(_roaAccusedSigCtrl, 'roaAccusedSig');
-    setBool((v) => _pcr1 = v, 'pcr1');
-    setBool((v) => _pcr2 = v, 'pcr2');
-    setBool((v) => _pcr3 = v, 'pcr3');
-    setBool((v) => _pcr4 = v, 'pcr4');
-    setBool((v) => _pcr5 = v, 'pcr5');
-    setBool((v) => _pcr6 = v, 'pcr6');
-    setBool((v) => _pcr7 = v, 'pcr7');
-    setCtrl(_pcrOtherCtrl, 'pcrOther');
+    setCtrl(_accusedNameCtrl, ['accusedName']);
+    setCtrl(_accusedAgeCtrl, ['accusedAge']);
+    setCtrl(_accusedAddressCtrl, ['accusedAddress']);
+    setCtrl(_psNameCtrl, ['psName']);
+    setCtrl(_crNoCtrl, ['crNo']);
+    setCtrl(_bnsSectionCtrl, ['bnsSection']);
+    setCtrl(_arrestDateCtrl, ['arrestDate']);
+    setCtrl(_arrestTimeCtrl, ['arrestTime']);
+    setCtrl(_custodyPsCtrl, ['custodyPs', 's48CustodyPs']);
+
+    setCtrl(_briefFactsCtrl, ['briefFacts']);
+
+    setCtrl(_relativeNameCtrl, ['relativeName', 's48RelativeName']);
+    setCtrl(_relativeAgeCtrl, ['relativeAge', 's48RelativeAge']);
+    setCtrl(_relativeAddressCtrl, ['relativeAddress', 's48RelativeAddress']);
+    setCtrl(_relationshipCtrl, ['relationship', 's48Relationship']);
+
+    setBool((v) => _g1Fir = v, ['g1Fir', 's48G1'], true);
+    setBool((v) => _g2Witness = v, ['g2Witness', 's48G2'], true);
+    setCtrl(_witnessNameCtrl, ['witnessName', 's48WitnessName']);
+    setBool((v) => _g3Cctv = v, ['g3Cctv', 's48G3'], true);
+    setBool((v) => _g4Recovery = v, ['g4Recovery'], true);
+    setBool((v) => _g5Confession = v, ['g5Confession', 's48G5'], true);
+    setBool((v) => _g6CoAccused = v, ['g6CoAccused', 's48G6'], true);
+    setCtrl(_coAccusedNameCtrl, ['coAccusedName', 's48CoAccused']);
+    setBool((v) => _g7Cdr = v, ['g7Cdr'], true);
+
+    setBool((v) => _roaR1 = v, ['roaR1'], true);
+    setBool((v) => _roaR2 = v, ['roaR2'], true);
+    setBool((v) => _roaR3 = v, ['roaR3'], true);
+    setBool((v) => _roaR4 = v, ['roaR4'], true);
+    setBool((v) => _roaR5 = v, ['roaR5'], true);
+
+    setCtrl(_noticeDateCtrl, ['noticeDate', 's48Date', 'roaDate']);
+    setCtrl(_noticePlaceCtrl, ['noticePlace', 's48Place', 'roaPlace']);
+    setCtrl(
+        _officerNameCtrl, ['officerName', 's48OfficerSig', 'roaOfficerSig']);
+    setCtrl(_relativeSigCtrl, ['relativeSig', 's48RelativeSig']);
+
     if (mounted) setState(() {});
   }
 
-  Widget _refText(String text, TextStyle serif, {TextStyle? marathi}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: marathi ??
-            serif.copyWith(fontSize: 12, fontWeight: FontWeight.normal),
-      ),
-    );
-  }
-
-  Widget _checkboxRow(
-    String en,
-    String mr,
-    bool value,
-    ValueChanged<bool?> onChanged,
-    TextStyle serif,
-    TextStyle marathi,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Checkbox(
-            value: value,
-            onChanged: widget.readOnly ? null : onChanged,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(en, style: serif.copyWith(fontSize: 12)),
-                Text(mr, style: marathi.copyWith(fontSize: 11)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSharedCaseHeader(
-    TextStyle serif,
-    TextStyle marathi,
-    TextStyle marathiLabel,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildProsecutorBox(
+      String pageLabel, TextStyle serif, TextStyle marathi) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BilingualField(
-          label: 'Name of arrested accused',
-          marathiLabel: 'अटक केलेल्या आरोपीचे नाव',
-          controller: _accusedNameCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
+        const SizedBox(width: 80),
+        Text(
+          pageLabel,
+          style: marathi.copyWith(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+            color: Colors.black87,
+          ),
         ),
-        const SizedBox(height: 12),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Age',
-              marathiLabel: 'वय',
-              controller: _accusedAgeCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-            BilingualField(
-              label: 'Address',
-              marathiLabel: 'पत्ता',
-              controller: _accusedAddressCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Police Station',
-              marathiLabel: 'पोलीस ठाणे',
-              controller: _psNameCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-            BilingualField(
-              label: 'Crime Register No.',
-              marathiLabel: 'गुन्हा रजिस्टर क्र.',
-              controller: _crNoCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'BNS Section',
-              marathiLabel: 'BNS कलम',
-              controller: _bnsSectionCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-            BilingualField(
-              label: 'Arrest date / time',
-              marathiLabel: 'अटक दिनांक / वेळ',
-              controller: _arrestDateCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        BilingualField(
-          label: 'Arrest time (if separate)',
-          marathiLabel: 'अटक वेळ',
-          controller: _arrestTimeCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 12),
-        BilingualMultilineField(
-          label: 'Brief facts of the crime',
-          marathiLabel: 'गुन्ह्याची थोडक्यात हकीकत',
-          controller: _briefFactsCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-          minLines: 3,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionI(
-    TextStyle serif,
-    TextStyle marathi,
-    TextStyle marathiLabel,
-  ) {
-    return FormPaperPage(
-      formLabel: widget.pageRange ?? 'Pages 1–4',
-      children: [
-        BilingualSectionHeader(
-          label: 'Ground of Arrest — Reference (Pages 1–4)',
-          marathiLabel: 'अटकेचा आधार — संदर्भ',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 12),
-        Center(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black87, width: 0.8),
+            borderRadius: BorderRadius.circular(4),
+          ),
           child: Column(
             children: [
               Text(
-                'अटकेचा आधार (Ground of Arrest)',
-                style: marathi.copyWith(
-                  fontSize: 16,
+                'Gaware Ashok',
+                style: serif.copyWith(
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
-                textAlign: TextAlign.center,
               ),
               Text(
-                'अटकेचे कारणे (Reason of Arrest)',
-                style: marathi.copyWith(fontSize: 14),
-                textAlign: TextAlign.center,
+                'Public Prosecutor A.Nagar',
+                style: serif.copyWith(fontSize: 9.5),
               ),
-              Text(
-                'पोलिस कोठडीची कारणे (Reason for PCR)',
-                style: marathi.copyWith(fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
+              Text('9823911047', style: serif.copyWith(fontSize: 9.5)),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        _refText(
-          'प्रस्तावना: व्यक्ती स्वातंत्र्य हे लोकशाहीचे मूलभूत अधिकार आहे. '
-          'भारतीय संविधानाच्या कलम २१ व २२ आणि BNSS २०२३ अंतर्गत अटकेचा '
-          'लेखी आधार देणे बंधनकारक आहे.',
-          serif,
-          marathi: marathi,
-        ),
-        BilingualSectionHeader(
-          label: 'Supreme Court Judgments',
-          marathiLabel: 'माननीय सर्वोच्च न्यायालयाचे न्यायनिर्णय',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        _refText('१) Pankaj Bansal vs. Union of India (2023)', serif),
-        _refText('२) Prabir Purkayastha vs. N.C.T. Delhi (2024)', serif),
-        _refText('३) Vihaan Kumar vs. State of Haryana (2025)', serif),
-        _refText('४) Mihir Rajesh Shah vs. State of Maharashtra (2025)', serif),
-        const SizedBox(height: 8),
-        _refText(
-          'लेखी अटकेचा आधार देणे हे संविधानिक अधिकार आहे. '
-          'केवळ मौखिक माहिती पुरेशी नाही.',
-          serif,
-          marathi: marathi,
-        ),
-        BilingualSectionHeader(
-          label: 'Section 47 BNSS — Grounds of Arrest',
-          marathiLabel: 'कलम ४७ BNSS — अटकेचा आधार',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        _refText(
-          'वॉरंटशिवाय अटक करताना पोलीस अधिकारीने त्वरित लेखी स्वरूपात '
-          'अटकेचा आधार (Grounds of Arrest) देणे आवश्यक आहे. केवळ कलम '
-          'उल्लेख करणे पुरेसे नाही — गुन्हा व पुराव्याचे ठोस तपशील '
-          'द्यावे लागतात.',
-          serif,
-          marathi: marathi,
-        ),
-        BilingualSectionHeader(
-          label: 'Section 35(1)(b) BNSS — Reason of Arrest',
-          marathiLabel: 'कलम ३५(१)(ब) BNSS — अटकेचे कारण',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        _refText(
-          '७ वर्षांपेक्षा कमी शिक्षा असलेल्या गुन्ह्यांसाठी अटकेची '
-          'विशिष्ट कारणे (Reasons of Arrest) डायरीमध्ये लेखी नोंद '
-          'करणे बंधनकारक:',
-          serif,
-          marathi: marathi,
-        ),
-        _refText('१) पुढील गुन्हे टाळण्यासाठी', serif, marathi: marathi),
-        _refText('२) योग्य तपासासाठी', serif, marathi: marathi),
-        _refText(
-          '३) पुरावे नष्ट/बदल होण्यास रोखण्यासाठी',
-          serif,
-          marathi: marathi,
-        ),
-        _refText(
-          '४) साक्षीदारांना धमकवणे/प्रलोभन देणे रोखण्यासाठी',
-          serif,
-          marathi: marathi,
-        ),
-        _refText(
-          '५) न्यायालयात उपस्थिती सुनिश्चित करण्यासाठी',
-          serif,
-          marathi: marathi,
-        ),
-        BilingualSectionHeader(
-          label: 'Section 48 BNSS — Informing Relatives',
-          marathiLabel: 'कलम ४८ BNSS — नातेवाईकांना माहिती',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        _refText(
-          'अटक झाल्यावर नातेवाईक/मित्र/नामनिर्देशित व्यक्तीला अटक व '
-          'ठेवण्याचे ठिकाण लेखी कळवणे बंधनकारक. स्टेशन डायरीमध्ये '
-          'नोंद घेणे आवश्यक.',
-          serif,
-          marathi: marathi,
-        ),
       ],
     );
   }
 
-  Widget _buildSectionII(
-    TextStyle serif,
-    TextStyle marathi,
-    TextStyle marathiLabel,
-  ) {
-    return FormPaperPage(
-      formLabel: widget.pageRange ?? 'Pages 5–8',
-      children: [
-        BilingualSectionHeader(
-          label: 'Reason of Arrest — Reference (Pages 5–8)',
-          marathiLabel: 'अटकेचे कारणे — संदर्भ',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 12),
-        _refText(
-          'Vihaan Kumar (2025): अटकेचा आधार व कारणे स्पष्ट लेखी स्वरूपात '
-          'आरोपीला समजेल अशा भाषेत द्यावे. २-तासांचा नियम — रिमांड '
-          'आधी लेखी आधार देणे आवश्यक.',
-          serif,
-          marathi: marathi,
-        ),
-        BilingualSectionHeader(
-          label: 'Difference: Ground vs Reason vs PCR',
-          marathiLabel: 'अटकेचा आधार, कारणे व PCR यामधील फरक',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 8),
-        Table(
-          border: TableBorder.all(color: Colors.black54, width: 0.8),
-          columnWidths: const {
-            0: FlexColumnWidth(1),
-            1: FlexColumnWidth(1),
-            2: FlexColumnWidth(1),
-          },
-          children: [
-            TableRow(
-              decoration: BoxDecoration(color: Colors.grey.shade200),
-              children: [
-                _tableCell('Ground of Arrest\n(कलम ४७)', serif, bold: true),
-                _tableCell(
-                  'Reason of Arrest\n(कलम ३५(१)(ब))',
-                  serif,
-                  bold: true,
-                ),
-                _tableCell('Reason for PCR\n(कलम १८७)', serif, bold: true),
-              ],
-            ),
-            TableRow(
-              children: [
-                _tableCell(
-                  'Prima facie evidence\n(FIR, CCTV, witness, confession, CDR…)',
-                  serif,
-                ),
-                _tableCell('5 specific reasons\n(≤7 yr offences only)', serif),
-                _tableCell(
-                  'PCR necessity\n(weapon seizure, recovery, motive…)',
-                  serif,
-                ),
-              ],
-            ),
-            TableRow(
-              children: [
-                _tableCell('All offences', serif),
-                _tableCell('≤7 years punishment', serif),
-                _tableCell('All offences', serif),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        BilingualSectionHeader(
-          label: 'Where to record Ground & Reason',
-          marathiLabel: 'अटकेचा आधार/कारणे कोठे नमूद करावे',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        _refText(
-          '१) आरोपीला लेखी अटकेचा आधार (कलम ४७)',
-          serif,
-          marathi: marathi,
-        ),
-        _refText(
-          '२) नातेवाईक/मित्रांना लेखी माहिती (कलम ४८)',
-          serif,
-          marathi: marathi,
-        ),
-        _refText('३) अटकेचे कारण लेखी (कलम ३५(१)(ब))', serif, marathi: marathi),
-        _refText('४) स्टेशन डायरी', serif, marathi: marathi),
-        _refText('५) अटक पंचनामा — कॉलम ८', serif, marathi: marathi),
-        _refText('६) रिमांड रिपोर्ट', serif, marathi: marathi),
-        _refText('७) केस डायरी', serif, marathi: marathi),
-      ],
-    );
+  bool get _showPage9 {
+    final s = (widget.formSection ?? '').toLowerCase();
+    if (s.isEmpty || s.contains('complete')) return true;
+    return s.contains('9') || s.contains('47') || s.contains('आधार');
   }
 
-  Widget _tableCell(String text, TextStyle serif, {bool bold = false}) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Text(
-        text,
-        style: serif.copyWith(
-          fontSize: 11,
-          fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
+  bool get _showPage10 {
+    final s = (widget.formSection ?? '').toLowerCase();
+    if (s.isEmpty || s.contains('complete')) return true;
+    return s.contains('10') || s.contains('48') || s.contains('नातेवाईक');
+  }
+
+  bool get _showPage11 {
+    final s = (widget.formSection ?? '').toLowerCase();
+    if (s.isEmpty || s.contains('complete')) return true;
+    return s.contains('11') || s.contains('35') || s.contains('कारणे');
+  }
+
+  bool get _showAll => !_showPage9 && !_showPage10 && !_showPage11;
+
+  @override
+  Widget build(BuildContext context) {
+    final serif = FormTypography.serifStyle();
+    final marathiBody = FormTypography.marathiLabelStyle(
+      fontWeight: FontWeight.normal,
+    ).copyWith(fontSize: 13, height: 1.6, color: Colors.black87);
+    final marathiBold = FormTypography.marathiLabelStyle(
+      fontWeight: FontWeight.bold,
+    ).copyWith(fontSize: 13, color: Colors.black87);
+
+    final show9 = _showPage9 || _showAll;
+    final show10 = _showPage10 || _showAll;
+    final show11 = _showPage11 || _showAll;
+
+    final pages = <Widget>[];
+    if (show9) {
+      pages.add(_buildPage9(serif, marathiBody, marathiBold));
+    }
+    if (show10) {
+      if (pages.isNotEmpty) pages.add(const SizedBox(height: 32));
+      pages.add(_buildPage10(serif, marathiBody, marathiBold));
+    }
+    if (show11) {
+      if (pages.isNotEmpty) pages.add(const SizedBox(height: 32));
+      pages.add(_buildPage11(serif, marathiBody, marathiBold));
+    }
+
+    return FormViewScaffold(
+      readOnly: widget.readOnly,
+      children: pages,
     );
   }
 
   Widget _buildPage9(
     TextStyle serif,
-    TextStyle marathi,
-    TextStyle marathiLabel,
+    TextStyle marathiBody,
+    TextStyle marathiBold,
   ) {
     return FormPaperPage(
-      formLabel: 'Page 9',
+      formLabel: 'Page 9 of 13 — अटकेचा आधार (कलम ४७ BNSS)',
       children: [
-        BilingualSectionHeader(
-          label: 'Ground of Arrest (Section 47 BNSS)',
-          marathiLabel: 'अटकेचा आधार (कलम ४७ BNSS)',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
+        _buildProsecutorBox('Page 9 of 13', serif, marathiBody),
+        const SizedBox(height: 12),
+
+        // Form Title
+        Center(
+          child: Text(
+            'अटकेचा आधार (कलम ४७ BNSS)',
+            style: marathiBold.copyWith(
+              fontSize: 16,
+              decoration: TextDecoration.underline,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 5),
+
+        // Subtitle
+        Center(
+          child: Text(
+            '(भारतीय नागरिक सुरक्षा संहिता, २०२३ च्या कलम ४७ आणि भारतीय संविधान कलम २२(१) अन्वये तसेच माननीय सर्वोच्च न्यायालयाच्या \'पंकज बन्सल\', \'प्रबीर पुरकायस्थ\', \'विद्वान कुमार\' आणि \'मिहीर शाह\' निवाड्यांमधील मार्गदर्शक तत्त्वांच्या अधीन)',
+            style: marathiBody.copyWith(fontSize: 11),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Paragraph: प्रति & आरोपी नाव
+        Text('प्रति,', style: marathiBold),
+        const SizedBox(height: 8),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('अटक केलेल्या आरोपीचे नाव: ', style: marathiBold),
+            Expanded(
+              child: BilingualSimpleUnderlineInput(
+                controller: _accusedNameCtrl,
+                serifStyle: serif,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
-        _refText(
-          '(As per BNSS 2023 Section 47, Article 22(1) and Supreme Court guidelines)',
-          serif.copyWith(fontSize: 10, fontStyle: FontStyle.italic),
-        ),
-        const SizedBox(height: 12),
-        _buildSharedCaseHeader(serif, marathi, marathiLabel),
-        const SizedBox(height: 16),
-        Text(
-          'Grounds of Arrest / अटकेचे आधार',
-          style: serif.copyWith(fontWeight: FontWeight.bold),
-        ),
-        _checkboxRow(
-          '1. Allegations in FIR by complainant',
-          '१. FIR मधील फिर्यादीचे आरोप',
-          _goaG1,
-          (v) => setState(() => _goaG1 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '2. Eyewitness statement establishes involvement',
-          '२. डोळ्यांनी पाहणाऱ्या साक्षीदाराचे विधान',
-          _goaG2,
-          (v) => setState(() => _goaG2 = v ?? false),
-          serif,
-          marathi,
-        ),
-        BilingualField(
-          label: 'Eyewitness name',
-          marathiLabel: 'साक्षीदाराचे नाव',
-          controller: _goaWitnessNameCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        _checkboxRow(
-          '3. CCTV / digital evidence establishes involvement',
-          '३. CCTV / डिजिटल पुरावा',
-          _goaG3,
-          (v) => setState(() => _goaG3 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '4. Recovery of weapon/stolen property from accused',
-          '४. हत्यार/माल जप्ती',
-          _goaG4,
-          (v) => setState(() => _goaG4 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '5. Accused confessed to the crime',
-          '५. आरोपीने कबुली दिली',
-          _goaG5,
-          (v) => setState(() => _goaG5 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '6. Co-accused named this accused',
-          '६. सह-आरोपीने नाव सांगितले',
-          _goaG6,
-          (v) => setState(() => _goaG6 = v ?? false),
-          serif,
-          marathi,
-        ),
-        BilingualField(
-          label: 'Co-accused name',
-          marathiLabel: 'सह-आरोपीचे नाव',
-          controller: _goaCoAccusedCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        _checkboxRow(
-          '7. Mobile CDR location near crime scene',
-          '७. CDR लोकेशन पुरावा',
-          _goaG7,
-          (v) => setState(() => _goaG7 = v ?? false),
-          serif,
-          marathi,
-        ),
-        const SizedBox(height: 12),
-        BilingualField(
-          label: 'Relative/friend informed (name)',
-          marathiLabel: 'माहिती दिलेले नातेवाईक/मित्र',
-          controller: _goaKinNameCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 16),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Date',
-              marathiLabel: 'दिनांक',
-              controller: _goaFooterDateCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('वय: ', style: marathiBold),
+            SizedBox(
+              width: 60,
+              child: BilingualSimpleUnderlineInput(
+                controller: _accusedAgeCtrl,
+                serifStyle: serif,
+              ),
             ),
-            BilingualField(
-              label: 'Police officer name & rank',
-              marathiLabel: 'पोलीस अधिकारी नाव, हुद्दा',
-              controller: _goaOfficerNameCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+            Text(' वर्ष, पत्ता: ', style: marathiBold),
+            Expanded(
+              child: BilingualSimpleUnderlineInput(
+                controller: _accusedAddressCtrl,
+                serifStyle: serif,
+              ),
             ),
           ],
         ),
-        BilingualField(
-          label: 'Officer rank / stamp',
-          marathiLabel: 'हुद्दा / शिक्का',
-          controller: _goaOfficerRankCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
+        const SizedBox(height: 10),
+
+        // Notice Paragraph (Flowing text with inline blanks)
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 8,
+          children: [
+            Text(
+              'या नोटीसद्वारे तुम्हाला माहिती करण्यात येते की, तुम्हाला पोलीस ठाणे',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 140,
+              child: BilingualSimpleUnderlineInput(
+                controller: _psNameCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('येथे दाखल असलेल्या गुन्हा रजिस्टर क्रमांक',
+                style: marathiBody),
+            SizedBox(
+              width: 130,
+              child: BilingualSimpleUnderlineInput(
+                controller: _crNoCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text(
+              ', अंतर्गत भारतीय न्याय संहिता, २०२३ (BNS) च्या कलम',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 120,
+              child: BilingualSimpleUnderlineInput(
+                controller: _bnsSectionCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text(
+              'अन्वये नोंदवलेल्या गुन्ह्यात आज दिनांक',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 110,
+              child: BilingualSimpleUnderlineInput(
+                controller: _arrestDateCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('रोजी वेळ', style: marathiBody),
+            SizedBox(
+              width: 90,
+              child: BilingualSimpleUnderlineInput(
+                controller: _arrestTimeCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('वाजता अटक करण्यात आली आहे.', style: marathiBody),
+          ],
         ),
-        BilingualField(
-          label: 'Accused signature / thumb',
-          marathiLabel: 'आरोपीचे नाव, सही, अंगठा',
-          controller: _goaAccusedSigCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
+        const SizedBox(height: 14),
+
+        // Brief facts
+        Text('गुन्ह्याची थोडक्यात हकीकत :-', style: marathiBold),
+        const SizedBox(height: 4),
+        TextField(
+          controller: _briefFactsCtrl,
+          maxLines: 2,
+          style: marathiBody.copyWith(
+            color: Colors.blue.shade900,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical: 4),
+            border: UnderlineInputBorder(),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Table 1: Grounds
+        Text('अटकेचा आधार :-', style: marathiBold),
+        const SizedBox(height: 6),
+        Table(
+          border: TableBorder.all(color: Colors.black87, width: 0.8),
+          columnWidths: const {
+            0: FixedColumnWidth(40),
+            1: FlexColumnWidth(1),
+          },
+          children: [
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey.shade200),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Center(child: Text('अ.क्र.', style: marathiBold)),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: Center(
+                    child: Text(
+                      'अटकेचे आधार ( Ground of Arrest )',
+                      style: marathiBold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('१', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'फिर्यादीने दाखल केलेल्या FIR मध्ये तुमचे विरुद्ध आरोप केलेले आहेत.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('२', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('प्रत्यक्षदर्शी साक्षीदार ', style: marathiBody),
+                      SizedBox(
+                        width: 140,
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _witnessNameCtrl,
+                          serifStyle: serif,
+                          hintText: '[नाव]',
+                        ),
+                      ),
+                      Text(
+                        ' यांनी दिलेल्या जबाबानुसार गुन्ह्यामध्ये तुमचा थेट सहभाग असल्याचे निष्पन्न झाले आहे.',
+                        style: marathiBody,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('३', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'घटनास्थळावरील पुराव्यांच्या (CCTV / डिजिटल रेकॉर्ड / मोबाईल व्हिडिओ ) आधारे गुन्ह्यामध्ये तुमचा थेट सहभाग असल्याचे निष्पन्न झाले आहे.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('4', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'गुन्ह्यात वापरलेले हत्यार / चोरीची मालमत्ता / गुन्ह्याशी संबंधित महत्त्वाचे दस्तऐवज हे केवळ तुमच्याकडे असलेल्या माहितीच्या आधारे आणि तुमच्या ताब्यातून हस्तगत करण्यात आले आहेत.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('५', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text('तुम्ही गुन्हा केल्याची कबुली दिली आहे.',
+                      style: marathiBody),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('६', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('गुन्ह्यातील सहआरोपी ', style: marathiBody),
+                      SizedBox(
+                        width: 140,
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _coAccusedNameCtrl,
+                          serifStyle: serif,
+                          hintText: '___________',
+                        ),
+                      ),
+                      Text(
+                        ' यांनी तुम्ही गुन्ह्यामध्ये सहभागी असल्याचे कबुल केले आहे.',
+                        style: marathiBody,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('७', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'मोबाईल CDR वरून घटनेच्या दिवशी तुमचे tower location घटनास्थळाजवळ असल्याचे दिसून आले आहे.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Table 2: Rights of Accused
+        Text('आरोपीचे हक्क /अधिकार :-', style: marathiBold),
+        const SizedBox(height: 6),
+        Table(
+          border: TableBorder.all(color: Colors.black87, width: 0.8),
+          columnWidths: const {
+            0: FixedColumnWidth(40),
+            1: FlexColumnWidth(1),
+          },
+          children: [
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey.shade200),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Center(child: Text('अ.क्र.', style: marathiBold)),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child:
+                      Center(child: Text('आरोपींचे हक्क', style: marathiBold)),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('१', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'तुम्हाला माननीय न्यायालयासमोर हजर केल्यावर जामीन अर्ज सादर करण्याचा पूर्ण कायदेशीर अधिकार आहे.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('२', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'तुमच्या पसंतीच्या कायदेशीर सल्लागाराचा (वकिलाचा) सल्ला घेण्याचा, त्यांना पोलीस कोठडीत भेटण्याचा आणि माननीय न्यायालयासमोर रिमांडला कायदेशीर विरोध करण्याचा पूर्ण अधिकार आहे.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('३', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'तुमच्या अटकेची आणि तुम्हाला ज्या ठिकाणी कोठडीत ठेवण्यात आले आहे त्या ठिकाणाची माहिती तुमच्याद्वारे नामांकित केलेले नातेवाईक/मित्र ',
+                        style: marathiBody,
+                      ),
+                      SizedBox(
+                        width: 170,
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _relativeNameCtrl,
+                          serifStyle: serif,
+                          hintText: '____________________________',
+                        ),
+                      ),
+                      Text(' यांना देण्यात आली आहे.', style: marathiBody),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Page 9 Footer
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('दिनांक :- ', style: marathiBold),
+                SizedBox(
+                  width: 100,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _noticeDateCtrl,
+                    serifStyle: serif,
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                SizedBox(
+                  width: 180,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _officerNameCtrl,
+                    serifStyle: serif,
+                    hintText: 'अधिकारी नाव, हुद्दा',
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('पोलीस अधिकारी नाव, हुद्दा सही शिक्का',
+                    style: marathiBody),
+              ],
+            ),
+            Column(
+              children: [
+                SizedBox(
+                  width: 160,
+                  child: Text(
+                    _accusedNameCtrl.text.isNotEmpty
+                        ? _accusedNameCtrl.text
+                        : '',
+                    style: marathiBold.copyWith(color: Colors.blue.shade900),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('आरोपीचे नाव , सही, अंगठा', style: marathiBody),
+              ],
+            ),
+          ],
         ),
       ],
     );
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  // ── PAGE 2: नातेवाईक/ मित्रांसाठी अटकेची नोटीस (कलम ४८ BNSS) ──
+  // ══════════════════════════════════════════════════════════════════════
   Widget _buildPage10(
     TextStyle serif,
-    TextStyle marathi,
-    TextStyle marathiLabel,
+    TextStyle marathiBody,
+    TextStyle marathiBold,
   ) {
     return FormPaperPage(
-      formLabel: 'Page 10',
+      formLabel:
+          'Page 10 of 13 — नातेवाईक/ मित्रांसाठी अटकेची नोटीस (कलम ४८ BNSS)',
       children: [
-        BilingualSectionHeader(
-          label: 'Arrest Notice for Relative/Friend (Section 48 BNSS)',
-          marathiLabel: 'नातेवाईक/मित्रांसाठी अटकेची नोटीस (कलम ४८ BNSS)',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
+        _buildProsecutorBox('Page 10 of 13', serif, marathiBody),
         const SizedBox(height: 12),
-        BilingualField(
-          label: 'Relative / friend name',
-          marathiLabel: 'नातेवाईक/मित्राचे नाव',
-          controller: _s48RelativeNameCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Age',
-              marathiLabel: 'वय',
-              controller: _s48RelativeAgeCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+
+        // Form Title
+        Center(
+          child: Text(
+            'नातेवाईक/ मित्रांसाठी अटकेच्या माहितीची नोटीस ( कलम ४८ BNSS)',
+            style: marathiBold.copyWith(
+              fontSize: 16,
+              decoration: TextDecoration.underline,
             ),
-            BilingualField(
-              label: 'Address',
-              marathiLabel: 'पत्ता',
-              controller: _s48RelativeAddressCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 5),
+
+        // Subtitle
+        Center(
+          child: Text(
+            '(भारतीय नागरिक सुरक्षा संहिता, २०२३ च्या कलम ४८(१) अन्वये माननीय सर्वोच्च न्यायालयाच्या \'पंकज बन्सल\', \'प्रबीर पुरकायस्थ\', \'विद्वान कुमार\' आणि \'मिहीर शाह\' निवाड्यांमधील मार्गदर्शक तत्त्वांच्या अधीन)',
+            style: marathiBody.copyWith(fontSize: 11),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Section: प्रति (नातेवाईक / मित्र)
+        Text('प्रति,', style: marathiBold),
+        const SizedBox(height: 8),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('नातेवाईक/मित्राचे नाव:- ', style: marathiBold),
+            Expanded(
+              flex: 3,
+              child: BilingualSimpleUnderlineInput(
+                controller: _relativeNameCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text('वय :- ', style: marathiBold),
+            SizedBox(
+              width: 50,
+              child: BilingualSimpleUnderlineInput(
+                controller: _relativeAgeCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text('पत्ता:- ', style: marathiBold),
+            Expanded(
+              flex: 4,
+              child: BilingualSimpleUnderlineInput(
+                controller: _relativeAddressCtrl,
+                serifStyle: serif,
+              ),
             ),
           ],
         ),
-        BilingualField(
-          label: 'Relationship with accused',
-          marathiLabel: 'आरोपीशी असलेले नाते',
-          controller: _s48RelationshipCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
+        const SizedBox(height: 8),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('आरोपीशी असलेले नाते: ', style: marathiBold),
+            Expanded(
+              child: BilingualSimpleUnderlineInput(
+                controller: _relationshipCtrl,
+                serifStyle: serif,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        _buildSharedCaseHeader(serif, marathi, marathiLabel),
-        BilingualField(
-          label: 'Place of detention (police station)',
-          marathiLabel: 'ठेवण्याचे ठिकाण (पोलीस ठाणे)',
-          controller: _s48CustodyPsCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
+        const SizedBox(height: 10),
+
+        // Flowing Paragraph for Page 10
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 8,
+          children: [
+            Text(
+              'या नोटीसद्वारे तुम्हाला, भारतीय नागरिक सुरक्षा संहिता, २०२३ (BNSS) च्या कलम ४८(१) मधील कायदेशीर तरतुदींनुसार अधिकृतपणे सूचित करण्यात येते की, तुमचे/तुमच्या आरोपीचे नाव: ',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 170,
+              child: BilingualSimpleUnderlineInput(
+                controller: _accusedNameCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('वय: ', style: marathiBody),
+            SizedBox(
+              width: 50,
+              child: BilingualSimpleUnderlineInput(
+                controller: _accusedAgeCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('वर्ष, पत्ता:- ', style: marathiBody),
+            SizedBox(
+              width: 160,
+              child: BilingualSimpleUnderlineInput(
+                controller: _accusedAddressCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('यांना पोलीस ठाणे ', style: marathiBody),
+            SizedBox(
+              width: 140,
+              child: BilingualSimpleUnderlineInput(
+                controller: _psNameCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text(
+              'येथे दाखल असलेल्या गुन्हा रजिस्टर क्रमांक (Cr.No.) ',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 120,
+              child: BilingualSimpleUnderlineInput(
+                controller: _crNoCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text(
+              ', अंतर्गत भारतीय न्याय संहिता, २०२३ (BNS) च्या कलम ',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 120,
+              child: BilingualSimpleUnderlineInput(
+                controller: _bnsSectionCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text(
+              'अन्वये नोंदवलेल्या गुन्ह्याच्या तपासाच्या अनुषंगाने आज दिनांक ',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 110,
+              child: BilingualSimpleUnderlineInput(
+                controller: _arrestDateCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('रोजी वेळ ', style: marathiBody),
+            SizedBox(
+              width: 90,
+              child: BilingualSimpleUnderlineInput(
+                controller: _arrestTimeCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('वाजता कायदेशीररीत्या अटक करण्यात आली आहे.',
+                style: marathiBody),
+          ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
+
+        // Brief facts
+        Text('गुन्ह्याची थोडक्यात हकीकत :-', style: marathiBold),
+        const SizedBox(height: 4),
+        TextField(
+          controller: _briefFactsCtrl,
+          maxLines: 2,
+          style: marathiBody.copyWith(
+            color: Colors.blue.shade900,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical: 4),
+            border: UnderlineInputBorder(),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54),
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Table Header Intro
         Text(
-          'Grounds of Arrest / अटकेचे आधार',
-          style: serif.copyWith(fontWeight: FontWeight.bold),
+          'आरोपीच्या अटकेबाबत तुम्हाला खालील बाबींची लेखी माहिती देण्यात येत आहे:-',
+          style: marathiBold,
         ),
-        _checkboxRow(
-          '1. Crime mentioned in FIR',
-          '१. FIR मध्ये गुन्ह्याचा उल्लेख',
-          _s48G1,
-          (v) => setState(() => _s48G1 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '2. Eyewitness establishes involvement',
-          '२. साक्षीदाराचे विधान',
-          _s48G2,
-          (v) => setState(() => _s48G2 = v ?? false),
-          serif,
-          marathi,
-        ),
-        BilingualField(
-          label: 'Eyewitness name',
-          marathiLabel: 'साक्षीदाराचे नाव',
-          controller: _s48WitnessNameCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        _checkboxRow(
-          '3. CCTV / digital records',
-          '३. CCTV / डिजिटल रेकॉर्ड',
-          _s48G3,
-          (v) => setState(() => _s48G3 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '5. Accused confessed',
-          '५. आरोपीने कबुली दिली',
-          _s48G5,
-          (v) => setState(() => _s48G5 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '6. Co-accused named this accused',
-          '६. सह-आरोपीने नाव सांगितले',
-          _s48G6,
-          (v) => setState(() => _s48G6 = v ?? false),
-          serif,
-          marathi,
-        ),
-        BilingualField(
-          label: 'Co-accused name',
-          marathiLabel: 'सह-आरोपीचे नाव',
-          controller: _s48CoAccusedCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 12),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Date',
-              marathiLabel: 'दिनांक',
-              controller: _s48DateCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+        const SizedBox(height: 6),
+
+        // Table 1: Information regarding arrest
+        Table(
+          border: TableBorder.all(color: Colors.black87, width: 0.8),
+          columnWidths: const {
+            0: FixedColumnWidth(40),
+            1: FlexColumnWidth(1),
+          },
+          children: [
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey.shade200),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Center(child: Text('अ.क्र.', style: marathiBold)),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: Center(
+                      child: Text('अटकेबाबत माहिती', style: marathiBold)),
+                ),
+              ],
             ),
-            BilingualField(
-              label: 'Place',
-              marathiLabel: 'ठिकाण',
-              controller: _s48PlaceCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('१.', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('आरोपी नाव ', style: marathiBody),
+                      Text(
+                        _accusedNameCtrl.text.isNotEmpty
+                            ? _accusedNameCtrl.text
+                            : '___________________',
+                        style:
+                            marathiBold.copyWith(color: Colors.blue.shade900),
+                      ),
+                      Text(' यांना गुन्हा रजिस्टर क्रमांक ',
+                          style: marathiBody),
+                      Text(
+                        _crNoCtrl.text.isNotEmpty
+                            ? _crNoCtrl.text
+                            : '_______________',
+                        style:
+                            marathiBold.copyWith(color: Colors.blue.shade900),
+                      ),
+                      Text(
+                          ', अंतर्गत भारतीय न्याय संहिता, २०२३ (BNS) च्या कलम ',
+                          style: marathiBody),
+                      Text(
+                        _bnsSectionCtrl.text.isNotEmpty
+                            ? _bnsSectionCtrl.text
+                            : '__________________',
+                        style:
+                            marathiBold.copyWith(color: Colors.blue.shade900),
+                      ),
+                      Text(
+                        ' अन्वये नोंदवलेल्या गुन्ह्याच्या तपासाच्या अनुषंगाने कायदेशीररीत्या अटक करण्यात आली असून सदर आरोपीला सध्या [पोलीस ठाण्याचे नाव ',
+                        style: marathiBody,
+                      ),
+                      SizedBox(
+                        width: 140,
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _custodyPsCtrl,
+                          serifStyle: serif,
+                          hintText: _psNameCtrl.text.isNotEmpty
+                              ? _psNameCtrl.text
+                              : 'पोलीस ठाणे',
+                        ),
+                      ),
+                      Text('] येथे ठेवण्यात आले आहे.', style: marathiBody),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('२.', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'आरोपीला माननीय न्यायालयासमोर हजर केल्यावर जामीन अर्ज सादर करण्याचा पूर्ण कायदेशीर अधिकार आहे.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('३.', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'तुमच्या पसंतीच्या कायदेशीर सल्लागाराचा (वकिलाचा) सल्ला घेण्याचा, त्यांना पोलीस कोठडीत भेटण्याचा आणि माननीय न्यायालयासमोर रिमांडला कायदेशीर विरोध करण्याचा पूर्ण अधिकार आहे.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Police officer signature',
-              marathiLabel: 'पोलीस अधिकारी नाव, सही, शिक्का',
-              controller: _s48OfficerSigCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+        const SizedBox(height: 10),
+
+        // Table 2: Grounds of Arrest
+        Table(
+          border: TableBorder.all(color: Colors.black87, width: 0.8),
+          columnWidths: const {
+            0: FixedColumnWidth(40),
+            1: FlexColumnWidth(1),
+          },
+          children: [
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey.shade200),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Center(child: Text('अ.क्र.', style: marathiBold)),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: Center(
+                    child: Text(
+                      'अटकेचे आधार (Ground of Arrest )',
+                      style: marathiBold,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            BilingualField(
-              label: 'Relative/friend signature',
-              marathiLabel: 'नातेवाईक/मित्र सही, अंगठा',
-              controller: _s48RelativeSigCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('१', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'FIR मध्ये आरोपीने सदर गुन्हा केल्याचा उल्लेख आहे.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('२', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('प्रत्यक्षदर्शी साक्षीदार ', style: marathiBody),
+                      SizedBox(
+                        width: 140,
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _witnessNameCtrl,
+                          serifStyle: serif,
+                          hintText: '[नाव]',
+                        ),
+                      ),
+                      Text(
+                        ' यांनी दिलेल्या जबाबानुसार गुन्ह्यामध्ये आरोपीचा थेट सहभाग असल्याचे निष्पन्न झाले आहे.',
+                        style: marathiBody,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('३', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'घटनास्थळावरील पुराव्यांच्या CCTV/डिजिटल रेकॉर्ड आधारे गुन्ह्यामध्ये थेट सहभाग असल्याचे निष्पन्न झाले आहे.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('५', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text('आरोपीने गुन्हा केल्याची कबुली दिली आहे.',
+                      style: marathiBody),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('६', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('गुन्ह्यातील सहआरोपी ', style: marathiBody),
+                      SizedBox(
+                        width: 140,
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _coAccusedNameCtrl,
+                          serifStyle: serif,
+                          hintText: '___________',
+                        ),
+                      ),
+                      Text(
+                        ' यांनी गुन्ह्यामध्ये आरोपी सहभागी असल्याचे कबुल केले आहे.',
+                        style: marathiBody,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Page 10 Footer
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('दिनांक :- ', style: marathiBold),
+                    SizedBox(
+                      width: 90,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _noticeDateCtrl,
+                        serifStyle: serif,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('ठिकाण :- ', style: marathiBold),
+                    SizedBox(
+                      width: 90,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _noticePlaceCtrl,
+                        serifStyle: serif,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                SizedBox(
+                  width: 180,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _officerNameCtrl,
+                    serifStyle: serif,
+                    hintText: 'अधिकारी नाव, हुद्दा',
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('पोलीस अधिकारी नाव सही शिक्का', style: marathiBody),
+              ],
+            ),
+            Column(
+              children: [
+                SizedBox(
+                  width: 180,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _relativeSigCtrl,
+                    serifStyle: serif,
+                    hintText: 'नातेवाईक/मित्र नाव',
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('नातेवाईक/ मित्र यांचे नाव , सही, अंगठा',
+                    style: marathiBody),
+              ],
             ),
           ],
         ),
@@ -947,230 +1317,357 @@ class DraftGroundOfArrestFormViewState
     );
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  // ── PAGE 3: अटकेचे कारणे [कलम ३५(१)(ब) BNSS ] — Page 11 of 13 ──
+  // ══════════════════════════════════════════════════════════════════════
   Widget _buildPage11(
     TextStyle serif,
-    TextStyle marathi,
-    TextStyle marathiLabel,
+    TextStyle marathiBody,
+    TextStyle marathiBold,
   ) {
     return FormPaperPage(
-      formLabel: 'Page 11',
+      formLabel: 'Page 11 of 13 — अटकेचे कारणे [कलम ३५(१)(ब) BNSS ]',
       children: [
-        BilingualSectionHeader(
-          label: 'Reason of Arrest (Section 35(1)(b) BNSS)',
-          marathiLabel: 'अटकेचे कारणे [कलम ३५(१)(ब) BNSS]',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
+        _buildProsecutorBox('Page 11 of 13', serif, marathiBody),
+        const SizedBox(height: 12),
+
+        // Form Title
+        Center(
+          child: Text(
+            'अटकेचे कारणे [कलम ३५(१)(ब) BNSS ]',
+            style: marathiBold.copyWith(
+              fontSize: 16,
+              decoration: TextDecoration.underline,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
-        const SizedBox(height: 12),
-        _buildSharedCaseHeader(serif, marathi, marathiLabel),
-        const SizedBox(height: 12),
+        const SizedBox(height: 5),
+
+        // Subtitle
+        Center(
+          child: Text(
+            '(भारतीय नागरिक सुरक्षा संहिता,२०२३ कलम ३५(१)(ब) अन्वये मा.सर्वोच्च न्यायालयाच्या मार्गदर्शक तत्त्वांच्या निकषांच्या अधीन)',
+            style: marathiBody.copyWith(fontSize: 11),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Recipient block
+        Text('प्रति,', style: marathiBold),
+        const SizedBox(height: 8),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('अटक केलेल्या आरोपीचे नाव:- ', style: marathiBold),
+            Expanded(
+              child: BilingualSimpleUnderlineInput(
+                controller: _accusedNameCtrl,
+                serifStyle: serif,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('वय:- ', style: marathiBold),
+            SizedBox(
+              width: 60,
+              child: BilingualSimpleUnderlineInput(
+                controller: _accusedAgeCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text(' वर्ष, पत्ता:- ', style: marathiBold),
+            Expanded(
+              child: BilingualSimpleUnderlineInput(
+                controller: _accusedAddressCtrl,
+                serifStyle: serif,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Flowing Paragraph for Page 11
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 8,
+          children: [
+            Text(
+              'या नोटीसद्वारे तुम्हाला सूचित करण्यात येते की, पोलीस ठाणे',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 140,
+              child: BilingualSimpleUnderlineInput(
+                controller: _psNameCtrl,
+                serifStyle: serif,
+                hintText: '[पोलीस ठाण्याचे नाव]',
+              ),
+            ),
+            Text('येथे दाखल असलेल्या गुन्हा रजिस्टर क्रमांक',
+                style: marathiBody),
+            SizedBox(
+              width: 130,
+              child: BilingualSimpleUnderlineInput(
+                controller: _crNoCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text(
+              ', अंतर्गत भारतीय न्याय संहिता, २०२३ (BNS) च्या कलम',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 120,
+              child: BilingualSimpleUnderlineInput(
+                controller: _bnsSectionCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text(
+              'अन्वये नोंदवलेल्या गुन्ह्यात तपासाच्या अनुषंगाने आज दिनांक',
+              style: marathiBody,
+            ),
+            SizedBox(
+              width: 110,
+              child: BilingualSimpleUnderlineInput(
+                controller: _arrestDateCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('रोजी वेळ', style: marathiBody),
+            SizedBox(
+              width: 90,
+              child: BilingualSimpleUnderlineInput(
+                controller: _arrestTimeCtrl,
+                serifStyle: serif,
+              ),
+            ),
+            Text('वाजता अटक करण्यात आली आहे.', style: marathiBody),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // Brief facts
         Text(
-          'Reasons for Arrest / अटकेची कारणे',
-          style: serif.copyWith(fontWeight: FontWeight.bold),
+          'गुन्ह्याची थोडक्यात हकीकत :-',
+          style: marathiBold.copyWith(decoration: TextDecoration.underline),
         ),
-        _checkboxRow(
-          '1. To prevent further crimes',
-          '१. पुढील गुन्हे टाळण्यासाठी',
-          _roaR1,
-          (v) => setState(() => _roaR1 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '2. For proper investigation',
-          '२. योग्य तपासासाठी',
-          _roaR2,
-          (v) => setState(() => _roaR2 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '3. To prevent tampering with evidence',
-          '३. पुरावे नष्ट/बदल होण्यास रोखण्यासाठी',
-          _roaR3,
-          (v) => setState(() => _roaR3 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '4. To prevent threatening/inducing witnesses',
-          '४. साक्षीदारांना धमकवणे/प्रलोभन देणे रोखण्यासाठी',
-          _roaR4,
-          (v) => setState(() => _roaR4 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '5. To ensure presence in court',
-          '५. न्यायालयात उपस्थिती सुनिश्चित करण्यासाठी',
-          _roaR5,
-          (v) => setState(() => _roaR5 = v ?? false),
-          serif,
-          marathi,
-        ),
-        const SizedBox(height: 12),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Date',
-              marathiLabel: 'दिनांक',
-              controller: _roaDateCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+        const SizedBox(height: 4),
+        TextField(
+          controller: _briefFactsCtrl,
+          maxLines: 3,
+          style: marathiBody.copyWith(
+            color: Colors.blue.shade900,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical: 4),
+            border: UnderlineInputBorder(),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54),
             ),
-            BilingualField(
-              label: 'Place',
-              marathiLabel: 'ठिकाण',
-              controller: _roaPlaceCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Table Header Intro
+        Text(
+          'अटकेची कारणे (Reasons for Arrest) खालीलप्रमाणे लिखित स्वरूपात पुरवण्यात येत आहेत:-',
+          style: marathiBold.copyWith(decoration: TextDecoration.underline),
+        ),
+        const SizedBox(height: 6),
+
+        // Table: Reasons of Arrest (Section 35(1)(b))
+        Table(
+          border: TableBorder.all(color: Colors.black87, width: 0.8),
+          columnWidths: const {
+            0: FixedColumnWidth(40),
+            1: FlexColumnWidth(1),
+          },
+          children: [
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey.shade200),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Center(child: Text('अ.क्र.', style: marathiBold)),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: Center(
+                    child: Text(
+                      'अटकेचे कारणे ( Reason of Arrest )',
+                      style: marathiBold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('१', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'या पुढे कोणताही गुन्हा करण्यास प्रतिबंध करण्यासाठी अटक करण्यात आली आहे.',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('२', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'गुन्ह्याचा योग्य तपास / अन्वेषण करण्यासाठी .',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('३', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'गुन्ह्यातील पुरावा नष्ट किंवा पुराव्यांशी छेडछाड / फेरफार करण्यापासून रोखण्यासाठी',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('४', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'गुन्ह्यातील साक्षीदारांना धाक, धाकदपटशा, वचन किंवा प्रलोभन देण्यापासून रोखणे, धमकावण्यापासून रोखण्यासाठी',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Center(child: Text('५', style: marathiBold)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    'न्यायालयातील उपस्थिती निश्चित करण्यासाठी अटक न केल्यास तुम्ही तपासातून आणि न्यायालयाच्या प्रक्रियेतून फरार होण्याची शक्यता आहे',
+                    style: marathiBody,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Police officer signature',
-              marathiLabel: 'पोलीस अधिकारी नाव, सही, शिक्का',
-              controller: _roaOfficerSigCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+        const SizedBox(height: 24),
+
+        // Page 11 Footer
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('दिनांक :- ', style: marathiBold),
+                    SizedBox(
+                      width: 90,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _noticeDateCtrl,
+                        serifStyle: serif,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('ठिकाण :- ', style: marathiBold),
+                    SizedBox(
+                      width: 90,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _noticePlaceCtrl,
+                        serifStyle: serif,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            BilingualField(
-              label: 'Accused signature / thumb',
-              marathiLabel: 'आरोपीचे नाव, सही, अंगठा',
-              controller: _roaAccusedSigCtrl,
-              serifStyle: serif,
-              marathiLabelStyle: marathiLabel,
+            Column(
+              children: [
+                SizedBox(
+                  width: 180,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _officerNameCtrl,
+                    serifStyle: serif,
+                    hintText: 'अधिकारी नाव, हुद्दा',
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('पोलीस अधिकारी नाव सही शिक्का', style: marathiBody),
+              ],
+            ),
+            Column(
+              children: [
+                SizedBox(
+                  width: 160,
+                  child: AnimatedBuilder(
+                    animation: _accusedNameCtrl,
+                    builder: (context, _) => Text(
+                      _accusedNameCtrl.text.isNotEmpty
+                          ? _accusedNameCtrl.text
+                          : '',
+                      style: marathiBold.copyWith(
+                        color: Colors.blue.shade900,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text('आरोपीचे नाव , सही, अंगठा', style: marathiBody),
+              ],
             ),
           ],
         ),
       ],
     );
-  }
-
-  Widget _buildPage12(
-    TextStyle serif,
-    TextStyle marathi,
-    TextStyle marathiLabel,
-  ) {
-    return FormPaperPage(
-      formLabel: 'Page 12',
-      children: [
-        BilingualSectionHeader(
-          label: 'Reasons for Police Custody (PCR)',
-          marathiLabel: 'पोलिस कोठडीची कारणे (PCR)',
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-        ),
-        const SizedBox(height: 12),
-        _checkboxRow(
-          '1. Weapon used in crime yet to be seized',
-          '१) गुन्ह्यात वापरलेले हत्यार जप्त करणे बाकी',
-          _pcr1,
-          (v) => setState(() => _pcr1 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '2. To ascertain motive behind the crime',
-          '२) गुन्हा करण्यामागील हेतू माहित करावयाचा',
-          _pcr2,
-          (v) => setState(() => _pcr2 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '3. To identify other co-accused',
-          '३) अजून कोणी आरोपी आहेत का याची माहिती',
-          _pcr3,
-          (v) => setState(() => _pcr3 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '4. To recover stolen cash/gold ornaments',
-          '४) चोरी गेलेली रक्कम, सोन्याचे अलंकार जप्त',
-          _pcr4,
-          (v) => setState(() => _pcr4 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '5. To seize vehicle used in crime',
-          '५) गुन्ह्यात वापरलेले वाहन जप्त',
-          _pcr5,
-          (v) => setState(() => _pcr5 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '6. To seize accused clothing',
-          '६) आरोपीचे कपडे जप्त',
-          _pcr6,
-          (v) => setState(() => _pcr6 = v ?? false),
-          serif,
-          marathi,
-        ),
-        _checkboxRow(
-          '7. Blood sample yet to be taken',
-          '७) आरोपीचे ब्लड सॅम्पल घेणे बाकी',
-          _pcr7,
-          (v) => setState(() => _pcr7 = v ?? false),
-          serif,
-          marathi,
-        ),
-        BilingualMultilineField(
-          label: '8. Other (specify)',
-          marathiLabel: '८) इत्यादी',
-          controller: _pcrOtherCtrl,
-          serifStyle: serif,
-          marathiLabelStyle: marathiLabel,
-          minLines: 2,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionIII(
-    TextStyle serif,
-    TextStyle marathi,
-    TextStyle marathiLabel,
-  ) {
-    return Column(
-      children: [
-        _buildPage9(serif, marathi, marathiLabel),
-        const SizedBox(height: 24),
-        _buildPage10(serif, marathi, marathiLabel),
-        const SizedBox(height: 24),
-        _buildPage11(serif, marathi, marathiLabel),
-        const SizedBox(height: 24),
-        _buildPage12(serif, marathi, marathiLabel),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final serif = FormTypography.serifStyle();
-    final marathi = FormTypography.marathiLabelStyle(
-      fontWeight: FontWeight.normal,
-    );
-    final marathiLabel = FormTypography.marathiLabelStyle();
-
-    final pages = <Widget>[];
-    if (_showSectionI) {
-      pages.add(_buildSectionI(serif, marathi, marathiLabel));
-      pages.add(const SizedBox(height: 24));
-    }
-    if (_showSectionII) {
-      pages.add(_buildSectionII(serif, marathi, marathiLabel));
-      pages.add(const SizedBox(height: 24));
-    }
-    if (_showSectionIII) {
-      pages.add(_buildSectionIII(serif, marathi, marathiLabel));
-    }
-
-    return FormViewScaffold(readOnly: widget.readOnly, children: pages);
   }
 }

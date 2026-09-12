@@ -357,10 +357,37 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   final _panIoNoCtrl = TextEditingController();
   final _panIoPostingCtrl = TextEditingController();
 
-  // Page 10: Simplified Marathi Inquest
+  // Page 10: Simplified Marathi Inquest (Marananveshan)
   final _marThikanCtrl = TextEditingController();
   final _marDateCtrl = TextEditingController();
+  final _marDateDayCtrl = TextEditingController();
+  final _marDateMonthCtrl = TextEditingController();
+  final _marDateYearCtrl = TextEditingController();
+
+  String get _marDateCombined {
+    final d = _marDateDayCtrl.text.trim();
+    final m = _marDateMonthCtrl.text.trim();
+    final y = _marDateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _marDateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
   final _marTimeCtrl = TextEditingController();
+  final _marTimeHoursCtrl = TextEditingController();
+  final _marTimeMinutesCtrl = TextEditingController();
+
+  String get _marTimeCombined {
+    final h = _marTimeHoursCtrl.text.trim();
+    final min = _marTimeMinutesCtrl.text.trim();
+    if (h.isEmpty && min.isEmpty) {
+      return _marTimeCtrl.text.trim();
+    }
+    return '$h:$min';
+  }
+
   final _marPanchNameAddressCtrl = TextEditingController();
   final _marPsCtrl = TextEditingController();
   final _marDistCtrl = TextEditingController();
@@ -428,12 +455,43 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   final _ptpPsCtrl = TextEditingController();
   final _ptpCampCtrl = TextEditingController();
   final _ptpDateCtrl = TextEditingController();
+  final _ptpDateDayCtrl = TextEditingController();
+  final _ptpDateMonthCtrl = TextEditingController();
+  final _ptpDateYearCtrl = TextEditingController();
+
+  String get _ptpDateCombined {
+    final d = _ptpDateDayCtrl.text.trim();
+    final m = _ptpDateMonthCtrl.text.trim();
+    final y = _ptpDateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _ptpDateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
   final _ptpReceiverNameCtrl = TextEditingController();
   final _ptpReceiverRaCtrl = TextEditingController();
   final _ptpReceiverTaCtrl = TextEditingController();
   final _ptpReceiverDistCtrl = TextEditingController();
   final _ptpMoNoCtrl = TextEditingController();
+
   final _ptpReceiptDateCtrl = TextEditingController();
+  final _ptpReceiptDateDayCtrl = TextEditingController();
+  final _ptpReceiptDateMonthCtrl = TextEditingController();
+  final _ptpReceiptDateYearCtrl = TextEditingController();
+
+  String get _ptpReceiptDateCombined {
+    final d = _ptpReceiptDateDayCtrl.text.trim();
+    final m = _ptpReceiptDateMonthCtrl.text.trim();
+    final y = _ptpReceiptDateYearCtrl.text.trim();
+    if (d.isEmpty && m.isEmpty && y.isEmpty) {
+      return _ptpReceiptDateCtrl.text.trim();
+    }
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
   final _ptpDeceasedNameCtrl = TextEditingController();
   final _ptpDeceasedRaCtrl = TextEditingController();
   final _ptpDeceasedDistCtrl = TextEditingController();
@@ -786,7 +844,26 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     // Page 10
     _marThikanCtrl.text = doc['marThikan'] ?? '';
     _marDateCtrl.text = doc['marDate'] ?? '';
+    _marDateDayCtrl.text = doc['marDateDay']?.toString() ?? '';
+    _marDateMonthCtrl.text = doc['marDateMonth']?.toString() ?? '';
+    _marDateYearCtrl.text = doc['marDateYear']?.toString() ?? '';
+    if (_marDateDayCtrl.text.isEmpty && _marDateCtrl.text.contains('/')) {
+      final parts = _marDateCtrl.text.split('/');
+      if (parts.isNotEmpty) _marDateDayCtrl.text = parts[0];
+      if (parts.length > 1) _marDateMonthCtrl.text = parts[1];
+      if (parts.length > 2) {
+        final yr = parts[2].replaceAll(RegExp(r'^20'), '');
+        _marDateYearCtrl.text = yr;
+      }
+    }
     _marTimeCtrl.text = doc['marTime'] ?? '';
+    _marTimeHoursCtrl.text = doc['marTimeHours']?.toString() ?? '';
+    _marTimeMinutesCtrl.text = doc['marTimeMinutes']?.toString() ?? '';
+    if (_marTimeHoursCtrl.text.isEmpty && _marTimeCtrl.text.contains(':')) {
+      final parts = _marTimeCtrl.text.split(':');
+      if (parts.isNotEmpty) _marTimeHoursCtrl.text = parts[0];
+      if (parts.length > 1) _marTimeMinutesCtrl.text = parts[1];
+    }
     _marPanchNameAddressCtrl.text = doc['marPanchNameAddress'] ?? '';
     _marPsCtrl.text = doc['marPs'] ?? '';
     _marDistCtrl.text = doc['marDist'] ?? '';
@@ -854,12 +931,38 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _ptpPsCtrl.text = doc['ptpPs'] ?? '';
     _ptpCampCtrl.text = doc['ptpCamp'] ?? '';
     _ptpDateCtrl.text = doc['ptpDate'] ?? '';
+    _ptpDateDayCtrl.text = doc['ptpDateDay']?.toString() ?? '';
+    _ptpDateMonthCtrl.text = doc['ptpDateMonth']?.toString() ?? '';
+    _ptpDateYearCtrl.text = doc['ptpDateYear']?.toString() ?? '';
+    if (_ptpDateDayCtrl.text.isEmpty && _ptpDateCtrl.text.contains('/')) {
+      final parts = _ptpDateCtrl.text.split('/');
+      if (parts.isNotEmpty) _ptpDateDayCtrl.text = parts[0];
+      if (parts.length > 1) _ptpDateMonthCtrl.text = parts[1];
+      if (parts.length > 2) {
+        final yr = parts[2].replaceAll(RegExp(r'^20'), '');
+        _ptpDateYearCtrl.text = yr;
+      }
+    }
     _ptpReceiverNameCtrl.text = doc['ptpReceiverName'] ?? '';
     _ptpReceiverRaCtrl.text = doc['ptpReceiverRa'] ?? '';
     _ptpReceiverTaCtrl.text = doc['ptpReceiverTa'] ?? '';
     _ptpReceiverDistCtrl.text = doc['ptpReceiverDist'] ?? '';
     _ptpMoNoCtrl.text = doc['ptpMoNo'] ?? '';
     _ptpReceiptDateCtrl.text = doc['ptpReceiptDate'] ?? '';
+    _ptpReceiptDateDayCtrl.text = doc['ptpReceiptDateDay']?.toString() ?? '';
+    _ptpReceiptDateMonthCtrl.text =
+        doc['ptpReceiptDateMonth']?.toString() ?? '';
+    _ptpReceiptDateYearCtrl.text = doc['ptpReceiptDateYear']?.toString() ?? '';
+    if (_ptpReceiptDateDayCtrl.text.isEmpty &&
+        _ptpReceiptDateCtrl.text.contains('/')) {
+      final parts = _ptpReceiptDateCtrl.text.split('/');
+      if (parts.isNotEmpty) _ptpReceiptDateDayCtrl.text = parts[0];
+      if (parts.length > 1) _ptpReceiptDateMonthCtrl.text = parts[1];
+      if (parts.length > 2) {
+        final yr = parts[2].replaceAll(RegExp(r'^20'), '');
+        _ptpReceiptDateYearCtrl.text = yr;
+      }
+    }
     _ptpDeceasedNameCtrl.text = doc['ptpDeceasedName'] ?? '';
     _ptpDeceasedRaCtrl.text = doc['ptpDeceasedRa'] ?? '';
     _ptpDeceasedDistCtrl.text = doc['ptpDeceasedDist'] ?? '';
@@ -887,7 +990,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     }
     _dpAmaldaarNameCtrl.text = doc['dpAmaldaarName'] ?? '';
     _dpDutyPsCtrl.text = doc['dpDutyPs'] ?? '';
-    _dpDutyDistCtrl.text = doc['dpDutyDist'] ?? 'यवतमाळ';
+    _dpDutyDistCtrl.text = doc['dpDutyDist'] ?? '';
     _dpDutyDateTimeCtrl.text = doc['dpDutyDateTime'] ?? '';
     _dpDutyDateDayCtrl.text = doc['dpDutyDateDay']?.toString() ?? '';
     _dpDutyDateMonthCtrl.text = doc['dpDutyDateMonth']?.toString() ?? '';
@@ -1103,8 +1206,13 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
 
       // Page 10
       'marThikan': _marThikanCtrl.text.trim(),
-      'marDate': _marDateCtrl.text.trim(),
-      'marTime': _marTimeCtrl.text.trim(),
+      'marDate': _marDateCombined,
+      'marDateDay': _marDateDayCtrl.text.trim(),
+      'marDateMonth': _marDateMonthCtrl.text.trim(),
+      'marDateYear': _marDateYearCtrl.text.trim(),
+      'marTime': _marTimeCombined,
+      'marTimeHours': _marTimeHoursCtrl.text.trim(),
+      'marTimeMinutes': _marTimeMinutesCtrl.text.trim(),
       'marPanchNameAddress': _marPanchNameAddressCtrl.text.trim(),
       'marPs': _marPsCtrl.text.trim(),
       'marDist': _marDistCtrl.text.trim(),
@@ -1171,13 +1279,19 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       // Page 14
       'ptpPs': _ptpPsCtrl.text.trim(),
       'ptpCamp': _ptpCampCtrl.text.trim(),
-      'ptpDate': _ptpDateCtrl.text.trim(),
+      'ptpDate': _ptpDateCombined,
+      'ptpDateDay': _ptpDateDayCtrl.text.trim(),
+      'ptpDateMonth': _ptpDateMonthCtrl.text.trim(),
+      'ptpDateYear': _ptpDateYearCtrl.text.trim(),
       'ptpReceiverName': _ptpReceiverNameCtrl.text.trim(),
       'ptpReceiverRa': _ptpReceiverRaCtrl.text.trim(),
       'ptpReceiverTa': _ptpReceiverTaCtrl.text.trim(),
       'ptpReceiverDist': _ptpReceiverDistCtrl.text.trim(),
       'ptpMoNo': _ptpMoNoCtrl.text.trim(),
-      'ptpReceiptDate': _ptpReceiptDateCtrl.text.trim(),
+      'ptpReceiptDate': _ptpReceiptDateCombined,
+      'ptpReceiptDateDay': _ptpReceiptDateDayCtrl.text.trim(),
+      'ptpReceiptDateMonth': _ptpReceiptDateMonthCtrl.text.trim(),
+      'ptpReceiptDateYear': _ptpReceiptDateYearCtrl.text.trim(),
       'ptpDeceasedName': _ptpDeceasedNameCtrl.text.trim(),
       'ptpDeceasedRa': _ptpDeceasedRaCtrl.text.trim(),
       'ptpDeceasedDist': _ptpDeceasedDistCtrl.text.trim(),
@@ -1410,7 +1524,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     // Page 10
     _marThikanCtrl.dispose();
     _marDateCtrl.dispose();
+    _marDateDayCtrl.dispose();
+    _marDateMonthCtrl.dispose();
+    _marDateYearCtrl.dispose();
     _marTimeCtrl.dispose();
+    _marTimeHoursCtrl.dispose();
+    _marTimeMinutesCtrl.dispose();
     _marPanchNameAddressCtrl.dispose();
     _marPsCtrl.dispose();
     _marDistCtrl.dispose();
@@ -1474,12 +1593,18 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _ptpPsCtrl.dispose();
     _ptpCampCtrl.dispose();
     _ptpDateCtrl.dispose();
+    _ptpDateDayCtrl.dispose();
+    _ptpDateMonthCtrl.dispose();
+    _ptpDateYearCtrl.dispose();
     _ptpReceiverNameCtrl.dispose();
     _ptpReceiverRaCtrl.dispose();
     _ptpReceiverTaCtrl.dispose();
     _ptpReceiverDistCtrl.dispose();
     _ptpMoNoCtrl.dispose();
     _ptpReceiptDateCtrl.dispose();
+    _ptpReceiptDateDayCtrl.dispose();
+    _ptpReceiptDateMonthCtrl.dispose();
+    _ptpReceiptDateYearCtrl.dispose();
     _ptpDeceasedNameCtrl.dispose();
     _ptpDeceasedRaCtrl.dispose();
     _ptpDeceasedDistCtrl.dispose();
@@ -3968,185 +4093,31 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         if (_shows(kPanchaSummons) &&
             (_shows(kMarananveshan) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
-        if (_shows(kMarananveshan))
+        if (_shows(kMarananveshan)) ...[
           FormPaperPage(
-            formLabel: widget.pageRange ?? 'Pages 21–22',
+            formLabel: widget.pageRange != null
+                ? '${widget.pageRange} (Page 1)'
+                : 'Page 21',
             children: [
-              // SIMPLIFIED MARATHI PANCHANAMA (Page 10)
-              const Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  'Page 10 (मरणांवेषण पंचनामा)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-              const Divider(color: Colors.black, thickness: 1.5),
-              const SizedBox(height: 12),
-
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Maran Anveshan Panchanama',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    Text(
-                      'मरणांवेषण पंचनामा',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: SizedBox(
-                  width: 420,
-                  child: Column(
-                    children: [
-                      BilingualField(
-                        label: 'Place :-',
-                        marathiLabel: 'ठिकाण',
-                        controller: _marThikanCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Date :-',
-                        marathiLabel: 'दिनांक',
-                        controller: _marDateCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                      BilingualField(
-                        label: 'Start time :-',
-                        marathiLabel: 'सुरु केल्याची वेळ',
-                        controller: _marTimeCtrl,
-                        serifStyle: serifStyle,
-                        marathiLabelStyle: marathiLabelStyle,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              BilingualField(
-                label: '1) Panch name and address :-',
-                marathiLabel: '१) पंचाचे नांव व पत्ता',
-                controller: _marPanchNameAddressCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: '2) Police Station :-',
-                    marathiLabel: '२) पोलीस स्टेशन',
-                    controller: _marPsCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'District :-',
-                    marathiLabel: 'जिल्हा',
-                    controller: _marDistCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
-              BilingualField(
-                label: '3) Accidental death / crime / station diary no. :-',
-                marathiLabel: '३) अकस्मात मृत्यू/गुन्हा/ठाणे दैनंदिनी क्र',
-                controller: _marDiaryNoCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualWideField(
-                label: '4) Act and Section :-',
-                marathiLabel: '४) अधिनियम व कलम',
-                controller: _marActSecCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: '5) I.O. name and rank :-',
-                marathiLabel:
-                    '५) ${FormIoTerminology.officer} — ${FormIoTerminology.name}, ${FormIoTerminology.rank}',
-                controller: _marIoDetailsCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: '6) Complainant name :-',
-                marathiLabel: '६) फिर्यादीचे नांव',
-                controller: _marComplainantNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: '7) Deceased name and address :-',
-                marathiLabel: '७) मृतकाचे नांव व पत्ता',
-                controller: _marDeceasedNameAddressCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualField(
-                label: '8) Name of person who showed/identified body :-',
-                marathiLabel: '८) प्रेत दाखविणाऱ्याचे/ओळखणाऱ्याचे नांव',
-                controller: _marShownByNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-
-              BilingualMultilineField(
-                label: '9) Description of place where body is kept :-',
-                marathiLabel: '९) प्रेत ठेवले आहे त्या ठिकाणाचे वर्णन',
-                controller: _marThikanDescriptionCtrl,
-                minLines: 2,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualMultilineField(
-                label: '10) Condition of the body :-',
-                marathiLabel: '१०) प्रेताची स्थिती',
-                controller: _marBodyConditionCtrl,
-                minLines: 2,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualMultilineField(
-                label: '11) Description of clothes on body :-',
-                marathiLabel: '११) प्रेताचे अंगावरील कपड्याचे वर्णन',
-                controller: _marBodyClothesCtrl,
-                minLines: 2,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              BilingualMultilineField(
-                label: '12) Ornaments and other articles on body :-',
-                marathiLabel: '१२) प्रेताचे अंगावरील दागिने व इतर वस्तु',
-                controller: _marBodyOrnamentsCtrl,
-                minLines: 2,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              _buildPage11(
+              _buildMarananveshanPage10(
                 serifStyle: serifStyle,
                 marathiLabelStyle: marathiLabelStyle,
               ),
             ],
           ),
+          const SizedBox(height: 24),
+          FormPaperPage(
+            formLabel: widget.pageRange != null
+                ? '${widget.pageRange} (Page 2)'
+                : 'Page 22',
+            children: [
+              _buildMarananveshanPage11(
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+            ],
+          ),
+        ],
         if (_shows(kMarananveshan) &&
             (_shows(kKalmi14) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
@@ -4195,169 +4166,536 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   }
 
   // ─────────────────────────────────────────────────────────────────
-  // PAGE 11 — मरणांवेषण पंचनामा (Sections 13-18 + Signatures)
+  // PAGE 10 — मरणा-न्वेषण पंचनामा (Page 1: 1–12)
   // ─────────────────────────────────────────────────────────────────
-  Widget _buildPage11({
+  Widget _buildMarananveshanPage10({
     required TextStyle serifStyle,
     required TextStyle marathiLabelStyle,
   }) {
+    final titleStyle = GoogleFonts.notoSansDevanagari(
+      fontSize: 17,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+      decoration: TextDecoration.underline,
+    );
+    final labelStyle = GoogleFonts.notoSansDevanagari(
+      fontSize: 13.5,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    );
+    final metaLabelStyle = GoogleFonts.notoSansDevanagari(
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      color: Colors.black,
+    );
+    final valueStyle = GoogleFonts.poppins(
+      fontSize: 13.5,
+      fontWeight: FontWeight.w500,
+      color: Colors.black87,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 12),
-        BilingualMultilineField(
-          label: '13) Injuries / marks on the body of the deceased :-',
-          marathiLabel: '१३) मृतकाच्या शरीरावरील मार, जखमा इत्यादी :',
-          controller: _mar13InjuriesCtrl,
-          minLines: 4,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualMultilineField(
-          label:
-              '14) Other marks, stains, decomposition, poison or injection — samples taken for examination (details) :-',
-          marathiLabel:
-              '१४) प्रेतावरील इतर खुणा, लच्छवी, विरघळन, विषा किंवा वांती झाली काय ? तपासणीकरीता नमुने घेतले काय सविस्तर उल्लेख करावा :',
-          controller: _mar14OtherMarksCtrl,
-          minLines: 4,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualMultilineField(
-          label:
-              '15) Disposal of ornaments and other articles on the body of the deceased :-',
-          marathiLabel:
-              '१५) मृतकाचे अंगावरील दागिने व इतर वस्तूंची काय विल्लेवाट लावली :',
-          controller: _mar15OrnamentsDisposalCtrl,
-          minLines: 3,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualMultilineField(
-          label: '16) Opinion of Panchas and Investigating Officer :-',
-          marathiLabel:
-              '१६) पंच व ${FormIoTerminology.officer} यांचा अभिप्राय :',
-          controller: _mar16OpinionCtrl,
-          minLines: 3,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualMultilineField(
-          label: '17) Disposal of the dead body :-',
-          marathiLabel: '१७) प्रेताची काय विल्लेवाट लावली ?',
-          controller: _mar17BodyDisposalCtrl,
-          minLines: 3,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualMultilineField(
-          label: '18) Date and time of completion of Panchanama :-',
-          marathiLabel: '१८) पंचनामा संपविल्याची दिनांक व वेळ :',
-          controller: _mar18DateTimeCtrl,
-          minLines: 2,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
+        const SizedBox(height: 8),
+
+        // Centered Main Title
+        Center(
+          child: Text(
+            'मरणा-न्वेषण पंचनामा',
+            style: titleStyle,
+          ),
         ),
         const SizedBox(height: 16),
+
+        // Top Right Meta Block (ठिकाण, दिनांक, सुरू केल्याची वेळ)
+        Align(
+          alignment: Alignment.centerRight,
+          child: SizedBox(
+            width: 290,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text('ठिकाण  : ', style: metaLabelStyle),
+                    Expanded(
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _marThikanCtrl,
+                        serifStyle: valueStyle,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('दिनांक   : ', style: metaLabelStyle),
+                    SizedBox(
+                      width: 34,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _marDateDayCtrl,
+                        serifStyle: valueStyle,
+                        hintText: 'DD',
+                      ),
+                    ),
+                    Text(' / ', style: metaLabelStyle),
+                    SizedBox(
+                      width: 34,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _marDateMonthCtrl,
+                        serifStyle: valueStyle,
+                        hintText: 'MM',
+                      ),
+                    ),
+                    Text(' / २०', style: metaLabelStyle),
+                    SizedBox(
+                      width: 38,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _marDateYearCtrl,
+                        serifStyle: valueStyle,
+                        hintText: 'YY',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('सुरू केल्याची वेळ: ', style: metaLabelStyle),
+                    SizedBox(
+                      width: 34,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _marTimeHoursCtrl,
+                        serifStyle: valueStyle,
+                        hintText: 'HH',
+                      ),
+                    ),
+                    Text(' / ', style: metaLabelStyle),
+                    SizedBox(
+                      width: 34,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _marTimeMinutesCtrl,
+                        serifStyle: valueStyle,
+                        hintText: 'MM',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // १) पंचाचे नांव व पत्ता :-
+        _marathiMultilineField(
+          '१) पंचाचे नांव व पत्ता :-',
+          _marPanchNameAddressCtrl,
+          minLines: 4,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // २) पोलीस स्टेशन ________ जिल्हा : ________
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text('२) पोलीस स्टेशन ', style: labelStyle),
+              const SizedBox(width: 4),
+              Expanded(
+                child: BilingualSimpleUnderlineInput(
+                  controller: _marPsCtrl,
+                  serifStyle: valueStyle,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text('जिल्हा : ', style: labelStyle),
+              const SizedBox(width: 4),
+              Expanded(
+                child: BilingualSimpleUnderlineInput(
+                  controller: _marDistCtrl,
+                  serifStyle: valueStyle,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ३) अकस्मात मृत्यु/गुन्हा/ठाणे दैनंदिनी क्र:-
+        _marathiFieldRow(
+          '३) अकस्मात मृत्यु/गुन्हा/ठाणे दैनंदिनी क्र:-',
+          _marDiaryNoCtrl,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // ४) अधिनियम व कलम :-
+        _marathiFieldRow(
+          '४) अधिनियम व कलम :-',
+          _marActSecCtrl,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // ५) अन्वेषण अधिकाऱ्याचे नांव, हुद्दा :-
+        _marathiMultilineField(
+          '५) अन्वेषण अधिकाऱ्याचे नांव, हुद्दा :-',
+          _marIoDetailsCtrl,
+          minLines: 2,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // ६) फिर्यादीचे नांव :-
+        _marathiMultilineField(
+          '६) फिर्यादीचे नांव :-',
+          _marComplainantNameCtrl,
+          minLines: 2,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // ७) मृतकाचे नांव व पत्ता :-
+        _marathiMultilineField(
+          '७) मृतकाचे नांव व पत्ता :-',
+          _marDeceasedNameAddressCtrl,
+          minLines: 2,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // ८) प्रेत दाखविणाऱ्याचे/ओळखणाऱ्याचे नांव :-
+        _marathiMultilineField(
+          '८) प्रेत दाखविणाऱ्याचे/ओळखणाऱ्याचे नांव :-',
+          _marShownByNameCtrl,
+          minLines: 2,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // ९) प्रेत ठेवले आहे त्या ठिकाणाचे वर्णन :-
+        _marathiMultilineField(
+          '९) प्रेत ठेवले आहे त्या ठिकाणाचे वर्णन :-',
+          _marThikanDescriptionCtrl,
+          minLines: 3,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // १०) प्रेताची स्थिती:-
+        _marathiMultilineField(
+          '१०) प्रेताची स्थिती:-',
+          _marBodyConditionCtrl,
+          minLines: 4,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // ११) प्रेताचे अंगावरील कपड्याचे वर्णन :-
+        _marathiMultilineField(
+          '११) प्रेताचे अंगावरील कपड्याचे वर्णन :-',
+          _marBodyClothesCtrl,
+          minLines: 3,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // १२) प्रेताचे अंगावरील दागीने व इतर वस्तु :-
+        _marathiMultilineField(
+          '१२) प्रेताचे अंगावरील दागीने व इतर वस्तु :-',
+          _marBodyOrnamentsCtrl,
+          minLines: 3,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        const SizedBox(height: 16),
+        // Footer tag
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            'M.R.W',
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: Colors.black54,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // PAGE 11 — मरणा-न्वेषण पंचनामा (Page 2: 13–18 + Signatures)
+  // ─────────────────────────────────────────────────────────────────
+  Widget _buildMarananveshanPage11({
+    required TextStyle serifStyle,
+    required TextStyle marathiLabelStyle,
+  }) {
+    final labelStyle = GoogleFonts.notoSansDevanagari(
+      fontSize: 13.5,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    );
+    final sectionHeadingStyle = GoogleFonts.notoSansDevanagari(
+      fontSize: 13.5,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    );
+    final valueStyle = GoogleFonts.poppins(
+      fontSize: 13.5,
+      fontWeight: FontWeight.w500,
+      color: Colors.black87,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+
+        // १३) मृतकाच्या शरीरावरील मार, जखमा इत्यादी :-
+        _marathiMultilineField(
+          '१३) मृतकाच्या शरीरावरील मार, जखमा इत्यादी :-',
+          _mar13InjuriesCtrl,
+          minLines: 4,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // १४) प्रेतावरील इतर खुणा, लघवी, विर्यपतन, विष्टा किंवा वांती झाली काय ? तपासणीकरीता नमुने घेतले काय सविस्तर उल्लेख करावा :-
+        _marathiMultilineField(
+          '१४) प्रेतावरील इतर खुणा, लघवी, विर्यपतन, विष्टा किंवा वांती झाली काय ? तपासणीकरीता नमुने घेतले काय सविस्तर उल्लेख करावा :-',
+          _mar14OtherMarksCtrl,
+          minLines: 4,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // १५) मृतकाचे अंगावरील दागीने व इतर वस्तुंची काय विल्हेवाट लावली :-
+        _marathiMultilineField(
+          '१५) मृतकाचे अंगावरील दागीने व इतर वस्तुंची काय विल्हेवाट लावली :-',
+          _mar15OrnamentsDisposalCtrl,
+          minLines: 3,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // १६) पंच व अन्वेषण अधिकारी यांचा अभिप्राय :-
+        _marathiMultilineField(
+          '१६) पंच व अन्वेषण अधिकारी यांचा अभिप्राय :-',
+          _mar16OpinionCtrl,
+          minLines: 3,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // १७) प्रेताची काय विल्हेवाट लावली ? :-
+        _marathiMultilineField(
+          '१७) प्रेताची काय विल्हेवाट लावली ? :-',
+          _mar17BodyDisposalCtrl,
+          minLines: 3,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        // १८) पंचनामा संपविल्याची दिनांक व वेळ :-
+        _marathiMultilineField(
+          '१८) पंचनामा संपविल्याची दिनांक व वेळ :-',
+          _mar18DateTimeCtrl,
+          minLines: 2,
+          labelStyle: labelStyle,
+          serifStyle: valueStyle,
+        ),
+
+        const SizedBox(height: 24),
+
+        // Signatures Section (Left: Panchas + Copy submit, Right: IO Sign)
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Left Column: पंचाची सही
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Signature of Panchas',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
+                  Text('पंचाची सही', style: sectionHeadingStyle),
+                  const SizedBox(height: 12),
+                  _marathiFieldRow(
+                    '१)',
+                    _mar11Panch1Ctrl,
+                    labelStyle: labelStyle,
+                    serifStyle: valueStyle,
                   ),
-                  Text('पंचाची सही', style: marathiLabelStyle),
-                  const SizedBox(height: 10),
-                  BilingualField(
-                    label: '1)',
-                    marathiLabel: '१)',
-                    controller: _mar11Panch1Ctrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  _marathiFieldRow(
+                    '२)',
+                    _mar11Panch2Ctrl,
+                    labelStyle: labelStyle,
+                    serifStyle: valueStyle,
                   ),
-                  BilingualField(
-                    label: '2)',
-                    marathiLabel: '२)',
-                    controller: _mar11Panch2Ctrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  _marathiFieldRow(
+                    '३)',
+                    _mar11Panch3Ctrl,
+                    labelStyle: labelStyle,
+                    serifStyle: valueStyle,
                   ),
-                  BilingualField(
-                    label: '3)',
-                    marathiLabel: '३)',
-                    controller: _mar11Panch3Ctrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: '4)',
-                    marathiLabel: '४)',
-                    controller: _mar11Panch4Ctrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  _marathiFieldRow(
+                    '४)',
+                    _mar11Panch4Ctrl,
+                    labelStyle: labelStyle,
+                    serifStyle: valueStyle,
                   ),
                   const SizedBox(height: 12),
-                  BilingualField(
-                    label: 'Copy submitted to Medical Officer :-',
-                    marathiLabel: 'प्रत सादर :- मा.वैद्यकीय अधिकारी—',
-                    controller: _mar11CopyToCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  _marathiFieldRow(
+                    'प्रत सादर :- मा.वैद्यकीय अधिकारी',
+                    _mar11CopyToCtrl,
+                    labelStyle: GoogleFonts.notoSansDevanagari(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    serifStyle: valueStyle,
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 40),
+            const SizedBox(width: 48),
+
+            // Right Column: तपासी अधिकारी नांव व सही शिक्का
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'I.O. Name, Rank & Signature / Seal',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
+                  Text('तपासी अधिकारी नांव व सही शिक्का',
+                      style: sectionHeadingStyle),
+                  const SizedBox(height: 12),
+                  _marathiFieldRow(
+                    'नांव :-',
+                    _mar11IoNameCtrl,
+                    labelStyle: labelStyle,
+                    serifStyle: valueStyle,
                   ),
-                  Text(
-                    FormIoTerminology.signatureHeaderSeal,
-                    style: marathiLabelStyle,
+                  _marathiFieldRow(
+                    'हुद्दा :-',
+                    _mar11IoRankCtrl,
+                    labelStyle: labelStyle,
+                    serifStyle: valueStyle,
                   ),
-                  const SizedBox(height: 10),
-                  BilingualField(
-                    label: 'Name :-',
-                    marathiLabel: '${FormIoTerminology.name} :',
-                    controller: _mar11IoNameCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Rank :-',
-                    marathiLabel: '${FormIoTerminology.rank} :',
-                    controller: _mar11IoRankCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Police Station :-',
-                    marathiLabel: 'पोलीस स्टेशन :',
-                    controller: _mar11IoPsCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  _marathiFieldRow(
+                    'पोलीस स्टेशन :-',
+                    _mar11IoPsCtrl,
+                    labelStyle: labelStyle,
+                    serifStyle: valueStyle,
                   ),
                 ],
               ),
             ),
           ],
         ),
+
+        const SizedBox(height: 24),
+        // Footer tag
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            'M.R.W',
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: Colors.black54,
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _marathiFieldRow(
+    String label,
+    TextEditingController controller, {
+    TextStyle? labelStyle,
+    TextStyle? serifStyle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(
+            label,
+            style: labelStyle ??
+                GoogleFonts.notoSansDevanagari(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: BilingualSimpleUnderlineInput(
+              controller: controller,
+              serifStyle: serifStyle ??
+                  GoogleFonts.poppins(
+                    fontSize: 13.5,
+                    color: Colors.black87,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _marathiMultilineField(
+    String label,
+    TextEditingController controller, {
+    int minLines = 2,
+    TextStyle? labelStyle,
+    TextStyle? serifStyle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: labelStyle ??
+                GoogleFonts.notoSansDevanagari(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+          ),
+          const SizedBox(height: 2),
+          TextField(
+            controller: controller,
+            maxLines: null,
+            minLines: minLines,
+            style: serifStyle ??
+                GoogleFonts.poppins(
+                  fontSize: 13.5,
+                  color: Colors.black87,
+                  height: 1.5,
+                ),
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 4),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black54, width: 1.0),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue, width: 1.5),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -4683,240 +5021,326 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   }
 
   // ─────────────────────────────────────────────────────────────────
-  // PAGE 14 — प्रेत ताबा पावती (Body Custody Receipt)
+  // PAGE 14 — प्रेत ताबा पावती (Pret Taba Pavati)
   // ─────────────────────────────────────────────────────────────────
   Widget _buildPage14({
     required TextStyle serifStyle,
     required TextStyle marathiLabelStyle,
   }) {
+    final bodyTextStyle = marathiLabelStyle.copyWith(
+      fontSize: 13,
+      height: 2.0,
+      color: Colors.black87,
+    );
+    final headerLabelStyle = marathiLabelStyle.copyWith(
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      color: Colors.black87,
+    );
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 32),
-        const Align(
-          alignment: Alignment.centerRight,
-          child: Text(
-            'Page 14 (प्रेत ताबा पावती)',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          ),
-        ),
-        const Divider(color: Colors.black, thickness: 1.5),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
+        // Title centered and underlined
         Center(
-          child: Column(
-            children: [
-              Text(
-                'Body Custody Receipt',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                  color: Colors.black87,
-                ),
-              ),
-              Text(
-                'प्रेत ताबा पावती',
-                style: GoogleFonts.poppins(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
+          child: Text(
+            'प्रेत ताबा पावती',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline,
+              color: Colors.black87,
+            ),
           ),
         ),
         const SizedBox(height: 16),
+
+        // Top-right aligned Police Station / Camp / Date
         Align(
           alignment: Alignment.centerRight,
           child: SizedBox(
-            width: 420,
+            width: 320,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                BilingualField(
-                  label: 'Police Station :-',
-                  marathiLabel: 'पोलीस स्टेशन :',
-                  controller: _ptpPsCtrl,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiLabelStyle,
+                Row(
+                  children: [
+                    Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _ptpPsCtrl,
+                        serifStyle: serifStyle,
+                      ),
+                    ),
+                  ],
                 ),
-                BilingualField(
-                  label: 'Camp :-',
-                  marathiLabel: 'कॅम्प :',
-                  controller: _ptpCampCtrl,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiLabelStyle,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('कॅम्प            :', style: headerLabelStyle),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _ptpCampCtrl,
+                        serifStyle: serifStyle,
+                      ),
+                    ),
+                  ],
                 ),
-                BilingualField(
-                  label: 'Date :-',
-                  marathiLabel: 'दिनांक :',
-                  controller: _ptpDateCtrl,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiLabelStyle,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('दिनांक          :', style: headerLabelStyle),
+                    const SizedBox(width: 6),
+                    SizedBox(
+                      width: 32,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _ptpDateDayCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'DD',
+                      ),
+                    ),
+                    Text('/',
+                        style: serifStyle.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87)),
+                    SizedBox(
+                      width: 32,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _ptpDateMonthCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'MM',
+                      ),
+                    ),
+                    Text('/ २०', style: headerLabelStyle),
+                    SizedBox(
+                      width: 36,
+                      child: BilingualSimpleUnderlineInput(
+                        controller: _ptpDateYearCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'YY',
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 16),
-        Text(
-          'I hereby give this body custody receipt that on the date mentioned below, I have received custody of the dead body for post-mortem and final rites. I confirm the body is of the deceased named below. I have taken custody as heir/representative and have no objection.',
-          style: serifStyle.copyWith(fontSize: 13, color: Colors.black87),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'मी प्रेत ताबा पावती लिहून देतो की, आज दिनांक ... रोजी मृतक नामे ... हयाचे / हिचे प्रेत पोस्टमार्टम होवुन अंतिम संस्काराकरीता माझे ताब्यात मिळाले आहे. सदर प्रेत हे नमुद मृतकाचेच आहे. मी मृतकाचा वारसा या नात्याने ताब्यात घेतले आहे. माझी कोणत्याच प्रकारची तक्रार नाही.',
-          style:
-              marathiLabelStyle.copyWith(fontSize: 11, color: Colors.black87),
+        const SizedBox(height: 24),
+
+        // Main Paragraph Form
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 6,
+          runSpacing: 10,
+          children: [
+            Text('       मी', style: bodyTextStyle),
+            SizedBox(
+              width: 260,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpReceiverNameCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('रा.', style: bodyTextStyle),
+            SizedBox(
+              width: 240,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpReceiverRaCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('ता', style: bodyTextStyle),
+            SizedBox(
+              width: 140,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpReceiverTaCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('जिल्हा', style: bodyTextStyle),
+            SizedBox(
+              width: 150,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpReceiverDistCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('मो नं', style: bodyTextStyle),
+            SizedBox(
+              width: 180,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpMoNoCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('प्रेत ताबा पावती लिहून देतो की, आज दिनांक ',
+                style: bodyTextStyle),
+            SizedBox(
+              width: 32,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpReceiptDateDayCtrl,
+                serifStyle: serifStyle,
+                hintText: 'DD',
+              ),
+            ),
+            Text('/',
+                style: serifStyle.copyWith(
+                    fontWeight: FontWeight.bold, color: Colors.black87)),
+            SizedBox(
+              width: 32,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpReceiptDateMonthCtrl,
+                serifStyle: serifStyle,
+                hintText: 'MM',
+              ),
+            ),
+            Text('/ २०', style: bodyTextStyle),
+            SizedBox(
+              width: 36,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpReceiptDateYearCtrl,
+                serifStyle: serifStyle,
+                hintText: 'YY',
+              ),
+            ),
+            Text('रोजी मृतक नामे', style: bodyTextStyle),
+            SizedBox(
+              width: 260,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpDeceasedNameCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('रा.', style: bodyTextStyle),
+            SizedBox(
+              width: 200,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpDeceasedRaCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text('ता आणि जिल्हा', style: bodyTextStyle),
+            SizedBox(
+              width: 180,
+              child: BilingualSimpleUnderlineInput(
+                controller: _ptpDeceasedDistCtrl,
+                serifStyle: serifStyle,
+              ),
+            ),
+            Text(
+                'हयाचे / हिचे प्रेत पोस्टमार्टम होवुन अंतिम संस्काराकरीता माझे ताब्यात मिळाले आहे. सदर प्रेत हे नमुद मृतकाचेच आहे. मी मृतकाचा वारसा या नात्याने ताब्यात घेतले आहे. माझी कोणत्याच प्रकारची तक्रार नाही.',
+                style: bodyTextStyle),
+          ],
         ),
         const SizedBox(height: 12),
-        BilingualField(
-          label: 'I (Receiver name) :-',
-          marathiLabel: 'मी (प्रेत ताब्यात घेणाऱ्याचे नांव) :',
-          controller: _ptpReceiverNameCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
+        Padding(
+          padding: const EdgeInsets.only(left: 48.0),
+          child: Text(
+            'करीता प्रेत ताबा पावती लिहून देत आहे.',
+            style: bodyTextStyle,
+          ),
         ),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Village (R.) :-',
-              marathiLabel: 'र. :',
-              controller: _ptpReceiverRaCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-            BilingualField(
-              label: 'Taluka (Ta.) :-',
-              marathiLabel: 'ता :',
-              controller: _ptpReceiverTaCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-            BilingualField(
-              label: 'District :-',
-              marathiLabel: 'जिल्हा :',
-              controller: _ptpReceiverDistCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-          ],
-        ),
-        BilingualField(
-          label: 'Mobile No. :-',
-          marathiLabel: 'मो नं :',
-          controller: _ptpMoNoCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualField(
-          label: 'Receipt date :-',
-          marathiLabel: 'प्रेत ताबा पावती दिनांक :',
-          controller: _ptpReceiptDateCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualField(
-          label: 'Deceased name :-',
-          marathiLabel: 'मृतक नामे :',
-          controller: _ptpDeceasedNameCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
-        ),
-        BilingualFieldRow(
-          fields: [
-            BilingualField(
-              label: 'Deceased village (R.) :-',
-              marathiLabel: 'र. :',
-              controller: _ptpDeceasedRaCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-            BilingualField(
-              label: 'Taluka & District :-',
-              marathiLabel: 'ता आणी जिल्हा :',
-              controller: _ptpDeceasedDistCtrl,
-              serifStyle: serifStyle,
-              marathiLabelStyle: marathiLabelStyle,
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Issuing body custody receipt accordingly.',
-          style: TextStyle(fontSize: 13),
-        ),
-        Text('करीता प्रेत ताबा पावती लिहून देत आहे.', style: marathiLabelStyle),
-        const SizedBox(height: 24),
+        const SizedBox(height: 48),
+
+        // Signatures (2 columns)
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Left: तपासी अधिकारी नांव व सही शिक्का
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'I.O. Name, Rank & Signature / Seal',
-                    style: GoogleFonts.poppins(
+                    'तपासी अधिकारी नांव व सही शिक्का',
+                    style: marathiLabelStyle.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 13,
                     ),
                   ),
-                  Text(
-                    FormIoTerminology.signatureHeaderSeal,
-                    style: marathiLabelStyle,
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Text('नांव :- ', style: bodyTextStyle),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _ptpIoNameCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  BilingualField(
-                    label: 'Name :-',
-                    marathiLabel: '${FormIoTerminology.name} :',
-                    controller: _ptpIoNameCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('हुद्दा :- ', style: bodyTextStyle),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _ptpIoRankCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
-                  BilingualField(
-                    label: 'Rank :-',
-                    marathiLabel: '${FormIoTerminology.rank} :',
-                    controller: _ptpIoRankCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Police Station :-',
-                    marathiLabel: 'पोलीस स्टेशन :',
-                    controller: _ptpIoPsCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text('पोलीस स्टेशन :- ', style: bodyTextStyle),
+                      Expanded(
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _ptpIoPsCtrl,
+                          serifStyle: serifStyle,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 40),
+            // Right: प्रेत ताब्यात घेणाऱ्याची सही
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Signature of body receiver',
-                    style: GoogleFonts.poppins(
+                    'प्रेत ताब्यात घेणाऱ्याची सही',
+                    style: marathiLabelStyle.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 13,
                     ),
                   ),
-                  Text(
-                    'प्रेत ताब्यात घेणाऱ्याची सही',
-                    style: marathiLabelStyle,
-                  ),
-                  const SizedBox(height: 8),
-                  BilingualField(
-                    label: 'Signature :-',
-                    marathiLabel: 'सही :',
-                    controller: _ptpReceiverSigCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
+                  const SizedBox(height: 36),
+                  SizedBox(
+                    width: 220,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _ptpReceiverSigCtrl,
+                      serifStyle: serifStyle,
+                      hintText: 'सही',
+                    ),
                   ),
                 ],
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 36),
+
+        // Bottom Right Tag
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Text(
+            'M.R.W',
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );
@@ -5066,7 +5490,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 child: BilingualSimpleUnderlineInput(
                   controller: _dpDutyDistCtrl,
                   serifStyle: serifStyle,
-                  hintText: 'यवतमाळ',
                 ),
               ),
             ],

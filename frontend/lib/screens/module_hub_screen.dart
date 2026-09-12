@@ -66,6 +66,7 @@ import 'ad_record_detail_screen.dart';
 import 'module_form_screen.dart';
 import 'common_form_screen.dart';
 import '../utils/common_form_module.dart';
+import '../utils/ad_disposal_helper.dart';
 import 'form_i_v_selection_screen.dart';
 import 'form_vi_selection_screen.dart';
 import 'hurt_cases_screen.dart';
@@ -460,16 +461,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     int totalCount;
 
     if (widget.moduleKey == 'pending') {
-      // Aggregate across ALL categories and show only active (non-closed) cases
+      // Aggregate across ALL categories and show only active (non-disposed) cases
       final consolidated = _getConsolidatedRecords(context);
       allRecords = consolidated
-          .where((r) => r.status != 'Closed' && r.moduleKey != 'nc')
+          .where((r) => isRecordPending(r) && r.moduleKey != 'nc')
           .toList();
       totalCount = allRecords.length;
     } else if (widget.moduleKey == 'disposal') {
-      // Aggregate across ALL categories and show only closed cases
+      // Aggregate across ALL categories and show only disposal/closed cases
       final consolidated = _getConsolidatedRecords(context);
-      allRecords = consolidated.where((r) => r.status == 'Closed').toList();
+      allRecords = consolidated.where(isRecordDisposal).toList();
       totalCount = allRecords.length;
     } else if (widget.moduleKey == 'monthly') {
       allRecords = _getConsolidatedRecords(context);
@@ -509,13 +510,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     final int disposalCount = widget.moduleKey == 'absconded'
         ? allRecords.where((r) => isAbscondedDisposal(r)).length
-        : allRecords
-            .where((r) =>
-                r.status == 'Disposal' ||
-                r.status == 'Disposed' ||
-                r.status == 'Closed' ||
-                r.status == 'Resolved')
-            .length;
+        : allRecords.where(isRecordDisposal).length;
     final int pendingCount = allRecords.length - disposalCount;
 
     final List<ModuleRecord> filtered;
@@ -610,23 +605,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       if (_filter == 'Disposal' ||
           _filter == 'Closed' ||
           _filter == 'Resolved') {
-        filtered = allRecords
-            .where((r) =>
-                r.status == 'Disposal' ||
-                r.status == 'Disposed' ||
-                r.status == 'Closed' ||
-                r.status == 'Resolved')
-            .toList();
+        filtered = allRecords.where(isRecordDisposal).toList();
       } else if (_filter == 'Pending' ||
           _filter == 'Open' ||
           _filter == 'Active') {
-        filtered = allRecords
-            .where((r) =>
-                r.status != 'Disposal' &&
-                r.status != 'Disposed' &&
-                r.status != 'Closed' &&
-                r.status != 'Resolved')
-            .toList();
+        filtered = allRecords.where(isRecordPending).toList();
       } else {
         filtered = _filter == 'All'
             ? allRecords

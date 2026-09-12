@@ -25,8 +25,8 @@ class MedicalExamS51FormView extends StatefulWidget {
 }
 
 class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
-  final _outpostCtrl = TextEditingController(text: 'सावळी');
-  final _psCtrl = TextEditingController(text: 'पारवा');
+  final _outpostCtrl = TextEditingController();
+  final _psCtrl = TextEditingController();
   final _dateCtrl = TextEditingController();
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
@@ -43,18 +43,12 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
   }
 
-  final _toOfficerCtrl = TextEditingController(text: 'मा. वैद्यकीय अधिकारी');
-  final _toHospitalCtrl =
-      TextEditingController(text: 'प्राथमकी आरोग्य केंद्र सावळी सदोबा');
-  final _toTahDistCtrl = TextEditingController(text: 'ता आर्णी जिल्हा यवतमाळ.');
+  final _toOfficerCtrl = TextEditingController();
+  final _toHospitalCtrl = TextEditingController();
+  final _toTahDistCtrl = TextEditingController();
 
-  final _fromLocationCtrl = TextEditingController(
-    text: 'पोलीस दुरक्षेत्र सावळी सदोबा पोलीस स्टेशन पारवा जिल्हा यवतमाळ',
-  );
-
-  final _subjectCtrl = TextEditingController(
-    text: 'जखमी यांचे माराची वैद्यकीय तपासणी करून अहवाल मिळणेबाबत.',
-  );
+  final _fromLocationCtrl = TextEditingController();
+  final _subjectCtrl = TextEditingController();
 
   final _victimNameCtrl = TextEditingController();
   final _victimAgeCtrl = TextEditingController();
@@ -114,10 +108,10 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
 
   void hydrateFrom(Map<String, dynamic> data) {
     if (data.containsKey('outpost')) {
-      _outpostCtrl.text = data['outpost']?.toString() ?? 'सावळी';
+      _outpostCtrl.text = data['outpost']?.toString() ?? '';
     }
     if (data.containsKey('policeStation')) {
-      _psCtrl.text = data['policeStation']?.toString() ?? 'पारवा';
+      _psCtrl.text = data['policeStation']?.toString() ?? '';
     }
     _dateCtrl.text = data['date']?.toString() ?? '';
     _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
@@ -134,24 +128,19 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
       }
     }
     if (data.containsKey('toOfficer')) {
-      _toOfficerCtrl.text =
-          data['toOfficer']?.toString() ?? 'मा. वैद्यकीय अधिकारी';
+      _toOfficerCtrl.text = data['toOfficer']?.toString() ?? '';
     }
     if (data.containsKey('toHospital')) {
-      _toHospitalCtrl.text = data['toHospital']?.toString() ??
-          'प्राथमकी आरोग्य केंद्र सावळी सदोबा';
+      _toHospitalCtrl.text = data['toHospital']?.toString() ?? '';
     }
     if (data.containsKey('toTahDist')) {
-      _toTahDistCtrl.text =
-          data['toTahDist']?.toString() ?? 'ता आर्णी जिल्हा यवतमाळ.';
+      _toTahDistCtrl.text = data['toTahDist']?.toString() ?? '';
     }
     if (data.containsKey('fromLocation')) {
-      _fromLocationCtrl.text = data['fromLocation']?.toString() ??
-          'पोलीस दुरक्षेत्र सावळी सदोबा पोलीस स्टेशन पारवा जिल्हा यवतमाळ';
+      _fromLocationCtrl.text = data['fromLocation']?.toString() ?? '';
     }
     if (data.containsKey('subject')) {
-      _subjectCtrl.text = data['subject']?.toString() ??
-          'जखमी यांचे माराची वैद्यकीय तपासणी करून अहवाल मिळणेबाबत.';
+      _subjectCtrl.text = data['subject']?.toString() ?? '';
     }
     if (data.containsKey('victimName')) {
       _victimNameCtrl.text = data['victimName']?.toString() ?? '';
@@ -166,7 +155,7 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
       _victimTahCtrl.text = data['victimTah']?.toString() ?? '';
     }
     if (data.containsKey('victimDist')) {
-      _victimDistCtrl.text = data['victimDist']?.toString() ?? 'यवतमाळ';
+      _victimDistCtrl.text = data['victimDist']?.toString() ?? '';
     }
     if (data.containsKey('assaultDetails')) {
       _assaultDetailsCtrl.text = data['assaultDetails']?.toString() ?? '';
@@ -318,23 +307,23 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
-                    width: 320,
+                    width: 340,
                     child: BilingualSimpleUnderlineInput(
                       controller: _toOfficerCtrl,
                       serifStyle: serif,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   SizedBox(
-                    width: 360,
+                    width: 340,
                     child: BilingualSimpleUnderlineInput(
                       controller: _toHospitalCtrl,
                       serifStyle: serif,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   SizedBox(
-                    width: 320,
+                    width: 340,
                     child: BilingualSimpleUnderlineInput(
                       controller: _toTahDistCtrl,
                       serifStyle: serif,
@@ -412,7 +401,6 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                   child: BilingualSimpleUnderlineInput(
                     controller: _victimAgeCtrl,
                     serifStyle: serif,
-                    hintText: 'वय',
                   ),
                 ),
                 Text(' वर्ष रा ', style: bodyTextStyle),
@@ -437,7 +425,6 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                   child: BilingualSimpleUnderlineInput(
                     controller: _victimDistCtrl,
                     serifStyle: serif,
-                    hintText: 'यवतमाळ',
                   ),
                 ),
                 Text(

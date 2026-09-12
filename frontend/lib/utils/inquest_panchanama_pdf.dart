@@ -1698,58 +1698,505 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
     );
   }
 
-  if (showsSection('Dead Body Handover')) {
+  if (showsSection('Marananveshan Panchanama')) {
+    // PAGE 1 — मरणा-न्वेषण पंचनामा (१ ते १२)
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 32, vertical: 22),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 26),
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(
-              child: pw.Column(
+              child: pw.Text(
+                'मरणा-न्वेषण पंचनामा',
+                style: mrBold.copyWith(
+                  fontSize: 16,
+                  decoration: pw.TextDecoration.underline,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 12),
+
+            // Top Right: ठिकाण, दिनांक, सुरू केल्याची वेळ
+            pw.Align(
+              alignment: pw.Alignment.topRight,
+              child: pw.SizedBox(
+                width: 250,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Row(children: [
+                      pw.Text('ठिकाण : ',
+                          style: mrBold.copyWith(fontSize: 9.5)),
+                      pw.Expanded(child: underlineField(v('marThikan'))),
+                    ]),
+                    pw.SizedBox(height: 3),
+                    pw.Row(children: [
+                      pw.Text('दिनांक : ',
+                          style: mrBold.copyWith(fontSize: 9.5)),
+                      pw.Expanded(
+                        child: underlineField(
+                          v('marDate').isEmpty
+                              ? '......./ ......./ २०.........'
+                              : v('marDate'),
+                        ),
+                      ),
+                    ]),
+                    pw.SizedBox(height: 3),
+                    pw.Row(children: [
+                      pw.Text('सुरू केल्याची वेळ: ',
+                          style: mrBold.copyWith(fontSize: 9.5)),
+                      pw.Expanded(
+                        child: underlineField(
+                          v('marTime').isEmpty
+                              ? '........./ .........'
+                              : v('marTime'),
+                        ),
+                      ),
+                    ]),
+                  ],
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 14),
+
+            // १) पंचाचे नांव व पत्ता :-
+            pw.Text('१) पंचाचे नांव व पत्ता :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('marPanchNameAddress'), lines: 4),
+            pw.SizedBox(height: 5),
+
+            // २) पोलीस स्टेशन ________ जिल्हा : ________
+            pw.Row(
+              children: [
+                pw.Text('२) पोलीस स्टेशन ',
+                    style: mrBold.copyWith(fontSize: 9.5)),
+                pw.Expanded(child: underlineField(v('marPs'))),
+                pw.SizedBox(width: 16),
+                pw.Text('जिल्हा : ', style: mrBold.copyWith(fontSize: 9.5)),
+                pw.Expanded(child: underlineField(v('marDist'))),
+              ],
+            ),
+            pw.SizedBox(height: 5),
+
+            // ३) अकस्मात मृत्यु/गुन्हा/ठाणे दैनंदिनी क्र:-
+            pw.Row(
+              children: [
+                pw.Text('३) अकस्मात मृत्यु/गुन्हा/ठाणे दैनंदिनी क्र:-',
+                    style: mrBold.copyWith(fontSize: 9.5)),
+                pw.Expanded(child: underlineField(v('marDiaryNo'))),
+              ],
+            ),
+            pw.SizedBox(height: 5),
+
+            // ४) अधिनियम व कलम :-
+            pw.Row(
+              children: [
+                pw.Text('४) अधिनियम व कलम :-',
+                    style: mrBold.copyWith(fontSize: 9.5)),
+                pw.Expanded(child: underlineField(v('marActSec'))),
+              ],
+            ),
+            pw.SizedBox(height: 5),
+
+            // ५) अन्वेषण अधिकाऱ्याचे नांव, हुद्दा :-
+            pw.Text('५) अन्वेषण अधिकाऱ्याचे नांव, हुद्दा :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('marIoDetails'), lines: 2),
+            pw.SizedBox(height: 5),
+
+            // ६) फिर्यादीचे नांव :-
+            pw.Text('६) फिर्यादीचे नांव :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('marComplainantName'), lines: 2),
+            pw.SizedBox(height: 5),
+
+            // ७) मृतकाचे नांव व पत्ता :-
+            pw.Text('७) मृतकाचे नांव व पत्ता :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('marDeceasedNameAddress'), lines: 2),
+            pw.SizedBox(height: 5),
+
+            // ८) प्रेत दाखविणाऱ्याचे/ओळखणाऱ्याचे नांव :-
+            pw.Text('८) प्रेत दाखविणाऱ्याचे/ओळखणाऱ्याचे नांव :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('marShownByName'), lines: 2),
+            pw.SizedBox(height: 5),
+
+            // ९) प्रेत ठेवले आहे त्या ठिकाणाचे वर्णन :-
+            pw.Text('९) प्रेत ठेवले आहे त्या ठिकाणाचे वर्णन :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('marThikanDescription'), lines: 3),
+            pw.SizedBox(height: 5),
+
+            // १०) प्रेताची स्थिती:-
+            pw.Text('१०) प्रेताची स्थिती:-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('marBodyCondition'), lines: 4),
+            pw.SizedBox(height: 5),
+
+            // ११) प्रेताचे अंगावरील कपड्याचे वर्णन :-
+            pw.Text('११) प्रेताचे अंगावरील कपड्याचे वर्णन :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('marBodyClothes'), lines: 3),
+            pw.SizedBox(height: 5),
+
+            // १२) प्रेताचे अंगावरील दागीने व इतर वस्तु :-
+            pw.Text('१२) प्रेताचे अंगावरील दागीने व इतर वस्तु :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('marBodyOrnaments'), lines: 3),
+
+            pw.Spacer(),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text('M.R.W', style: engStyle.copyWith(fontSize: 8)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // PAGE 2 — मरणा-न्वेषण पंचनामा (१३ ते १८ + सह्या)
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 26),
+        build: (_) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            // १३) मृतकाच्या शरीरावरील मार, जखमा इत्यादी :-
+            pw.Text('१३) मृतकाच्या शरीरावरील मार, जखमा इत्यादी :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('mar13Injuries'), lines: 4),
+            pw.SizedBox(height: 6),
+
+            // १४) प्रेतावरील इतर खुणा...
+            pw.Text(
+              '१४) प्रेतावरील इतर खुणा, लघवी, विर्यपतन, विष्टा किंवा वांती झाली काय ? तपासणीकरीता नमुने घेतले काय सविस्तर उल्लेख करावा :-',
+              style: mrBold.copyWith(fontSize: 9.5),
+            ),
+            pw.SizedBox(height: 1),
+            multilineBox(v('mar14OtherMarks'), lines: 4),
+            pw.SizedBox(height: 6),
+
+            // १५) मृतकाचे अंगावरील दागीने...
+            pw.Text(
+              '१५) मृतकाचे अंगावरील दागीने व इतर वस्तुंची काय विल्हेवाट लावली :-',
+              style: mrBold.copyWith(fontSize: 9.5),
+            ),
+            pw.SizedBox(height: 1),
+            multilineBox(v('mar15OrnamentsDisposal'), lines: 3),
+            pw.SizedBox(height: 6),
+
+            // १६) पंच व अन्वेषण अधिकारी यांचा अभिप्राय :-
+            pw.Text('१६) पंच व अन्वेषण अधिकारी यांचा अभिप्राय :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('mar16Opinion'), lines: 3),
+            pw.SizedBox(height: 6),
+
+            // १७) प्रेताची काय विल्हेवाट लावली ? :-
+            pw.Text('१७) प्रेताची काय विल्हेवाट लावली ? :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('mar17BodyDisposal'), lines: 3),
+            pw.SizedBox(height: 6),
+
+            // १८) पंचनामा संपविल्याची दिनांक व वेळ :-
+            pw.Text('१८) पंचनामा संपविल्याची दिनांक व वेळ :-',
+                style: mrBold.copyWith(fontSize: 9.5)),
+            pw.SizedBox(height: 1),
+            multilineBox(v('mar18DateTime'), lines: 2),
+            pw.SizedBox(height: 14),
+
+            // Signatures Section
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Left Column: पंचाची सही
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('पंचाची सही',
+                          style: mrBold.copyWith(fontSize: 10)),
+                      pw.SizedBox(height: 8),
+                      pw.Row(
+                        children: [
+                          pw.Text('१)- ', style: mrBold.copyWith(fontSize: 9)),
+                          pw.Expanded(child: underlineField(v('mar11Panch1'))),
+                        ],
+                      ),
+                      pw.SizedBox(height: 5),
+                      pw.Row(
+                        children: [
+                          pw.Text('२)- ', style: mrBold.copyWith(fontSize: 9)),
+                          pw.Expanded(child: underlineField(v('mar11Panch2'))),
+                        ],
+                      ),
+                      pw.SizedBox(height: 5),
+                      pw.Row(
+                        children: [
+                          pw.Text('३)- ', style: mrBold.copyWith(fontSize: 9)),
+                          pw.Expanded(child: underlineField(v('mar11Panch3'))),
+                        ],
+                      ),
+                      pw.SizedBox(height: 5),
+                      pw.Row(
+                        children: [
+                          pw.Text('४)- ', style: mrBold.copyWith(fontSize: 9)),
+                          pw.Expanded(child: underlineField(v('mar11Panch4'))),
+                        ],
+                      ),
+                      pw.SizedBox(height: 8),
+                      pw.Row(
+                        children: [
+                          pw.Text('प्रत सादर :- मा.वैद्यकीय अधिकारी ',
+                              style: mrBold.copyWith(fontSize: 8.5)),
+                          pw.Expanded(child: underlineField(v('mar11CopyTo'))),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(width: 32),
+
+                // Right Column: तपासी अधिकारी नांव व सही शिक्का
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('तपासी अधिकारी नांव व सही शिक्का',
+                          style: mrBold.copyWith(fontSize: 10)),
+                      pw.SizedBox(height: 8),
+                      pw.Row(
+                        children: [
+                          pw.Text('नांव :- ',
+                              style: mrBold.copyWith(fontSize: 9)),
+                          pw.Expanded(child: underlineField(v('mar11IoName'))),
+                        ],
+                      ),
+                      pw.SizedBox(height: 5),
+                      pw.Row(
+                        children: [
+                          pw.Text('हुद्दा :- ',
+                              style: mrBold.copyWith(fontSize: 9)),
+                          pw.Expanded(child: underlineField(v('mar11IoRank'))),
+                        ],
+                      ),
+                      pw.SizedBox(height: 5),
+                      pw.Row(
+                        children: [
+                          pw.Text('पोलीस स्टेशन :- ',
+                              style: mrBold.copyWith(fontSize: 9)),
+                          pw.Expanded(child: underlineField(v('mar11IoPs'))),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            pw.Spacer(),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text('M.R.W', style: engStyle.copyWith(fontSize: 8)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  if (showsSection('Dead Body Handover')) {
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 26),
+        build: (_) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Center(
+              child: pw.Text(
+                'प्रेत ताबा पावती',
+                style: mrBold.copyWith(
+                  fontSize: 16,
+                  decoration: pw.TextDecoration.underline,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 14),
+            pw.Align(
+              alignment: pw.Alignment.topRight,
+              child: pw.SizedBox(
+                width: 240,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Row(children: [
+                      pw.Text('पोलीस स्टेशन  : ',
+                          style: mrBold.copyWith(fontSize: 10)),
+                      pw.Expanded(child: underlineField(v('ptpPs'))),
+                    ]),
+                    pw.SizedBox(height: 4),
+                    pw.Row(children: [
+                      pw.Text('कॅम्प            : ',
+                          style: mrBold.copyWith(fontSize: 10)),
+                      pw.Expanded(child: underlineField(v('ptpCamp'))),
+                    ]),
+                    pw.SizedBox(height: 4),
+                    pw.Row(children: [
+                      pw.Text('दिनांक          : ',
+                          style: mrBold.copyWith(fontSize: 10)),
+                      pw.Expanded(child: underlineField(v('ptpDate'))),
+                    ]),
+                  ],
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 18),
+            pw.RichText(
+              text: pw.TextSpan(
+                style: mrStyle.copyWith(fontSize: 10, lineSpacing: 4),
                 children: [
-                  pw.Text('PRET TABA PAVATI (DEAD BODY HANDOVER RECEIPT)',
-                      style: engBold.copyWith(fontSize: 11)),
-                  pw.Text('प्रेत ताबा पावती',
+                  const pw.TextSpan(text: '       मी '),
+                  pw.TextSpan(
+                      text: v('ptpReceiverName').isEmpty
+                          ? '---------------------------------------------------------'
+                          : v('ptpReceiverName'),
                       style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(text: ' रा. '),
+                  pw.TextSpan(
+                      text: v('ptpReceiverRa').isEmpty
+                          ? '------------------------------------------'
+                          : v('ptpReceiverRa'),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(text: ' ता '),
+                  pw.TextSpan(
+                      text: v('ptpReceiverTa').isEmpty
+                          ? '---------------'
+                          : v('ptpReceiverTa'),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(text: ' जिल्हा '),
+                  pw.TextSpan(
+                      text: v('ptpReceiverDist').isEmpty
+                          ? '---------------------'
+                          : v('ptpReceiverDist'),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(text: ' मो नं '),
+                  pw.TextSpan(
+                      text: v('ptpMoNo').isEmpty
+                          ? '......................................'
+                          : v('ptpMoNo'),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(
+                      text: ' प्रेत ताबा पावती लिहुन देतो की, आज दिनांक '),
+                  pw.TextSpan(
+                      text: v('ptpReceiptDate').isEmpty
+                          ? '....../ ......../ २०.....'
+                          : v('ptpReceiptDate'),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(text: ' रोजी मृतक नामे '),
+                  pw.TextSpan(
+                      text: v('ptpDeceasedName').isEmpty
+                          ? '-------------------------------------------------'
+                          : v('ptpDeceasedName'),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(text: ' रा. '),
+                  pw.TextSpan(
+                      text: v('ptpDeceasedRa').isEmpty
+                          ? '------------------------------'
+                          : v('ptpDeceasedRa'),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(text: ' ता आणि जिल्हा '),
+                  pw.TextSpan(
+                      text: v('ptpDeceasedDist').isEmpty
+                          ? '-------------------'
+                          : v('ptpDeceasedDist'),
+                      style: mrBold.copyWith(fontSize: 10)),
+                  const pw.TextSpan(
+                      text:
+                          ' हयाचे / हिचे प्रेत पोस्टमार्टम होवुन अंतिम संस्काराकरीता माझे ताब्यात मिळाले आहे. सदर प्रेत हे नमुद मृतकाचेच आहे. मी मृतकाचा वारसा या नात्याने ताब्यात घेतले आहे. माझी कोणत्याच प्रकारची तक्रार नाही.'),
                 ],
               ),
             ),
             pw.SizedBox(height: 8),
-            pw.Row(children: [
-              pw.Text('Police Station: ', style: engBold),
-              underlineField(v('ptpPs'), width: 120),
-              pw.SizedBox(width: 12),
-              pw.Text('Date: ', style: engBold),
-              pw.Expanded(child: underlineField(v('ptpDate')))
-            ]),
-            pw.SizedBox(height: 4),
-            pw.Row(children: [
-              pw.Text('Receiver Name: ', style: engBold),
-              pw.Expanded(child: underlineField(v('ptpReceiverName')))
-            ]),
-            pw.SizedBox(height: 4),
-            pw.Row(children: [
-              pw.Text('R/o: ', style: engBold),
-              underlineField(v('ptpReceiverRa'), width: 120),
-              pw.SizedBox(width: 8),
-              pw.Text('Dist: ', style: engBold),
-              underlineField(v('ptpReceiverDist'), width: 80),
-              pw.SizedBox(width: 8),
-              pw.Text('Mo: ', style: engBold),
-              pw.Expanded(child: underlineField(v('ptpMoNo')))
-            ]),
-            pw.SizedBox(height: 4),
-            pw.Row(children: [
-              pw.Text('Deceased Name: ', style: engBold),
-              pw.Expanded(child: underlineField(v('ptpDeceasedName')))
-            ]),
-            pw.SizedBox(height: 12),
-            pw.Row(children: [
-              pw.Text('Signature of Receiver: ', style: engBold),
-              pw.Expanded(child: underlineField(v('ptpReceiverSig')))
-            ]),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 48),
+              child: pw.Text(
+                'करीता प्रेत ताबा पावती लिहून देत आहे.',
+                style: mrStyle.copyWith(fontSize: 10),
+              ),
+            ),
+            pw.SizedBox(height: 36),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'तपासी अधिकारी नांव व सही शिक्का',
+                        style: mrBold.copyWith(fontSize: 10),
+                      ),
+                      pw.SizedBox(height: 10),
+                      pw.Row(children: [
+                        pw.Text('नांव : ',
+                            style: mrStyle.copyWith(fontSize: 10)),
+                        pw.Expanded(child: underlineField(v('ptpIoName'))),
+                      ]),
+                      pw.SizedBox(height: 4),
+                      pw.Row(children: [
+                        pw.Text('हुद्दा : ',
+                            style: mrStyle.copyWith(fontSize: 10)),
+                        pw.Expanded(child: underlineField(v('ptpIoRank'))),
+                      ]),
+                      pw.SizedBox(height: 4),
+                      pw.Row(children: [
+                        pw.Text('पोलीस स्टेशन : ',
+                            style: mrStyle.copyWith(fontSize: 10)),
+                        pw.Expanded(child: underlineField(v('ptpIoPs'))),
+                      ]),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(width: 40),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'प्रेत ताब्यात घेणाऱ्याची सही',
+                        style: mrBold.copyWith(fontSize: 10),
+                      ),
+                      pw.SizedBox(height: 30),
+                      underlineField(v('ptpReceiverSig')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            pw.Spacer(),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text(
+                'M.R.W',
+                style: engStyle.copyWith(fontSize: 9),
+              ),
+            ),
           ],
         ),
       ),

@@ -25,6 +25,8 @@ import '../../utils/app_constants.dart';
 import '../../utils/crime_detail_pdf.dart';
 import '../../utils/translation_helper.dart';
 import '../../utils/validators.dart';
+import 'government_vehicle_usage_widget.dart';
+import 'section_82_83_action_widget.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const Color _kDark = Color(0xFF0f172a);
@@ -263,6 +265,13 @@ class CommonFormState extends State<CommonForm> {
       }
     }
     return false;
+  }
+
+  bool get _isPocsoCase {
+    final key = (widget.moduleKey ?? '').trim().toLowerCase();
+    final sub = (widget.subCategory ?? '').trim().toLowerCase();
+    final label = (widget.moduleLabel ?? '').trim().toLowerCase();
+    return key == 'pocso' || sub.contains('pocso') || label.contains('pocso');
   }
 
   // ── §1 Crime Registration ─────────────────────────────────────────────────
@@ -539,6 +548,12 @@ class CommonFormState extends State<CommonForm> {
   String? _fingerprintVal;
   final _fingerprintDate = TextEditingController();
   final _fingerprintReason = TextEditingController();
+
+  // ── Shared Cross-Cutting Components ──────────────────────────────────────
+  GovernmentVehicleUsageData? _vehicleUsage;
+  GovernmentVehicleUsageData get _effectiveVehicleUsage =>
+      _vehicleUsage ??= GovernmentVehicleUsageData();
+  String? _section8283Action;
 
   // ── §11 Seizure ───────────────────────────────────────────────────────────
   final List<Map<String, dynamic>> _seizures = [];
@@ -1092,6 +1107,12 @@ class CommonFormState extends State<CommonForm> {
     });
   }
 
+  void setVictimName(String name) {
+    setState(() {
+      _vName.text = name;
+    });
+  }
+
   // ─── procedural helpers ────────────────────────────────────────────────────
   void toggleProcedural(String key, bool v) {
     setState(() {
@@ -1229,6 +1250,8 @@ class CommonFormState extends State<CommonForm> {
     _regDesig = 'HC';
     _cctvVal = null;
     _eshaksh = null;
+    _effectiveVehicleUsage.clear();
+    _section8283Action = null;
     _prevAction = 'BNSS 129';
     _prevBondsVal = 'no';
     _finalSummary = null;
@@ -1408,6 +1431,8 @@ class CommonFormState extends State<CommonForm> {
       'eshakshValue': _eshaksh,
       'eshakshDt': _eDt.text,
       'eshakshReason': _eReason.text,
+      'vehicleUsage': _effectiveVehicleUsage.toMap(),
+      'section8283Action': _section8283Action,
       'investigationNotes': {
         'fingerprintVal': _fingerprintVal,
         'fingerprintDate': _fingerprintDate.text,
@@ -1796,6 +1821,15 @@ class CommonFormState extends State<CommonForm> {
     _eshaksh = m['eshakshValue'] as String?;
     _eDt.text = _s(m['eshakshDt']);
     _eReason.text = _s(m['eshakshReason']);
+    if (m['vehicleUsage'] is Map) {
+      final vu = GovernmentVehicleUsageData.fromMap(m['vehicleUsage'] as Map);
+      _effectiveVehicleUsage.sdEntry = vu.sdEntry;
+      _effectiveVehicleUsage.logBookEntry = vu.logBookEntry;
+      _effectiveVehicleUsage.caseDiaryEntry = vu.caseDiaryEntry;
+    } else {
+      _effectiveVehicleUsage.clear();
+    }
+    _section8283Action = m['section8283Action']?.toString();
 
     final inv = m['investigationNotes'] as Map?;
     if (inv != null) {
@@ -2642,19 +2676,21 @@ class CommonFormState extends State<CommonForm> {
                             ),
                           ),
                           _card(3, 'Crime Spot', _s3()),
-                          _card(4, 'Stolen Property', _sStolenProperty()),
+                          if (!_isPocsoCase)
+                            _card(4, 'Stolen Property', _sStolenProperty()),
                           if (widget.middleSlot != null) widget.middleSlot!,
                           _card(5, 'Complainant KYC', _s4()),
-                          _card(
-                            6,
-                            'Victim KYC',
-                            _sVictim(),
-                            headerAction: _headerBtn(
-                              'Same as Complainant',
-                              _copyComplainantToVictim,
-                              icon: Icons.copy_rounded,
+                          if (!_isPocsoCase)
+                            _card(
+                              6,
+                              'Victim KYC',
+                              _sVictim(),
+                              headerAction: _headerBtn(
+                                'Same as Complainant',
+                                _copyComplainantToVictim,
+                                icon: Icons.copy_rounded,
+                              ),
                             ),
-                          ),
                           if (_isMurderCase)
                             _card(
                               7,
@@ -2666,27 +2702,28 @@ class CommonFormState extends State<CommonForm> {
                                 icon: Icons.copy_rounded,
                               ),
                             ),
-                          _card(
-                            _isMurderCase ? 8 : 7,
-                            'Injured KYC',
-                            _sInjured(),
-                            headerAction: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _headerBtn(
-                                  'Same as Complainant',
-                                  _copyComplainantToInjured,
-                                  icon: Icons.copy_rounded,
-                                ),
-                                const SizedBox(width: 6),
-                                _headerBtn(
-                                  'Same as Victim',
-                                  _copyVictimToInjured,
-                                  icon: Icons.copy_rounded,
-                                ),
-                              ],
+                          if (!_isPocsoCase)
+                            _card(
+                              _isMurderCase ? 8 : 7,
+                              'Injured KYC',
+                              _sInjured(),
+                              headerAction: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _headerBtn(
+                                    'Same as Complainant',
+                                    _copyComplainantToInjured,
+                                    icon: Icons.copy_rounded,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _headerBtn(
+                                    'Same as Victim',
+                                    _copyVictimToInjured,
+                                    icon: Icons.copy_rounded,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
                           _card(
                             _isMurderCase ? 9 : 8,
                             'Accused Details',
@@ -3490,8 +3527,12 @@ class CommonFormState extends State<CommonForm> {
             _tf(
               'Name',
               _vName,
-              enabled: !_isRapeCase,
-              hintText: _isRapeCase ? 'Identity Protected by Law' : null,
+              enabled: !_isRapeCase && !_isPocsoCase,
+              hintText: _isRapeCase
+                  ? 'Identity Protected by Law'
+                  : _isPocsoCase
+                      ? 'Selected in POCSO Section'
+                      : null,
             ),
             _tf('Age', _vAge, keyboardType: TextInputType.number),
           ]),
@@ -4308,120 +4349,142 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §9 Arrest & Release Status ────────────────────────────────────────────
   Widget _s9() {
-    if (allAccusedNames.isEmpty) {
-      return _emptyBox(
-        'Add accused/suspected names above to see arrest fields.',
-      );
-    }
     return Column(
-      children: _arrestRows.map((r) {
-        r['arrestLoc'] ??= TextEditingController();
-        r['arrestOfficer'] ??= TextEditingController();
-        r['relName'] ??= TextEditingController();
-        r['relationship'] ??= TextEditingController();
-        r['noticeIssued'] ??= 'no';
-        r['noticeDt'] ??= TextEditingController();
-        r['relOnNotice'] ??= 'no';
-        r['wantedStatus'] ??= 'Not Wanted';
-        r['releaseTypeDt'] ??= TextEditingController();
-        r['dateOfDeath'] ??= TextEditingController();
-        final name = r['accusedName'] as String;
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _kBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _kTeal.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.person_rounded, size: 16, color: _kTeal),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Accused: $name',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _kTeal,
-                        letterSpacing: 0.5,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Section8283ActionWidget(
+          value: _section8283Action,
+          onChanged: (v) => setState(() => _section8283Action = v),
+        ),
+        const SizedBox(height: 12),
+        if (allAccusedNames.isEmpty)
+          _emptyBox(
+            'Add accused/suspected names above to see arrest fields.',
+          )
+        else
+          for (final r in _arrestRows)
+            Builder(
+              builder: (context) {
+                r['arrestLoc'] ??= TextEditingController();
+                r['arrestOfficer'] ??= TextEditingController();
+                r['relName'] ??= TextEditingController();
+                r['relationship'] ??= TextEditingController();
+                r['noticeIssued'] ??= 'no';
+                r['noticeDt'] ??= TextEditingController();
+                r['relOnNotice'] ??= 'no';
+                r['wantedStatus'] ??= 'Not Wanted';
+                r['releaseTypeDt'] ??= TextEditingController();
+                r['dateOfDeath'] ??= TextEditingController();
+                final name = r['accusedName'] as String;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: _kBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _kTeal.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.person_rounded,
+                                size: 16, color: _kTeal),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Accused: $name',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _kTeal,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              _row([
-                _dateTimeField(
-                  'Arrest Date & Time (dd/mm/yyyy hh:mm)',
-                  r['arrestDt'] as TextEditingController,
-                ),
-                _dateField(
-                  'Release Date',
-                  r['releaseDt'] as TextEditingController,
-                ),
-              ]),
-              _row([
-                _tf('Arrest Location', r['arrestLoc'] as TextEditingController),
-                _tf('Arresting Officer',
-                    r['arrestOfficer'] as TextEditingController),
-              ]),
-              _row([
-                _tf('Relative Name', r['relName'] as TextEditingController),
-                _relationField(
-                    'Relationship', r['relationship'] as TextEditingController),
-              ]),
-              _row([
-                _dateTimeField('Notice Issued Date & Time',
-                    r['noticeDt'] as TextEditingController),
-              ]),
-              _yesNo(
-                'Released on Notice?',
-                r['relOnNotice'] as String?,
-                (v) => setState(() => r['relOnNotice'] = v),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _chipSelector(
-                  label: 'Wanted / Absconding Status',
-                  items: const ['Not Wanted', 'Wanted', 'Absconding'],
-                  selected: r['wantedStatus'] as String?,
-                  onSelect: (v) => setState(() => r['wantedStatus'] = v),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _chipSelector(
-                  label: 'Release Type',
-                  items: _kReleaseTypes,
-                  selected: r['releaseType'] as String?,
-                  onSelect: (v) => setState(() => r['releaseType'] = v),
-                ),
-              ),
-              if (r['releaseType'] != null)
-                _row([
-                  _dateField('${r['releaseType']} Bail Date',
-                      r['releaseTypeDt'] as TextEditingController),
-                ]),
-              _row([
-                _dateField('Date of Death (if applicable)',
-                    r['dateOfDeath'] as TextEditingController),
-              ]),
-            ],
-          ),
-        );
-      }).toList(),
+                      _row([
+                        _dateTimeField(
+                          'Arrest Date & Time (dd/mm/yyyy hh:mm)',
+                          r['arrestDt'] as TextEditingController,
+                        ),
+                        _dateField(
+                          'Release Date',
+                          r['releaseDt'] as TextEditingController,
+                        ),
+                      ]),
+                      _row([
+                        _tf('Arrest Location',
+                            r['arrestLoc'] as TextEditingController),
+                        _tf('Arresting Officer',
+                            r['arrestOfficer'] as TextEditingController),
+                      ]),
+                      _row([
+                        _tf('Relative Name',
+                            r['relName'] as TextEditingController),
+                        _relationField('Relationship',
+                            r['relationship'] as TextEditingController),
+                      ]),
+                      _yesNo(
+                        'Notice Issued?',
+                        r['noticeIssued'] as String?,
+                        (v) => setState(() => r['noticeIssued'] = v),
+                      ),
+                      if (r['noticeIssued'] == 'yes') ...[
+                        const SizedBox(height: 10),
+                        _dateTimeField('Notice Date & Time',
+                            r['noticeDt'] as TextEditingController),
+                        const SizedBox(height: 10),
+                        _yesNo(
+                          'Released on Notice?',
+                          r['relOnNotice'] as String?,
+                          (v) => setState(() => r['relOnNotice'] = v),
+                        ),
+                      ],
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _chipSelector(
+                          label: 'Wanted / Absconding Status',
+                          items: const ['Not Wanted', 'Wanted', 'Absconding'],
+                          selected: r['wantedStatus'] as String?,
+                          onSelect: (v) =>
+                              setState(() => r['wantedStatus'] = v),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _chipSelector(
+                          label: 'Release Type',
+                          items: _kReleaseTypes,
+                          selected: r['releaseType'] as String?,
+                          onSelect: (v) => setState(() => r['releaseType'] = v),
+                        ),
+                      ),
+                      if (r['releaseType'] != null)
+                        _row([
+                          _dateField('${r['releaseType']} Bail Date',
+                              r['releaseTypeDt'] as TextEditingController),
+                        ]),
+                      _row([
+                        _dateField('Date of Death (if applicable)',
+                            r['dateOfDeath'] as TextEditingController),
+                      ]),
+                    ],
+                  ),
+                );
+              },
+            ),
+      ],
     );
   }
 
@@ -4559,6 +4622,11 @@ class CommonFormState extends State<CommonForm> {
               _tf('Reason for No Fingerprint', _fingerprintReason, maxLines: 2)
             ]),
           ],
+          _divider(),
+          GovernmentVehicleUsageWidget(
+            data: _effectiveVehicleUsage,
+            onChanged: (v) => setState(() => _vehicleUsage = v),
+          ),
         ],
       );
 

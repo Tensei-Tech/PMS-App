@@ -6,10 +6,15 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../modules/core/models/base_record.dart';
+import '../modules/ad/providers/ad_provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/case_service.dart';
 import '../services/firestore_service.dart';
+import '../utils/ad_disposal_helper.dart';
 import '../utils/app_constants.dart';
 import '../widgets/base_form/base_form.dart';
+import '../widgets/common_form/government_vehicle_usage_widget.dart';
+import '../widgets/common_form/section_82_83_action_widget.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme colors
@@ -339,6 +344,10 @@ class _ADFormScreenState extends State<ADFormScreen> {
     'chkExhumation': TextEditingController(),
   };
   String? eshakshValue;
+  GovernmentVehicleUsageData? vehicleUsage;
+  GovernmentVehicleUsageData get effectiveVehicleUsage =>
+      vehicleUsage ??= GovernmentVehicleUsageData();
+  String? section8283Action;
 
   // Section 11 Seizures
   List<Map<String, dynamic>> seizureList = [];
@@ -548,6 +557,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
         (k, v) => MapEntry(k, v.text),
       ),
       'eshakshValue': eshakshValue,
+      'vehicleUsage': effectiveVehicleUsage.toMap(),
+      'section8283Action': section8283Action,
       'seizures': _seizuresPayloadList(),
       'cdrSent': cdrSentController.text,
       'cdrRecv': cdrRecvController.text,
@@ -593,6 +604,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
       'Accidental Death case $adNo.',
       if (comp.isNotEmpty) 'Complainant: $comp',
     ].join(' ');
+
+    final payload = buildAdDocumentMap(status: prev?.status ?? 'Open');
+    final bool isDisposed = isAdDisposalCase(payload) || isRecordDisposal(prev);
+    final status = isDisposed ? 'Disposal' : (prev?.status ?? 'Open');
+
     return ModuleRecord(
       id: id,
       moduleKey: 'ad',
@@ -604,10 +620,10 @@ class _ADFormScreenState extends State<ADFormScreen> {
       location: location,
       incidentDate: incident,
       priority: prev?.priority ?? 'Medium',
-      status: prev?.status ?? 'Open',
+      status: status,
       assignedOfficer: '$ioDesig ${ioNameController.text}'.trim(),
       createdAt: prev?.createdAt,
-      extraFields: const {},
+      extraFields: payload,
       stationName: auth.stationName,
       createdBy: prev != null ? prev.createdBy : auth.uid,
       assignedOfficerUid:
@@ -951,6 +967,13 @@ class _ADFormScreenState extends State<ADFormScreen> {
       }
     }
     eshakshValue = d['eshakshValue']?.toString();
+    if (d['vehicleUsage'] is Map) {
+      vehicleUsage = GovernmentVehicleUsageData.fromMap(
+          Map<String, dynamic>.from(d['vehicleUsage'] as Map));
+    } else {
+      vehicleUsage = GovernmentVehicleUsageData();
+    }
+    section8283Action = d['section8283Action']?.toString();
 
     _disposeSeizureList();
     seizureList = [];
@@ -2277,8 +2300,23 @@ class _ADFormScreenState extends State<ADFormScreen> {
       _caseListDocId =
           _caseListDocId ?? widget.existingRecord?.id ?? const Uuid().v4();
 
+      final adProv = mounted ? context.read<AdProvider>() : null;
+      final record = _moduleRecordForCaseList();
+
       // Primary Save to PostgreSQL backend
-      await _caseFirestore.saveCase(_moduleRecordForCaseList());
+      await CaseService()
+          .saveCase(record, isCreate: widget.existingRecord == null);
+      await _caseFirestore.saveCase(record);
+
+      try {
+        if (adProv != null) {
+          if (widget.existingRecord != null) {
+            await adProv.updateRecord(record);
+          } else {
+            await adProv.addRecord(record);
+          }
+        }
+      } catch (_) {}
 
       if (!mounted) return;
       setState(() => saveBarText = 'Submitted successfully!');
@@ -2357,6 +2395,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
     cctvValue = null;
     cctvDateTimeController.clear();
     eshakshValue = null;
+    vehicleUsage = GovernmentVehicleUsageData();
+    section8283Action = null;
     proceduralChecks = {
       'chkMemo': false,
       'chkPanchSpot': false,
@@ -2576,32 +2616,61 @@ class _ADFormScreenState extends State<ADFormScreen> {
     );
   }
 
+  Widget _buildUnknownYesNoRow() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: inputBg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: inputBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Expanded(
+            child: Text(
+              'Unknown',
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary),
+            ),
+          ),
+          _yesNoChip(
+            'Yes',
+            isUnknownDeath == true,
+            accentGreen,
+            () {
+              setState(() => isUnknownDeath = true);
+            },
+          ),
+          const SizedBox(width: 8),
+          _yesNoChip(
+            'No',
+            isUnknownDeath == false,
+            accentRed,
+            () {
+              setState(() => isUnknownDeath = false);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSection6() {
     return RepaintBoundary(
       child: _sectionCard(
         title: '6. CAUSE OF DEATH',
-        action: Row(
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Unknown',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: textSecondary)),
-            Switch.adaptive(
-              value: isUnknownDeath,
-              activeThumbColor: accentTeal,
-              activeTrackColor: accentTeal.withValues(alpha: 0.42),
-              onChanged: (v) => setState(() => isUnknownDeath = v),
-            ),
+            _buildStandardCause(),
+            const SizedBox(height: 14),
+            _buildUnknownYesNoRow(),
+            _buildUnknownCause(),
           ],
-        ),
-        content: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: KeyedSubtree(
-            key: ValueKey<bool>(isUnknownDeath),
-            child:
-                isUnknownDeath ? _buildUnknownCause() : _buildStandardCause(),
-          ),
         ),
       ),
     );
@@ -2697,6 +2766,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 14),
+            Section8283ActionWidget(
+              value: section8283Action,
+              onChanged: (v) => setState(() => section8283Action = v),
+            ),
           ],
         ),
       ),
@@ -2719,23 +2793,27 @@ class _ADFormScreenState extends State<ADFormScreen> {
                 SizedBox(
                     width: 360,
                     child: _buildProceduralLine(
-                        'chkPanchSpot', 'Panchanama Spot')),
-                SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine('chkInquest', 'Inquest')),
-                SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine('chkIdent', 'Identification')),
-                SizedBox(
-                    width: 360,
-                    child: _buildProceduralLine('chkSearch', 'Search')),
+                        'chkPanchSpot', 'Spot Panchanama')),
                 SizedBox(
                     width: 360,
                     child: _buildProceduralLine(
-                        'chkPersSearch', 'Personal Search')),
+                        'chkInquest', 'Inquest Panchanama')),
                 SizedBox(
                     width: 360,
-                    child: _buildProceduralLine('chkExhumation', 'Exhumation')),
+                    child: _buildProceduralLine(
+                        'chkIdent', 'Identification Panchanama')),
+                SizedBox(
+                    width: 360,
+                    child:
+                        _buildProceduralLine('chkSearch', 'Search Panchanama')),
+                SizedBox(
+                    width: 360,
+                    child: _buildProceduralLine(
+                        'chkPersSearch', 'Personal Search Panchanama')),
+                SizedBox(
+                    width: 360,
+                    child: _buildProceduralLine(
+                        'chkExhumation', 'Exhumation Panchanama')),
               ],
             ),
             const Divider(height: 24, color: inputBorder),
@@ -2765,6 +2843,11 @@ class _ADFormScreenState extends State<ADFormScreen> {
                   }),
                 ],
               ),
+            ),
+            const SizedBox(height: 14),
+            GovernmentVehicleUsageWidget(
+              data: effectiveVehicleUsage,
+              onChanged: (v) => setState(() => vehicleUsage = v),
             ),
           ],
         ),
