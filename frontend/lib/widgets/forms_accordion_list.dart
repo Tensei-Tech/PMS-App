@@ -153,7 +153,7 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         sectionId: 'Pancha Summons 195',
       ),
       _sub(
-        'Marananveshan Panchanama',
+        'Marananveshan Panchanama (मरणाण्वेषण)',
         'Ends at I.O. signature',
         sectionId: 'Marananveshan Panchanama',
       ),
@@ -166,11 +166,6 @@ final List<FormsListEntry> kFormsHierarchyMock = [
         'Dead Body Handover Receipt',
         'Ends at I.O. & receiver signatures',
         sectionId: 'Dead Body Handover',
-      ),
-      _sub(
-        'Duty Pass',
-        'Ends at I.O. signature',
-        sectionId: 'Duty Pass',
       ),
       _sub(
         'Exhumation Panchanama',
@@ -200,18 +195,6 @@ final List<FormsListEntry> kFormsHierarchyMock = [
       _sub('Part II — Further Panchanama (अधिक पंचनामा)',
           'Ends at I.O. signature',
           sectionId: 'Accused Part II'),
-    ],
-  ),
-  FormsListEntry(
-    title: 'Final Report Form',
-    subSections: [
-      _sub('Part I — Header & Classification', '§§1–10',
-          sectionId: 'Final Report Part I'),
-      _sub('Part II — Accused Particulars', '§§11–12',
-          sectionId: 'Final Report Part II'),
-      _sub('Part III — Witnesses & Dispatch',
-          'Ends at I.O. submitting signature',
-          sectionId: 'Final Report Part III'),
     ],
   ),
 
@@ -245,13 +228,26 @@ final List<FormsListEntry> kFormsHierarchyMock = [
     ],
   ),
 
-  // ── Arrest grounds cluster ──
   FormsListEntry(
     title: 'Draft Ground of Arrest',
+    subCategory: 'Draft Ground of Arrest',
+    isFolder: true,
     subSections: [
-      _sub('Ground of Arrest', 'Pages 1–4'),
-      _sub('Reason of Arrest', 'Pages 5–8'),
-      _sub('Reason for PCR', 'Pages 9–12'),
+      _sub(
+        'अटकेचा आधार (कलम ४७ BNSS)',
+        'Page 9 of 13',
+        sectionId: 'Page 9 of 13',
+      ),
+      _sub(
+        'नातेवाईक/ मित्रांसाठी अटकेच्या माहितीची नोटीस (कलम ४८ BNSS)',
+        'Page 10 of 13',
+        sectionId: 'Page 10 of 13',
+      ),
+      _sub(
+        'अटकेचे कारणे [कलम ३५(१)(ब) BNSS ]',
+        'Page 11 of 13',
+        sectionId: 'Page 11 of 13',
+      ),
     ],
   ),
   FormsListEntry(
@@ -280,16 +276,14 @@ final List<FormsListEntry> kFormsHierarchyMock = [
     ],
   ),
 
-  // ── Order u/s 47 & 48 (3 pages) ──
+  // ── Order u/s 47 & 48 (2 pages) ──
   FormsListEntry(
     title: 'Order Section 47 & 48',
     subCategory: 'Order Section 47 & 48',
     subSections: [
-      _sub('Administrative Order', 'Ends at SHO signature',
-          sectionId: 'Order Main'),
-      _sub('Notice BNSS 47(1)', 'Ends at accused & I.O. signatures',
+      _sub('Notice BNSS 47(1)', 'Page 1 — बी.एन.एस.एस.कलम ४७(१)',
           sectionId: 'Notice BNSS 47(1)'),
-      _sub('Notice BNSS 48', 'Ends at relative & I.O. signatures',
+      _sub('Notice BNSS 48', 'Page 2 — बी.एन.एस.एस.कलम ४८',
           sectionId: 'Notice BNSS 48'),
     ],
   ),
@@ -309,9 +303,6 @@ final List<FormsListEntry> kFormsHierarchyMock = [
     title: 'Panchanama, Forms & Notices (BNSS)',
     subCategory: 'BNSS Forms Compendium',
     subSections: [
-      _sub('Police Report to Civil Surgeon', 'Pages 16–17',
-          sectionId: 'Civil Surgeon PM Report',
-          subCategoryOverride: 'Inquest Panchanama'),
       _sub('PM Request Application (विनंती अर्ज)', 'Page 18',
           sectionId: 'Vinanti Arj', subCategoryOverride: 'Inquest Panchanama'),
       _sub('Relative Summons — Section 179', 'Page 19',
@@ -319,9 +310,6 @@ final List<FormsListEntry> kFormsHierarchyMock = [
           subCategoryOverride: 'Inquest Panchanama'),
       _sub('Pancha Summons — Section 195', 'Page 20',
           sectionId: 'Pancha Summons 195',
-          subCategoryOverride: 'Inquest Panchanama'),
-      _sub('Marananveshan Panchanama (मरणाण्वेषण)', 'Pages 21–22',
-          sectionId: 'Marananveshan Panchanama',
           subCategoryOverride: 'Inquest Panchanama'),
       _sub('14-Point Medical Officer Form', 'Page 23',
           sectionId: '14 Kalmi Form',
