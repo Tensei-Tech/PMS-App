@@ -1078,10 +1078,6 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
       appBar: ModuleHubScreenAppBar(
         title: TranslationHelper.translate(context, 'Hurt'),
         subtitle: subtitle,
-        badgeLabel: TranslationHelper.translate(
-          context,
-          'hurt',
-        ).toUpperCase(),
         onBackPressed: () => Navigator.pop(context),
       ),
       floatingActionButton: _showNewCaseFab

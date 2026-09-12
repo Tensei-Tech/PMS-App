@@ -721,7 +721,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     return ModuleHubScreenAppBar(
       title: transTitle,
       subtitle: '$total $transRecord $transReg',
-      badgeLabel: transTitle.toUpperCase(),
       backgroundColor: (widget.moduleKey == 'detected' ||
               widget.moduleKey == 'undetected' ||
               widget.moduleKey == 'disposal')

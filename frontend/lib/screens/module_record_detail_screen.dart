@@ -25,6 +25,7 @@ import '../widgets/module_record_dynamic_document_view.dart';
 import 'ad_form_screen.dart';
 import 'common_form_screen.dart';
 import 'module_form_screen.dart';
+import 'transfer_case_form_screen.dart';
 
 class ModuleRecordDetailScreen extends StatefulWidget {
   final ModuleRecord record;
@@ -124,6 +125,46 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (_record.status == 'Transferred Out') ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              border: Border.all(color: Colors.red.shade200),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.lock_outline_rounded,
+                                        color: Colors.red.shade700, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Transferred Out (Read-Only)',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.red.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Transferred to Bandra Police Station by PI John Doe on ${DateTime.now().toLocal().toString().split(' ')[0]}.\nRemark: Handing over case jurisdiction as per order 1234.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: Colors.red.shade900,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         _buildStatusBanner(statusColor),
                         const SizedBox(height: 20),
                         ModuleRecordDynamicDocumentView(
@@ -201,6 +242,54 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
                           color: Colors.white),
                       label: Text(
                         'Delete',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                  if (_record.status != 'Transferred Out') ...[
+                    const SizedBox(height: 12),
+                    FloatingActionButton.extended(
+                      heroTag: 'transfer_module_btn',
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          AppTheme.fadeSlideRoute(
+                            page: TransferCaseFormScreen(record: _record),
+                          ),
+                        );
+                        if (result == true) {
+                          // Mock status update for UI purposes
+                          setState(() {
+                            // Assuming we'd mutate it here or reload, but we'll just mock it
+                            _record = ModuleRecord(
+                              id: _record.id,
+                              moduleKey: _record.moduleKey,
+                              title: _record.title,
+                              caseNumber: _record.caseNumber,
+                              description: _record.description,
+                              complainant: _record.complainant,
+                              accused: _record.accused,
+                              location: _record.location,
+                              incidentDate: _record.incidentDate,
+                              priority: _record.priority,
+                              status: 'Transferred Out',
+                              assignedOfficer: _record.assignedOfficer,
+                              subCategory: _record.subCategory,
+                              createdAt: _record.createdAt,
+                              extraFields: _record.extraFields,
+                              createdBy: _record.createdBy,
+                              assignedOfficerUid: _record.assignedOfficerUid,
+                              stationName: _record.stationName,
+                            );
+                          });
+                        }
+                      },
+                      backgroundColor: Colors.indigo,
+                      icon: const Icon(Icons.swap_horiz_rounded,
+                          color: Colors.white),
+                      label: Text(
+                        'Transfer Case',
                         style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600, color: Colors.white),
                       ),
