@@ -4931,21 +4931,14 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §13 Preventive & Bonds ─────────────────────────────────────────────────
   Widget _s13() {
-    final validPrevAction =
+    final String? validPrevAction =
         (_prevAction != null && _kPreventiveItems.contains(_prevAction))
             ? _prevAction
-            : _kPreventiveItems.first;
+            : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _subHeader('PREVENTIVE BONDS'),
-        _row([
-          _dateField('PR Bond Date', _bondDate),
-          _dateField('Bond Cancellation Date', _bondCancel),
-        ]),
-        _row([_tf('Reason for PR Bond', _bReason)]),
-        const SizedBox(height: 14),
         _subHeader('PREVENTIVE ACTIONS'),
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -4961,21 +4954,36 @@ class CommonFormState extends State<CommonForm> {
             isExpanded: true,
             style: _tsBody,
             icon: const Icon(Icons.arrow_drop_down, size: 20),
-            items: _kPreventiveItems
-                .map((e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e, style: const TextStyle(fontSize: 12))))
-                .toList(),
+            items: [
+              const DropdownMenuItem<String>(
+                value: null,
+                child: Text('No Selection',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey)),
+              ),
+              ..._kPreventiveItems.map((e) => DropdownMenuItem<String>(
+                  value: e,
+                  child: Text(e, style: const TextStyle(fontSize: 12))))
+            ],
             onChanged: (v) => setState(() => _prevAction = v),
           ),
         ),
         _row([
           _dateTimeField(
-            '$validPrevAction Date & Time',
+            '${validPrevAction ?? 'Action'} Date & Time',
             _prevActionDt,
             hintText: 'dd/mm/yyyy hh:mm',
           ),
         ]),
+        const SizedBox(height: 14),
+        _subHeader('PREVENTIVE BONDS'),
+        _row([
+          _dateField('PR Bond Date', _bondDate),
+          _dateField('Bond Cancellation Date', _bondCancel),
+        ]),
+        _row([_tf('Reason for PR Bond', _bReason)]),
       ],
     );
   }
