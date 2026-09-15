@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../utils/app_constants.dart';
-import '../../../utils/crime_detail_pdf.dart';
+import '../../../utils/common_form_pdf.dart';
 import '../../../widgets/base_form/base_form.dart';
 import '../../../widgets/common_form/pocso_voice_banner.dart';
 
@@ -1363,10 +1363,16 @@ class MissingFormState extends State<MissingForm> {
         ],
       );
 
-  Future<void> _generateCrimeDetailPdf() async {
+  Future<void> _generateMissingPdf() async {
     try {
       final doc = buildDocumentMap();
-      await previewCrimeDetailPdf(context, doc);
+      await previewFormPdf(
+        context,
+        doc,
+        formTitle: 'MISSING PERSON FORM',
+        formSubtitle:
+            'Missing Persons Record — Khakhi Diary · Maharashtra Police',
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1411,9 +1417,9 @@ class MissingFormState extends State<MissingForm> {
                   _barBtn('Save Draft', Icons.save_outlined, saveDraft, _kTeal),
                   const SizedBox(width: 6),
                   _barBtn(
-                    'Generate Crime Detail Form PDF',
+                    'Generate Missing Form PDF',
                     Icons.picture_as_pdf_outlined,
-                    _generateCrimeDetailPdf,
+                    _generateMissingPdf,
                     const Color(0xFF0284C7),
                   ),
                 ],

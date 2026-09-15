@@ -75,22 +75,8 @@ Future<Uint8List> generateFormPdf(
   String formTitle = 'CASE FORM',
   String formSubtitle = 'Khakhi Diary - Maharashtra Police',
 }) async {
-  pw.Document pdf;
-  try {
-    pdf = pw.Document(
-      theme: pw.ThemeData.withFont(
-        base: await PdfGoogleFonts.interRegular(),
-        bold: await PdfGoogleFonts.interBold(),
-        italic: await PdfGoogleFonts.interItalic(),
-        boldItalic: await PdfGoogleFonts.interBoldItalic(),
-      ),
-    );
-  } catch (_) {
-    // Web can fail fetching remote Google font files (network/CORS/ad-block).
-    // Fallback to embedded unicode-capable OpenSans theme.
-    final unicodeTheme = await PdfUnicodeFonts.openSansTheme();
-    pdf = pw.Document(theme: unicodeTheme);
-  }
+  final unicodeTheme = await PdfUnicodeFonts.openSansTheme();
+  final pdf = pw.Document(theme: unicodeTheme);
 
   pdf.addPage(
     pw.MultiPage(
@@ -646,7 +632,6 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   // ── §10 Procedural Details ────────────────────────────────────────────────
   final procChecks = (m['proceduralChecks'] as Map?) ?? {};
   final procDates = (m['proceduralDates'] as Map?) ?? {};
-  final vuPdf = (m['vehicleUsage'] as Map?) ?? {};
   const procLabels = {
     'chkMemo': 'Memorandum Panchanama',
     'chkPanchSpot': 'Panchanama Spot',
@@ -710,30 +695,6 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             else if (m['eshakshValue'] == 'no' &&
                 (m['eshakshReason']?.toString().isNotEmpty ?? false))
               _f('Reason for No E-Shakshya', _v(m['eshakshReason'])),
-          ]),
-          pw.SizedBox(height: 8),
-          pw.Text(
-            'GOVERNMENT VEHICLE USAGE',
-            style: pw.TextStyle(
-              fontSize: 9,
-              fontWeight: pw.FontWeight.bold,
-              color: _dark,
-            ),
-          ),
-          pw.SizedBox(height: 4),
-          _grid2([
-            _f(
-              'SD Entry of Vehicle No & Time',
-              _v(vuPdf['sdEntry'], or: 'Not set').toUpperCase(),
-            ),
-            _f(
-              'Log Book of Vehicle Entry',
-              _v(vuPdf['logBookEntry'], or: 'Not set').toUpperCase(),
-            ),
-            _f(
-              'Case Diary Vehicle Entry',
-              _v(vuPdf['caseDiaryEntry'], or: 'Not set').toUpperCase(),
-            ),
           ]),
         ],
       ),
@@ -1464,7 +1425,7 @@ pw.Widget _personBlock(String title, Map<String, dynamic> person) =>
       decoration: pw.BoxDecoration(
         color: _bg,
         borderRadius: pw.BorderRadius.circular(6),
-        border: const pw.Border(left: pw.BorderSide(color: _teal, width: 3)),
+        border: pw.Border.all(color: _teal, width: 0.8),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1499,7 +1460,7 @@ pw.Widget _chargeBlock(int num, String act, List<String> secs) => pw.Container(
       decoration: pw.BoxDecoration(
         color: _bg,
         borderRadius: pw.BorderRadius.circular(6),
-        border: const pw.Border(left: pw.BorderSide(color: _teal, width: 3)),
+        border: pw.Border.all(color: _teal, width: 0.8),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,

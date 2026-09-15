@@ -3,78 +3,79 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import '../utils/translation_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import '../modules/core/providers/base_module_provider.dart';
+import 'package:provider/provider.dart';
+
+import '../modules/absconded/providers/absconded_provider.dart';
+import '../modules/accident/providers/accident_provider.dart';
+import '../modules/ad/providers/ad_provider.dart';
+import '../modules/application/providers/application_provider.dart';
+import '../modules/arrested/providers/arrested_provider.dart';
+import '../modules/bnss/providers/bnss_provider.dart';
+import '../modules/coin/providers/coin_provider.dart';
 import '../modules/core/models/base_record.dart';
+import '../modules/core/providers/base_module_provider.dart';
+import '../modules/crime_women/providers/crime_women_provider.dart';
+import '../modules/detected/providers/detected_provider.dart';
+import '../modules/disposal/providers/disposal_provider.dart';
 import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../modules/form_vi/providers/form_vi_provider.dart';
-import '../modules/nc/providers/nc_provider.dart';
-import '../modules/missing/screens/missing_form_screen.dart';
-import '../modules/nc/screens/nc_form_screen.dart';
-import '../modules/preventive/providers/preventive_provider.dart';
-import '../modules/ad/providers/ad_provider.dart';
-import '../modules/missing/providers/missing_provider.dart';
-import '../modules/kidnapping/providers/kidnapping_provider.dart';
-import '../modules/theft/providers/theft_provider.dart';
-import '../modules/sand_theft/providers/sand_theft_provider.dart';
-import '../modules/hurt/providers/hurt_provider.dart';
-import '../modules/pocso/providers/pocso_provider.dart';
-import '../modules/passport/providers/passport_provider.dart';
-import '../modules/monthly/providers/monthly_provider.dart';
-import '../modules/pending/providers/pending_provider.dart';
-import '../modules/detected/providers/detected_provider.dart';
-import '../modules/undetected/providers/undetected_provider.dart';
-import '../modules/disposal/providers/disposal_provider.dart';
-import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
-import '../modules/arrested/providers/arrested_provider.dart';
-import '../modules/absconded/providers/absconded_provider.dart';
-import '../modules/crime_women/providers/crime_women_provider.dart';
-import '../modules/juvenile/providers/juvenile_provider.dart';
-import '../modules/victim/providers/victim_provider.dart';
-import '../modules/accident/providers/accident_provider.dart';
-import '../modules/traffic/providers/traffic_provider.dart';
-import '../modules/application/providers/application_provider.dart';
-import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
-import '../modules/muddemal/providers/muddemal_provider.dart';
-import '../modules/bnss/providers/bnss_provider.dart';
-import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/gowans/providers/gowans_provider.dart';
+import '../modules/hurt/providers/hurt_provider.dart';
 import '../modules/it_act/providers/it_act_provider.dart';
+import '../modules/juvenile/providers/juvenile_provider.dart';
+import '../modules/kidnapping/providers/kidnapping_provider.dart';
 import '../modules/mcoca/providers/mcoca_provider.dart';
-import '../modules/uapa/providers/uapa_provider.dart';
+import '../modules/missing/providers/missing_provider.dart';
+import '../modules/missing/screens/missing_form_screen.dart';
+import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
-import '../modules/coin/providers/coin_provider.dart';
+import '../modules/mpda/screens/mpda_form_screen.dart';
+import '../modules/muddemal/providers/muddemal_provider.dart';
+import '../modules/nc/providers/nc_provider.dart';
+import '../modules/nc/screens/nc_form_screen.dart';
+import '../modules/ndps/providers/ndps_provider.dart';
+import '../modules/passport/providers/passport_provider.dart';
+import '../modules/pending/providers/pending_provider.dart';
+import '../modules/pocso/providers/pocso_provider.dart';
+import '../modules/preventive/providers/preventive_provider.dart';
+import '../modules/preventive/screens/preventive_form_screen.dart';
+import '../modules/preventive/screens/preventive_view_screen.dart';
+import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
+import '../modules/sand_theft/providers/sand_theft_provider.dart';
+import '../modules/theft/providers/theft_provider.dart';
+import '../modules/traffic/providers/traffic_provider.dart';
+import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
+import '../modules/uapa/providers/uapa_provider.dart';
+import '../modules/undetected/providers/undetected_provider.dart';
+import '../modules/victim/providers/victim_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/ad_disposal_helper.dart';
+import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
-import '../widgets/read_only_module_record_hub_card.dart';
+import '../utils/pending_io_wise_logic.dart';
+import '../utils/translation_helper.dart';
+import '../widgets/forms_accordion_list.dart';
 import '../widgets/module_hub_report_card.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
-import '../widgets/forms_accordion_list.dart';
-import '../utils/pending_io_wise_logic.dart';
-import 'pending_summary_screen.dart';
-import 'pending_io_wise_screens.dart';
-import 'pending_demo_table_screen.dart';
+import '../widgets/read_only_module_record_hub_card.dart';
+import 'absconded_cases_screen.dart';
 import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
-import 'module_form_screen.dart';
 import 'common_form_screen.dart';
-import '../utils/common_form_module.dart';
-import '../utils/ad_disposal_helper.dart';
 import 'form_i_v_selection_screen.dart';
 import 'form_vi_selection_screen.dart';
 import 'hurt_cases_screen.dart';
-import 'absconded_cases_screen.dart';
+import 'module_form_screen.dart';
 import 'module_record_detail_screen.dart';
+import 'pending_demo_table_screen.dart';
+import 'pending_io_wise_screens.dart';
+import 'pending_summary_screen.dart';
 import 'report_case_list_screen.dart';
-import '../modules/mpda/screens/mpda_form_screen.dart';
-import '../modules/preventive/screens/preventive_form_screen.dart';
 
 class _CategoryMeta {
   final String label;
@@ -657,7 +658,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         padding: const EdgeInsets.all(AppSpacing.lg),
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
-                            (ctx, i) => _buildCard(ctx, filtered[i]),
+                            (ctx, i) =>
+                                _buildCard(ctx, filtered[i], index: i + 1),
                             childCount: filtered.length,
                           ),
                         ),
@@ -670,29 +672,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         ],
       ),
-      floatingActionButton: (widget.readOnly ||
-              widget.moduleKey == 'detected' ||
-              widget.moduleKey == 'undetected' ||
-              widget.moduleKey == 'disposal' ||
-              widget.moduleKey == 'mpda')
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _openNewEntryForm(context),
-              backgroundColor: AppColors.navyDark,
-              elevation: 4,
-              shape: const StadiumBorder(),
-              icon:
-                  const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-              label: Text(
-                TranslationHelper.translate(context, 'Add Case'),
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ),
+      floatingActionButton: null,
     );
   }
 
@@ -701,10 +681,42 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final recordWord = total == 1 ? 'record' : 'records';
     final transRecord = TranslationHelper.translate(context, recordWord);
     final transReg = TranslationHelper.translate(context, 'registered');
+
+    final isMobile = MediaQuery.of(context).size.width < 500;
+    final bool showAddButton = !(widget.readOnly ||
+        widget.moduleKey == 'detected' ||
+        widget.moduleKey == 'undetected' ||
+        widget.moduleKey == 'disposal' ||
+        widget.moduleKey == 'mpda');
+
+    Widget? actionWidget;
+    if (isMobile && showAddButton) {
+      actionWidget = ElevatedButton.icon(
+        onPressed: () => _openNewEntryForm(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.navyMid,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        icon: const Icon(Icons.add_rounded, size: 16),
+        label: Text(
+          TranslationHelper.translate(context, 'Add Case'),
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
     return ModuleHubScreenAppBar(
       title: transTitle,
       subtitle: '$total $transRecord $transReg',
-      badgeLabel: transTitle.toUpperCase(),
+      actionWidget: actionWidget,
       backgroundColor: (widget.moduleKey == 'detected' ||
               widget.moduleKey == 'undetected' ||
               widget.moduleKey == 'disposal')
@@ -813,17 +825,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 ],
               ),
               ElevatedButton.icon(
-                onPressed: () => runWithPdfAuthGate(
-                  context,
-                  () => ModulePdfHelper.generateSummaryReportPdf(
-                    countsForPdf,
-                    widget.moduleKey == 'disposal'
-                        ? 'Monthly Disposal Report'
-                        : widget.moduleKey == 'pending'
-                            ? 'Pending Cases Report'
-                            : 'Monthly Registration Report',
-                    DateFormat('MMMM yyyy').format(now),
-                  ),
+                onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
+                  countsForPdf,
+                  widget.moduleKey == 'disposal'
+                      ? 'Monthly Disposal Report'
+                      : widget.moduleKey == 'pending'
+                          ? 'Pending Cases Report'
+                          : 'Monthly Registration Report',
+                  DateFormat('MMMM yyyy').format(now),
                 ),
                 icon: const Icon(Icons.download_rounded,
                     size: 18, color: Colors.white),
@@ -1648,10 +1657,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             onPressed: () {
               final label = DateFormat('MMMM yyyy')
                   .format(DateTime(selectedYear, selectedMonth));
-              runWithPdfAuthGate(
-                context,
-                () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
-              );
+              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
             },
             icon: const Icon(Icons.picture_as_pdf_rounded,
                 color: Colors.white, size: 18),
@@ -1986,10 +1992,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             onPressed: () {
               final label = DateFormat('MMMM yyyy')
                   .format(DateTime(selectedYear, selectedMonth));
-              runWithPdfAuthGate(
-                context,
-                () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
-              );
+              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
             },
             icon: const Icon(Icons.picture_as_pdf_rounded,
                 color: Colors.white, size: 18),
@@ -2198,16 +2201,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
     bool isOtherMvAct(ModuleRecord r) => false;
 
-    bool isMissingMale(ModuleRecord r) =>
-        r.moduleKey == 'missing' &&
-        (r.subCategory?.toLowerCase() == 'male' ||
-            r.title.toLowerCase().contains('male'));
-    bool isMissingFemale(ModuleRecord r) =>
-        r.moduleKey == 'missing' &&
-        (r.subCategory?.toLowerCase() == 'female' ||
-            r.title.toLowerCase().contains('female'));
-    bool isMissingTotal(ModuleRecord r) => r.moduleKey == 'missing';
-
     bool g1Total(ModuleRecord r) =>
         isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
     bool g1NcTotal(ModuleRecord r) => isAd(r) || isAccident(r) || isNc(r);
@@ -2281,18 +2274,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         'bold': true,
         'dl': 'Fine'
       },
-      {'k': 'b'},
-      {'k': 'h', 'l': 'Missing'},
-      {'k': 's', 'r': 'Registered', 'd': 'Found'},
-      {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
-      {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
-      {
-        'k': 'd5',
-        'l': 'Total missing',
-        't': isMissingTotal,
-        'bold': true,
-        'dl': 'Found'
-      },
+      // {'k': 'b'},
+      // {'k': 'h', 'l': 'Missing'},
+      // {'k': 's', 'r': 'Registered', 'd': 'Found'},
+      // {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
+      // {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
+      // {
+      //   'k': 'd5',
+      //   'l': 'Total missing',
+      //   't': isMissingTotal,
+      //   'bold': true,
+      //   'dl': 'Found'
+      // },
     ];
 
     // Renders one rowDef as a Flutter widget (on-screen).
@@ -2467,9 +2460,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         ),
       );
 
-      await Printing.layoutPdf(
-        onLayout: (_) async => doc.save(),
-        name: 'Monthly_Summary_${monthYearLabel.replaceAll(' ', '_')}.pdf',
+      final fileName =
+          'Monthly_Summary_${monthYearLabel.replaceAll(' ', '_')}.pdf';
+      await Printing.sharePdf(
+        bytes: await doc.save(),
+        filename: fileName,
       );
     }
 
@@ -2500,7 +2495,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => runWithPdfAuthGate(context, exportPdf),
+              onPressed: exportPdf,
               icon: const Icon(
                 Icons.picture_as_pdf_rounded,
                 color: Colors.white,
@@ -2562,7 +2557,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'Unlawful Assembly',
       'Attempt to suicide',
       'Hurt',
-      'Kidnapping',
+      'Kidnapping/Missing',
       'Rape',
       'Assault on Govt-',
       'Molestation (354)',
@@ -2633,7 +2628,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return 'Attempt to suicide';
       }
       if (key.contains('hurt') || sub.contains('hurt')) return 'Hurt';
-      if (key.contains('kidnap') || sub.contains('kidnap')) return 'Kidnapping';
+      if (key.contains('kidnap') || sub.contains('kidnap'))
+        // ignore: curly_braces_in_flow_control_structures
+        return 'Kidnapping/Missing';
       if (key.contains('rape') || sub.contains('rape')) return 'Rape';
       if (key.contains('assault') || sub.contains('assault')) {
         return 'Assault on Govt-';
@@ -2819,7 +2816,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
       {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
       {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {'sr': '16', 'label': 'Kidnapping', 'head': 'Kidnapping', 'bold': true},
+      {
+        'sr': '16',
+        'label': 'Kidnapping/Missing',
+        'head': 'Kidnapping/Missing',
+        'bold': true
+      },
       {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
       {
         'sr': '18',
@@ -2863,7 +2865,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'Unlawful Assembly',
       'Attempt to suicide',
       'Hurt',
-      'Kidnapping',
+      'Kidnapping/Missing',
       'Rape',
       'Assault on Govt-',
       'Molestation (354)',
@@ -3376,7 +3378,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         ),
       );
-      await Printing.layoutPdf(onLayout: (format) async => doc.save());
+      final fileName =
+          'Station_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
     }
 
     return Column(
@@ -3399,7 +3403,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () => runWithPdfAuthGate(context, exportPdf),
+            onPressed: exportPdf,
             icon: const Icon(Icons.picture_as_pdf_rounded,
                 color: Colors.white, size: 18),
             label: Text(
@@ -3714,14 +3718,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         badgeBg: const Color(0xFFE8F1FC),
         badgeFg: const Color(0xFF1976D2),
         activeBorder: const Color(0xFF1976D2),
+        labelColor: const Color(0xFF64748B),
+        activeLabelColor: const Color(0xFF1976D2),
       ),
       (
         label: 'Pending',
         count: pendingCount,
         filterKey: 'Pending',
-        badgeBg: const Color(0xFFFFF3E0),
-        badgeFg: const Color(0xFFE65100),
-        activeBorder: const Color(0xFFE65100),
+        badgeBg: const Color(0xFFFFEBEE),
+        badgeFg: const Color(0xFFD32F2F),
+        activeBorder: const Color(0xFFD32F2F),
+        labelColor: const Color(0xFFD32F2F),
+        activeLabelColor: const Color(0xFFD32F2F),
       ),
       (
         label: 'Disposal',
@@ -3730,6 +3738,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         badgeBg: const Color(0xFFE8F5E9),
         badgeFg: const Color(0xFF2E7D32),
         activeBorder: const Color(0xFF2E7D32),
+        labelColor: const Color(0xFF2E7D32),
+        activeLabelColor: const Color(0xFF2E7D32),
       ),
     ];
 
@@ -3744,72 +3754,76 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          children: tabs.map((item) {
-            String currentFilter = _filter;
-            if (currentFilter == 'Open' || currentFilter == 'Active') {
-              currentFilter = 'Pending';
-            }
-            if (currentFilter == 'Closed' || currentFilter == 'Resolved') {
-              currentFilter = 'Disposal';
-            }
-            final isSelected = currentFilter == item.filterKey;
+          children: [
+            ...tabs.map((item) {
+              String currentFilter = _filter;
+              if (currentFilter == 'Open' || currentFilter == 'Active') {
+                currentFilter = 'Pending';
+              }
+              if (currentFilter == 'Closed' || currentFilter == 'Resolved') {
+                currentFilter = 'Disposal';
+              }
+              final isSelected = currentFilter == item.filterKey;
 
-            return Padding(
-              padding: const EdgeInsets.only(right: 24),
-              child: InkWell(
-                onTap: () => setState(() => _filter = item.filterKey),
-                hoverColor: Colors.transparent,
-                splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color:
-                            isSelected ? item.activeBorder : Colors.transparent,
-                        width: 2.5,
+              return Padding(
+                padding: const EdgeInsets.only(right: 24),
+                child: InkWell(
+                  onTap: () => setState(() => _filter = item.filterKey),
+                  hoverColor: Colors.transparent,
+                  splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: isSelected
+                              ? item.activeBorder
+                              : Colors.transparent,
+                          width: 2.5,
+                        ),
                       ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        TranslationHelper.translate(context, item.label),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13.5,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected
-                              ? AppColors.navyDark
-                              : AppColors.lightSubText,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: item.badgeBg,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${item.count}',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          TranslationHelper.translate(context, item.label),
                           style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: item.badgeFg,
+                            fontSize: 13.5,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.navyDark
+                                : AppColors.lightSubText,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: item.badgeBg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${item.count}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: item.badgeFg,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+              // ignore: unnecessary_to_list_in_spreads, unnecessary_to_list_in_spreadsaA
+            }).toList(),
+          ],
         ),
       ),
     );
@@ -3942,9 +3956,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  Widget _buildCard(BuildContext ctx, ModuleRecord record) {
+  Widget _buildCard(BuildContext ctx, ModuleRecord record, {int? index}) {
     if (widget.readOnly) {
       return ReadOnlyModuleRecordHubCard(record: record);
+    }
+    if (widget.moduleKey == 'preventive' || record.moduleKey == 'preventive') {
+      return _PreventiveModuleCaseCard(
+        record: record,
+        subCategory: widget.subCategory,
+        readOnly: widget.readOnly,
+        onDelete: () => _confirmDelete(ctx, record),
+        index: index,
+      );
     }
     final isDetailFormHistory = record.subCategory == 'Crime Detail Form' ||
         record.subCategory == 'Property & Seizure Form';
@@ -4050,10 +4073,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       'PDF',
                       AppColors.dangerRed,
                       () {
-                        runWithPdfAuthGate(
-                          ctx,
-                          () => ModulePdfHelper.generatePdf(record),
-                        );
+                        ModulePdfHelper.generatePdf(record);
                       },
                     ),
                   ],
@@ -4387,5 +4407,695 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       default:
         return AppColors.lightSubText;
     }
+  }
+}
+
+/// Dedicated Horizontal Single-Row Case Card for Preventive Module
+/// Matching Form I-V layout with 8 horizontal fields & labeled action buttons
+class _PreventiveModuleCaseCard extends StatelessWidget {
+  final ModuleRecord record;
+  final String? subCategory;
+  final bool readOnly;
+  final VoidCallback? onDelete;
+  final int? index;
+
+  const _PreventiveModuleCaseCard({
+    required this.record,
+    this.subCategory,
+    required this.readOnly,
+    this.onDelete,
+    this.index,
+  });
+
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 26,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
+      color: const Color(0xFFE2E8F0),
+    );
+  }
+
+  Widget _buildFieldColumn({
+    required BuildContext context,
+    required String label,
+    required String value,
+    IconData? icon,
+    Color? iconColor,
+    Color? valueColor,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon,
+                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              const SizedBox(width: 3.5),
+            ],
+            Flexible(
+              child: Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Tooltip(
+          message: value,
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? const Color(0xFF0F172A),
+              height: 1.1,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLabeledActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    final fgColor = color ?? const Color(0xFF1E293B);
+    return Tooltip(
+      message: TranslationHelper.translate(context, label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 38,
+          width: 38,
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: fgColor),
+              const SizedBox(height: 1.5),
+              Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                style: GoogleFonts.poppins(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w600,
+                  color: fgColor,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final extra = Map<String, dynamic>.from(record.extraFields);
+    final prevMap = extra[kPreventiveFormExtraFieldsKey] is Map
+        ? Map<String, dynamic>.from(extra[kPreventiveFormExtraFieldsKey] as Map)
+        : extra;
+
+    final caseRef = prevMap['caseRef'] is Map
+        ? Map<String, dynamic>.from(prevMap['caseRef'] as Map)
+        : <String, dynamic>{};
+    final sections = prevMap['sections'] is Map
+        ? Map<String, dynamic>.from(prevMap['sections'] as Map)
+        : <String, dynamic>{};
+    final accusedList = prevMap['accusedList'] is List
+        ? (prevMap['accusedList'] as List)
+        : <dynamic>[];
+    final istegasha = prevMap['istegasha'] is Map
+        ? Map<String, dynamic>.from(prevMap['istegasha'] as Map)
+        : <String, dynamic>{};
+
+    // 1. SR. CR. No.
+    String crNo =
+        (caseRef['crimeNo'] ?? prevMap['crimeNo'] ?? record.caseNumber)
+            .toString()
+            .trim();
+    if (crNo.isEmpty) crNo = record.id;
+
+    // 2. Crime Category
+    String categoryLabel = (caseRef['crimeCategory'] ??
+            caseRef['category'] ??
+            prevMap['crimeCategory'] ??
+            prevMap['category'] ??
+            record.extraFields['crimeCategory'] ??
+            record.extraFields['category'] ??
+            '')
+        .toString()
+        .trim();
+    if (categoryLabel.isEmpty || categoryLabel.toLowerCase() == 'preventive') {
+      final fallback = (record.extraFields['crimeCategory'] ??
+              record.extraFields['category'] ??
+              '')
+          .toString()
+          .trim();
+      if (fallback.isNotEmpty && fallback.toLowerCase() != 'preventive') {
+        categoryLabel = fallback;
+      } else if (record.firestoreCategoryDisplayName.isNotEmpty &&
+          record.firestoreCategoryDisplayName.toLowerCase() != 'preventive') {
+        categoryLabel = record.firestoreCategoryDisplayName;
+      } else {
+        categoryLabel = 'Theft';
+      }
+    }
+
+    // 3. Sec. Act
+    String sectionAct = '';
+    final secList = sections['selectedSections'] is List
+        ? (sections['selectedSections'] as List).join(', ')
+        : (sections['selectedSections']?.toString() ?? '');
+    final act = (sections['act'] ?? prevMap['act'] ?? '').toString().trim();
+    if (secList.isNotEmpty && act.isNotEmpty) {
+      sectionAct = '$secList $act';
+    } else if (secList.isNotEmpty) {
+      sectionAct = secList;
+    } else if (act.isNotEmpty) {
+      sectionAct = act;
+    } else if (record.description.trim().isNotEmpty) {
+      sectionAct = record.description.trim();
+    } else if (sections['ipcSections'] != null &&
+        sections['ipcSections'].toString().trim().isNotEmpty) {
+      sectionAct = '$secList $act';
+    } else if (sections['otherSections'] != null &&
+        sections['otherSections'].toString().trim().isNotEmpty) {
+      sectionAct = sections['otherSections'].toString().trim();
+    } else if (prevMap['otherSections'] != null &&
+        prevMap['otherSections'].toString().trim().isNotEmpty) {
+      sectionAct = prevMap['otherSections'].toString().trim();
+    } else {
+      sectionAct = '—';
+    }
+
+    // 4. Accused Name
+    String accusedName = record.accused.trim();
+    if (accusedName.isEmpty) {
+      final rawAccused = prevMap['accusedNames'] ?? prevMap['accused'];
+      if (rawAccused != null && rawAccused.toString().trim().isNotEmpty) {
+        accusedName = rawAccused.toString().trim();
+      } else if (accusedList.isNotEmpty) {
+        final names = accusedList
+            .map((a) => a is Map ? (a['name']?.toString() ?? '') : a.toString())
+            .where((n) => n.trim().isNotEmpty)
+            .toList();
+        if (names.isNotEmpty) {
+          accusedName = names.join(', ');
+        }
+      }
+    }
+    if (accusedName.isEmpty) accusedName = '—';
+
+    // 5. Arrest Date
+    String arrestDate = '';
+    final regDate = caseRef['regDate'] ?? prevMap['regDate'];
+    if (regDate != null && regDate.toString().trim().isNotEmpty) {
+      arrestDate = regDate.toString().trim();
+    } else if (accusedList.isNotEmpty &&
+        accusedList.first is Map &&
+        accusedList.first['arrestDate'] != null &&
+        accusedList.first['arrestDate'].toString().trim().isNotEmpty) {
+      arrestDate = accusedList.first['arrestDate'].toString().trim();
+    } else {
+      arrestDate = DateFormat('dd/MM/yyyy').format(record.incidentDate);
+    }
+
+    // 6. Preventive Sec. Act
+    String prevSecAct = '';
+    final prevAct = istegasha['preventiveSectionAct'] ??
+        prevMap['preventiveSectionAct'] ??
+        record.extraFields['preventiveSectionAct'] ??
+        record.extraFields['preventiveSecAct'] ??
+        istegasha['act'] ??
+        prevMap['preventiveAct'] ??
+        prevMap['preventiveSecAct'] ??
+        prevMap['act'];
+    if (prevAct != null && prevAct.toString().trim().isNotEmpty) {
+      prevSecAct = prevAct.toString().trim();
+    } else {
+      prevSecAct = '107 Crpc/126 BNSS';
+    }
+
+    // 7. Preventive No.
+    String prevNo = (istegasha['preventiveNo'] ??
+            prevMap['preventiveNo'] ??
+            record.extraFields['preventiveNo'] ??
+            '')
+        .toString()
+        .trim();
+    if (prevNo.isEmpty) prevNo = '—';
+
+    // 8. IO Name
+    String ioName = (istegasha['ioName'] ??
+            prevMap['ioName'] ??
+            prevMap['assignedOfficer'] ??
+            record.assignedOfficer)
+        .toString()
+        .trim();
+    if (ioName.isEmpty) ioName = '—';
+
+    // Status Color (Disposal = Green, Pending/Other = Red)
+    final isDisposal = record.status == 'Disposal' ||
+        record.status == 'Closed' ||
+        record.status == 'Resolved' ||
+        record.status.toLowerCase().contains('completed');
+    final Color statusColor =
+        isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
+    final Color statusBg =
+        isDisposal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
+    final Color statusBorder =
+        isDisposal ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
+
+    Widget buildRowContent(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 0. Sr. No. (Badge colored by case status: Red for Pending, Green for Disposal)
+          if (index != null) ...[
+            Container(
+              height: 38,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: statusBg,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: statusBorder),
+              ),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Sr.No',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor.withValues(alpha: 0.85),
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$index',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: statusColor,
+                      height: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
+
+          // 1. CR No. (Badge)
+          Container(
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'CR No.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF64748B),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  crNo,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                    height: 1.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+
+          // 2. Crime Category (Badge)
+          if (categoryLabel.isNotEmpty) ...[
+            Container(
+              height: 38,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: const Color(0xFFFDE68A),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Crime Category',
+                    style: GoogleFonts.poppins(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF92400E),
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    categoryLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
+                      height: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
+
+          // Vertical Divider
+          _buildDivider(),
+
+          // 3. Section & Act
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Section & Act',
+                    value: sectionAct,
+                    icon: Icons.gavel_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  label: 'Section & Act',
+                  value: sectionAct,
+                  icon: Icons.gavel_rounded,
+                ),
+
+          // Vertical Divider
+          _buildDivider(),
+
+          // 4. Accused Name
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Accused Name',
+                    value: accusedName,
+                    icon: Icons.person_outline_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  label: 'Accused Name',
+                  value: accusedName,
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          // Vertical Divider
+          _buildDivider(),
+
+          // 5. Arrest Date
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Arrest Date',
+                    value: arrestDate,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  label: 'Arrest Date',
+                  value: arrestDate,
+                  icon: Icons.calendar_today_outlined,
+                ),
+
+          // Vertical Divider
+          _buildDivider(),
+
+          // 6. Preventive Section Act
+          isExpandedMode
+              ? Expanded(
+                  flex: 5,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Preventive Section Act',
+                    value: prevSecAct,
+                    icon: Icons.shield_outlined,
+                    iconColor: const Color(0xFF0EA5E9),
+                    valueColor: const Color(0xFF0284C7),
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  label: 'Preventive Section Act',
+                  value: prevSecAct,
+                  icon: Icons.shield_outlined,
+                  iconColor: const Color(0xFF0EA5E9),
+                  valueColor: const Color(0xFF0284C7),
+                ),
+
+          // Vertical Divider
+          _buildDivider(),
+
+          // 7. Preventive No.
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Preventive No.',
+                    value: prevNo,
+                    icon: Icons.tag_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  label: 'Preventive No.',
+                  value: prevNo,
+                  icon: Icons.tag_rounded,
+                ),
+
+          // Vertical Divider
+          _buildDivider(),
+
+          // 8. IO Name
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Investigating Officer',
+                    value: ioName,
+                    icon: Icons.badge_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  label: 'Investigating Officer',
+                  value: ioName,
+                  icon: Icons.badge_outlined,
+                ),
+
+          const SizedBox(width: 8),
+
+          // 9. Status Badge
+          Container(
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: statusBorder,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Status',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor.withValues(alpha: 0.85),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  TranslationHelper.translate(
+                    context,
+                    record.status,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
+                    height: 1.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // 10. Labeled Action Buttons: Edit, View, PDF
+          if (!readOnly) ...[
+            _buildLabeledActionButton(
+              context: context,
+              icon: Icons.edit_outlined,
+              label: 'Edit',
+              color: AppColors.infoBlue,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  AppTheme.fadeSlideRoute(
+                    page: PreventiveFormScreen(
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                      subCategory: subCategory,
+                      existingRecord: record,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 5),
+          ],
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.visibility_outlined,
+            label: 'View',
+            color: AppColors.goldPrimary,
+            onTap: () {
+              Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: PreventiveDetailViewScreen(
+                    record: record,
+                    moduleLabel: record.firestoreCategoryDisplayName,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 5),
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.picture_as_pdf_outlined,
+            label: 'PDF',
+            color: AppColors.dangerRed,
+            onTap: () => ModulePdfHelper.generatePdf(record),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 1150;
+          if (isWide) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: buildRowContent(true),
+            );
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: buildRowContent(false),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

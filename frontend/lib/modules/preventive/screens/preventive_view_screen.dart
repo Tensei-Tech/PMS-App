@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../modules/core/models/base_record.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/module_pdf_helper.dart';
-import '../../../utils/pdf_auth_gate.dart';
 import 'preventive_form_screen.dart';
 
 typedef PreventiveViewScreen = PreventiveDetailViewScreen;
@@ -52,10 +51,7 @@ class PreventiveDetailViewScreen extends StatelessWidget {
             tooltip: 'Export PDF',
             icon: const Icon(Icons.picture_as_pdf_outlined,
                 color: AppColors.navyMid),
-            onPressed: () => runWithPdfAuthGate(
-              context,
-              () => ModulePdfHelper.generatePdf(record),
-            ),
+            onPressed: () => ModulePdfHelper.generatePdf(record),
           ),
           IconButton(
             tooltip: 'Edit Entry',
@@ -167,6 +163,15 @@ class PreventiveViewDocumentView extends StatelessWidget {
     final otherSections =
         _val(sections['otherSections'] ?? prevMap['otherSections']);
 
+    final preventiveSectionAct = _val(
+      istegasha['preventiveSectionAct'] ??
+          prevMap['preventiveSectionAct'] ??
+          prevMap['preventiveSecAct'] ??
+          record.extraFields['preventiveSectionAct'] ??
+          record.extraFields['preventiveSecAct'] ??
+          istegasha['act'] ??
+          prevMap['act'],
+    );
     final preventiveNo = _val(
       istegasha['preventiveNo'] ??
           prevMap['preventiveNo'] ??
@@ -208,7 +213,7 @@ class PreventiveViewDocumentView extends StatelessWidget {
           children: [
             _buildGridRow([
               _FieldData('Crime No. / FIR No. / NC no.', crimeNo, isBold: true),
-              _FieldData('Registration Date', regDate),
+              _FieldData('Arrest Date', regDate),
             ]),
             _buildDivider(),
             _buildGridRow([
@@ -270,17 +275,23 @@ class PreventiveViewDocumentView extends StatelessWidget {
           children: [
             _buildGridRow([
               _FieldData(
+                'Preventive Section Act / प्रतिबंधक कलम कायदा',
+                preventiveSectionAct,
+                isBold: true,
+              ),
+              _FieldData(
                 'Preventive No. / इस्तेगाशा नंबर',
                 preventiveNo,
                 isBold: true,
               ),
-              _FieldData('Date of Preventive', preventiveDate),
             ]),
             _buildDivider(),
             _buildGridRow([
+              _FieldData('Date of Preventive', preventiveDate),
               _FieldData('Outward Number', outwardNo),
-              _FieldData('Investigating Officer (IO)', ioName, isBold: true),
             ]),
+            _buildDivider(),
+            _buildField('Investigating Officer (IO)', ioName, isBold: true),
           ],
         ),
 

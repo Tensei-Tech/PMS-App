@@ -7,6 +7,7 @@ import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/settings_widgets.dart';
+import 'transfer_inbox_screen.dart';
 
 class AppSettingsScreen extends StatefulWidget {
   const AppSettingsScreen({super.key});
@@ -85,6 +86,27 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                               icon: Icons.translate_rounded,
                               onTap: () =>
                                   _showLanguagePicker(context, settings),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        SettingsSectionCard(
+                          title: 'Administrative (Mock)',
+                          icon: Icons.admin_panel_settings_rounded,
+                          accent: AppColors.goldPrimary,
+                          children: [
+                            SettingsListTile(
+                              title: 'Transfer Inbox',
+                              value: '',
+                              icon: Icons.move_to_inbox_rounded,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  AppTheme.fadeSlideRoute(
+                                    page: const TransferInboxScreen(),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),

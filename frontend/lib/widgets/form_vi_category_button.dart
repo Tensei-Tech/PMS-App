@@ -8,7 +8,7 @@ const List<String> kFormVICaseCategories = [
   'Gambling',
   'POCSO',
   'NDPS',
-  'Gowans',
+  'Gowansh',
   'IT Act',
   'M.V Act',
   'UAPA',

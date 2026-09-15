@@ -111,10 +111,11 @@ class MpdaFormPdfHelper {
       policeStation: policeStation,
       district: district,
     );
-    await Printing.layoutPdf(
-      onLayout: (_) async => bytes,
-      name:
-          'MPDA_Proposal_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf',
+    final fileName =
+        'MPDA_Proposal_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf';
+    await Printing.sharePdf(
+      bytes: bytes,
+      filename: fileName,
     );
   }
 }
