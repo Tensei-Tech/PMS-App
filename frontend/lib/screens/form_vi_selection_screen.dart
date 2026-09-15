@@ -8,6 +8,7 @@ import '../modules/form_vi/providers/form_vi_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
+import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/form_vi_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
@@ -2182,241 +2183,6 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.goldPrimary,
                                 ),
-<<<<<<< HEAD
-                                alignment: Alignment.center,
-                                child: Text(
-                                  categoryLabel,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.goldPrimary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-
-                          // Vertical Divider
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 1,
-                            height: 18,
-                            color: const Color(0xFFE2E8F0),
-                          ),
-                          const SizedBox(width: 8),
-
-                          // 2. Section / Act (Fixed slot so Accused always starts at the exact same X)
-                          SizedBox(
-                            width: 140,
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.gavel_rounded,
-                                  size: 13,
-                                  color: Color(0xFF64748B),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Sec: ',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF64748B),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Tooltip(
-                                    message: sectionAct,
-                                    child: Text(
-                                      sectionAct,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF1E293B),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Vertical Divider
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 1,
-                            height: 18,
-                            color: const Color(0xFFE2E8F0),
-                          ),
-                          const SizedBox(width: 8),
-
-                          // 3. Name of Accused (Expands flexibly in the middle)
-                          Expanded(
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.person_outline_rounded,
-                                  size: 14,
-                                  color: Color(0xFF64748B),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Accused: ',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF64748B),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Tooltip(
-                                    message: accusedName,
-                                    child: Text(
-                                      accusedName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF0F172A),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Vertical Divider
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 1,
-                            height: 18,
-                            color: const Color(0xFFE2E8F0),
-                          ),
-                          const SizedBox(width: 8),
-
-                          // 4. Crime Date (Fixed slot)
-                          SizedBox(
-                            width: 106,
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.calendar_today_outlined,
-                                  size: 12.5,
-                                  color: Color(0xFF64748B),
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    crimeDate,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w500,
-                                      color: const Color(0xFF334155),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Vertical Divider
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 1,
-                            height: 18,
-                            color: const Color(0xFFE2E8F0),
-                          ),
-                          const SizedBox(width: 8),
-
-                          // 5. Status Badge (Uniform height and fixed width)
-                          Container(
-                            width: 74,
-                            height: 28,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: statusColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: statusColor.withValues(alpha: 0.35),
-                              ),
-                            ),
-                            child: Text(
-                              TranslationHelper.translate(
-                                context,
-                                record.status,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
-                                color: statusColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-
-                          // 6. Action Buttons: Edit, View, PDF & Chevron
-                          if (!widget.readOnly &&
-                              record.status != 'Disposal') ...[
-                            _buildCompactActionButton(
-                              icon: Icons.fact_check_outlined,
-                              label: 'Dispose',
-                              onTap: () =>
-                                  _showQuickDisposeDialog(context, record),
-                            ),
-                            const SizedBox(width: 6),
-                          ],
-                          if (!widget.readOnly) ...[
-                            _buildCompactActionButton(
-                              icon: Icons.edit_outlined,
-                              label: 'Edit',
-                              onTap: widget.onEdit,
-                            ),
-                            const SizedBox(width: 6),
-                          ],
-                          _buildCompactActionButton(
-                            icon: Icons.visibility_outlined,
-                            label: 'View',
-                            onTap: widget.onView,
-                          ),
-                          const SizedBox(width: 6),
-                          _buildCompactActionButton(
-                            icon: Icons.picture_as_pdf_outlined,
-                            label: 'PDF',
-                            onTap: () => ModulePdfHelper.generatePdf(record),
-                          ),
-                          const SizedBox(width: 6),
-
-                          // 7. Dropdown Arrow
-                          Container(
-                            width: 28,
-                            height: 28,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: _expanded
-                                  ? const Color(0xFFE2E8F0)
-                                  : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: _expanded
-                                    ? const Color(0xFFCBD5E1)
-                                    : Colors.transparent,
-                              ),
-                            ),
-                            child: AnimatedRotation(
-                              turns: _expanded ? 0.5 : 0,
-                              duration: const Duration(milliseconds: 200),
-                              child: const Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                size: 18,
-                                color: Color(0xFF334155),
                               ),
                             ),
                           ),
@@ -2887,8 +2653,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           ),
                           const SizedBox(width: 8),
                           OutlinedButton.icon(
-                            onPressed: () =>
-                                ModulePdfHelper.generatePdf(record),
+                            onPressed: () => runWithPdfAuthGate(
+                              context,
+                              () => ModulePdfHelper.generatePdf(record),
+                            ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFC53030),
                               side: const BorderSide(color: Color(0xFFFEB2B2)),
@@ -3104,7 +2872,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             _buildCompactActionButton(
               icon: Icons.picture_as_pdf_outlined,
               label: 'PDF',
-              onTap: () => ModulePdfHelper.generatePdf(record),
+              onTap: () => runWithPdfAuthGate(
+                context,
+                () => ModulePdfHelper.generatePdf(record),
+              ),
             ),
           ],
         ),
