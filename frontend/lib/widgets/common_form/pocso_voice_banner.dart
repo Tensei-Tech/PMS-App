@@ -378,8 +378,9 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
       _speech ??= stt.SpeechToText();
       final hasInit = await _speech!.initialize(
         onError: (_) {
-          if (mounted && !_userWantsListening)
+          if (mounted && !_userWantsListening) {
             setState(() => _isListening = false);
+          }
         },
         onStatus: (val) {
           if (mounted) {
