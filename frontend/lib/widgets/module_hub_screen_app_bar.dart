@@ -9,7 +9,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   final String title;
   final String subtitle;
-  final String badgeLabel;
+  final String? badgeLabel;
   final VoidCallback? onAddPressed;
   final Widget? actionWidget;
   final VoidCallback? onBackPressed;
@@ -19,7 +19,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
     super.key,
     required this.title,
     required this.subtitle,
-    required this.badgeLabel,
+    this.badgeLabel,
     this.onAddPressed,
     this.actionWidget,
     this.onBackPressed,
@@ -108,7 +108,8 @@ class ModuleHubScreenAppBar extends StatelessWidget
               ),
             ),
           ),
-        if (!isMobile || (actionWidget == null && onAddPressed == null))
+        if (badgeLabel != null &&
+            (!isMobile || (actionWidget == null && onAddPressed == null)))
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 100),
             child: Container(
@@ -123,7 +124,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
               ),
               child: Center(
                 child: Text(
-                  badgeLabel,
+                  badgeLabel!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
