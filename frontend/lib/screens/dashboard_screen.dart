@@ -144,7 +144,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.truck;
     case 'Two/Four Wheeler Theft':
       return FontAwesomeIcons.motorcycle;
-    case 'Kidnapping':
+    case 'Kidnapping/Missing':
       return FontAwesomeIcons.userMinus;
     case 'Missing':
       return FontAwesomeIcons.magnifyingGlass;
@@ -184,7 +184,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.idCard;
     case 'NDPS':
       return FontAwesomeIcons.pills;
-    case 'Gowans':
+    case 'Gowansh':
       return FontAwesomeIcons.cow;
     case 'IT Act':
       return FontAwesomeIcons.laptop;
@@ -284,7 +284,7 @@ Widget _buildGridIcon(
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'Kidnapping') {
+  } else if (labelTrim == 'Kidnapping/Missing') {
     return SvgPicture.asset(
       'assets/icons/kidnapping.svg',
       width: size * 1.5,
@@ -398,7 +398,7 @@ Widget _buildGridIcon(
       height: size * 2.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'Gowans') {
+  } else if (labelTrim == 'Gowansh') {
     return SvgPicture.asset(
       'assets/icons/gowans.svg',
       width: size * 1.5,
@@ -2608,7 +2608,7 @@ class _HomeTabState extends State<_HomeTab> {
       ('Preventive', 'preventive', rec<PreventiveProvider>((p) => p.records)),
       ('AD', 'ad', rec<AdProvider>((p) => p.records)),
       ('Missing', 'missing', rec<MissingProvider>((p) => p.records)),
-      ('Kidnapping', 'kidnapping', rec<KidnappingProvider>((p) => p.records)),
+      ('Kidnapping/Missing', 'kidnapping', rec<KidnappingProvider>((p) => p.records)),
       ('Theft', 'theft', rec<TheftProvider>((p) => p.records)),
       ('Sand Theft', 'sand_theft', rec<SandTheftProvider>((p) => p.records)),
       ('Hurt', 'hurt', rec<HurtProvider>((p) => p.records)),
@@ -2659,7 +2659,7 @@ class _HomeTabState extends State<_HomeTab> {
       ('Muddemal', 'muddemal', rec<MuddemalProvider>((p) => p.records)),
       ('BNSS', 'bnss', rec<BnssProvider>((p) => p.records)),
       ('NDPS', 'ndps', rec<NdpsProvider>((p) => p.records)),
-      ('Gowans', 'gowans', rec<GowansProvider>((p) => p.records)),
+      ('Gowansh', 'gowans', rec<GowansProvider>((p) => p.records)),
       ('IT Act', 'it_act', rec<ItActProvider>((p) => p.records)),
       ('MCOCA', 'mcoca', rec<McocaProvider>((p) => p.records)),
       ('UAPA', 'uapa', rec<UapaProvider>((p) => p.records)),
@@ -4312,7 +4312,7 @@ class _WantedTab extends StatelessWidget {
     {
       'name': 'Abdul Hamid',
       'id': 'WNT/2024/004',
-      'crime': 'Kidnapping',
+      'crime': 'Kidnapping/Missing',
       'reward': '₹1,00,000',
       'dangerous': true
     },
@@ -5286,7 +5286,7 @@ class _CalendarTabState extends State<_CalendarTab> {
     'Unlawful Assembly',
     'Attempt to suicide',
     'Hurt',
-    'Kidnapping',
+    'Kidnapping/Missing',
     'Rape',
     'Assault on Govt-',
     'Molestation (354)',
@@ -5350,7 +5350,7 @@ class _CalendarTabState extends State<_CalendarTab> {
     if (sub.contains('suicide')) return 'Attempt to suicide';
     if (key.contains('hurt') || sub.contains('hurt')) return 'Hurt';
     if (key.contains('kidnapping') || sub.contains('kidnap')) {
-      return 'Kidnapping';
+      return 'Kidnapping/Missing';
     }
     if (key.contains('rape') || sub.contains('rape')) return 'Rape';
     if (sub.contains('assault') && sub.contains('govt')) {
@@ -6095,7 +6095,7 @@ class _CalendarTabState extends State<_CalendarTab> {
       {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
       {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
       {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {'sr': '16', 'label': 'Kidnapping', 'head': 'Kidnapping', 'bold': true},
+      {'sr': '16', 'label': 'Kidnapping/Missing', 'head': 'Kidnapping/Missing', 'bold': true},
       {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
       {
         'sr': '18',
@@ -6141,7 +6141,7 @@ class _CalendarTabState extends State<_CalendarTab> {
       'Unlawful Assembly',
       'Attempt to suicide',
       'Hurt',
-      'Kidnapping',
+      'Kidnapping/Missing',
       'Rape',
       'Assault on Govt-',
       'Molestation (354)',
@@ -6900,15 +6900,6 @@ class _CalendarTabState extends State<_CalendarTab> {
     bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
     bool isOtherMvAct(ModuleRecord r) => false;
 
-    bool isMissingMale(ModuleRecord r) =>
-        r.moduleKey == 'missing' &&
-        (r.subCategory?.toLowerCase() == 'male' ||
-            r.title.toLowerCase().contains('male'));
-    bool isMissingFemale(ModuleRecord r) =>
-        r.moduleKey == 'missing' &&
-        (r.subCategory?.toLowerCase() == 'female' ||
-            r.title.toLowerCase().contains('female'));
-    bool isMissingTotal(ModuleRecord r) => r.moduleKey == 'missing';
 
     bool g1Total(ModuleRecord r) =>
         isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
@@ -6983,18 +6974,18 @@ class _CalendarTabState extends State<_CalendarTab> {
         'bold': true,
         'dl': 'Fine'
       },
-      {'k': 'b'},
-      {'k': 'h', 'l': 'Missing'},
-      {'k': 's', 'r': 'Registered', 'd': 'Found'},
-      {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
-      {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
-      {
-        'k': 'd5',
-        'l': 'Total missing',
-        't': isMissingTotal,
-        'bold': true,
-        'dl': 'Found'
-      },
+      // {'k': 'b'},
+      // {'k': 'h', 'l': 'Missing'},
+      // {'k': 's', 'r': 'Registered', 'd': 'Found'},
+      // {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
+      // {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
+      // {
+      //   'k': 'd5',
+      //   'l': 'Total missing',
+      //   't': isMissingTotal,
+      //   'bold': true,
+      //   'dl': 'Found'
+      // },
     ];
 
     Widget buildScreenRow(Map<String, dynamic> r) {

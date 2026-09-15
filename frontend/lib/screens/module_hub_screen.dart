@@ -670,29 +670,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         ],
       ),
-      floatingActionButton: (widget.readOnly ||
-              widget.moduleKey == 'detected' ||
-              widget.moduleKey == 'undetected' ||
-              widget.moduleKey == 'disposal' ||
-              widget.moduleKey == 'mpda')
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _openNewEntryForm(context),
-              backgroundColor: AppColors.navyDark,
-              elevation: 4,
-              shape: const StadiumBorder(),
-              icon:
-                  const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-              label: Text(
-                TranslationHelper.translate(context, 'Add Case'),
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ),
+      floatingActionButton: null,
     );
   }
 
@@ -701,9 +679,42 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final recordWord = total == 1 ? 'record' : 'records';
     final transRecord = TranslationHelper.translate(context, recordWord);
     final transReg = TranslationHelper.translate(context, 'registered');
+
+    final isMobile = MediaQuery.of(context).size.width < 500;
+    final bool showAddButton = !(widget.readOnly ||
+        widget.moduleKey == 'detected' ||
+        widget.moduleKey == 'undetected' ||
+        widget.moduleKey == 'disposal' ||
+        widget.moduleKey == 'mpda');
+
+    Widget? actionWidget;
+    if (isMobile && showAddButton) {
+      actionWidget = ElevatedButton.icon(
+        onPressed: () => _openNewEntryForm(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.navyMid,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        icon: const Icon(Icons.add_rounded, size: 16),
+        label: Text(
+          TranslationHelper.translate(context, 'Add Case'),
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
     return ModuleHubScreenAppBar(
       title: transTitle,
       subtitle: '$total $transRecord $transReg',
+      actionWidget: actionWidget,
       backgroundColor: (widget.moduleKey == 'detected' ||
               widget.moduleKey == 'undetected' ||
               widget.moduleKey == 'disposal')
@@ -2197,15 +2208,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
     bool isOtherMvAct(ModuleRecord r) => false;
 
-    bool isMissingMale(ModuleRecord r) =>
-        r.moduleKey == 'missing' &&
-        (r.subCategory?.toLowerCase() == 'male' ||
-            r.title.toLowerCase().contains('male'));
-    bool isMissingFemale(ModuleRecord r) =>
-        r.moduleKey == 'missing' &&
-        (r.subCategory?.toLowerCase() == 'female' ||
-            r.title.toLowerCase().contains('female'));
-    bool isMissingTotal(ModuleRecord r) => r.moduleKey == 'missing';
 
     bool g1Total(ModuleRecord r) =>
         isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
@@ -2280,18 +2282,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         'bold': true,
         'dl': 'Fine'
       },
-      {'k': 'b'},
-      {'k': 'h', 'l': 'Missing'},
-      {'k': 's', 'r': 'Registered', 'd': 'Found'},
-      {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
-      {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
-      {
-        'k': 'd5',
-        'l': 'Total missing',
-        't': isMissingTotal,
-        'bold': true,
-        'dl': 'Found'
-      },
+      // {'k': 'b'},
+      // {'k': 'h', 'l': 'Missing'},
+      // {'k': 's', 'r': 'Registered', 'd': 'Found'},
+      // {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
+      // {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
+      // {
+      //   'k': 'd5',
+      //   'l': 'Total missing',
+      //   't': isMissingTotal,
+      //   'bold': true,
+      //   'dl': 'Found'
+      // },
     ];
 
     // Renders one rowDef as a Flutter widget (on-screen).
@@ -2561,7 +2563,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'Unlawful Assembly',
       'Attempt to suicide',
       'Hurt',
-      'Kidnapping',
+      'Kidnapping/Missing',
       'Rape',
       'Assault on Govt-',
       'Molestation (354)',
@@ -2632,7 +2634,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return 'Attempt to suicide';
       }
       if (key.contains('hurt') || sub.contains('hurt')) return 'Hurt';
-      if (key.contains('kidnap') || sub.contains('kidnap')) return 'Kidnapping';
+      if (key.contains('kidnap') || sub.contains('kidnap')) return 'Kidnapping/Missing';
       if (key.contains('rape') || sub.contains('rape')) return 'Rape';
       if (key.contains('assault') || sub.contains('assault')) {
         return 'Assault on Govt-';
@@ -2818,7 +2820,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
       {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
       {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {'sr': '16', 'label': 'Kidnapping', 'head': 'Kidnapping', 'bold': true},
+      {'sr': '16', 'label': 'Kidnapping/Missing', 'head': 'Kidnapping/Missing', 'bold': true},
       {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
       {
         'sr': '18',
@@ -2862,7 +2864,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'Unlawful Assembly',
       'Attempt to suicide',
       'Hurt',
-      'Kidnapping',
+      'Kidnapping/Missing',
       'Rape',
       'Assault on Govt-',
       'Molestation (354)',
@@ -3743,72 +3745,101 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          children: tabs.map((item) {
-            String currentFilter = _filter;
-            if (currentFilter == 'Open' || currentFilter == 'Active') {
-              currentFilter = 'Pending';
-            }
-            if (currentFilter == 'Closed' || currentFilter == 'Resolved') {
-              currentFilter = 'Disposal';
-            }
-            final isSelected = currentFilter == item.filterKey;
+          children: [
+            ...tabs.map((item) {
+              String currentFilter = _filter;
+              if (currentFilter == 'Open' || currentFilter == 'Active') {
+                currentFilter = 'Pending';
+              }
+              if (currentFilter == 'Closed' || currentFilter == 'Resolved') {
+                currentFilter = 'Disposal';
+              }
+              final isSelected = currentFilter == item.filterKey;
 
-            return Padding(
-              padding: const EdgeInsets.only(right: 24),
-              child: InkWell(
-                onTap: () => setState(() => _filter = item.filterKey),
-                hoverColor: Colors.transparent,
-                splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color:
-                            isSelected ? item.activeBorder : Colors.transparent,
-                        width: 2.5,
+              return Padding(
+                padding: const EdgeInsets.only(right: 24),
+                child: InkWell(
+                  onTap: () => setState(() => _filter = item.filterKey),
+                  hoverColor: Colors.transparent,
+                  splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color:
+                              isSelected ? item.activeBorder : Colors.transparent,
+                          width: 2.5,
+                        ),
                       ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        TranslationHelper.translate(context, item.label),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13.5,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected
-                              ? AppColors.navyDark
-                              : AppColors.lightSubText,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: item.badgeBg,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${item.count}',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          TranslationHelper.translate(context, item.label),
                           style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: item.badgeFg,
+                            fontSize: 13.5,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.navyDark
+                                : AppColors.lightSubText,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: item.badgeBg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${item.count}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: item.badgeFg,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+            if (!(MediaQuery.of(context).size.width < 500) && !(widget.readOnly ||
+                widget.moduleKey == 'detected' ||
+                widget.moduleKey == 'undetected' ||
+                widget.moduleKey == 'disposal' ||
+                widget.moduleKey == 'mpda')) ...[
+              const SizedBox(width: 16),
+              ElevatedButton.icon(
+                onPressed: () => _openNewEntryForm(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navyMid,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: Text(
+                  TranslationHelper.translate(context, 'Add Case'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-            );
-          }).toList(),
+            ],
+          ],
         ),
       ),
     );

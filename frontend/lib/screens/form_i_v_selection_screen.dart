@@ -1915,17 +1915,31 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     if (doc['isUnknownUntraced'] == true) {
       return 'Unknown / Untraced';
     }
-    final accList = doc['accused'];
-    if (accList is List && accList.isNotEmpty) {
-      final names = <String>[];
-      for (final item in accList) {
-        if (item is Map && item['name'] != null) {
-          final n = item['name'].toString().trim();
-          if (n.isNotEmpty) names.add(n);
+
+    final names = <String>{};
+    if (doc['allAccusedNames'] is List) {
+      for (final n in doc['allAccusedNames']) {
+        if (n is String && n.trim().isNotEmpty) names.add(n.trim());
+      }
+    }
+
+    void addFromList(dynamic list, String key) {
+      if (list is List) {
+        for (final item in list) {
+          if (item is Map && item[key] != null) {
+            final n = item[key].toString().trim();
+            if (n.isNotEmpty) names.add(n);
+          }
         }
       }
-      if (names.isNotEmpty) return names.join(', ');
     }
+
+    addFromList(doc['accused'], 'name');
+    addFromList(doc['suspectedAccused'], 'name');
+    addFromList(doc['arrestRelease'], 'accusedName');
+
+    if (names.isNotEmpty) return names.join(', ');
+
     for (final key in [
       'accusedName',
       'm1AccusedName',

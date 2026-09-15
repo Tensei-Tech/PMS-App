@@ -1195,64 +1195,110 @@ class _ADFormScreenState extends State<ADFormScreen> {
 
   Widget _fullWidth(Widget child) =>
       SizedBox(width: double.infinity, child: child);
+  Widget _headerBtn(
+    String label,
+    VoidCallback onTap, {
+    IconData icon = Icons.add,
+  }) =>
+      InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: accentTeal.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: accentTeal.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 13, color: accentTeal),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: accentTeal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 
   Widget _sectionCard(
       {required String title, Widget? action, required Widget content}) {
+    // Extract number from title if present (e.g., "1. TITLE")
+    String idx = '0';
+    String displayTitle = title;
+    final match = RegExp(r'^(\d+)\.\s+(.*)').firstMatch(title);
+    if (match != null) {
+      idx = match.group(1)!;
+      displayTitle = match.group(2)!;
+    }
+
+    final leadingBadge = Container(
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        color: primaryMid, // Equivalent to _kMid
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Center(
+        child: Text(
+          idx,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 1,
+      margin: const EdgeInsets.only(bottom: 12),
       color: cardBg,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: inputBorder), // Equivalent to _kBorder
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                if (idx != '0') ...[
+                  leadingBadge,
+                  const SizedBox(width: 10),
+                ],
                 Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: accentTeal,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: primaryDark,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    displayTitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: primaryDark,
+                      letterSpacing: 0.5,
+                    ), // Equivalent to _tsSection
                   ),
                 ),
-                if (action != null) ...[
-                  const SizedBox(width: 8),
-                  Flexible(
-                    fit: FlexFit.loose,
-                    child: action,
-                  ),
-                ],
+                if (action != null) action,
               ],
             ),
-            const Divider(height: 24, color: Color(0xFFf1f5f9)),
-            content,
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            child: content,
+          ),
+        ],
       ),
     );
   }
@@ -1605,18 +1651,8 @@ class _ADFormScreenState extends State<ADFormScreen> {
 
   Widget _section2Charges() {
     return _sectionCard(
-      title: '2. ACTS & SECTIONS FILED',
-      action: ElevatedButton.icon(
-        onPressed: addChargeRow,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryDark,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        icon: const Icon(Icons.add, size: 18),
-        label: const Text('Add Charge',
-            style: TextStyle(fontWeight: FontWeight.w700)),
-      ),
+      title: '2. Acts & Sections',
+      action: _headerBtn('Add Charge', addChargeRow),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2066,7 +2102,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _buildSection11() {
     return RepaintBoundary(
       child: _sectionCard(
-        title: '11. SEIZURE RECORDS',
+        title: '11. Seizure Records',
         action: ElevatedButton.icon(
           onPressed: addSeizure,
           style: ElevatedButton.styleFrom(backgroundColor: primaryDark),
@@ -2149,6 +2185,23 @@ class _ADFormScreenState extends State<ADFormScreen> {
     );
   }
 
+  Widget _barBtn(String label, IconData icon, VoidCallback onTap, Color color) {
+    return TextButton.icon(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        foregroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+          side: BorderSide(color: color.withValues(alpha: 0.3)),
+        ),
+      ),
+      icon: Icon(icon, size: 16),
+      label: Text(label,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+    );
+  }
+
   Widget _buildSaveBar() {
     Future<void> runClearDraft() async {
       final confirmed = await showDialog<bool>(
@@ -2170,87 +2223,53 @@ class _ADFormScreenState extends State<ADFormScreen> {
     }
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black12, blurRadius: 10, offset: Offset(0, -2)),
+      color: cardBg,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              saveBarText.startsWith('Draft saved')
+                  ? saveBarText
+                  : saveBarText,
+              style: const TextStyle(
+                  color: textMuted, fontSize: 11, fontWeight: FontWeight.w500),
+            ),
+          ),
+          _barBtn('Clear', Icons.refresh_outlined, runClearDraft, accentRed),
+          const SizedBox(width: 6),
+          _barBtn('Save Draft', Icons.save_outlined, saveDraft, accentTeal),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: SafeArea(
-        top: false,
-        child: LayoutBuilder(
-          builder: (ctx, constraints) {
-            final wide = constraints.maxWidth > 500;
-            if (wide) {
-              return Row(
-                children: [
-                  Expanded(
-                      child: Text(saveBarText,
-                          style: const TextStyle(
-                              color: textSecondary,
-                              fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis)),
-                  OutlinedButton(
-                    onPressed: runClearDraft,
-                    style: OutlinedButton.styleFrom(
-                        foregroundColor: accentRed,
-                        side: const BorderSide(color: accentRed)),
-                    child: const Text('CLEAR'),
-                  ),
-                  const SizedBox(width: 10),
-                  OutlinedButton(
-                    onPressed: saveDraft,
-                    style: OutlinedButton.styleFrom(
-                        foregroundColor: textSecondary,
-                        side: const BorderSide(color: inputBorder)),
-                    child: const Text('SAVE DRAFT'),
-                  ),
-                  const SizedBox(width: 10),
-                  ElevatedButton.icon(
-                    onPressed: submitForm,
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryDark,
-                        foregroundColor: Colors.white),
-                    icon: const Icon(Icons.save_alt, size: 18),
-                    label: const Text('SUBMIT',
-                        style: TextStyle(fontWeight: FontWeight.w800)),
-                  ),
-                ],
-              );
-            }
-            return Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    saveBarText,
-                    style: const TextStyle(
-                        color: textSecondary, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildBottomActionRow() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 95,
+              height: 46,
+              child: ElevatedButton(
+                onPressed: submitForm,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryDark,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Clear',
-                  icon: const Icon(Icons.delete_outline, color: accentRed),
-                  onPressed: runClearDraft,
+                child: const Text(
+                  'Done',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
-                IconButton(
-                  tooltip: 'Save Draft',
-                  icon: const Icon(Icons.save_outlined, color: textSecondary),
-                  onPressed: saveDraft,
-                ),
-                ElevatedButton(
-                  onPressed: submitForm,
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryDark,
-                      foregroundColor: Colors.white),
-                  child: const Text('SUBMIT',
-                      style: TextStyle(fontWeight: FontWeight.w800)),
-                ),
-              ],
-            );
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -2426,7 +2445,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _buildSection1() {
     return RepaintBoundary(
       child: _sectionCard(
-        title: '1. AD REGISTRATION INFO',
+        title: '1. AD Registration Info',
         content: StandardFormFieldRow(
           children: [
             StandardTextField(label: 'AD No.', controller: adNoController),
@@ -2451,7 +2470,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _buildSection3() {
     return RepaintBoundary(
       child: _sectionCard(
-        title: '3. CRIME SPOT',
+        title: '3. Crime Spot',
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -2486,7 +2505,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
         .toList();
     return RepaintBoundary(
       child: _sectionCard(
-        title: '4. COMPLAINANT KYC',
+        title: '4. Complainant KYC',
         content: _responsiveGrid(
           context,
           [
@@ -2538,7 +2557,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
         .toList();
     return RepaintBoundary(
       child: _sectionCard(
-        title: '5. DECEASED KYC DETAILS',
+        title: '5. Deceased KYC Details',
         action: ElevatedButton.icon(
           onPressed: addDeceased,
           style: ElevatedButton.styleFrom(backgroundColor: primaryDark),
@@ -2662,7 +2681,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _buildSection6() {
     return RepaintBoundary(
       child: _sectionCard(
-        title: '6. CAUSE OF DEATH',
+        title: '6. Cause of Death',
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -2685,7 +2704,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
         .toList();
     return RepaintBoundary(
       child: _sectionCard(
-        title: '8. CASE RESPONSIBILITY',
+        title: '8. Case Responsibility',
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -2780,7 +2799,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _buildSection10() {
     return RepaintBoundary(
       child: _sectionCard(
-        title: '10. PROCEDURAL DETAILS',
+        title: '10. Procedural Details',
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -2858,7 +2877,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _buildSection12() {
     return RepaintBoundary(
       child: _sectionCard(
-        title: '12. TECHNICAL RECORDS',
+        title: '12. Technical Records',
         content: _responsiveGrid(
           context,
           [
@@ -2899,7 +2918,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget _buildSection13() {
     return RepaintBoundary(
       child: _sectionCard(
-        title: '13. CASE SCRUTINY PIPELINE',
+        title: '13. Case Scrutiny Pipeline',
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -2934,19 +2953,18 @@ class _ADFormScreenState extends State<ADFormScreen> {
   Widget build(BuildContext context) {
     return BaseFormLayout(
       title: 'AD FORM',
-      subtitle: 'Accidental Deaths',
-      darkAppBar: true,
+      darkAppBar: false,
       backgroundColor: pageBg,
       scrollController: _scrollController,
       onScrollNotification: _onScrollNotification,
-      onSubmit: submitForm,
-      submitLabel: 'SUBMIT',
-      bottomBar: _buildSaveBar(),
+      bottomBar: _buildBottomActionRow(),
       header: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildRemoteUpdateBanner(),
           _buildAdDocumentDeletedBanner(),
+          _buildSaveBar(),
+          const Divider(height: 1, color: inputBorder),
           ValueListenableBuilder<double>(
             valueListenable: _scrollProgressNotifier,
             builder: (context, progress, _) {
