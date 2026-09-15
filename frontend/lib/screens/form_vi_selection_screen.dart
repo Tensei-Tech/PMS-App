@@ -8,7 +8,6 @@ import '../modules/form_vi/providers/form_vi_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/common_form_document_view.dart';
 import '../widgets/form_vi_category_button.dart';
@@ -2434,10 +2433,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           _buildCompactActionButton(
                             icon: Icons.picture_as_pdf_outlined,
                             label: 'PDF',
-                            onTap: () => runWithPdfAuthGate(
-                              context,
-                              () => ModulePdfHelper.generatePdf(record),
-                            ),
+                            onTap: () => ModulePdfHelper.generatePdf(record),
                           ),
                           const SizedBox(width: 6),
 
@@ -2735,10 +2731,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           ),
                           const SizedBox(width: 8),
                           OutlinedButton.icon(
-                            onPressed: () => runWithPdfAuthGate(
-                              context,
-                              () => ModulePdfHelper.generatePdf(record),
-                            ),
+                            onPressed: () =>
+                                ModulePdfHelper.generatePdf(record),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFC53030),
                               side: const BorderSide(color: Color(0xFFFEB2B2)),
@@ -3036,10 +3030,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             _buildCompactActionButton(
               icon: Icons.picture_as_pdf_outlined,
               label: 'PDF',
-              onTap: () => runWithPdfAuthGate(
-                context,
-                () => ModulePdfHelper.generatePdf(record),
-              ),
+              onTap: () => ModulePdfHelper.generatePdf(record),
             ),
           ],
         ),

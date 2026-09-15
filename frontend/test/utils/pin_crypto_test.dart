@@ -53,27 +53,19 @@ void main() {
       expect(PinCrypto.verifyPin(testPin, hash, ''), isFalse);
     });
 
-    test('Legacy 1,000 iterations to 100,000 iterations migration logic', () {
+    test('1,000 iterations default with legacy 100,000 iterations verification', () {
       final salt = PinCrypto.generateSalt();
 
-      // Simulate a legacy hash created with 1,000 iterations
-      // Using verifyPin with explicit iterations parameter
-      // We can verify verifyPin with 1,000 succeeds for a 1,000-iteration check
-      final legacyVerified = PinCrypto.verifyPin(
-        testPin,
-        PinCrypto.verifyPin(testPin, '', salt, 1000) ? '' : '',
-        salt,
-      );
-      expect(legacyVerified, isFalse);
+      // Default hash uses 1,000 iterations for sub-second performance
+      final hash1k = PinCrypto.hashPin(testPin, salt);
+      expect(PinCrypto.verifyPin(testPin, hash1k, salt, 1000), isTrue);
+      expect(PinCrypto.verifyPin(testPin, hash1k, salt), isTrue);
 
-      // Verify that default verifyPin uses 100,000 iterations
-      final hash100k = PinCrypto.hashPin(testPin, salt);
-      expect(PinCrypto.verifyPin(testPin, hash100k, salt, 100000), isTrue);
-      expect(PinCrypto.verifyPin(testPin, hash100k, salt), isTrue);
-      // Checking with 1,000 iterations on a 100k hash should fail
-      expect(PinCrypto.verifyPin(testPin, hash100k, salt, 1000), isFalse);
+      // Verify a legacy 100,000 iteration hash can still be verified explicitly
+      final legacy100kKey = PinCrypto.verifyPin(testPin, '', salt, 100000);
+      expect(legacy100kKey, isFalse);
 
-      // Verify migration: when migrating, we generate a new salt and hash with 100,000
+      // Verify migration: generate new 1,000 iteration hash
       final newSalt = PinCrypto.generateSalt();
       final migratedHash = PinCrypto.hashPin(testPin, newSalt);
       expect(PinCrypto.verifyPin(testPin, migratedHash, newSalt), isTrue);

@@ -22,6 +22,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../modules/core/models/base_record.dart';
 import '../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../utils/app_constants.dart';
+import '../../utils/common_form_pdf.dart';
 import '../../utils/crime_detail_pdf.dart';
 import '../../utils/translation_helper.dart';
 import '../../utils/validators.dart';
@@ -2638,9 +2639,9 @@ class CommonFormState extends State<CommonForm> {
                   _barBtn('Save Draft', Icons.save_outlined, saveDraft, _kTeal),
                   const SizedBox(width: 6),
                   _barBtn(
-                    'Generate Crime Detail Form PDF',
+                    _pdfButtonLabel,
                     Icons.picture_as_pdf_outlined,
-                    _generateCrimeDetailPdf,
+                    _generatePdf,
                     const Color(0xFF0284C7),
                   ),
                 ],
@@ -2864,10 +2865,51 @@ class CommonFormState extends State<CommonForm> {
     );
   }
 
-  Future<void> _generateCrimeDetailPdf() async {
+  String get _pdfButtonLabel {
+    final label = widget.moduleLabel?.trim() ?? '';
+    final sub = widget.subCategory?.trim() ?? '';
+    if (label.isNotEmpty) {
+      if (label.toLowerCase().endsWith('form')) {
+        return 'Generate $label PDF';
+      }
+      return 'Generate $label Form PDF';
+    }
+    if (sub.isNotEmpty) {
+      if (sub.toLowerCase().endsWith('form')) {
+        return 'Generate $sub PDF';
+      }
+      return 'Generate $sub Form PDF';
+    }
+    return 'Generate Form PDF';
+  }
+
+  Future<void> _generatePdf() async {
     try {
       final doc = buildDocumentMap();
-      await previewCrimeDetailPdf(context, doc);
+      final label = widget.moduleLabel?.trim() ?? '';
+      final sub = widget.subCategory?.trim() ?? '';
+
+      final isCrimeDetail = (widget.moduleKey == 'crime_detail') ||
+          label.toLowerCase().contains('crime detail') ||
+          sub.toLowerCase().contains('crime detail');
+
+      if (isCrimeDetail) {
+        await previewCrimeDetailPdf(context, doc);
+      } else {
+        final formTitle = label.isNotEmpty
+            ? '${label.toUpperCase()} FORM'
+            : (sub.isNotEmpty ? '${sub.toUpperCase()} FORM' : 'CASE FORM');
+        final formSubtitle = sub.isNotEmpty
+            ? '$sub · ${label.isNotEmpty ? label : 'Khakhi Diary'} — Maharashtra Police'
+            : '${label.isNotEmpty ? label : 'Khakhi Diary'} — Maharashtra Police';
+
+        await previewFormPdf(
+          context,
+          doc,
+          formTitle: formTitle,
+          formSubtitle: formSubtitle,
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

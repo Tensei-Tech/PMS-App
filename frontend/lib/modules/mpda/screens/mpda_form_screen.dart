@@ -6,7 +6,6 @@ import '../../../modules/core/models/base_record.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../screens/module_hub_screen.dart';
 import '../../../theme/app_theme.dart';
-import '../../../utils/pdf_auth_gate.dart';
 import '../../../utils/translation_helper.dart';
 import '../providers/mpda_provider.dart';
 import '../utils/mpda_form_pdf.dart';
@@ -69,13 +68,10 @@ class _MpdaFormScreenState extends State<MpdaFormScreen> {
             ? auth.stationName
             : context.read<MpdaProvider>().stationId;
 
-    await runWithPdfAuthGate(
-      context,
-      () => MpdaFormPdfHelper.printPdf(
-        data: doc,
-        policeStation: stationName,
-        district: auth.district,
-      ),
+    await MpdaFormPdfHelper.printPdf(
+      data: doc,
+      policeStation: stationName,
+      district: auth.district,
     );
   }
 

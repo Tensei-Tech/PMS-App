@@ -65,7 +65,6 @@ import '../utils/house_property_search_seizure_pdf.dart';
 import '../utils/inquest_panchanama_pdf.dart';
 import '../utils/interrogation_form_pdf.dart';
 import '../utils/medical_376_form_pdf.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/property_seizure_pdf.dart';
 import '../utils/reason_of_arrest_pdf.dart';
 import '../utils/transit_remand_pdf.dart';
@@ -563,8 +562,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   }
 
   Future<void> _exportPdf() async {
-    await runWithPdfAuthGate(context, () async {
-      try {
+    try {
         if (!mounted) return;
         if (_isCrimeDetailForm) {
           final detailState = _crimeDetailKey.currentState;
@@ -734,7 +732,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           ),
         );
       }
-    });
   }
 
   String _titleFromDoc(Map<String, dynamic> doc) {

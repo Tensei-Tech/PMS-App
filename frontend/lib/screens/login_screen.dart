@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../l10n/app_localizations.dart';
 
+import '../services/api_config.dart';
 import '../services/biometric_service.dart';
 import '../services/lockout_service.dart';
 import '../theme/app_theme.dart';
@@ -31,6 +32,8 @@ class _LoginScreenState extends State<LoginScreen>
   final _govtEmailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _isLoading = false;
+  String _loadingMessage = 'Authenticating...';
+  Timer? _loadingTimer;
   bool _obscurePassword = true;
 
   // Brute-force lockout state
@@ -44,9 +47,22 @@ class _LoginScreenState extends State<LoginScreen>
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
 
+  Timer? _keepAliveTimer;
+
   @override
   void initState() {
     super.initState();
+    // Pre-warm backend immediately to eliminate cold-start delay
+    ApiConfig.prewarmBackend(force: true);
+
+    // Keep backend warm while login screen is active (every 2.5 minutes)
+    _keepAliveTimer = Timer.periodic(const Duration(minutes: 2, seconds: 30), (_) {
+      ApiConfig.prewarmBackend(force: true);
+    });
+
+    _govtEmailCtrl.addListener(_onInputChanged);
+    _passwordCtrl.addListener(_onInputChanged);
+
     _fadeCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 900));
     _slideCtrl = AnimationController(
@@ -61,6 +77,13 @@ class _LoginScreenState extends State<LoginScreen>
 
     _checkLockout();
     _loadStoredEmail();
+  }
+
+  void _onInputChanged() {
+    // Proactively ping server as soon as user types
+    if (_govtEmailCtrl.text.isNotEmpty || _passwordCtrl.text.isNotEmpty) {
+      ApiConfig.prewarmBackend();
+    }
   }
 
   Future<void> _checkLockout() async {
@@ -102,6 +125,10 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   void dispose() {
+    _loadingTimer?.cancel();
+    _keepAliveTimer?.cancel();
+    _govtEmailCtrl.removeListener(_onInputChanged);
+    _passwordCtrl.removeListener(_onInputChanged);
     _fadeCtrl.dispose();
     _slideCtrl.dispose();
     _govtEmailCtrl.dispose();
@@ -124,7 +151,17 @@ class _LoginScreenState extends State<LoginScreen>
     }
 
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loadingMessage = 'Authenticating...';
+    });
+
+    _loadingTimer?.cancel();
+    _loadingTimer = Timer(const Duration(milliseconds: 2200), () {
+      if (mounted && _isLoading) {
+        setState(() => _loadingMessage = 'Connecting to secure server...');
+      }
+    });
 
     final auth = context.read<AuthProvider>();
     final email = _govtEmailCtrl.text.trim();
@@ -132,6 +169,8 @@ class _LoginScreenState extends State<LoginScreen>
 
     final loginError =
         await auth.loginByEmailAndPin(email: email, pin: password);
+    _loadingTimer?.cancel();
+
     if (loginError != null) await _checkLockout();
 
     if (!mounted) return;
@@ -533,18 +572,46 @@ class _LoginScreenState extends State<LoginScreen>
                   backgroundColor: AppColors.navyMid,
                   foregroundColor: Colors.white,
                   disabledBackgroundColor:
-                      AppColors.navyMid.withValues(alpha: 0.5),
+                      AppColors.navyMid.withValues(alpha: 0.7),
                   disabledForegroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                 ),
-                child: Text(
-                  'Sign In',
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600, fontSize: 16),
-                ),
+                child: _isLoading
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm + 4),
+                          Flexible(
+                            child: Text(
+                              _loadingMessage,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        'Sign In',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 10),
@@ -572,12 +639,6 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
               ),
             ),
-
-            if (_isLoading) ...[
-              const SizedBox(height: AppSpacing.md),
-              const Center(
-                  child: CircularProgressIndicator(color: AppColors.navyMid)),
-            ],
 
             const SizedBox(height: AppSpacing.lg),
 

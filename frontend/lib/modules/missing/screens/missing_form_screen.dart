@@ -9,7 +9,6 @@ import '../../../modules/core/models/base_record.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/module_pdf_helper.dart';
-import '../../../utils/pdf_auth_gate.dart';
 import '../../../widgets/base_form/base_form.dart';
 import '../providers/missing_provider.dart';
 import '../widgets/missing_form.dart';
@@ -202,10 +201,7 @@ class _MissingFormScreenState extends State<MissingFormScreen> {
       createdBy: _isEdit ? widget.existingRecord!.createdBy : auth.uid,
     );
 
-    await runWithPdfAuthGate(
-      context,
-      () => ModulePdfHelper.generatePdf(stub),
-    );
+    await ModulePdfHelper.generatePdf(stub);
   }
 
   void _submit() {

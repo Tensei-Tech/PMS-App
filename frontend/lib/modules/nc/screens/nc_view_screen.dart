@@ -8,7 +8,6 @@ import '../../../modules/core/models/base_record.dart';
 import '../../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../../theme/app_theme.dart';
 import '../../../utils/module_pdf_helper.dart';
-import '../../../utils/pdf_auth_gate.dart';
 import 'nc_form_screen.dart';
 
 typedef NCViewScreen = NcViewScreen;
@@ -53,10 +52,7 @@ class NcViewScreen extends StatelessWidget {
             tooltip: 'Export PDF',
             icon: const Icon(Icons.picture_as_pdf_outlined,
                 color: AppColors.navyMid),
-            onPressed: () => runWithPdfAuthGate(
-              context,
-              () => ModulePdfHelper.generatePdf(record),
-            ),
+            onPressed: () => ModulePdfHelper.generatePdf(record),
           ),
           IconButton(
             tooltip: 'Edit Entry',
