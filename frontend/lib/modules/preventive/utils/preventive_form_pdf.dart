@@ -197,8 +197,7 @@ class PreventiveFormPdfHelper {
                     pw.SizedBox(width: 8),
                     pw.Expanded(
                       flex: 2,
-                      child:
-                          _buildKvItem('Arrest Date', regDate.toString()),
+                      child: _buildKvItem('Arrest Date', regDate.toString()),
                     ),
                   ],
                 ),
@@ -300,7 +299,8 @@ class PreventiveFormPdfHelper {
                                 (effectiveAccusedList[i] is Map
                                         ? effectiveAccusedList[i]['name']
                                             ?.toString()
-                                        : effectiveAccusedList[i]?.toString()) ??
+                                        : effectiveAccusedList[i]
+                                            ?.toString()) ??
                                     '—',
                                 isBold: true),
                             _buildTd((effectiveAccusedList[i] is Map
@@ -554,7 +554,8 @@ class PreventiveFormPdfHelper {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Container(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+            padding:
+                const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
             decoration: const pw.BoxDecoration(
               color: _kBg,
               border:
@@ -616,7 +617,8 @@ class PreventiveFormPdfHelper {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(label, style: const pw.TextStyle(fontSize: 6.5, color: _kSec)),
+          pw.Text(label,
+              style: const pw.TextStyle(fontSize: 6.5, color: _kSec)),
           pw.SizedBox(height: 1.5),
           pw.Text(
             value.isEmpty ? '—' : value,
@@ -669,7 +671,8 @@ class PreventiveFormPdfHelper {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(label, style: const pw.TextStyle(fontSize: 6.5, color: _kSec)),
+          pw.Text(label,
+              style: const pw.TextStyle(fontSize: 6.5, color: _kSec)),
           pw.SizedBox(height: 1.5),
           pw.Row(
             children: [

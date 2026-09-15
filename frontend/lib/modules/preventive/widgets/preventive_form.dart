@@ -902,8 +902,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                                     required: true,
                                     onChanged: (val) {
                                       setState(() {
-                                        _preventiveSectionAct =
-                                            val ?? _kPreventiveSectionActs.first;
+                                        _preventiveSectionAct = val ??
+                                            _kPreventiveSectionActs.first;
                                       });
                                     },
                                   ),
@@ -935,7 +935,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                               children: [
                                 Expanded(
                                   child: _buildDateField(
-                                    label: 'Date of Preventive (प्रतिबंधक तारीख) *',
+                                    label:
+                                        'Date of Preventive (प्रतिबंधक तारीख) *',
                                     controller: _preventiveDateCtrl,
                                     onTap: () => _pickDate(_preventiveDateCtrl),
                                   ),
@@ -952,8 +953,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                             ),
                             const SizedBox(height: 14),
                             _buildTextField(
-                              label:
-                                  'Investigating Officer (IO) / अमलदार',
+                              label: 'Investigating Officer (IO) / अमलदार',
                               hint: 'e.g. PSI Patil / ASI Deshmukh',
                               controller: _ioNameCtrl,
                               suffix: VoiceDictationButton(

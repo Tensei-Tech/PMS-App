@@ -102,7 +102,8 @@ class ModulePdfHelper {
         'spotVillage': record.location,
         'briefFact': record.description,
         'accused': record.accused.isNotEmpty ? {'name': record.accused} : null,
-        'complainant': record.complainant.isNotEmpty ? {'name': record.complainant} : null,
+        'complainant':
+            record.complainant.isNotEmpty ? {'name': record.complainant} : null,
         'ioName': record.assignedOfficer,
         'status': record.status,
         ...record.extraFields,
@@ -127,10 +128,10 @@ class ModulePdfHelper {
     } else {
       final extra = Map<String, dynamic>.from(record.extraFields)
         ..remove(kCommonFormExtraFieldsKey);
-      final formSubtitle = sub.isEmpty ||
-              sub.toLowerCase() == displayName.toLowerCase()
-          ? '$displayName — Khakhi Diary · Maharashtra Police'
-          : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
+      final formSubtitle =
+          sub.isEmpty || sub.toLowerCase() == displayName.toLowerCase()
+              ? '$displayName — Khakhi Diary · Maharashtra Police'
+              : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
       bytes = await generateFormPdf(
         commonMap,
         extraMap: extra,

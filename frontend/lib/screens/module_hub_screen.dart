@@ -4440,7 +4440,8 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              Icon(icon,
+                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
               const SizedBox(width: 3.5),
             ],
             Flexible(
@@ -4534,8 +4535,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final extra = Map<String, dynamic>.from(record.extraFields);
     final prevMap = extra[kPreventiveFormExtraFieldsKey] is Map
-        ? Map<String, dynamic>.from(
-            extra[kPreventiveFormExtraFieldsKey] as Map)
+        ? Map<String, dynamic>.from(extra[kPreventiveFormExtraFieldsKey] as Map)
         : extra;
 
     final caseRef = prevMap['caseRef'] is Map
@@ -4552,11 +4552,10 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         : <String, dynamic>{};
 
     // 1. SR. CR. No.
-    String crNo = (caseRef['crimeNo'] ??
-            prevMap['crimeNo'] ??
-            record.caseNumber)
-        .toString()
-        .trim();
+    String crNo =
+        (caseRef['crimeNo'] ?? prevMap['crimeNo'] ?? record.caseNumber)
+            .toString()
+            .trim();
     if (crNo.isEmpty) crNo = record.id;
 
     // 2. Crime Category
@@ -4620,8 +4619,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         accusedName = rawAccused.toString().trim();
       } else if (accusedList.isNotEmpty) {
         final names = accusedList
-            .map((a) =>
-                a is Map ? (a['name']?.toString() ?? '') : a.toString())
+            .map((a) => a is Map ? (a['name']?.toString() ?? '') : a.toString())
             .where((n) => n.trim().isNotEmpty)
             .toList();
         if (names.isNotEmpty) {
@@ -4642,8 +4640,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         accusedList.first['arrestDate'].toString().trim().isNotEmpty) {
       arrestDate = accusedList.first['arrestDate'].toString().trim();
     } else {
-      arrestDate =
-          DateFormat('dd/MM/yyyy').format(record.incidentDate);
+      arrestDate = DateFormat('dd/MM/yyyy').format(record.incidentDate);
     }
 
     // 6. Preventive Sec. Act
@@ -4685,15 +4682,12 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         record.status == 'Closed' ||
         record.status == 'Resolved' ||
         record.status.toLowerCase().contains('completed');
-    final Color statusColor = isDisposal
-        ? const Color(0xFF2E7D32)
-        : const Color(0xFFD32F2F);
-    final Color statusBg = isDisposal
-        ? const Color(0xFFE8F5E9)
-        : const Color(0xFFFFEBEE);
-    final Color statusBorder = isDisposal
-        ? const Color(0xFFA5D6A7)
-        : const Color(0xFFFFCDD2);
+    final Color statusColor =
+        isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
+    final Color statusBg =
+        isDisposal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
+    final Color statusBorder =
+        isDisposal ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
 
     Widget buildRowContent(bool isExpandedMode) {
       return Row(
@@ -5014,8 +5008,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                   context,
                   AppTheme.fadeSlideRoute(
                     page: PreventiveFormScreen(
-                      moduleLabel:
-                          record.firestoreCategoryDisplayName,
+                      moduleLabel: record.firestoreCategoryDisplayName,
                       subCategory: subCategory,
                       existingRecord: record,
                     ),
@@ -5036,8 +5029,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 AppTheme.fadeSlideRoute(
                   page: PreventiveDetailViewScreen(
                     record: record,
-                    moduleLabel:
-                        record.firestoreCategoryDisplayName,
+                    moduleLabel: record.firestoreCategoryDisplayName,
                   ),
                 ),
               );
@@ -5049,8 +5041,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
             icon: Icons.picture_as_pdf_outlined,
             label: 'PDF',
             color: AppColors.dangerRed,
-            onTap: () =>
-                ModulePdfHelper.generatePdf(record),
+            onTap: () => ModulePdfHelper.generatePdf(record),
           ),
         ],
       );
@@ -5095,4 +5086,3 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
     );
   }
 }
-

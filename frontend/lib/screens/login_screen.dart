@@ -56,7 +56,8 @@ class _LoginScreenState extends State<LoginScreen>
     ApiConfig.prewarmBackend(force: true);
 
     // Keep backend warm while login screen is active (every 2.5 minutes)
-    _keepAliveTimer = Timer.periodic(const Duration(minutes: 2, seconds: 30), (_) {
+    _keepAliveTimer =
+        Timer.periodic(const Duration(minutes: 2, seconds: 30), (_) {
       ApiConfig.prewarmBackend(force: true);
     });
 

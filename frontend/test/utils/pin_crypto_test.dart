@@ -53,7 +53,8 @@ void main() {
       expect(PinCrypto.verifyPin(testPin, hash, ''), isFalse);
     });
 
-    test('1,000 iterations default with legacy 100,000 iterations verification', () {
+    test('1,000 iterations default with legacy 100,000 iterations verification',
+        () {
       final salt = PinCrypto.generateSalt();
 
       // Default hash uses 1,000 iterations for sub-second performance
