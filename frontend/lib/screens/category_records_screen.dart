@@ -6,7 +6,6 @@ import '../providers/module_registry.dart';
 import '../modules/core/models/base_record.dart';
 import '../theme/app_theme.dart';
 import '../utils/pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 import 'case_form_screen.dart';
 import 'case_detail_screen.dart';
 
@@ -199,10 +198,7 @@ class CategoryRecordsScreen extends StatelessWidget {
               }),
               _actionbtn(context, Icons.picture_as_pdf_rounded, 'PDF',
                   AppColors.dangerRed, () {
-                runWithPdfAuthGate(
-                  context,
-                  () => PdfHelper.generateCasePdf(record),
-                );
+                PdfHelper.generateCasePdf(record);
               }),
               _actionbtn(context, Icons.visibility_rounded, 'View',
                   AppColors.goldPrimary, () {

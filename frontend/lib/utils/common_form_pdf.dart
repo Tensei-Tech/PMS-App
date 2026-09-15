@@ -75,22 +75,8 @@ Future<Uint8List> generateFormPdf(
   String formTitle = 'CASE FORM',
   String formSubtitle = 'Khakhi Diary - Maharashtra Police',
 }) async {
-  pw.Document pdf;
-  try {
-    pdf = pw.Document(
-      theme: pw.ThemeData.withFont(
-        base: await PdfGoogleFonts.interRegular(),
-        bold: await PdfGoogleFonts.interBold(),
-        italic: await PdfGoogleFonts.interItalic(),
-        boldItalic: await PdfGoogleFonts.interBoldItalic(),
-      ),
-    );
-  } catch (_) {
-    // Web can fail fetching remote Google font files (network/CORS/ad-block).
-    // Fallback to embedded unicode-capable OpenSans theme.
-    final unicodeTheme = await PdfUnicodeFonts.openSansTheme();
-    pdf = pw.Document(theme: unicodeTheme);
-  }
+  final unicodeTheme = await PdfUnicodeFonts.openSansTheme();
+  final pdf = pw.Document(theme: unicodeTheme);
 
   pdf.addPage(
     pw.MultiPage(
@@ -1464,7 +1450,7 @@ pw.Widget _personBlock(String title, Map<String, dynamic> person) =>
       decoration: pw.BoxDecoration(
         color: _bg,
         borderRadius: pw.BorderRadius.circular(6),
-        border: const pw.Border(left: pw.BorderSide(color: _teal, width: 3)),
+        border: pw.Border.all(color: _teal, width: 0.8),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1499,7 +1485,7 @@ pw.Widget _chargeBlock(int num, String act, List<String> secs) => pw.Container(
       decoration: pw.BoxDecoration(
         color: _bg,
         borderRadius: pw.BorderRadius.circular(6),
-        border: const pw.Border(left: pw.BorderSide(color: _teal, width: 3)),
+        border: pw.Border.all(color: _teal, width: 0.8),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,

@@ -44,10 +44,11 @@ class ModulePdfHelper {
       formTitle: '${displayName.toUpperCase()} FORM',
       formSubtitle: formSubtitle,
     );
-    await Printing.layoutPdf(
-      onLayout: (_) async => bytes,
-      name:
-          '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    final fileName =
+        '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    await Printing.sharePdf(
+      bytes: bytes,
+      filename: fileName,
     );
     return true;
   }
@@ -71,10 +72,11 @@ class ModulePdfHelper {
       formTitle: '${displayName.toUpperCase()} FORM',
       formSubtitle: formSubtitle,
     );
-    await Printing.layoutPdf(
-      onLayout: (_) async => bytes,
-      name:
-          '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    final fileName =
+        '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    await Printing.sharePdf(
+      bytes: bytes,
+      filename: fileName,
     );
     return true;
   }
@@ -83,22 +85,53 @@ class ModulePdfHelper {
   /// Returns `true` if the share/print sheet was shown.
   static Future<bool> printCommonFormStoredPdf(ModuleRecord record) async {
     final displayName = record.firestoreCategoryDisplayName;
+    Map<String, dynamic>? commonMap;
     final nested = record.extraFields[kCommonFormExtraFieldsKey];
-    if (nested is! Map) return false;
-    final commonMap = Map<String, dynamic>.from(nested);
+    if (nested is Map && nested.isNotEmpty) {
+      commonMap = Map<String, dynamic>.from(nested);
+    } else if (record.extraFields.containsKey('crNo') ||
+        record.extraFields.containsKey('sections') ||
+        record.extraFields.containsKey('complainant') ||
+        record.extraFields.containsKey('victim') ||
+        record.extraFields.containsKey('accused') ||
+        moduleUsesCommonCrimeForm(record.moduleKey)) {
+      commonMap = <String, dynamic>{
+        'crNo': record.caseNumber,
+        'regDate': DateFormat('dd/MM/yyyy').format(record.incidentDate),
+        'incidentDate': DateFormat('dd/MM/yyyy').format(record.incidentDate),
+        'spotVillage': record.location,
+        'briefFact': record.description,
+        'accused': record.accused.isNotEmpty ? {'name': record.accused} : null,
+        'complainant':
+            record.complainant.isNotEmpty ? {'name': record.complainant} : null,
+        'ioName': record.assignedOfficer,
+        'status': record.status,
+        ...record.extraFields,
+      };
+    }
+
+    if (commonMap == null) return false;
 
     Uint8List bytes;
-    if (record.subCategory == 'Crime Detail Form') {
+    final sub = record.subCategory?.trim() ?? '';
+    final isStandAloneCrimeDetail = (record.moduleKey == 'crime' ||
+            record.category.toLowerCase() == 'crime') &&
+        sub == 'Crime Detail Form';
+    final isStandAlonePropertySeizure = (record.moduleKey == 'property' ||
+            record.category.toLowerCase() == 'property') &&
+        sub == 'Property & Seizure Form';
+
+    if (isStandAloneCrimeDetail) {
       bytes = await generateCrimeDetailPdf(commonMap);
-    } else if (record.subCategory == 'Property & Seizure Form') {
+    } else if (isStandAlonePropertySeizure) {
       bytes = await generatePropertySeizurePdf(commonMap);
     } else {
       final extra = Map<String, dynamic>.from(record.extraFields)
         ..remove(kCommonFormExtraFieldsKey);
-      final sub = record.subCategory?.trim() ?? '';
-      final formSubtitle = sub.isEmpty
-          ? '$displayName — Khakhi Diary · Maharashtra Police'
-          : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
+      final formSubtitle =
+          sub.isEmpty || sub.toLowerCase() == displayName.toLowerCase()
+              ? '$displayName — Khakhi Diary · Maharashtra Police'
+              : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
       bytes = await generateFormPdf(
         commonMap,
         extraMap: extra,
@@ -107,10 +140,11 @@ class ModulePdfHelper {
       );
     }
 
-    await Printing.layoutPdf(
-      onLayout: (_) async => bytes,
-      name:
-          '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    final fileName =
+        '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    await Printing.sharePdf(
+      bytes: bytes,
+      filename: fileName,
     );
     return true;
   }
@@ -142,103 +176,162 @@ class ModulePdfHelper {
   /// Generates and previews a PDF for any ModuleRecord.
   /// Generates and previews a PDF for any ModuleRecord (titles use [ModuleRecord.firestoreCategoryDisplayName]).
   static Future<void> generatePdf(ModuleRecord record) async {
-    final displayName = record.firestoreCategoryDisplayName;
-    if (await printNcFormStoredPdf(record)) return;
-    if (await printMissingFormStoredPdf(record)) return;
-    if (await printPreventiveFormStoredPdf(record)) return;
-    if (await printMpdaFormStoredPdf(record)) return;
-    if (await printCommonFormStoredPdf(record)) return;
+    try {
+      final displayName = record.firestoreCategoryDisplayName;
+      if (await printNcFormStoredPdf(record)) return;
+      if (await printMissingFormStoredPdf(record)) return;
+      if (await printPreventiveFormStoredPdf(record)) return;
+      if (await printMpdaFormStoredPdf(record)) return;
+      if (await printCommonFormStoredPdf(record)) return;
 
-    if (record.moduleKey == 'ad') {
-      await _generateAdFullFormPdf(record, displayName);
-      return;
+      if (record.moduleKey == 'ad') {
+        await _generateAdFullFormPdf(record, displayName);
+        return;
+      }
+
+      final theme = await PdfUnicodeFonts.openSansTheme();
+      final doc = pw.Document();
+      final now = DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now());
+
+      doc.addPage(
+        pw.MultiPage(
+          maxPages: 200,
+          theme: theme,
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (pw.Context ctx) {
+            return [
+              DynamicMapPdf.pmsNavyHeaderBand(
+                amberSubtitle: '$displayName - Official Case Report',
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                children: [
+                  pw.Expanded(
+                    child: DynamicMapPdf.summaryStatBox(
+                      'Case Number',
+                      record.caseNumber.isEmpty ? '—' : record.caseNumber,
+                    ),
+                  ),
+                  pw.SizedBox(width: 12),
+                  pw.Expanded(
+                    child: DynamicMapPdf.summaryStatBox(
+                      'Status',
+                      record.status.isEmpty ? '—' : record.status,
+                    ),
+                  ),
+                  pw.SizedBox(width: 12),
+                  pw.Expanded(
+                    child: DynamicMapPdf.summaryStatBox(
+                      'Priority',
+                      record.priority.isEmpty ? '—' : record.priority,
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 16),
+              ...DynamicMapPdf.buildModuleRecordPdfBody(record, displayName),
+              pw.SizedBox(height: 24),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    children: [
+                      pw.Container(
+                        width: 120,
+                        decoration: const pw.BoxDecoration(
+                          border: pw.Border(
+                            bottom: pw.BorderSide(
+                              color: PdfColors.black,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'Investigating Officer',
+                        style: const pw.TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                  pw.Column(
+                    children: [
+                      pw.Container(
+                        width: 120,
+                        decoration: const pw.BoxDecoration(
+                          border: pw.Border(
+                            bottom: pw.BorderSide(
+                              color: PdfColors.black,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'Station Head / SHO',
+                        style: const pw.TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 16),
+              DynamicMapPdf.confidentialFooterRow(
+                generatedText: 'Generated: $now',
+              ),
+            ];
+          },
+        ),
+      );
+
+      final fileName =
+          '${displayName.replaceAll(' ', '_')}_${record.caseNumber.replaceAll('/', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
+    } catch (e) {
+      // Emergency safe generation
+      try {
+        final displayName = record.firestoreCategoryDisplayName;
+        final theme = await PdfUnicodeFonts.openSansTheme();
+        final doc = pw.Document();
+        doc.addPage(
+          pw.Page(
+            theme: theme,
+            pageFormat: PdfPageFormat.a4,
+            margin: const pw.EdgeInsets.all(32),
+            build: (pw.Context ctx) {
+              return pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  DynamicMapPdf.pmsNavyHeaderBand(
+                    amberSubtitle: '$displayName - Official Case Report',
+                  ),
+                  pw.SizedBox(height: 20),
+                  pw.Text(
+                    'Case No: ${record.caseNumber}',
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 8),
+                  pw.Text('Title: ${record.title}'),
+                  pw.Text('Status: ${record.status}'),
+                  pw.Text('Priority: ${record.priority}'),
+                  pw.Text('Officer: ${record.assignedOfficer}'),
+                  pw.SizedBox(height: 12),
+                  pw.Text('Description: ${record.description}'),
+                ],
+              );
+            },
+          ),
+        );
+        final fileName =
+            '${displayName.replaceAll(' ', '_')}_${record.caseNumber.replaceAll('/', '_')}.pdf';
+        await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
+      } catch (_) {}
     }
-
-    final theme = await PdfUnicodeFonts.openSansTheme();
-    final doc = pw.Document();
-    final now = DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now());
-
-    doc.addPage(
-      pw.MultiPage(
-        maxPages: 200,
-        theme: theme,
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context ctx) {
-          return [
-            DynamicMapPdf.pmsNavyHeaderBand(
-              amberSubtitle: '$displayName - Official Case Report',
-            ),
-            pw.SizedBox(height: 20),
-            pw.Row(
-              children: [
-                pw.Expanded(
-                  child: DynamicMapPdf.summaryStatBox(
-                    'Case Number',
-                    record.caseNumber,
-                  ),
-                ),
-                pw.SizedBox(width: 12),
-                pw.Expanded(
-                  child: DynamicMapPdf.summaryStatBox('Status', record.status),
-                ),
-                pw.SizedBox(width: 12),
-                pw.Expanded(
-                  child: DynamicMapPdf.summaryStatBox(
-                    'Priority',
-                    record.priority,
-                  ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 16),
-            ...DynamicMapPdf.buildModuleRecordPdfBody(record, displayName),
-            pw.SizedBox(height: 24),
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Column(
-                  children: [
-                    pw.Container(
-                      width: 120,
-                      decoration: const pw.BoxDecoration(
-                        border: pw.Border(bottom: pw.BorderSide()),
-                      ),
-                    ),
-                    pw.SizedBox(height: 4),
-                    pw.Text(
-                      'Investigating Officer',
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
-                  ],
-                ),
-                pw.Column(
-                  children: [
-                    pw.Container(
-                      width: 120,
-                      decoration: const pw.BoxDecoration(
-                        border: pw.Border(bottom: pw.BorderSide()),
-                      ),
-                    ),
-                    pw.SizedBox(height: 4),
-                    pw.Text(
-                      'Station Head / SHO',
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 16),
-            DynamicMapPdf.confidentialFooterRow(
-              generatedText: 'Generated: $now',
-            ),
-          ];
-        },
-      ),
-    );
-
-    await Printing.layoutPdf(onLayout: (_) async => doc.save());
   }
 
   /// A.D: load `ad_forms` / `ad_drafts` + hub merge, then emit every field dynamically.
@@ -335,7 +428,9 @@ class ModulePdfHelper {
       ),
     );
 
-    await Printing.layoutPdf(onLayout: (_) async => doc.save());
+    final fileName =
+        'AD_${record.caseNumber.replaceAll('/', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
   }
 
   static Future<void> generateSummaryReportPdf(
@@ -522,7 +617,9 @@ class ModulePdfHelper {
       ),
     );
 
-    await Printing.layoutPdf(onLayout: (_) async => doc.save());
+    final fileName =
+        'Summary_Report_${title.replaceAll(' ', '_')}_${dateRange.replaceAll(' ', '_')}.pdf';
+    await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
   }
 
   /// Generates a structured table PDF for the Monthly Report as requested.
@@ -632,9 +729,10 @@ class ModulePdfHelper {
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (_) async => doc.save(),
-      name: 'Monthly_Report_${monthYear.replaceAll(' ', '_')}.pdf',
+    final fileName = 'Monthly_Report_${monthYear.replaceAll(' ', '_')}.pdf';
+    await Printing.sharePdf(
+      bytes: await doc.save(),
+      filename: fileName,
     );
   }
 
@@ -708,7 +806,7 @@ class ModulePdfHelper {
     }
 
     final fileName = '${reportTitle.replaceAll(' ', '_')}_$monthYear.pdf';
-    await Printing.layoutPdf(onLayout: (_) async => doc.save(), name: fileName);
+    await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
   }
 
   static Future<void> _generateFormVStructuredPdf(

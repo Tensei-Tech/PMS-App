@@ -106,6 +106,8 @@ class PreventiveFormState extends State<PreventiveForm> {
   ];
 
   // 4. Preventive / Istegasha Details
+  String _preventiveSectionAct = '107 Crpc/126 BNSS';
+  final _customPreventiveSectionActCtrl = TextEditingController();
   final _preventiveNoCtrl = TextEditingController();
   final _preventiveDateCtrl = TextEditingController();
   final _outwardNoCtrl = TextEditingController();
@@ -116,6 +118,23 @@ class PreventiveFormState extends State<PreventiveForm> {
   String _preventiveActionStatus = '🟢 Preventive Action Completed';
   // '🟢 Preventive Action Completed', '🟡 Partially Completed', '🔴 No Preventive Action Recorded'
   final _remarksCtrl = TextEditingController();
+
+  static const List<String> _kPreventiveSectionActs = [
+    '107 Crpc/126 BNSS',
+    '109 Crpc/128 BNSS',
+    '110 Crpc/129 BNSS',
+    '151 (3) Crpc/170(3) BNSS',
+    '55 to 57 B P Act',
+    'U/s 122 B P Act',
+    'U/s 124 B P Act',
+    '142 B P Act',
+    'M H O R',
+    '93 Pro Act',
+    'N S A',
+    'M P D A',
+    'M.C.O.C.A.',
+    'Other',
+  ];
 
   static const List<String> _kCrimeCategories = [
     'Theft',
@@ -174,6 +193,7 @@ class PreventiveFormState extends State<PreventiveForm> {
     for (final a in _accusedEntries) {
       a.dispose();
     }
+    _customPreventiveSectionActCtrl.dispose();
     _preventiveNoCtrl.dispose();
     _preventiveDateCtrl.dispose();
     _outwardNoCtrl.dispose();
@@ -213,6 +233,11 @@ class PreventiveFormState extends State<PreventiveForm> {
         ? _customCrimeCategoryCtrl.text.trim()
         : _crimeCategory;
 
+    final effectivePrevSectionAct = _preventiveSectionAct == 'Other' &&
+            _customPreventiveSectionActCtrl.text.trim().isNotEmpty
+        ? _customPreventiveSectionActCtrl.text.trim()
+        : _preventiveSectionAct;
+
     return {
       'caseRef': {
         'crimeNo': _crimeNoCtrl.text.trim(),
@@ -227,6 +252,7 @@ class PreventiveFormState extends State<PreventiveForm> {
       },
       'accusedList': _accusedEntries.map((a) => a.toMap()).toList(),
       'istegasha': {
+        'preventiveSectionAct': effectivePrevSectionAct,
         'preventiveNo': _preventiveNoCtrl.text.trim(),
         'preventiveDate': _preventiveDateCtrl.text.trim(),
         'outwardNo': _outwardNoCtrl.text.trim(),
@@ -240,6 +266,10 @@ class PreventiveFormState extends State<PreventiveForm> {
       // Convenience root fields for instant list indexing
       'crimeNo': _crimeNoCtrl.text.trim(),
       'caseNumber': _crimeNoCtrl.text.trim(),
+      'preventiveSectionAct': effectivePrevSectionAct,
+      'preventiveSecAct': effectivePrevSectionAct,
+      'preventiveAct': effectivePrevSectionAct,
+      'act': effectivePrevSectionAct,
       'preventiveNo': _preventiveNoCtrl.text.trim(),
       'accusedNames': _accusedEntries
           .map((a) => a.name.text.trim())
@@ -286,6 +316,27 @@ class PreventiveFormState extends State<PreventiveForm> {
           caseRef['caseStatus']?.toString() ?? doc['status']?.toString() ?? '';
       if (_kCaseStatuses.contains(st)) {
         _caseStatus = st;
+      }
+
+      final psa = istegasha['preventiveSectionAct']?.toString() ??
+          formMap['preventiveSectionAct']?.toString() ??
+          formMap['preventiveSecAct']?.toString() ??
+          doc['preventiveSectionAct']?.toString() ??
+          doc['preventiveSecAct']?.toString() ??
+          doc['preventiveAct']?.toString() ??
+          istegasha['act']?.toString() ??
+          '';
+      if (psa.isNotEmpty) {
+        if (_kPreventiveSectionActs.contains(psa)) {
+          _preventiveSectionAct = psa;
+          _customPreventiveSectionActCtrl.clear();
+        } else {
+          _preventiveSectionAct = 'Other';
+          _customPreventiveSectionActCtrl.text = psa;
+        }
+      } else {
+        _preventiveSectionAct = '107 Crpc/126 BNSS';
+        _customPreventiveSectionActCtrl.clear();
       }
 
       _selectedAct = sections['act']?.toString() ?? 'BNS';
@@ -365,6 +416,8 @@ class PreventiveFormState extends State<PreventiveForm> {
       _crimeCategory = 'Theft';
       _customCrimeCategoryCtrl.clear();
       _caseStatus = 'Under Investigation';
+      _preventiveSectionAct = '107 Crpc/126 BNSS';
+      _customPreventiveSectionActCtrl.clear();
       _selectedAct = 'BNS';
       _selectedSections.clear();
       _sectionSearchCtrl.clear();
@@ -565,7 +618,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                                 Expanded(
                                   flex: 2,
                                   child: _buildDateField(
-                                    label: 'Registration Date *',
+                                    label: 'Arrest Date (अटक तारीख) *',
                                     controller: _regDateCtrl,
                                     onTap: () => _pickDate(_regDateCtrl),
                                   ),
@@ -841,6 +894,22 @@ class PreventiveFormState extends State<PreventiveForm> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
+                                  child: _buildDropdownField(
+                                    label:
+                                        'Preventive Section Act (प्रतिबंधक कलम / कायदा) *',
+                                    value: _preventiveSectionAct,
+                                    items: _kPreventiveSectionActs,
+                                    required: true,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _preventiveSectionAct = val ??
+                                            _kPreventiveSectionActs.first;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
                                   child: _buildTextField(
                                     label: 'Preventive No. / इस्तेगाशा नंबर *',
                                     hint: 'e.g. IST/04/2026 or Prev No. 12',
@@ -848,20 +917,31 @@ class PreventiveFormState extends State<PreventiveForm> {
                                     required: true,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildDateField(
-                                    label: 'Date of Preventive *',
-                                    controller: _preventiveDateCtrl,
-                                    onTap: () => _pickDate(_preventiveDateCtrl),
-                                  ),
-                                ),
                               ],
                             ),
+                            if (_preventiveSectionAct == 'Other') ...[
+                              const SizedBox(height: 12),
+                              _buildTextField(
+                                label:
+                                    'Specify Preventive Section Act (इतर प्रतिबंधक कलम / कायदा) *',
+                                hint: 'Enter custom section act e.g. 107 CrPC',
+                                controller: _customPreventiveSectionActCtrl,
+                                required: true,
+                              ),
+                            ],
                             const SizedBox(height: 14),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Expanded(
+                                  child: _buildDateField(
+                                    label:
+                                        'Date of Preventive (प्रतिबंधक तारीख) *',
+                                    controller: _preventiveDateCtrl,
+                                    onTap: () => _pickDate(_preventiveDateCtrl),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: _buildTextField(
                                     label: 'Outward Number (जावक क्रमांक)',
@@ -869,19 +949,16 @@ class PreventiveFormState extends State<PreventiveForm> {
                                     controller: _outwardNoCtrl,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildTextField(
-                                    label:
-                                        'Investigating Officer (IO) / अमलदार',
-                                    hint: 'e.g. PSI Patil / ASI Deshmukh',
-                                    controller: _ioNameCtrl,
-                                    suffix: VoiceDictationButton(
-                                      controller: _ioNameCtrl,
-                                    ),
-                                  ),
-                                ),
                               ],
+                            ),
+                            const SizedBox(height: 14),
+                            _buildTextField(
+                              label: 'Investigating Officer (IO) / अमलदार',
+                              hint: 'e.g. PSI Patil / ASI Deshmukh',
+                              controller: _ioNameCtrl,
+                              suffix: VoiceDictationButton(
+                                controller: _ioNameCtrl,
+                              ),
                             ),
                           ],
                         ),
@@ -1540,6 +1617,65 @@ class PreventiveFormState extends State<PreventiveForm> {
                   borderSide: const BorderSide(color: _kBorder),
                 ),
               ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+    bool required = false,
+  }) {
+    final effectiveVal = items.contains(value) ? value : items.first;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(label, required: required),
+        const SizedBox(height: 5),
+        Container(
+          height: 42,
+          decoration: BoxDecoration(
+            color: _kInputBg,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: _kBorder),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: effectiveVal,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                  size: 20, color: _kSec),
+              style: GoogleFonts.inter(fontSize: 12, color: _kDark),
+              onChanged: widget.readOnly
+                  ? null
+                  : (val) {
+                      if (val != null) {
+                        _markUnsaved();
+                        onChanged(val);
+                      }
+                    },
+              items: items.map((item) {
+                return DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(
+                    item,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight:
+                          item == value ? FontWeight.w600 : FontWeight.w500,
+                      color: _kDark,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ),

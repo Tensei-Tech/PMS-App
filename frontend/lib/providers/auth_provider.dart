@@ -605,14 +605,16 @@ class AuthProvider extends ChangeNotifier {
       final sanitizedEmail = email.trim().toLowerCase();
       final sanitizedPin = pin.trim();
 
-      final response = await http.post(
-        Uri.parse(ApiConfig.authLogin),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'email': sanitizedEmail,
-          'password': sanitizedPin,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse(ApiConfig.authLogin),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'email': sanitizedEmail,
+              'password': sanitizedPin,
+            }),
+          )
+          .timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -621,11 +623,15 @@ class AuthProvider extends ChangeNotifier {
 
         final salt = PinCrypto.generateSalt();
         final pinHash = await PinCrypto.hashPinAsync(sanitizedPin, salt);
-        await _secure.write(key: StorageKeys.email, value: sanitizedEmail);
-        await _secure.write(key: StorageKeys.pinHash, value: pinHash);
-        await _secure.write(key: StorageKeys.pinSalt, value: salt);
-        await _secure.write(
-            key: 'user_profile_json', value: json.encode(userJson));
+
+        // Perform parallel writes for instant storage persistence
+        final writes = <Future>[
+          _secure.write(key: StorageKeys.email, value: sanitizedEmail),
+          _secure.write(key: StorageKeys.pinHash, value: pinHash),
+          _secure.write(key: StorageKeys.pinSalt, value: salt),
+          _secure.write(key: 'user_profile_json', value: json.encode(userJson)),
+          _lockout.recordSuccess(),
+        ];
 
         // Store JWT authentication tokens for backend API requests
         if (data['tokens'] != null && data['tokens'] is Map) {
@@ -635,21 +641,21 @@ class AuthProvider extends ChangeNotifier {
           final refresh =
               (tokens['refresh_token'] ?? tokens['refresh'])?.toString();
           if (access != null && access.isNotEmpty) {
-            await ApiService().setAuthToken(access);
+            writes.add(ApiService().setAuthToken(access));
           }
           if (refresh != null && refresh.isNotEmpty) {
-            await _secure.write(
-                key: ApiConstants.jwtRefreshTokenKey, value: refresh);
+            writes.add(_secure.write(
+                key: ApiConstants.jwtRefreshTokenKey, value: refresh));
           }
         }
 
-        await _lockout.recordSuccess();
+        await Future.wait(writes);
 
         _uid = user.uid;
         _isRegistered = true;
         _isSessionActive = true;
         _applyProfile(user);
-        await fetchDynamicPermissions();
+        unawaited(fetchDynamicPermissions());
 
         notifyListeners();
         return null;
@@ -665,9 +671,11 @@ class AuthProvider extends ChangeNotifier {
           return 'Invalid email or password.';
         }
       }
+    } on TimeoutException {
+      return 'Server is waking up from standby. Please tap Sign In again.';
     } catch (e) {
       _secureLog('loginByEmailAndPin error: $e');
-      return 'Could not connect to authentication server. Ensure backend is running.';
+      return 'Could not connect to authentication server. Ensure backend is reachable.';
     }
   }
 

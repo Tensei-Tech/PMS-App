@@ -7,7 +7,6 @@ import '../theme/app_theme.dart';
 import 'ad_record_detail_screen.dart';
 import 'module_record_detail_screen.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 
 class ReportCaseListScreen extends StatelessWidget {
   final String title;
@@ -200,10 +199,7 @@ class ReportCaseListScreen extends StatelessWidget {
                 Container(width: 1, height: 20, color: AppColors.lightBorder),
                 _actionBtn(context, Icons.picture_as_pdf_rounded, 'PDF',
                     AppColors.dangerRed, () {
-                  runWithPdfAuthGate(
-                    context,
-                    () => ModulePdfHelper.generatePdf(record),
-                  );
+                  ModulePdfHelper.generatePdf(record);
                 }),
               ],
             ),

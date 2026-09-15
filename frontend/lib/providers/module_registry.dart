@@ -49,18 +49,20 @@ ChangeNotifierProxyProvider<AuthProvider, T>
   return ChangeNotifierProxyProvider<AuthProvider, T>(
     create: (_) => create(),
     update: (_, auth, provider) {
-      if (auth.isSessionActive &&
-          auth.activeStation.isNotEmpty &&
-          auth.uid.isNotEmpty) {
-        provider!.setStationContext(
-          stationId: auth.activeStation,
+      final p = provider ?? create();
+      if (auth.isSessionActive && auth.uid.isNotEmpty) {
+        final station = auth.activeStation.isNotEmpty
+            ? auth.activeStation
+            : (auth.district.isNotEmpty ? auth.district : 'ALL');
+        p.setStationContext(
+          stationId: station,
           uid: auth.uid,
           visibilityMode: CaseVisibility.resolveFor(auth),
         );
-      } else {
-        provider!.clearStationContext();
+      } else if (!auth.isSessionActive) {
+        p.clearStationContext(clearRecords: false);
       }
-      return provider;
+      return p;
     },
   );
 }

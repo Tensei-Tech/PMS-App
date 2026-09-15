@@ -12,6 +12,7 @@ class BaseModuleProvider extends ChangeNotifier {
   CaseService get _caseService => CaseService();
   Timer? _pollTimer;
   List<ModuleRecord> _records = [];
+  final Set<String> _deletedIds = {};
   String _stationId = '';
   String _uid = '';
   CaseVisibilityMode _visibilityMode = CaseVisibilityMode.ownCasesOnly;
@@ -25,6 +26,7 @@ class BaseModuleProvider extends ChangeNotifier {
     _uid = '';
     if (clearRecords) {
       _records = [];
+      _deletedIds.clear();
     }
     notifyListeners();
   }
@@ -34,18 +36,19 @@ class BaseModuleProvider extends ChangeNotifier {
     required String uid,
     required CaseVisibilityMode visibilityMode,
   }) {
-    if (stationId.isEmpty || uid.isEmpty) {
+    if (uid.isEmpty) {
       clearStationContext();
       return;
     }
 
-    if (_stationId == stationId &&
+    final effectiveStation = stationId.isNotEmpty ? stationId : 'ALL';
+    if (_stationId == effectiveStation &&
         _uid == uid &&
         _visibilityMode == visibilityMode &&
         _pollTimer != null) {
       return;
     }
-    _stationId = stationId;
+    _stationId = effectiveStation;
     _uid = uid;
     _visibilityMode = visibilityMode;
     _pollTimer?.cancel();
@@ -58,19 +61,36 @@ class BaseModuleProvider extends ChangeNotifier {
   }
 
   Future<void> _fetchCases({bool forceRefresh = false}) async {
-    if (_stationId.isEmpty) return;
+    if (_uid.isEmpty) return;
     try {
       final fetched = await _caseService.fetchCases(
         moduleKey: moduleKey,
         stationId: _stationId,
         forceRefresh: forceRefresh,
       );
-      if (fetched.isNotEmpty || forceRefresh) {
+
+      if (fetched.isNotEmpty) {
+        // Merge backend records with existing local records by ID
+        final Map<String, ModuleRecord> merged = {
+          for (final r in _records)
+            if (!_deletedIds.contains(r.id)) r.id: r,
+        };
+        for (final r in fetched) {
+          if (!_deletedIds.contains(r.id)) {
+            merged[r.id] = r;
+          }
+        }
+        final mergedList = merged.values.toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
         _records = CaseVisibility.filterRecords(
-          fetched,
+          mergedList,
           uid: _uid,
           mode: _visibilityMode,
         );
+        notifyListeners();
+      } else if (forceRefresh && _records.isEmpty) {
+        _records = [];
         notifyListeners();
       }
     } catch (e) {
@@ -202,7 +222,10 @@ class BaseModuleProvider extends ChangeNotifier {
       assignedOfficerUid: record.assignedOfficerUid ??
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
-    // Optimistic local add so UI updates instantly
+
+    _deletedIds.remove(enriched.id);
+
+    // Optimistic local add so UI updates instantly and stays permanently
     final existingIdx = _records.indexWhere((r) => r.id == enriched.id);
     if (existingIdx >= 0) {
       _records[existingIdx] = enriched;
@@ -211,7 +234,11 @@ class BaseModuleProvider extends ChangeNotifier {
     }
     notifyListeners();
 
-    await _caseService.saveCase(enriched, isCreate: true);
+    try {
+      await _caseService.saveCase(enriched, isCreate: true);
+    } catch (e) {
+      debugPrint('[$moduleKey] saveCase sync error: $e');
+    }
     await _fetchCases(forceRefresh: true);
   }
 
@@ -233,6 +260,8 @@ class BaseModuleProvider extends ChangeNotifier {
           (_uid.isNotEmpty ? _uid : record.assignedOfficerUid),
     );
 
+    _deletedIds.remove(enriched.id);
+
     // Optimistically update local list so UI reflects status change immediately
     final idx = _records.indexWhere((r) => r.id == enriched.id);
     if (idx != -1) {
@@ -242,15 +271,24 @@ class BaseModuleProvider extends ChangeNotifier {
     }
     notifyListeners();
 
-    await _caseService.saveCase(enriched, isCreate: false);
+    try {
+      await _caseService.saveCase(enriched, isCreate: false);
+    } catch (e) {
+      debugPrint('[$moduleKey] saveCase update error: $e');
+    }
     await _fetchCases(forceRefresh: true);
   }
 
   Future<void> deleteRecord(String id) async {
+    _deletedIds.add(id);
     _records.removeWhere((r) => r.id == id);
     notifyListeners();
 
-    await _caseService.deleteCase(id);
+    try {
+      await _caseService.deleteCase(id);
+    } catch (e) {
+      debugPrint('[$moduleKey] deleteCase error: $e');
+    }
     await _fetchCases(forceRefresh: true);
   }
 
