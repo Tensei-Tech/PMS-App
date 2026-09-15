@@ -29,7 +29,7 @@ import 'government_vehicle_usage_widget.dart';
 import 'pocso_voice_banner.dart';
 import 'section_82_83_action_widget.dart';
 
-// ── Palette ───────────────────────────────────────────────────────────────────
+// ── Palette ──
 const Color _kDark = Color(0xFF0f172a);
 const Color _kMid = Color(0xFF1e293b);
 const Color _kTeal = Color(0xFF0ea5e9);
@@ -295,7 +295,8 @@ class CommonFormState extends State<CommonForm> {
   String _activeVoiceSectionName = '§1 Crime Registration';
   TextEditingController? _activeVoiceController;
 
-  void setActiveVoiceField(String label, TextEditingController ctrl, [String section = '']) {
+  void setActiveVoiceField(String label, TextEditingController ctrl,
+      [String section = '']) {
     if (!_isVoiceEnabled) return;
     if (_activeVoiceController != ctrl || _activeVoiceFieldLabel != label) {
       setState(() {
@@ -306,7 +307,8 @@ class CommonFormState extends State<CommonForm> {
     }
   }
 
-  void _setActiveVoiceField(String label, TextEditingController ctrl, [String section = '']) =>
+  void _setActiveVoiceField(String label, TextEditingController ctrl,
+          [String section = '']) =>
       setActiveVoiceField(label, ctrl, section);
 
   // ── §1 Crime Registration ─────────────────────────────────────────────────
