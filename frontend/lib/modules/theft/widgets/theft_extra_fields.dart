@@ -109,13 +109,42 @@ const List<String> _kLocationTypes = [
 // TheftExtraFields widget
 // ─────────────────────────────────────────────────────────────────────────────
 class TheftExtraFields extends StatefulWidget {
-  const TheftExtraFields({super.key});
+  final void Function(String label, TextEditingController ctrl, [String section])? onActiveFieldTap;
+
+  const TheftExtraFields({super.key, this.onActiveFieldTap});
 
   @override
   State<TheftExtraFields> createState() => TheftExtraFieldsState();
 }
 
 class TheftExtraFieldsState extends State<TheftExtraFields> {
+  Widget _tf({
+    required String label,
+    required TextEditingController controller,
+    int maxLines = 1,
+    int? maxLength,
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+    void Function(String)? onChanged,
+    String? hintText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      style: GoogleFonts.poppins(fontSize: 12),
+      maxLines: maxLines,
+      maxLength: maxLength,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      onChanged: onChanged,
+      onTap: () {
+        widget.onActiveFieldTap?.call(label, controller, 'Theft Details');
+      },
+      decoration: _dec(label).copyWith(
+        hintText: hintText,
+        counterText: maxLength != null ? '${controller.text.length}/$maxLength' : null,
+      ),
+    );
+  }
   // ── 2. Stolen Property List ─────────────────────────────────────────────────
   final List<_StolenPropertyEntry> _stolenProps = [];
 
@@ -781,28 +810,25 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  TextFormField(
+                  _tf(
+                    label: 'Name',
                     controller: e.name,
-                    style: GoogleFonts.poppins(fontSize: 12),
-                    decoration: _dec('Name'),
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 8),
-                  TextFormField(
+                  _tf(
+                    label: 'Description',
                     controller: e.description,
-                    style: GoogleFonts.poppins(fontSize: 12),
                     maxLines: 2,
-                    decoration: _dec('Description'),
                   ),
                   const SizedBox(height: 8),
-                  TextFormField(
+                  _tf(
+                    label: 'Value (Rs.)',
                     controller: e.value,
-                    style: GoogleFonts.poppins(fontSize: 12),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
                     ],
-                    decoration: _dec('Value (Rs.)'),
                     onChanged: (_) => setState(() {}),
                   ),
                 ],
@@ -923,10 +949,9 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
           const SizedBox(height: 12),
           _rowTwo(
             _dateField('Recovered Date', _recoveredDate),
-            TextFormField(
+            _tf(
+              label: 'Recovered From',
               controller: _recoveredFrom,
-              style: GoogleFonts.poppins(fontSize: 12),
-              decoration: _dec('Recovered From'),
             ),
           ),
           const SizedBox(height: 12),
@@ -936,10 +961,9 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
             onChanged: (v) => setState(() => _returnToOwner = v),
           ),
           const SizedBox(height: 12),
-          TextFormField(
+          _tf(
+            label: 'Who gave it to? (Person who handed over)',
             controller: _whoGaveIt,
-            style: GoogleFonts.poppins(fontSize: 12),
-            decoration: _dec('Who gave it to? (Person who handed over)'),
           ),
         ],
       ),
@@ -1030,16 +1054,10 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                         ? Padding(
                             padding: const EdgeInsets.only(
                                 left: 30, top: 6, bottom: 4),
-                            child: TextFormField(
+                            child: _tf(
+                              label: 'Other Theft Type (max 25 chars)',
                               controller: _theftTypeOther,
-                              style: GoogleFonts.poppins(fontSize: 12),
                               maxLength: 25,
-                              decoration:
-                                  _dec('Other Theft Type (max 25 chars)')
-                                      .copyWith(
-                                counterText:
-                                    '${_theftTypeOther.text.length}/25',
-                              ),
                               onChanged: (_) => setState(() {}),
                             ),
                           )
@@ -1062,11 +1080,10 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
         children: [
           _sectionTitle('Spot Type'),
           const SizedBox(height: 12),
-          TextFormField(
+          _tf(
+            label: 'Exact Place of Theft',
             controller: _exactPlace,
-            style: GoogleFonts.poppins(fontSize: 12),
             maxLines: 2,
-            decoration: _dec('Exact Place of Theft'),
           ),
           const SizedBox(height: 14),
           Text(
@@ -1112,14 +1129,10 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
             child: _locationType == 'Other'
                 ? Padding(
                     padding: const EdgeInsets.only(top: 10),
-                    child: TextFormField(
+                    child: _tf(
+                      label: 'Other Location (max 25 chars)',
                       controller: _locationTypeOther,
-                      style: GoogleFonts.poppins(fontSize: 12),
                       maxLength: 25,
-                      decoration:
-                          _dec('Other Location (max 25 chars)').copyWith(
-                        counterText: '${_locationTypeOther.text.length}/25',
-                      ),
                       onChanged: (_) => setState(() {}),
                     ),
                   )
@@ -1182,28 +1195,24 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
           ),
           const SizedBox(height: 12),
           _rowTwo(
-            TextFormField(
+            _tf(
+              label: 'Engine Number',
               controller: _engineNumber,
-              style: GoogleFonts.poppins(fontSize: 12),
-              decoration: _dec('Engine Number'),
             ),
-            TextFormField(
+            _tf(
+              label: 'Chassis Number',
               controller: _chassisNumber,
-              style: GoogleFonts.poppins(fontSize: 12),
-              decoration: _dec('Chassis Number'),
             ),
           ),
           const SizedBox(height: 10),
           _rowTwo(
-            TextFormField(
+            _tf(
+              label: 'Registration Number',
               controller: _registrationNumber,
-              style: GoogleFonts.poppins(fontSize: 12),
-              decoration: _dec('Registration Number'),
             ),
-            TextFormField(
+            _tf(
+              label: 'Unique Identification Mark',
               controller: _uniqueIdMark,
-              style: GoogleFonts.poppins(fontSize: 12),
-              decoration: _dec('Unique Identification Mark'),
             ),
           ),
           const SizedBox(height: 10),
@@ -1240,18 +1249,16 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
             ],
           ),
           const SizedBox(height: 12),
-          TextFormField(
+          _tf(
+            label: 'Total Rupees or Any Currency',
             controller: _cashTotal,
-            style: GoogleFonts.poppins(fontSize: 12),
             keyboardType: TextInputType.number,
-            decoration: _dec('Total Rupees or Any Currency'),
           ),
           const SizedBox(height: 10),
-          TextFormField(
+          _tf(
+            label: 'Count of Notes (optional)',
             controller: _cashNoteCount,
-            style: GoogleFonts.poppins(fontSize: 12),
             keyboardType: TextInputType.number,
-            decoration: _dec('Count of Notes (optional)'),
           ),
         ],
       ),
@@ -1291,10 +1298,9 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
               value: _platinumPresent,
               onChanged: (v) => setState(() => _platinumPresent = v),
             ),
-            TextFormField(
+            _tf(
+              label: 'Other Metal Name (e.g. abc)',
               controller: _otherMetalName,
-              style: GoogleFonts.poppins(fontSize: 12),
-              decoration: _dec('Other Metal Name (e.g. abc)'),
             ),
           ),
           const SizedBox(height: 16),
@@ -1376,26 +1382,23 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  TextFormField(
+                  _tf(
+                    label: 'Name of Ornament',
                     controller: e.name,
-                    style: GoogleFonts.poppins(fontSize: 12),
-                    decoration: _dec('Name of Ornament'),
                   ),
                   const SizedBox(height: 8),
                   _rowTwo(
-                    TextFormField(
+                    _tf(
+                      label: 'Metal of Ornament',
                       controller: e.metal,
-                      style: GoogleFonts.poppins(fontSize: 12),
-                      decoration: _dec('Metal of Ornament'),
                     ),
-                    TextFormField(
+                    _tf(
+                      label: 'Value of Ornament (Rs.)',
                       controller: e.value,
-                      style: GoogleFonts.poppins(fontSize: 12),
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
                       ],
-                      decoration: _dec('Value of Ornament (Rs.)'),
                       onChanged: (_) => setState(() {}),
                     ),
                   ),

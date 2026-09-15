@@ -2,13 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class KidnappingExtraFields extends StatefulWidget {
-  const KidnappingExtraFields({super.key});
+  final void Function(String label, TextEditingController ctrl, [String section])? onActiveFieldTap;
+
+  const KidnappingExtraFields({super.key, this.onActiveFieldTap});
 
   @override
   State<KidnappingExtraFields> createState() => KidnappingExtraFieldsState();
 }
 
 class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
+  Widget _tf({
+    required String label,
+    required TextEditingController controller,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+    void Function(String)? onChanged,
+  }) {
+    return TextFormField(
+      controller: controller,
+      style: GoogleFonts.poppins(),
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
+      onTap: () {
+        widget.onActiveFieldTap?.call(label, controller, 'Kidnapping Details');
+      },
+      decoration: _inputDecoration(label),
+    );
+  }
   static const Color _bgColor = Color(0xFFF4F7F9);
   static const Color _cardColor = Colors.white;
   static const Color _teal = Color(0xFF0EA5E9);
@@ -474,16 +495,14 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                 children: [
                   _responsiveTwoFieldRow(
                     context: context,
-                    first: TextFormField(
+                    first: _tf(
+                      label: 'Name',
                       controller: _kidnappedName,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Name'),
                     ),
-                    second: TextFormField(
+                    second: _tf(
+                      label: 'Age',
                       controller: _kidnappedAge,
                       keyboardType: TextInputType.number,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Age'),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -506,46 +525,40 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                           .toList(),
                       onChanged: (v) => setState(() => _kidnappedGender = v),
                     ),
-                    second: TextFormField(
+                    second: _tf(
+                      label: 'Occupation',
                       controller: _kidnappedOccupation,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Occupation'),
                     ),
                   ),
                   const SizedBox(height: 12),
                   _responsiveTwoFieldRow(
                     context: context,
-                    first: TextFormField(
+                    first: _tf(
+                      label: 'Mobile Number',
                       controller: _kidnappedMobile,
                       keyboardType: TextInputType.phone,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Mobile Number'),
                     ),
-                    second: TextFormField(
+                    second: _tf(
+                      label: 'Aadhaar Number',
                       controller: _kidnappedAadhaar,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Aadhaar Number'),
                     ),
                   ),
                   const SizedBox(height: 12),
                   _responsiveTwoFieldRow(
                     context: context,
-                    first: TextFormField(
+                    first: _tf(
+                      label: 'Religion',
                       controller: _kidnappedReligion,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Religion'),
                     ),
-                    second: TextFormField(
+                    second: _tf(
+                      label: 'Caste',
                       controller: _kidnappedCaste,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Caste'),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  _tf(
+                    label: 'Relation with Complainant',
                     controller: _kidnappedRelation,
-                    style: GoogleFonts.poppins(),
-                    decoration: _inputDecoration('Relation with Complainant'),
                   ),
                 ],
               ),
@@ -573,12 +586,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                         second: _timeField('Found Time', _foundTime),
                       ),
                       const SizedBox(height: 12),
-                      TextFormField(
+                      _tf(
+                        label: 'SD No. / Station Diary No.',
                         controller: _foundSdNo,
-                        style: GoogleFonts.poppins(),
-                        decoration: _inputDecoration(
-                          'SD No. / Station Diary No.',
-                        ),
                       ),
                       const SizedBox(height: 14),
                       Text(
@@ -642,10 +652,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                       const SizedBox(height: 12),
                       _animatedSwitch(
                         _custodyTo == 'Other',
-                        TextFormField(
+                        _tf(
+                          label: 'Please Specify',
                           controller: _custodyOtherText,
-                          style: GoogleFonts.poppins(),
-                          decoration: _inputDecoration('Please Specify'),
                           onChanged: (_) => setState(() {}),
                         ),
                       ),
@@ -667,16 +676,14 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                               const SizedBox(height: 12),
                               _responsiveTwoFieldRow(
                                 context: context,
-                                first: TextFormField(
+                                first: _tf(
+                                  label: 'Name',
                                   controller: _custodyName,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration('Name'),
                                 ),
-                                second: TextFormField(
+                                second: _tf(
+                                  label: 'Age',
                                   controller: _custodyAge,
                                   keyboardType: TextInputType.number,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration('Age'),
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -703,35 +710,29 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                   onChanged: (v) =>
                                       setState(() => _custodyGender = v),
                                 ),
-                                second: TextFormField(
+                                second: _tf(
+                                  label: 'Mobile Number',
                                   controller: _custodyMobile,
                                   keyboardType: TextInputType.phone,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration('Mobile Number'),
                                 ),
                               ),
                               const SizedBox(height: 12),
                               _responsiveTwoFieldRow(
                                 context: context,
-                                first: TextFormField(
+                                first: _tf(
+                                  label: 'Aadhaar Number',
                                   controller: _custodyAadhaar,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration(
-                                    'Aadhaar Number',
-                                  ),
                                 ),
-                                second: TextFormField(
+                                second: _tf(
+                                  label: 'Relationship',
                                   controller: _custodyRelation,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration('Relationship'),
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              TextFormField(
+                              _tf(
+                                label: 'Full Address',
                                 controller: _custodyAddress,
                                 maxLines: 3,
-                                style: GoogleFonts.poppins(),
-                                decoration: _inputDecoration('Full Address'),
                               ),
                             ],
                           ),

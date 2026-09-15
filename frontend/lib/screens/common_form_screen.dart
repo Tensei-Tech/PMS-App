@@ -1970,14 +1970,27 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                   moduleLabel: widget.moduleLabel,
                                                                                   subCategory: widget.subCategory,
                                                                                   middleSlot: _hasKidnappingExtras
-                                                                                      ? KidnappingExtraFields(key: _kidnappingKey)
+                                                                                      ? KidnappingExtraFields(
+                                                                                          key: _kidnappingKey,
+                                                                                          onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                            _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
+                                                                                          },
+                                                                                        )
                                                                                       : _hasTheftExtras
-                                                                                          ? TheftExtraFields(key: _theftKey)
+                                                                                          ? TheftExtraFields(
+                                                                                              key: _theftKey,
+                                                                                              onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                                _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
+                                                                                              },
+                                                                                            )
                                                                                           : _hasPocsoExtras
                                                                                               ? PocsoExtraFields(
                                                                                                   key: _pocsoKey,
                                                                                                   onVictimNameChanged: (v) {
                                                                                                     _formKey.currentState?.setVictimName(v);
+                                                                                                  },
+                                                                                                  onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                                    _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
                                                                                                   },
                                                                                                 )
                                                                                               : null,

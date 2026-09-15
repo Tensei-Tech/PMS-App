@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../../widgets/common_form/pocso_voice_banner.dart';
+
 // ── Palette (matches common_form.dart & screenshots) ─────────────────────────
 const Color _kDark = Color(0xFF0F172A);
 const Color _kMid = Color(0xFF1E293B);
@@ -109,6 +111,21 @@ class MpdaFormView extends StatefulWidget {
 class MpdaFormViewState extends State<MpdaFormView> {
   String saveBarText = 'All changes unsaved';
 
+  // ── Voice Dictation State ─────────────────────────────────────
+  String _activeVoiceFieldLabel = 'Proposal No.';
+  String _activeVoiceSectionName = 'MPDA Proposal Details';
+  TextEditingController? _activeVoiceController;
+
+  void setActiveVoiceField(String label, TextEditingController ctrl, [String section = '']) {
+    if (_activeVoiceController != ctrl || _activeVoiceFieldLabel != label) {
+      setState(() {
+        _activeVoiceFieldLabel = label;
+        _activeVoiceController = ctrl;
+        _activeVoiceSectionName = section;
+      });
+    }
+  }
+
   // -------------------------------------------------------------
   // 1. MPDA PROPOSAL DETAILS & CATEGORY
   // -------------------------------------------------------------
@@ -210,6 +227,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
   @override
   void initState() {
     super.initState();
+    _activeVoiceController = proposalNoController;
     if (widget.initialData != null) {
       _hydrateFromData(widget.initialData!);
     }
@@ -620,6 +638,24 @@ class MpdaFormViewState extends State<MpdaFormView> {
             ),
           ),
           const Divider(height: 1, color: _kBorder),
+
+          // ── Sticky Voice Banner for MPDA ──
+          if (!widget.isReadOnly)
+            Container(
+              color: _kPageBg,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 840),
+                  child: PocsoVoiceBanner(
+                    activeFieldLabel: _activeVoiceFieldLabel,
+                    activeSectionName: _activeVoiceSectionName,
+                    activeController:
+                        _activeVoiceController ?? proposalNoController,
+                  ),
+                ),
+              ),
+            ),
 
           // ── Form Content ──
           Expanded(
@@ -1519,6 +1555,9 @@ class MpdaFormViewState extends State<MpdaFormView> {
           keyboardType: keyboardType,
           maxLines: maxLines,
           maxLength: maxLength,
+          onTap: () {
+            setActiveVoiceField(label, controller);
+          },
           style: TextStyle(fontSize: 12, color: active ? _kDark : _kMuted),
           decoration: InputDecoration(
             hintText: hintText,
