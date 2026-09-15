@@ -13,7 +13,6 @@ import '../providers/auth_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/pdf_unicode_fonts.dart';
 import '../utils/pending_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
@@ -77,18 +76,16 @@ class PendingSummaryScreen extends StatelessWidget {
       flat.addAll(_rowsForBucket(dataset, section));
     }
     if (flat.isEmpty) return;
-    await runWithPdfAuthGate(context, () async {
-      final theme = await PdfUnicodeFonts.openSansTheme();
-      final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
-        theme: theme,
-        title: 'Pending Cases — Summary (all periods)',
-        rows: flat.map((e) => Map<String, dynamic>.from(e)).toList(),
-      );
-      await Printing.layoutPdf(
-        onLayout: (_) async => doc.save(),
-        name: 'Pending_Summary_All_Periods.pdf',
-      );
-    });
+    final theme = await PdfUnicodeFonts.openSansTheme();
+    final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
+      theme: theme,
+      title: 'Pending Cases — Summary (all periods)',
+      rows: flat.map((e) => Map<String, dynamic>.from(e)).toList(),
+    );
+    await Printing.sharePdf(
+      bytes: await doc.save(),
+      filename: 'Pending_Summary_All_Periods.pdf',
+    );
   }
 
   Widget _builtContent(

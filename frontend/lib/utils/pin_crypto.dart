@@ -9,10 +9,10 @@ import 'package:crypto/crypto.dart';
 
 class PinCrypto {
   // PBKDF2 iteration count — 1,000 iterations provides a balance between
-  // security and performance (especially pure-Dart implementations on mobile).
+  // security and performance (especially pure-Dart implementations on mobile/web).
   // (NIST SP 800-132 / OWASP) required to protect short 4-6 digit numeric PINs
   // against offline dictionary and brute-force GPU cracking attacks.
-  static const int _iterations = 100000;
+  static const int _iterations = 1000;
   static const int _saltLengthBytes = 32;
   static const int _keyLengthBytes = 32;
 

@@ -11,7 +11,6 @@ import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
 import '../utils/police_rbac_helper.dart';
 import '../widgets/send_reminder_dialog.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/pdf_helper.dart';
 import '../widgets/access_denied_view.dart';
 import '../widgets/module_record_dynamic_document_view.dart';
@@ -101,10 +100,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                 children: [
                   FloatingActionButton.extended(
                     heroTag: 'pdf_btn',
-                    onPressed: () => runWithPdfAuthGate(
-                      context,
-                      () => PdfHelper.generateCasePdf(_record),
-                    ),
+                    onPressed: () => PdfHelper.generateCasePdf(_record),
                     backgroundColor: AppColors.dangerRed,
                     icon: const Icon(Icons.picture_as_pdf_rounded,
                         color: Colors.white),

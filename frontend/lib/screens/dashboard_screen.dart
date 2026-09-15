@@ -70,7 +70,6 @@ import '../utils/app_constants.dart';
 import '../utils/case_visibility_ui.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/pdf_helper.dart';
 import '../utils/police_hierarchy_helper.dart';
 import '../utils/police_rbac_helper.dart';
@@ -4111,10 +4110,7 @@ class _HomeTabState extends State<_HomeTab> {
                       const BoxConstraints(minWidth: 40, minHeight: 40),
                   icon: const Icon(Icons.picture_as_pdf_outlined,
                       color: AppColors.dangerRed, size: 22),
-                  onPressed: () => runWithPdfAuthGate(
-                    context,
-                    () => PdfHelper.generateCasePdf(record),
-                  ),
+                  onPressed: () => PdfHelper.generateCasePdf(record),
                 ),
             ],
           ),
@@ -5133,11 +5129,8 @@ class _ViewTabState extends State<_ViewTab> {
                                                       color:
                                                           AppColors.dangerRed,
                                                       onTap: () {
-                                                        runWithPdfAuthGate(
-                                                          context,
-                                                          () => ModulePdfHelper
-                                                              .generatePdf(c),
-                                                        );
+                                                        ModulePdfHelper
+                                                            .generatePdf(c);
                                                       },
                                                     ),
                                                     _buildCardAction(
@@ -5817,11 +5810,8 @@ class _CalendarTabState extends State<_CalendarTab> {
                     ],
                   ),
                   ElevatedButton.icon(
-                    onPressed: () => runWithPdfAuthGate(
-                      context,
-                      () => ModulePdfHelper.generateSummaryReportPdf(
-                          countsForPdf, reportTitle, rangeLabel),
-                    ),
+                    onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
+                        countsForPdf, reportTitle, rangeLabel),
                     icon: const Icon(Icons.download_rounded,
                         size: 16, color: Colors.white),
                     label: Text('Summary',
@@ -6667,7 +6657,9 @@ class _CalendarTabState extends State<_CalendarTab> {
           ),
         ),
       );
-      await Printing.layoutPdf(onLayout: (format) async => doc.save());
+      final fileName =
+          'Station_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
     }
 
     return Column(
@@ -6690,7 +6682,7 @@ class _CalendarTabState extends State<_CalendarTab> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: () => runWithPdfAuthGate(context, exportPdf),
+            onPressed: exportPdf,
             icon: const Icon(
               Icons.picture_as_pdf_rounded,
               color: Colors.white,
@@ -7158,9 +7150,11 @@ class _CalendarTabState extends State<_CalendarTab> {
         ),
       );
 
-      await Printing.layoutPdf(
-        onLayout: (_) async => doc.save(),
-        name: 'Monthly_Summary_${monthYearLabel.replaceAll(' ', '_')}.pdf',
+      final fileName =
+          'Monthly_Summary_${monthYearLabel.replaceAll(' ', '_')}.pdf';
+      await Printing.sharePdf(
+        bytes: await doc.save(),
+        filename: fileName,
       );
     }
 
@@ -7191,7 +7185,7 @@ class _CalendarTabState extends State<_CalendarTab> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => runWithPdfAuthGate(context, exportPdf),
+              onPressed: exportPdf,
               icon: const Icon(
                 Icons.picture_as_pdf_rounded,
                 color: Colors.white,
@@ -7575,10 +7569,7 @@ class _CalendarTabState extends State<_CalendarTab> {
             onPressed: () {
               final label = DateFormat('MMMM yyyy')
                   .format(DateTime(selectedYear, selectedMonth));
-              runWithPdfAuthGate(
-                context,
-                () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
-              );
+              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
             },
             icon: const Icon(Icons.picture_as_pdf_rounded,
                 color: Colors.white, size: 18),
@@ -7970,10 +7961,7 @@ class _CalendarTabState extends State<_CalendarTab> {
             onPressed: () {
               final label = DateFormat('MMMM yyyy')
                   .format(DateTime(selectedYear, selectedMonth));
-              runWithPdfAuthGate(
-                context,
-                () => ModulePdfHelper.generateMonthlyTablePdf(label, tableRows),
-              );
+              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
             },
             icon: const Icon(Icons.picture_as_pdf_rounded,
                 color: Colors.white, size: 18),

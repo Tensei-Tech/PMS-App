@@ -19,7 +19,6 @@ import '../utils/police_rbac_helper.dart';
 import '../widgets/send_reminder_dialog.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../widgets/access_denied_view.dart';
 import '../widgets/module_record_dynamic_document_view.dart';
 import 'ad_form_screen.dart';
@@ -189,10 +188,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
                 children: [
                   FloatingActionButton.extended(
                     heroTag: 'pdf_module_btn',
-                    onPressed: () => runWithPdfAuthGate(
-                      context,
-                      () => ModulePdfHelper.generatePdf(_record),
-                    ),
+                    onPressed: () => ModulePdfHelper.generatePdf(_record),
                     backgroundColor: AppColors.dangerRed,
                     icon: const Icon(Icons.picture_as_pdf_rounded,
                         color: Colors.white),
