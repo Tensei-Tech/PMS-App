@@ -227,7 +227,8 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Speech recognition is not supported in this browser. Please use Chrome/Edge.'),
+              content: Text(
+                  'Speech recognition is not supported in this browser. Please use Chrome/Edge.'),
               backgroundColor: Colors.redAccent,
             ),
           );
@@ -244,83 +245,92 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
       recognition.setProperty('interimResults'.toJS, true.toJS);
       recognition.setProperty('lang'.toJS, 'en-IN'.toJS);
 
-      recognition.setProperty('onresult'.toJS, ((js.JSObject event) {
-        final results = event.getProperty('results'.toJS) as js.JSObject;
-        final length = (results.getProperty('length'.toJS) as js.JSNumber).toDartInt;
+      recognition.setProperty(
+          'onresult'.toJS,
+          ((js.JSObject event) {
+            final results = event.getProperty('results'.toJS) as js.JSObject;
+            final length =
+                (results.getProperty('length'.toJS) as js.JSNumber).toDartInt;
 
-        String transcript = '';
-        for (int i = 0; i < length; i++) {
-          final resItem = results.getProperty(i.toString().toJS) as js.JSObject;
-          final alt0 = resItem.getProperty('0'.toJS) as js.JSObject;
-          final str = (alt0.getProperty('transcript'.toJS) as js.JSString).toDart;
-          transcript += '$str ';
-        }
-
-        transcript = transcript.trim();
-
-        if (transcript.isNotEmpty) {
-          final normalized = SpeechAccuracyEngine.normalize(
-            transcript,
-            fieldLabel: widget.activeFieldLabel,
-            sectionName: widget.activeSectionName,
-          );
-
-          if (mounted && normalized.isNotEmpty) {
-            setState(() {
-              _liveTranscript = normalized;
-            });
-            if (widget.activeController != null) {
-              _applyNormalizedText(normalized);
+            String transcript = '';
+            for (int i = 0; i < length; i++) {
+              final resItem =
+                  results.getProperty(i.toString().toJS) as js.JSObject;
+              final alt0 = resItem.getProperty('0'.toJS) as js.JSObject;
+              final str =
+                  (alt0.getProperty('transcript'.toJS) as js.JSString).toDart;
+              transcript += '$str ';
             }
-          }
-        }
-      }).toJS);
 
-      recognition.setProperty('onerror'.toJS, ((js.JSObject error) {
-        final errStr = error.has('error')
-            ? (error.getProperty('error'.toJS) as js.JSString).toDart
-            : '';
-        if (errStr == 'aborted' || errStr == 'no-speech') {
-          return;
-        }
-        if (errStr == 'not-allowed' || errStr == 'service-not-allowed') {
-          if (mounted) {
-            setState(() {
-              _isListening = false;
-              _userWantsListening = false;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Microphone permission denied.'),
-                backgroundColor: Colors.redAccent,
-              ),
-            );
-          }
-        }
-      }).toJS);
+            transcript = transcript.trim();
 
-      recognition.setProperty('onend'.toJS, (() {
-        if (mounted && _userWantsListening) {
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted && _userWantsListening) {
-              try {
-                recognition.callMethod('start'.toJS);
-                if (!_isListening) {
-                  setState(() => _isListening = true);
-                }
-              } catch (_) {
-                if (_userWantsListening) {
-                  _restartWebSpeech();
+            if (transcript.isNotEmpty) {
+              final normalized = SpeechAccuracyEngine.normalize(
+                transcript,
+                fieldLabel: widget.activeFieldLabel,
+                sectionName: widget.activeSectionName,
+              );
+
+              if (mounted && normalized.isNotEmpty) {
+                setState(() {
+                  _liveTranscript = normalized;
+                });
+                if (widget.activeController != null) {
+                  _applyNormalizedText(normalized);
                 }
               }
             }
-          });
-        } else {
-          if (mounted) {
-            setState(() => _isListening = false);
-          }
-        }
-      }).toJS);
+          }).toJS);
+
+      recognition.setProperty(
+          'onerror'.toJS,
+          ((js.JSObject error) {
+            final errStr = error.has('error')
+                ? (error.getProperty('error'.toJS) as js.JSString).toDart
+                : '';
+            if (errStr == 'aborted' || errStr == 'no-speech') {
+              return;
+            }
+            if (errStr == 'not-allowed' || errStr == 'service-not-allowed') {
+              if (mounted) {
+                setState(() {
+                  _isListening = false;
+                  _userWantsListening = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Microphone permission denied.'),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
+            }
+          }).toJS);
+
+      recognition.setProperty(
+          'onend'.toJS,
+          (() {
+            if (mounted && _userWantsListening) {
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted && _userWantsListening) {
+                  try {
+                    recognition.callMethod('start'.toJS);
+                    if (!_isListening) {
+                      setState(() => _isListening = true);
+                    }
+                  } catch (_) {
+                    if (_userWantsListening) {
+                      _restartWebSpeech();
+                    }
+                  }
+                }
+              });
+            } else {
+              if (mounted) {
+                setState(() => _isListening = false);
+              }
+            }
+          }).toJS);
 
       _webRecognition = recognition;
       recognition.callMethod('start'.toJS);
@@ -368,7 +378,8 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
       _speech ??= stt.SpeechToText();
       final hasInit = await _speech!.initialize(
         onError: (_) {
-          if (mounted && !_userWantsListening) setState(() => _isListening = false);
+          if (mounted && !_userWantsListening)
+            setState(() => _isListening = false);
         },
         onStatus: (val) {
           if (mounted) {
@@ -387,7 +398,8 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Microphone permission or Speech Recognition not available.'),
+              content: Text(
+                  'Microphone permission or Speech Recognition not available.'),
               backgroundColor: Colors.redAccent,
             ),
           );
@@ -503,7 +515,9 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
                     ),
                     child: Icon(
                       _isListening ? Icons.mic : Icons.mic_none,
-                      color: _isListening ? const Color(0xFF047857) : const Color(0xFF475569),
+                      color: _isListening
+                          ? const Color(0xFF047857)
+                          : const Color(0xFF475569),
                       size: 16,
                     ),
                   );
@@ -523,9 +537,12 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: _isListening ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9),
+                        color: _isListening
+                            ? const Color(0xFFDCFCE7)
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -533,7 +550,9 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
                         style: GoogleFonts.poppins(
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
-                          color: _isListening ? const Color(0xFF15803D) : const Color(0xFF64748B),
+                          color: _isListening
+                              ? const Color(0xFF15803D)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ),
@@ -616,7 +635,8 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
             ),
             child: Row(
               children: [
-                const Icon(Icons.center_focus_strong, size: 14, color: primaryTeal),
+                const Icon(Icons.center_focus_strong,
+                    size: 14, color: primaryTeal),
                 const SizedBox(width: 6),
                 Text(
                   '${(widget.activeFieldLabel != null && widget.activeFieldLabel!.isNotEmpty) ? widget.activeFieldLabel : 'Active Field'}: ',

@@ -109,7 +109,8 @@ const List<String> _kLocationTypes = [
 // TheftExtraFields widget
 // ─────────────────────────────────────────────────────────────────────────────
 class TheftExtraFields extends StatefulWidget {
-  final void Function(String label, TextEditingController ctrl, [String section])? onActiveFieldTap;
+  final void Function(String label, TextEditingController ctrl,
+      [String section])? onActiveFieldTap;
 
   const TheftExtraFields({super.key, this.onActiveFieldTap});
 
@@ -141,10 +142,12 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
       },
       decoration: _dec(label).copyWith(
         hintText: hintText,
-        counterText: maxLength != null ? '${controller.text.length}/$maxLength' : null,
+        counterText:
+            maxLength != null ? '${controller.text.length}/$maxLength' : null,
       ),
     );
   }
+
   // ── 2. Stolen Property List ─────────────────────────────────────────────────
   final List<_StolenPropertyEntry> _stolenProps = [];
 

@@ -66,7 +66,8 @@ class SpeechAccuracyEngine {
     r'\b(s\.p\.|s\s+p|sp)\b': 'SP',
     r'\b(i\.o\.|i\s+o|io|investigation\s+officer)\b': 'IO',
     r'\b(f\.i\.r\.|f\s+i\s+r|fire|fir)\b': 'FIR',
-    r'\b(c\.r\.\s*no|c\s+r\s+no|see\s+are\s+no|cr\s+number|cr\s+no)\b': 'CR No.',
+    r'\b(c\.r\.\s*no|c\s+r\s+no|see\s+are\s+no|cr\s+number|cr\s+no)\b':
+        'CR No.',
     r'\b(n\.c\.\s*no|n\s+c\s+no|nc\s+number|nc\s+no)\b': 'NC No.',
     r'\b(b\.n\.s\.|b\s+n\s+s|bns)\b': 'BNS',
     r'\b(i\.p\.c\.|i\s+p\s+c|ipc)\b': 'IPC',
@@ -348,11 +349,13 @@ class SpeechAccuracyEngine {
 
     // 1. Spoken Punctuation
     t = t.replaceAll(RegExp(r'\b(comma)\b', caseSensitive: false), ',');
-    t = t.replaceAll(RegExp(r'\b(full stop|period)\b', caseSensitive: false), '.');
+    t = t.replaceAll(
+        RegExp(r'\b(full stop|period)\b', caseSensitive: false), '.');
     t = t.replaceAll(RegExp(r'\b(question mark)\b', caseSensitive: false), '?');
     t = t.replaceAll(RegExp(r'\b(colon)\b', caseSensitive: false), ':');
     t = t.replaceAll(RegExp(r'\b(hyphen|dash)\b', caseSensitive: false), '-');
-    t = t.replaceAll(RegExp(r'\b(at the rate|at sign)\b', caseSensitive: false), '@');
+    t = t.replaceAll(
+        RegExp(r'\b(at the rate|at sign)\b', caseSensitive: false), '@');
 
     // 2. Expand multipliers in numbers
     t = _expandMultipliers(t);
@@ -388,12 +391,15 @@ class SpeechAccuracyEngine {
   static String _expandMultipliers(String input) {
     String t = input;
     // "double 9" -> "99", "double nine" -> "nine nine"
-    final doubleRegex = RegExp(r'\bdouble\s+([a-z0-9]+)\b', caseSensitive: false);
+    final doubleRegex =
+        RegExp(r'\bdouble\s+([a-z0-9]+)\b', caseSensitive: false);
     t = t.replaceAllMapped(doubleRegex, (m) => '${m.group(1)} ${m.group(1)}');
 
     // "triple 5" -> "555"
-    final tripleRegex = RegExp(r'\btriple\s+([a-z0-9]+)\b', caseSensitive: false);
-    t = t.replaceAllMapped(tripleRegex, (m) => '${m.group(1)} ${m.group(1)} ${m.group(1)}');
+    final tripleRegex =
+        RegExp(r'\btriple\s+([a-z0-9]+)\b', caseSensitive: false);
+    t = t.replaceAllMapped(
+        tripleRegex, (m) => '${m.group(1)} ${m.group(1)} ${m.group(1)}');
 
     return t;
   }

@@ -33,7 +33,8 @@ class PocsoVictimData {
 /// 7. DNA/FSL Accused: 3 Y/N fields (separate from victim block)
 class PocsoExtraFields extends StatefulWidget {
   final ValueChanged<String>? onVictimNameChanged;
-  final void Function(String label, TextEditingController ctrl, [String section])? onActiveFieldTap;
+  final void Function(String label, TextEditingController ctrl,
+      [String section])? onActiveFieldTap;
 
   const PocsoExtraFields({
     super.key,

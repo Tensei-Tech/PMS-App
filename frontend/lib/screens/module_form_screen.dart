@@ -459,8 +459,7 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
                   hint: 'Detailed explanation...',
                   maxLines: 4,
                   prefixIcon: Icons.description_outlined,
-                  onTap: () => _setActiveVoiceField(
-                      'Description', _descCtrl,
+                  onTap: () => _setActiveVoiceField('Description', _descCtrl,
                       section: 'Incident Details'),
                 ),
                 const SizedBox(height: AppSpacing.md),

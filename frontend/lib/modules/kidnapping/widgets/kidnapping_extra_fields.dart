@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class KidnappingExtraFields extends StatefulWidget {
-  final void Function(String label, TextEditingController ctrl, [String section])? onActiveFieldTap;
+  final void Function(String label, TextEditingController ctrl,
+      [String section])? onActiveFieldTap;
 
   const KidnappingExtraFields({super.key, this.onActiveFieldTap});
 
@@ -175,9 +176,8 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
       final kyc = (data['kidnapped_person_kyc'] as Map<String, dynamic>?) ?? {};
       _kidnappedName.text = kyc['name'] ?? '';
       _kidnappedAge.text = kyc['age'] ?? '';
-      _kidnappedGender = kyc['gender']?.toString().isNotEmpty == true
-          ? kyc['gender']
-          : null;
+      _kidnappedGender =
+          kyc['gender']?.toString().isNotEmpty == true ? kyc['gender'] : null;
       _kidnappedOccupation.text = kyc['occupation'] ?? '';
       _kidnappedMobile.text = kyc['mobile_number'] ?? '';
       _kidnappedAadhaar.text = kyc['aadhaar_number'] ?? '';
@@ -202,9 +202,8 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
       final cKyc = (found['custody_kyc'] as Map<String, dynamic>?) ?? {};
       _custodyName.text = cKyc['name'] ?? '';
       _custodyAge.text = cKyc['age'] ?? '';
-      _custodyGender = cKyc['gender']?.toString().isNotEmpty == true
-          ? cKyc['gender']
-          : null;
+      _custodyGender =
+          cKyc['gender']?.toString().isNotEmpty == true ? cKyc['gender'] : null;
       _custodyMobile.text = cKyc['mobile_number'] ?? '';
       _custodyAadhaar.text = cKyc['aadhaar_number'] ?? '';
       _custodyRelation.text = cKyc['relationship'] ?? '';
@@ -424,7 +423,8 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
           fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
       decoration: _inputDecoration(
         label,
-      ).copyWith(suffixIcon: const Icon(Icons.calendar_today_outlined, size: 16)),
+      ).copyWith(
+          suffixIcon: const Icon(Icons.calendar_today_outlined, size: 16)),
       onTap: () => _pickDate(controller),
     );
   }

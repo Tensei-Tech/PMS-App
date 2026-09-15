@@ -116,7 +116,8 @@ class MpdaFormViewState extends State<MpdaFormView> {
   String _activeVoiceSectionName = 'MPDA Proposal Details';
   TextEditingController? _activeVoiceController;
 
-  void setActiveVoiceField(String label, TextEditingController ctrl, [String section = '']) {
+  void setActiveVoiceField(String label, TextEditingController ctrl,
+      [String section = '']) {
     if (_activeVoiceController != ctrl || _activeVoiceFieldLabel != label) {
       setState(() {
         _activeVoiceFieldLabel = label;
