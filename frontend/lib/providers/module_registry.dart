@@ -149,7 +149,7 @@ const Map<String, String> labelToModuleKey = {
   'CRPC 156(3) / BNSS 175(3)': 'bnss',
   'Passport /PVR / License': 'passport',
   'NDPS': 'ndps',
-  'Gowans': 'gowans',
+  'Gowansh': 'gowans',
   'IT Act': 'it_act',
   'MCOCA': 'mcoca',
   'UAPA': 'uapa',

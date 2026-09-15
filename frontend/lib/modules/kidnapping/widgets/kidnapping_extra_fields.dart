@@ -9,15 +9,7 @@ class KidnappingExtraFields extends StatefulWidget {
 }
 
 class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
-  static const Color _bgColor = Color(0xFFF4F7F9);
-  static const Color _cardColor = Colors.white;
-  static const Color _teal = Color(0xFF0EA5E9);
-  static const Color _green = Color(0xFF10B981);
-  static const Color _red = Color(0xFFEF4444);
-  static const Color _dark = Color(0xFF0F172A);
-  static const Color _inputFill = Color(0xFFF8FAFC);
   static const Color _inputBorder = Color(0xFFE2E8F0);
-  static const Color _secondary = Color(0xFF64748B);
 
   final _kidnappedName = TextEditingController();
   final _kidnappedAge = TextEditingController();
@@ -206,135 +198,124 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        color: _secondary,
-        letterSpacing: 0.5,
+      labelStyle: const TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF64748B),
       ),
+      floatingLabelStyle: const TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF0EA5E9),
+      ),
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       filled: true,
-      fillColor: _inputFill,
+      fillColor: const Color(0xFFF8FAFC),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _inputBorder),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _inputBorder),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _teal, width: 2),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
-  Widget _sectionTitle(String title, {double fontSize = 13}) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 24,
-          decoration: BoxDecoration(
-            color: _teal,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          title.toUpperCase(),
-          style: GoogleFonts.poppins(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w800,
-            color: _dark,
-            letterSpacing: 1,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _sectionCard(Widget child) {
+  Widget _sectionCard(String title, Widget body) {
     return Card(
       elevation: 0,
-      color: _cardColor,
-      margin: const EdgeInsets.only(bottom: 16),
+      color: Colors.white,
+      margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: _inputBorder),
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
-      child: Padding(padding: const EdgeInsets.all(20), child: child),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            child: body,
+          ),
+        ],
+      ),
     );
   }
 
   Widget _yesNoToggle({
+    required String label,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    Widget buildButton({
-      required String text,
-      required bool selected,
-      required Color selectedColor,
-      required VoidCallback onPressed,
-    }) {
-      final style = selected
-          ? ElevatedButton.styleFrom(
-              elevation: 0,
-              minimumSize: const Size.fromHeight(44),
-              backgroundColor: selectedColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+    Widget buildChip(String text, bool selected, VoidCallback onTap) {
+      const activeColor = Color(0xFF0EA5E9);
+      return Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: selected
+                  ? activeColor.withValues(alpha: 0.1)
+                  : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selected ? activeColor : const Color(0xFFE2E8F0),
+                width: selected ? 1.5 : 1,
               ),
-              textStyle: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+            ),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                color: selected ? activeColor : const Color(0xFF64748B),
               ),
-            )
-          : OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(44),
-              foregroundColor: _secondary,
-              side: const BorderSide(color: _inputBorder),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              textStyle: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            );
-      return selected
-          ? ElevatedButton(
-              onPressed: onPressed,
-              style: style,
-              child: Text(text),
-            )
-          : OutlinedButton(
-              onPressed: onPressed,
-              style: style,
-              child: Text(text),
-            );
-    }
-
-    return Row(
-      children: [
-        Expanded(
-          child: buildButton(
-            text: 'YES',
-            selected: value,
-            selectedColor: _green,
-            onPressed: () => onChanged(true),
+            ),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: buildButton(
-            text: 'NO',
-            selected: !value,
-            selectedColor: _red,
-            onPressed: () => onChanged(false),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label.isNotEmpty) ...[
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF64748B),
+            ),
           ),
+          const SizedBox(height: 6),
+        ],
+        Row(
+          children: [
+            buildChip('YES', value, () => onChanged(true)),
+            buildChip('NO', !value, () => onChanged(false)),
+          ],
         ),
       ],
     );
@@ -458,106 +439,129 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: _bgColor,
+      color: Colors.transparent,
       child: Column(
         children: [
           _sectionCard(
-            Theme(
-              data: Theme.of(
-                context,
-              ).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                title: _sectionTitle('Kidnapped Person KYC'),
-                initiallyExpanded: false,
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: const EdgeInsets.only(top: 12),
-                children: [
-                  _responsiveTwoFieldRow(
-                    context: context,
-                    first: TextFormField(
-                      controller: _kidnappedName,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Name'),
-                    ),
-                    second: TextFormField(
-                      controller: _kidnappedAge,
-                      keyboardType: TextInputType.number,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Age'),
-                    ),
+            'Kidnapped Person KYC',
+            Column(
+              children: [
+                _responsiveTwoFieldRow(
+                  context: context,
+                  first: TextFormField(
+                    controller: _kidnappedName,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
+                    decoration: _inputDecoration('Name'),
                   ),
-                  const SizedBox(height: 12),
-                  _responsiveTwoFieldRow(
-                    context: context,
-                    first: DropdownButtonFormField<String>(
-                      key: ValueKey(
-                        'kidnappedGender_${_kidnappedGender ?? ''}',
-                      ),
-                      initialValue: _kidnappedGender,
-                      decoration: _inputDecoration('Gender'),
-                      style: GoogleFonts.poppins(color: _dark),
-                      items: const ['Male', 'Female', 'Other']
-                          .map(
-                            (e) => DropdownMenuItem<String>(
-                              value: e,
-                              child: Text(e, style: GoogleFonts.poppins()),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) => setState(() => _kidnappedGender = v),
-                    ),
-                    second: TextFormField(
-                      controller: _kidnappedOccupation,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Occupation'),
-                    ),
+                  second: TextFormField(
+                    controller: _kidnappedAge,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
+                    decoration: _inputDecoration('Age'),
                   ),
-                  const SizedBox(height: 12),
-                  _responsiveTwoFieldRow(
-                    context: context,
-                    first: TextFormField(
-                      controller: _kidnappedMobile,
-                      keyboardType: TextInputType.phone,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Mobile Number'),
+                ),
+                const SizedBox(height: 12),
+                _responsiveTwoFieldRow(
+                  context: context,
+                  first: DropdownButtonFormField<String>(
+                    key: ValueKey(
+                      'kidnappedGender_${_kidnappedGender ?? ''}',
                     ),
-                    second: TextFormField(
-                      controller: _kidnappedAadhaar,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Aadhaar Number'),
-                    ),
+                    initialValue: _kidnappedGender,
+                    decoration: _inputDecoration('Gender'),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
+                    items: const ['Male', 'Female', 'Other']
+                        .map(
+                          (e) => DropdownMenuItem<String>(
+                            value: e,
+                            child: Text(e,
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF1E293B))),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setState(() => _kidnappedGender = v),
                   ),
-                  const SizedBox(height: 12),
-                  _responsiveTwoFieldRow(
-                    context: context,
-                    first: TextFormField(
-                      controller: _kidnappedReligion,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Religion'),
-                    ),
-                    second: TextFormField(
-                      controller: _kidnappedCaste,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Caste'),
-                    ),
+                  second: TextFormField(
+                    controller: _kidnappedOccupation,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
+                    decoration: _inputDecoration('Occupation'),
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _kidnappedRelation,
-                    style: GoogleFonts.poppins(),
-                    decoration: _inputDecoration('Relation with Complainant'),
+                ),
+                const SizedBox(height: 12),
+                _responsiveTwoFieldRow(
+                  context: context,
+                  first: TextFormField(
+                    controller: _kidnappedMobile,
+                    keyboardType: TextInputType.phone,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
+                    decoration: _inputDecoration('Mobile Number'),
                   ),
-                ],
-              ),
+                  second: TextFormField(
+                    controller: _kidnappedAadhaar,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
+                    decoration: _inputDecoration('Aadhaar Number'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _responsiveTwoFieldRow(
+                  context: context,
+                  first: TextFormField(
+                    controller: _kidnappedReligion,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
+                    decoration: _inputDecoration('Religion'),
+                  ),
+                  second: TextFormField(
+                    controller: _kidnappedCaste,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
+                    decoration: _inputDecoration('Caste'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _kidnappedRelation,
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF1E293B)),
+                  decoration: _inputDecoration('Relation with Complainant'),
+                ),
+              ],
             ),
           ),
           _sectionCard(
+            'Found Status',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('Found Status'),
-                const SizedBox(height: 12),
                 _yesNoToggle(
+                  label: '',
                   value: _personFound,
                   onChanged: (v) => setState(() => _personFound = v),
                 ),
@@ -575,22 +579,17 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _foundSdNo,
-                        style: GoogleFonts.poppins(),
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B)),
                         decoration: _inputDecoration(
                           'SD No. / Station Diary No.',
                         ),
                       ),
                       const SizedBox(height: 14),
-                      Text(
-                        'Statement of kidnapped person recorded?',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: _dark,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       _yesNoToggle(
+                        label: 'Statement of kidnapped person recorded?',
                         value: _statementRecorded,
                         onChanged: (v) =>
                             setState(() => _statementRecorded = v),
@@ -619,7 +618,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                         key: ValueKey('custodyTo_${_custodyTo ?? ''}'),
                         initialValue: _custodyTo,
                         decoration: _inputDecoration('Custody Given To'),
-                        style: GoogleFonts.poppins(color: _dark),
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B)),
                         items: const [
                           'Parents',
                           'Relative',
@@ -632,7 +634,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 value: e,
                                 child: Text(
                                   e,
-                                  style: GoogleFonts.poppins(),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                 ),
                               ),
                             )
@@ -644,7 +649,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                         _custodyTo == 'Other',
                         TextFormField(
                           controller: _custodyOtherText,
-                          style: GoogleFonts.poppins(),
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF1E293B)),
                           decoration: _inputDecoration('Please Specify'),
                           onChanged: (_) => setState(() {}),
                         ),
@@ -663,19 +671,34 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _sectionTitle(_custodyKycTitle(), fontSize: 12),
-                              const SizedBox(height: 12),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Text(
+                                  _custodyKycTitle(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                              ),
                               _responsiveTwoFieldRow(
                                 context: context,
                                 first: TextFormField(
                                   controller: _custodyName,
-                                  style: GoogleFonts.poppins(),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration('Name'),
                                 ),
                                 second: TextFormField(
                                   controller: _custodyAge,
                                   keyboardType: TextInputType.number,
-                                  style: GoogleFonts.poppins(),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration('Age'),
                                 ),
                               ),
@@ -688,14 +711,20 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                   ),
                                   initialValue: _custodyGender,
                                   decoration: _inputDecoration('Gender'),
-                                  style: GoogleFonts.poppins(color: _dark),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   items: const ['Male', 'Female', 'Other']
                                       .map(
                                         (e) => DropdownMenuItem<String>(
                                           value: e,
                                           child: Text(
                                             e,
-                                            style: GoogleFonts.poppins(),
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: Color(0xFF1E293B)),
                                           ),
                                         ),
                                       )
@@ -706,7 +735,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 second: TextFormField(
                                   controller: _custodyMobile,
                                   keyboardType: TextInputType.phone,
-                                  style: GoogleFonts.poppins(),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration('Mobile Number'),
                                 ),
                               ),
@@ -715,14 +747,20 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 context: context,
                                 first: TextFormField(
                                   controller: _custodyAadhaar,
-                                  style: GoogleFonts.poppins(),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration(
                                     'Aadhaar Number',
                                   ),
                                 ),
                                 second: TextFormField(
                                   controller: _custodyRelation,
-                                  style: GoogleFonts.poppins(),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration('Relationship'),
                                 ),
                               ),
@@ -730,7 +768,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                               TextFormField(
                                 controller: _custodyAddress,
                                 maxLines: 3,
-                                style: GoogleFonts.poppins(),
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF1E293B)),
                                 decoration: _inputDecoration('Full Address'),
                               ),
                             ],
@@ -744,21 +785,12 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             ),
           ),
           _sectionCard(
+            '183 BNSS',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('183 BNSS'),
-                const SizedBox(height: 12),
-                Text(
-                  'Statement Recorded under 183 BNSS?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _dark,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 _yesNoToggle(
+                  label: 'Statement Recorded under 183 BNSS?',
                   value: _bnss183Recorded,
                   onChanged: (v) => setState(() => _bnss183Recorded = v),
                 ),
@@ -775,21 +807,13 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             ),
           ),
           _sectionCard(
+            'CWC Statement',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('CWC Statement'),
-                const SizedBox(height: 12),
-                Text(
-                  'Statement Recorded before Child Welfare Committee (CWC)?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _dark,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 _yesNoToggle(
+                  label:
+                      'Statement Recorded before Child Welfare Committee (CWC)?',
                   value: _cwcRecorded,
                   onChanged: (v) => setState(() => _cwcRecorded = v),
                 ),
@@ -806,21 +830,12 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             ),
           ),
           _sectionCard(
+            'Medical Examination',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('Medical Examination'),
-                const SizedBox(height: 12),
-                Text(
-                  'Medical Examination Conducted?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _dark,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 _yesNoToggle(
+                  label: 'Medical Examination Conducted?',
                   value: _medicalExamDone,
                   onChanged: (v) => setState(() => _medicalExamDone = v),
                 ),
@@ -840,21 +855,12 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             ),
           ),
           _sectionCard(
+            'In-Camera Statement',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('In-Camera Statement'),
-                const SizedBox(height: 12),
-                Text(
-                  'In-Camera Statement Recorded?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _dark,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 _yesNoToggle(
+                  label: 'In-Camera Statement Recorded?',
                   value: _inCameraRecorded,
                   onChanged: (v) => setState(() => _inCameraRecorded = v),
                 ),
@@ -863,14 +869,8 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   _inCameraRecorded,
                   _responsiveTwoFieldRow(
                     context: context,
-                    first: _dateField(
-                      'In-Camera Statement Date',
-                      _inCameraDate,
-                    ),
-                    second: _timeField(
-                      'In-Camera Statement Time',
-                      _inCameraTime,
-                    ),
+                    first: _dateField('Statement Date', _inCameraDate),
+                    second: _timeField('Statement Time', _inCameraTime),
                   ),
                 ),
               ],

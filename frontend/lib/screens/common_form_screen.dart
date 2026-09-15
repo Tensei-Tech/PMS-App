@@ -541,15 +541,30 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
 
   String _accusedSummary(Map<String, dynamic> doc) {
     if (doc['isUnknownUntraced'] == true) return 'Unknown / Untraced';
-    final list = doc['accused'];
-    if (list is! List || list.isEmpty) return '';
-    final names = <String>[];
-    for (final item in list) {
-      if (item is Map && item['name'] != null) {
-        final n = item['name'].toString().trim();
-        if (n.isNotEmpty) names.add(n);
+
+    final names = <String>{};
+
+    if (doc['allAccusedNames'] is List) {
+      for (final n in doc['allAccusedNames']) {
+        if (n is String && n.trim().isNotEmpty) names.add(n.trim());
       }
     }
+
+    void addFromList(dynamic list, String key) {
+      if (list is List) {
+        for (final item in list) {
+          if (item is Map && item[key] != null) {
+            final n = item[key].toString().trim();
+            if (n.isNotEmpty) names.add(n);
+          }
+        }
+      }
+    }
+
+    addFromList(doc['accused'], 'name');
+    addFromList(doc['suspectedAccused'], 'name');
+    addFromList(doc['arrestRelease'], 'accusedName');
+
     return names.join(', ');
   }
 
