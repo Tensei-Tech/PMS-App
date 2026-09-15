@@ -275,7 +275,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             duration: const Duration(milliseconds: 140),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: selected ? activeColor.withValues(alpha: 0.1) : const Color(0xFFF8FAFC),
+              color: selected
+                  ? activeColor.withValues(alpha: 0.1)
+                  : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: selected ? activeColor : const Color(0xFFE2E8F0),
@@ -448,13 +450,19 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   context: context,
                   first: TextFormField(
                     controller: _kidnappedName,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
                     decoration: _inputDecoration('Name'),
                   ),
                   second: TextFormField(
                     controller: _kidnappedAge,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
                     decoration: _inputDecoration('Age'),
                   ),
                 ),
@@ -467,12 +475,19 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                     ),
                     initialValue: _kidnappedGender,
                     decoration: _inputDecoration('Gender'),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
                     items: const ['Male', 'Female', 'Other']
                         .map(
                           (e) => DropdownMenuItem<String>(
                             value: e,
-                            child: Text(e, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B))),
+                            child: Text(e,
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF1E293B))),
                           ),
                         )
                         .toList(),
@@ -480,7 +495,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   ),
                   second: TextFormField(
                     controller: _kidnappedOccupation,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
                     decoration: _inputDecoration('Occupation'),
                   ),
                 ),
@@ -490,12 +508,18 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   first: TextFormField(
                     controller: _kidnappedMobile,
                     keyboardType: TextInputType.phone,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
                     decoration: _inputDecoration('Mobile Number'),
                   ),
                   second: TextFormField(
                     controller: _kidnappedAadhaar,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
                     decoration: _inputDecoration('Aadhaar Number'),
                   ),
                 ),
@@ -504,19 +528,28 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   context: context,
                   first: TextFormField(
                     controller: _kidnappedReligion,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
                     decoration: _inputDecoration('Religion'),
                   ),
                   second: TextFormField(
                     controller: _kidnappedCaste,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
                     decoration: _inputDecoration('Caste'),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _kidnappedRelation,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF1E293B)),
                   decoration: _inputDecoration('Relation with Complainant'),
                 ),
               ],
@@ -546,7 +579,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _foundSdNo,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B)),
                         decoration: _inputDecoration(
                           'SD No. / Station Diary No.',
                         ),
@@ -582,7 +618,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                         key: ValueKey('custodyTo_${_custodyTo ?? ''}'),
                         initialValue: _custodyTo,
                         decoration: _inputDecoration('Custody Given To'),
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B)),
                         items: const [
                           'Parents',
                           'Relative',
@@ -595,7 +634,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 value: e,
                                 child: Text(
                                   e,
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                 ),
                               ),
                             )
@@ -607,7 +649,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                         _custodyTo == 'Other',
                         TextFormField(
                           controller: _custodyOtherText,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF1E293B)),
                           decoration: _inputDecoration('Please Specify'),
                           onChanged: (_) => setState(() {}),
                         ),
@@ -641,13 +686,19 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 context: context,
                                 first: TextFormField(
                                   controller: _custodyName,
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration('Name'),
                                 ),
                                 second: TextFormField(
                                   controller: _custodyAge,
                                   keyboardType: TextInputType.number,
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration('Age'),
                                 ),
                               ),
@@ -660,14 +711,20 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                   ),
                                   initialValue: _custodyGender,
                                   decoration: _inputDecoration('Gender'),
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   items: const ['Male', 'Female', 'Other']
                                       .map(
                                         (e) => DropdownMenuItem<String>(
                                           value: e,
                                           child: Text(
                                             e,
-                                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: Color(0xFF1E293B)),
                                           ),
                                         ),
                                       )
@@ -678,7 +735,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 second: TextFormField(
                                   controller: _custodyMobile,
                                   keyboardType: TextInputType.phone,
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration('Mobile Number'),
                                 ),
                               ),
@@ -687,14 +747,20 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 context: context,
                                 first: TextFormField(
                                   controller: _custodyAadhaar,
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration(
                                     'Aadhaar Number',
                                   ),
                                 ),
                                 second: TextFormField(
                                   controller: _custodyRelation,
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   decoration: _inputDecoration('Relationship'),
                                 ),
                               ),
@@ -702,7 +768,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                               TextFormField(
                                 controller: _custodyAddress,
                                 maxLines: 3,
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF1E293B)),
                                 decoration: _inputDecoration('Full Address'),
                               ),
                             ],
@@ -743,7 +812,8 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _yesNoToggle(
-                  label: 'Statement Recorded before Child Welfare Committee (CWC)?',
+                  label:
+                      'Statement Recorded before Child Welfare Committee (CWC)?',
                   value: _cwcRecorded,
                   onChanged: (v) => setState(() => _cwcRecorded = v),
                 ),

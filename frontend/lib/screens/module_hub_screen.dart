@@ -3,78 +3,79 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import '../utils/translation_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import '../modules/core/providers/base_module_provider.dart';
+import 'package:provider/provider.dart';
+
+import '../modules/absconded/providers/absconded_provider.dart';
+import '../modules/accident/providers/accident_provider.dart';
+import '../modules/ad/providers/ad_provider.dart';
+import '../modules/application/providers/application_provider.dart';
+import '../modules/arrested/providers/arrested_provider.dart';
+import '../modules/bnss/providers/bnss_provider.dart';
+import '../modules/coin/providers/coin_provider.dart';
 import '../modules/core/models/base_record.dart';
+import '../modules/core/providers/base_module_provider.dart';
+import '../modules/crime_women/providers/crime_women_provider.dart';
+import '../modules/detected/providers/detected_provider.dart';
+import '../modules/disposal/providers/disposal_provider.dart';
 import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../modules/form_vi/providers/form_vi_provider.dart';
-import '../modules/nc/providers/nc_provider.dart';
-import '../modules/missing/screens/missing_form_screen.dart';
-import '../modules/nc/screens/nc_form_screen.dart';
-import '../modules/preventive/providers/preventive_provider.dart';
-import '../modules/ad/providers/ad_provider.dart';
-import '../modules/missing/providers/missing_provider.dart';
-import '../modules/kidnapping/providers/kidnapping_provider.dart';
-import '../modules/theft/providers/theft_provider.dart';
-import '../modules/sand_theft/providers/sand_theft_provider.dart';
-import '../modules/hurt/providers/hurt_provider.dart';
-import '../modules/pocso/providers/pocso_provider.dart';
-import '../modules/passport/providers/passport_provider.dart';
-import '../modules/monthly/providers/monthly_provider.dart';
-import '../modules/pending/providers/pending_provider.dart';
-import '../modules/detected/providers/detected_provider.dart';
-import '../modules/undetected/providers/undetected_provider.dart';
-import '../modules/disposal/providers/disposal_provider.dart';
-import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
-import '../modules/arrested/providers/arrested_provider.dart';
-import '../modules/absconded/providers/absconded_provider.dart';
-import '../modules/crime_women/providers/crime_women_provider.dart';
-import '../modules/juvenile/providers/juvenile_provider.dart';
-import '../modules/victim/providers/victim_provider.dart';
-import '../modules/accident/providers/accident_provider.dart';
-import '../modules/traffic/providers/traffic_provider.dart';
-import '../modules/application/providers/application_provider.dart';
-import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
-import '../modules/muddemal/providers/muddemal_provider.dart';
-import '../modules/bnss/providers/bnss_provider.dart';
-import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/gowans/providers/gowans_provider.dart';
+import '../modules/hurt/providers/hurt_provider.dart';
 import '../modules/it_act/providers/it_act_provider.dart';
+import '../modules/juvenile/providers/juvenile_provider.dart';
+import '../modules/kidnapping/providers/kidnapping_provider.dart';
 import '../modules/mcoca/providers/mcoca_provider.dart';
-import '../modules/uapa/providers/uapa_provider.dart';
+import '../modules/missing/providers/missing_provider.dart';
+import '../modules/missing/screens/missing_form_screen.dart';
+import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
-import '../modules/coin/providers/coin_provider.dart';
+import '../modules/mpda/screens/mpda_form_screen.dart';
+import '../modules/muddemal/providers/muddemal_provider.dart';
+import '../modules/nc/providers/nc_provider.dart';
+import '../modules/nc/screens/nc_form_screen.dart';
+import '../modules/ndps/providers/ndps_provider.dart';
+import '../modules/passport/providers/passport_provider.dart';
+import '../modules/pending/providers/pending_provider.dart';
+import '../modules/pocso/providers/pocso_provider.dart';
+import '../modules/preventive/providers/preventive_provider.dart';
+import '../modules/preventive/screens/preventive_form_screen.dart';
+import '../modules/preventive/screens/preventive_view_screen.dart';
+import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
+import '../modules/sand_theft/providers/sand_theft_provider.dart';
+import '../modules/theft/providers/theft_provider.dart';
+import '../modules/traffic/providers/traffic_provider.dart';
+import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
+import '../modules/uapa/providers/uapa_provider.dart';
+import '../modules/undetected/providers/undetected_provider.dart';
+import '../modules/victim/providers/victim_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/ad_disposal_helper.dart';
+import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../widgets/read_only_module_record_hub_card.dart';
+import '../utils/pending_io_wise_logic.dart';
+import '../utils/translation_helper.dart';
+import '../widgets/forms_accordion_list.dart';
 import '../widgets/module_hub_report_card.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
-import '../widgets/forms_accordion_list.dart';
-import '../utils/pending_io_wise_logic.dart';
-import 'pending_summary_screen.dart';
-import 'pending_io_wise_screens.dart';
-import 'pending_demo_table_screen.dart';
+import '../widgets/read_only_module_record_hub_card.dart';
+import 'absconded_cases_screen.dart';
 import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
-import 'module_form_screen.dart';
 import 'common_form_screen.dart';
-import '../utils/common_form_module.dart';
-import '../utils/ad_disposal_helper.dart';
 import 'form_i_v_selection_screen.dart';
 import 'form_vi_selection_screen.dart';
 import 'hurt_cases_screen.dart';
-import 'absconded_cases_screen.dart';
+import 'module_form_screen.dart';
 import 'module_record_detail_screen.dart';
+import 'pending_demo_table_screen.dart';
+import 'pending_io_wise_screens.dart';
+import 'pending_summary_screen.dart';
 import 'report_case_list_screen.dart';
-import '../modules/mpda/screens/mpda_form_screen.dart';
-import '../modules/preventive/screens/preventive_form_screen.dart';
-import '../modules/preventive/screens/preventive_view_screen.dart';
 
 class _CategoryMeta {
   final String label;
@@ -2200,7 +2201,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
     bool isOtherMvAct(ModuleRecord r) => false;
 
-
     bool g1Total(ModuleRecord r) =>
         isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
     bool g1NcTotal(ModuleRecord r) => isAd(r) || isAccident(r) || isNc(r);
@@ -2628,7 +2628,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return 'Attempt to suicide';
       }
       if (key.contains('hurt') || sub.contains('hurt')) return 'Hurt';
-      if (key.contains('kidnap') || sub.contains('kidnap')) return 'Kidnapping/Missing';
+      if (key.contains('kidnap') || sub.contains('kidnap'))
+        // ignore: curly_braces_in_flow_control_structures
+        return 'Kidnapping/Missing';
       if (key.contains('rape') || sub.contains('rape')) return 'Rape';
       if (key.contains('assault') || sub.contains('assault')) {
         return 'Assault on Govt-';
@@ -2814,7 +2816,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
       {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
       {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {'sr': '16', 'label': 'Kidnapping/Missing', 'head': 'Kidnapping/Missing', 'bold': true},
+      {
+        'sr': '16',
+        'label': 'Kidnapping/Missing',
+        'head': 'Kidnapping/Missing',
+        'bold': true
+      },
       {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
       {
         'sr': '18',
@@ -3758,62 +3765,64 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               }
               final isSelected = currentFilter == item.filterKey;
 
-            return Padding(
-              padding: const EdgeInsets.only(right: 24),
-              child: InkWell(
-                onTap: () => setState(() => _filter = item.filterKey),
-                hoverColor: Colors.transparent,
-                splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color:
-                            isSelected ? item.activeBorder : Colors.transparent,
-                        width: 2.5,
+              return Padding(
+                padding: const EdgeInsets.only(right: 24),
+                child: InkWell(
+                  onTap: () => setState(() => _filter = item.filterKey),
+                  hoverColor: Colors.transparent,
+                  splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: isSelected
+                              ? item.activeBorder
+                              : Colors.transparent,
+                          width: 2.5,
+                        ),
                       ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        TranslationHelper.translate(context, item.label),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13.5,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected
-                              ? AppColors.navyDark
-                              : AppColors.lightSubText,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: item.badgeBg,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${item.count}',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          TranslationHelper.translate(context, item.label),
                           style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: item.badgeFg,
+                            fontSize: 13.5,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.navyDark
+                                : AppColors.lightSubText,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: item.badgeBg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${item.count}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: item.badgeFg,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+              // ignore: unnecessary_to_list_in_spreads, unnecessary_to_list_in_spreadsaA
+            }).toList(),
           ],
         ),
       ),

@@ -2229,9 +2229,7 @@ class _ADFormScreenState extends State<ADFormScreen> {
         children: [
           Expanded(
             child: Text(
-              saveBarText.startsWith('Draft saved')
-                  ? saveBarText
-                  : saveBarText,
+              saveBarText.startsWith('Draft saved') ? saveBarText : saveBarText,
               style: const TextStyle(
                   color: textMuted, fontSize: 11, fontWeight: FontWeight.w500),
             ),

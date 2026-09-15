@@ -2607,7 +2607,11 @@ class _HomeTabState extends State<_HomeTab> {
       ('Preventive', 'preventive', rec<PreventiveProvider>((p) => p.records)),
       ('AD', 'ad', rec<AdProvider>((p) => p.records)),
       ('Missing', 'missing', rec<MissingProvider>((p) => p.records)),
-      ('Kidnapping/Missing', 'kidnapping', rec<KidnappingProvider>((p) => p.records)),
+      (
+        'Kidnapping/Missing',
+        'kidnapping',
+        rec<KidnappingProvider>((p) => p.records)
+      ),
       ('Theft', 'theft', rec<TheftProvider>((p) => p.records)),
       ('Sand Theft', 'sand_theft', rec<SandTheftProvider>((p) => p.records)),
       ('Hurt', 'hurt', rec<HurtProvider>((p) => p.records)),
@@ -6085,7 +6089,12 @@ class _CalendarTabState extends State<_CalendarTab> {
       {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
       {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
       {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {'sr': '16', 'label': 'Kidnapping/Missing', 'head': 'Kidnapping/Missing', 'bold': true},
+      {
+        'sr': '16',
+        'label': 'Kidnapping/Missing',
+        'head': 'Kidnapping/Missing',
+        'bold': true
+      },
       {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
       {
         'sr': '18',
@@ -6891,7 +6900,6 @@ class _CalendarTabState extends State<_CalendarTab> {
 
     bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
     bool isOtherMvAct(ModuleRecord r) => false;
-
 
     bool g1Total(ModuleRecord r) =>
         isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
