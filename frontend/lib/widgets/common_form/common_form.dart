@@ -26,8 +26,9 @@ import '../../utils/common_form_pdf.dart';
 import '../../utils/crime_detail_pdf.dart';
 import '../../utils/translation_helper.dart';
 import '../../utils/validators.dart';
+import 'pocso_voice_banner.dart';
 
-// ── Palette ───────────────────────────────────────────────────────────────────
+// ── Palette ──
 const Color _kDark = Color(0xFF0f172a);
 const Color _kMid = Color(0xFF1e293b);
 const Color _kTeal = Color(0xFF0ea5e9);
@@ -266,12 +267,48 @@ class CommonFormState extends State<CommonForm> {
     return false;
   }
 
-  bool get _isPocsoCase {
+  bool get _isVoiceEnabled {
     final key = (widget.moduleKey ?? '').trim().toLowerCase();
     final sub = (widget.subCategory ?? '').trim().toLowerCase();
     final label = (widget.moduleLabel ?? '').trim().toLowerCase();
-    return key == 'pocso' || sub.contains('pocso') || label.contains('pocso');
+    if (key == 'form_1_5' ||
+        key == 'form_6' ||
+        key == 'forms' ||
+        key == 'i to v' ||
+        key == 'vi' ||
+        sub.contains('form i') ||
+        sub.contains('form 1') ||
+        sub.contains('form vi') ||
+        sub.contains('form 6') ||
+        label.contains('form i') ||
+        label.contains('form 1') ||
+        label.contains('form vi') ||
+        label.contains('form 6')) {
+      return false;
+    }
+    return true;
   }
+
+  // ── Live Voice Dictation State ──────────────────────────────────────────
+  String _activeVoiceFieldLabel = 'CR Number';
+  String _activeVoiceSectionName = '§1 Crime Registration';
+  TextEditingController? _activeVoiceController;
+
+  void setActiveVoiceField(String label, TextEditingController ctrl,
+      [String section = '']) {
+    if (!_isVoiceEnabled) return;
+    if (_activeVoiceController != ctrl || _activeVoiceFieldLabel != label) {
+      setState(() {
+        _activeVoiceFieldLabel = label;
+        _activeVoiceController = ctrl;
+        _activeVoiceSectionName = section;
+      });
+    }
+  }
+
+  void _setActiveVoiceField(String label, TextEditingController ctrl,
+          [String section = '']) =>
+      setActiveVoiceField(label, ctrl, section);
 
   // ── §1 Crime Registration ─────────────────────────────────────────────────
   final _crNo = TextEditingController();
@@ -479,6 +516,17 @@ class CommonFormState extends State<CommonForm> {
           return true;
         }
       }
+    }
+    return false;
+  }
+
+  bool get _isPocsoCase {
+    final sub = (widget.subCategory ?? '').toLowerCase();
+    final mod = (widget.moduleKey ?? '').toLowerCase();
+    if (sub.contains('pocso') || mod.contains('pocso')) return true;
+    for (final charge in _chargeData.values) {
+      final act = charge['act']?.toString().toLowerCase() ?? '';
+      if (act.contains('pocso')) return true;
     }
     return false;
   }
@@ -2211,6 +2259,7 @@ class CommonFormState extends State<CommonForm> {
     int? maxLines,
     TextInputType keyboardType = TextInputType.text,
     void Function(String)? onChanged,
+    VoidCallback? onTap,
     bool enabled = true,
     String? hintText,
     String? helperText,
@@ -2225,6 +2274,12 @@ class CommonFormState extends State<CommonForm> {
       maxLines: maxLines ?? 1,
       enabled: enabled,
       inputFormatters: inputFormatters,
+      onTap: () {
+        if (_isVoiceEnabled) {
+          _setActiveVoiceField(label, ctrl);
+        }
+        onTap?.call();
+      },
       validator: validator != null
           ? (v) {
               final res = validator(v);
@@ -2636,6 +2691,21 @@ class CommonFormState extends State<CommonForm> {
               ),
             ),
             const Divider(height: 1, color: _kBorder),
+            if (_isVoiceEnabled)
+              Container(
+                color: _kPageBg,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: PocsoVoiceBanner(
+                      activeFieldLabel: _activeVoiceFieldLabel,
+                      activeSectionName: _activeVoiceSectionName,
+                      activeController: _activeVoiceController ?? _crNo,
+                    ),
+                  ),
+                ),
+              ),
             // ── form
             Expanded(
               child: ListView(

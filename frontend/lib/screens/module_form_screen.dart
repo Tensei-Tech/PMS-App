@@ -47,6 +47,7 @@ import '../modules/victim/providers/victim_provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/base_form/base_form.dart';
+import '../widgets/common_form/pocso_voice_banner.dart';
 
 class ModuleFormScreen extends StatefulWidget {
   final String moduleLabel;
@@ -80,9 +81,34 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
   String _status = 'Open';
   bool get _isEdit => widget.existingRecord != null;
 
+  bool get _isVoiceEnabled =>
+      widget.moduleKey != 'form_1_5' &&
+      widget.moduleKey != 'form_6' &&
+      widget.moduleKey != 'form_iv' &&
+      widget.moduleKey != 'form_vi';
+
+  // Active Voice Dictation State
+  String? _activeVoiceFieldLabel = 'Case / FIR Number';
+  TextEditingController? _activeVoiceController;
+  String? _activeVoiceSectionName = 'General Information';
+
+  void _setActiveVoiceField(String label, TextEditingController ctrl,
+      {String? section}) {
+    if (_activeVoiceController != ctrl || _activeVoiceFieldLabel != label) {
+      setState(() {
+        _activeVoiceFieldLabel = label;
+        _activeVoiceController = ctrl;
+        if (section != null) _activeVoiceSectionName = section;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    if (_isVoiceEnabled) {
+      _activeVoiceController = _caseNoCtrl;
+    }
     if (_isEdit) {
       final r = widget.existingRecord!;
       _caseNoCtrl.text = r.caseNumber;
@@ -356,6 +382,15 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
         ),
       ],
       children: [
+        if (_isVoiceEnabled)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: PocsoVoiceBanner(
+              activeFieldLabel: _activeVoiceFieldLabel,
+              activeController: _activeVoiceController,
+              activeSectionName: _activeVoiceSectionName,
+            ),
+          ),
         Form(
           key: _formKey,
           child: Column(
@@ -370,12 +405,18 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
                       controller: _caseNoCtrl,
                       hint: 'e.g. FIR/2024/0101',
                       prefixIcon: Icons.numbers_rounded,
+                      onTap: () => _setActiveVoiceField(
+                          'Case / FIR Number', _caseNoCtrl,
+                          section: 'General Information'),
                     ),
                     StandardTextField(
                       label: 'Subject / Case Title',
                       controller: _titleCtrl,
                       hint: 'Brief case title',
                       prefixIcon: Icons.title_rounded,
+                      onTap: () => _setActiveVoiceField(
+                          'Subject / Case Title', _titleCtrl,
+                          section: 'General Information'),
                     ),
                   ],
                 ),
@@ -397,11 +438,17 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
                       controller: _locationCtrl,
                       hint: 'Place of occurrence',
                       prefixIcon: Icons.map_rounded,
+                      onTap: () => _setActiveVoiceField(
+                          'Location', _locationCtrl,
+                          section: 'Incident Details'),
                     ),
                     StandardTextField(
                       label: 'Complainant Name',
                       controller: _complainantCtrl,
                       prefixIcon: Icons.person_add_alt_rounded,
+                      onTap: () => _setActiveVoiceField(
+                          'Complainant Name', _complainantCtrl,
+                          section: 'Incident Details'),
                     ),
                   ],
                 ),
@@ -412,6 +459,8 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
                   hint: 'Detailed explanation...',
                   maxLines: 4,
                   prefixIcon: Icons.description_outlined,
+                  onTap: () => _setActiveVoiceField('Description', _descCtrl,
+                      section: 'Incident Details'),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 StandardTextField(
@@ -419,6 +468,9 @@ class _ModuleFormScreenState extends State<ModuleFormScreen> {
                   controller: _accusedCtrl,
                   hint: 'Leave empty if unknown',
                   prefixIcon: Icons.person_off_rounded,
+                  onTap: () => _setActiveVoiceField(
+                      'Accused Name / Description', _accusedCtrl,
+                      section: 'Incident Details'),
                 ),
               ]),
               const SizedBox(height: AppSpacing.lg),

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../../widgets/common_form/pocso_voice_banner.dart';
 import '../../../widgets/voice_dictation_button.dart';
 
 // ── Palette matching Form 1 to 5 design system ──────────────────────────────
@@ -119,6 +120,22 @@ class PreventiveFormState extends State<PreventiveForm> {
   // '🟢 Preventive Action Completed', '🟡 Partially Completed', '🔴 No Preventive Action Recorded'
   final _remarksCtrl = TextEditingController();
 
+  // Active Voice Dictation State
+  String? _activeVoiceFieldLabel = 'Crime No. / FIR No. / NC no. *';
+  TextEditingController? _activeVoiceController;
+  String? _activeVoiceSectionName = 'Case & Crime Reference';
+
+  void _setActiveVoiceField(String label, TextEditingController ctrl,
+      {String? section}) {
+    if (_activeVoiceController != ctrl || _activeVoiceFieldLabel != label) {
+      setState(() {
+        _activeVoiceFieldLabel = label;
+        _activeVoiceController = ctrl;
+        if (section != null) _activeVoiceSectionName = section;
+      });
+    }
+  }
+
   static const List<String> _kPreventiveSectionActs = [
     '107 Crpc/126 BNSS',
     '109 Crpc/128 BNSS',
@@ -169,6 +186,7 @@ class PreventiveFormState extends State<PreventiveForm> {
   @override
   void initState() {
     super.initState();
+    _activeVoiceController = _crimeNoCtrl;
     _scroll.addListener(() {
       if (!_scroll.hasClients) return;
       final max = _scroll.position.maxScrollExtent;
@@ -487,6 +505,11 @@ class PreventiveFormState extends State<PreventiveForm> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        PocsoVoiceBanner(
+          activeFieldLabel: _activeVoiceFieldLabel,
+          activeController: _activeVoiceController,
+          activeSectionName: _activeVoiceSectionName,
+        ),
         // Top Progress Bar
         ValueListenableBuilder<double>(
           valueListenable: scrollProgress,
@@ -1535,6 +1558,8 @@ class PreventiveFormState extends State<PreventiveForm> {
     IconData? prefixIcon,
     Widget? suffix,
     ValueChanged<String>? onChanged,
+    VoidCallback? onTap,
+    String? section,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1546,6 +1571,10 @@ class PreventiveFormState extends State<PreventiveForm> {
           readOnly: widget.readOnly,
           maxLines: maxLines,
           style: GoogleFonts.inter(fontSize: 12, color: _kDark),
+          onTap: () {
+            _setActiveVoiceField(label, controller, section: section);
+            if (onTap != null) onTap();
+          },
           onChanged: (val) {
             _markUnsaved();
             if (onChanged != null) onChanged(val);

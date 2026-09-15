@@ -33,10 +33,13 @@ class PocsoVictimData {
 /// 7. DNA/FSL Accused: 3 Y/N fields (separate from victim block)
 class PocsoExtraFields extends StatefulWidget {
   final ValueChanged<String>? onVictimNameChanged;
+  final void Function(String label, TextEditingController ctrl,
+      [String section])? onActiveFieldTap;
 
   const PocsoExtraFields({
     super.key,
     this.onVictimNameChanged,
+    this.onActiveFieldTap,
   });
 
   @override
@@ -804,6 +807,13 @@ class PocsoExtraFieldsState extends State<PocsoExtraFields> {
                           child: TextFormField(
                             controller: victim.ageController,
                             keyboardType: TextInputType.number,
+                            onTap: () {
+                              widget.onActiveFieldTap?.call(
+                                'Age of Victim',
+                                victim.ageController,
+                                'POCSO: VICTIM DETAILS',
+                              );
+                            },
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
                               LengthLimitingTextInputFormatter(2),
