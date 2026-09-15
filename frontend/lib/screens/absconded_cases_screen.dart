@@ -1205,10 +1205,6 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
       appBar: ModuleHubScreenAppBar(
         title: TranslationHelper.translate(context, 'Absconded'),
         subtitle: subtitle,
-        badgeLabel: TranslationHelper.translate(
-          context,
-          'absconded',
-        ).toUpperCase(),
         onBackPressed: () => Navigator.pop(context),
       ),
       floatingActionButton: _showNewCaseFab
