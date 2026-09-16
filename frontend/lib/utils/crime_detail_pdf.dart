@@ -350,7 +350,8 @@ Widget _pg1(Map<String, dynamic> doc) {
         const SizedBox(height: 6),
 
         // 3) Crime Shown By
-        Text('3) Crime spot shown by (ज्या इसमाने घटनास्थळ दाखविले त्याचे नाव):',
+        Text(
+            '3) Crime spot shown by (ज्या इसमाने घटनास्थळ दाखविले त्याचे नाव):',
             style: _eBld(9.5)),
         const SizedBox(height: 3),
         Row(
@@ -365,8 +366,8 @@ Widget _pg1(Map<String, dynamic> doc) {
         const SizedBox(height: 3),
         Padding(
           padding: const EdgeInsets.only(left: 16),
-          child: _bilingualField(
-              'Address:', 'पत्ता', shownByAddress, expand: true),
+          child: _bilingualField('Address:', 'पत्ता', shownByAddress,
+              expand: true),
         ),
         const SizedBox(height: 6),
 
@@ -380,9 +381,11 @@ Widget _pg1(Map<String, dynamic> doc) {
             _bilingualField('Type of Crime:', 'गुन्हा प्रकार', typeOfCrime,
                 width: 220),
             const SizedBox(width: 12),
-            _bilingualField('Major Head:', 'मुख्य प्रकार', majorHead, width: 220),
+            _bilingualField('Major Head:', 'मुख्य प्रकार', majorHead,
+                width: 220),
             const SizedBox(width: 12),
-            _bilingualField('Minor Head:', 'उप प्रकार', minorHead, expand: true),
+            _bilingualField('Minor Head:', 'उप प्रकार', minorHead,
+                expand: true),
           ],
         ),
         const SizedBox(height: 6),
@@ -415,8 +418,9 @@ Widget _pg1(Map<String, dynamic> doc) {
         const SizedBox(height: 6),
         Padding(
           padding: const EdgeInsets.only(left: 16),
-          child: _bilingualField('Property Involved:', 'मालमत्ता सहभाग',
-              propertyInvolved, expand: true),
+          child: _bilingualField(
+              'Property Involved:', 'मालमत्ता सहभाग', propertyInvolved,
+              expand: true),
         ),
         const Spacer(),
         Align(
@@ -711,15 +715,15 @@ Widget _pg3(Map<String, dynamic> doc) {
                 'Date of Panchanama:', 'पंचनामा तारीख', panchnamaDate,
                 width: 180),
             const SizedBox(width: 24),
-            _bilingualField(
-                'Time of Panchanama:', 'पंचनामा वेळ', panchnamaTime,
+            _bilingualField('Time of Panchanama:', 'पंचनामा वेळ', panchnamaTime,
                 width: 180),
           ],
         ),
         const SizedBox(height: 10),
 
         // 11) Panchas Table
-        Text('11) Panch Witnesses (पंचांची माहिती व सह्या):', style: _eBld(9.5)),
+        Text('11) Panch Witnesses (पंचांची माहिती व सह्या):',
+            style: _eBld(9.5)),
         const SizedBox(height: 3),
         Table(
           border: TableBorder.all(color: Colors.black87, width: 0.8),

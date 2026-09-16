@@ -304,8 +304,9 @@ Widget _pg1(Map<String, dynamic> doc) {
         Row(
           children: [
             Text('3) ', style: _eBld(9.5)),
-            _bilingualField('Nature of Property Seized:', 'जप्त मालमत्तेचे स्वरूप',
-                natureOfProperty, expand: true),
+            _bilingualField('Nature of Property Seized:',
+                'जप्त मालमत्तेचे स्वरूप', natureOfProperty,
+                expand: true),
           ],
         ),
         const SizedBox(height: 5),
@@ -314,8 +315,9 @@ Widget _pg1(Map<String, dynamic> doc) {
         Row(
           children: [
             Text('4) ', style: _eBld(9.5)),
-            _bilingualField('Details of Property Seized:', 'जप्त मालमत्तेचा तपशील',
-                propertyDetails, expand: true),
+            _bilingualField('Details of Property Seized:',
+                'जप्त मालमत्तेचा तपशील', propertyDetails,
+                expand: true),
           ],
         ),
         const SizedBox(height: 5),
@@ -332,8 +334,8 @@ Widget _pg1(Map<String, dynamic> doc) {
             _bilingualField('Place:', 'ठिकाण', seizurePlace, width: 160),
             const SizedBox(width: 8),
             Text('6) ', style: _eBld(9.5)),
-            _bilingualField(
-                'Description:', 'जागेचे वर्णन', seizurePlaceDesc, expand: true),
+            _bilingualField('Description:', 'जागेचे वर्णन', seizurePlaceDesc,
+                expand: true),
           ],
         ),
         const SizedBox(height: 5),
@@ -348,7 +350,8 @@ Widget _pg1(Map<String, dynamic> doc) {
             const SizedBox(width: 12),
             Text('8) ', style: _eBld(9.5)),
             _bilingualField('Professional receiver?:', 'सराईत मालमत्ता घेणारा?',
-                isProfReceiver, expand: true),
+                isProfReceiver,
+                expand: true),
           ],
         ),
         const SizedBox(height: 5),
@@ -516,19 +519,23 @@ Widget _pg1(Map<String, dynamic> doc) {
         const SizedBox(height: 5),
 
         // 11) Disposal
-        Text('11) Custody & Disposal (मालमत्तेची विल्हेवाट):', style: _eBld(9.5)),
+        Text('11) Custody & Disposal (मालमत्तेची विल्हेवाट):',
+            style: _eBld(9.5)),
         const SizedBox(height: 2),
         Row(
           children: [
             const SizedBox(width: 16),
-            _bilingualField('Perishable item disposal:', 'नाशवंत वस्तू विल्हेवाट',
-                perishable, width: 220),
+            _bilingualField('Perishable item disposal:',
+                'नाशवंत वस्तू विल्हेवाट', perishable,
+                width: 220),
             const SizedBox(width: 12),
-            _bilingualField('Valuable item custody:', 'मौल्यवान वस्तू सुरक्षा',
-                valuable, width: 220),
+            _bilingualField(
+                'Valuable item custody:', 'मौल्यवान वस्तू सुरक्षा', valuable,
+                width: 220),
             const SizedBox(width: 12),
-            _bilingualField('Identification required?:', 'ओळखपरेड आवश्यक?:',
-                identification, expand: true),
+            _bilingualField(
+                'Identification required?:', 'ओळखपरेड आवश्यक?:', identification,
+                expand: true),
           ],
         ),
         const Spacer(),
@@ -572,7 +579,8 @@ Widget _pg2(Map<String, dynamic> doc) {
             children: [
               Text(
                 'PROPERTY SEARCH & SEIZURE FORM (Signatures)',
-                style: _eBld(13.5).copyWith(decoration: TextDecoration.underline),
+                style:
+                    _eBld(13.5).copyWith(decoration: TextDecoration.underline),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 2),

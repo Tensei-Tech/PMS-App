@@ -63,9 +63,12 @@ Future<Uint8List> _buildImagePdf(
 ) async {
   final s = (doc['formSection'] ?? '').toString().toLowerCase();
   final p9Match = s.contains('9') || s.contains('47') || s.contains('आधार');
-  final p10Match = s.contains('10') || s.contains('48') || s.contains('नातेवाईक');
+  final p10Match =
+      s.contains('10') || s.contains('48') || s.contains('नातेवाईक');
   final p11Match = s.contains('11') || s.contains('35') || s.contains('कारणे');
-  final showAll = s.isEmpty || s.contains('complete') || (!p9Match && !p10Match && !p11Match);
+  final showAll = s.isEmpty ||
+      s.contains('complete') ||
+      (!p9Match && !p10Match && !p11Match);
 
   final showP9 = showAll || p9Match;
   final showP10 = showAll || p10Match;
@@ -357,7 +360,8 @@ Widget _pg9(Map<String, dynamic> doc) {
               style: coAccusedName.isNotEmpty ? _valStyle(9) : _mReg(9),
             ),
             const TextSpan(
-              text: ' यांनी तुम्ही गुन्ह्यामध्ये सहभागी असल्याचे कबुल केले आहे.',
+              text:
+                  ' यांनी तुम्ही गुन्ह्यामध्ये सहभागी असल्याचे कबुल केले आहे.',
             ),
           ],
         ),
@@ -598,9 +602,8 @@ Widget _pg9(Map<String, dynamic> doc) {
                           text: relativeName.isNotEmpty
                               ? relativeName
                               : '____________________________',
-                          style: relativeName.isNotEmpty
-                              ? _valStyle(9)
-                              : _mReg(9),
+                          style:
+                              relativeName.isNotEmpty ? _valStyle(9) : _mReg(9),
                         ),
                         const TextSpan(text: ' यांना देण्यात आली आहे.'),
                       ],
@@ -834,7 +837,9 @@ Widget _pg10(Map<String, dynamic> doc) {
             children: [
               const TextSpan(text: 'नातेवाईक/मित्राचे नाव:- '),
               TextSpan(
-                text: relativeName.isNotEmpty ? relativeName : '___________________',
+                text: relativeName.isNotEmpty
+                    ? relativeName
+                    : '___________________',
                 style: relativeName.isNotEmpty ? _valStyle(9.8) : _mReg(9.8),
               ),
               const TextSpan(text: '   वय :- '),
@@ -844,7 +849,9 @@ Widget _pg10(Map<String, dynamic> doc) {
               ),
               const TextSpan(text: '   पत्ता:- '),
               TextSpan(
-                text: relativeAddress.isNotEmpty ? relativeAddress : '___________________________',
+                text: relativeAddress.isNotEmpty
+                    ? relativeAddress
+                    : '___________________________',
                 style: relativeAddress.isNotEmpty ? _valStyle(9.8) : _mReg(9.8),
               ),
             ],
@@ -857,7 +864,9 @@ Widget _pg10(Map<String, dynamic> doc) {
             children: [
               const TextSpan(text: 'आरोपीशी असलेले नाते: '),
               TextSpan(
-                text: relationship.isNotEmpty ? relationship : '__________________',
+                text: relationship.isNotEmpty
+                    ? relationship
+                    : '__________________',
                 style: relationship.isNotEmpty ? _valStyle(9.8) : _mReg(9.8),
               ),
             ],
@@ -886,7 +895,9 @@ Widget _pg10(Map<String, dynamic> doc) {
               ),
               const TextSpan(text: ' वर्ष, पत्ता:- '),
               TextSpan(
-                text: accusedAddress.isNotEmpty ? accusedAddress : '____________________',
+                text: accusedAddress.isNotEmpty
+                    ? accusedAddress
+                    : '____________________',
                 style: accusedAddress.isNotEmpty ? _valStyle(9.6) : _mBld(9.6),
               ),
               const TextSpan(text: ' यांना पोलीस ठाणे '),
@@ -909,7 +920,8 @@ Widget _pg10(Map<String, dynamic> doc) {
                 style: bnsSection.isNotEmpty ? _valStyle(9.6) : _mBld(9.6),
               ),
               const TextSpan(
-                text: ' अन्वये नोंदवलेल्या गुन्ह्याच्या तपासाच्या अनुषंगाने आज दिनांक ',
+                text:
+                    ' अन्वये नोंदवलेल्या गुन्ह्याच्या तपासाच्या अनुषंगाने आज दिनांक ',
               ),
               TextSpan(
                 text: arrestDate.isNotEmpty ? arrestDate : '__________',
@@ -920,7 +932,8 @@ Widget _pg10(Map<String, dynamic> doc) {
                 text: arrestTime.isNotEmpty ? arrestTime : '________',
                 style: arrestTime.isNotEmpty ? _valStyle(9.6) : _mBld(9.6),
               ),
-              const TextSpan(text: ' वाजता कायदेशीररीत्या अटक करण्यात आली आहे.'),
+              const TextSpan(
+                  text: ' वाजता कायदेशीररीत्या अटक करण्यात आली आहे.'),
             ],
           ),
         ),
@@ -986,8 +999,11 @@ Widget _pg10(Map<String, dynamic> doc) {
                       children: [
                         const TextSpan(text: 'आरोपी नाव '),
                         TextSpan(
-                          text: accusedName.isNotEmpty ? accusedName : '___________________',
-                          style: accusedName.isNotEmpty ? _valStyle(9) : _mBld(9),
+                          text: accusedName.isNotEmpty
+                              ? accusedName
+                              : '___________________',
+                          style:
+                              accusedName.isNotEmpty ? _valStyle(9) : _mBld(9),
                         ),
                         const TextSpan(text: ' यांना गुन्हा रजिस्टर क्रमांक '),
                         TextSpan(
@@ -999,15 +1015,20 @@ Widget _pg10(Map<String, dynamic> doc) {
                               ', अंतर्गत भारतीय न्याय संहिता, २०२३ (BNS) च्या कलम ',
                         ),
                         TextSpan(
-                          text: bnsSection.isNotEmpty ? bnsSection : '__________________',
-                          style: bnsSection.isNotEmpty ? _valStyle(9) : _mBld(9),
+                          text: bnsSection.isNotEmpty
+                              ? bnsSection
+                              : '__________________',
+                          style:
+                              bnsSection.isNotEmpty ? _valStyle(9) : _mBld(9),
                         ),
                         const TextSpan(
                           text:
                               ' अन्वये नोंदवलेल्या गुन्ह्याच्या तपासाच्या अनुषंगाने कायदेशीररीत्या अटक करण्यात आली असून सदर आरोपीला सध्या [पोलीस ठाण्याचे नाव: ',
                         ),
                         TextSpan(
-                          text: custodyPs.isNotEmpty ? custodyPs : (psName.isNotEmpty ? psName : 'पोलीस ठाणे'),
+                          text: custodyPs.isNotEmpty
+                              ? custodyPs
+                              : (psName.isNotEmpty ? psName : 'पोलीस ठाणे'),
                           style: _valStyle(9),
                         ),
                         const TextSpan(text: '] येथे ठेवण्यात आले आहे.'),
@@ -1078,7 +1099,8 @@ Widget _pg10(Map<String, dynamic> doc) {
                     Text('दिनांक :- ', style: _mBld(9.5)),
                     Text(
                       noticeDate.isNotEmpty ? noticeDate : '____________',
-                      style: noticeDate.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
+                      style:
+                          noticeDate.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
                     ),
                   ],
                 ),
@@ -1089,7 +1111,8 @@ Widget _pg10(Map<String, dynamic> doc) {
                     Text('ठिकाण :- ', style: _mBld(9.5)),
                     Text(
                       noticePlace.isNotEmpty ? noticePlace : '____________',
-                      style: noticePlace.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
+                      style:
+                          noticePlace.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
                     ),
                   ],
                 ),
@@ -1293,7 +1316,8 @@ Widget _pg11(Map<String, dynamic> doc) {
             style: _mReg(9.8, 1.5),
             children: [
               const TextSpan(
-                text: 'या नोटीसद्वारे तुम्हाला सूचित करण्यात येते की, पोलीस ठाणे ',
+                text:
+                    'या नोटीसद्वारे तुम्हाला सूचित करण्यात येते की, पोलीस ठाणे ',
               ),
               TextSpan(
                 text: psName.isNotEmpty ? psName : '_________',
@@ -1314,7 +1338,8 @@ Widget _pg11(Map<String, dynamic> doc) {
                 style: bnsSection.isNotEmpty ? _valStyle(9.8) : _mBld(9.8),
               ),
               const TextSpan(
-                text: ' अन्वये नोंदवलेल्या गुन्ह्यात तपासाच्या अनुषंगाने आज दिनांक ',
+                text:
+                    ' अन्वये नोंदवलेल्या गुन्ह्यात तपासाच्या अनुषंगाने आज दिनांक ',
               ),
               TextSpan(
                 text: arrestDate.isNotEmpty ? arrestDate : '______________',
@@ -1374,7 +1399,8 @@ Widget _pg11(Map<String, dynamic> doc) {
                     Text('दिनांक :- ', style: _mBld(9.5)),
                     Text(
                       noticeDate.isNotEmpty ? noticeDate : '____________',
-                      style: noticeDate.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
+                      style:
+                          noticeDate.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
                     ),
                   ],
                 ),
@@ -1385,7 +1411,8 @@ Widget _pg11(Map<String, dynamic> doc) {
                     Text('ठिकाण :- ', style: _mBld(9.5)),
                     Text(
                       noticePlace.isNotEmpty ? noticePlace : '____________',
-                      style: noticePlace.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
+                      style:
+                          noticePlace.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
                     ),
                   ],
                 ),

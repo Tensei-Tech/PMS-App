@@ -50,8 +50,7 @@ Future<Uint8List> _buildImagePdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final sectionStr =
-      (doc['formSection'] ?? '').toString().toLowerCase().trim();
+  final sectionStr = (doc['formSection'] ?? '').toString().toLowerCase().trim();
   final isPartIOnly = sectionStr == 'accused part i' ||
       (sectionStr.contains('part i') && !sectionStr.contains('part ii'));
   final isPartIIOnly =
@@ -287,8 +286,8 @@ Widget _pg1(Map<String, dynamic> doc) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('2) ', style: _eBld(10)),
-            _bilingualField(
-                'Name of Accused:', 'आरोपीचे नाव', accusedName, expand: true),
+            _bilingualField('Name of Accused:', 'आरोपीचे नाव', accusedName,
+                expand: true),
             const SizedBox(width: 12),
             _bilingualField('Age:', 'वय', accusedAge, width: 70),
             const SizedBox(width: 12),
@@ -302,11 +301,11 @@ Widget _pg1(Map<String, dynamic> doc) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('3) ', style: _eBld(10)),
-            _bilingualField(
-                'Date of Arrest:', 'अटक तारीख', arrestDate, width: 180),
+            _bilingualField('Date of Arrest:', 'अटक तारीख', arrestDate,
+                width: 180),
             const SizedBox(width: 16),
-            _bilingualField(
-                'Time of Arrest:', 'अटक वेळ', arrestTime, width: 180),
+            _bilingualField('Time of Arrest:', 'अटक वेळ', arrestTime,
+                width: 180),
           ],
         ),
         const SizedBox(height: 8),
@@ -339,7 +338,8 @@ Widget _pg1(Map<String, dynamic> doc) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('5) ', style: _eBld(10)),
-            _bilingualField('Place of Memorandum:', 'निवेदनाचे ठिकाण', placeMemo,
+            _bilingualField(
+                'Place of Memorandum:', 'निवेदनाचे ठिकाण', placeMemo,
                 expand: true),
             const SizedBox(width: 12),
             _bilingualField('Date:', 'दिनांक', memDate, width: 110),
@@ -352,7 +352,8 @@ Widget _pg1(Map<String, dynamic> doc) {
         // Section 6: Panchas
         Row(
           children: [
-            Text('6) Name & Address of Panchas & Signatures: ', style: _eBld(9.5)),
+            Text('6) Name & Address of Panchas & Signatures: ',
+                style: _eBld(9.5)),
             Text('(पंचांची नावे, पत्ते व सह्या)', style: _mBld(9.5)),
           ],
         ),
@@ -450,7 +451,8 @@ Widget _pg1(Map<String, dynamic> doc) {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text('Signature of Investigation Officer', style: _eBld(9.5)),
-                Text('तपासणी करणाऱ्या अधिकाऱ्याची सही व हुद्दा', style: _mBld(9)),
+                Text('तपासणी करणाऱ्या अधिकाऱ्याची सही व हुद्दा',
+                    style: _mBld(9)),
                 const SizedBox(height: 4),
                 Text('नाव: ${ioName.isNotEmpty ? ioName : '____________'}',
                     style: ioName.isNotEmpty ? _valStyle(9) : _mReg(9)),
@@ -572,7 +574,8 @@ Widget _pg2(Map<String, dynamic> doc) {
         // Section 9: Panchas (Part II)
         Row(
           children: [
-            Text('9) Name & Address of Panchas & Signatures: ', style: _eBld(9.5)),
+            Text('9) Name & Address of Panchas & Signatures: ',
+                style: _eBld(9.5)),
             Text('(पंचांची नावे, पत्ते व सह्या)', style: _mBld(9.5)),
           ],
         ),
@@ -658,7 +661,9 @@ Widget _pg2(Map<String, dynamic> doc) {
                 Text('    आरोपीची सही व अंगठा', style: _mBld(9)),
                 const SizedBox(height: 18),
                 Text(
-                  accusedSig.isNotEmpty ? accusedSig : '_______________________',
+                  accusedSig.isNotEmpty
+                      ? accusedSig
+                      : '_______________________',
                   style: accusedSig.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
                 ),
               ],
@@ -667,7 +672,8 @@ Widget _pg2(Map<String, dynamic> doc) {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text('Signature of Investigation Officer', style: _eBld(9.5)),
-                Text('तपासणी करणाऱ्या अधिकाऱ्याची सही व हुद्दा', style: _mBld(9)),
+                Text('तपासणी करणाऱ्या अधिकाऱ्याची सही व हुद्दा',
+                    style: _mBld(9)),
                 const SizedBox(height: 4),
                 Text('नाव: ${ioName.isNotEmpty ? ioName : '____________'}',
                     style: ioName.isNotEmpty ? _valStyle(9) : _mReg(9)),
@@ -695,8 +701,8 @@ Future<Uint8List> generateAccusedMemorandumPdf(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
       build: (_) => pw.Center(
-        child:
-            pw.Text('Accused Memorandum', style: const pw.TextStyle(fontSize: 12)),
+        child: pw.Text('Accused Memorandum',
+            style: const pw.TextStyle(fontSize: 12)),
       ),
     ),
   );

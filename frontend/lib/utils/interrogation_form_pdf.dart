@@ -17,10 +17,10 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 // ── A4 layout constants ───────────────────────────────────────────────────────
-const double _kW = 794.0;   // A4 width  at ~96 DPI
-const double _kH = 1123.0;  // A4 height at ~96 DPI
-const double _kM = 20.0;    // page margin
-const double _kPx = 2.0;    // capture pixel ratio (2× = 1588×2246 px)
+const double _kW = 794.0; // A4 width  at ~96 DPI
+const double _kH = 1123.0; // A4 height at ~96 DPI
+const double _kM = 20.0; // page margin
+const double _kPx = 2.0; // capture pixel ratio (2× = 1588×2246 px)
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Public API — identical signatures to the previous implementation
@@ -51,8 +51,7 @@ Future<void> previewInterrogationFormPdf(
 
 /// pw.* fallback — kept for API compatibility.
 /// Full-fidelity image rendering is done via [previewInterrogationFormPdf].
-Future<Uint8List> generateInterrogationFormPdf(
-    Map<String, dynamic> doc) async {
+Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   return _pwGenerate(doc);
 }
 
@@ -119,8 +118,7 @@ Future<Uint8List> _capture(BuildContext ctx, Widget widget) async {
   await Future.delayed(const Duration(milliseconds: 800));
 
   try {
-    final rb =
-        key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+    final rb = key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
     final img = await rb.toImage(pixelRatio: _kPx);
     final bd = await img.toByteData(format: ui.ImageByteFormat.png);
     comp.complete(bd!.buffer.asUint8List());
@@ -143,7 +141,7 @@ TextStyle _reg([double sz = 9.5]) =>
     GoogleFonts.notoSansDevanagari(fontSize: sz, color: _kBk);
 
 TextStyle _bld([double sz = 9.5]) => GoogleFonts.notoSansDevanagari(
-      fontSize: sz, fontWeight: FontWeight.bold, color: _kBk);
+    fontSize: sz, fontWeight: FontWeight.bold, color: _kBk);
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Border helpers
@@ -159,10 +157,10 @@ BoxDecoration _bd({
 }) =>
     BoxDecoration(
       border: Border(
-        right:  r ? _kBs : BorderSide.none,
+        right: r ? _kBs : BorderSide.none,
         bottom: b ? _kBs : BorderSide.none,
-        left:   l ? _kBs : BorderSide.none,
-        top:    t ? _kBs : BorderSide.none,
+        left: l ? _kBs : BorderSide.none,
+        top: t ? _kBs : BorderSide.none,
       ),
     );
 
@@ -175,14 +173,16 @@ Widget _dr(String srNo, String label, String value, double h) {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Container(
-        width: 32, height: h,
+        width: 32,
+        height: h,
         decoration: _bd(),
         alignment: Alignment.center,
         padding: const EdgeInsets.all(4),
         child: Text(srNo, style: _bld()),
       ),
       Container(
-        width: 170, height: h,
+        width: 170,
+        height: h,
         decoration: _bd(),
         alignment: Alignment.centerLeft,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -220,10 +220,9 @@ Widget _shell(Widget body) => SizedBox(
 // ── Outer bordered table container ───────────────────────────────────────────
 
 Widget _outerTable(List<Widget> rows) => Container(
-      decoration:
-          BoxDecoration(border: Border.all(color: _kBk, width: 0.8)),
-      child:
-          Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows),
+      decoration: BoxDecoration(border: Border.all(color: _kBk, width: 0.8)),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch, children: rows),
     );
 
 // ── Doc value helper ──────────────────────────────────────────────────────────
@@ -260,17 +259,17 @@ List<String> _lst(
 // ══════════════════════════════════════════════════════════════════════════════
 
 Widget _pg1(Map<String, dynamic> doc) {
-  final ps       = _gv(doc, 'ps');
-  final gurNo    = _gv(doc, 'gurNo');
-  final kalam    = _gv(doc, 'kalam');
-  final ioName   = _gv(doc, 'ioName');
-  final accused  = _gv(doc, 'accusedName');
+  final ps = _gv(doc, 'ps');
+  final gurNo = _gv(doc, 'gurNo');
+  final kalam = _gv(doc, 'kalam');
+  final ioName = _gv(doc, 'ioName');
+  final accused = _gv(doc, 'accusedName');
   final arrestDt = _gv(doc, 'arrestDateTime');
-  final dob      = _gv(doc, 'dobPlaceAge');
-  final idMarks  = _gv(doc, 'idMarks');
-  final address  = _gv(doc, 'address');
-  final dharma   = _gv(doc, 'dharma');
-  final jati     = _gv(doc, 'jati');
+  final dob = _gv(doc, 'dobPlaceAge');
+  final idMarks = _gv(doc, 'idMarks');
+  final address = _gv(doc, 'address');
+  final dharma = _gv(doc, 'dharma');
+  final jati = _gv(doc, 'jati');
 
   final phys = doc['physicalTable'] is Map
       ? Map<String, dynamic>.from(doc['physicalTable'] as Map)
@@ -283,20 +282,25 @@ Widget _pg1(Map<String, dynamic> doc) {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          width: 32, height: h, decoration: _bd(),
+          width: 32,
+          height: h,
+          decoration: _bd(),
           alignment: Alignment.center,
           padding: const EdgeInsets.all(4),
           child: Text(n, style: _bld()),
         ),
         Container(
-          width: 140, height: h, decoration: _bd(),
+          width: 140,
+          height: h,
+          decoration: _bd(),
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           child: Text(lbl, style: _bld(8.5)),
         ),
         Expanded(
           child: Container(
-            height: h, decoration: _bd(r: false),
+            height: h,
+            decoration: _bd(r: false),
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             child: val,
@@ -316,21 +320,23 @@ Widget _pg1(Map<String, dynamic> doc) {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Container(
-                      height: 20, width: 44, decoration: _bd(),
+                      height: 20,
+                      width: 44,
+                      decoration: _bd(),
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(horizontal: 2),
                       child: Text(p.$1,
-                          style: _bld(7.5),
-                          overflow: TextOverflow.ellipsis),
+                          style: _bld(7.5), overflow: TextOverflow.ellipsis),
                     ),
                     Expanded(
                       child: Container(
-                        height: 20, decoration: _bd(),
-                        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                        height: 20,
+                        decoration: _bd(),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 3, vertical: 1),
                         alignment: Alignment.centerLeft,
                         child: Text(p.$2,
-                            style: _reg(7.5),
-                            overflow: TextOverflow.ellipsis),
+                            style: _reg(7.5), overflow: TextOverflow.ellipsis),
                       ),
                     ),
                   ],
@@ -359,7 +365,8 @@ Widget _pg1(Map<String, dynamic> doc) {
 
         // ── Main outer bordered box ────────────────────────────────────────
         Container(
-          decoration: BoxDecoration(border: Border.all(color: _kBk, width: 0.8)),
+          decoration:
+              BoxDecoration(border: Border.all(color: _kBk, width: 0.8)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -372,8 +379,8 @@ Widget _pg1(Map<String, dynamic> doc) {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          smallRow('१', 'पोलीस ठाणे',
-                              Text(ps, style: _reg()), 26),
+                          smallRow(
+                              '१', 'पोलीस ठाणे', Text(ps, style: _reg()), 26),
                           smallRow(
                             '२',
                             'गुरनं / कलम',
@@ -387,11 +394,9 @@ Widget _pg1(Map<String, dynamic> doc) {
                             ),
                             40,
                           ),
-                          smallRow('३',
-                              'तपासी अधिका-याचे नांव व हुद्दा',
+                          smallRow('३', 'तपासी अधिका-याचे नांव व हुद्दा',
                               Text(ioName, style: _reg()), 28),
-                          smallRow('४',
-                              'गुन्हेगाराचे नांव व टोपन नांव',
+                          smallRow('४', 'गुन्हेगाराचे नांव व टोपन नांव',
                               Text(accused, style: _reg()), 28),
                           smallRow('५', 'अटक तारीख व वेळ',
                               Text(arrestDt, style: _reg()), 24),
@@ -421,7 +426,8 @@ Widget _pg1(Map<String, dynamic> doc) {
                     // Row 7 header
                     Row(children: [
                       Container(
-                        width: 32, height: 20,
+                        width: 32,
+                        height: 20,
                         decoration: _bd(b: false),
                         alignment: Alignment.center,
                         child: Text('७', style: _bld()),
@@ -478,33 +484,41 @@ Widget _pg1(Map<String, dynamic> doc) {
               ),
 
               // ── Rows 8-10 ─────────────────────────────────────────────────
-              _dr('८',
-                  'ओळखोच्या खुणा ( तीळ,\nमार,जखम,गोंदन,अपंगत्व )',
-                  idMarks, 46),
-              _dr('९',
+              _dr('८', 'ओळखोच्या खुणा ( तीळ,\nमार,जखम,गोंदन,अपंगत्व )', idMarks,
+                  46),
+              _dr(
+                  '९',
                   'सध्याचा मुळ पत्ता घर क्र,इमारतीचे नांव,परीसराचे नांव,रस्ता,शहर राज्य ,मोबाईल नंबर',
-                  address, 52),
+                  address,
+                  52),
               // Row 10 (dharma + jati inline)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    width: 32, height: 32, decoration: _bd(),
+                    width: 32,
+                    height: 32,
+                    decoration: _bd(),
                     alignment: Alignment.center,
                     padding: const EdgeInsets.all(4),
                     child: Text('१०', style: _bld()),
                   ),
                   Container(
-                    width: 170, height: 32, decoration: _bd(),
+                    width: 170,
+                    height: 32,
+                    decoration: _bd(),
                     alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                     child: Text('धर्म/जात', style: _bld()),
                   ),
                   Expanded(
                     child: Container(
-                      height: 32, decoration: _bd(r: false),
+                      height: 32,
+                      decoration: _bd(r: false),
                       alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 4),
                       child: Row(children: [
                         Text('धर्म - $dharma', style: _reg()),
                         const SizedBox(width: 24),
@@ -532,10 +546,14 @@ Widget _pg2(Map<String, dynamic> doc) {
 
   return _shell(_outerTable([
     _dr('११', 'व्यवसाय/काम यापुर्वीचा व्यवसाय', p(0), 140),
-    _dr('१२', 'वडीलाचे /आईचे नांव,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहिती', p(1), 140),
-    _dr('१३', 'मुले/मुलीचे नांव,वय,पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती', p(2), 140),
-    _dr('१४', 'भावाचे/बहीणींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', p(3), 140),
-    _dr('१५', 'बहीण/ भाऊजींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', p(4), 140),
+    _dr('१२', 'वडीलाचे /आईचे नांव,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहिती',
+        p(1), 140),
+    _dr('१३', 'मुले/मुलीचे नांव,वय,पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती',
+        p(2), 140),
+    _dr('१४', 'भावाचे/बहीणींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+        p(3), 140),
+    _dr('१५', 'बहीण/ भाऊजींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+        p(4), 140),
   ]));
 }
 
@@ -548,12 +566,24 @@ Widget _pg3(Map<String, dynamic> doc) {
   String p(int i) => i < rows.length ? rows[i] : '';
 
   return _shell(_outerTable([
-    _dr('१६', 'सासु/सासऱ्याचे नांव,वय,पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती', p(0), 115),
-    _dr('१७', 'मेव्हणा/मेव्हणींची नावे वय, पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती', p(1), 115),
-    _dr('१८', 'मामा/मामीचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', p(2), 115),
-    _dr('१९', 'काका/ मावशींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', p(3), 115),
-    _dr('२०', 'चुलता/चुलतीचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', p(4), 115),
-    _dr('२१', 'आत्याचे / मामाचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', p(5), 115),
+    _dr('१६', 'सासु/सासऱ्याचे नांव,वय,पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती',
+        p(0), 115),
+    _dr(
+        '१७',
+        'मेव्हणा/मेव्हणींची नावे वय, पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती',
+        p(1),
+        115),
+    _dr('१८', 'मामा/मामीचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+        p(2), 115),
+    _dr('१९', 'काका/ मावशींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+        p(3), 115),
+    _dr('२०', 'चुलता/चुलतीचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+        p(4), 115),
+    _dr(
+        '२१',
+        'आत्याचे / मामाचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+        p(5),
+        115),
   ]));
 }
 
@@ -566,19 +596,24 @@ Widget _pg4(Map<String, dynamic> doc) {
   String p(int i) => i < rows.length ? rows[i] : '';
 
   return _shell(_outerTable([
-    _dr('२२', 'शिक्षण/शाळा/ कॉलेज (पत्ता) तसेच संगणकाचे ज्ञान आहे काय?', p(0), 65),
+    _dr('२२', 'शिक्षण/शाळा/ कॉलेज (पत्ता) तसेच संगणकाचे ज्ञान आहे काय?', p(0),
+        65),
     _dr('२३', 'नोकरीस असल्यास पुर्वीचे कार्यालयाचा पत्ता', p(1), 55),
     _dr('२४', 'आधारकार्ड क्रमांक', p(2), 36),
     _dr('२५', 'पॅनकार्ड क्रमांक', p(3), 36),
     _dr('२६', 'वाहन परवाना', p(4), 36),
     _dr('२७', 'रेशन कार्ड', p(5), 36),
     _dr('२८', 'मालमत्ता (अंदाजे)', p(6), 55),
-    _dr('२९',
+    _dr(
+        '२९',
         'यापुर्वी झालेली शिक्षा (पोलीस ठाणे,पत्ता गु.नो.क्र,कलम साथीदार,फरार आरोपी )',
-        p(7), 95),
-    _dr('३०',
+        p(7),
+        95),
+    _dr(
+        '३०',
         'या गुन्ह्यातील आरोपींचे साथीदारांची नावे पुर्ण पत्ता मोबाईल नंबर सह',
-        p(8), 140),
+        p(8),
+        140),
   ]));
 }
 
@@ -592,13 +627,17 @@ Widget _pg5(Map<String, dynamic> doc) {
 
   return _shell(_outerTable([
     _dr('३१', 'बसण्या - उठण्याच्या जागा', p(0), 110),
-    _dr('३२',
+    _dr(
+        '३२',
         'नमुद आरोपीस गुन्ह्याचे ठिकाणची (स्थळ,ईमारत) याबाबत माहीती मिळालेली उगमस्थाने (रेखी ) (गुन्हा करण्याचे स्थळा बाबत माहीती कोठून व कशी मिळवली)',
-        p(1), 125),
+        p(1),
+        125),
     _dr('३३', 'गुन्हा करतेवेळी आरोपी यांनी वापरलेली वाहने', p(2), 110),
-    _dr('३४',
+    _dr(
+        '३४',
         'गुन्हा करते वेळी वापरलेली हत्यारे (काठी,कटवणी,पक्कड, पाने,कटर,गॅस कटर, व इतर )',
-        p(3), 125),
+        p(3),
+        125),
     _dr('३५', 'गुन्हा करते वेळी येण्याची दिशा व रस्ते', p(4), 125),
     _dr('३६', 'गुन्हा करुन जातेवेळीची दिशा व रस्ते', p(5), 125),
   ]));
@@ -612,9 +651,9 @@ Widget _pg6(Map<String, dynamic> doc) {
   final rows = _lst(doc, 'page6Rows', 'crimeRows', 4, 6);
   String p(int i) => i < rows.length ? rows[i] : '';
 
-  final ioName    = _gv(doc, 'ioSigName');
-  final ioRank    = _gv(doc, 'ioSigRank');
-  final ioCode    = _gv(doc, 'ioSigCode');
+  final ioName = _gv(doc, 'ioSigName');
+  final ioRank = _gv(doc, 'ioSigRank');
+  final ioCode = _gv(doc, 'ioSigCode');
   final ioPosting = _gv(doc, 'ioSigPosting');
 
   return _shell(
@@ -623,12 +662,13 @@ Widget _pg6(Map<String, dynamic> doc) {
       children: [
         _outerTable([
           _dr('३७', 'गुन्हा करण्याची पध्दत', p(0), 140),
-          _dr('३८',
+          _dr(
+              '३८',
               'गुन्ह्यातील चोरलेल्या मुद्देमालाबाबत आरोपीने सांगितलेली माहीती\n(साथीदार यांना वाटप,विक्री तसेच ईतर प्रकारे विल्हेवाट संपूर्ण हकिकत)',
-              p(1), 180),
-          _dr('३९',
-              'आरोपीस ओळखणारे पोलीस अधिकारी/अंमलदार,पोलीस पाटील',
-              p(2), 90),
+              p(1),
+              180),
+          _dr('३९', 'आरोपीस ओळखणारे पोलीस अधिकारी/अंमलदार,पोलीस पाटील', p(2),
+              90),
           _dr('४०', 'Advisorries', p(3), 110),
         ]),
         const SizedBox(height: 36),
@@ -645,8 +685,7 @@ Widget _pg6(Map<String, dynamic> doc) {
                 Text('नांव :- $ioName', style: _reg()),
                 const SizedBox(height: 6),
                 Row(children: [
-                  Expanded(
-                      child: Text('पदनाम :- $ioRank', style: _reg())),
+                  Expanded(child: Text('पदनाम :- $ioRank', style: _reg())),
                   Text('कोड नंबर :- $ioCode', style: _reg()),
                 ]),
                 const SizedBox(height: 6),
@@ -670,21 +709,18 @@ Widget _pg7(Map<String, dynamic> doc) {
 
   return _shell(
     Container(
-      decoration:
-          BoxDecoration(border: Border.all(color: _kBk, width: 0.8)),
+      decoration: BoxDecoration(border: Border.all(color: _kBk, width: 0.8)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
           Container(
             decoration: _bd(r: false, b: true, l: false, t: false),
-            padding:
-                const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
             child: Column(children: [
               Text(
                 'मुद्दा क्रमांक ३७ ची अधिक माहिती',
-                style: _bld(11)
-                    .copyWith(decoration: TextDecoration.underline),
+                style: _bld(11).copyWith(decoration: TextDecoration.underline),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 3),
@@ -843,16 +879,15 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
                 children: [
                   pw.Text('-० चौकशी अहवाल ०-', style: headerTitle),
                   pw.SizedBox(height: 2),
-                  pw.Text('स्थानिक गुन्हे शाखा,उस्मानाबाद',
-                      style: headerSub),
+                  pw.Text('स्थानिक गुन्हे शाखा,उस्मानाबाद', style: headerSub),
                 ],
               ),
             ),
             pw.SizedBox(height: 10),
             pw.Container(
               decoration: pw.BoxDecoration(
-                border: pw.Border.all(
-                    color: PdfColors.black, width: border.width),
+                border:
+                    pw.Border.all(color: PdfColors.black, width: border.width),
               ),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -940,8 +975,8 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
                     ],
                   ),
                   pw.Container(
-                    decoration: const pw.BoxDecoration(
-                        border: pw.Border(top: border)),
+                    decoration:
+                        const pw.BoxDecoration(border: pw.Border(top: border)),
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                       children: [
@@ -1044,14 +1079,16 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
                         cellCenter('८', height: 48),
                         cellLeft(
                             'ओळखोच्या खुणा ( तीळ,\nमार,जखम,गोंदन,अपंगत्व )',
-                            height: 48, isBold: true),
+                            height: 48,
+                            isBold: true),
                         cellLeft(idMarks, height: 48),
                       ]),
                       pw.TableRow(children: [
                         cellCenter('९', height: 56),
                         cellLeft(
                             'सध्याचा मुळ पत्ता घर क्र,इमारतीचे नांव,परीसराचे नांव,रस्ता,शहर राज्य ,मोबाईल नंबर',
-                            height: 56, isBold: true),
+                            height: 56,
+                            isBold: true),
                         cellLeft(address, height: 56),
                       ]),
                       pw.TableRow(children: [
@@ -1107,11 +1144,35 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
           2: pw.FlexColumnWidth(1),
         },
         children: [
-          buildTableDataRow(srNo: '११', label: 'व्यवसाय/काम यापुर्वीचा व्यवसाय', value: p2Val(0), height: 140),
-          buildTableDataRow(srNo: '१२', label: 'वडीलाचे /आईचे नांव,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहिती', value: p2Val(1), height: 140),
-          buildTableDataRow(srNo: '१३', label: 'मुले/मुलीचे नांव,वय,पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती', value: p2Val(2), height: 140),
-          buildTableDataRow(srNo: '१४', label: 'भावाचे/बहीणींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', value: p2Val(3), height: 140),
-          buildTableDataRow(srNo: '१५', label: 'बहीण/ भाऊजींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', value: p2Val(4), height: 140),
+          buildTableDataRow(
+              srNo: '११',
+              label: 'व्यवसाय/काम यापुर्वीचा व्यवसाय',
+              value: p2Val(0),
+              height: 140),
+          buildTableDataRow(
+              srNo: '१२',
+              label:
+                  'वडीलाचे /आईचे नांव,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहिती',
+              value: p2Val(1),
+              height: 140),
+          buildTableDataRow(
+              srNo: '१३',
+              label:
+                  'मुले/मुलीचे नांव,वय,पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती',
+              value: p2Val(2),
+              height: 140),
+          buildTableDataRow(
+              srNo: '१४',
+              label:
+                  'भावाचे/बहीणींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+              value: p2Val(3),
+              height: 140),
+          buildTableDataRow(
+              srNo: '१५',
+              label:
+                  'बहीण/ भाऊजींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+              value: p2Val(4),
+              height: 140),
         ],
       );
     },
@@ -1141,12 +1202,42 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
           2: pw.FlexColumnWidth(1),
         },
         children: [
-          buildTableDataRow(srNo: '१६', label: 'सासु/सासऱ्याचे नांव,वय,पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती', value: p3Val(0), height: 115),
-          buildTableDataRow(srNo: '१७', label: 'मेव्हणा/मेव्हणींची नावे वय, पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती', value: p3Val(1), height: 115),
-          buildTableDataRow(srNo: '१८', label: 'मामा/मामीचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', value: p3Val(2), height: 115),
-          buildTableDataRow(srNo: '१९', label: 'काका/ मावशींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', value: p3Val(3), height: 115),
-          buildTableDataRow(srNo: '२०', label: 'चुलता/चुलतीचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', value: p3Val(4), height: 115),
-          buildTableDataRow(srNo: '२१', label: 'आत्याचे / मामाचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती', value: p3Val(5), height: 115),
+          buildTableDataRow(
+              srNo: '१६',
+              label:
+                  'सासु/सासऱ्याचे नांव,वय,पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती',
+              value: p3Val(0),
+              height: 115),
+          buildTableDataRow(
+              srNo: '१७',
+              label:
+                  'मेव्हणा/मेव्हणींची नावे वय, पत्ता, व्यवसाय,फोन व इतर आवश्यक माहीती',
+              value: p3Val(1),
+              height: 115),
+          buildTableDataRow(
+              srNo: '१८',
+              label:
+                  'मामा/मामीचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+              value: p3Val(2),
+              height: 115),
+          buildTableDataRow(
+              srNo: '१९',
+              label:
+                  'काका/ मावशींचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+              value: p3Val(3),
+              height: 115),
+          buildTableDataRow(
+              srNo: '२०',
+              label:
+                  'चुलता/चुलतीचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+              value: p3Val(4),
+              height: 115),
+          buildTableDataRow(
+              srNo: '२१',
+              label:
+                  'आत्याचे / मामाचे नांव ,वय, पत्ता,व्यवसाय,फोन व इतर आवश्यक माहीती',
+              value: p3Val(5),
+              height: 115),
         ],
       );
     },
@@ -1174,15 +1265,47 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
           2: pw.FlexColumnWidth(1),
         },
         children: [
-          buildTableDataRow(srNo: '२२', label: 'शिक्षण/शाळा/ कॉलेज (पत्ता) तसेच संगणकाचे ज्ञान आहे काय?', value: p4Val(0), height: 65),
-          buildTableDataRow(srNo: '२३', label: 'नोकरीस असल्यास पुर्वीचे कार्यालयाचा पत्ता', value: p4Val(1), height: 55),
-          buildTableDataRow(srNo: '२४', label: 'आधारकार्ड क्रमांक', value: p4Val(2), height: 36),
-          buildTableDataRow(srNo: '२५', label: 'पॅनकार्ड क्रमांक', value: p4Val(3), height: 36),
-          buildTableDataRow(srNo: '२६', label: 'वाहन परवाना', value: p4Val(4), height: 36),
-          buildTableDataRow(srNo: '२७', label: 'रेशन कार्ड', value: p4Val(5), height: 36),
-          buildTableDataRow(srNo: '२८', label: 'मालमत्ता (अंदाजे)', value: p4Val(6), height: 55),
-          buildTableDataRow(srNo: '२९', label: 'यापुर्वी झालेली शिक्षा (पोलीस ठाणे,पत्ता गु.नो.क्र,कलम साथीदार,फरार आरोपी )', value: p4Val(7), height: 95),
-          buildTableDataRow(srNo: '३०', label: 'या गुन्ह्यातील आरोपींचे साथीदारांची नावे पुर्ण पत्ता मोबाईल नंबर सह', value: p4Val(8), height: 140),
+          buildTableDataRow(
+              srNo: '२२',
+              label: 'शिक्षण/शाळा/ कॉलेज (पत्ता) तसेच संगणकाचे ज्ञान आहे काय?',
+              value: p4Val(0),
+              height: 65),
+          buildTableDataRow(
+              srNo: '२३',
+              label: 'नोकरीस असल्यास पुर्वीचे कार्यालयाचा पत्ता',
+              value: p4Val(1),
+              height: 55),
+          buildTableDataRow(
+              srNo: '२४',
+              label: 'आधारकार्ड क्रमांक',
+              value: p4Val(2),
+              height: 36),
+          buildTableDataRow(
+              srNo: '२५',
+              label: 'पॅनकार्ड क्रमांक',
+              value: p4Val(3),
+              height: 36),
+          buildTableDataRow(
+              srNo: '२६', label: 'वाहन परवाना', value: p4Val(4), height: 36),
+          buildTableDataRow(
+              srNo: '२७', label: 'रेशन कार्ड', value: p4Val(5), height: 36),
+          buildTableDataRow(
+              srNo: '२८',
+              label: 'मालमत्ता (अंदाजे)',
+              value: p4Val(6),
+              height: 55),
+          buildTableDataRow(
+              srNo: '२९',
+              label:
+                  'यापुर्वी झालेली शिक्षा (पोलीस ठाणे,पत्ता गु.नो.क्र,कलम साथीदार,फरार आरोपी )',
+              value: p4Val(7),
+              height: 95),
+          buildTableDataRow(
+              srNo: '३०',
+              label:
+                  'या गुन्ह्यातील आरोपींचे साथीदारांची नावे पुर्ण पत्ता मोबाईल नंबर सह',
+              value: p4Val(8),
+              height: 140),
         ],
       );
     },
@@ -1208,12 +1331,38 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
           2: pw.FlexColumnWidth(1),
         },
         children: [
-          buildTableDataRow(srNo: '३१', label: 'बसण्या - उठण्याच्या जागा', value: p5Val(0), height: 110),
-          buildTableDataRow(srNo: '३२', label: 'नमुद आरोपीस गुन्ह्याचे ठिकाणची (स्थळ,ईमारत) याबाबत माहीती मिळालेली उगमस्थाने (रेखी ) (गुन्हा करण्याचे स्थळा बाबत माहीती कोठून व कशी मिळवली)', value: p5Val(1), height: 125),
-          buildTableDataRow(srNo: '३३', label: 'गुन्हा करतेवेळी आरोपी यांनी वापरलेली वाहने', value: p5Val(2), height: 110),
-          buildTableDataRow(srNo: '३४', label: 'गुन्हा करते वेळी वापरलेली हत्यारे (काठी,कटवणी,पक्कड, पाने,कटर,गॅस कटर, व इतर )', value: p5Val(3), height: 125),
-          buildTableDataRow(srNo: '३५', label: 'गुन्हा करते वेळी येण्याची दिशा व रस्ते', value: p5Val(4), height: 125),
-          buildTableDataRow(srNo: '३६', label: 'गुन्हा करुन जातेवेळीची दिशा व रस्ते', value: p5Val(5), height: 125),
+          buildTableDataRow(
+              srNo: '३१',
+              label: 'बसण्या - उठण्याच्या जागा',
+              value: p5Val(0),
+              height: 110),
+          buildTableDataRow(
+              srNo: '३२',
+              label:
+                  'नमुद आरोपीस गुन्ह्याचे ठिकाणची (स्थळ,ईमारत) याबाबत माहीती मिळालेली उगमस्थाने (रेखी ) (गुन्हा करण्याचे स्थळा बाबत माहीती कोठून व कशी मिळवली)',
+              value: p5Val(1),
+              height: 125),
+          buildTableDataRow(
+              srNo: '३३',
+              label: 'गुन्हा करतेवेळी आरोपी यांनी वापरलेली वाहने',
+              value: p5Val(2),
+              height: 110),
+          buildTableDataRow(
+              srNo: '३४',
+              label:
+                  'गुन्हा करते वेळी वापरलेली हत्यारे (काठी,कटवणी,पक्कड, पाने,कटर,गॅस कटर, व इतर )',
+              value: p5Val(3),
+              height: 125),
+          buildTableDataRow(
+              srNo: '३५',
+              label: 'गुन्हा करते वेळी येण्याची दिशा व रस्ते',
+              value: p5Val(4),
+              height: 125),
+          buildTableDataRow(
+              srNo: '३६',
+              label: 'गुन्हा करुन जातेवेळीची दिशा व रस्ते',
+              value: p5Val(5),
+              height: 125),
         ],
       );
     },
@@ -1235,26 +1384,44 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
     pageFormat: PdfPageFormat.a4,
     margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 36),
     build: (pw.Context context) {
-      final ioName    = v('ioSigName');
-      final ioRank    = v('ioSigRank');
-      final ioCode    = v('ioSigCode');
+      final ioName = v('ioSigName');
+      final ioRank = v('ioSigRank');
+      final ioCode = v('ioSigCode');
       final ioPosting = v('ioSigPosting');
 
       return pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: [
           pw.Table(
-            border: pw.TableBorder.all(color: PdfColors.black, width: border.width),
+            border:
+                pw.TableBorder.all(color: PdfColors.black, width: border.width),
             columnWidths: const {
               0: pw.FixedColumnWidth(32),
               1: pw.FixedColumnWidth(170),
               2: pw.FlexColumnWidth(1),
             },
             children: [
-              buildTableDataRow(srNo: '३७', label: 'गुन्हा करण्याची पध्दत', value: p6Val(0), height: 140),
-              buildTableDataRow(srNo: '३८', label: 'गुन्ह्यातील चोरलेल्या मुद्देमालाबाबत आरोपीने सांगितलेली माहीती\n(साथीदार यांना वाटप,विक्री तसेच ईतर प्रकारे विल्हेवाट संपूर्ण हकिकत)', value: p6Val(1), height: 180),
-              buildTableDataRow(srNo: '३९', label: 'आरोपीस ओळखणारे पोलीस अधिकारी/अंमलदार,पोलीस पाटील', value: p6Val(2), height: 90),
-              buildTableDataRow(srNo: '४०', label: 'Advisorries', value: p6Val(3), height: 110),
+              buildTableDataRow(
+                  srNo: '३७',
+                  label: 'गुन्हा करण्याची पध्दत',
+                  value: p6Val(0),
+                  height: 140),
+              buildTableDataRow(
+                  srNo: '३८',
+                  label:
+                      'गुन्ह्यातील चोरलेल्या मुद्देमालाबाबत आरोपीने सांगितलेली माहीती\n(साथीदार यांना वाटप,विक्री तसेच ईतर प्रकारे विल्हेवाट संपूर्ण हकिकत)',
+                  value: p6Val(1),
+                  height: 180),
+              buildTableDataRow(
+                  srNo: '३९',
+                  label: 'आरोपीस ओळखणारे पोलीस अधिकारी/अंमलदार,पोलीस पाटील',
+                  value: p6Val(2),
+                  height: 90),
+              buildTableDataRow(
+                  srNo: '४०',
+                  label: 'Advisorries',
+                  value: p6Val(3),
+                  height: 110),
             ],
           ),
           pw.SizedBox(height: 36),
@@ -1265,12 +1432,14 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Center(child: pw.Text('तपासणी अधिकाऱ्याची सही', style: bold)),
+                  pw.Center(
+                      child: pw.Text('तपासणी अधिकाऱ्याची सही', style: bold)),
                   pw.SizedBox(height: 16),
                   pw.Text('नांव :- $ioName', style: regular),
                   pw.SizedBox(height: 6),
                   pw.Row(children: [
-                    pw.Expanded(child: pw.Text('पदनाम :- $ioRank', style: regular)),
+                    pw.Expanded(
+                        child: pw.Text('पदनाम :- $ioRank', style: regular)),
                     pw.Text('कोड नंबर :- $ioCode', style: regular),
                   ]),
                   pw.SizedBox(height: 6),
@@ -1299,9 +1468,10 @@ Future<Uint8List> _pwGenerate(Map<String, dynamic> doc) async {
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
             pw.Container(
-              decoration: const pw.BoxDecoration(
-                  border: pw.Border(bottom: border)),
-              padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+              decoration:
+                  const pw.BoxDecoration(border: pw.Border(bottom: border)),
+              padding:
+                  const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 10),
               child: pw.Column(children: [
                 pw.Text(
                   'मुद्दा क्रमांक ३७ ची अधिक माहिती',

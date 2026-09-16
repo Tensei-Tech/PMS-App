@@ -20,11 +20,11 @@ import 'package:printing/printing.dart';
 import '../widgets/form_section_utils.dart';
 
 // ── Dimensions ─────────────────────────────────────────────────────────────────
-const double _kW = 794.0;      // A4 portrait width at 96 DPI
-const double _kH = 1123.0;     // A4 portrait height at 96 DPI
+const double _kW = 794.0; // A4 portrait width at 96 DPI
+const double _kH = 1123.0; // A4 portrait height at 96 DPI
 const double _kWLand = 1123.0; // A4 landscape width at 96 DPI
-const double _kHLand = 794.0;  // A4 landscape height at 96 DPI
-const double _kPx = 2.0;       // 2x capture pixel ratio
+const double _kHLand = 794.0; // A4 landscape height at 96 DPI
+const double _kPx = 2.0; // 2x capture pixel ratio
 
 // ── Public API ─────────────────────────────────────────────────────────────────
 
@@ -254,7 +254,8 @@ Widget _checkBox(String label, bool checked) {
       Container(
         width: 11,
         height: 11,
-        decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
+        decoration:
+            BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
         child: checked
             ? const Center(
                 child: Text('✓',
@@ -382,7 +383,8 @@ Widget _pg3A(Map<String, dynamic> doc) {
               width: 60,
               padding: const EdgeInsets.only(left: 4, right: 4, bottom: 1),
               decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
+                border:
+                    Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
               ),
               child: Text(_v(doc, 'accusedCode'), style: _fValue()),
             ),
@@ -444,8 +446,10 @@ Widget _pg3A(Map<String, dynamic> doc) {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('3. Name of the court (if surrender):-', style: _fBold(size: 8.5)),
-                Text('न्यायालयाचे नांव (स्वाधीन झाल्यास):-', style: _fMarathi(size: 7.5)),
+                Text('3. Name of the court (if surrender):-',
+                    style: _fBold(size: 8.5)),
+                Text('न्यायालयाचे नांव (स्वाधीन झाल्यास):-',
+                    style: _fMarathi(size: 7.5)),
               ],
             ),
             const SizedBox(width: 8),
@@ -453,7 +457,8 @@ Widget _pg3A(Map<String, dynamic> doc) {
               child: Container(
                 padding: const EdgeInsets.only(bottom: 1),
                 decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
+                  border: Border(
+                      bottom: BorderSide(color: Colors.black, width: 0.8)),
                 ),
                 child: Text(_v(doc, 'courtName'), style: _fValue()),
               ),
@@ -478,7 +483,8 @@ Widget _pg3A(Map<String, dynamic> doc) {
               child: Container(
                 padding: const EdgeInsets.only(bottom: 1),
                 decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
+                  border: Border(
+                      bottom: BorderSide(color: Colors.black, width: 0.8)),
                 ),
                 child: Text(_v(doc, 'actsSections'), style: _fValue()),
               ),
@@ -501,10 +507,13 @@ Widget _pg3A(Map<String, dynamic> doc) {
           spacing: 12,
           runSpacing: 4,
           children: [
-            _checkBox('Arrested & forward', doc['arrestedAndForwarded'] == true),
+            _checkBox(
+                'Arrested & forward', doc['arrestedAndForwarded'] == true),
             _checkBox('Arrested & bailed', doc['arrestedAndBailed'] == true),
-            _checkBox('Anticipatory bail', doc['arrestedButAnticipatory'] == true),
-            _checkBox('Police Custody', doc['arrestedAndRemandedPolice'] == true),
+            _checkBox(
+                'Anticipatory bail', doc['arrestedButAnticipatory'] == true),
+            _checkBox(
+                'Police Custody', doc['arrestedAndRemandedPolice'] == true),
             _checkBox('Surrender & bailed', doc['surrenderBailed'] == true),
             _checkBox('Judicial Custody', doc['surrenderJudicial'] == true),
             _checkBox('Surrender & PCR', doc['surrenderPolice'] == true),
@@ -625,7 +634,8 @@ Widget _pg3A(Map<String, dynamic> doc) {
                       padding: const EdgeInsets.only(bottom: 1),
                       decoration: const BoxDecoration(
                         border: Border(
-                            bottom: BorderSide(color: Colors.black, width: 0.8)),
+                            bottom:
+                                BorderSide(color: Colors.black, width: 0.8)),
                       ),
                       child: Text(_v(doc, 'permAddress'), style: _fValue()),
                     ),
@@ -666,7 +676,8 @@ Widget _pg3A(Map<String, dynamic> doc) {
                       padding: const EdgeInsets.only(bottom: 1),
                       decoration: const BoxDecoration(
                         border: Border(
-                            bottom: BorderSide(color: Colors.black, width: 0.8)),
+                            bottom:
+                                BorderSide(color: Colors.black, width: 0.8)),
                       ),
                       child: Text(_v(doc, 'presAddress'), style: _fValue()),
                     ),
@@ -718,7 +729,8 @@ Widget _pg3A(Map<String, dynamic> doc) {
               height: 24,
               padding: const EdgeInsets.only(bottom: 1),
               decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
+                border:
+                    Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
               ),
               child: Text(_v(doc, 'injuries'), style: _fValue()),
             ),
@@ -936,7 +948,8 @@ Widget _pg3B_2(Map<String, dynamic> doc) {
                       style: _fBold(size: 7.5), textAlign: TextAlign.center),
                   Text(headersMr[i],
                       style: _fMarathi(size: 6.8), textAlign: TextAlign.center),
-                  const Divider(color: Colors.black45, thickness: 0.5, height: 4),
+                  const Divider(
+                      color: Colors.black45, thickness: 0.5, height: 4),
                   Text('${colIndices[i]}',
                       style: _fBold(size: 7), textAlign: TextAlign.center),
                 ],
@@ -1077,7 +1090,8 @@ Widget _pg3B_2(Map<String, dynamic> doc) {
               child: Container(
                 padding: const EdgeInsets.only(bottom: 1),
                 decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
+                  border: Border(
+                      bottom: BorderSide(color: Colors.black, width: 0.8)),
                 ),
                 child: Text(_v(doc, 'otherFeatures'), style: _fValue()),
               ),
@@ -1142,7 +1156,8 @@ Widget _pg3C(Map<String, dynamic> doc) {
                 children: [
                   _checkBox('Living alone', doc['livingAlone'] == true),
                   _checkBox('With Family', doc['livingWithFamily'] == true),
-                  _checkBox('With Associate', doc['livingWithAssociate'] == true),
+                  _checkBox(
+                      'With Associate', doc['livingWithAssociate'] == true),
                   _checkBox('Pucca House', doc['livingPucca'] == true),
                   _checkBox('Hotel', doc['livingHotel'] == true),
                   _checkBox('Hostel', doc['livingHostel'] == true),
@@ -1270,8 +1285,9 @@ Widget _pg3C(Map<String, dynamic> doc) {
                     child: Container(
                       padding: const EdgeInsets.only(bottom: 1),
                       decoration: const BoxDecoration(
-                        border:
-                            Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
+                        border: Border(
+                            bottom:
+                                BorderSide(color: Colors.black, width: 0.8)),
                       ),
                       child: Text(_v(doc, 'caseRefSec'), style: _fValue()),
                     ),
@@ -1350,7 +1366,8 @@ Widget _pg3C(Map<String, dynamic> doc) {
                     width: 160,
                     height: 22,
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
+                      border: Border(
+                          bottom: BorderSide(color: Colors.black, width: 0.8)),
                     ),
                     alignment: Alignment.bottomLeft,
                     child: Text(_v(doc, 'arrestedPersonSig'), style: _fValue()),
@@ -1384,7 +1401,8 @@ Widget _pg3C(Map<String, dynamic> doc) {
                     width: 160,
                     height: 22,
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
+                      border: Border(
+                          bottom: BorderSide(color: Colors.black, width: 0.8)),
                     ),
                     alignment: Alignment.bottomLeft,
                     child: Text(_v(doc, 'ioSig'), style: _fValue()),

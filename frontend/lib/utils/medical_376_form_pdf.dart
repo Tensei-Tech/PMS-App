@@ -18,9 +18,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 // ── Dimensions ─────────────────────────────────────────────────────────────────
-const double _kW = 794.0;      // A4 portrait width at 96 DPI
-const double _kH = 1123.0;     // A4 portrait height at 96 DPI
-const double _kPx = 2.0;       // 2x capture pixel ratio
+const double _kW = 794.0; // A4 portrait width at 96 DPI
+const double _kH = 1123.0; // A4 portrait height at 96 DPI
+const double _kPx = 2.0; // 2x capture pixel ratio
 
 // ── Public API ─────────────────────────────────────────────────────────────────
 
@@ -203,8 +203,7 @@ Widget _row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(labelEn, style: _fBold(size: 8)),
-              if (labelMr.isNotEmpty)
-                Text(labelMr, style: _fMarathi(size: 7)),
+              if (labelMr.isNotEmpty) Text(labelMr, style: _fMarathi(size: 7)),
             ],
           ),
         ),
@@ -213,7 +212,8 @@ Widget _row(
           child: Container(
             padding: const EdgeInsets.only(bottom: 1),
             decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.black45, width: 0.5)),
+              border:
+                  Border(bottom: BorderSide(color: Colors.black45, width: 0.5)),
             ),
             child: Text(
               val.isEmpty ? '—' : val,
@@ -299,15 +299,16 @@ Widget _pgFemale1(Map<String, dynamic> doc) {
         Center(
           child: Column(
             children: [
-              Text('Medico-legal Examination Report of Sexual Violence (Female)',
-                  style: _fH1(), textAlign: TextAlign.center),
+              Text(
+                  'Medico-legal Examination Report of Sexual Violence (Female)',
+                  style: _fH1(),
+                  textAlign: TextAlign.center),
               Text('लैंगिक हिंसाचाराचा वैद्यकीय-कायदेशीर तपासणी अहवाल (स्त्री)',
                   style: _fH1M(), textAlign: TextAlign.center),
             ],
           ),
         ),
         const SizedBox(height: 6),
-
         _row('Hospital', 'रुग्णालय', _v(doc, 'f_hospital')),
         _row('Name', 'नाव', _v(doc, 'f_name')),
         _row('Age / DOB', 'वय / जन्मतारीख',
@@ -315,18 +316,20 @@ Widget _pgFemale1(Map<String, dynamic> doc) {
         _row('MLC / P.S.', 'एम.एल.सी. / पो.ठ.',
             '${_v(doc, 'f_mlc')} / ${_v(doc, 'f_ps')}'),
         _row('Arrival', 'आगमन', _v(doc, 'f_arrival')),
-
-        _section('12. Informed Consent / refusal', '१२. माहितीपूर्ण संमती / नकार'),
+        _section(
+            '12. Informed Consent / refusal', '१२. माहितीपूर्ण संमती / नकार'),
         Text(
           'I ${_v(doc, 'f_consentName').isEmpty ? _v(doc, 'f_name') : _v(doc, 'f_consentName')} D/o or S/o ${_v(doc, 'f_consentParent').isEmpty ? _v(doc, 'f_parent') : _v(doc, 'f_consentParent')} hereby give my consent for:',
           style: _fRegular(size: 7.5),
         ),
-        _row('a) medical examination for treatment', 'अ) उपचारासाठी वैद्यकीय तपासणी',
-            _v(doc, 'f_consentTreatment')),
-        _row('b) this medico legal examination', 'ब) ही वैद्यकीय-कायदेशीर तपासणी',
-            _v(doc, 'f_consentMedicoLegal')),
-        _row('c) sample collection for clinical & forensic examination',
-            'क) नैदानिक व फॉरेन्सिक नमुने गोळा करणे', _v(doc, 'f_consentSample')),
+        _row('a) medical examination for treatment',
+            'अ) उपचारासाठी वैद्यकीय तपासणी', _v(doc, 'f_consentTreatment')),
+        _row('b) this medico legal examination',
+            'ब) ही वैद्यकीय-कायदेशीर तपासणी', _v(doc, 'f_consentMedicoLegal')),
+        _row(
+            'c) sample collection for clinical & forensic examination',
+            'क) नैदानिक व फॉरेन्सिक नमुने गोळा करणे',
+            _v(doc, 'f_consentSample')),
         Text(
           'I also understand that as per law the hospital is required to inform police and this has been explained to me.',
           style: _fRegular(size: 7.5),
@@ -338,26 +341,25 @@ Widget _pgFemale1(Map<String, dynamic> doc) {
           style: _fRegular(size: 7.5),
         ),
         if (_v(doc, 'f_consentHelperSig').isNotEmpty)
-          _row('Special educator/interpreter signature', 'विशेष शिक्षक/दुभाषी सही',
-              _v(doc, 'f_consentHelperSig')),
-
+          _row('Special educator/interpreter signature',
+              'विशेष शिक्षक/दुभाषी सही', _v(doc, 'f_consentHelperSig')),
         _section('Signatures', 'सह्या'),
         _row('Survivor / Guardian signature', 'पीडित / पालक सही',
             _v(doc, 'f_survivorSig')),
         _row('Witness signature / thumb', 'साक्षीदार सही / अंगठा',
             _v(doc, 'f_witnessSig')),
-
         _section('13. Marks of identification', '१३. ओळखीच्या खुणा'),
         _row('(1)', '(१)', _v(doc, 'f_idMark1')),
         _row('(2)', '(२)', _v(doc, 'f_idMark2')),
-
         _section('14. Relevant Medical/Surgical history',
             '१४. संबंधित वैद्यकीय / शस्त्रक्रिया इतिहास'),
         _row('Onset of menarche', 'मासिक पाळी सुरू झाल्याचे',
             '${_v(doc, 'f_menarcheYesNo')} (Age: ${_v(doc, 'f_menarcheAge')})'),
         _row('Menstrual history', 'मासिक पाळी चक्र व LMP',
             'Cycle: ${_v(doc, 'f_menstrualCycle')}, LMP: ${_v(doc, 'f_lastMenstrualPeriod')}'),
-        _row('Menstruation at incident / exam', 'घटनेच्या वेळी / तपासणीच्या वेळी',
+        _row(
+            'Menstruation at incident / exam',
+            'घटनेच्या वेळी / तपासणीच्या वेळी',
             'Incident: ${_v(doc, 'f_menstruationAtIncident')}, Exam: ${_v(doc, 'f_menstruationAtExam')}'),
         _row('Pregnant at incident', 'गर्भधारणा',
             '${_v(doc, 'f_pregnantAtIncident')} (${_v(doc, 'f_pregnancyDuration')} weeks)'),
@@ -393,7 +395,6 @@ Widget _pgFemale2(Map<String, dynamic> doc) {
             '${_v(doc, 'f_assailantSex')} / ${_v(doc, 'f_assailantAge')} / ${_v(doc, 'f_assailantRelationship')}'),
         _row('(vii) Narrator', 'निवेदक', _v(doc, 'f_narratorDetails')),
         _textBlock(_v(doc, 'f_violenceHistory'), 'घटनेचे वर्णन :'),
-
         _section('15 B. Type of physical violence used',
             '१५ ब. शारीरिक हिंसाचाराचा प्रकार'),
         () {
@@ -408,7 +409,8 @@ Widget _pgFemale2(Map<String, dynamic> doc) {
           if (_v(doc, 'f_kicking').isNotEmpty) types.add('Kicking');
           if (_v(doc, 'f_pinching').isNotEmpty) types.add('Pinching');
           if (_v(doc, 'f_pullingHair').isNotEmpty) types.add('Pulling Hair');
-          if (_v(doc, 'f_violentShaking').isNotEmpty) types.add('Violent shaking');
+          if (_v(doc, 'f_violentShaking').isNotEmpty)
+            types.add('Violent shaking');
           if (_v(doc, 'f_bangingHead').isNotEmpty) types.add('Banging head');
           if (types.isEmpty) {
             return Text(
@@ -426,7 +428,6 @@ Widget _pgFemale2(Map<String, dynamic> doc) {
                 .toList(),
           );
         }(),
-
         _section('15 C. Other violence details', '१५ क. इतर हिंसा तपशील'),
         if (_v(doc, 'f_15cEmotionalAbuse').isNotEmpty)
           _row('Emotional abuse', 'भावनिक छळ', _v(doc, 'f_15cEmotionalAbuse')),
@@ -440,29 +441,32 @@ Widget _pgFemale2(Map<String, dynamic> doc) {
           _row('Luring', 'आमिष', _v(doc, 'f_15cLuring')),
         if (_v(doc, 'f_15cAnyOther').isNotEmpty)
           _row('Any other', 'इतर', _v(doc, 'f_15cAnyOther')),
-
         _section('15 D. Intoxication & Consciousness', '१५ ड. नशा व शुद्धी'),
         _row('Drug/alcohol intoxication', 'औषध/दारू नशा',
             _v(doc, 'f_15dIntoxication')),
         _row('Sleeping/unconscious at incident', 'झोपलेले/बेशुद्ध',
             _v(doc, 'f_15dUnconscious')),
-
         _section('15 E. Injury on assailant', '१५ इ. आरोपीवर जखमा'),
-        _row('Marks on assailant', 'आरोपीवरील खुणा', _v(doc, 'f_15eAssailantInjury')),
-
+        _row('Marks on assailant', 'आरोपीवरील खुणा',
+            _v(doc, 'f_15eAssailantInjury')),
         _section('15 F. Sexual violence details', '१५ फ. लैंगिक हिंसा तपशील'),
-        _row('Penetration Genitalia (Penis/Body/Obj)',
+        _row(
+            'Penetration Genitalia (Penis/Body/Obj)',
             'योनी प्रवेश (लिंग/अवयव/वस्तू)',
             '${_v(doc, 'f_penGenitaliaPenis')} / ${_v(doc, 'f_penGenitaliaBodyPart')} / ${_v(doc, 'f_penGenitaliaObject')} (Emission: ${_v(doc, 'f_emissionGenitalia')})'),
-        _row('Penetration Anus (Penis/Body/Obj)',
+        _row(
+            'Penetration Anus (Penis/Body/Obj)',
             'गुद प्रवेश (लिंग/अवयव/वस्तू)',
             '${_v(doc, 'f_penAnusPenis')} / ${_v(doc, 'f_penAnusBodyPart')} / ${_v(doc, 'f_penAnusObject')} (Emission: ${_v(doc, 'f_emissionAnus')})'),
-        _row('Penetration Mouth (Penis/Body/Obj)',
+        _row(
+            'Penetration Mouth (Penis/Body/Obj)',
             'मुख प्रवेश (लिंग/अवयव/वस्तू)',
             '${_v(doc, 'f_penMouthPenis')} / ${_v(doc, 'f_penMouthBodyPart')} / ${_v(doc, 'f_penMouthObject')} (Emission: ${_v(doc, 'f_emissionMouth')})'),
         _row('Oral sex by assailant', 'आरोपीने केलेले ओरल सेक्स',
             _v(doc, 'f_oralSexPerformed')),
-        _row('Forced masturbation of self', 'स्वतःचे हस्तमैथुन करण्यास भाग पाडले',
+        _row(
+            'Forced masturbation of self',
+            'स्वतःचे हस्तमैथुन करण्यास भाग पाडले',
             _v(doc, 'f_forcedMasturbationSelf')),
         _row('Masturbation of assailant', 'आरोपीचे हस्तमैथुन',
             _v(doc, 'f_masturbationAssailant')),
@@ -481,9 +485,11 @@ Widget _pgFemale2(Map<String, dynamic> doc) {
           _row('Status of condom', 'निरोध स्थिती', _v(doc, 'f_condomStatus')),
         _row('Lubricant used', 'स्नेहक वापरले', _v(doc, 'f_lubricantUsed')),
         if (_v(doc, 'f_lubricantKindDesc').isNotEmpty)
-          _row('Kind of lubricant', 'स्नेहक प्रकार', _v(doc, 'f_lubricantKindDesc')),
+          _row('Kind of lubricant', 'स्नेहक प्रकार',
+              _v(doc, 'f_lubricantKindDesc')),
         if (_v(doc, 'f_objectUsedDesc').isNotEmpty)
-          _row('Object description', 'वस्तूचे वर्णन', _v(doc, 'f_objectUsedDesc')),
+          _row('Object description', 'वस्तूचे वर्णन',
+              _v(doc, 'f_objectUsedDesc')),
         if (_v(doc, 'f_otherSexualViolenceForms').isNotEmpty)
           _row('Other forms of sexual violence', 'इतर लैंगिक हिंसा प्रकार',
               _v(doc, 'f_otherSexualViolenceForms')),
@@ -563,7 +569,6 @@ Widget _pgFemale3(Map<String, dynamic> doc) {
         if (_v(doc, 'f_painSinceIncident').isNotEmpty)
           _row('Pain/urination/fissures since incident', 'वेदना/लघवी त्रास',
               _v(doc, 'f_painSinceIncident')),
-
         _section(
             '16. General Physical Examination', '१६. सामान्य शारीरिक तपासणी'),
         if (_v(doc, 'f_examIsFirst').isNotEmpty)
@@ -573,7 +578,8 @@ Widget _pgFemale3(Map<String, dynamic> doc) {
           spacing: 16,
           runSpacing: 3,
           children: [
-            if (_v(doc, 'f_examPulse').isNotEmpty || _v(doc, 'f_examBp').isNotEmpty)
+            if (_v(doc, 'f_examPulse').isNotEmpty ||
+                _v(doc, 'f_examBp').isNotEmpty)
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -588,7 +594,8 @@ Widget _pgFemale3(Map<String, dynamic> doc) {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('Temp/Resp: ', style: _fBold(size: 8)),
-                  Text('${_v(doc, 'f_examTemp')} / ${_v(doc, 'f_examRespRate')}',
+                  Text(
+                      '${_v(doc, 'f_examTemp')} / ${_v(doc, 'f_examRespRate')}',
                       style: _fValue(size: 8)),
                 ],
               ),
@@ -606,7 +613,6 @@ Widget _pgFemale3(Map<String, dynamic> doc) {
           _row('General wellbeing observation', 'सामान्य आरोग्य निरीक्षण',
               _v(doc, 'f_examGeneralWellbeing')),
         _textBlock(_v(doc, 'f_generalExam'), ''),
-
         _section('17. Examination for injuries on the body',
             '१७. शरीरावरील जखमा तपासणी'),
         () {
@@ -642,7 +648,6 @@ Widget _pgFemale3(Map<String, dynamic> doc) {
                   style: _fRegular(size: 8))
               : Column(children: filled);
         }(),
-
         _section('18. Local examination of genital parts / other orifices',
             '१८. गुप्तांग / इतर छिद्रांची स्थानिक तपासणी'),
         () {
@@ -728,7 +733,6 @@ Widget _pgFemale4(Map<String, dynamic> doc) {
           ],
         ),
         _textBlock(_v(doc, 'f_systemicExam'), ''),
-
         _section('20. Sample Collection — Hospital Lab',
             '२०. नमुने — रुग्णालय प्रयोगशाळा'),
         if (_v(doc, 'f_sampleBloodHiv').isNotEmpty)
@@ -742,7 +746,6 @@ Widget _pgFemale4(Map<String, dynamic> doc) {
               _v(doc, 'f_sampleUsg')),
         if (_v(doc, 'f_sampleXray').isNotEmpty)
           _row('X-ray for Injury', 'क्ष-किरण तपासणी', _v(doc, 'f_sampleXray')),
-
         _section('21. Samples for FSL', '२१. न्यायवैद्यक प्रयोगशाळेसाठी नमुने'),
         if (_v(doc, 'f_fslDebris').isNotEmpty)
           _row('Debris paper', 'डेब्रिस कागद', _v(doc, 'f_fslDebris')),
@@ -780,7 +783,6 @@ Widget _pgFemale4(Map<String, dynamic> doc) {
           }
           return out.isEmpty ? const SizedBox.shrink() : Column(children: out);
         }(),
-
         _section('Genital and Anal Evidence', 'गुप्तांग व गुद पुरावा'),
         () {
           final col = doc['f_genitalEvidenceCollected'];
@@ -812,8 +814,8 @@ Widget _pgFemale4(Map<String, dynamic> doc) {
           }
           return out.isEmpty ? const SizedBox.shrink() : Column(children: out);
         }(),
-
-        _section('22. Provisional Medical Opinion', '२२. तात्पुरती वैद्यकीय मते'),
+        _section(
+            '22. Provisional Medical Opinion', '२२. तात्पुरती वैद्यकीय मते'),
         if (_v(doc, 'f_provSurvivorName').isNotEmpty ||
             _v(doc, 'f_provCircumstances').isNotEmpty)
           Text(
@@ -824,7 +826,6 @@ Widget _pgFemale4(Map<String, dynamic> doc) {
           _row('Clinical Findings', 'वैद्यकीय निष्कर्ष',
               _v(doc, 'f_provClinicalFindings')),
         _textBlock(_v(doc, 'f_provisionalOpinion'), ''),
-
         _section('23. Treatment Prescribed', '२३. दिलेला उपचार'),
         () {
           final choices = doc['f_treatmentChoice'];
@@ -855,8 +856,8 @@ Widget _pgFemale4(Map<String, dynamic> doc) {
           return out.isEmpty ? const SizedBox.shrink() : Column(children: out);
         }(),
         _textBlock(_v(doc, 'f_treatment'), ''),
-
-        _section('24. Completion & 25. Final Opinion', '२४. पूर्णता व २५. अंतिम मत'),
+        _section(
+            '24. Completion & 25. Final Opinion', '२४. पूर्णता व २५. अंतिम मत'),
         Wrap(
           spacing: 16,
           runSpacing: 3,
@@ -917,7 +918,6 @@ Widget _pgMale1(Map<String, dynamic> doc) {
           ),
         ),
         const SizedBox(height: 8),
-
         _row('Hospital', 'रुग्णालय', _v(doc, 'm_hospital')),
         _row('Accused Name', 'आरोपीचे नाव', _v(doc, 'm_accusedName')),
         _row('Age / DOB', 'वय / जन्मतारीख',
@@ -926,19 +926,14 @@ Widget _pgMale1(Map<String, dynamic> doc) {
             '${_v(doc, 'm_mlc')} / ${_v(doc, 'm_crNo')}'),
         _row('Police / P.S.', 'पोलीस / ठाणे',
             '${_v(doc, 'm_policeName')} / ${_v(doc, 'm_ps')}'),
-
         _section('8. CONSENT', '८. संमती'),
         _textBlock(_v(doc, 'm_consent'), 'संमती तपशील:'),
-
         _section('History (as stated by Accused)', 'आरोपीने सांगितलेला इतिहास'),
         _textBlock(_v(doc, 'm_assaultHistory'), ''),
-
         _section('General Physical Examination', 'सामान्य शारीरिक तपासणी'),
         _textBlock(_v(doc, 'm_generalPhysical'), ''),
-
         _section('Local Examination', 'स्थानिक तपासणी'),
         _textBlock(_v(doc, 'm_localExam'), ''),
-
         _section('VIII) Sample collection for Hospital / Clinical Laboratory',
             '८) रुग्णालय / क्लिनिकल प्रयोगशाळेसाठी नमुने गोळा करणे'),
         Table(
@@ -988,7 +983,9 @@ Widget _pgMale1(Map<String, dynamic> doc) {
                 'Plain Sterile Bulb', _v(doc, 'm_lab10Collected')),
             _maleLabRow(
                 '11',
-                _v(doc, 'm_lab11Sample').isEmpty ? 'Other' : _v(doc, 'm_lab11Sample'),
+                _v(doc, 'm_lab11Sample').isEmpty
+                    ? 'Other'
+                    : _v(doc, 'm_lab11Sample'),
                 _v(doc, 'm_lab11Test'),
                 _v(doc, 'm_lab11Packing'),
                 _v(doc, 'm_lab11Collected')),
@@ -1005,7 +1002,8 @@ TableRow _maleLabRow(
     children: [
       Padding(
         padding: const EdgeInsets.all(3),
-        child: Text(sr, style: _fRegular(size: 7.5), textAlign: TextAlign.center),
+        child:
+            Text(sr, style: _fRegular(size: 7.5), textAlign: TextAlign.center),
       ),
       Padding(
         padding: const EdgeInsets.all(3),
@@ -1047,7 +1045,6 @@ Widget _pgMale2(Map<String, dynamic> doc) {
         ),
         const SizedBox(height: 4),
         _row('Note (If any)', 'टिपणी (असल्यास)', _v(doc, 'm_fslNote')),
-
         _section('PROVISIONAL OPINION: **', 'तात्पुरते वैद्यकीय मत: **'),
         Text(
           'After examining the person bearing above mentioned identification marks, ${_v(doc, 'm_opinionTimeElapsed')} days/hours after the incident, I/We is/are of the opinion that:',
@@ -1082,7 +1079,8 @@ Widget _pgMale2(Map<String, dynamic> doc) {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Signature: ${_v(doc, 'm_doctorSig')}', style: _fValue(size: 8)),
+                Text('Signature: ${_v(doc, 'm_doctorSig')}',
+                    style: _fValue(size: 8)),
                 Text('Name of Dr.: ${_v(doc, 'm_doctorName')}',
                     style: _fValue(size: 8)),
                 Text('Dept/Desig: ${_v(doc, 'm_doctorDeptDesig')}',
