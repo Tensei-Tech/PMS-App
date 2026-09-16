@@ -34,6 +34,10 @@ Future<RenderedText> renderTextToImage(
     return RenderedText(bytes: Uint8List(0), width: 0, height: 0);
   }
 
+  // Yield to the event loop so the UI (like loading spinners) can paint
+  // during intensive pre-rendering of hundreds of text blocks.
+  await Future.delayed(const Duration(milliseconds: 1));
+
   final textPainter = TextPainter(
     text: TextSpan(text: text, style: style),
     textDirection: TextDirection.ltr,

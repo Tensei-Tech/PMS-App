@@ -28,13 +28,6 @@ class FormPaperPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFCFCFA),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
         border: Border.all(color: Colors.grey.shade300, width: 1),
       ),
       padding: const EdgeInsets.all(FormLayout.paperPadding),

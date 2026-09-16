@@ -86,9 +86,9 @@ final List<FormsListEntry> kFormsHierarchyMock = [
   FormsListEntry(
     title: 'Crime Detail Form',
     subSections: [
-      _sub('Form 2-A — Case & Occurrence', '§§1–4 (no I.O. block)',
+      _sub('Form 2-A — Case & Occurrence', '1–4 (no I.O. block)',
           sectionId: 'Form 2-A'),
-      _sub('Form 2-B — Victims & Property', '§§5–8 (no I.O. block)',
+      _sub('Form 2-B — Victims & Property', '5–8 (no I.O. block)',
           sectionId: 'Form 2-B'),
       _sub('Form 2-C — Place, Map & Evidence', 'Ends at I.O. signature',
           sectionId: 'Form 2-C'),
@@ -97,7 +97,7 @@ final List<FormsListEntry> kFormsHierarchyMock = [
   FormsListEntry(
     title: 'Property & Seizure Form',
     subSections: [
-      _sub('Seizure Panchanama Memo', '§§1–11 body',
+      _sub('Seizure Panchanama Memo', '1–11 body',
           sectionId: 'Seizure Memo Body'),
       _sub('Seizure Memo — Signatures', 'Ends at I.O. signature',
           sectionId: 'Seizure Memo Signatures'),
@@ -106,7 +106,7 @@ final List<FormsListEntry> kFormsHierarchyMock = [
   FormsListEntry(
     title: 'House/Property Search & Seizure',
     subSections: [
-      _sub('Search & Seizure Form', '§§1–10', sectionId: 'Search Seizure Form'),
+      _sub('Search & Seizure Form', '1–10', sectionId: 'Search Seizure Form'),
       _sub('Search & Seizure Panchanama', 'Ends at I.O. signature',
           sectionId: 'Search Seizure Panchanama'),
     ],
@@ -121,8 +121,8 @@ final List<FormsListEntry> kFormsHierarchyMock = [
   FormsListEntry(
     title: 'Arrest/Court Surrender Form',
     subSections: [
-      _sub('Form 3-A — Arrest Particulars', '§§1–7', sectionId: 'Form 3-A'),
-      _sub('Form 3-B — Custody & Physical Features', '§§8–9',
+      _sub('Form 3-A — Arrest Particulars', '1–7', sectionId: 'Form 3-A'),
+      _sub('Form 3-B — Custody & Physical Features', '8–9',
           sectionId: 'Form 3-B'),
       _sub('Form 3-C — Profile & Signatures', 'Ends at I.O. signature',
           sectionId: 'Form 3-C'),
