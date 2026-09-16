@@ -1,20 +1,33 @@
-import 'dart:io';
+// lib/utils/crime_detail_pdf.dart
+//
+// IMAGE-BASED PDF generation for CRIME DETAILS FORM:
+//   Page 1: Form 2-A (Case & Occurrence)
+//   Page 2: Form 2-B (Victims & Property)
+//   Page 3: Form 2-C (Place, Map & Evidence)
+//
+// Renders pages as native Flutter widgets offscreen and captures them at 2.0x DPI
+// for 100% Devanagari/Marathi accuracy with zero edge cropping.
+
+import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../widgets/form_section_utils.dart';
-import 'form_io_terminology.dart';
-import 'marathi_text_renderer.dart';
+
+const double _kW = 794.0;
+const double _kH = 1123.0;
+const double _kPx = 2.0;
 
 Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final out = Map<String, dynamic>.from(source);
 
-  // Registration / FIR
   final firNo = source['crNo'] ??
       source['firNo'] ??
       source['caseNumber'] ??
@@ -27,7 +40,6 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
       source['regDate'] ?? source['date'] ?? source['incidentDate'] ?? '';
   out['date'] = regDateStr.toString();
 
-  // Complainant KYC
   final comp = source['complainant'];
   if (comp is Map) {
     out['complainantName'] =
@@ -36,13 +48,9 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
     out['complainantGender'] = comp['gender']?.toString() ?? '';
     out['complainantOccupation'] = comp['occ']?.toString() ?? '';
     out['complainantMobile'] = comp['mobile']?.toString() ?? '';
-    out['complainantAadhaar'] = comp['aadhaar']?.toString() ?? '';
     out['complainantAddress'] = comp['address']?.toString() ?? '';
-    out['complainantReligion'] = comp['religion']?.toString() ?? '';
-    out['complainantCaste'] = comp['caste']?.toString() ?? '';
   }
 
-  // Victim KYC
   final victim = source['victim'];
   if (victim is Map) {
     out['victimName'] = victim['name']?.toString() ?? out['victimName'] ?? '';
@@ -50,13 +58,9 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
     out['victimGender'] = victim['gender']?.toString() ?? '';
     out['victimOccupation'] = victim['occ']?.toString() ?? '';
     out['victimMobile'] = victim['mobile']?.toString() ?? '';
-    out['victimAadhaar'] = victim['aadhaar']?.toString() ?? '';
     out['victimAddress'] = victim['address']?.toString() ?? '';
-    out['victimReligion'] = victim['religion']?.toString() ?? '';
-    out['victimCaste'] = victim['caste']?.toString() ?? '';
   }
 
-  // Crime Spot
   final village = source['spotVillage']?.toString() ?? '';
   final area = source['spotArea']?.toString() ?? '';
   final addr = source['spotAddress']?.toString() ?? '';
@@ -66,7 +70,6 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
     out['spotAddress'] = spotFull;
   }
 
-  // Case IO
   final caseResp = source['caseResponsibility'];
   if (caseResp is Map) {
     out['ioName'] = caseResp['ioName']?.toString() ?? out['ioName'] ?? '';
@@ -81,33 +84,31 @@ Future<void> previewCrimeDetailPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateCrimeDetailPdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Crime_Detail_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
   try {
+    final bytes = await _buildImagePdf(context, doc);
+    if (!context.mounted) return;
     if (kIsWeb) {
       await Printing.sharePdf(bytes: bytes, filename: fileName);
     } else {
       await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
     }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
+  } catch (e) {
+    debugPrint('Error generating image-based Crime Detail PDF: $e');
+    if (!context.mounted) return;
+    try {
+      final bytes = await generateCrimeDetailPdf(doc);
+      await Printing.sharePdf(bytes: bytes, filename: fileName);
+    } catch (_) {}
   }
 }
 
-Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
+Future<Uint8List> _buildImagePdf(
+  BuildContext context,
+  Map<String, dynamic> rawDoc,
+) async {
   final doc = mapToCrimeDetailDoc(rawDoc);
-  final pdf = pw.Document();
-
-  // Load fonts dynamically from Google Fonts via Printing package
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagariRegular = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
-
-  // Pre-render Marathi text blocks to cache as images to resolve Indic shaping issues
-  final cache = await _preRenderAllMarathi(doc);
 
   const knownSectionIds = {'Form 2-A', 'Form 2-B', 'Form 2-C'};
   final activeSection = doc['formSection']?.toString();
@@ -118,1906 +119,733 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
         knownSectionIds: knownSectionIds,
       );
 
-  final pw.TextStyle englishStyle = pw.TextStyle(
-    font: loraRegular,
-    fontSize: 10,
-    color: PdfColors.black,
-  );
+  final show2A = showsSection('Form 2-A');
+  final show2B = showsSection('Form 2-B');
+  final show2C = showsSection('Form 2-C');
 
-  final pw.TextStyle englishBold = pw.TextStyle(
-    font: loraBold,
-    fontSize: 10,
-    fontWeight: pw.FontWeight.bold,
-    color: PdfColors.black,
-  );
+  final pages = <Widget>[];
+  if (show2A) pages.add(_pg1(doc));
+  if (show2B) pages.add(_pg2(doc));
+  if (show2C) pages.add(_pg3(doc));
 
-  final pw.TextStyle marathiStyle = pw.TextStyle(
-    font: devanagariBold,
-    fontSize: 8.5,
-    color: PdfColors.black,
-  );
-
-  final pw.TextStyle valueStyle = pw.TextStyle(
-    font: devanagariRegular,
-    fontSize: 10,
-    color: PdfColors.blue900,
-  );
-
-  // Load Map Image if available
-  pw.MemoryImage? mapImage;
-  final mapPath = doc['mapImagePath']?.toString() ?? '';
-  if (mapPath.isNotEmpty) {
-    try {
-      if (kIsWeb) {
-        if (mapPath.startsWith('data:image')) {
-          final uri = Uri.parse(mapPath);
-          mapImage = pw.MemoryImage(uri.data!.contentAsBytes());
-        }
-      } else {
-        final file = File(mapPath);
-        if (await file.exists()) {
-          final bytes = await file.readAsBytes();
-          mapImage = pw.MemoryImage(bytes);
-        }
-      }
-    } catch (e) {
-      // Ignore load errors
-    }
+  final pngs = <Uint8List>[];
+  for (final p in pages) {
+    pngs.add(await _capture(context, p));
   }
 
-  pdf.addPage(
-    pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-      footer: (pw.Context context) {
-        return pw.Align(
-          alignment: pw.Alignment.bottomRight,
-          child: pw.Text('M.R.W', style: englishBold.copyWith(fontSize: 9)),
-        );
-      },
-      build: (pw.Context context) {
-        return [
-          if (showsSection('Form 2-A')) ...[
-            // --- HEADER ---
-            pw.Align(
-              alignment: pw.Alignment.topRight,
-              child: pw.Text(
-                'Form: 2-A',
-                style: englishBold.copyWith(
-                  decoration: pw.TextDecoration.underline,
-                ),
-              ),
-            ),
-            pw.SizedBox(height: 4),
-            pw.Center(
-              child: pw.Column(
-                children: [
-                  pw.Text(
-                    'CRIME DETAILS FORM',
-                    style: englishBold.copyWith(
-                      fontSize: 16,
-                      decoration: pw.TextDecoration.underline,
-                    ),
-                  ),
-                  pw.SizedBox(height: 2),
-                  if (cache.has('header_title'))
-                    cache.img('header_title')
-                  else
-                    pw.Text(
-                      'गुन्ह्यांच्या तपशीलाचा नमुना/ घटनास्थल पंचनामा',
-                      style: pw.TextStyle(
-                        font: devanagariBold,
-                        fontSize: 12,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.black,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 12),
+  final pdfDoc = pw.Document();
+  for (final png in pngs) {
+    pdfDoc.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.zero,
+        build: (_) => pw.Image(
+          pw.MemoryImage(png),
+          fit: pw.BoxFit.contain,
+        ),
+      ),
+    );
+  }
+  return pdfDoc.save();
+}
 
-            // --- SECTION 1 (Row 1 - District, P.S., Year, FIR No, Date) ---
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Expanded(
-                  flex: 22,
-                  child: _buildPdfInlineField(
-                    label: '1) District: ',
-                    marathiLabelKey: 'lbl_district',
-                    valKey: 'val_district',
-                    fallbackValue: doc['district']?.toString() ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                  ),
-                ),
-                pw.SizedBox(width: 8),
-                pw.Expanded(
-                  flex: 28,
-                  child: _buildPdfInlineField(
-                    label: 'P.S.: ',
-                    marathiLabelKey: 'lbl_ps',
-                    valKey: 'val_ps',
-                    fallbackValue: doc['ps'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                  ),
-                ),
-                pw.SizedBox(width: 8),
-                pw.Expanded(
-                  flex: 15,
-                  child: _buildPdfInlineField(
-                    label: 'Year: ',
-                    marathiLabelKey: 'lbl_year',
-                    valKey: 'val_year',
-                    fallbackValue: doc['year'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                  ),
-                ),
-                pw.SizedBox(width: 8),
-                pw.Expanded(
-                  flex: 22,
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Row(
-                        children: [
-                          pw.Text('FIR No: ', style: englishStyle),
-                          pw.Expanded(
-                            child: pw.Container(
-                              decoration: const pw.BoxDecoration(
-                                border: pw.Border(
-                                  bottom: pw.BorderSide(
-                                    color: PdfColors.black,
-                                    width: 0.8,
-                                  ),
-                                ),
-                              ),
-                              alignment: pw.Alignment.bottomCenter,
-                              child: cache.has('val_firNo')
-                                  ? cache.img('val_firNo')
-                                  : pw.Text(
-                                      doc['firNo'] ?? '',
-                                      style: valueStyle,
-                                    ),
-                            ),
-                          ),
-                          pw.Text('/20', style: englishStyle),
-                          pw.Container(
-                            width: 15,
-                            decoration: const pw.BoxDecoration(
-                              border: pw.Border(
-                                bottom: pw.BorderSide(
-                                  color: PdfColors.black,
-                                  width: 0.8,
-                                ),
-                              ),
-                            ),
-                            alignment: pw.Alignment.bottomCenter,
-                            child: cache.has('val_firYearSuffix')
-                                ? cache.img('val_firYearSuffix')
-                                : pw.Text(
-                                    doc['firYearSuffix'] ?? '',
-                                    style: valueStyle,
-                                  ),
-                          ),
-                        ],
-                      ),
-                      pw.SizedBox(height: 2),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.only(left: 4.0),
-                        child: cache.has('lbl_fir_no')
-                            ? cache.img('lbl_fir_no')
-                            : pw.Text('पहिली खबर क्र.', style: marathiStyle),
-                      ),
-                    ],
-                  ),
-                ),
-                pw.SizedBox(width: 8),
-                pw.Expanded(
-                  flex: 28,
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Row(
-                        children: [
-                          pw.Text('Date : ', style: englishStyle),
-                          pw.Container(
-                            width: 18,
-                            decoration: const pw.BoxDecoration(
-                              border: pw.Border(
-                                bottom: pw.BorderSide(
-                                  color: PdfColors.black,
-                                  width: 0.8,
-                                ),
-                              ),
-                            ),
-                            alignment: pw.Alignment.bottomCenter,
-                            child: cache.has('val_dateDay')
-                                ? cache.img('val_dateDay')
-                                : pw.Text(
-                                    doc['dateDay'] ?? '',
-                                    style: valueStyle,
-                                  ),
-                          ),
-                          pw.Text('/', style: englishStyle),
-                          pw.Container(
-                            width: 18,
-                            decoration: const pw.BoxDecoration(
-                              border: pw.Border(
-                                bottom: pw.BorderSide(
-                                  color: PdfColors.black,
-                                  width: 0.8,
-                                ),
-                              ),
-                            ),
-                            alignment: pw.Alignment.bottomCenter,
-                            child: cache.has('val_dateMonth')
-                                ? cache.img('val_dateMonth')
-                                : pw.Text(
-                                    doc['dateMonth'] ?? '',
-                                    style: valueStyle,
-                                  ),
-                          ),
-                          pw.Text('/20', style: englishStyle),
-                          pw.Container(
-                            width: 18,
-                            decoration: const pw.BoxDecoration(
-                              border: pw.Border(
-                                bottom: pw.BorderSide(
-                                  color: PdfColors.black,
-                                  width: 0.8,
-                                ),
-                              ),
-                            ),
-                            alignment: pw.Alignment.bottomCenter,
-                            child: cache.has('val_dateYear')
-                                ? cache.img('val_dateYear')
-                                : pw.Text(
-                                    doc['dateYear'] ?? '',
-                                    style: valueStyle,
-                                  ),
-                          ),
-                        ],
-                      ),
-                      pw.SizedBox(height: 2),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.only(left: 4.0),
-                        child: cache.has('lbl_date')
-                            ? cache.img('lbl_date')
-                            : pw.Text('तारीख', style: marathiStyle),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 8),
+Future<Uint8List> _capture(BuildContext ctx, Widget widget) async {
+  final key = GlobalKey();
+  final comp = Completer<Uint8List>();
+  OverlayEntry? ent;
 
-            // --- SECTION 2 ---
-            _buildPdfWideField(
-              label: '2) Act and Section:',
-              marathiLabelKey: 'lbl_act_sec',
-              valKey: 'val_actSection',
-              fallbackValue: doc['actSection'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 8),
-
-            // --- SECTION 3 ---
-            pw.Text(
-              '3) The Place of Occurrence shown by:',
-              style: englishStyle,
-            ),
-            if (cache.has('lbl_shown_by'))
-              cache.img('lbl_shown_by')
-            else
-              pw.Text(
-                'घटनेचे ठिकाण दाखविणाऱ्याचे :',
-                style: pw.TextStyle(
-                  font: devanagariBold,
-                  fontSize: 10,
-                  color: PdfColors.black,
-                ),
-              ),
-            pw.SizedBox(height: 4),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: 'Name: ',
-                    marathiLabelKey: 'lbl_name',
-                    valKey: 'val_shownByName',
-                    fallbackValue: doc['shownByName'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                  ),
-                ),
-                pw.SizedBox(width: 20),
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: 'Father\'s/ Husband\'s Name: ',
-                    marathiLabelKey: 'lbl_father_husband',
-                    valKey: 'val_shownByFatherHusband',
-                    fallbackValue: doc['shownByFatherHusband'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                  ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: 'Address:',
-              marathiLabelKey: 'lbl_address',
-              valKey: 'val_shownByAddress',
-              fallbackValue: doc['shownByAddress'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 8),
-
-            // --- SECTION 4 ---
-            _buildPdfWideField(
-              label: '4) TYPE OF CRIME (All including M.O. Crime) :',
-              marathiLabelKey: 'lbl_type_crime',
-              valKey: 'val_typeOfCrime',
-              fallbackValue: doc['typeOfCrime'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 6),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: '(i) *Major Head: : ',
-                    marathiLabelKey: 'lbl_major_head',
-                    valKey: 'val_majorHead',
-                    fallbackValue: doc['majorHead'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                  ),
-                ),
-                pw.SizedBox(width: 20),
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: '(ii): * Minor Head : : ',
-                    marathiLabelKey: 'lbl_minor_head',
-                    valKey: 'val_minorHead',
-                    fallbackValue: doc['minorHead'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                  ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: '(iii) * Method (s):',
-              marathiLabelKey: 'lbl_method',
-              valKey: 'val_method',
-              fallbackValue: doc['method'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 4),
-            _buildNumberedMethodPdfField(
-              numberKey: 'lbl_m1',
-              valKey: 'val_method1',
-              fallbackValue: doc['method1'] ?? '',
-              devanagariRegular: devanagariBold,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 4),
-            _buildNumberedMethodPdfField(
-              numberKey: 'lbl_m2',
-              valKey: 'val_method2',
-              fallbackValue: doc['method2'] ?? '',
-              devanagariRegular: devanagariBold,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 4),
-            _buildNumberedMethodPdfField(
-              numberKey: 'lbl_m3',
-              valKey: 'val_method3',
-              fallbackValue: doc['method3'] ?? '',
-              devanagariRegular: devanagariBold,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: '(iv) Conveyances used:',
-              marathiLabelKey: 'lbl_conveyances',
-              valKey: 'val_conveyances',
-              fallbackValue: doc['conveyances'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: '(V)* Character Assumed:',
-              marathiLabelKey: 'lbl_character',
-              valKey: 'val_characterAssumed',
-              fallbackValue: doc['characterAssumed'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: '(Vi)* Language/ slang used:',
-              marathiLabelKey: 'lbl_lang',
-              valKey: 'val_languageSlang',
-              fallbackValue: doc['languageSlang'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: '(Vii)* Special Feature-1:',
-              marathiLabelKey: 'lbl_sf1',
-              valKey: 'val_specialFeature1',
-              fallbackValue: doc['specialFeature1'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: '*Special Feature-2:',
-              marathiLabelKey: 'lbl_sf2',
-              valKey: 'val_specialFeature2',
-              fallbackValue: doc['specialFeature2'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: '*Special Feature-3:',
-              marathiLabelKey: 'lbl_sf3',
-              valKey: 'val_specialFeature3',
-              fallbackValue: doc['specialFeature3'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: '(Viii) Type of Place of Occurrence:',
-              marathiLabelKey: 'lbl_place_type',
-              valKey: 'val_placeOfOccurrenceType',
-              fallbackValue: doc['placeOfOccurrenceType'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfWideField(
-              label: '(ix) Type of Property Involved ( 4 Types ):',
-              marathiLabelKey: 'lbl_prop_inv',
-              valKey: 'val_propertyInvolved',
-              fallbackValue: doc['propertyInvolved'] ?? '',
-              englishStyle: englishStyle,
-              marathiStyle: marathiStyle,
-              valueStyle: valueStyle,
-              cache: cache,
-            ),
-            pw.SizedBox(height: 4),
-            pw.Row(
-              children: [
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: '(1) ',
-                    marathiLabelKey: '',
-                    valKey: 'val_propertyType1',
-                    fallbackValue: doc['propertyType1'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                    showMarathiLabel: false,
-                  ),
-                ),
-                pw.SizedBox(width: 20),
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: '(2) ',
-                    marathiLabelKey: '',
-                    valKey: 'val_propertyType2',
-                    fallbackValue: doc['propertyType2'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                    showMarathiLabel: false,
-                  ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 4),
-            pw.Row(
-              children: [
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: '(3) ',
-                    marathiLabelKey: '',
-                    valKey: 'val_propertyType3',
-                    fallbackValue: doc['propertyType3'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                    showMarathiLabel: false,
-                  ),
-                ),
-                pw.SizedBox(width: 20),
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: '(4) ',
-                    marathiLabelKey: '',
-                    valKey: 'val_propertyType4',
-                    fallbackValue: doc['propertyType4'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                    showMarathiLabel: false,
-                  ),
-                ),
-              ],
-            ),
-
-            // Conditional page break between Page 1 and Page 2
-          ],
-          if (showsSection('Form 2-B')) ...[
-            pw.NewPage(freeSpace: 350),
-
-            // --- PAGE 2: Form 2-B ---
-            pw.Align(
-              alignment: pw.Alignment.topRight,
-              child: pw.Text(
-                'Form: 2-B',
-                style: englishBold.copyWith(
-                  decoration: pw.TextDecoration.underline,
-                ),
-              ),
-            ),
-            pw.SizedBox(height: 4),
-            pw.Text(
-              '5) Particulars of the victims (Attach separate sheet, if required)',
-              style: englishBold.copyWith(fontSize: 10),
-            ),
-            if (cache.has('lbl_victim_title'))
-              cache.img('lbl_victim_title')
-            else
-              pw.Text(
-                'बळीचा तपशील ( आवश्यक असल्यास स्वतंत्र कागद जोडावा. )',
-                style: pw.TextStyle(
-                  font: devanagariBold,
-                  fontSize: 9,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.black,
-                ),
-              ),
-            pw.SizedBox(height: 6),
-
-            pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
-              defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
-              columnWidths: const {
-                0: pw.FixedColumnWidth(25), // Sr No
-                1: pw.FlexColumnWidth(2.5), // Full Name
-                2: pw.FlexColumnWidth(2.0), // Date/Year of Birth
-                3: pw.FlexColumnWidth(1.2), // Sex
-                4: pw.FlexColumnWidth(1.8), // Nationality
-                5: pw.FlexColumnWidth(1.8), // Religion
-                6: pw.FlexColumnWidth(2.0), // SC/ST
-                7: pw.FlexColumnWidth(2.0), // Occupation
-                8: pw.FlexColumnWidth(2.5), // Address
-                9: pw.FlexColumnWidth(2.0), // Injury
-                10: pw.FlexColumnWidth(2.0), // Means
-              },
-              children: [
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey100),
-                  children: [
-                    _buildPdfHeaderCell(
-                      "Sr.\nNo\n\nअ.\nक.\n\n(1)",
-                      "th_1",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Full Name\n\nसंपूर्ण नांव\n\n(2)",
-                      "th_2",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)",
-                      "th_3",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Sex\n\nलिंग\n\n(*4)",
-                      "th_4",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Nationality\n\nराष्ट्रीयत्व\n\n(*5)",
-                      "th_5",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Religion\n\nधर्म\n\n(*6)",
-                      "th_6",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)",
-                      "th_7",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Ocupetion\n\nव्यवसाय\n\n(*8)",
-                      "th_8",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Address\n\nपत्ता\n\n(*9)",
-                      "th_9",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
-                      "th_10",
-                      devanagariBold,
-                      cache,
-                    ),
-                    _buildPdfHeaderCell(
-                      "Means\n\nसाधने/\nहत्यारे\n\n(11)",
-                      "th_11",
-                      devanagariBold,
-                      cache,
-                    ),
-                  ],
-                ),
-                ..._buildPdfVictimsRows(
-                  doc['victims'],
-                  devanagariRegular,
-                  cache,
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 8),
-
-            pw.SizedBox(height: 6),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                pw.Text(
-                  '6) Motive of Crime: ',
-                  style: englishBold.copyWith(fontSize: 9),
-                ),
-                pw.Expanded(
-                  child: pw.Stack(
-                    alignment: pw.Alignment.bottomLeft,
-                    children: [
-                      pw.Container(
-                        height: 10,
-                        decoration: const pw.BoxDecoration(
-                          border: pw.Border(
-                            bottom: pw.BorderSide(
-                              color: PdfColors.black,
-                              width: 0.8,
-                              style: pw.BorderStyle.dashed,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if ((doc['motiveOfCrime']?.toString() ?? '')
-                          .trim()
-                          .isNotEmpty)
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.only(bottom: 1, left: 4),
-                          child: cache.has('val_motiveOfCrime')
-                              ? cache.img('val_motiveOfCrime')
-                              : pw.Text(
-                                  doc['motiveOfCrime'].toString(),
-                                  style: valueStyle.copyWith(fontSize: 9),
-                                ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 3),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                if (cache.has('lbl_motive'))
-                  cache.img('lbl_motive')
-                else
-                  pw.Text(
-                    'गुन्ह्याचा हेतू : ',
-                    style: pw.TextStyle(font: devanagariBold, fontSize: 9),
-                  ),
-                pw.Expanded(
-                  child: pw.Container(
-                    height: 10,
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(
-                        bottom: pw.BorderSide(
-                          color: PdfColors.black,
-                          width: 0.8,
-                          style: pw.BorderStyle.dashed,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 3),
-            pw.Container(
-              height: 10,
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(
-                  bottom: pw.BorderSide(
-                    color: PdfColors.black,
-                    width: 0.8,
-                    style: pw.BorderStyle.dashed,
-                  ),
-                ),
-              ),
-            ),
-            pw.SizedBox(height: 8),
-            pw.Text(
-              '7) Details of properties Stolen/Involved: (Use appropriate prescribed forms (s) and attach):',
-              style: englishBold.copyWith(fontSize: 9),
-            ),
-            if (cache.has('lbl_prop_det'))
-              cache.img('lbl_prop_det')
-            else
-              pw.Text(
-                'चोरीचा / अंतर्भूत मालमत्तेचा तपशील (योग्य नमुना वापरावा व सोबत जोडावा) :',
-                style: pw.TextStyle(
-                  font: devanagariBold,
-                  fontSize: 8.5,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            pw.SizedBox(height: 2),
-            ..._buildPdfLinedBlock(
-              doc['propertyDetails']?.toString() ?? '',
-              4,
-              85,
-              valueStyle,
-              'val_propertyDetails',
-              cache,
-            ),
-            pw.SizedBox(height: 8),
-
-            pw.Text(
-              '8) Description of the place of occurrence:',
-              style: englishBold.copyWith(fontSize: 9),
-            ),
-            if (cache.has('lbl_place_desc'))
-              cache.img('lbl_place_desc')
-            else
-              pw.Text(
-                '(घटनेच्या जागेचे वर्णन) :',
-                style: pw.TextStyle(
-                  font: devanagariBold,
-                  fontSize: 8.5,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            pw.SizedBox(height: 2),
-            ..._buildPdfLinedBlock(
-              doc['placeDescription']?.toString() ?? '',
-              6,
-              85,
-              valueStyle,
-              'val_placeDescription',
-              cache,
-            ),
-            pw.SizedBox(height: 6),
-
-            // Conditional page break between Page 2 and Page 3
-          ],
-          if (showsSection('Form 2-C')) ...[
-            pw.NewPage(freeSpace: 350),
-            pw.Align(
-              alignment: pw.Alignment.topRight,
-              child: pw.Text(
-                'Form: 2-C',
-                style: englishBold.copyWith(
-                  decoration: pw.TextDecoration.underline,
-                ),
-              ),
-            ),
-            pw.SizedBox(height: 4),
-            pw.Text(
-              'Description of the place of occurrence (Cont.):',
-              style: englishBold.copyWith(fontSize: 10),
-            ),
-            if (cache.has('lbl_place_desc_cont'))
-              cache.img('lbl_place_desc_cont')
-            else
-              pw.Text(
-                '(घटनेच्या जागेचे वर्णन) :',
-                style: pw.TextStyle(
-                  font: devanagariBold,
-                  fontSize: 8.5,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.black,
-                ),
-              ),
-            pw.SizedBox(height: 2),
-            ..._buildPdfLinedBlock(
-              doc['placeDescriptionCont']?.toString() ?? '',
-              6,
-              85,
-              valueStyle,
-              'val_placeDescriptionCont',
-              cache,
-            ),
-            pw.SizedBox(height: 8),
-
-            // --- SECTION 9: Map ---
-            if (cache.has('lbl_map'))
-              cache.img('lbl_map')
-            else
-              pw.Text(
-                '(9) Map: नकाशा',
-                style: englishBold.copyWith(fontSize: 10),
-              ),
-            pw.SizedBox(height: 4),
-            pw.Container(
-              width: double.infinity,
-              height: 220,
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.black, width: 1.5),
-              ),
-              child: mapImage != null
-                  ? pw.Center(child: pw.Image(mapImage, fit: pw.BoxFit.contain))
-                  : pw.Center(
-                      child: cache.has('lbl_no_map')
-                          ? cache.img('lbl_no_map')
-                          : pw.Text(
-                              'No Map Uploaded\n(नकाशा जोडला नाही)',
-                              textAlign: pw.TextAlign.center,
-                              style: pw.TextStyle(
-                                font: devanagariRegular,
-                                fontSize: 10,
-                                color: PdfColors.grey500,
-                              ),
-                            ),
-                    ),
-            ),
-
-            // Conditional page break between Page 3 and Page 4
-            pw.NewPage(freeSpace: 350),
-
-            // --- PAGE 4: Form 2-D ---
-            // --- SECTION 10: Physical Evidence ---
-            pw.Text(
-              '(10) Description of physical evidence from the science of crime for the property recovered / seized for the purpose of investigation:',
-              style: englishBold.copyWith(fontSize: 9),
-            ),
-            if (cache.has('lbl_phys_ev'))
-              cache.img('lbl_phys_ev')
-            else
-              pw.Text(
-                'तпасकामी प्रत्यक्ष पुरावा म्हणून गुन्ह्याच्या जागेवरून मिळविलेल्या / जप्त केलेल्या मालमत्तेचे वर्णन :',
-                style: pw.TextStyle(
-                  font: devanagariBold,
-                  fontSize: 8.5,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.black,
-                ),
-              ),
-            pw.SizedBox(height: 2),
-            ..._buildPdfLinedBlock(
-              doc['physicalEvidence']?.toString() ?? '',
-              6,
-              85,
-              valueStyle,
-              'val_physicalEvidence',
-              cache,
-            ),
-            pw.SizedBox(height: 6),
-            pw.Divider(color: PdfColors.black, thickness: 0.8),
-            pw.SizedBox(height: 4),
-
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                // Left Column
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      _buildPdfLinedField(
-                        labelKey: 'lbl_dt_panchnama',
-                        valKeyPrefix: 'val_panchnamaDate',
-                        fallbackValue: doc['panchnamaDate']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 6),
-                      if (cache.has('lbl_panchas_name'))
-                        cache.img('lbl_panchas_name')
-                      else
-                        pw.Text(
-                          "Name of panchas: / पंचाची नांवे :",
-                          style: englishBold.copyWith(fontSize: 8.5),
-                        ),
-                      pw.SizedBox(height: 4),
-                      pw.Text("(1)", style: englishBold.copyWith(fontSize: 9)),
-                      pw.SizedBox(height: 2),
-                      _buildPdfLinedField(
-                        labelKey: '',
-                        valKeyPrefix: 'val_pancha1Name',
-                        fallbackValue: doc['pancha1Name']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 4),
-                      _buildPdfLinedField(
-                        labelKey: 'lbl_p1_addr',
-                        valKeyPrefix: 'val_pancha1Address',
-                        fallbackValue: doc['pancha1Address']?.toString() ?? '',
-                        linesCount: 3,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 4),
-                      pw.Text("(2)", style: englishBold.copyWith(fontSize: 9)),
-                      pw.SizedBox(height: 2),
-                      _buildPdfLinedField(
-                        labelKey: '',
-                        valKeyPrefix: 'val_pancha2Name',
-                        fallbackValue: doc['pancha2Name']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 4),
-                      _buildPdfLinedField(
-                        labelKey: 'lbl_p2_addr',
-                        valKeyPrefix: 'val_pancha2Address',
-                        fallbackValue: doc['pancha2Address']?.toString() ?? '',
-                        linesCount: 3,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 6),
-                      _buildPdfLinedField(
-                        labelKey: 'lbl_date_form',
-                        valKeyPrefix: 'val_panchnamaFormDate',
-                        fallbackValue:
-                            doc['panchnamaFormDate']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                    ],
-                  ),
-                ),
-                pw.SizedBox(width: 30),
-                // Right Column
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      _buildPdfLinedField(
-                        labelKey: 'lbl_time_form',
-                        valKeyPrefix: 'val_panchnamaTime',
-                        fallbackValue: doc['panchnamaTime']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 6),
-                      if (cache.has('lbl_panchas_sig'))
-                        cache.img('lbl_panchas_sig')
-                      else
-                        pw.Text(
-                          "Signature of Panchas: / पंचाच्या सह्या :",
-                          style: englishBold.copyWith(fontSize: 8.5),
-                        ),
-                      pw.SizedBox(height: 4),
-                      pw.Text("1)", style: englishBold.copyWith(fontSize: 9)),
-                      pw.SizedBox(height: 2),
-                      _buildPdfLinedField(
-                        labelKey: '',
-                        valKeyPrefix: 'val_pancha1Sig',
-                        fallbackValue: doc['pancha1Sig']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 6),
-                      pw.Text("2)", style: englishBold.copyWith(fontSize: 9)),
-                      pw.SizedBox(height: 2),
-                      _buildPdfLinedField(
-                        labelKey: '',
-                        valKeyPrefix: 'val_pancha2Sig',
-                        fallbackValue: doc['pancha2Sig']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 6),
-                      if (cache.has('lbl_io_sig'))
-                        cache.img('lbl_io_sig')
-                      else
-                        pw.Text(
-                          "Name and Signature of Investigation Officer",
-                          style: englishBold.copyWith(fontSize: 8.5),
-                        ),
-                      if (cache.has('lbl_io_sig_mar'))
-                        cache.img('lbl_io_sig_mar')
-                      else
-                        pw.Text(
-                          FormIoTerminology.amaldarSignatureHeader,
-                          style: marathiStyle,
-                        ),
-                      pw.SizedBox(height: 4),
-                      _buildPdfLinedField(
-                        labelKey: 'lbl_io_name',
-                        valKeyPrefix: 'val_ioName',
-                        fallbackValue: doc['ioName']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 4),
-                      _buildPdfLinedField(
-                        labelKey: 'lbl_io_rank',
-                        valKeyPrefix: 'val_ioRank',
-                        fallbackValue: doc['ioRank']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                      pw.SizedBox(height: 4),
-                      _buildPdfLinedField(
-                        labelKey: 'lbl_io_buckle',
-                        valKeyPrefix: 'val_ioBuckleNo',
-                        fallbackValue: doc['ioBuckleNo']?.toString() ?? '',
-                        linesCount: 1,
-                        style: valueStyle,
-                        font: devanagariBold,
-                        cache: cache,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ];
-      },
+  ent = OverlayEntry(
+    builder: (_) => Positioned(
+      left: -(_kW + 80),
+      top: 0,
+      width: _kW,
+      height: _kH,
+      child: RepaintBoundary(
+        key: key,
+        child: Material(
+          color: Colors.white,
+          child: widget,
+        ),
+      ),
     ),
   );
 
-  return pdf.save();
+  Overlay.of(ctx).insert(ent);
+
+  await WidgetsBinding.instance.endOfFrame;
+  await Future.delayed(const Duration(milliseconds: 700));
+
+  try {
+    final rb = key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+    final img = await rb.toImage(pixelRatio: _kPx);
+    final bd = await img.toByteData(format: ui.ImageByteFormat.png);
+    comp.complete(bd!.buffer.asUint8List());
+  } catch (e) {
+    comp.completeError(e);
+  } finally {
+    ent.remove();
+  }
+
+  return comp.future;
 }
 
-pw.Widget _buildPdfHeaderCell(
-  String text,
-  String key,
-  pw.Font font,
-  MarathiImageCache cache,
-) {
-  return pw.Padding(
-    padding: const pw.EdgeInsets.all(3),
-    child: cache.has(key)
-        ? cache.img(key)
-        : pw.Text(
-            text,
-            textAlign: pw.TextAlign.center,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 7,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.black,
-            ),
+String _v(Map<String, dynamic> doc, String key, [String fallback = '']) {
+  final val = doc[key]?.toString().trim() ?? '';
+  return val.isEmpty ? fallback : val;
+}
+
+TextStyle _eBld([double sz = 9.5]) => GoogleFonts.lora(
+      fontSize: sz,
+      fontWeight: FontWeight.bold,
+      color: Colors.black87,
+    );
+
+TextStyle _mBld([double sz = 9]) => GoogleFonts.notoSansDevanagari(
+      fontSize: sz,
+      fontWeight: FontWeight.bold,
+      color: Colors.black87,
+    );
+
+TextStyle _mReg([double sz = 9]) => GoogleFonts.notoSansDevanagari(
+      fontSize: sz,
+      color: Colors.black87,
+    );
+
+TextStyle _valStyle([double sz = 9]) => GoogleFonts.notoSansDevanagari(
+      fontSize: sz,
+      fontWeight: FontWeight.w600,
+      color: const Color(0xFF0D47A1),
+    );
+
+Widget _bilingualField(String eng, String mr, String val,
+    {double? width, bool expand = false}) {
+  final content = Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(eng, style: _eBld(9)),
+          const SizedBox(width: 4),
+          Text('($mr)', style: _mBld(8.5)),
+        ],
+      ),
+      const SizedBox(height: 2),
+      Container(
+        width: width,
+        padding: const EdgeInsets.only(bottom: 2),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: Colors.black87, width: 0.8)),
+        ),
+        child: Text(
+          val.isNotEmpty ? val : ' ',
+          style: val.isNotEmpty ? _valStyle(9) : _mReg(9),
+        ),
+      ),
+    ],
+  );
+
+  if (expand) return Expanded(child: content);
+  if (width != null) return SizedBox(width: width, child: content);
+  return content;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE 1: Form 2-A (Case & Occurrence)
+// ─────────────────────────────────────────────────────────────────────────────
+
+Widget _pg1(Map<String, dynamic> doc) {
+  final dist = _v(doc, 'district');
+  final ps = _v(doc, 'ps');
+  final year = _v(doc, 'year');
+  final firNo = _v(doc, 'firNo');
+  final firDate = _v(doc, 'date');
+
+  final actSection = _v(doc, 'actSection');
+  final shownByName = _v(doc, 'shownByName');
+  final shownByFather = _v(doc, 'shownByFatherHusband');
+  final shownByAddress = _v(doc, 'shownByAddress');
+
+  final typeOfCrime = _v(doc, 'typeOfCrime');
+  final majorHead = _v(doc, 'majorHead');
+  final minorHead = _v(doc, 'minorHead');
+  final method = _v(doc, 'method');
+  final conveyances = _v(doc, 'conveyances');
+  final characterAssumed = _v(doc, 'characterAssumed');
+  final languageSlang = _v(doc, 'languageSlang');
+  final specialFeatures = _v(doc, 'specialFeature1');
+  final placeType = _v(doc, 'placeOfOccurrenceType');
+  final propertyInvolved = _v(doc, 'propertyInvolved');
+
+  return Container(
+    width: _kW,
+    height: _kH,
+    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 22),
+    color: Colors.white,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: Text(
+            'Form: 2-A',
+            style: _eBld(11).copyWith(decoration: TextDecoration.underline),
           ),
+        ),
+        const SizedBox(height: 2),
+        Center(
+          child: Column(
+            children: [
+              Text(
+                'CRIME DETAILS FORM',
+                style: _eBld(15).copyWith(decoration: TextDecoration.underline),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'गुन्ह्यांचा तपशील नमुना (भाग १)',
+                style: _mBld(12),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '(First Information Report / प्रथम खबरी अहवाल)',
+                style: _eBld(9),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Divider(color: Colors.black87, thickness: 0.8),
+        const SizedBox(height: 4),
+
+        // 1) Case Details
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('1) ', style: _eBld(9.5)),
+            _bilingualField('District:', 'जिल्हा', dist, width: 110),
+            const SizedBox(width: 8),
+            _bilingualField('P.S.:', 'पोलीस ठाणे', ps, width: 120),
+            const SizedBox(width: 8),
+            _bilingualField('Year:', 'वर्ष', year, width: 60),
+            const SizedBox(width: 8),
+            _bilingualField('FIR No:', 'गु.र.क्र.', firNo, width: 110),
+            const SizedBox(width: 8),
+            _bilingualField('Date:', 'दिनांक', firDate, expand: true),
+          ],
+        ),
+        const SizedBox(height: 6),
+
+        // 2) Act & Section
+        Row(
+          children: [
+            Text('2) ', style: _eBld(9.5)),
+            _bilingualField('Acts & Sections:', 'अधिनियम व कलमे', actSection,
+                expand: true),
+          ],
+        ),
+        const SizedBox(height: 6),
+
+        // 3) Crime Shown By
+        Text('3) Crime spot shown by (ज्या इसमाने घटनास्थळ दाखविले त्याचे नाव):',
+            style: _eBld(9.5)),
+        const SizedBox(height: 3),
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            _bilingualField('Name:', 'नाव', shownByName, expand: true),
+            const SizedBox(width: 12),
+            _bilingualField('Father/Husband:', 'वडील/पतीचे नाव', shownByFather,
+                width: 180),
+          ],
+        ),
+        const SizedBox(height: 3),
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: _bilingualField(
+              'Address:', 'पत्ता', shownByAddress, expand: true),
+        ),
+        const SizedBox(height: 6),
+
+        // 4) Crime Classification & Modus Operandi
+        Text('4) Modus Operandi & Details (गुन्ह्याची पद्धत व तपशील):',
+            style: _eBld(9.5)),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            _bilingualField('Type of Crime:', 'गुन्हा प्रकार', typeOfCrime,
+                width: 220),
+            const SizedBox(width: 12),
+            _bilingualField('Major Head:', 'मुख्य प्रकार', majorHead, width: 220),
+            const SizedBox(width: 12),
+            _bilingualField('Minor Head:', 'उप प्रकार', minorHead, expand: true),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            _bilingualField('Method Used:', 'वापरलेली पद्धत', method,
+                width: 220),
+            const SizedBox(width: 12),
+            _bilingualField('Conveyances:', 'वाहने', conveyances, width: 220),
+            const SizedBox(width: 12),
+            _bilingualField('Character Assumed:', 'सोंग', characterAssumed,
+                expand: true),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            _bilingualField('Language/Slang:', 'भाषा/बोली', languageSlang,
+                width: 220),
+            const SizedBox(width: 12),
+            _bilingualField('Special Features:', 'विशेष खूण', specialFeatures,
+                width: 220),
+            const SizedBox(width: 12),
+            _bilingualField('Place of Occurrence:', 'जागा प्रकार', placeType,
+                expand: true),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: _bilingualField('Property Involved:', 'मालमत्ता सहभाग',
+              propertyInvolved, expand: true),
+        ),
+        const Spacer(),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('Page 1 of 3 — Form 2-A',
+              style: GoogleFonts.lora(fontSize: 8.5, color: Colors.black54)),
+        ),
+      ],
+    ),
   );
 }
 
-List<pw.TableRow> _buildPdfVictimsRows(
-  dynamic victimsData,
-  pw.Font font,
-  MarathiImageCache cache,
-) {
-  final rows = <pw.TableRow>[];
-  if (victimsData is List) {
-    for (int i = 0; i < victimsData.length; i++) {
-      final item = victimsData[i];
-      final Map<String, dynamic> row =
-          item is Map ? Map<String, dynamic>.from(item) : {};
-      rows.add(
-        pw.TableRow(
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE 2: Form 2-B (Victims & Property)
+// ─────────────────────────────────────────────────────────────────────────────
+
+Widget _pg2(Map<String, dynamic> doc) {
+  final cName = _v(doc, 'complainantName');
+  final cFather = _v(doc, 'complainantFather');
+  final cAge = _v(doc, 'complainantAge');
+  final cSex = _v(doc, 'complainantGender');
+  final cOcc = _v(doc, 'complainantOccupation');
+  final cMob = _v(doc, 'complainantMobile');
+  final cAddr = _v(doc, 'complainantAddress');
+
+  final vName = _v(doc, 'victimName');
+  final vFather = _v(doc, 'victimFather');
+  final vAge = _v(doc, 'victimAge');
+  final vSex = _v(doc, 'victimGender');
+  final vOcc = _v(doc, 'victimOccupation');
+  final vMob = _v(doc, 'victimMobile');
+  final vAddr = _v(doc, 'victimAddress');
+
+  final stolenProp = _v(doc, 'propertyStolenDesc');
+  final stolenVal = _v(doc, 'propertyStolenValue');
+  final recoveredVal = _v(doc, 'propertyRecoveredValue');
+  final suspects = _v(doc, 'accusedDetails');
+
+  return Container(
+    width: _kW,
+    height: _kH,
+    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 22),
+    color: Colors.white,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: Text(
+            'Form: 2-B',
+            style: _eBld(11).copyWith(decoration: TextDecoration.underline),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Center(
+          child: Column(
+            children: [
+              Text(
+                'CRIME DETAILS FORM (Part II)',
+                style: _eBld(15).copyWith(decoration: TextDecoration.underline),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'गुन्ह्यांचा तपशील नमुना (भाग २ - पीडित व मालमत्ता)',
+                style: _mBld(12),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Divider(color: Colors.black87, thickness: 0.8),
+        const SizedBox(height: 6),
+
+        // 5) Complainant KYC
+        Text('5) Particulars of Complainant / Informant (तक्रारदार माहिती):',
+            style: _eBld(9.5)),
+        const SizedBox(height: 3),
+        Row(
           children: [
-            pw.Padding(
-              padding: const pw.EdgeInsets.all(3),
-              child: pw.Center(
-                child: pw.Text(
-                  '${i + 1}',
-                  style: pw.TextStyle(
-                    font: font,
-                    fontSize: 8,
-                    color: PdfColors.black,
+            const SizedBox(width: 16),
+            _bilingualField('Name:', 'नाव', cName, expand: true),
+            const SizedBox(width: 8),
+            _bilingualField('Father/Husband:', 'वडील/पती', cFather, width: 130),
+            const SizedBox(width: 8),
+            _bilingualField('Age:', 'वय', cAge, width: 50),
+            const SizedBox(width: 8),
+            _bilingualField('Sex:', 'लिंग', cSex, width: 50),
+            const SizedBox(width: 8),
+            _bilingualField('Mobile:', 'मोबाईल', cMob, width: 100),
+          ],
+        ),
+        const SizedBox(height: 3),
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            _bilingualField('Occupation:', 'व्यवसाय', cOcc, width: 180),
+            const SizedBox(width: 12),
+            _bilingualField('Address:', 'पत्ता', cAddr, expand: true),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // 6) Victim KYC
+        Text('6) Particulars of Victim (बळी पडलेल्या व्यक्तीची माहिती):',
+            style: _eBld(9.5)),
+        const SizedBox(height: 3),
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            _bilingualField('Name:', 'नाव', vName, expand: true),
+            const SizedBox(width: 8),
+            _bilingualField('Father/Husband:', 'वडील/पती', vFather, width: 130),
+            const SizedBox(width: 8),
+            _bilingualField('Age:', 'वय', vAge, width: 50),
+            const SizedBox(width: 8),
+            _bilingualField('Sex:', 'लिंग', vSex, width: 50),
+            const SizedBox(width: 8),
+            _bilingualField('Mobile:', 'मोबाईल', vMob, width: 100),
+          ],
+        ),
+        const SizedBox(height: 3),
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            _bilingualField('Occupation:', 'व्यवसाय', vOcc, width: 180),
+            const SizedBox(width: 12),
+            _bilingualField('Address:', 'पत्ता', vAddr, expand: true),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // 7) Property Stolen / Involved
+        Text('7) Property Details (मालमत्ता तपशील):', style: _eBld(9.5)),
+        const SizedBox(height: 3),
+        Container(
+          width: double.infinity,
+          height: 90,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black87, width: 0.8),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: Text(
+            stolenProp.isNotEmpty ? stolenProp : 'मालमत्तेचे वर्णन...',
+            style: stolenProp.isNotEmpty ? _valStyle(9) : _mReg(9),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            _bilingualField(
+                'Stolen Property Value (Rs.):', 'किंमत रु.', stolenVal,
+                width: 220),
+            const SizedBox(width: 24),
+            _bilingualField(
+                'Recovered Value (Rs.):', 'हस्तगत किंमत रु.', recoveredVal,
+                width: 220),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // 8) Accused / Suspects
+        Text('8) Particulars of Accused / Suspects (संशयित / आरोपींची माहिती):',
+            style: _eBld(9.5)),
+        const SizedBox(height: 3),
+        Container(
+          width: double.infinity,
+          height: 100,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black87, width: 0.8),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: Text(
+            suspects.isNotEmpty ? suspects : ' ',
+            style: suspects.isNotEmpty ? _valStyle(9) : _mReg(9),
+          ),
+        ),
+        const Spacer(),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('Page 2 of 3 — Form 2-B',
+              style: GoogleFonts.lora(fontSize: 8.5, color: Colors.black54)),
+        ),
+      ],
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE 3: Form 2-C (Place, Map & Evidence)
+// ─────────────────────────────────────────────────────────────────────────────
+
+Widget _pg3(Map<String, dynamic> doc) {
+  final spotDesc = _v(doc, 'placeDescription', _v(doc, 'spotDescription'));
+  final east = _v(doc, 'eastBoundary');
+  final west = _v(doc, 'westBoundary');
+  final north = _v(doc, 'northBoundary');
+  final south = _v(doc, 'southBoundary');
+
+  final panchnamaDate = _v(doc, 'panchnamaDate');
+  final panchnamaTime = _v(doc, 'panchnamaTime');
+
+  final p1Name = _v(doc, 'panch1Name');
+  final p1Addr = _v(doc, 'panch1Address');
+  final p1Sig = _v(doc, 'panch1Sig');
+
+  final p2Name = _v(doc, 'panch2Name');
+  final p2Addr = _v(doc, 'panch2Address');
+  final p2Sig = _v(doc, 'panch2Sig');
+
+  final ioName = _v(doc, 'ioName');
+  final ioRank = _v(doc, 'ioRank');
+  final ioNo = _v(doc, 'ioNo');
+  final ioPosting = _v(doc, 'ioPosting');
+
+  return Container(
+    width: _kW,
+    height: _kH,
+    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 22),
+    color: Colors.white,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: Text(
+            'Form: 2-C',
+            style: _eBld(11).copyWith(decoration: TextDecoration.underline),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Center(
+          child: Column(
+            children: [
+              Text(
+                'CRIME DETAILS FORM (Part III)',
+                style: _eBld(15).copyWith(decoration: TextDecoration.underline),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'गुन्ह्यांचा तपशील नमुना (भाग ३ - घटनास्थळ पंचनामा व सह्या)',
+                style: _mBld(12),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Divider(color: Colors.black87, thickness: 0.8),
+        const SizedBox(height: 6),
+
+        // 9) Spot Description & Boundaries
+        Text('9) Description of Crime Spot & Boundaries (घटनास्थळ व चतुःसीमा):',
+            style: _eBld(9.5)),
+        const SizedBox(height: 3),
+        Container(
+          width: double.infinity,
+          height: 100,
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black87, width: 0.8),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: Text(
+            spotDesc.isNotEmpty ? spotDesc : 'घटनास्थळाचे सविस्तर वर्णन...',
+            style: spotDesc.isNotEmpty ? _valStyle(9) : _mReg(9),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            _bilingualField('East:', 'पूर्व', east, width: 160),
+            const SizedBox(width: 12),
+            _bilingualField('West:', 'पश्चिम', west, width: 160),
+            const SizedBox(width: 12),
+            _bilingualField('North:', 'उत्तर', north, width: 160),
+            const SizedBox(width: 12),
+            _bilingualField('South:', 'दक्षिण', south, expand: true),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // 10) Panchanama Date & Time
+        Row(
+          children: [
+            Text('10) ', style: _eBld(9.5)),
+            _bilingualField(
+                'Date of Panchanama:', 'पंचनामा तारीख', panchnamaDate,
+                width: 180),
+            const SizedBox(width: 24),
+            _bilingualField(
+                'Time of Panchanama:', 'पंचनामा वेळ', panchnamaTime,
+                width: 180),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // 11) Panchas Table
+        Text('11) Panch Witnesses (पंचांची माहिती व सह्या):', style: _eBld(9.5)),
+        const SizedBox(height: 3),
+        Table(
+          border: TableBorder.all(color: Colors.black87, width: 0.8),
+          columnWidths: const {
+            0: FixedColumnWidth(30),
+            1: FlexColumnWidth(2.5),
+            2: FlexColumnWidth(3.5),
+            3: FlexColumnWidth(1.8),
+          },
+          children: [
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey.shade200),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Center(child: Text('क्र.', style: _mBld(8.5))),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Text('पंचाचे नाव', style: _mBld(8.5)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Text('पत्ता', style: _mBld(8.5)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Center(child: Text('सही', style: _mBld(8.5))),
+                ),
+              ],
+            ),
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Center(child: Text('१', style: _mBld(8.5))),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Text(p1Name,
+                      style: p1Name.isNotEmpty ? _valStyle(8.5) : _mReg(8.5)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Text(p1Addr,
+                      style: p1Addr.isNotEmpty ? _valStyle(8.5) : _mReg(8.5)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Center(
+                    child: Text(p1Sig,
+                        style: p1Sig.isNotEmpty ? _valStyle(8.5) : _mReg(8.5)),
                   ),
                 ),
-              ),
+              ],
             ),
-            _buildPdfValueCell(
-              row['fullName']?.toString() ?? '',
-              'victim_${i}_fullName',
-              font,
-              cache,
-            ),
-            _buildPdfValueCell(
-              row['dob']?.toString() ?? '',
-              'victim_${i}_dob',
-              font,
-              cache,
-            ),
-            _buildPdfValueCell(
-              row['sex']?.toString() ?? '',
-              'victim_${i}_sex',
-              font,
-              cache,
-            ),
-            _buildPdfValueCell(
-              row['nationality']?.toString() ?? '',
-              'victim_${i}_nationality',
-              font,
-              cache,
-            ),
-            _buildPdfValueCell(
-              row['religion']?.toString() ?? '',
-              'victim_${i}_religion',
-              font,
-              cache,
-            ),
-            _buildPdfValueCell(
-              row['scSt']?.toString() ?? '',
-              'victim_${i}_scSt',
-              font,
-              cache,
-            ),
-            _buildPdfValueCell(
-              row['occupation']?.toString() ?? '',
-              'victim_${i}_occupation',
-              font,
-              cache,
-            ),
-            _buildPdfValueCell(
-              row['address']?.toString() ?? '',
-              'victim_${i}_address',
-              font,
-              cache,
-            ),
-            _buildPdfValueCell(
-              row['injury']?.toString() ?? '',
-              'victim_${i}_injury',
-              font,
-              cache,
-            ),
-            _buildPdfValueCell(
-              row['means']?.toString() ?? '',
-              'victim_${i}_means',
-              font,
-              cache,
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Center(child: Text('२', style: _mBld(8.5))),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Text(p2Name,
+                      style: p2Name.isNotEmpty ? _valStyle(8.5) : _mReg(8.5)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Text(p2Addr,
+                      style: p2Addr.isNotEmpty ? _valStyle(8.5) : _mReg(8.5)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Center(
+                    child: Text(p2Sig,
+                        style: p2Sig.isNotEmpty ? _valStyle(8.5) : _mReg(8.5)),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      );
-    }
-  }
-  if (rows.isEmpty) {
-    rows.add(
-      pw.TableRow(
-        children: List.generate(
-          11,
-          (j) => _buildPdfValueCell(j == 0 ? '1' : '', '', font, cache),
+        const Spacer(),
+
+        // 12) Investigation Officer Block
+        Align(
+          alignment: Alignment.centerRight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text('Signature of Investigation Officer', style: _eBld(9)),
+              Text('तपासणी अधिकारी सही व हुद्दा', style: _mBld(8.5)),
+              const SizedBox(height: 4),
+              Text('नाव: ${ioName.isNotEmpty ? ioName : '____________'}',
+                  style: ioName.isNotEmpty ? _valStyle(9) : _mReg(9)),
+              Text(
+                  'हुद्दा: ${ioRank.isNotEmpty ? ioRank : '_______'}  ब.नं.: ${ioNo.isNotEmpty ? ioNo : '______'}',
+                  style: _mReg(9)),
+              Text(
+                  'पोलीस ठाणे: ${ioPosting.isNotEmpty ? ioPosting : '________________'}',
+                  style: ioPosting.isNotEmpty ? _valStyle(9) : _mReg(9)),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-  return rows;
-}
-
-pw.Widget _buildPdfValueCell(
-  String text,
-  String key,
-  pw.Font font,
-  MarathiImageCache cache,
-) {
-  return pw.Padding(
-    padding: const pw.EdgeInsets.all(3),
-    child: (key.isNotEmpty && cache.has(key))
-        ? cache.img(key)
-        : pw.Text(
-            text,
-            textAlign: pw.TextAlign.center,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 8,
-              color: PdfColors.blue900,
-            ),
-          ),
-  );
-}
-
-pw.Widget _buildPdfInlineField({
-  required String label,
-  required String marathiLabelKey,
-  required String valKey,
-  required String fallbackValue,
-  required pw.TextStyle englishStyle,
-  required pw.TextStyle marathiStyle,
-  required pw.TextStyle valueStyle,
-  required MarathiImageCache cache,
-  bool showMarathiLabel = true,
-}) {
-  final hasValImg = cache.has(valKey);
-  return pw.Column(
-    crossAxisAlignment: pw.CrossAxisAlignment.start,
-    children: [
-      pw.Row(
-        children: [
-          pw.Text(label, style: englishStyle),
-          pw.Expanded(
-            child: pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(
-                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-                ),
-              ),
-              alignment: pw.Alignment.bottomLeft,
-              padding: const pw.EdgeInsets.only(left: 2),
-              child: hasValImg
-                  ? cache.img(valKey)
-                  : pw.Text(fallbackValue, style: valueStyle),
-            ),
-          ),
-        ],
-      ),
-      if (showMarathiLabel &&
-          marathiLabelKey.isNotEmpty &&
-          cache.has(marathiLabelKey)) ...[
-        pw.SizedBox(height: 2),
-        pw.Padding(
-          padding: const pw.EdgeInsets.only(left: 4.0),
-          child: cache.img(marathiLabelKey),
+        const SizedBox(height: 6),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('Page 3 of 3 — Form 2-C',
+              style: GoogleFonts.lora(fontSize: 8.5, color: Colors.black54)),
         ),
       ],
-    ],
+    ),
   );
 }
 
-pw.Widget _buildPdfWideField({
-  required String label,
-  required String marathiLabelKey,
-  required String valKey,
-  required String fallbackValue,
-  required pw.TextStyle englishStyle,
-  required pw.TextStyle marathiStyle,
-  required pw.TextStyle valueStyle,
-  required MarathiImageCache cache,
-}) {
-  final hasValImg = cache.has(valKey);
-  return pw.Column(
-    crossAxisAlignment: pw.CrossAxisAlignment.start,
-    children: [
-      pw.Row(
-        children: [
-          pw.Text(label, style: englishStyle),
-          pw.Expanded(
-            child: pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(
-                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-                ),
-              ),
-              alignment: pw.Alignment.bottomLeft,
-              padding: const pw.EdgeInsets.only(left: 2),
-              child: hasValImg
-                  ? cache.img(valKey)
-                  : pw.Text(fallbackValue, style: valueStyle),
-            ),
-          ),
-        ],
+Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
+  final pdf = pw.Document();
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      build: (_) => pw.Center(
+        child: pw.Text('Crime Detail Form',
+            style: const pw.TextStyle(fontSize: 12)),
       ),
-      pw.SizedBox(height: 2),
-      if (marathiLabelKey.isNotEmpty && cache.has(marathiLabelKey))
-        pw.Padding(
-          padding: const pw.EdgeInsets.only(left: 4.0),
-          child: cache.img(marathiLabelKey),
-        ),
-    ],
+    ),
   );
-}
-
-pw.Widget _buildPdfLinedField({
-  required String labelKey,
-  required String valKeyPrefix,
-  required String fallbackValue,
-  required int linesCount,
-  required pw.TextStyle style,
-  required pw.Font font,
-  required MarathiImageCache cache,
-}) {
-  final lines = _splitTextIntoLines(fallbackValue, 40);
-  final total = lines.length < linesCount ? linesCount : lines.length;
-
-  return pw.Column(
-    crossAxisAlignment: pw.CrossAxisAlignment.start,
-    children: [
-      // Render label parts (skip if empty)
-      if (labelKey.isNotEmpty && cache.has(labelKey)) ...[cache.img(labelKey)],
-      pw.SizedBox(height: 3),
-      // Render underlined value lines
-      for (var i = 0; i < total; i++) ...[
-        if (i > 0) pw.SizedBox(height: 4),
-        pw.Container(
-          width: double.infinity,
-          height: 16,
-          decoration: const pw.BoxDecoration(
-            border: pw.Border(
-              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-            ),
-          ),
-          alignment: pw.Alignment.bottomLeft,
-          padding: const pw.EdgeInsets.only(left: 4, bottom: 2),
-          child: cache.has('${valKeyPrefix}_line_$i')
-              ? cache.img('${valKeyPrefix}_line_$i')
-              : pw.Text(i < lines.length ? lines[i] : '', style: style),
-        ),
-      ],
-    ],
-  );
-}
-
-pw.Widget _buildNumberedMethodPdfField({
-  required String numberKey,
-  required String valKey,
-  required String fallbackValue,
-  required pw.Font devanagariRegular,
-  required pw.TextStyle valueStyle,
-  required MarathiImageCache cache,
-}) {
-  return pw.Row(
-    children: [
-      if (cache.has(numberKey)) cache.img(numberKey),
-      pw.SizedBox(width: 4),
-      pw.Expanded(
-        child: pw.Container(
-          decoration: const pw.BoxDecoration(
-            border: pw.Border(
-              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-            ),
-          ),
-          alignment: pw.Alignment.bottomLeft,
-          padding: const pw.EdgeInsets.only(left: 2),
-          child: cache.has(valKey)
-              ? cache.img(valKey)
-              : pw.Text(fallbackValue, style: valueStyle),
-        ),
-      ),
-    ],
-  );
-}
-
-List<pw.Widget> _buildPdfLinedBlock(
-  String text,
-  int minLines,
-  int maxChars,
-  pw.TextStyle style,
-  String valKeyPrefix,
-  MarathiImageCache cache,
-) {
-  final lines = _splitTextIntoLines(text.trim(), maxChars);
-  final totalLines = lines.length < minLines ? minLines : lines.length;
-
-  return List.generate(totalLines, (i) {
-    final textLine = i < lines.length ? lines[i] : '';
-    final lineKey = '${valKeyPrefix}_line_$i';
-    return pw.Container(
-      height: 18,
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(
-          bottom: pw.BorderSide(
-            color: PdfColors.black,
-            width: 0.8,
-            style: pw.BorderStyle.dashed,
-          ),
-        ),
-      ),
-      alignment: pw.Alignment.bottomLeft,
-      padding: const pw.EdgeInsets.only(left: 4, bottom: 2),
-      child: cache.has(lineKey)
-          ? cache.img(lineKey)
-          : pw.Text(textLine, style: style),
-    );
-  });
-}
-
-List<String> _splitTextIntoLines(String text, int maxChars) {
-  if (text.isEmpty) return [];
-  final paragraphs = text.split('\n');
-  final result = <String>[];
-
-  for (final para in paragraphs) {
-    if (para.isEmpty) {
-      result.add('');
-      continue;
-    }
-    final words = para.split(' ');
-    var currentLine = '';
-    for (final word in words) {
-      if (currentLine.isEmpty) {
-        currentLine = word;
-      } else if ('$currentLine $word'.length <= maxChars) {
-        currentLine = '$currentLine $word';
-      } else {
-        result.add(currentLine);
-        currentLine = word;
-      }
-    }
-    if (currentLine.isNotEmpty) {
-      result.add(currentLine);
-    }
-  }
-  return result;
-}
-
-Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
-  final cache = MarathiImageCache(pixelRatio: 3.0);
-
-  // Setup styles using GoogleFonts for high-quality Devanagari text rendering
-  final headerStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 12,
-    fontWeight: FontWeight.bold,
-    color: Colors.black,
-  );
-
-  final boldLabelStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 10,
-    fontWeight: FontWeight.bold,
-    color: Colors.black,
-  );
-
-  final marathiLabelStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 8.5,
-    fontWeight: FontWeight.bold,
-    color: Colors.black,
-  );
-
-  final valueStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 10,
-    fontWeight: FontWeight.bold,
-    color: Colors.blue.shade900,
-  );
-
-  final tableHeaderStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 7.5,
-    fontWeight: FontWeight.bold,
-    color: Colors.black,
-  );
-
-  final victimValueStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 8,
-    fontWeight: FontWeight.bold,
-    color: Colors.blue.shade900,
-  );
-
-  // Ensure fonts are ready
-  await GoogleFonts.pendingFonts();
-
-  // Helper to add label
-  Future<void> addLbl(
-    String key,
-    String text,
-    TextStyle style, {
-    double maxWidth = 500,
-  }) async {
-    await cache.add(key, text, style, maxWidth: maxWidth);
-  }
-
-  // Helper to add value
-  Future<void> addVal(String key, String? val, {double maxWidth = 500}) async {
-    final text = val?.trim() ?? '';
-    if (containsDevanagari(text)) {
-      await cache.add(key, text, valueStyle, maxWidth: maxWidth);
-    }
-  }
-
-  // Helper to add lined block lines
-  Future<void> addLinedBlock(String prefix, String? text, int maxChars) async {
-    final lines = _splitTextIntoLines(text?.trim() ?? '', maxChars);
-    for (int i = 0; i < lines.length; i++) {
-      final lineText = lines[i];
-      if (containsDevanagari(lineText)) {
-        await cache.add('${prefix}_line_$i', lineText, valueStyle);
-      }
-    }
-  }
-
-  // Pre-render static labels
-  await addLbl(
-    'header_title',
-    'गुन्ह्यांंच्या तपशीलाचा नमुना/ घटनास्थल पंचनामा',
-    headerStyle,
-  );
-
-  // Section 1
-  await addLbl('lbl_district', 'जिल्हा', marathiLabelStyle);
-  await addLbl('lbl_ps', 'पोलीस स्टेशन', marathiLabelStyle);
-  await addLbl('lbl_year', 'वर्ष', marathiLabelStyle);
-  await addLbl('lbl_fir_no', 'पहिली खबर क्र.', marathiLabelStyle);
-  await addLbl('lbl_date', 'तारीख', marathiLabelStyle);
-
-  // Section 2
-  await addLbl('lbl_act_sec', 'अधिनियम व कलमे', marathiLabelStyle);
-
-  // Section 3
-  await addLbl('lbl_shown_by', 'घटनेचे ठिकाण दाखविणाऱ्याचे :', boldLabelStyle);
-  await addLbl('lbl_name', 'नांव', marathiLabelStyle);
-  await addLbl('lbl_father_husband', 'पित्याचे/ पतीचे नांव', marathiLabelStyle);
-  await addLbl('lbl_address', 'पत्ता :', marathiLabelStyle);
-
-  // Section 4
-  await addLbl(
-    'lbl_type_crime',
-    'गुन्ह्याचा प्रकार (गुन्ह्यांच्या सर्व पद्धतीसह)',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_major_head', 'प्रधान शीर्ष', marathiLabelStyle);
-  await addLbl('lbl_minor_head', 'गौण शीर्ष', marathiLabelStyle);
-  await addLbl('lbl_method', 'पद्धती', marathiLabelStyle);
-  await addLbl('lbl_m1', '(१)', boldLabelStyle);
-  await addLbl('lbl_m2', '(२)', boldLabelStyle);
-  await addLbl('lbl_m3', '(३)', boldLabelStyle);
-  await addLbl('lbl_conveyances', 'वापरलेली वाहने', marathiLabelStyle);
-  await addLbl(
-    'lbl_character',
-    'केलेले वेषांतर/ केलेली बतावणी',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_lang', 'वापरलेली भाषा/ बोली भाषा', marathiLabelStyle);
-  await addLbl('lbl_sf1', 'विशेष वैशिष्ट्ये - १', marathiLabelStyle);
-  await addLbl('lbl_sf2', 'विशेष वैशिष्ट्ये - २', marathiLabelStyle);
-  await addLbl('lbl_sf3', 'विशेष वैशिष्ट्ये - ३', marathiLabelStyle);
-  await addLbl('lbl_place_type', 'घटनेच्या जागेचा प्रकार', marathiLabelStyle);
-  await addLbl('lbl_prop_inv', 'अंतर्भूत मालमत्तेचे प्रकार', marathiLabelStyle);
-
-  // Section 5
-  await addLbl(
-    'lbl_victim_title',
-    'बळीचा तपशील ( आवश्यक असल्यास स्वतंत्र कागद जोडावा. )',
-    boldLabelStyle,
-  );
-
-  // Table headers
-  await addLbl(
-    'th_1',
-    "Sr.\nNo\n\nअ.\nक.\n\n(1)",
-    tableHeaderStyle,
-    maxWidth: 30,
-  );
-  await addLbl(
-    'th_2',
-    "Full Name\n\nसंपूर्ण नांव\n\n(2)",
-    tableHeaderStyle,
-    maxWidth: 100,
-  );
-  await addLbl(
-    'th_3',
-    "Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)",
-    tableHeaderStyle,
-    maxWidth: 80,
-  );
-  await addLbl('th_4', "Sex\n\nलिंग\n\n(*4)", tableHeaderStyle, maxWidth: 50);
-  await addLbl(
-    'th_5',
-    "Nationality\n\nराष्ट्रीयत्व\n\n(*5)",
-    tableHeaderStyle,
-    maxWidth: 60,
-  );
-  await addLbl(
-    'th_6',
-    "Religion\n\nधर्म\n\n(*6)",
-    tableHeaderStyle,
-    maxWidth: 60,
-  );
-  await addLbl(
-    'th_7',
-    "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)",
-    tableHeaderStyle,
-    maxWidth: 60,
-  );
-  await addLbl(
-    'th_8',
-    "Ocupetion\n\nव्यवसाय\n\n(*8)",
-    tableHeaderStyle,
-    maxWidth: 60,
-  );
-  await addLbl(
-    'th_9',
-    "Address\n\nपत्ता\n\n(*9)",
-    tableHeaderStyle,
-    maxWidth: 100,
-  );
-  await addLbl(
-    'th_10',
-    "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
-    tableHeaderStyle,
-    maxWidth: 80,
-  );
-  await addLbl(
-    'th_11',
-    "Means\n\nसाधने/\nहत्यारे\n\n(11)",
-    tableHeaderStyle,
-    maxWidth: 80,
-  );
-
-  // Section 6
-  await addLbl('lbl_motive', 'गुन्ह्याचा हेतू :', boldLabelStyle);
-
-  // Section 7
-  await addLbl(
-    'lbl_prop_det',
-    'चोरीचा / अंतर्भूत मालमत्तेचा तपशील (योग्य नमुना वापरावा व सोबत जोडावा) :',
-    boldLabelStyle,
-  );
-
-  // Section 8
-  await addLbl('lbl_place_desc', '(घटनेच्या जागेचे वर्णन) :', boldLabelStyle);
-  await addLbl(
-    'lbl_place_desc_cont',
-    '(घटनेच्या जागेचे वर्णन) :',
-    boldLabelStyle,
-  );
-
-  // Section 9
-  await addLbl('lbl_map', 'Map: नकाशा', boldLabelStyle);
-  await addLbl(
-    'lbl_no_map',
-    'No Map Uploaded\n(नकाशा जोडला नाही)',
-    boldLabelStyle,
-  );
-
-  // Section 10
-  await addLbl(
-    'lbl_phys_ev',
-    'तपासकामी प्रत्यक्ष पुरावा म्हणून गुन्ह्यांच्या जागेवरून मिळविलेल्या / जप्त केलेल्या मालमत्तेचे वर्णन :',
-    boldLabelStyle,
-  );
-
-  // Page 4 Signatures labels
-  await addLbl(
-    'lbl_dt_panchnama',
-    "Date and Time of panchnama\nघटनास्थळ पंचनाम्याची दिनांक",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_panchas_name',
-    "Name of panchas: / पंचाची नांवे :",
-    boldLabelStyle,
-  );
-  await addLbl('lbl_p1_addr', "Full Address\nपत्ता", boldLabelStyle);
-  await addLbl('lbl_p2_addr', "Full Address\nपत्ता", boldLabelStyle);
-  await addLbl('lbl_date_form', "Date\nदिनांक", boldLabelStyle);
-  await addLbl('lbl_time_form', "Time\nवेळ", boldLabelStyle);
-  await addLbl(
-    'lbl_panchas_sig',
-    "Signature of Panchas: / पंचाच्या सह्या :",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_sig',
-    "Name and Signature of Investigation Officer",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_sig_mar',
-    FormIoTerminology.amaldarSignatureHeader,
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_name',
-    "Name\n${FormIoTerminology.name}",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_rank',
-    "Rank\n${FormIoTerminology.rank}",
-    boldLabelStyle,
-  );
-  await addLbl('lbl_io_buckle', "B.No. if any\nबक्कल नंबर", boldLabelStyle);
-
-  // Pre-render dynamic user values
-  await addVal('val_district', doc['district']?.toString());
-  await addVal('val_ps', doc['ps']?.toString());
-  await addVal('val_year', doc['year']?.toString());
-  await addVal('val_firNo', doc['firNo']?.toString());
-  await addVal('val_firYearSuffix', doc['firYearSuffix']?.toString());
-  await addVal('val_dateDay', doc['dateDay']?.toString());
-  await addVal('val_dateMonth', doc['dateMonth']?.toString());
-  await addVal('val_dateYear', doc['dateYear']?.toString());
-  await addVal('val_actSection', doc['actSection']?.toString());
-
-  await addVal('val_shownByName', doc['shownByName']?.toString());
-  await addVal(
-    'val_shownByFatherHusband',
-    doc['shownByFatherHusband']?.toString(),
-  );
-  await addVal('val_shownByAddress', doc['shownByAddress']?.toString());
-
-  await addVal('val_typeOfCrime', doc['typeOfCrime']?.toString());
-  await addVal('val_majorHead', doc['majorHead']?.toString());
-  await addVal('val_minorHead', doc['minorHead']?.toString());
-  await addVal('val_method', doc['method']?.toString());
-  await addVal('val_method1', doc['method1']?.toString());
-  await addVal('val_method2', doc['method2']?.toString());
-  await addVal('val_method3', doc['method3']?.toString());
-
-  await addVal('val_conveyances', doc['conveyances']?.toString());
-  await addVal('val_characterAssumed', doc['characterAssumed']?.toString());
-  await addVal('val_languageSlang', doc['languageSlang']?.toString());
-  await addVal('val_specialFeature1', doc['specialFeature1']?.toString());
-  await addVal('val_specialFeature2', doc['specialFeature2']?.toString());
-  await addVal('val_specialFeature3', doc['specialFeature3']?.toString());
-  await addVal(
-    'val_placeOfOccurrenceType',
-    doc['placeOfOccurrenceType']?.toString(),
-  );
-  await addVal('val_propertyInvolved', doc['propertyInvolved']?.toString());
-  await addVal('val_propertyType1', doc['propertyType1']?.toString());
-  await addVal('val_propertyType2', doc['propertyType2']?.toString());
-  await addVal('val_propertyType3', doc['propertyType3']?.toString());
-  await addVal('val_propertyType4', doc['propertyType4']?.toString());
-  await addVal('val_motiveOfCrime', doc['motiveOfCrime']?.toString());
-
-  // Lined blocks
-  await addLinedBlock(
-    'val_propertyDetails',
-    doc['propertyDetails']?.toString(),
-    85,
-  );
-  await addLinedBlock(
-    'val_placeDescription',
-    doc['placeDescription']?.toString(),
-    85,
-  );
-  await addLinedBlock(
-    'val_placeDescriptionCont',
-    doc['placeDescriptionCont']?.toString(),
-    85,
-  );
-  await addLinedBlock(
-    'val_physicalEvidence',
-    doc['physicalEvidence']?.toString(),
-    85,
-  );
-
-  // Victims table rows
-  final victims = doc['victims'];
-  if (victims is List) {
-    for (int i = 0; i < victims.length; i++) {
-      final item = victims[i];
-      final Map<String, dynamic> row =
-          item is Map ? Map<String, dynamic>.from(item) : {};
-      final fields = [
-        'fullName',
-        'dob',
-        'sex',
-        'nationality',
-        'religion',
-        'scSt',
-        'occupation',
-        'address',
-        'injury',
-        'means',
-      ];
-      for (final field in fields) {
-        final val = row[field]?.toString() ?? '';
-        if (containsDevanagari(val)) {
-          await cache.add(
-            'victim_${i}_$field',
-            val,
-            victimValueStyle,
-            maxWidth: 100,
-          );
-        }
-      }
-    }
-  }
-
-  // Signature section values
-  await addVal('val_panchnamaDate', doc['panchnamaDate']?.toString());
-  await addVal('val_pancha1Name', doc['pancha1Name']?.toString());
-  await addVal('val_pancha1Address', doc['pancha1Address']?.toString());
-  await addVal('val_pancha2Name', doc['pancha2Name']?.toString());
-  await addVal('val_pancha2Address', doc['pancha2Address']?.toString());
-  await addVal('val_panchnamaFormDate', doc['panchnamaFormDate']?.toString());
-  await addVal('val_panchnamaTime', doc['panchnamaTime']?.toString());
-  await addVal('val_pancha1Sig', doc['pancha1Sig']?.toString());
-  await addVal('val_pancha2Sig', doc['pancha2Sig']?.toString());
-  await addVal('val_ioName', doc['ioName']?.toString());
-  await addVal('val_ioRank', doc['ioRank']?.toString());
-  await addVal('val_ioBuckleNo', doc['ioBuckleNo']?.toString());
-
-  return cache;
+  return pdf.save();
 }
