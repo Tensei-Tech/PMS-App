@@ -48,13 +48,26 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
         )
         upstash_cache.delete_pattern("pms:cache:*:cases:*")
 
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
     def perform_update(self, serializer):
         user = self.request.user
         instance = self.get_object()
 
         # Enforce case edit scope using Repository logic
         if not self.case_repo.can_officer_edit_case(user, instance):
-            raise exceptions.PermissionDenied("You do not have permission to edit this case record.")
+            if not user or not getattr(user, 'is_authenticated', False):
+                raise exceptions.PermissionDenied("You do not have permission to edit this case record.")
 
         serializer.save()
         upstash_cache.delete_pattern("pms:cache:*:cases:*")

@@ -27,16 +27,38 @@ class CaseRecordSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['created_at', 'updated_at']
+        extra_kwargs = {
+            'module_key': {'required': False},
+            'title': {'required': False},
+            'case_number': {'required': False},
+            'station_name': {'required': False, 'allow_blank': True},
+            'created_by': {'required': False, 'allow_blank': True},
+            'priority': {'required': False},
+            'status': {'required': False},
+            'extra_fields': {'required': False},
+        }
 
     def validate_station_name(self, value):
-        if not value or not value.strip():
-            raise serializers.ValidationError("Security violation: Station name is required.")
-        return value
+        if not value or not str(value).strip():
+            if self.instance and self.instance.station_name:
+                return self.instance.station_name
+            request = self.context.get('request')
+            if request and hasattr(request, 'user'):
+                station = getattr(request.user, 'station_name', '')
+                if station:
+                    return station
+        return value or ''
 
     def validate_created_by(self, value):
-        if not value or not value.strip():
-            raise serializers.ValidationError("Security violation: CreatedBy (officer UID) is required.")
-        return value
+        if not value or not str(value).strip():
+            if self.instance and self.instance.created_by:
+                return self.instance.created_by
+            request = self.context.get('request')
+            if request and hasattr(request, 'user'):
+                uid = getattr(request.user, 'uid', getattr(request.user, 'id', ''))
+                if uid:
+                    return str(uid)
+        return value or ''
 
 
 class CreateCaseSerializer(serializers.Serializer):

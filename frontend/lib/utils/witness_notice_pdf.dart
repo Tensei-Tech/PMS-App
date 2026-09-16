@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'marathi_text_renderer.dart';
+import 'pdf_layout_constants.dart';
 
 Future<void> previewWitnessNoticePdf(
   BuildContext context,
@@ -28,13 +29,14 @@ Future<void> previewWitnessNoticePdf(
 
 Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final loraBold = await PdfGoogleFonts.loraBold();
+
+  final loraRegular = await PdfGoogleFonts.loraRegular();
   final cache = await _preRenderAllMarathi(doc);
 
-  final pw.TextStyle englishValueStyle = pw.TextStyle(
-    font: loraBold,
-    fontSize: 9.5,
-    color: PdfColors.blue900,
+  final pw.TextStyle englishStyle = pw.TextStyle(
+    font: loraRegular,
+    fontSize: 10,
+    color: PdfColors.black,
   );
 
   pw.Widget renderField(String key, String? val) {
@@ -45,7 +47,7 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
     if (cache.has(key)) {
       return cache.img(key);
     }
-    return pw.Text(text, style: englishValueStyle);
+    return pw.Text(text, style: englishStyle);
   }
 
   pw.Widget mLbl(String key) {
@@ -61,7 +63,7 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+      margin: PdfLayoutConstants.pageMargin,
       build: (pw.Context context) {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,

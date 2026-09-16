@@ -17,6 +17,7 @@ import 'common_form_pdf.dart';
 import 'crime_detail_pdf.dart';
 import 'property_seizure_pdf.dart';
 import 'dynamic_map_pdf.dart';
+import 'pdf_layout_constants.dart';
 import 'pdf_unicode_fonts.dart';
 
 class ModulePdfHelper {
@@ -198,7 +199,7 @@ class ModulePdfHelper {
           maxPages: 200,
           theme: theme,
           pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(32),
+          margin: PdfLayoutConstants.pageMargin,
           build: (pw.Context ctx) {
             return [
               DynamicMapPdf.pmsNavyHeaderBand(
@@ -299,7 +300,7 @@ class ModulePdfHelper {
           pw.Page(
             theme: theme,
             pageFormat: PdfPageFormat.a4,
-            margin: const pw.EdgeInsets.all(32),
+            margin: PdfLayoutConstants.pageMargin,
             build: (pw.Context ctx) {
               return pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -352,7 +353,7 @@ class ModulePdfHelper {
         maxPages: 200,
         theme: theme,
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: PdfLayoutConstants.pageMargin,
         build: (pw.Context ctx) {
           return [
             DynamicMapPdf.pmsNavyHeaderBand(
@@ -446,7 +447,7 @@ class ModulePdfHelper {
       pw.Page(
         theme: theme,
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: PdfLayoutConstants.pageMargin,
         build: (pw.Context ctx) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -636,7 +637,7 @@ class ModulePdfHelper {
         maxPages: 200,
         theme: theme,
         pageFormat: PdfPageFormat.a4.landscape,
-        margin: const pw.EdgeInsets.all(32),
+        margin: PdfLayoutConstants.pageMargin,
         build: (pw.Context ctx) {
           return [
             // Header
@@ -1040,7 +1041,7 @@ class ModulePdfHelper {
         maxPages: 200,
         theme: theme,
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: PdfLayoutConstants.pageMargin,
         header: (pw.Context ctx) => pw.Container(
           width: double.infinity,
           padding: const pw.EdgeInsets.all(15),

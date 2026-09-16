@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Sand Theft Entry — PMS App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #F4F7F9;
+      --card: #FFFFFF;
+      --teal: #0EA5E9;
+      --teal-light: rgba(14, 165, 233, 0.08);
+      --teal-border: rgba(14, 165, 233, 0.3);
+      --green: #10B981;
+      --green-light: #F0FDF4;
+      --green-border: #86EFAC;
+      --red: #EF4444;
+      --dark: #0F172A;
+      --fill: #F8FAFC;
+      --border: #E2E8F0;
+      --sec: #64748B;
+      --amber: #F59E0B;
+      --amber-light: #FFFBEB;
+      --navy: #0F172A;
+      --radius-sm: 8px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--dark);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Top Header */
+    .top-nav {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--fill);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dark);
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+      background: var(--border);
+    }
+
+    .nav-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-action {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-clear {
+      background: transparent;
+      border: 1px solid var(--red);
+      color: var(--red);
+    }
+    .btn-clear:hover {
+      background: #FEF2F2;
+    }
+
+    .btn-draft {
+      background: transparent;
+      border: 1px solid var(--teal);
+      color: var(--teal);
+    }
+    .btn-draft:hover {
+      background: var(--teal-light);
+    }
+
+    .btn-pdf {
+      background: var(--teal);
+      border: 1px solid var(--teal);
+      color: #FFFFFF;
+    }
+    .btn-pdf:hover {
+      background: #0284C7;
+    }
+
+    /* Form Container */
+    .container {
+      max-width: 820px;
+      width: 100%;
+      margin: 20px auto 100px;
+      padding: 0 16px;
+    }
+
+    /* Cards */
+    .form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .badge-number {
+      width: 24px;
+      height: 24px;
+      background: var(--dark);
+      color: #fff;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 10px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: var(--dark);
+      text-transform: uppercase;
+    }
+
+    .section-title-bar {
+      width: 4px;
+      height: 20px;
+      background-color: var(--teal);
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .title-icon {
+      color: var(--amber);
+      font-size: 16px;
+    }
+
+    /* Section Sub-labels */
+    .sub-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sec);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    /* Empty state info boxes */
+    .info-empty-box {
+      background: #F8FAFC;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      text-align: center;
+      color: var(--sec);
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    /* Form Inputs */
+    .form-group {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-field, .select-field {
+      width: 100%;
+      background: var(--fill);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--dark);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .select-field {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 14px;
+      cursor: pointer;
+    }
+
+    .input-field:focus, .select-field:focus {
+      border-color: var(--teal);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+
+    .input-field::placeholder {
+      color: #94A3B8;
+      font-weight: 400;
+    }
+
+    .input-with-icon {
+      position: relative;
+    }
+    .input-with-icon input {
+      padding-right: 38px;
+      cursor: pointer;
+    }
+    .input-with-icon i {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--sec);
+      pointer-events: none;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .row-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Yes/No Toggles */
+    .yn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .yn-btn {
+      flex: 1;
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      text-align: center;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--sec);
+      transition: all 0.2s;
+    }
+
+    .yn-btn.yes.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: #FFFFFF;
+    }
+
+    .yn-btn.no.active {
+      background: var(--red);
+      border-color: var(--red);
+      color: #FFFFFF;
+    }
+
+    /* Module Badge Divider */
+    .badge-divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0 16px;
+    }
+
+    .badge-divider .line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--teal-light);
+      border: 1px solid var(--teal-border);
+      border-radius: 20px;
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      margin: 0 12px;
+    }
+
+    /* Vehicle Item Box */
+    .vehicle-item-box {
+      background: var(--fill);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .vehicle-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .veh-tag {
+      background: var(--amber);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: var(--red);
+      cursor: pointer;
+      font-size: 15px;
+      padding: 4px;
+    }
+
+    /* Selected Sections Tag Chips */
+    .section-tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .sec-tag {
+      background: var(--teal-light);
+      border: 1px solid var(--teal-border);
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sec-tag .close-btn {
+      color: var(--red);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    /* Chips */
+    .chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .choice-chip {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--fill);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--dark);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .choice-chip.active {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #FFFFFF;
+      font-weight: 700;
+    }
+
+    /* Outlined Button */
+    .btn-outline-amber {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--amber);
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--amber);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-outline-amber:hover {
+      background: var(--amber-light);
+    }
+
+    .btn-outline-teal {
+      padding: 6px 12px;
+      border: 1px solid var(--teal);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Bottom Action Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #FFFFFF;
+      border-top: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .bottom-btn {
+      min-width: 95px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-done {
+      background: var(--navy);
+      color: #FFFFFF;
+      border: none;
+    }
+    .btn-done:hover {
+      background: #1E293B;
+    }
+
+    .btn-bottom-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--sec);
+    }
+    .btn-bottom-outline:hover {
+      background: var(--fill);
+      color: var(--dark);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-nav">
+    <div class="top-left">
+      <button class="back-btn" title="Go back">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <h1 class="nav-title">New Sand Theft Entry</h1>
+    </div>
+    <div class="top-actions">
+      <button class="btn-action btn-clear"><i class="fa-solid fa-rotate-right"></i> Clear</button>
+      <button class="btn-action btn-draft"><i class="fa-regular fa-floppy-disk"></i> Save Draft</button>
+      <button class="btn-action btn-pdf"><i class="fa-regular fa-file-pdf"></i> Generate Sand Theft Form PDF</button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container">
+
+    <!-- Section 4: Stolen Property -->
+    <section class="form-card">
+      <div class="card-header-row">
+        <div style="display: flex; align-items: center;">
+          <span class="badge-number">4</span>
+          <h2 class="section-title">Stolen Property</h2>
+        </div>
+      </div>
+
+      <div class="card-header-row" style="margin-bottom: 6px;">
+        <span class="sub-label">STOLEN PROPERTIES</span>
+        <button class="btn-outline-teal"><i class="fa-solid fa-plus"></i> Add Stolen</button>
+      </div>
+      <div class="info-empty-box">No stolen properties added.</div>
+
+      <span class="sub-label">RECOVERED PROPERTIES</span>
+      <div class="info-empty-box">No recovered properties added.</div>
+    </section>
+
+    <!-- Sand Theft Badge Divider -->
+    <div class="badge-divider">
+      <div class="line"></div>
+      <div class="badge-pill">
+        <i class="fa-solid fa-mountain-sun"></i>
+        <span>SAND THEFT — SPECIFIC DETAILS</span>
+      </div>
+      <div class="line"></div>
+    </div>
+
+    <!-- 1. SEIZED VEHICLE (Directly Below Stolen Property) -->
+    <section class="form-card" id="seized-vehicle-section">
+      <div class="card-header-row">
+        <div class="section-title">
+          <span class="section-title-bar"></span>
+          <i class="fa-solid fa-car-side title-icon"></i>
+          <span>SEIZED VEHICLE</span>
+        </div>
+      </div>
+
+      <div id="vehicles-list">
+        <!-- Vehicle 1 Box -->
+        <div class="vehicle-item-box" id="veh-box-1">
+          <div class="vehicle-item-header" style="display: none;" id="veh-header-1">
+            <span class="veh-tag">Vehicle 1</span>
+            <button type="button" class="btn-delete" onclick="removeVehicle(1)" title="Remove Vehicle"><i class="fa-regular fa-trash-can"></i></button>
+          </div>
+
+          <!-- 1. Number of vehicle & 2. Name of Vehicle -->
+          <div class="row-2">
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="1. Number of Vehicle (e.g. 1 / MH12AB1234)" />
+            </div>
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="2. Name of Vehicle (e.g. Tipper Truck)" />
+            </div>
+          </div>
+
+          <!-- 3. Types of vehicle (Company name & Type of vehicle with dropdown + manual input) -->
+          <div class="row-2">
+            <div class="form-group">
+              <input type="text" list="companies-list" class="input-field" placeholder="Company Name (Make) — Select or Type" />
+              <datalist id="companies-list">
+                <option value="Tata Motors">
+                <option value="Mahindra & Mahindra">
+                <option value="Ashok Leyland">
+                <option value="Eicher Motors">
+                <option value="BharatBenz">
+                <option value="JCB India">
+                <option value="John Deere">
+                <option value="Sonalika Tractors">
+                <option value="Swaraj Tractors">
+                <option value="Force Motors">
+                <option value="Hyundai Construction">
+                <option value="Caterpillar (CAT)">
+                <option value="Kubota">
+                <option value="Escorts / Farmtrac">
+                <option value="Other">
+              </datalist>
+            </div>
+            <div class="form-group">
+              <input type="text" list="vehicle-types-list" class="input-field" placeholder="Type of Vehicle — Select or Type" />
+              <datalist id="vehicle-types-list">
+                <option value="Tipper">
+                <option value="Truck / Dumper">
+                <option value="Tractor with Trolley">
+                <option value="Tractor">
+                <option value="Excavator / JCB / Poclain">
+                <option value="Boat / Barge / Suction Dredger">
+                <option value="Tempo / Pickup / LCV">
+                <option value="Trailer">
+                <option value="Bullock Cart">
+                <option value="Other">
+              </datalist>
+            </div>
+          </div>
+
+          <!-- 4. Owner Name & Address -->
+          <div class="row-2">
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="4. Owner Name" />
+            </div>
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="Owner Address" />
+            </div>
+          </div>
+
+          <!-- 5. Driver Name & Address -->
+          <div class="row-2">
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="5. Driver Name" />
+            </div>
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="Driver Address" />
+            </div>
+          </div>
+
+          <!-- Engine Num & Chechis Number -->
+          <div class="row-2">
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="Engine Num" />
+            </div>
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="Chechis Number" />
+            </div>
+          </div>
+
+          <!-- Reg Number & Unique Identification Mark -->
+          <div class="row-2">
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="Reg Number" />
+            </div>
+            <div class="form-group">
+              <input type="text" class="input-field" placeholder="Unique Identification Mark" />
+            </div>
+          </div>
+
+          <!-- Purchase Date -->
+          <div class="form-group">
+            <div class="input-with-icon">
+              <input type="date" class="input-field" placeholder="Purchase Date" />
+            </div>
+          </div>
+
+          <!-- 6. Photo Copy & 7. Ownership Doc Y/N -->
+          <div class="row-2" style="margin-top: 4px;">
+            <div class="form-group">
+              <span class="sub-label">6. Photo Copy</span>
+              <div class="yn-group">
+                <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+                <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <span class="sub-label">7. Ownership Doc (Y/N)</span>
+              <div class="yn-group">
+                <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+                <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-outline-amber" onclick="addVehicle()">
+        <i class="fa-regular fa-circle-plus"></i> Add Another Seized Vehicle
+      </button>
+    </section>
+
+    <!-- 2. APPLICABLE SECTIONS (Dropdown from PDF) -->
+    <section class="form-card">
+      <div class="card-header-row">
+        <div class="section-title">
+          <span class="section-title-bar"></span>
+          <i class="fa-solid fa-gavel title-icon"></i>
+          <span>APPLICABLE SECTIONS (BNS & SPECIAL ACTS)</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <select class="select-field" id="sections-dropdown" onchange="addSectionFromDropdown(this)">
+          <option value="" disabled selected>Select Section to Add (BNS 303–331 / MMDR / EPA / MLRC)</option>
+          <optgroup label="BNS, 2023 — Offences Against Property (From PDF)">
+            <option value="303(1)|Theft">Sec 303(1) — Theft</option>
+            <option value="303(2)|Theft">Sec 303(2) — Theft</option>
+            <option value="304(1)|Snatching">Sec 304(1) — Snatching</option>
+            <option value="304(2)|Snatching">Sec 304(2) — Snatching</option>
+            <option value="305|Theft in dwelling house or means of transportation">Sec 305 — Theft in a dwelling house, or means of transportation, etc.</option>
+            <option value="306|Theft by clerk or servant">Sec 306 — Theft by clerk or servant of property</option>
+            <option value="307|Theft after preparation for death/hurt">Sec 307 — Theft after preparation made for causing death, hurt</option>
+            <option value="308(1)|Extortion">Sec 308(1) — Extortion</option>
+            <option value="308(2)|Extortion">Sec 308(2) — Extortion</option>
+            <option value="308(3)|Extortion">Sec 308(3) — Extortion</option>
+            <option value="308(4)|Extortion">Sec 308(4) — Extortion</option>
+            <option value="308(5)|Extortion">Sec 308(5) — Extortion</option>
+            <option value="308(6)|Extortion">Sec 308(6) — Extortion</option>
+            <option value="308(7)|Extortion">Sec 308(7) — Extortion</option>
+            <option value="309(1)|Robbery">Sec 309(1) — Robbery</option>
+            <option value="309(2)|Robbery">Sec 309(2) — Robbery</option>
+            <option value="309(3)|Robbery">Sec 309(3) — Robbery</option>
+            <option value="309(4)|Robbery">Sec 309(4) — Robbery</option>
+            <option value="309(5)|Robbery">Sec 309(5) — Robbery</option>
+            <option value="309(6)|Robbery">Sec 309(6) — Robbery</option>
+            <option value="310(1)|Dacoity">Sec 310(1) — Dacoity</option>
+            <option value="310(2)|Dacoity">Sec 310(2) — Dacoity</option>
+            <option value="310(3)|Dacoity">Sec 310(3) — Dacoity</option>
+            <option value="310(4)|Dacoity">Sec 310(4) — Dacoity</option>
+            <option value="310(5)|Dacoity">Sec 310(5) — Dacoity</option>
+            <option value="310(6)|Dacoity">Sec 310(6) — Dacoity</option>
+            <option value="311|Robbery/Dacoity with attempt to cause death/hurt">Sec 311 — Robbery or dacoity with attempt to cause death</option>
+            <option value="312|Robbery with deadly weapon">Sec 312 — Attempt to commit robbery armed with deadly weapon</option>
+            <option value="313|Gang of robbers">Sec 313 — Belonging to gang of robbers</option>
+            <option value="314|Dishonest misappropriation">Sec 314 — Dishonest misappropriation of property</option>
+            <option value="315|Misappropriation of deceased property">Sec 315 — Dishonest misappropriation of deceased person's property</option>
+            <option value="316(1)|Criminal breach of trust">Sec 316(1) — Criminal breach of trust</option>
+            <option value="316(2)|Criminal breach of trust">Sec 316(2) — Criminal breach of trust</option>
+            <option value="316(3)|Criminal breach of trust">Sec 316(3) — Criminal breach of trust</option>
+            <option value="316(4)|Criminal breach of trust">Sec 316(4) — Criminal breach of trust</option>
+            <option value="316(5)|Criminal breach of trust">Sec 316(5) — Criminal breach of trust</option>
+            <option value="317(1)|Stolen property">Sec 317(1) — Stolen property</option>
+            <option value="317(2)|Stolen property">Sec 317(2) — Stolen property</option>
+            <option value="317(3)|Stolen property">Sec 317(3) — Stolen property</option>
+            <option value="317(4)|Stolen property">Sec 317(4) — Stolen property</option>
+            <option value="317(5)|Stolen property">Sec 317(5) — Stolen property</option>
+            <option value="318(1)|Cheating">Sec 318(1) — Cheating</option>
+            <option value="318(2)|Cheating">Sec 318(2) — Cheating</option>
+            <option value="318(3)|Cheating">Sec 318(3) — Cheating</option>
+            <option value="318(4)|Cheating">Sec 318(4) — Cheating</option>
+            <option value="319(1)|Cheating by personation">Sec 319(1) — Cheating by personation</option>
+            <option value="319(2)|Cheating by personation">Sec 319(2) — Cheating by personation</option>
+            <option value="320|Fraudulent removal of property">Sec 320 — Fraudulent removal of property</option>
+            <option value="321|Fraudulently preventing debt">Sec 321 — Fraudulently preventing debt being available</option>
+            <option value="322|Fraudulent execution of deed">Sec 322 — Fraudulent execution of deed of transfer</option>
+            <option value="323|Fraudulent removal/concealment">Sec 323 — Dishonest removal or concealment of property</option>
+            <option value="324(1)|Mischief">Sec 324(1) — Mischief</option>
+            <option value="324(2)|Mischief">Sec 324(2) — Mischief</option>
+            <option value="324(3)|Mischief">Sec 324(3) — Mischief</option>
+            <option value="324(4)|Mischief">Sec 324(4) — Mischief</option>
+            <option value="324(5)|Mischief">Sec 324(5) — Mischief</option>
+            <option value="324(6)|Mischief">Sec 324(6) — Mischief</option>
+            <option value="325|Killing/maiming animal">Sec 325 — Mischief by killing or maiming animal</option>
+            <option value="326(a)|Mischief by fire/explosive">Sec 326(a) — Mischief by injury, fire or explosive</option>
+            <option value="326(b)|Mischief by fire/explosive">Sec 326(b) — Mischief by injury, fire or explosive</option>
+            <option value="326(c)|Mischief by fire/explosive">Sec 326(c) — Mischief by injury, fire or explosive</option>
+            <option value="326(d)|Mischief by fire/explosive">Sec 326(d) — Mischief by injury, fire or explosive</option>
+            <option value="326(e)|Mischief by fire/explosive">Sec 326(e) — Mischief by injury, fire or explosive</option>
+            <option value="326(f)|Mischief by fire/explosive">Sec 326(f) — Mischief by injury, fire or explosive</option>
+            <option value="326(g)|Mischief by fire/explosive">Sec 326(g) — Mischief by injury, fire or explosive</option>
+            <option value="327(1)|Mischief to rail/aircraft/vessel">Sec 327(1) — Mischief with intent to destroy vessel/rail</option>
+            <option value="327(2)|Mischief to rail/aircraft/vessel">Sec 327(2) — Mischief with intent to destroy vessel/rail</option>
+            <option value="328|Running vessel aground for theft">Sec 328 — Intentionally running vessel aground for theft</option>
+            <option value="329(1)|Criminal trespass">Sec 329(1) — Criminal trespass and house-trespass</option>
+            <option value="329(2)|Criminal trespass">Sec 329(2) — Criminal trespass and house-trespass</option>
+            <option value="329(3)|Criminal trespass">Sec 329(3) — Criminal trespass and house-trespass</option>
+            <option value="329(4)|Criminal trespass">Sec 329(4) — Criminal trespass and house-trespass</option>
+            <option value="330(1)|House-breaking">Sec 330(1) — House-trespass and house-breaking</option>
+            <option value="330(2)(a)|House-breaking">Sec 330(2)(a) — House-trespass and house-breaking</option>
+            <option value="330(2)(b)|House-breaking">Sec 330(2)(b) — House-trespass and house-breaking</option>
+            <option value="330(2)(c)|House-breaking">Sec 330(2)(c) — House-trespass and house-breaking</option>
+            <option value="330(2)(d)|House-breaking">Sec 330(2)(d) — House-trespass and house-breaking</option>
+            <option value="330(2)(e)|House-breaking">Sec 330(2)(e) — House-trespass and house-breaking</option>
+            <option value="330(2)(f)|House-breaking">Sec 330(2)(f) — House-trespass and house-breaking</option>
+            <option value="331(1)|Punishment for house-breaking">Sec 331(1) — Punishment for house-trespass/house-breaking</option>
+            <option value="331(2)|Punishment for house-breaking">Sec 331(2) — Punishment for house-trespass/house-breaking</option>
+            <option value="331(3)|Punishment for house-breaking">Sec 331(3) — Punishment for house-trespass/house-breaking</option>
+            <option value="331(4)|Punishment for house-breaking">Sec 331(4) — Punishment for house-trespass/house-breaking</option>
+            <option value="331(5)|Punishment for house-breaking">Sec 331(5) — Punishment for house-trespass/house-breaking</option>
+            <option value="331(6)|Punishment for house-breaking">Sec 331(6) — Punishment for house-trespass/house-breaking</option>
+            <option value="331(7)|Punishment for house-breaking">Sec 331(7) — Punishment for house-trespass/house-breaking</option>
+            <option value="331(8)|Punishment for house-breaking">Sec 331(8) — Punishment for house-trespass/house-breaking</option>
+          </optgroup>
+          <optgroup label="Special Sand Mining Acts">
+            <option value="MMDR 4(1), 21(1)|Mines & Minerals Act">Sec MMDR 4(1), 21(1) — Mines & Minerals Act (Illegal Transport)</option>
+            <option value="MLRC 48(7), 48(8)|Maharashtra Land Revenue Code">Sec MLRC 48(7), 48(8) — Maharashtra Land Revenue Code</option>
+            <option value="EPA 15|Environment Protection Act">Sec EPA 15 — Environment Protection Act</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <span class="sub-label">SELECTED SECTIONS:</span>
+      <div class="section-tags-container" id="selected-sections-box">
+        <div class="sec-tag">
+          <span>Sec 303(1) — Theft</span>
+          <i class="fa-solid fa-xmark close-btn" onclick="this.parentElement.remove()"></i>
+        </div>
+        <div class="sec-tag">
+          <span>Sec MMDR 4(1), 21(1) — Mines & Minerals Act</span>
+          <i class="fa-solid fa-xmark close-btn" onclick="this.parentElement.remove()"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Spot Type -->
+    <section class="form-card">
+      <div class="card-header-row">
+        <div class="section-title">
+          <span class="section-title-bar"></span>
+          <span>SPOT TYPE</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <textarea class="input-field" rows="2" placeholder="Exact Place of Sand Theft (River Bed / Ghat / Road)"></textarea>
+      </div>
+
+      <span class="sub-label" style="margin-top: 10px;">TYPE OF LOCATION</span>
+      <div class="chips-wrap">
+        <div class="choice-chip active" onclick="selectChip(this)">River Bed / Sand Ghat</div>
+        <div class="choice-chip" onclick="selectChip(this)">Mine / Quarry</div>
+        <div class="choice-chip" onclick="selectChip(this)">Road / Highway</div>
+        <div class="choice-chip" onclick="selectChip(this)">Vehicle</div>
+        <div class="choice-chip" onclick="selectChip(this)">Godown / Stockyard</div>
+        <div class="choice-chip" onclick="selectChip(this)">Public Place</div>
+        <div class="choice-chip" onclick="selectChip(this)">Other</div>
+      </div>
+    </section>
+
+    <!-- 4. Spot Investigation Details -->
+    <section class="form-card">
+      <div class="card-header-row">
+        <div class="section-title">
+          <span class="section-title-bar"></span>
+          <span>SPOT INVESTIGATION DETAILS</span>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="form-group">
+          <span class="sub-label">Spot Photo Taken</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <span class="sub-label">Spot Video Taken</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2" style="margin-top: 10px;">
+        <div class="form-group">
+          <span class="sub-label">Footprint Found</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <span class="sub-label">Fingerprint Found</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Investigation Verification Checks -->
+    <section class="form-card">
+      <div class="card-header-row">
+        <div class="section-title">
+          <span class="section-title-bar"></span>
+          <span>INVESTIGATION VERIFICATION CHECKS</span>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="form-group">
+          <span class="sub-label">Witness Examined</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <span class="sub-label">Social Media Checked</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2" style="margin-top: 10px;">
+        <div class="form-group">
+          <span class="sub-label">Bank Account Checked</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <span class="sub-label">Toll Plaza Data Checked</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2" style="margin-top: 10px;">
+        <div class="form-group">
+          <span class="sub-label">FASTag Data Checked</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <span class="sub-label">ANPR Data Checked</span>
+          <div class="yn-group">
+            <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+            <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Action Buttons -->
+  <footer class="bottom-bar">
+    <button class="bottom-btn btn-done">Done</button>
+    <button class="bottom-btn btn-bottom-outline"><i class="fa-regular fa-file-pdf"></i> PDF</button>
+    <button class="bottom-btn btn-bottom-outline"><i class="fa-solid fa-clock-rotate-left"></i> History</button>
+  </footer>
+
+  <script>
+    let vehicleCount = 1;
+
+    function toggleYN(btn, isYes) {
+      const parent = btn.parentElement;
+      const buttons = parent.querySelectorAll('.yn-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function selectChip(chip) {
+      const parent = chip.parentElement;
+      parent.querySelectorAll('.choice-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    }
+
+    function addVehicle() {
+      vehicleCount++;
+      const list = document.getElementById('vehicles-list');
+      
+      if (vehicleCount === 2) {
+        const header1 = document.getElementById('veh-header-1');
+        if (header1) header1.style.display = 'flex';
+      }
+
+      const box = document.createElement('div');
+      box.className = 'vehicle-item-box';
+      box.id = `veh-box-${vehicleCount}`;
+      box.innerHTML = `
+        <div class="vehicle-item-header">
+          <span class="veh-tag">Vehicle ${vehicleCount}</span>
+          <button type="button" class="btn-delete" onclick="removeVehicle(${vehicleCount})" title="Remove Vehicle"><i class="fa-regular fa-trash-can"></i></button>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="1. Number of Vehicle (e.g. ${vehicleCount} / MH12AB1234)" />
+          </div>
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="2. Name of Vehicle (e.g. Tipper Truck)" />
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <select class="select-field">
+              <option value="" disabled selected>Company Name (Make)</option>
+              <option value="Tata">Tata Motors</option>
+              <option value="Mahindra">Mahindra & Mahindra</option>
+              <option value="Ashok Leyland">Ashok Leyland</option>
+              <option value="Eicher">Eicher Motors</option>
+              <option value="BharatBenz">BharatBenz</option>
+              <option value="JCB">JCB India</option>
+              <option value="John Deere">John Deere</option>
+              <option value="Sonalika">Sonalika Tractors</option>
+              <option value="Swaraj">Swaraj Tractors</option>
+              <option value="Force Motors">Force Motors</option>
+              <option value="Hyundai">Hyundai Construction</option>
+              <option value="Caterpillar">Caterpillar (CAT)</option>
+              <option value="Kubota">Kubota</option>
+              <option value="Escorts">Escorts / Farmtrac</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <select class="select-field">
+              <option value="" disabled selected>Type of Vehicle</option>
+              <option value="Tipper">Tipper</option>
+              <option value="Truck">Truck / Dumper</option>
+              <option value="Tractor-Trolley">Tractor with Trolley</option>
+              <option value="Tractor">Tractor</option>
+              <option value="Excavator">Excavator / JCB / Poclain</option>
+              <option value="Boat">Boat / Barge / Suction Dredger</option>
+              <option value="Tempo">Tempo / Pickup / LCV</option>
+              <option value="Trailer">Trailer</option>
+              <option value="Bullock Cart">Bullock Cart</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="4. Owner Name" />
+          </div>
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="Owner Address" />
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="5. Driver Name" />
+          </div>
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="Driver Address" />
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="Engine Num" />
+          </div>
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="Chechis Number" />
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="Reg Number" />
+          </div>
+          <div class="form-group">
+            <input type="text" class="input-field" placeholder="Unique Identification Mark" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-with-icon">
+            <input type="date" class="input-field" placeholder="Purchase Date" />
+          </div>
+        </div>
+
+        <div class="row-2" style="margin-top: 4px;">
+          <div class="form-group">
+            <span class="sub-label">6. Photo Copy</span>
+            <div class="yn-group">
+              <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+              <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <span class="sub-label">7. Ownership Doc (Y/N)</span>
+            <div class="yn-group">
+              <button type="button" class="yn-btn yes" onclick="toggleYN(this, true)">YES</button>
+              <button type="button" class="yn-btn no active" onclick="toggleYN(this, false)">NO</button>
+            </div>
+          </div>
+        </div>
+      `;
+      list.appendChild(box);
+    }
+
+    function removeVehicle(id) {
+      const item = document.getElementById(`veh-box-${id}`);
+      if (item) {
+        item.remove();
+      }
+    }
+
+    function addSectionFromDropdown(select) {
+      if (!select.value) return;
+      const parts = select.value.split('|');
+      const sec = parts[0];
+      const desc = parts[1] || '';
+      
+      const box = document.getElementById('selected-sections-box');
+      const tag = document.createElement('div');
+      tag.className = 'sec-tag';
+      tag.innerHTML = `
+        <span>Sec ${sec} — ${desc}</span>
+        <i class="fa-solid fa-xmark close-btn" onclick="this.parentElement.remove()"></i>
+      `;
+      box.appendChild(tag);
+      select.selectedIndex = 0;
+    }
+  </script>
+</body>
+</html>

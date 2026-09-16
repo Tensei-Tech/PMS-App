@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import 'dynamic_map_pdf.dart';
+import 'pdf_layout_constants.dart';
 import 'pdf_unicode_fonts.dart';
 
 class AdFormPdfHelper {
@@ -29,17 +30,17 @@ class AdFormPdfHelper {
         maxPages: 200,
         theme: theme,
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(40),
+        margin: PdfLayoutConstants.pageMargin,
         build: (ctx) {
           return [
             DynamicMapPdf.pmsNavyHeaderBand(
               amberSubtitle:
                   'Accidental Death (A.D) — form record · AD No. $adNo',
             ),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: PdfLayoutConstants.sectionGap),
             DynamicMapPdf.sectionHeader('Complete form record (all fields)'),
             ...DynamicMapPdf.buildAdFormMapPdfBody(data),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: PdfLayoutConstants.signatureMarginTop),
             DynamicMapPdf.confidentialFooterRow(
               generatedText:
                   'Police Management System · A.D module · ${DateTime.now().year}',

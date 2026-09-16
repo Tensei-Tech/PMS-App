@@ -4,6 +4,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'pdf_layout_constants.dart';
+
 Future<void> previewNoticeSection35Pdf(
   BuildContext context,
   Map<String, dynamic> doc,
@@ -102,7 +104,7 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 36),
+        margin: PdfLayoutConstants.pageMargin,
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -326,7 +328,7 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+        margin: PdfLayoutConstants.pageMargin,
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,

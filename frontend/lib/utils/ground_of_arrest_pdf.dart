@@ -4,6 +4,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'pdf_layout_constants.dart';
+
 Future<void> previewGroundOfArrestPdf(
   BuildContext context,
   Map<String, dynamic> doc,
@@ -55,7 +57,7 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
+      margin: PdfLayoutConstants.pageMargin,
       build: (pw.Context context) {
         final outwardNo = v('outwardNo', '          ');
         final outwardYear = v('outwardYear', '२५');
@@ -230,7 +232,7 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
+      margin: PdfLayoutConstants.pageMargin,
       build: (pw.Context context) {
         final ground1 = v('ground1',
             '-----------------------------------------------------------------------------------------------');

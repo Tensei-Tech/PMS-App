@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'marathi_text_renderer.dart';
 import 'form_io_terminology.dart';
 import '../widgets/form_section_utils.dart';
+import 'pdf_layout_constants.dart';
 
 Future<void> previewPropertySeizurePdf(
   BuildContext context,
@@ -69,7 +70,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+      margin: PdfLayoutConstants.pageMargin,
       footer: (pw.Context context) {
         return pw.Align(
           alignment: pw.Alignment.bottomRight,

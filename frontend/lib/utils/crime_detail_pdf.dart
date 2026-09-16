@@ -10,6 +10,7 @@ import 'package:printing/printing.dart';
 import '../widgets/form_section_utils.dart';
 import 'form_io_terminology.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_layout_constants.dart';
 
 Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final out = Map<String, dynamic>.from(source);
@@ -168,7 +169,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+      margin: PdfLayoutConstants.pageMargin,
       footer: (pw.Context context) {
         return pw.Align(
           alignment: pw.Alignment.bottomRight,

@@ -4,6 +4,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'pdf_layout_constants.dart';
+
 Future<void> previewMuddemalPavtiPdf(
   BuildContext context,
   Map<String, dynamic> doc,
@@ -40,9 +42,8 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   );
   final headerTitle = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: pw.FontWeight.bold,
-    decoration: pw.TextDecoration.underline,
   );
 
   String v(String key, [String fallback = '']) {
@@ -50,7 +51,7 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
     return val.isEmpty ? fallback : val;
   }
 
-  final ps = v('policeStation');
+  final ps = v('policeStation', '-----------------------');
   final dist = v('district', 'यवतमाळ');
   final crimeNo = v('crimeNo', v('crNoYear', v('crNo', '........../२०......')));
   final actSec = v('actSec',
@@ -100,7 +101,7 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+      margin: PdfLayoutConstants.pageMargin,
       build: (pw.Context context) {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,

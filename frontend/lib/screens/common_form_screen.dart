@@ -26,6 +26,7 @@ import '../modules/it_act/providers/it_act_provider.dart';
 import '../modules/juvenile/providers/juvenile_provider.dart';
 import '../modules/kidnapping/providers/kidnapping_provider.dart';
 import '../modules/kidnapping/widgets/kidnapping_extra_fields.dart';
+import '../modules/sand_theft/widgets/sand_theft_extra_fields.dart';
 import '../modules/theft/widgets/theft_extra_fields.dart';
 import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/missing/providers/missing_provider.dart';
@@ -158,6 +159,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       GlobalKey<KidnappingExtraFieldsState>();
   final GlobalKey<TheftExtraFieldsState> _theftKey =
       GlobalKey<TheftExtraFieldsState>();
+  final GlobalKey<SandTheftExtraFieldsState> _sandTheftKey =
+      GlobalKey<SandTheftExtraFieldsState>();
   final GlobalKey<PocsoExtraFieldsState> _pocsoKey =
       GlobalKey<PocsoExtraFieldsState>();
 
@@ -203,7 +206,18 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         label.contains('kidnap');
   }
 
+  bool get _hasSandTheftExtras {
+    final key = widget.moduleKey.trim().toLowerCase();
+    final sub = (widget.subCategory ?? '').trim().toLowerCase();
+    final label = widget.moduleLabel.trim().toLowerCase();
+    return key == 'sand_theft' ||
+        key.contains('sand') ||
+        sub.contains('sand') ||
+        label.contains('sand');
+  }
+
   bool get _hasTheftExtras {
+    if (_hasSandTheftExtras) return false;
     final key = widget.moduleKey.trim().toLowerCase();
     final sub = (widget.subCategory ?? '').trim().toLowerCase();
     final label = widget.moduleLabel.trim().toLowerCase();
@@ -424,6 +438,18 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
               if (!mounted) return;
               _theftKey.currentState?.hydrateFrom(
                 Map<String, dynamic>.from(tRaw),
+              );
+            });
+          }
+        }
+        if (_hasSandTheftExtras && existing != null) {
+          final sRaw = existing.extraFields['sand_theft_extra'] ??
+              existing.extraFields['theft_extra'];
+          if (sRaw is Map) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              _sandTheftKey.currentState?.hydrateFrom(
+                Map<String, dynamic>.from(sRaw),
               );
             });
           }
@@ -1228,6 +1254,13 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         extra['theft_extra'] = tData;
       }
     }
+    if (!_isCrimeDetailForm && _hasSandTheftExtras) {
+      final sData = _sandTheftKey.currentState?.collectData();
+      if (sData != null && sData.isNotEmpty) {
+        extra['sand_theft_extra'] = sData;
+        extra['theft_extra'] = sData;
+      }
+    }
     if (!_isCrimeDetailForm && _hasPocsoExtras) {
       final pData = _pocsoKey.currentState?.collectData();
       if (pData != null && pData.isNotEmpty) {
@@ -1968,16 +2001,18 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                   subCategory: widget.subCategory,
                                                                                   middleSlot: _hasKidnappingExtras
                                                                                       ? KidnappingExtraFields(key: _kidnappingKey)
-                                                                                      : _hasTheftExtras
-                                                                                          ? TheftExtraFields(key: _theftKey)
-                                                                                          : _hasPocsoExtras
-                                                                                              ? PocsoExtraFields(
-                                                                                                  key: _pocsoKey,
-                                                                                                  onVictimNameChanged: (v) {
-                                                                                                    _formKey.currentState?.setVictimName(v);
-                                                                                                  },
-                                                                                                )
-                                                                                              : null,
+                                                                                      : _hasSandTheftExtras
+                                                                                          ? SandTheftExtraFields(key: _sandTheftKey)
+                                                                                          : _hasTheftExtras
+                                                                                              ? TheftExtraFields(key: _theftKey)
+                                                                                              : _hasPocsoExtras
+                                                                                                  ? PocsoExtraFields(
+                                                                                                      key: _pocsoKey,
+                                                                                                      onVictimNameChanged: (v) {
+                                                                                                        _formKey.currentState?.setVictimName(v);
+                                                                                                      },
+                                                                                                    )
+                                                                                                  : null,
                                                                                 ),
       bottomNavigationBar: SafeArea(
         child: Padding(

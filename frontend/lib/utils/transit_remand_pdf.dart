@@ -4,6 +4,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'pdf_layout_constants.dart';
+
 Future<void> previewTransitRemandPdf(
   BuildContext context,
   Map<String, dynamic> doc,
@@ -68,7 +70,7 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 48),
+      margin: PdfLayoutConstants.pageMargin,
       build: (_) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [

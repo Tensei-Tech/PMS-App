@@ -18,6 +18,7 @@ import '../widgets/ad_form_dynamic_document_view.dart'
 import '../utils/ad_form_display_order.dart';
 import '../widgets/module_record_dynamic_document_view.dart'
     show kModuleHubFieldLabels, orderedModuleHubScalarKeys;
+import 'pdf_layout_constants.dart';
 
 class DynamicMapPdf {
   DynamicMapPdf._();
@@ -64,28 +65,40 @@ class DynamicMapPdf {
     return s.isEmpty ? emptyDisplay : s;
   }
 
-  static pw.TableBorder get _tableBorder =>
-      pw.TableBorder.all(color: PdfColors.grey500, width: 0.5);
+  static pw.TableBorder get _tableBorder => pw.TableBorder.all(
+        color: PdfLayoutConstants.colorBorder,
+        width: PdfLayoutConstants.borderWidth,
+      );
 
   /// Quick summary chips (case no., status, priority) — shared by module / dashboard PDFs.
   static pw.Widget summaryStatBox(String label, String value) {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(10),
+      padding: PdfLayoutConstants.cellPadding,
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.blueGrey200),
-        borderRadius: pw.BorderRadius.circular(4),
+        border: pw.Border.all(
+          color: PdfLayoutConstants.colorBorder,
+          width: PdfLayoutConstants.borderWidth,
+        ),
+        borderRadius: pw.BorderRadius.circular(PdfLayoutConstants.borderRadius),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
             label,
-            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+            style: const pw.TextStyle(
+              fontSize: PdfLayoutConstants.labelFontSize,
+              color: PdfLayoutConstants.colorSecondary,
+            ),
           ),
-          pw.SizedBox(height: 4),
+          pw.SizedBox(height: 2),
           pw.Text(
             value,
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+            style: pw.TextStyle(
+              fontSize: PdfLayoutConstants.valueBoldFontSize,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfLayoutConstants.colorDark,
+            ),
           ),
         ],
       ),
@@ -99,25 +112,27 @@ class DynamicMapPdf {
   }) {
     return pw.Container(
       width: double.infinity,
-      padding: const pw.EdgeInsets.all(20),
-      decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1A2A4A)),
+      padding: PdfLayoutConstants.bannerPadding,
+      decoration: const pw.BoxDecoration(
+        color: PdfLayoutConstants.colorDark,
+      ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
             systemTitle,
             style: pw.TextStyle(
-              color: PdfColors.white,
-              fontSize: 14,
+              color: PdfLayoutConstants.colorWhite,
+              fontSize: PdfLayoutConstants.titleFontSize,
               fontWeight: pw.FontWeight.bold,
             ),
           ),
-          pw.SizedBox(height: 4),
+          pw.SizedBox(height: 2),
           pw.Text(
             amberSubtitle,
             style: const pw.TextStyle(
-              color: PdfColor.fromInt(0xFFFFC107),
-              fontSize: 11,
+              color: PdfLayoutConstants.colorAmber,
+              fontSize: PdfLayoutConstants.subtitleFontSize,
             ),
           ),
         ],
@@ -131,22 +146,30 @@ class DynamicMapPdf {
   }) {
     return pw.Container(
       width: double.infinity,
-      padding: const pw.EdgeInsets.symmetric(vertical: 8),
+      padding: const pw.EdgeInsets.symmetric(vertical: 4),
       decoration: const pw.BoxDecoration(
-        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
+        border: pw.Border(
+          top: pw.BorderSide(
+            color: PdfLayoutConstants.colorBorder,
+            width: PdfLayoutConstants.borderWidth,
+          ),
+        ),
       ),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
             generatedText,
-            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+            style: const pw.TextStyle(
+              fontSize: PdfLayoutConstants.footerFontSize,
+              color: PdfLayoutConstants.colorSecondary,
+            ),
           ),
           pw.Text(
             confidentialText,
             style: pw.TextStyle(
-              fontSize: 9,
-              color: PdfColors.grey600,
+              fontSize: PdfLayoutConstants.footerFontSize,
+              color: PdfLayoutConstants.colorSecondary,
               fontWeight: pw.FontWeight.bold,
             ),
           ),
@@ -158,20 +181,23 @@ class DynamicMapPdf {
   /// Major section title (full-width band) — use for top-level PDF sections.
   static pw.Widget mainSectionBanner(String title) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.only(top: 14, bottom: 8),
+      padding: const pw.EdgeInsets.only(top: 8, bottom: 4),
       child: pw.Container(
         width: double.infinity,
-        padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3.5),
         decoration: pw.BoxDecoration(
-          color: const PdfColor.fromInt(0xFF1E293B),
-          border: pw.Border.all(color: PdfColors.grey700, width: 0.5),
+          color: PdfLayoutConstants.colorDark,
+          border: pw.Border.all(
+            color: PdfLayoutConstants.colorBorder,
+            width: PdfLayoutConstants.borderWidth,
+          ),
         ),
         child: pw.Text(
           title,
           style: pw.TextStyle(
-            fontSize: 11,
+            fontSize: PdfLayoutConstants.sectionTitleFontSize,
             fontWeight: pw.FontWeight.bold,
-            color: PdfColors.white,
+            color: PdfLayoutConstants.colorWhite,
           ),
         ),
       ),
@@ -181,20 +207,23 @@ class DynamicMapPdf {
   /// In-document subsection / nested group heading.
   static pw.Widget subSectionBanner(String title) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.only(top: 10, bottom: 6),
+      padding: const pw.EdgeInsets.only(top: 6, bottom: 3),
       child: pw.Container(
         width: double.infinity,
-        padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: pw.BoxDecoration(
-          color: const PdfColor.fromInt(0xFFE2E8F0),
-          border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
+          color: PdfLayoutConstants.colorHeaderBg,
+          border: pw.Border.all(
+            color: PdfLayoutConstants.colorBorder,
+            width: PdfLayoutConstants.borderWidth,
+          ),
         ),
         child: pw.Text(
           title,
           style: pw.TextStyle(
-            fontSize: 10,
+            fontSize: PdfLayoutConstants.sectionTitleFontSize,
             fontWeight: pw.FontWeight.bold,
-            color: PdfColors.blueGrey900,
+            color: PdfLayoutConstants.colorDark,
           ),
         ),
       ),
@@ -206,15 +235,15 @@ class DynamicMapPdf {
 
   static pw.Widget _labelCell(String text) {
     return pw.Container(
-      color: const PdfColor.fromInt(0xFFF1F5F9),
-      padding: const pw.EdgeInsets.all(8),
+      color: PdfLayoutConstants.colorLabelBg,
+      padding: PdfLayoutConstants.cellPadding,
       alignment: pw.Alignment.centerLeft,
       child: pw.Text(
         text,
         style: pw.TextStyle(
-          fontSize: 10,
+          fontSize: PdfLayoutConstants.labelFontSize,
           fontWeight: pw.FontWeight.bold,
-          color: PdfColors.blueGrey900,
+          color: PdfLayoutConstants.colorSecondary,
         ),
       ),
     );
@@ -222,9 +251,12 @@ class DynamicMapPdf {
 
   static pw.Widget _valueCell(String text) {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(8),
+      padding: PdfLayoutConstants.cellPadding,
       alignment: pw.Alignment.topLeft,
-      child: pw.Text(text, style: const pw.TextStyle(fontSize: 10)),
+      child: pw.Text(
+        text,
+        style: const pw.TextStyle(fontSize: PdfLayoutConstants.valueFontSize),
+      ),
     );
   }
 
@@ -237,7 +269,7 @@ class DynamicMapPdf {
 
   static pw.Widget _twoColumnTable(List<pw.TableRow> rows) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 10),
+      padding: const pw.EdgeInsets.only(bottom: PdfLayoutConstants.rowGap),
       child: pw.Table(
         border: _tableBorder,
         defaultVerticalAlignment: pw.TableCellVerticalAlignment.top,

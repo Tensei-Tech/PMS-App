@@ -1534,6 +1534,8 @@ class CommonFormState extends State<CommonForm> {
         'stepAppActive': _stepApp,
         'stepDcpActive': _stepDcp,
       },
+      'isMurderCase': _isMurderCase,
+      'isPocsoCase': _isPocsoCase,
     };
   }
 
