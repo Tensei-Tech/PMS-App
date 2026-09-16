@@ -682,7 +682,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final transRecord = TranslationHelper.translate(context, recordWord);
     final transReg = TranslationHelper.translate(context, 'registered');
 
-    final isMobile = MediaQuery.of(context).size.width < 500;
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
@@ -690,7 +689,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         widget.moduleKey == 'mpda');
 
     Widget? actionWidget;
-    if (isMobile && showAddButton) {
+    if (showAddButton) {
       actionWidget = ElevatedButton.icon(
         onPressed: () => _openNewEntryForm(context),
         style: ElevatedButton.styleFrom(

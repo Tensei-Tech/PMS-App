@@ -1144,9 +1144,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
           '$transCategory · ${visibleRecords.length} $transCases$dateSuffix';
     }
 
-    final isMobile = MediaQuery.of(context).size.width < 500;
-
-    final Widget? actionWidget = (isMobile && _showNewCaseFab)
+    final Widget? actionWidget = _showNewCaseFab
         ? ElevatedButton.icon(
             onPressed: _onNewCase,
             style: ElevatedButton.styleFrom(
@@ -1160,7 +1158,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
             ),
             icon: const Icon(Icons.add_rounded, size: 16),
             label: Text(
-              TranslationHelper.translate(context, 'New Case'),
+              TranslationHelper.translate(context, 'Add Case'),
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -1202,29 +1200,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               onTabChanged: (tab) {
                 setState(() => _selectedStatusTab = tab);
               },
-              trailingWidget: (_showNewCaseFab && !isMobile)
-                  ? ElevatedButton.icon(
-                      onPressed: _onNewCase,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.navyMid,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      icon: const Icon(Icons.add_rounded, size: 18),
-                      label: Text(
-                        TranslationHelper.translate(context, 'New Case'),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    )
-                  : null,
+              trailingWidget: null,
             ),
             if (_selectedCategory == null) ...[
               Center(
@@ -3042,7 +3018,7 @@ class FormIVEmptyCasesState extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.add_rounded),
                     label: Text(
-                      TranslationHelper.translate(context, 'New Case'),
+                      TranslationHelper.translate(context, 'Add Case'),
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                     ),
                   ),
