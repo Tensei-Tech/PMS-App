@@ -536,7 +536,7 @@ class HousePropertySearchSeizureFormViewState
         // ─────────────────────────────────────────────────────────────────
         if (_shows(kSearchForm)) ...[
           FormPaperPage(
-            formLabel: 'Page 1 — Search Seizure Form (§§ 1–10)',
+            formLabel: 'Page 1 — Search Seizure Form (1–10)',
             children: [
               // Header
               Center(
@@ -1238,7 +1238,7 @@ class HousePropertySearchSeizureFormViewState
         // ─────────────────────────────────────────────────────────────────
         if (_shows(kPanchanama)) ...[
           FormPaperPage(
-            formLabel: 'Page 2 — Search Seizure Panchanama (§§ 11–16)',
+            formLabel: 'Page 2 — Search Seizure Panchanama (11–16)',
             children: [
               // 11) Clause
               Text(

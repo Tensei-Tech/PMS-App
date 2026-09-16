@@ -161,6 +161,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   final GlobalKey<PocsoExtraFieldsState> _pocsoKey =
       GlobalKey<PocsoExtraFieldsState>();
 
+  bool _isExportingPdf = false;
+
   bool get _isEdit => widget.existingRecord != null;
   bool get _isAbForm => widget.subCategory == 'AB Form';
   bool get _is376MedicalForm => widget.subCategory == '376 Medical Form';
@@ -577,6 +579,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   }
 
   Future<void> _exportPdf() async {
+    if (_isExportingPdf) return;
+    setState(() => _isExportingPdf = true);
     try {
       if (!mounted) return;
       if (_isCrimeDetailForm) {
@@ -746,6 +750,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           ],
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isExportingPdf = false);
+      }
     }
   }
 
@@ -1782,17 +1790,23 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
             size: 20,
           ),
         ),
-        title: Text(
-          widget.readOnly == true
-              ? '${TranslationHelper.translate(context, 'View')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
-              : (_isEdit
-                  ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
-                  : '${TranslationHelper.translate(context, 'New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'Entry')}'),
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.navyDark,
-          ),
+        title: Builder(
+          builder: (context) {
+            final label = widget.subCategory ?? widget.moduleLabel;
+            final isForm = widget.subCategory != null;
+            return Text(
+              widget.readOnly == true
+                  ? '${TranslationHelper.translate(context, 'View')} ${TranslationHelper.translate(context, label)}'
+                  : (_isEdit
+                      ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, label)}'
+                      : '${TranslationHelper.translate(context, 'New')} ${TranslationHelper.translate(context, label)}${isForm ? '' : ' ${TranslationHelper.translate(context, 'Entry')}'}'),
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
+              ),
+            );
+          },
         ),
       ),
       body: _isCrimeDetailForm
@@ -2046,10 +2060,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                 width: widget.readOnly == true ? 180 : 110,
                 height: 46,
                 child: OutlinedButton(
-                  onPressed: _exportPdf,
+                  onPressed: _isExportingPdf ? null : _exportPdf,
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(
-                      color: AppColors.navyMid,
+                    side: BorderSide(
+                      color: _isExportingPdf ? Colors.grey : AppColors.navyMid,
                       width: 1.5,
                     ),
                     shape: RoundedRectangleBorder(
@@ -2057,32 +2071,43 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.picture_as_pdf_outlined,
-                        color: AppColors.navyMid,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        TranslationHelper.translate(
-                          context,
-                          widget.readOnly == true ? 'Download PDF' : 'PDF',
+                  child: _isExportingPdf
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.picture_as_pdf_outlined,
+                              color: AppColors.navyMid,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              TranslationHelper.translate(
+                                context,
+                                widget.readOnly == true
+                                    ? 'Download PDF'
+                                    : 'PDF',
+                              ),
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.visible,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                          ],
                         ),
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.visible,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navyMid,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               if (widget.readOnly != true) ...[

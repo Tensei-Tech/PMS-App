@@ -15,23 +15,27 @@ import '../utils/app_constants.dart';
 import '../widgets/base_form/base_form.dart';
 import '../widgets/common_form/government_vehicle_usage_widget.dart';
 import '../widgets/common_form/section_82_83_action_widget.dart';
+import '../theme/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'module_hub_screen.dart';
+import '../utils/ad_form_pdf_helper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme colors
 // ─────────────────────────────────────────────────────────────────────────────
-const Color primaryDark = Color(0xFF0f172a);
-const Color primaryMid = Color(0xFF1e293b);
-const Color accentTeal = Color(0xFF0ea5e9);
-const Color accentBlue = Color(0xFF3b82f6);
-const Color accentGreen = Color(0xFF10b981);
-const Color accentRed = Color(0xFFef4444);
-const Color textPrimary = Color(0xFF1e293b);
-const Color textSecondary = Color(0xFF64748b);
-const Color textMuted = Color(0xFF94a3b8);
-const Color inputBg = Color(0xFFf8fafc);
-const Color inputBorder = Color(0xFFe2e8f0);
-const Color cardBg = Color(0xFFffffff);
-const Color pageBg = Color(0xFFf4f7f9);
+const Color primaryDark = AppColors.navyDark;
+const Color primaryMid = AppColors.navyMid;
+const Color accentTeal = AppColors.cyanPrimary;
+const Color accentBlue = AppColors.infoBlue;
+const Color accentGreen = AppColors.successGreen;
+const Color accentRed = AppColors.dangerRed;
+const Color textPrimary = AppColors.lightText;
+const Color textSecondary = AppColors.lightSubText;
+const Color textMuted = AppColors.lightSubText;
+const Color inputBg = AppColors.lightSurface;
+const Color inputBorder = AppColors.lightBorder;
+const Color cardBg = AppColors.lightCard;
+const Color pageBg = AppColors.lightBg;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ACT data
@@ -262,6 +266,31 @@ class ADFormScreen extends StatefulWidget {
 }
 
 class _ADFormScreenState extends State<ADFormScreen> {
+  bool _isExportingPdf = false;
+
+  Future<void> _exportPdf() async {
+    if (_isExportingPdf) return;
+    setState(() => _isExportingPdf = true);
+    await Future.delayed(const Duration(
+        milliseconds: 50)); // Yield to event loop to paint spinner
+    try {
+      final record = _moduleRecordForCaseList();
+      // ignore: dead_null_aware_expression
+      final data = record.extraFields ?? {};
+      await AdFormPdfHelper.generateAndPreview(data);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Failed to generate PDF: $e'),
+            backgroundColor: AppColors.dangerRed));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExportingPdf = false);
+      }
+    }
+  }
+
   // Section 1
   final adNoController = TextEditingController();
   final crNoController = TextEditingController();
@@ -2255,15 +2284,120 @@ class _ADFormScreenState extends State<ADFormScreen> {
               child: ElevatedButton(
                 onPressed: submitForm,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryDark,
+                  backgroundColor: AppColors.navyMid,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Done',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 110,
+              height: 46,
+              child: OutlinedButton(
+                onPressed: _isExportingPdf ? null : _exportPdf,
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: _isExportingPdf ? Colors.grey : AppColors.navyMid,
+                    width: 1.5,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                child: _isExportingPdf
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.grey,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.picture_as_pdf_outlined,
+                            color: AppColors.navyMid,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'PDF',
+                            maxLines: 1,
+                            softWrap: false,
+                            overflow: TextOverflow.visible,
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyMid,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 125,
+              height: 46,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ModuleHubScreen(
+                        moduleLabel: 'A.D.',
+                        moduleKey: 'ad',
+                        subCategory: null,
+                      ),
+                    ),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(
+                    color: AppColors.navyMid,
+                    width: 1.5,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.history,
+                      color: AppColors.navyMid,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'History',
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.visible,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
