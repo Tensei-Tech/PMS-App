@@ -1205,8 +1205,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
       appBar: ModuleHubScreenAppBar(
         title: TranslationHelper.translate(context, 'Absconded'),
         subtitle: subtitle,
-        actionWidget: (MediaQuery.of(context).size.width < 500 &&
-                _showNewCaseFab)
+        actionWidget: _showNewCaseFab
             ? ElevatedButton.icon(
                 onPressed: _onNewCase,
                 style: ElevatedButton.styleFrom(
@@ -1221,7 +1220,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
                 ),
                 icon: const Icon(Icons.add_rounded, size: 16),
                 label: Text(
-                  TranslationHelper.translate(context, 'New Case'),
+                  TranslationHelper.translate(context, 'Add Case'),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -1243,30 +1242,7 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
             onTabChanged: (tab) {
               setState(() => _selectedStatusTab = tab);
             },
-            trailingWidget:
-                (!(MediaQuery.of(context).size.width < 500) && _showNewCaseFab)
-                    ? ElevatedButton.icon(
-                        onPressed: _onNewCase,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.navyMid,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: Text(
-                          TranslationHelper.translate(context, 'New Case'),
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    : null,
+            trailingWidget: null,
           ),
           Container(
             padding: const EdgeInsets.symmetric(
