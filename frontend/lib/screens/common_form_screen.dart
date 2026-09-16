@@ -65,7 +65,6 @@ import '../utils/house_property_search_seizure_pdf.dart';
 import '../utils/inquest_panchanama_pdf.dart';
 import '../utils/interrogation_form_pdf.dart';
 import '../utils/medical_376_form_pdf.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/property_seizure_pdf.dart';
 import '../utils/reason_of_arrest_pdf.dart';
 import '../utils/transit_remand_pdf.dart';
@@ -542,15 +541,30 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
 
   String _accusedSummary(Map<String, dynamic> doc) {
     if (doc['isUnknownUntraced'] == true) return 'Unknown / Untraced';
-    final list = doc['accused'];
-    if (list is! List || list.isEmpty) return '';
-    final names = <String>[];
-    for (final item in list) {
-      if (item is Map && item['name'] != null) {
-        final n = item['name'].toString().trim();
-        if (n.isNotEmpty) names.add(n);
+
+    final names = <String>{};
+
+    if (doc['allAccusedNames'] is List) {
+      for (final n in doc['allAccusedNames']) {
+        if (n is String && n.trim().isNotEmpty) names.add(n.trim());
       }
     }
+
+    void addFromList(dynamic list, String key) {
+      if (list is List) {
+        for (final item in list) {
+          if (item is Map && item[key] != null) {
+            final n = item[key].toString().trim();
+            if (n.isNotEmpty) names.add(n);
+          }
+        }
+      }
+    }
+
+    addFromList(doc['accused'], 'name');
+    addFromList(doc['suspectedAccused'], 'name');
+    addFromList(doc['arrestRelease'], 'accusedName');
+
     return names.join(', ');
   }
 
@@ -563,178 +577,176 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   }
 
   Future<void> _exportPdf() async {
-    await runWithPdfAuthGate(context, () async {
-      try {
-        if (!mounted) return;
-        if (_isCrimeDetailForm) {
-          final detailState = _crimeDetailKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewCrimeDetailPdf(context, commonMap);
-        } else if (_isPropertySeizureForm) {
-          final detailState = _propertySeizureKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewPropertySeizurePdf(context, commonMap);
-        } else if (_isCrimespotSeizureForm) {
-          final detailState = _crimespotSeizureKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewCrimespotSeizurePdf(context, commonMap);
-        } else if (_isFormE) {
-          final detailState = _formEKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewFormEPdf(context, commonMap);
-        } else if (_isArrestSurrenderForm) {
-          final detailState = _arrestSurrenderKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.extractData();
-          await previewArrestSurrenderPdf(context, commonMap);
-        } else if (_isInquestPanchanamaForm) {
-          final detailState = _inquestPanchanamaKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.extractData();
-          await previewInquestPanchanamaPdf(context, commonMap);
-        } else if (_isAccusedMemorandumForm) {
-          final detailState = _accusedMemorandumKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewAccusedMemorandumPdf(context, commonMap);
-        } else if (_isAccusedInterrogationForm) {
-          final detailState = _accusedInterrogationKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewAccusedInterrogationPdf(context, commonMap);
-        } else if (_isFinalReportForm) {
-          final detailState = _finalReportKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewFinalReportPdf(context, commonMap);
-        } else if (_isHousePropertySearchSeizureForm) {
-          final detailState = _housePropertySearchSeizureKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewHousePropertySearchSeizurePdf(context, commonMap);
-        } else if (_isAbForm) {
-          final detailState = _abFormKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewAbFormPdf(context, commonMap);
-        } else if (_is376MedicalForm) {
-          final detailState = _medical376Key.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewMedical376FormPdf(context, commonMap);
-        } else if (_isInterrogationForm) {
-          final detailState = _interrogationKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewInterrogationFormPdf(context, commonMap);
-        } else if (_isDraftGroundOfArrestForm) {
-          final detailState = _draftGroundOfArrestKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewDraftGroundOfArrestPdf(context, commonMap);
-        } else if (_isGroundOfArrestForm) {
-          final detailState = _groundOfArrestKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewGroundOfArrestPdf(context, commonMap);
-        } else if (_isReasonOfArrestForm) {
-          final detailState = _reasonOfArrestKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewReasonOfArrestPdf(context, commonMap);
-        } else if (_isTransitRemandForm) {
-          final detailState = _transitRemandKey.currentState;
-          if (detailState == null) return;
-          final commonMap = detailState.collectData();
-          await previewTransitRemandPdf(context, commonMap);
-        } else if (_isBnssDedicatedForm) {
-          final commonMap = BnssDedicatedForms.collect(widget.subCategory);
-          if (commonMap == null) return;
-          await BnssDedicatedForms.previewPdf(
-            context,
-            widget.subCategory,
-            commonMap,
-          );
-        } else {
-          final form = _formKey.currentState;
-          if (form == null) return;
+    try {
+      if (!mounted) return;
+      if (_isCrimeDetailForm) {
+        final detailState = _crimeDetailKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewCrimeDetailPdf(context, commonMap);
+      } else if (_isPropertySeizureForm) {
+        final detailState = _propertySeizureKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewPropertySeizurePdf(context, commonMap);
+      } else if (_isCrimespotSeizureForm) {
+        final detailState = _crimespotSeizureKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewCrimespotSeizurePdf(context, commonMap);
+      } else if (_isFormE) {
+        final detailState = _formEKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewFormEPdf(context, commonMap);
+      } else if (_isArrestSurrenderForm) {
+        final detailState = _arrestSurrenderKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.extractData();
+        await previewArrestSurrenderPdf(context, commonMap);
+      } else if (_isInquestPanchanamaForm) {
+        final detailState = _inquestPanchanamaKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.extractData();
+        await previewInquestPanchanamaPdf(context, commonMap);
+      } else if (_isAccusedMemorandumForm) {
+        final detailState = _accusedMemorandumKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewAccusedMemorandumPdf(context, commonMap);
+      } else if (_isAccusedInterrogationForm) {
+        final detailState = _accusedInterrogationKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewAccusedInterrogationPdf(context, commonMap);
+      } else if (_isFinalReportForm) {
+        final detailState = _finalReportKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewFinalReportPdf(context, commonMap);
+      } else if (_isHousePropertySearchSeizureForm) {
+        final detailState = _housePropertySearchSeizureKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewHousePropertySearchSeizurePdf(context, commonMap);
+      } else if (_isAbForm) {
+        final detailState = _abFormKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewAbFormPdf(context, commonMap);
+      } else if (_is376MedicalForm) {
+        final detailState = _medical376Key.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewMedical376FormPdf(context, commonMap);
+      } else if (_isInterrogationForm) {
+        final detailState = _interrogationKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewInterrogationFormPdf(context, commonMap);
+      } else if (_isDraftGroundOfArrestForm) {
+        final detailState = _draftGroundOfArrestKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewDraftGroundOfArrestPdf(context, commonMap);
+      } else if (_isGroundOfArrestForm) {
+        final detailState = _groundOfArrestKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewGroundOfArrestPdf(context, commonMap);
+      } else if (_isReasonOfArrestForm) {
+        final detailState = _reasonOfArrestKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewReasonOfArrestPdf(context, commonMap);
+      } else if (_isTransitRemandForm) {
+        final detailState = _transitRemandKey.currentState;
+        if (detailState == null) return;
+        final commonMap = detailState.collectData();
+        await previewTransitRemandPdf(context, commonMap);
+      } else if (_isBnssDedicatedForm) {
+        final commonMap = BnssDedicatedForms.collect(widget.subCategory);
+        if (commonMap == null) return;
+        await BnssDedicatedForms.previewPdf(
+          context,
+          widget.subCategory,
+          commonMap,
+        );
+      } else {
+        final form = _formKey.currentState;
+        if (form == null) return;
 
-          Map<String, dynamic> extraMap = {};
-          final rawExtras = widget.existingRecord?.extraFields;
-          if (rawExtras != null && rawExtras.isNotEmpty) {
-            extraMap = Map<String, dynamic>.from(rawExtras);
-            extraMap.remove(kCommonFormExtraFieldsKey);
-          }
-          if (_hasKidnappingExtras) {
-            final kData = _kidnappingKey.currentState?.collectData();
-            if (kData != null && kData.isNotEmpty) {
-              extraMap['kidnapping_extra'] = kData;
-            }
-          }
-          if (_hasPocsoExtras) {
-            final pData = _pocsoKey.currentState?.collectData();
-            if (pData != null && pData.isNotEmpty) {
-              extraMap['pocso_extra'] = pData;
-            }
-          }
-
-          final commonMap = commonFormDocumentMapFromState(form);
-
-          final sub = widget.subCategory?.trim() ?? '';
-          final formSubtitle = sub.isEmpty
-              ? '${widget.moduleLabel} — Khakhi Diary · Maharashtra Police'
-              : '$sub · ${widget.moduleLabel} — Khakhi Diary · Maharashtra Police';
-
-          await previewFormPdf(
-            context,
-            commonMap,
-            extraMap: extraMap,
-            formTitle: '${widget.moduleLabel.toUpperCase()} FORM',
-            formSubtitle: formSubtitle,
-          );
+        Map<String, dynamic> extraMap = {};
+        final rawExtras = widget.existingRecord?.extraFields;
+        if (rawExtras != null && rawExtras.isNotEmpty) {
+          extraMap = Map<String, dynamic>.from(rawExtras);
+          extraMap.remove(kCommonFormExtraFieldsKey);
         }
-      } catch (e, st) {
-        debugPrint('PDF export failed: $e');
-        debugPrint('$st');
-        if (!mounted) return;
-        final message = 'PDF failed: $e';
-        await showDialog<void>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('PDF Download Failed', style: GoogleFonts.poppins()),
-            content: SelectableText(
-              message,
-              style: GoogleFonts.poppins(fontSize: 13),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: message));
-                  if (!ctx.mounted) return;
-                  ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Error copied',
-                        style: GoogleFonts.poppins(),
-                      ),
-                    ),
-                  );
-                },
-                child: Text('Copy', style: GoogleFonts.poppins()),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text('Close', style: GoogleFonts.poppins()),
-              ),
-            ],
-          ),
+        if (_hasKidnappingExtras) {
+          final kData = _kidnappingKey.currentState?.collectData();
+          if (kData != null && kData.isNotEmpty) {
+            extraMap['kidnapping_extra'] = kData;
+          }
+        }
+        if (_hasPocsoExtras) {
+          final pData = _pocsoKey.currentState?.collectData();
+          if (pData != null && pData.isNotEmpty) {
+            extraMap['pocso_extra'] = pData;
+          }
+        }
+
+        final commonMap = commonFormDocumentMapFromState(form);
+
+        final sub = widget.subCategory?.trim() ?? '';
+        final formSubtitle = sub.isEmpty
+            ? '${widget.moduleLabel} — Khakhi Diary · Maharashtra Police'
+            : '$sub · ${widget.moduleLabel} — Khakhi Diary · Maharashtra Police';
+
+        await previewFormPdf(
+          context,
+          commonMap,
+          extraMap: extraMap,
+          formTitle: '${widget.moduleLabel.toUpperCase()} FORM',
+          formSubtitle: formSubtitle,
         );
       }
-    });
+    } catch (e, st) {
+      debugPrint('PDF export failed: $e');
+      debugPrint('$st');
+      if (!mounted) return;
+      final message = 'PDF failed: $e';
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('PDF Download Failed', style: GoogleFonts.poppins()),
+          content: SelectableText(
+            message,
+            style: GoogleFonts.poppins(fontSize: 13),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: message));
+                if (!ctx.mounted) return;
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Error copied',
+                      style: GoogleFonts.poppins(),
+                    ),
+                  ),
+                );
+              },
+              child: Text('Copy', style: GoogleFonts.poppins()),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text('Close', style: GoogleFonts.poppins()),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   String _titleFromDoc(Map<String, dynamic> doc) {
@@ -1970,14 +1982,27 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                   moduleLabel: widget.moduleLabel,
                                                                                   subCategory: widget.subCategory,
                                                                                   middleSlot: _hasKidnappingExtras
-                                                                                      ? KidnappingExtraFields(key: _kidnappingKey)
+                                                                                      ? KidnappingExtraFields(
+                                                                                          key: _kidnappingKey,
+                                                                                          onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                            _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
+                                                                                          },
+                                                                                        )
                                                                                       : _hasTheftExtras
-                                                                                          ? TheftExtraFields(key: _theftKey)
+                                                                                          ? TheftExtraFields(
+                                                                                              key: _theftKey,
+                                                                                              onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                                _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
+                                                                                              },
+                                                                                            )
                                                                                           : _hasPocsoExtras
                                                                                               ? PocsoExtraFields(
                                                                                                   key: _pocsoKey,
                                                                                                   onVictimNameChanged: (v) {
                                                                                                     _formKey.currentState?.setVictimName(v);
+                                                                                                  },
+                                                                                                  onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                                    _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
                                                                                                   },
                                                                                                 )
                                                                                               : null,

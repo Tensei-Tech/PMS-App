@@ -1,23 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class KidnappingExtraFields extends StatefulWidget {
-  const KidnappingExtraFields({super.key});
+  final void Function(String label, TextEditingController ctrl,
+      [String section])? onActiveFieldTap;
+
+  const KidnappingExtraFields({super.key, this.onActiveFieldTap});
 
   @override
   State<KidnappingExtraFields> createState() => KidnappingExtraFieldsState();
 }
 
 class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
-  static const Color _bgColor = Color(0xFFF4F7F9);
-  static const Color _cardColor = Colors.white;
-  static const Color _teal = Color(0xFF0EA5E9);
-  static const Color _green = Color(0xFF10B981);
-  static const Color _red = Color(0xFFEF4444);
-  static const Color _dark = Color(0xFF0F172A);
-  static const Color _inputFill = Color(0xFFF8FAFC);
+  Map<String, dynamic> collectData() => getPayload();
+  void hydrateFrom(Map<String, dynamic> data) => loadFromPayload(data);
+  Widget _tf({
+    required String label,
+    required TextEditingController controller,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+    void Function(String)? onChanged,
+  }) {
+    return TextFormField(
+      controller: controller,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: Color(0xFF1E293B),
+      ),
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
+      onTap: () {
+        widget.onActiveFieldTap?.call(label, controller, 'Kidnapping Details');
+      },
+      decoration: _inputDecoration(label),
+    );
+  }
+
   static const Color _inputBorder = Color(0xFFE2E8F0);
-  static const Color _secondary = Color(0xFF64748B);
 
   final _kidnappedName = TextEditingController();
   final _kidnappedAge = TextEditingController();
@@ -64,277 +84,268 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
 
   @override
   void dispose() {
-    for (final c in [
-      _kidnappedName,
-      _kidnappedAge,
-      _kidnappedOccupation,
-      _kidnappedMobile,
-      _kidnappedAadhaar,
-      _kidnappedReligion,
-      _kidnappedCaste,
-      _kidnappedRelation,
-      _foundDate,
-      _foundTime,
-      _foundSdNo,
-      _statementDate,
-      _statementTime,
-      _custodyOtherText,
-      _custodyName,
-      _custodyAge,
-      _custodyMobile,
-      _custodyAadhaar,
-      _custodyRelation,
-      _custodyAddress,
-      _bnssDate,
-      _bnssTime,
-      _cwcDate,
-      _cwcTime,
-      _medicalDate,
-      _medicalTime,
-      _inCameraDate,
-      _inCameraTime,
-    ]) {
-      c.dispose();
-    }
+    _kidnappedName.dispose();
+    _kidnappedAge.dispose();
+    _kidnappedOccupation.dispose();
+    _kidnappedMobile.dispose();
+    _kidnappedAadhaar.dispose();
+    _kidnappedReligion.dispose();
+    _kidnappedCaste.dispose();
+    _kidnappedRelation.dispose();
+    _foundDate.dispose();
+    _foundTime.dispose();
+    _foundSdNo.dispose();
+    _statementDate.dispose();
+    _statementTime.dispose();
+    _custodyOtherText.dispose();
+    _custodyName.dispose();
+    _custodyAge.dispose();
+    _custodyMobile.dispose();
+    _custodyAadhaar.dispose();
+    _custodyRelation.dispose();
+    _custodyAddress.dispose();
+    _bnssDate.dispose();
+    _bnssTime.dispose();
+    _cwcDate.dispose();
+    _cwcTime.dispose();
+    _medicalDate.dispose();
+    _medicalTime.dispose();
+    _inCameraDate.dispose();
+    _inCameraTime.dispose();
     super.dispose();
   }
 
-  Map<String, dynamic> collectData() {
+  Map<String, dynamic> getPayload() {
     return {
-      'kidnappedName': _kidnappedName.text.trim(),
-      'kidnappedAge': _kidnappedAge.text.trim(),
-      'kidnappedGender': _kidnappedGender,
-      'kidnappedOccupation': _kidnappedOccupation.text.trim(),
-      'kidnappedMobile': _kidnappedMobile.text.trim(),
-      'kidnappedAadhaar': _kidnappedAadhaar.text.trim(),
-      'kidnappedReligion': _kidnappedReligion.text.trim(),
-      'kidnappedCaste': _kidnappedCaste.text.trim(),
-      'kidnappedRelation': _kidnappedRelation.text.trim(),
-      'personFound': _personFound,
-      'foundDate': _foundDate.text.trim(),
-      'foundTime': _foundTime.text.trim(),
-      'foundSdNo': _foundSdNo.text.trim(),
-      'statementRecorded': _statementRecorded,
-      'statementDate': _statementDate.text.trim(),
-      'statementTime': _statementTime.text.trim(),
-      'custodyTo': _custodyTo,
-      'custodyOtherText': _custodyOtherText.text.trim(),
-      'custodyName': _custodyName.text.trim(),
-      'custodyAge': _custodyAge.text.trim(),
-      'custodyGender': _custodyGender,
-      'custodyMobile': _custodyMobile.text.trim(),
-      'custodyAadhaar': _custodyAadhaar.text.trim(),
-      'custodyRelation': _custodyRelation.text.trim(),
-      'custodyAddress': _custodyAddress.text.trim(),
-      'bnss183Recorded': _bnss183Recorded,
-      'bnssDate': _bnssDate.text.trim(),
-      'bnssTime': _bnssTime.text.trim(),
-      'cwcRecorded': _cwcRecorded,
-      'cwcDate': _cwcDate.text.trim(),
-      'cwcTime': _cwcTime.text.trim(),
-      'medicalExamDone': _medicalExamDone,
-      'medicalDate': _medicalDate.text.trim(),
-      'medicalTime': _medicalTime.text.trim(),
-      'inCameraRecorded': _inCameraRecorded,
-      'inCameraDate': _inCameraDate.text.trim(),
-      'inCameraTime': _inCameraTime.text.trim(),
+      'kidnapped_person_kyc': {
+        'name': _kidnappedName.text.trim(),
+        'age': _kidnappedAge.text.trim(),
+        'gender': _kidnappedGender ?? '',
+        'occupation': _kidnappedOccupation.text.trim(),
+        'mobile_number': _kidnappedMobile.text.trim(),
+        'aadhaar_number': _kidnappedAadhaar.text.trim(),
+        'religion': _kidnappedReligion.text.trim(),
+        'caste': _kidnappedCaste.text.trim(),
+        'relation_with_complainant': _kidnappedRelation.text.trim(),
+      },
+      'person_found_details': {
+        'person_found': _personFound,
+        'found_date': _foundDate.text.trim(),
+        'found_time': _foundTime.text.trim(),
+        'station_diary_no': _foundSdNo.text.trim(),
+        'statement_recorded': _statementRecorded,
+        'statement_date': _statementDate.text.trim(),
+        'statement_time': _statementTime.text.trim(),
+        'custody_given_to': _custodyTo ?? '',
+        'custody_other_specify': _custodyOtherText.text.trim(),
+        'custody_kyc': {
+          'name': _custodyName.text.trim(),
+          'age': _custodyAge.text.trim(),
+          'gender': _custodyGender ?? '',
+          'mobile_number': _custodyMobile.text.trim(),
+          'aadhaar_number': _custodyAadhaar.text.trim(),
+          'relationship': _custodyRelation.text.trim(),
+          'full_address': _custodyAddress.text.trim(),
+        },
+      },
+      'statement_under_183_bnss': {
+        'statement_recorded': _bnss183Recorded,
+        'statement_date': _bnssDate.text.trim(),
+        'statement_time': _bnssTime.text.trim(),
+      },
+      'statement_before_cwc': {
+        'statement_recorded': _cwcRecorded,
+        'statement_date': _cwcDate.text.trim(),
+        'statement_time': _cwcTime.text.trim(),
+      },
+      'medical_examination': {
+        'examination_conducted': _medicalExamDone,
+        'examination_date': _medicalDate.text.trim(),
+        'examination_time': _medicalTime.text.trim(),
+      },
+      'in_camera_statement': {
+        'statement_recorded': _inCameraRecorded,
+        'statement_date': _inCameraDate.text.trim(),
+        'statement_time': _inCameraTime.text.trim(),
+      },
     };
   }
 
-  void hydrateFrom(Map<String, dynamic> data) {
-    _kidnappedName.text = _asString(data['kidnappedName']);
-    _kidnappedAge.text = _asString(data['kidnappedAge']);
-    _kidnappedGender = _asString(data['kidnappedGender']).isEmpty
-        ? null
-        : _asString(data['kidnappedGender']);
-    _kidnappedOccupation.text = _asString(data['kidnappedOccupation']);
-    _kidnappedMobile.text = _asString(data['kidnappedMobile']);
-    _kidnappedAadhaar.text = _asString(data['kidnappedAadhaar']);
-    _kidnappedReligion.text = _asString(data['kidnappedReligion']);
-    _kidnappedCaste.text = _asString(data['kidnappedCaste']);
-    _kidnappedRelation.text = _asString(data['kidnappedRelation']);
+  void loadFromPayload(Map<String, dynamic> data) {
+    setState(() {
+      final kyc = (data['kidnapped_person_kyc'] as Map<String, dynamic>?) ?? {};
+      _kidnappedName.text = kyc['name'] ?? '';
+      _kidnappedAge.text = kyc['age'] ?? '';
+      _kidnappedGender =
+          kyc['gender']?.toString().isNotEmpty == true ? kyc['gender'] : null;
+      _kidnappedOccupation.text = kyc['occupation'] ?? '';
+      _kidnappedMobile.text = kyc['mobile_number'] ?? '';
+      _kidnappedAadhaar.text = kyc['aadhaar_number'] ?? '';
+      _kidnappedReligion.text = kyc['religion'] ?? '';
+      _kidnappedCaste.text = kyc['caste'] ?? '';
+      _kidnappedRelation.text = kyc['relation_with_complainant'] ?? '';
 
-    _personFound = _asBool(data['personFound']);
-    _foundDate.text = _asString(data['foundDate']);
-    _foundTime.text = _asString(data['foundTime']);
-    _foundSdNo.text = _asString(data['foundSdNo']);
-    _statementRecorded = _asBool(data['statementRecorded']);
-    _statementDate.text = _asString(data['statementDate']);
-    _statementTime.text = _asString(data['statementTime']);
-    _custodyTo = _asString(data['custodyTo']).isEmpty
-        ? null
-        : _asString(data['custodyTo']);
-    _custodyOtherText.text = _asString(data['custodyOtherText']);
-    _custodyName.text = _asString(data['custodyName']);
-    _custodyAge.text = _asString(data['custodyAge']);
-    _custodyGender = _asString(data['custodyGender']).isEmpty
-        ? null
-        : _asString(data['custodyGender']);
-    _custodyMobile.text = _asString(data['custodyMobile']);
-    _custodyAadhaar.text = _asString(data['custodyAadhaar']);
-    _custodyRelation.text = _asString(data['custodyRelation']);
-    _custodyAddress.text = _asString(data['custodyAddress']);
+      final found =
+          (data['person_found_details'] as Map<String, dynamic>?) ?? {};
+      _personFound = found['person_found'] == true;
+      _foundDate.text = found['found_date'] ?? '';
+      _foundTime.text = found['found_time'] ?? '';
+      _foundSdNo.text = found['station_diary_no'] ?? '';
+      _statementRecorded = found['statement_recorded'] == true;
+      _statementDate.text = found['statement_date'] ?? '';
+      _statementTime.text = found['statement_time'] ?? '';
+      _custodyTo = found['custody_given_to']?.toString().isNotEmpty == true
+          ? found['custody_given_to']
+          : null;
+      _custodyOtherText.text = found['custody_other_specify'] ?? '';
 
-    _bnss183Recorded = _asBool(data['bnss183Recorded']);
-    _bnssDate.text = _asString(data['bnssDate']);
-    _bnssTime.text = _asString(data['bnssTime']);
+      final cKyc = (found['custody_kyc'] as Map<String, dynamic>?) ?? {};
+      _custodyName.text = cKyc['name'] ?? '';
+      _custodyAge.text = cKyc['age'] ?? '';
+      _custodyGender =
+          cKyc['gender']?.toString().isNotEmpty == true ? cKyc['gender'] : null;
+      _custodyMobile.text = cKyc['mobile_number'] ?? '';
+      _custodyAadhaar.text = cKyc['aadhaar_number'] ?? '';
+      _custodyRelation.text = cKyc['relationship'] ?? '';
+      _custodyAddress.text = cKyc['full_address'] ?? '';
 
-    _cwcRecorded = _asBool(data['cwcRecorded']);
-    _cwcDate.text = _asString(data['cwcDate']);
-    _cwcTime.text = _asString(data['cwcTime']);
+      final bnss =
+          (data['statement_under_183_bnss'] as Map<String, dynamic>?) ?? {};
+      _bnss183Recorded = bnss['statement_recorded'] == true;
+      _bnssDate.text = bnss['statement_date'] ?? '';
+      _bnssTime.text = bnss['statement_time'] ?? '';
 
-    _medicalExamDone = _asBool(data['medicalExamDone']);
-    _medicalDate.text = _asString(data['medicalDate']);
-    _medicalTime.text = _asString(data['medicalTime']);
+      final cwc = (data['statement_before_cwc'] as Map<String, dynamic>?) ?? {};
+      _cwcRecorded = cwc['statement_recorded'] == true;
+      _cwcDate.text = cwc['statement_date'] ?? '';
+      _cwcTime.text = cwc['statement_time'] ?? '';
 
-    _inCameraRecorded = _asBool(data['inCameraRecorded']);
-    _inCameraDate.text = _asString(data['inCameraDate']);
-    _inCameraTime.text = _asString(data['inCameraTime']);
+      final med = (data['medical_examination'] as Map<String, dynamic>?) ?? {};
+      _medicalExamDone = med['examination_conducted'] == true;
+      _medicalDate.text = med['examination_date'] ?? '';
+      _medicalTime.text = med['examination_time'] ?? '';
 
-    setState(() {});
-  }
-
-  String _asString(dynamic value) => value?.toString() ?? '';
-
-  bool _asBool(dynamic value) {
-    if (value is bool) return value;
-    if (value is String) return value.toLowerCase() == 'true';
-    if (value is num) return value != 0;
-    return false;
+      final inCam =
+          (data['in_camera_statement'] as Map<String, dynamic>?) ?? {};
+      _inCameraRecorded = inCam['statement_recorded'] == true;
+      _inCameraDate.text = inCam['statement_date'] ?? '';
+      _inCameraTime.text = inCam['statement_time'] ?? '';
+    });
   }
 
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        color: _secondary,
-        letterSpacing: 0.5,
-      ),
+      labelStyle: const TextStyle(
+          fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
       filled: true,
-      fillColor: _inputFill,
+      fillColor: const Color(0xFFF8FAFC),
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _inputBorder),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _inputBorder),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _teal, width: 2),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
-  Widget _sectionTitle(String title, {double fontSize = 13}) {
-    return Row(
-      children: [
-        Container(
-          width: 4,
-          height: 24,
-          decoration: BoxDecoration(
-            color: _teal,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          title.toUpperCase(),
-          style: GoogleFonts.poppins(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w800,
-            color: _dark,
-            letterSpacing: 1,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _sectionCard(Widget child) {
+  Widget _sectionCard(String title, Widget body) {
     return Card(
       elevation: 0,
-      color: _cardColor,
-      margin: const EdgeInsets.only(bottom: 16),
+      color: Colors.white,
+      margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: _inputBorder),
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
-      child: Padding(padding: const EdgeInsets.all(20), child: child),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            child: body,
+          ),
+        ],
+      ),
     );
   }
 
   Widget _yesNoToggle({
+    required String label,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    Widget buildButton({
-      required String text,
-      required bool selected,
-      required Color selectedColor,
-      required VoidCallback onPressed,
-    }) {
-      final style = selected
-          ? ElevatedButton.styleFrom(
-              elevation: 0,
-              minimumSize: const Size.fromHeight(44),
-              backgroundColor: selectedColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+    Widget buildChip(String text, bool selected, VoidCallback onTap) {
+      const activeColor = Color(0xFF0EA5E9);
+      return Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: selected
+                  ? activeColor.withValues(alpha: 0.1)
+                  : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selected ? activeColor : const Color(0xFFE2E8F0),
+                width: selected ? 1.5 : 1,
               ),
-              textStyle: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+            ),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                color: selected ? activeColor : const Color(0xFF64748B),
               ),
-            )
-          : OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(44),
-              foregroundColor: _secondary,
-              side: const BorderSide(color: _inputBorder),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              textStyle: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            );
-      return selected
-          ? ElevatedButton(
-              onPressed: onPressed,
-              style: style,
-              child: Text(text),
-            )
-          : OutlinedButton(
-              onPressed: onPressed,
-              style: style,
-              child: Text(text),
-            );
-    }
-
-    return Row(
-      children: [
-        Expanded(
-          child: buildButton(
-            text: 'YES',
-            selected: value,
-            selectedColor: _green,
-            onPressed: () => onChanged(true),
+            ),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: buildButton(
-            text: 'NO',
-            selected: !value,
-            selectedColor: _red,
-            onPressed: () => onChanged(false),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label.isNotEmpty) ...[
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF64748B),
+            ),
           ),
+          const SizedBox(height: 6),
+        ],
+        Row(
+          children: [
+            buildChip('YES', value, () => onChanged(true)),
+            buildChip('NO', !value, () => onChanged(false)),
+          ],
         ),
       ],
     );
@@ -408,10 +419,12 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
     return TextFormField(
       controller: controller,
       readOnly: true,
-      style: GoogleFonts.poppins(),
+      style: const TextStyle(
+          fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
       decoration: _inputDecoration(
         label,
-      ).copyWith(suffixIcon: const Icon(Icons.calendar_today_outlined)),
+      ).copyWith(
+          suffixIcon: const Icon(Icons.calendar_today_outlined, size: 16)),
       onTap: () => _pickDate(controller),
     );
   }
@@ -420,10 +433,11 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
     return TextFormField(
       controller: controller,
       readOnly: true,
-      style: GoogleFonts.poppins(),
+      style: const TextStyle(
+          fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
       decoration: _inputDecoration(
         label,
-      ).copyWith(suffixIcon: const Icon(Icons.access_time_rounded)),
+      ).copyWith(suffixIcon: const Icon(Icons.access_time_rounded, size: 16)),
       onTap: () => _pickTime(controller),
     );
   }
@@ -458,106 +472,97 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: _bgColor,
+      color: Colors.transparent,
       child: Column(
         children: [
           _sectionCard(
-            Theme(
-              data: Theme.of(
-                context,
-              ).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                title: _sectionTitle('Kidnapped Person KYC'),
-                initiallyExpanded: false,
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: const EdgeInsets.only(top: 12),
-                children: [
-                  _responsiveTwoFieldRow(
-                    context: context,
-                    first: TextFormField(
-                      controller: _kidnappedName,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Name'),
-                    ),
-                    second: TextFormField(
-                      controller: _kidnappedAge,
-                      keyboardType: TextInputType.number,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Age'),
-                    ),
+            'Kidnapped Person KYC',
+            Column(
+              children: [
+                _responsiveTwoFieldRow(
+                  context: context,
+                  first: _tf(
+                    label: 'Name',
+                    controller: _kidnappedName,
                   ),
-                  const SizedBox(height: 12),
-                  _responsiveTwoFieldRow(
-                    context: context,
-                    first: DropdownButtonFormField<String>(
-                      key: ValueKey(
-                        'kidnappedGender_${_kidnappedGender ?? ''}',
-                      ),
-                      initialValue: _kidnappedGender,
-                      decoration: _inputDecoration('Gender'),
-                      style: GoogleFonts.poppins(color: _dark),
-                      items: const ['Male', 'Female', 'Other']
-                          .map(
-                            (e) => DropdownMenuItem<String>(
-                              value: e,
-                              child: Text(e, style: GoogleFonts.poppins()),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) => setState(() => _kidnappedGender = v),
-                    ),
-                    second: TextFormField(
-                      controller: _kidnappedOccupation,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Occupation'),
-                    ),
+                  second: _tf(
+                    label: 'Age',
+                    controller: _kidnappedAge,
+                    keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 12),
-                  _responsiveTwoFieldRow(
-                    context: context,
-                    first: TextFormField(
-                      controller: _kidnappedMobile,
-                      keyboardType: TextInputType.phone,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Mobile Number'),
+                ),
+                const SizedBox(height: 12),
+                _responsiveTwoFieldRow(
+                  context: context,
+                  first: DropdownButtonFormField<String>(
+                    key: ValueKey(
+                      'kidnappedGender_${_kidnappedGender ?? ''}',
                     ),
-                    second: TextFormField(
-                      controller: _kidnappedAadhaar,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Aadhaar Number'),
-                    ),
+                    initialValue: _kidnappedGender,
+                    decoration: _inputDecoration('Gender'),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B)),
+                    items: const ['Male', 'Female', 'Other']
+                        .map(
+                          (e) => DropdownMenuItem<String>(
+                            value: e,
+                            child: Text(e,
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF1E293B))),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setState(() => _kidnappedGender = v),
                   ),
-                  const SizedBox(height: 12),
-                  _responsiveTwoFieldRow(
-                    context: context,
-                    first: TextFormField(
-                      controller: _kidnappedReligion,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Religion'),
-                    ),
-                    second: TextFormField(
-                      controller: _kidnappedCaste,
-                      style: GoogleFonts.poppins(),
-                      decoration: _inputDecoration('Caste'),
-                    ),
+                  second: _tf(
+                    label: 'Occupation',
+                    controller: _kidnappedOccupation,
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _kidnappedRelation,
-                    style: GoogleFonts.poppins(),
-                    decoration: _inputDecoration('Relation with Complainant'),
+                ),
+                const SizedBox(height: 12),
+                _responsiveTwoFieldRow(
+                  context: context,
+                  first: _tf(
+                    label: 'Mobile Number',
+                    controller: _kidnappedMobile,
+                    keyboardType: TextInputType.phone,
                   ),
-                ],
-              ),
+                  second: _tf(
+                    label: 'Aadhaar Number',
+                    controller: _kidnappedAadhaar,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _responsiveTwoFieldRow(
+                  context: context,
+                  first: _tf(
+                    label: 'Religion',
+                    controller: _kidnappedReligion,
+                  ),
+                  second: _tf(
+                    label: 'Caste',
+                    controller: _kidnappedCaste,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _tf(
+                  label: 'Relation with Complainant',
+                  controller: _kidnappedRelation,
+                ),
+              ],
             ),
           ),
           _sectionCard(
+            'Person Found Details',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('Found Status'),
-                const SizedBox(height: 12),
                 _yesNoToggle(
+                  label: 'Is kidnapped person found?',
                   value: _personFound,
                   onChanged: (v) => setState(() => _personFound = v),
                 ),
@@ -573,24 +578,13 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                         second: _timeField('Found Time', _foundTime),
                       ),
                       const SizedBox(height: 12),
-                      TextFormField(
+                      _tf(
+                        label: 'SD No. / Station Diary No.',
                         controller: _foundSdNo,
-                        style: GoogleFonts.poppins(),
-                        decoration: _inputDecoration(
-                          'SD No. / Station Diary No.',
-                        ),
                       ),
                       const SizedBox(height: 14),
-                      Text(
-                        'Statement of kidnapped person recorded?',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: _dark,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       _yesNoToggle(
+                        label: 'Statement of kidnapped person recorded?',
                         value: _statementRecorded,
                         onChanged: (v) =>
                             setState(() => _statementRecorded = v),
@@ -619,7 +613,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                         key: ValueKey('custodyTo_${_custodyTo ?? ''}'),
                         initialValue: _custodyTo,
                         decoration: _inputDecoration('Custody Given To'),
-                        style: GoogleFonts.poppins(color: _dark),
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF1E293B)),
                         items: const [
                           'Parents',
                           'Relative',
@@ -632,7 +629,10 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 value: e,
                                 child: Text(
                                   e,
-                                  style: GoogleFonts.poppins(),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                 ),
                               ),
                             )
@@ -642,10 +642,9 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                       const SizedBox(height: 12),
                       _animatedSwitch(
                         _custodyTo == 'Other',
-                        TextFormField(
+                        _tf(
+                          label: 'Please Specify',
                           controller: _custodyOtherText,
-                          style: GoogleFonts.poppins(),
-                          decoration: _inputDecoration('Please Specify'),
                           onChanged: (_) => setState(() {}),
                         ),
                       ),
@@ -663,20 +662,27 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _sectionTitle(_custodyKycTitle(), fontSize: 12),
-                              const SizedBox(height: 12),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Text(
+                                  _custodyKycTitle(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                              ),
                               _responsiveTwoFieldRow(
                                 context: context,
-                                first: TextFormField(
+                                first: _tf(
+                                  label: 'Name',
                                   controller: _custodyName,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration('Name'),
                                 ),
-                                second: TextFormField(
+                                second: _tf(
+                                  label: 'Age',
                                   controller: _custodyAge,
                                   keyboardType: TextInputType.number,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration('Age'),
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -688,14 +694,20 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                   ),
                                   initialValue: _custodyGender,
                                   decoration: _inputDecoration('Gender'),
-                                  style: GoogleFonts.poppins(color: _dark),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF1E293B)),
                                   items: const ['Male', 'Female', 'Other']
                                       .map(
                                         (e) => DropdownMenuItem<String>(
                                           value: e,
                                           child: Text(
                                             e,
-                                            style: GoogleFonts.poppins(),
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: Color(0xFF1E293B)),
                                           ),
                                         ),
                                       )
@@ -703,35 +715,29 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                   onChanged: (v) =>
                                       setState(() => _custodyGender = v),
                                 ),
-                                second: TextFormField(
+                                second: _tf(
+                                  label: 'Mobile Number',
                                   controller: _custodyMobile,
                                   keyboardType: TextInputType.phone,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration('Mobile Number'),
                                 ),
                               ),
                               const SizedBox(height: 12),
                               _responsiveTwoFieldRow(
                                 context: context,
-                                first: TextFormField(
+                                first: _tf(
+                                  label: 'Aadhaar Number',
                                   controller: _custodyAadhaar,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration(
-                                    'Aadhaar Number',
-                                  ),
                                 ),
-                                second: TextFormField(
+                                second: _tf(
+                                  label: 'Relationship',
                                   controller: _custodyRelation,
-                                  style: GoogleFonts.poppins(),
-                                  decoration: _inputDecoration('Relationship'),
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              TextFormField(
+                              _tf(
+                                label: 'Full Address',
                                 controller: _custodyAddress,
                                 maxLines: 3,
-                                style: GoogleFonts.poppins(),
-                                decoration: _inputDecoration('Full Address'),
                               ),
                             ],
                           ),
@@ -744,21 +750,12 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             ),
           ),
           _sectionCard(
+            '183 BNSS',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('183 BNSS'),
-                const SizedBox(height: 12),
-                Text(
-                  'Statement Recorded under 183 BNSS?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _dark,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 _yesNoToggle(
+                  label: 'Statement Recorded under 183 BNSS?',
                   value: _bnss183Recorded,
                   onChanged: (v) => setState(() => _bnss183Recorded = v),
                 ),
@@ -775,21 +772,13 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             ),
           ),
           _sectionCard(
+            'CWC Statement',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('CWC Statement'),
-                const SizedBox(height: 12),
-                Text(
-                  'Statement Recorded before Child Welfare Committee (CWC)?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _dark,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 _yesNoToggle(
+                  label:
+                      'Statement Recorded before Child Welfare Committee (CWC)?',
                   value: _cwcRecorded,
                   onChanged: (v) => setState(() => _cwcRecorded = v),
                 ),
@@ -806,21 +795,12 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             ),
           ),
           _sectionCard(
+            'Medical Examination',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('Medical Examination'),
-                const SizedBox(height: 12),
-                Text(
-                  'Medical Examination Conducted?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _dark,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 _yesNoToggle(
+                  label: 'Medical Examination Conducted?',
                   value: _medicalExamDone,
                   onChanged: (v) => setState(() => _medicalExamDone = v),
                 ),
@@ -840,21 +820,12 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
             ),
           ),
           _sectionCard(
+            'In-Camera Statement',
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionTitle('In-Camera Statement'),
-                const SizedBox(height: 12),
-                Text(
-                  'In-Camera Statement Recorded?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _dark,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 _yesNoToggle(
+                  label: 'In-Camera Statement Recorded?',
                   value: _inCameraRecorded,
                   onChanged: (v) => setState(() => _inCameraRecorded = v),
                 ),
@@ -863,14 +834,8 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   _inCameraRecorded,
                   _responsiveTwoFieldRow(
                     context: context,
-                    first: _dateField(
-                      'In-Camera Statement Date',
-                      _inCameraDate,
-                    ),
-                    second: _timeField(
-                      'In-Camera Statement Time',
-                      _inCameraTime,
-                    ),
+                    first: _dateField('Statement Date', _inCameraDate),
+                    second: _timeField('Statement Time', _inCameraTime),
                   ),
                 ),
               ],

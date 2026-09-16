@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
+import 'package:http/http.dart' as http;
 
 /// Configuration class for Django REST API endpoints and base URL.
 class ApiConfig {
@@ -22,6 +24,47 @@ class ApiConfig {
 
   /// Custom host override if specified at runtime
   static String? _customBaseUrl;
+
+  static bool _hasPrewarmed = false;
+  static DateTime? _lastPrewarmedAt;
+
+  /// Root URL of the backend hosting environment (without /api path)
+  static String get rootHealthUrl {
+    final base = baseUrl;
+    final uri = Uri.parse(base);
+    return '${uri.scheme}://${uri.host}${uri.hasPort ? ':${uri.port}' : ''}/';
+  }
+
+  /// Silently pre-warms the backend (Root health check + Auth service) to eliminate cold-start delays
+  static void prewarmBackend({bool force = false}) {
+    final now = DateTime.now();
+    if (!force &&
+        _hasPrewarmed &&
+        _lastPrewarmedAt != null &&
+        now.difference(_lastPrewarmedAt!).inMinutes < 3) {
+      return;
+    }
+    _hasPrewarmed = true;
+    _lastPrewarmedAt = now;
+
+    try {
+      // 1. Ping Root Health Check (instant gunicorn/render wake-up)
+      unawaited(
+        http
+            .get(Uri.parse(rootHealthUrl))
+            .timeout(const Duration(seconds: 25))
+            .catchError((_) => http.Response('', 408)),
+      );
+
+      // 2. Ping Auth endpoint to warm up Django authentication app & DB pool
+      unawaited(
+        http
+            .get(Uri.parse(authCheckExists))
+            .timeout(const Duration(seconds: 25))
+            .catchError((_) => http.Response('', 408)),
+      );
+    } catch (_) {}
+  }
 
   /// Override the default base URL dynamically at runtime
   static void setCustomBaseUrl(String url) {

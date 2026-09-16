@@ -493,25 +493,6 @@ class CommonFormDocumentView extends StatelessWidget {
         ),
     ];
 
-    final vu = (m['vehicleUsage'] as Map?) ?? {};
-    final vuFields = <({String label, String value, bool fullWidth})>[
-      (
-        label: 'SD Entry of Vehicle Number and Time',
-        value: _v(vu['sdEntry'], or: 'Not set').toUpperCase(),
-        fullWidth: false,
-      ),
-      (
-        label: 'Log Book of Vehicle Entry',
-        value: _v(vu['logBookEntry'], or: 'Not set').toUpperCase(),
-        fullWidth: false,
-      ),
-      (
-        label: 'Case Diary Vehicle Entry',
-        value: _v(vu['caseDiaryEntry'], or: 'Not set').toUpperCase(),
-        fullWidth: false,
-      ),
-    ];
-
     return [
       ...items,
       const SizedBox(height: 14),
@@ -526,18 +507,6 @@ class CommonFormDocumentView extends StatelessWidget {
       ),
       const SizedBox(height: 6),
       ..._pairedSimpleFields(context, eshakshFields),
-      const SizedBox(height: 14),
-      Text(
-        'GOVERNMENT VEHICLE USAGE',
-        style: GoogleFonts.poppins(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
-          color: AppColors.navyMid,
-        ),
-      ),
-      const SizedBox(height: 6),
-      ..._pairedSimpleFields(context, vuFields),
     ];
   }
 

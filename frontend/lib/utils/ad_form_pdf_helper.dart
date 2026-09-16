@@ -49,9 +49,10 @@ class AdFormPdfHelper {
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => doc.save(),
-      name: 'AD_${adNo.replaceAll(RegExp(r'[^\w\-]+'), '_')}.pdf',
+    final fileName = 'AD_${adNo.replaceAll(RegExp(r'[^\w\-]+'), '_')}.pdf';
+    await Printing.sharePdf(
+      bytes: await doc.save(),
+      filename: fileName,
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../../widgets/base_form/base_form.dart';
+import '../../../widgets/common_form/pocso_voice_banner.dart';
 import '../../../widgets/voice_dictation_button.dart';
 
 // ── Palette (matches app design system) ──────────────────────────────────────
@@ -156,9 +157,26 @@ class NcFormState extends State<NcForm> {
   int _postNcChargeSeq = 0;
   final Map<String, Map<String, dynamic>> _postNcChargeData = {};
 
+  // Active Voice Dictation State
+  String? _activeVoiceFieldLabel = 'NC. No. (Manual Entry)';
+  TextEditingController? _activeVoiceController;
+  String? _activeVoiceSectionName = 'Basic Details';
+
+  void _setActiveVoiceField(String label, TextEditingController ctrl,
+      {String? section}) {
+    if (_activeVoiceController != ctrl || _activeVoiceFieldLabel != label) {
+      setState(() {
+        _activeVoiceFieldLabel = label;
+        _activeVoiceController = ctrl;
+        if (section != null) _activeVoiceSectionName = section;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _activeVoiceController = _ncNumber;
     _fic.addListener(() {
       if (mounted) {
         setState(() {
@@ -737,6 +755,8 @@ class NcFormState extends State<NcForm> {
     int? maxLines,
     TextInputType keyboardType = TextInputType.text,
     void Function(String)? onChanged,
+    VoidCallback? onTap,
+    String? section,
   }) {
     return StandardTextField(
       label: label,
@@ -744,6 +764,10 @@ class NcFormState extends State<NcForm> {
       maxLines: maxLines ?? 1,
       keyboardType: keyboardType,
       onChanged: onChanged,
+      onTap: () {
+        _setActiveVoiceField(label, ctrl, section: section);
+        if (onTap != null) onTap();
+      },
     );
   }
 
@@ -1352,6 +1376,9 @@ class NcFormState extends State<NcForm> {
             maxLength: 50,
             maxLengthEnforcement: MaxLengthEnforcement.enforced,
             style: _tsBody,
+            onTap: () => _setActiveVoiceField(
+                'First Information Content / हकीकत', _fic,
+                section: 'First Information Content'),
             inputFormatters: [
               LengthLimitingTextInputFormatter(50),
             ],
@@ -1516,6 +1543,11 @@ class NcFormState extends State<NcForm> {
         onNotification: _onScrollNotif,
         child: Column(
           children: [
+            PocsoVoiceBanner(
+              activeFieldLabel: _activeVoiceFieldLabel,
+              activeController: _activeVoiceController,
+              activeSectionName: _activeVoiceSectionName,
+            ),
             ValueListenableBuilder<double>(
               valueListenable: scrollProgress,
               builder: (_, v, __) => LinearProgressIndicator(

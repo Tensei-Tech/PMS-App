@@ -22,13 +22,13 @@ import 'package:image_picker/image_picker.dart';
 import '../../modules/core/models/base_record.dart';
 import '../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../utils/app_constants.dart';
+import '../../utils/common_form_pdf.dart';
 import '../../utils/crime_detail_pdf.dart';
 import '../../utils/translation_helper.dart';
 import '../../utils/validators.dart';
-import 'government_vehicle_usage_widget.dart';
-import 'section_82_83_action_widget.dart';
+import 'pocso_voice_banner.dart';
 
-// ── Palette ───────────────────────────────────────────────────────────────────
+// ── Palette ──
 const Color _kDark = Color(0xFF0f172a);
 const Color _kMid = Color(0xFF1e293b);
 const Color _kTeal = Color(0xFF0ea5e9);
@@ -267,12 +267,48 @@ class CommonFormState extends State<CommonForm> {
     return false;
   }
 
-  bool get _isPocsoCase {
+  bool get _isVoiceEnabled {
     final key = (widget.moduleKey ?? '').trim().toLowerCase();
     final sub = (widget.subCategory ?? '').trim().toLowerCase();
     final label = (widget.moduleLabel ?? '').trim().toLowerCase();
-    return key == 'pocso' || sub.contains('pocso') || label.contains('pocso');
+    if (key == 'form_1_5' ||
+        key == 'form_6' ||
+        key == 'forms' ||
+        key == 'i to v' ||
+        key == 'vi' ||
+        sub.contains('form i') ||
+        sub.contains('form 1') ||
+        sub.contains('form vi') ||
+        sub.contains('form 6') ||
+        label.contains('form i') ||
+        label.contains('form 1') ||
+        label.contains('form vi') ||
+        label.contains('form 6')) {
+      return false;
+    }
+    return true;
   }
+
+  // ── Live Voice Dictation State ──────────────────────────────────────────
+  String _activeVoiceFieldLabel = 'CR Number';
+  String _activeVoiceSectionName = '§1 Crime Registration';
+  TextEditingController? _activeVoiceController;
+
+  void setActiveVoiceField(String label, TextEditingController ctrl,
+      [String section = '']) {
+    if (!_isVoiceEnabled) return;
+    if (_activeVoiceController != ctrl || _activeVoiceFieldLabel != label) {
+      setState(() {
+        _activeVoiceFieldLabel = label;
+        _activeVoiceController = ctrl;
+        _activeVoiceSectionName = section;
+      });
+    }
+  }
+
+  void _setActiveVoiceField(String label, TextEditingController ctrl,
+          [String section = '']) =>
+      setActiveVoiceField(label, ctrl, section);
 
   // ── §1 Crime Registration ─────────────────────────────────────────────────
   final _crNo = TextEditingController();
@@ -484,6 +520,17 @@ class CommonFormState extends State<CommonForm> {
     return false;
   }
 
+  bool get _isPocsoCase {
+    final sub = (widget.subCategory ?? '').toLowerCase();
+    final mod = (widget.moduleKey ?? '').toLowerCase();
+    if (sub.contains('pocso') || mod.contains('pocso')) return true;
+    for (final charge in _chargeData.values) {
+      final act = charge['act']?.toString().toLowerCase() ?? '';
+      if (act.contains('pocso')) return true;
+    }
+    return false;
+  }
+
   // ── §6 Accused ────────────────────────────────────────────────────────────
   final bool _isUnknown = false;
   final List<Map<String, dynamic>> _accused = [];
@@ -550,10 +597,6 @@ class CommonFormState extends State<CommonForm> {
   final _fingerprintReason = TextEditingController();
 
   // ── Shared Cross-Cutting Components ──────────────────────────────────────
-  GovernmentVehicleUsageData? _vehicleUsage;
-  GovernmentVehicleUsageData get _effectiveVehicleUsage =>
-      _vehicleUsage ??= GovernmentVehicleUsageData();
-  String? _section8283Action;
 
   // ── §11 Seizure ───────────────────────────────────────────────────────────
   final List<Map<String, dynamic>> _seizures = [];
@@ -595,7 +638,7 @@ class CommonFormState extends State<CommonForm> {
   TextEditingController? _csDateCtrl;
   TextEditingController get _csDate => _csDateCtrl ??= TextEditingController();
   final _ccStNumber = TextEditingController();
-  String? _finalSummary;
+  Map<String, String> _finalSummary = {};
   String _isQuashed = 'No';
   final _quashDate = TextEditingController();
 
@@ -1250,11 +1293,9 @@ class CommonFormState extends State<CommonForm> {
     _regDesig = 'HC';
     _cctvVal = null;
     _eshaksh = null;
-    _effectiveVehicleUsage.clear();
-    _section8283Action = null;
     _prevAction = 'BNSS 129';
     _prevBondsVal = 'no';
-    _finalSummary = null;
+    _finalSummary.clear();
     _discharge.clear();
     for (final c in _dischargeDates.values) {
       c.clear();
@@ -1397,6 +1438,7 @@ class CommonFormState extends State<CommonForm> {
       },
       'accused': pplRows(_accused),
       'suspectedAccused': pplRows(_suspected),
+      'allAccusedNames': allAccusedNames,
       'unidentifiedList': unidRows(_unidentified),
       'unknownList': unidRows(_unknown),
       'caseResponsibility': {
@@ -1431,8 +1473,6 @@ class CommonFormState extends State<CommonForm> {
       'eshakshValue': _eshaksh,
       'eshakshDt': _eDt.text,
       'eshakshReason': _eReason.text,
-      'vehicleUsage': _effectiveVehicleUsage.toMap(),
-      'section8283Action': _section8283Action,
       'investigationNotes': {
         'fingerprintVal': _fingerprintVal,
         'fingerprintDate': _fingerprintDate.text,
@@ -1821,15 +1861,6 @@ class CommonFormState extends State<CommonForm> {
     _eshaksh = m['eshakshValue'] as String?;
     _eDt.text = _s(m['eshakshDt']);
     _eReason.text = _s(m['eshakshReason']);
-    if (m['vehicleUsage'] is Map) {
-      final vu = GovernmentVehicleUsageData.fromMap(m['vehicleUsage'] as Map);
-      _effectiveVehicleUsage.sdEntry = vu.sdEntry;
-      _effectiveVehicleUsage.logBookEntry = vu.logBookEntry;
-      _effectiveVehicleUsage.caseDiaryEntry = vu.caseDiaryEntry;
-    } else {
-      _effectiveVehicleUsage.clear();
-    }
-    _section8283Action = m['section8283Action']?.toString();
 
     final inv = m['investigationNotes'] as Map?;
     if (inv != null) {
@@ -1938,7 +1969,13 @@ class CommonFormState extends State<CommonForm> {
       _csNumber.text = _s(ct['chargeSheetNumber']);
       _csDate.text = _s(ct['chargeSheetDate']);
       _ccStNumber.text = _s(ct['ccStNumber']);
-      _finalSummary = ct['finalSummary'] as String?;
+      final fsRaw = ct['finalSummary'];
+      if (fsRaw is Map) {
+        _finalSummary =
+            fsRaw.map((k, v) => MapEntry(k.toString(), v.toString()));
+      } else {
+        _finalSummary = {};
+      }
       _quashDate.text = _s(ct['quashedHighCourt']);
       if (_quashDate.text.isNotEmpty) _isQuashed = 'Yes';
     }
@@ -2222,6 +2259,7 @@ class CommonFormState extends State<CommonForm> {
     int? maxLines,
     TextInputType keyboardType = TextInputType.text,
     void Function(String)? onChanged,
+    VoidCallback? onTap,
     bool enabled = true,
     String? hintText,
     String? helperText,
@@ -2236,6 +2274,12 @@ class CommonFormState extends State<CommonForm> {
       maxLines: maxLines ?? 1,
       enabled: enabled,
       inputFormatters: inputFormatters,
+      onTap: () {
+        if (_isVoiceEnabled) {
+          _setActiveVoiceField(label, ctrl);
+        }
+        onTap?.call();
+      },
       validator: validator != null
           ? (v) {
               final res = validator(v);
@@ -2638,15 +2682,30 @@ class CommonFormState extends State<CommonForm> {
                   _barBtn('Save Draft', Icons.save_outlined, saveDraft, _kTeal),
                   const SizedBox(width: 6),
                   _barBtn(
-                    'Generate Crime Detail Form PDF',
+                    _pdfButtonLabel,
                     Icons.picture_as_pdf_outlined,
-                    _generateCrimeDetailPdf,
+                    _generatePdf,
                     const Color(0xFF0284C7),
                   ),
                 ],
               ),
             ),
             const Divider(height: 1, color: _kBorder),
+            if (_isVoiceEnabled)
+              Container(
+                color: _kPageBg,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: PocsoVoiceBanner(
+                      activeFieldLabel: _activeVoiceFieldLabel,
+                      activeSectionName: _activeVoiceSectionName,
+                      activeController: _activeVoiceController ?? _crNo,
+                    ),
+                  ),
+                ),
+              ),
             // ── form
             Expanded(
               child: ListView(
@@ -2864,10 +2923,51 @@ class CommonFormState extends State<CommonForm> {
     );
   }
 
-  Future<void> _generateCrimeDetailPdf() async {
+  String get _pdfButtonLabel {
+    final label = widget.moduleLabel?.trim() ?? '';
+    final sub = widget.subCategory?.trim() ?? '';
+    if (label.isNotEmpty) {
+      if (label.toLowerCase().endsWith('form')) {
+        return 'Generate $label PDF';
+      }
+      return 'Generate $label Form PDF';
+    }
+    if (sub.isNotEmpty) {
+      if (sub.toLowerCase().endsWith('form')) {
+        return 'Generate $sub PDF';
+      }
+      return 'Generate $sub Form PDF';
+    }
+    return 'Generate Form PDF';
+  }
+
+  Future<void> _generatePdf() async {
     try {
       final doc = buildDocumentMap();
-      await previewCrimeDetailPdf(context, doc);
+      final label = widget.moduleLabel?.trim() ?? '';
+      final sub = widget.subCategory?.trim() ?? '';
+
+      final isCrimeDetail = (widget.moduleKey == 'crime_detail') ||
+          label.toLowerCase().contains('crime detail') ||
+          sub.toLowerCase().contains('crime detail');
+
+      if (isCrimeDetail) {
+        await previewCrimeDetailPdf(context, doc);
+      } else {
+        final formTitle = label.isNotEmpty
+            ? '${label.toUpperCase()} FORM'
+            : (sub.isNotEmpty ? '${sub.toUpperCase()} FORM' : 'CASE FORM');
+        final formSubtitle = sub.isNotEmpty
+            ? '$sub · ${label.isNotEmpty ? label : 'Khakhi Diary'} — Maharashtra Police'
+            : '${label.isNotEmpty ? label : 'Khakhi Diary'} — Maharashtra Police';
+
+        await previewFormPdf(
+          context,
+          doc,
+          formTitle: formTitle,
+          formSubtitle: formSubtitle,
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -4352,11 +4452,6 @@ class CommonFormState extends State<CommonForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Section8283ActionWidget(
-          value: _section8283Action,
-          onChanged: (v) => setState(() => _section8283Action = v),
-        ),
-        const SizedBox(height: 12),
         if (allAccusedNames.isEmpty)
           _emptyBox(
             'Add accused/suspected names above to see arrest fields.',
@@ -4493,7 +4588,15 @@ class CommonFormState extends State<CommonForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _subHeader('SELECT TO ADD DATE/TIME'),
-          ..._kProceduralKeys.entries.map((e) {
+          ..._kProceduralKeys.entries.where((e) {
+            final isMurderSpecific =
+                (e.key == 'chkInquest' || e.key == 'chkExhumation');
+            if (_isMurderCase) {
+              return isMurderSpecific;
+            } else {
+              return !isMurderSpecific;
+            }
+          }).map((e) {
             final on = _procChecks[e.key] ?? false;
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -4622,11 +4725,6 @@ class CommonFormState extends State<CommonForm> {
               _tf('Reason for No Fingerprint', _fingerprintReason, maxLines: 2)
             ]),
           ],
-          _divider(),
-          GovernmentVehicleUsageWidget(
-            data: _effectiveVehicleUsage,
-            onChanged: (v) => setState(() => _vehicleUsage = v),
-          ),
         ],
       );
 
@@ -4931,21 +5029,14 @@ class CommonFormState extends State<CommonForm> {
 
   // ── §13 Preventive & Bonds ─────────────────────────────────────────────────
   Widget _s13() {
-    final validPrevAction =
+    final String? validPrevAction =
         (_prevAction != null && _kPreventiveItems.contains(_prevAction))
             ? _prevAction
-            : _kPreventiveItems.first;
+            : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _subHeader('PREVENTIVE BONDS'),
-        _row([
-          _dateField('PR Bond Date', _bondDate),
-          _dateField('Bond Cancellation Date', _bondCancel),
-        ]),
-        _row([_tf('Reason for PR Bond', _bReason)]),
-        const SizedBox(height: 14),
         _subHeader('PREVENTIVE ACTIONS'),
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -4961,21 +5052,36 @@ class CommonFormState extends State<CommonForm> {
             isExpanded: true,
             style: _tsBody,
             icon: const Icon(Icons.arrow_drop_down, size: 20),
-            items: _kPreventiveItems
-                .map((e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e, style: const TextStyle(fontSize: 12))))
-                .toList(),
+            items: [
+              const DropdownMenuItem<String>(
+                value: null,
+                child: Text('No Selection',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey)),
+              ),
+              ..._kPreventiveItems.map((e) => DropdownMenuItem<String>(
+                  value: e,
+                  child: Text(e, style: const TextStyle(fontSize: 12))))
+            ],
             onChanged: (v) => setState(() => _prevAction = v),
           ),
         ),
         _row([
           _dateTimeField(
-            '$validPrevAction Date & Time',
+            '${validPrevAction ?? 'Action'} Date & Time',
             _prevActionDt,
             hintText: 'dd/mm/yyyy hh:mm',
           ),
         ]),
+        const SizedBox(height: 14),
+        _subHeader('PREVENTIVE BONDS'),
+        _row([
+          _dateField('PR Bond Date', _bondDate),
+          _dateField('Bond Cancellation Date', _bondCancel),
+        ]),
+        _row([_tf('Reason for PR Bond', _bReason)]),
       ],
     );
   }
@@ -5118,16 +5224,50 @@ class CommonFormState extends State<CommonForm> {
         if (_isQuashed == 'Yes')
           _row([_dateField('Quashed by High Court Date', _quashDate)])
         else ...[
-          _row([
-            _chipSelector(
-              label: 'Final Summary',
-              items: _kFinalSummaryItems,
-              selected: _finalSummary,
-              onSelect: (v) => setState(() => _finalSummary = v),
-            ),
-          ]),
+          if (allAccusedNames.isNotEmpty) ...[
+            _subHeader('FINAL SUMMARY'),
+            ...allAccusedNames.map((name) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _row([
+                  TextFormField(
+                    initialValue: name,
+                    enabled: false,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+                    decoration: _d('Accused Name'),
+                  ),
+                  DropdownButtonFormField<String>(
+                    decoration: _d('Summary'),
+                    initialValue: _finalSummary[name],
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF1E293B),
+                    ),
+                    items: [..._kFinalSummaryItems, 'N.C Final']
+                        .map((e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(e),
+                            ))
+                        .toList(),
+                    onChanged: (v) {
+                      setState(() {
+                        if (v != null) _finalSummary[name] = v;
+                      });
+                    },
+                  ),
+                ]),
+              );
+            }),
+            const SizedBox(height: 12),
+          ],
           if (allAccusedNames.isEmpty)
-            _emptyBox('Add accused/suspected names above to classify verdict.')
+            _emptyBox(
+                'Add accused/suspected names above to classify summary & verdict.')
           else ...[
             if (unAssigned.isNotEmpty) ...[
               _subHeader('UNASSIGNED — TAP TO CLASSIFY'),

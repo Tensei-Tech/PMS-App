@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../utils/app_constants.dart';
-import '../../../utils/crime_detail_pdf.dart';
+import '../../../utils/common_form_pdf.dart';
 import '../../../widgets/base_form/base_form.dart';
+import '../../../widgets/common_form/pocso_voice_banner.dart';
 
 // ── Palette (matches nc_form.dart / common_form.dart) ─────────────────────────
 const Color _kDark = Color(0xFF0f172a);
@@ -194,6 +195,28 @@ class MissingFormState extends State<MissingForm> {
   bool _inCameraRecorded = false;
   final _inCameraDate = TextEditingController();
   final _inCameraTime = TextEditingController();
+
+  // Active Voice Dictation State
+  String? _activeVoiceFieldLabel = 'Missing Number';
+  TextEditingController? _activeVoiceController;
+  String? _activeVoiceSectionName = 'Missing Number';
+
+  void _setActiveVoiceField(String label, TextEditingController ctrl,
+      {String? section}) {
+    if (_activeVoiceController != ctrl || _activeVoiceFieldLabel != label) {
+      setState(() {
+        _activeVoiceFieldLabel = label;
+        _activeVoiceController = ctrl;
+        if (section != null) _activeVoiceSectionName = section;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _activeVoiceController = _missingNumber;
+  }
 
   @override
   void dispose() {
@@ -640,6 +663,8 @@ class MissingFormState extends State<MissingForm> {
     TextInputType keyboardType = TextInputType.text,
     void Function(String)? onChanged,
     String? Function(String?)? validator,
+    VoidCallback? onTap,
+    String? section,
   }) {
     return StandardTextField(
       label: label,
@@ -648,6 +673,10 @@ class MissingFormState extends State<MissingForm> {
       keyboardType: keyboardType,
       onChanged: onChanged,
       validator: validator,
+      onTap: () {
+        _setActiveVoiceField(label, ctrl, section: section);
+        if (onTap != null) onTap();
+      },
     );
   }
 
@@ -1255,12 +1284,18 @@ class MissingFormState extends State<MissingForm> {
                       controller: _custodyName,
                       style: GoogleFonts.poppins(),
                       decoration: _kidInputDecoration('Name'),
+                      onTap: () => _setActiveVoiceField(
+                          'Custody Name', _custodyName,
+                          section: 'Custody'),
                     ),
                     second: TextFormField(
                       controller: _custodyAge,
                       keyboardType: TextInputType.number,
                       style: GoogleFonts.poppins(),
                       decoration: _kidInputDecoration('Age'),
+                      onTap: () => _setActiveVoiceField(
+                          'Custody Age', _custodyAge,
+                          section: 'Custody'),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1286,6 +1321,9 @@ class MissingFormState extends State<MissingForm> {
                       keyboardType: TextInputType.phone,
                       style: GoogleFonts.poppins(),
                       decoration: _kidInputDecoration('Mobile Number'),
+                      onTap: () => _setActiveVoiceField(
+                          'Custody Mobile Number', _custodyMobile,
+                          section: 'Custody'),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1295,11 +1333,17 @@ class MissingFormState extends State<MissingForm> {
                       controller: _custodyAadhaar,
                       style: GoogleFonts.poppins(),
                       decoration: _kidInputDecoration('Aadhaar Number'),
+                      onTap: () => _setActiveVoiceField(
+                          'Custody Aadhaar Number', _custodyAadhaar,
+                          section: 'Custody'),
                     ),
                     second: TextFormField(
                       controller: _custodyRelation,
                       style: GoogleFonts.poppins(),
                       decoration: _kidInputDecoration('Relationship'),
+                      onTap: () => _setActiveVoiceField(
+                          'Custody Relationship', _custodyRelation,
+                          section: 'Custody'),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1308,6 +1352,9 @@ class MissingFormState extends State<MissingForm> {
                     maxLines: 3,
                     style: GoogleFonts.poppins(),
                     decoration: _kidInputDecoration('Full Address'),
+                    onTap: () => _setActiveVoiceField(
+                        'Custody Full Address', _custodyAddress,
+                        section: 'Custody'),
                   ),
                 ],
               ),
@@ -1316,10 +1363,16 @@ class MissingFormState extends State<MissingForm> {
         ],
       );
 
-  Future<void> _generateCrimeDetailPdf() async {
+  Future<void> _generateMissingPdf() async {
     try {
       final doc = buildDocumentMap();
-      await previewCrimeDetailPdf(context, doc);
+      await previewFormPdf(
+        context,
+        doc,
+        formTitle: 'MISSING PERSON FORM',
+        formSubtitle:
+            'Missing Persons Record — Khakhi Diary · Maharashtra Police',
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1339,6 +1392,11 @@ class MissingFormState extends State<MissingForm> {
         onNotification: _onScrollNotif,
         child: Column(
           children: [
+            PocsoVoiceBanner(
+              activeFieldLabel: _activeVoiceFieldLabel,
+              activeController: _activeVoiceController,
+              activeSectionName: _activeVoiceSectionName,
+            ),
             ValueListenableBuilder<double>(
               valueListenable: scrollProgress,
               builder: (_, v, __) => LinearProgressIndicator(
@@ -1359,9 +1417,9 @@ class MissingFormState extends State<MissingForm> {
                   _barBtn('Save Draft', Icons.save_outlined, saveDraft, _kTeal),
                   const SizedBox(width: 6),
                   _barBtn(
-                    'Generate Crime Detail Form PDF',
+                    'Generate Missing Form PDF',
                     Icons.picture_as_pdf_outlined,
-                    _generateCrimeDetailPdf,
+                    _generateMissingPdf,
                     const Color(0xFF0284C7),
                   ),
                 ],
@@ -1590,6 +1648,11 @@ class MissingFormState extends State<MissingForm> {
                                       decoration: _kidInputDecoration(
                                         'SD Number / Station Diary Number',
                                       ),
+                                      onTap: () => _setActiveVoiceField(
+                                        'SD Number / Station Diary Number',
+                                        _foundSd,
+                                        section: 'Found Section',
+                                      ),
                                     ),
                                     const SizedBox(height: 12),
                                     TextFormField(
@@ -1597,6 +1660,11 @@ class MissingFormState extends State<MissingForm> {
                                       style: GoogleFonts.poppins(),
                                       decoration: _kidInputDecoration(
                                         'Village / Town',
+                                      ),
+                                      onTap: () => _setActiveVoiceField(
+                                        'Village / Town',
+                                        _foundVillage,
+                                        section: 'Found Section',
                                       ),
                                     ),
                                     const SizedBox(height: 12),
@@ -1606,6 +1674,11 @@ class MissingFormState extends State<MissingForm> {
                                       decoration: _kidInputDecoration(
                                         'Area Name',
                                       ),
+                                      onTap: () => _setActiveVoiceField(
+                                        'Area Name',
+                                        _foundAreaName,
+                                        section: 'Found Section',
+                                      ),
                                     ),
                                     const SizedBox(height: 12),
                                     TextFormField(
@@ -1614,6 +1687,11 @@ class MissingFormState extends State<MissingForm> {
                                       style: GoogleFonts.poppins(),
                                       decoration: _kidInputDecoration(
                                         'Full Address',
+                                      ),
+                                      onTap: () => _setActiveVoiceField(
+                                        'Full Address',
+                                        _foundFullAddress,
+                                        section: 'Found Section',
                                       ),
                                     ),
                                   ],
