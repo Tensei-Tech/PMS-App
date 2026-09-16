@@ -409,8 +409,9 @@ Widget _pgFemale2(Map<String, dynamic> doc) {
           if (_v(doc, 'f_kicking').isNotEmpty) types.add('Kicking');
           if (_v(doc, 'f_pinching').isNotEmpty) types.add('Pinching');
           if (_v(doc, 'f_pullingHair').isNotEmpty) types.add('Pulling Hair');
-          if (_v(doc, 'f_violentShaking').isNotEmpty)
+          if (_v(doc, 'f_violentShaking').isNotEmpty) {
             types.add('Violent shaking');
+          }
           if (_v(doc, 'f_bangingHead').isNotEmpty) types.add('Banging head');
           if (types.isEmpty) {
             return Text(
