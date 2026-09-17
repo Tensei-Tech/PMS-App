@@ -280,7 +280,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final ps = v('policeStation');
   final district = v('district', 'यवतमाळ');
 
-  TableRow buildRow(String no, String title, Widget content, {bool isHeader = false}) {
+  TableRow buildRow(String no, String title, Widget content,
+      {bool isHeader = false}) {
     return TableRow(
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.black, width: 0.5)),
@@ -398,7 +399,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                 Text('कलम ', style: FormImagePdfHelper.mBld(8.5)),
                 Expanded(
                   child: Text(
-                    v('actSec', '....................................................'),
+                    v('actSec',
+                        '....................................................'),
                     style: FormImagePdfHelper.valStyle(8.5),
                   ),
                 ),
@@ -446,8 +448,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           buildSimpleTextRow('२८.', 'कपडे कसे घालतो', 'clothing'),
           buildSimpleTextRow('२९.', 'अटकेचा दिनांक व वेळ', 'arrestDateTime'),
           buildSimpleTextRow('३०.', 'अटक करणारे अंमलदार', 'arrestingOfficer'),
-          buildSimpleTextRow('३१.', 'जमीनावर सोडला असल्यास जामीनदाराचे नांव', 'surety'),
-          buildSimpleTextRow('३२.', 'गुन्हेगारास अगोदर शिक्षा झाली काय व किती', 'pastConviction'),
+          buildSimpleTextRow(
+              '३१.', 'जमीनावर सोडला असल्यास जामीनदाराचे नांव', 'surety'),
+          buildSimpleTextRow('३२.', 'गुन्हेगारास अगोदर शिक्षा झाली काय व किती',
+              'pastConviction'),
           buildSimpleTextRow('३३.', 'केंसचा निकाल', 'caseResult'),
         ],
       ),
@@ -490,4 +494,3 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     ],
   );
 }
-

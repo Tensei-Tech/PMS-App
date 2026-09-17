@@ -495,26 +495,31 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           children: [
             TableRow(
               decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.black87, width: 1)),
+                border:
+                    Border(bottom: BorderSide(color: Colors.black87, width: 1)),
               ),
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                   alignment: Alignment.center,
                   child: Text('जप्त मालाचे विवरण', style: bld),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                   alignment: Alignment.center,
                   child: Text('मुल्य अंदाजे', style: bld),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                   alignment: Alignment.center,
                   child: Text('माल नंबर', style: bld),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                   alignment: Alignment.center,
                   child: Text('कोणाकडुन जप्त केले', style: bld),
                 ),
@@ -625,4 +630,3 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     ),
   );
 }
-

@@ -745,7 +745,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         const SizedBox(height: 12),
         Align(
           alignment: Alignment.bottomRight,
-          child: Text('M.R.W', style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700)),
+          child: Text('M.R.W',
+              style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700)),
         ),
       ],
     ),
@@ -893,8 +894,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             style: reg.copyWith(height: 1.6),
             children: [
               const TextSpan(
-                text:
-                    '      आपणास या सुचनापत्र देण्यात येते की, आज दिनांक ',
+                text: '      आपणास या सुचनापत्र देण्यात येते की, आज दिनांक ',
               ),
               TextSpan(text: '$raidDate ', style: bld),
               const TextSpan(text: 'रोजी पोलीस स्टेशन हद्दीत मौजे '),
@@ -951,10 +951,10 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         const SizedBox(height: 12),
         Align(
           alignment: Alignment.bottomRight,
-          child: Text('M.R.W', style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700)),
+          child: Text('M.R.W',
+              style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700)),
         ),
       ],
     ),
   );
 }
-

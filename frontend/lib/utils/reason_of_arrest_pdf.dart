@@ -651,9 +651,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                   children: [
                     const TextSpan(text: 'दिनांक:- '),
                     TextSpan(
-                      text: noticeDate.isNotEmpty
-                          ? noticeDate
-                          : '    /    /२०२५',
+                      text:
+                          noticeDate.isNotEmpty ? noticeDate : '    /    /२०२५',
                       style: bld,
                     ),
                   ],
@@ -718,9 +717,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     '       आपणास या सुचनापत्राद्वारे कळविण्यात येते की,आपल्या विरुद्ध पोलीस ठाणे ',
               ),
               TextSpan(
-                text: policeStation.isNotEmpty
-                    ? policeStation
-                    : '-------------',
+                text:
+                    policeStation.isNotEmpty ? policeStation : '-------------',
                 style: bld,
               ),
               const TextSpan(text: 'येथे गुन्हा रजि.क्र.'),
@@ -730,9 +728,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
               ),
               const TextSpan(text: '/-- कलम '),
               TextSpan(
-                text: subjectSection.isNotEmpty
-                    ? subjectSection
-                    : '------------',
+                text:
+                    subjectSection.isNotEmpty ? subjectSection : '------------',
                 style: bld,
               ),
               const TextSpan(
@@ -864,9 +861,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                 text: 'यांना लेखी सुचनेव्दारे/फोन क्रमांक ',
               ),
               TextSpan(
-                text: relativePhone.isNotEmpty
-                    ? relativePhone
-                    : '---------',
+                text: relativePhone.isNotEmpty ? relativePhone : '---------',
                 style: bld,
               ),
               const TextSpan(
@@ -902,9 +897,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                     children: [
                       const TextSpan(text: '(आरोपीची सही) '),
                       TextSpan(
-                        text: accusedSig.isNotEmpty
-                            ? accusedSig
-                            : '-----------',
+                        text:
+                            accusedSig.isNotEmpty ? accusedSig : '-----------',
                         style: bld,
                       ),
                     ],
@@ -981,8 +975,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                     children: [
                       const TextSpan(text: 'ता.'),
                       TextSpan(
-                        text:
-                            ioTaluka.isNotEmpty ? ' $ioTaluka ' : '-------',
+                        text: ioTaluka.isNotEmpty ? ' $ioTaluka ' : '-------',
                         style: bld,
                       ),
                       const TextSpan(text: ' जिल्हा'),
@@ -1003,4 +996,3 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
     ),
   );
 }
-

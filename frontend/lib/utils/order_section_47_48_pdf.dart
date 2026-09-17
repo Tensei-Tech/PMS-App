@@ -683,7 +683,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           text: TextSpan(
             style: reg,
             children: [
-              const TextSpan(text: '        आपणास याद्वारे कळविण्यात येते की, '),
+              const TextSpan(
+                  text: '        आपणास याद्वारे कळविण्यात येते की, '),
               TextSpan(
                 text: policeStation.isNotEmpty
                     ? policeStation
@@ -702,10 +703,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     : '....................................................................................',
                 style: bld,
               ),
-              const TextSpan(
-                  text: ' या गुन्ह्याचे तपासात निष्पन्न झालेल्या '),
-              const TextSpan(
-                  text: 'पुराव्यावरून आपणास दिनांक '),
+              const TextSpan(text: ' या गुन्ह्याचे तपासात निष्पन्न झालेल्या '),
+              const TextSpan(text: 'पुराव्यावरून आपणास दिनांक '),
               TextSpan(
                 text: arrestDate.isNotEmpty ? arrestDate : '   /   /२०  ',
                 style: bld,
@@ -716,7 +715,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                 style: bld,
               ),
               const TextSpan(
-                  text: ' वा. अटक करण्यात आलेली आहे.अटकेचा आधार व कारणे खालीलप्रमाणे :-'),
+                  text:
+                      ' वा. अटक करण्यात आलेली आहे.अटकेचा आधार व कारणे खालीलप्रमाणे :-'),
             ],
           ),
         ),
@@ -734,17 +734,27 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         const SizedBox(height: 6),
         Text('ब) अटकेचा आधार :-', style: sectionHeader),
         const SizedBox(height: 2),
-        for (final g in [p1Ground1, p1Ground2, p1Ground3, p1Ground4, p1Ground5]) ...[
-          Text(g.isNotEmpty ? g : longLine,
-              style: g.isNotEmpty ? bld : reg),
+        for (final g in [
+          p1Ground1,
+          p1Ground2,
+          p1Ground3,
+          p1Ground4,
+          p1Ground5
+        ]) ...[
+          Text(g.isNotEmpty ? g : longLine, style: g.isNotEmpty ? bld : reg),
           const SizedBox(height: 2),
         ],
         const SizedBox(height: 4),
         Text('क) अटकेचे कारणे :-', style: sectionHeader),
         const SizedBox(height: 2),
-        for (final r in [p1Reason1, p1Reason2, p1Reason3, p1Reason4, p1Reason5]) ...[
-          Text(r.isNotEmpty ? r : longLine,
-              style: r.isNotEmpty ? bld : reg),
+        for (final r in [
+          p1Reason1,
+          p1Reason2,
+          p1Reason3,
+          p1Reason4,
+          p1Reason5
+        ]) ...[
+          Text(r.isNotEmpty ? r : longLine, style: r.isNotEmpty ? bld : reg),
           const SizedBox(height: 2),
         ],
         const SizedBox(height: 6),
@@ -899,7 +909,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           text: TextSpan(
             style: reg,
             children: [
-              const TextSpan(text: '        आपणास याद्वारे कळविण्यात येते की, '),
+              const TextSpan(
+                  text: '        आपणास याद्वारे कळविण्यात येते की, '),
               TextSpan(
                 text: policeStation.isNotEmpty
                     ? policeStation
@@ -954,17 +965,27 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         const SizedBox(height: 6),
         Text('ब) अटकेचा आधार :-', style: sectionHeader),
         const SizedBox(height: 2),
-        for (final g in [p2Ground1, p2Ground2, p2Ground3, p2Ground4, p2Ground5]) ...[
-          Text(g.isNotEmpty ? g : longLine,
-              style: g.isNotEmpty ? bld : reg),
+        for (final g in [
+          p2Ground1,
+          p2Ground2,
+          p2Ground3,
+          p2Ground4,
+          p2Ground5
+        ]) ...[
+          Text(g.isNotEmpty ? g : longLine, style: g.isNotEmpty ? bld : reg),
           const SizedBox(height: 2),
         ],
         const SizedBox(height: 4),
         Text('क) अटकेचे कारणे :-', style: sectionHeader),
         const SizedBox(height: 2),
-        for (final r in [p2Reason1, p2Reason2, p2Reason3, p2Reason4, p2Reason5]) ...[
-          Text(r.isNotEmpty ? r : longLine,
-              style: r.isNotEmpty ? bld : reg),
+        for (final r in [
+          p2Reason1,
+          p2Reason2,
+          p2Reason3,
+          p2Reason4,
+          p2Reason5
+        ]) ...[
+          Text(r.isNotEmpty ? r : longLine, style: r.isNotEmpty ? bld : reg),
           const SizedBox(height: 2),
         ],
         const SizedBox(height: 6),
@@ -1023,4 +1044,3 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
     ),
   );
 }
-

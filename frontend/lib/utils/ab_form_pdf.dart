@@ -813,7 +813,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         child: Text('(See Rule No 3)', style: FormImagePdfHelper.mBld(11)),
       ),
       const SizedBox(height: 6),
-
       Center(
         child: Text(
           'Certificate by registered medical practioner aboving where person examined by him has or has not consumed an intoxicant.',
@@ -822,7 +821,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         ),
       ),
       const SizedBox(height: 6),
-
       Align(
         alignment: Alignment.centerRight,
         child: Text.rich(
@@ -841,7 +839,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         ),
       ),
       const SizedBox(height: 6),
-
       Text('(Name and location of the Dispensary of Hospital)',
           style: FormImagePdfHelper.mBld(10)),
       const SizedBox(height: 1),
@@ -852,7 +849,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
             : FormImagePdfHelper.mReg(10),
       ),
       const SizedBox(height: 6),
-
       Text.rich(
         TextSpan(
           style: FormImagePdfHelper.mReg(10, 1.4),
@@ -869,7 +865,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
             if (personNameCont.isNotEmpty) ...[
               TextSpan(text: ' $personNameCont'),
             ],
-            const TextSpan(text: ' was brought to this hospital /dispensary by '),
+            const TextSpan(
+                text: ' was brought to this hospital /dispensary by '),
             TextSpan(
               text: broughtBy.isNotEmpty
                   ? broughtBy
@@ -915,9 +912,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
             ),
             const TextSpan(text: ' at '),
             TextSpan(
-              text: examinedTime.isNotEmpty
-                  ? examinedTime
-                  : '................',
+              text: examinedTime.isNotEmpty ? examinedTime : '................',
               style: examinedTime.isNotEmpty
                   ? FormImagePdfHelper.valStyle(10)
                   : FormImagePdfHelper.mReg(10),
@@ -928,13 +923,11 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         textAlign: TextAlign.justify,
       ),
       const SizedBox(height: 8),
-
       Text(
         'A clinical examination of the above named person disclosed the following :-',
         style: FormImagePdfHelper.mBld(10.5),
       ),
       const SizedBox(height: 4),
-
       examRow('Age :', age),
       const SizedBox(height: 3),
       examRow('Weight:', weight),
@@ -948,7 +941,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
       const SizedBox(height: 3),
       examRow('Pupiles.', pupils, suffix: 'Dilated/Normal'),
       const SizedBox(height: 3),
-
       Text.rich(
         TextSpan(
           style: FormImagePdfHelper.mBld(10),
@@ -966,7 +958,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         ),
       ),
       const SizedBox(height: 8),
-
       Text(
         '        I find that the above named person has consumed/has not consumed Alcohol/Opium/\nCharas/Ganja/Bhang/any toxicant I also find that he is/is not under the Influence of alcohol',
         style: FormImagePdfHelper.mBld(10),
@@ -976,14 +967,14 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         Text('Remarks: $consumed', style: FormImagePdfHelper.valStyle(10)),
       ],
       const SizedBox(height: 6),
-
       Text.rich(
         TextSpan(
           style: FormImagePdfHelper.mBld(10),
           children: [
             const TextSpan(text: '(N.B. '),
             TextSpan(
-              text: bloodCollected.isNotEmpty ? bloodCollected : '.............',
+              text:
+                  bloodCollected.isNotEmpty ? bloodCollected : '.............',
               style: bloodCollected.isNotEmpty
                   ? FormImagePdfHelper.valStyle(10)
                   : FormImagePdfHelper.mReg(10),
@@ -996,7 +987,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         ),
       ),
       const SizedBox(height: 10),
-
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1080,7 +1070,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         ],
       ),
       const SizedBox(height: 10),
-
       Text('Signature/Thumb impression of the person examined',
           style: FormImagePdfHelper.mBld(10)),
       const SizedBox(height: 1),
@@ -1091,7 +1080,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
             : FormImagePdfHelper.mReg(10),
       ),
       const SizedBox(height: 6),
-
       Text(
         'Marks of Identification of the person examined in case he refuses to given his signature\n/Thumb impression',
         style: FormImagePdfHelper.mBld(10),
@@ -1163,7 +1151,6 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         child: Text('(See rule 4 (2))', style: FormImagePdfHelper.mBld(11)),
       ),
       const SizedBox(height: 6),
-
       Align(
         alignment: Alignment.centerRight,
         child: Text.rich(
@@ -1184,10 +1171,10 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         ),
       ),
       const SizedBox(height: 4),
-
       Text('From,', style: FormImagePdfHelper.mBld(10.5)),
       const SizedBox(height: 1),
-      Text('(Name, Designation and address of the registred medical practioner)',
+      Text(
+          '(Name, Designation and address of the registred medical practioner)',
           style: FormImagePdfHelper.mBld(10)),
       const SizedBox(height: 1),
       Text(
@@ -1204,7 +1191,6 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             : FormImagePdfHelper.mReg(10),
       ),
       const SizedBox(height: 6),
-
       Text('To,', style: FormImagePdfHelper.mBld(10.5)),
       const SizedBox(height: 1),
       Text('(Name and address of the Testing Officer)',
@@ -1224,7 +1210,6 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             : FormImagePdfHelper.mReg(10),
       ),
       const SizedBox(height: 6),
-
       Align(
         alignment: Alignment.centerRight,
         child: Text.rich(
@@ -1243,10 +1228,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         ),
       ),
       const SizedBox(height: 4),
-
       Text('Sir,', style: FormImagePdfHelper.mBld(10.5)),
       const SizedBox(height: 6),
-
       Text.rich(
         TextSpan(
           style: FormImagePdfHelper.mReg(10, 1.4),
@@ -1318,9 +1301,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                 text:
                     ' who was produced before me for medical examination and / or collection of blood from his / her body by '),
             TextSpan(
-              text: producedBy.isNotEmpty
-                  ? producedBy
-                  : '...................',
+              text: producedBy.isNotEmpty ? producedBy : '...................',
               style: producedBy.isNotEmpty
                   ? FormImagePdfHelper.valStyle(10)
                   : FormImagePdfHelper.mReg(10),
@@ -1336,7 +1317,6 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         textAlign: TextAlign.justify,
       ),
       const SizedBox(height: 16),
-
       Align(
         alignment: Alignment.centerRight,
         child: Padding(
@@ -1363,7 +1343,6 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         ),
       ),
       const SizedBox(height: 10),
-
       Text(
         'Fascimile of the seal or Monogram\nused for sealing the phial containing the blood.',
         style: FormImagePdfHelper.mBld(10),
@@ -1381,10 +1360,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         ),
       ),
       const SizedBox(height: 10),
-
       const Divider(color: Colors.black, thickness: 0.8),
       const SizedBox(height: 4),
-
       Text(
         'Here specify the name, designation and address of the messenger with whom the phial containing the blood is forwarded for delivery to the Testing.',
         style: FormImagePdfHelper.mReg(8),
@@ -1402,4 +1379,3 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
     ],
   );
 }
-

@@ -57,9 +57,11 @@ class FormImagePdfHelper {
     await Future.delayed(delay);
 
     try {
-      final rb = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final rb =
+          key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (rb == null) {
-        throw StateError('Failed to locate RenderRepaintBoundary for offscreen page');
+        throw StateError(
+            'Failed to locate RenderRepaintBoundary for offscreen page');
       }
       final img = await rb.toImage(pixelRatio: pixelRatio);
       final bd = await img.toByteData(format: ui.ImageByteFormat.png);
@@ -169,7 +171,8 @@ class FormImagePdfHelper {
   /// Helper to wrap children in a standard A4 page container
   static Widget buildA4Page({
     required List<Widget> children,
-    EdgeInsets padding = const EdgeInsets.symmetric(horizontal: 36, vertical: 26),
+    EdgeInsets padding =
+        const EdgeInsets.symmetric(horizontal: 36, vertical: 26),
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.start,
   }) {
     return Container(

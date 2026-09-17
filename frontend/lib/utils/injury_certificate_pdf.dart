@@ -480,7 +480,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               style: FormImagePdfHelper.mBld(10.5),
             ),
             const TextSpan(text: '  about years\n'),
-            const TextSpan(text: 'bearing following identification mark R/O.  '),
+            const TextSpan(
+                text: 'bearing following identification mark R/O.  '),
             TextSpan(
               text: v('idMarkAndAddress').isEmpty
                   ? '.......................................................'
@@ -494,12 +495,15 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ),
             const TextSpan(text: '  dist.  '),
             TextSpan(
-              text: v('dist').isEmpty ? '...........................' : v('dist'),
+              text:
+                  v('dist').isEmpty ? '...........................' : v('dist'),
               style: FormImagePdfHelper.mBld(10.5),
             ),
             const TextSpan(text: '\nbrought to this hospital by PC/HC.  '),
             TextSpan(
-              text: v('broughtBy').isEmpty ? '..........................' : v('broughtBy'),
+              text: v('broughtBy').isEmpty
+                  ? '..........................'
+                  : v('broughtBy'),
               style: FormImagePdfHelper.mBld(10.5),
             ),
             const TextSpan(text: '  B.No.  '),
@@ -509,7 +513,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ),
             const TextSpan(text: '  Police station.  '),
             TextSpan(
-              text: v('policeStation').isEmpty ? '.......................' : v('policeStation'),
+              text: v('policeStation').isEmpty
+                  ? '.......................'
+                  : v('policeStation'),
               style: FormImagePdfHelper.mBld(10.5),
             ),
             const TextSpan(text: '\nat  '),
@@ -519,12 +525,16 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ),
             const TextSpan(text: '  AM/PM on  '),
             TextSpan(
-              text: v('broughtDate').isEmpty ? '....../....../20......' : v('broughtDate'),
+              text: v('broughtDate').isEmpty
+                  ? '....../....../20......'
+                  : v('broughtDate'),
               style: FormImagePdfHelper.mBld(10.5),
             ),
             const TextSpan(text: '  & examination by me on  '),
             TextSpan(
-              text: v('examDate').isEmpty ? '....../....... /20.....' : v('examDate'),
+              text: v('examDate').isEmpty
+                  ? '....../....... /20.....'
+                  : v('examDate'),
               style: FormImagePdfHelper.mBld(10.5),
             ),
             const TextSpan(text: '  at  '),
@@ -635,4 +645,3 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     ],
   );
 }
-

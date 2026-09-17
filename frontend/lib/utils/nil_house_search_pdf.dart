@@ -361,7 +361,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             child: Container(
               constraints: BoxConstraints(minWidth: minWidth),
               decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(width: 0.8, color: Colors.black87)),
+                border: Border(
+                    bottom: BorderSide(width: 0.8, color: Colors.black87)),
               ),
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
@@ -439,17 +440,22 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ),
             const TextSpan(text: '  पोलीस स्टेशन  '),
             TextSpan(
-              text: v('officerPs').isEmpty ? '__________________' : v('officerPs'),
+              text: v('officerPs').isEmpty
+                  ? '__________________'
+                  : v('officerPs'),
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(text: '  यांनी दिनांक  '),
             TextSpan(
-              text: v('summonDate').isEmpty ? '...../ ....../ २०....' : v('summonDate'),
+              text: v('summonDate').isEmpty
+                  ? '...../ ....../ २०....'
+                  : v('summonDate'),
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(text: '  रोजी वरील नमुद पंचांना मौजा  '),
             TextSpan(
-              text: v('mauza').isEmpty ? '________________________' : v('mauza'),
+              text:
+                  v('mauza').isEmpty ? '________________________' : v('mauza'),
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(text: '  येथे बोलवून कळविले की, पो.स्टे.  '),
@@ -469,7 +475,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ),
             const TextSpan(text: '  कलम  '),
             TextSpan(
-              text: v('actSec').isEmpty ? '........................................' : v('actSec'),
+              text: v('actSec').isEmpty
+                  ? '........................................'
+                  : v('actSec'),
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(
@@ -484,7 +492,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ),
             const TextSpan(text: '  ता.-  '),
             TextSpan(
-              text: v('accusedTah').isEmpty ? '__________________' : v('accusedTah'),
+              text: v('accusedTah').isEmpty
+                  ? '__________________'
+                  : v('accusedTah'),
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(text: '  जि '),
@@ -493,7 +503,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(
-              text: ' याचे घराचे झडती घेणे असल्याने आपण पंच म्हणुन हजर राहावे. असे पंचाना कळवुन नमुद पंच सहमत होवून हजर आले.',
+              text:
+                  ' याचे घराचे झडती घेणे असल्याने आपण पंच म्हणुन हजर राहावे. असे पंचाना कळवुन नमुद पंच सहमत होवून हजर आले.',
             ),
           ],
         ),
@@ -513,7 +524,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   : v('searchPlace'),
               style: FormImagePdfHelper.mBld(11),
             ),
-            const TextSpan(text: '  त्याचे घरी जावुन आवाज दिला असता त्याचे घरी  '),
+            const TextSpan(
+                text: '  त्याचे घरी जावुन आवाज दिला असता त्याचे घरी  '),
             TextSpan(
               text: v('personFound').isEmpty
                   ? '__________________________________________________'
@@ -521,7 +533,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(
-              text: '  हा हजर मिळाला त्याचे घरी येण्याचा उद्देश समजवून सांगुन व त्याचा नाव, गावाची खात्री करून त्याचे  ',
+              text:
+                  '  हा हजर मिळाला त्याचे घरी येण्याचा उद्देश समजवून सांगुन व त्याचा नाव, गावाची खात्री करून त्याचे  ',
             ),
             TextSpan(
               text: v('searchPremises').isEmpty
@@ -530,7 +543,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(
-              text: '  कायदेशीररित्या झडती घेतली असता त्याचे येथे सदर गुन्ह्यातील चोरी गेलेला माल/ मादक द्रव्य/ इतर संशयीत माल  ',
+              text:
+                  '  कायदेशीररित्या झडती घेतली असता त्याचे येथे सदर गुन्ह्यातील चोरी गेलेला माल/ मादक द्रव्य/ इतर संशयीत माल  ',
             ),
             TextSpan(
               text: v('seizureProperty').isEmpty
@@ -555,12 +569,15 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           children: [
             const TextSpan(text: 'निल घरझडती पंचनामा आज दिनांक  '),
             TextSpan(
-              text: v('panchDate').isEmpty ? '......./ ...../ २०....' : v('panchDate'),
+              text: v('panchDate').isEmpty
+                  ? '......./ ...../ २०....'
+                  : v('panchDate'),
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(text: '  चे  '),
             TextSpan(
-              text: v('startTime').isEmpty ? '....../ ........' : v('startTime'),
+              text:
+                  v('startTime').isEmpty ? '....../ ........' : v('startTime'),
               style: FormImagePdfHelper.mBld(11),
             ),
             const TextSpan(text: '  वा सुरू करून  '),
@@ -592,7 +609,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                 Container(
                   width: 220,
                   decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(width: 0.8, color: Colors.black87)),
+                    border: Border(
+                        bottom: BorderSide(width: 0.8, color: Colors.black87)),
                   ),
                   padding: const EdgeInsets.only(bottom: 2),
                   child: Text(
@@ -633,4 +651,3 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     ],
   );
 }
-

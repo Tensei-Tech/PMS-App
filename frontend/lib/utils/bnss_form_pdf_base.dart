@@ -17,9 +17,11 @@ Future<void> previewBnssFormPdf(
 }) async {
   final fileName = '${filePrefix}_${DateTime.now().millisecondsSinceEpoch}.pdf';
   try {
-    final pages = _buildBnssWidgetPages(doc, titleEn: titleEn, titleMr: titleMr, sections: sections);
+    final pages = _buildBnssWidgetPages(doc,
+        titleEn: titleEn, titleMr: titleMr, sections: sections);
     if (pages.isNotEmpty) {
-      final bytes = await FormImagePdfHelper.buildPdfFromWidgets(context, pages);
+      final bytes =
+          await FormImagePdfHelper.buildPdfFromWidgets(context, pages);
       if (!context.mounted) return;
       if (kIsWeb) {
         await Printing.sharePdf(bytes: bytes, filename: fileName);
@@ -82,7 +84,8 @@ List<Widget> _buildBnssWidgetPages(
     final keys = section.fieldKeys.isNotEmpty
         ? section.fieldKeys
         : doc.keys
-            .where((k) => k != 'formSection' && k != 'pageRange' && k != 'noticeType')
+            .where((k) =>
+                k != 'formSection' && k != 'pageRange' && k != 'noticeType')
             .cast<String>()
             .toList();
 
@@ -92,7 +95,10 @@ List<Widget> _buildBnssWidgetPages(
           Center(
             child: Text(
               titleEn,
-              style: GoogleFonts.lora(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: GoogleFonts.lora(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87),
             ),
           ),
           Center(
@@ -106,7 +112,10 @@ List<Widget> _buildBnssWidgetPages(
           if (section.headingEn.isNotEmpty)
             Text(
               section.headingEn,
-              style: GoogleFonts.lora(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: GoogleFonts.lora(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87),
             ),
           if (section.headingMr.isNotEmpty)
             Text(
@@ -122,7 +131,10 @@ List<Widget> _buildBnssWidgetPages(
                 children: [
                   Text(
                     section.labels[key] ?? key,
-                    style: GoogleFonts.lora(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87),
+                    style: GoogleFonts.lora(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87),
                   ),
                   if ((section.labels['${key}_mr'] ?? '').isNotEmpty)
                     Text(
@@ -251,7 +263,8 @@ Future<void> previewMinimalMarathiFormPdf(
         Center(
           child: Text(
             titleMr,
-            style: FormImagePdfHelper.mBld(14).copyWith(decoration: TextDecoration.underline),
+            style: FormImagePdfHelper.mBld(14)
+                .copyWith(decoration: TextDecoration.underline),
             textAlign: TextAlign.center,
           ),
         ),
@@ -259,7 +272,10 @@ Future<void> previewMinimalMarathiFormPdf(
         Center(
           child: Text(
             titleEn,
-            style: GoogleFonts.lora(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: GoogleFonts.lora(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87),
           ),
         ),
         const SizedBox(height: 16),
@@ -278,7 +294,8 @@ Future<void> previewMinimalMarathiFormPdf(
       ],
     );
 
-    final bytes = await FormImagePdfHelper.buildPdfFromWidgets(context, [pageWidget]);
+    final bytes =
+        await FormImagePdfHelper.buildPdfFromWidgets(context, [pageWidget]);
     if (!context.mounted) return;
     if (kIsWeb) {
       await Printing.sharePdf(bytes: bytes, filename: fileName);

@@ -810,7 +810,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('तपासी अधिकारी नांव व सही', style: FormImagePdfHelper.mBld(11)),
+            Text('तपासी अधिकारी नांव व सही',
+                style: FormImagePdfHelper.mBld(11)),
             if (p2IoSig.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(p2IoSig, style: FormImagePdfHelper.valStyle(11)),
@@ -850,4 +851,3 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
     ],
   );
 }
-

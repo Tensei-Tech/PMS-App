@@ -254,4 +254,3 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     ],
   );
 }
-
