@@ -4,23 +4,39 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'form_image_pdf_helper.dart';
+
 Future<void> previewOrderSection4748Pdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateOrderSection4748Pdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Order_Section_47_48_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  String v(String key) => doc[key]?.toString().trim() ?? '';
+  final section = v('formSection').toLowerCase();
+  final isP1Explicit = section.contains('47') ||
+      section.contains('main') ||
+      section.contains('1');
+  final isP2Explicit = section.contains('48') || section.contains('2');
+  final showP1 = section.isEmpty ||
+      section.contains('complete') ||
+      isP1Explicit ||
+      !isP2Explicit;
+  final showP2 = section.isEmpty ||
+      section.contains('complete') ||
+      isP2Explicit ||
+      !isP1Explicit;
+
+  final pages = <Widget>[];
+  if (showP1) pages.add(_buildPg1Widget(doc));
+  if (showP2) pages.add(_buildPg2Widget(doc));
+
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: pages,
+    fallbackPdfGenerator: () => generateOrderSection4748Pdf(doc),
+  );
 }
 
 Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
@@ -584,3 +600,427 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
 
   return pdf.save();
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+Widget _buildPg1Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final policeStation = v('policeStation', 'म्हाळुंगे एम.आय.डी.सी.');
+  final crNo = v('crNo');
+  final crYear = v('crYear', '२५');
+  final bnsSection = v('bnsSection', v('section'));
+  final arrestDate = v('arrestDate');
+  final arrestTime = v('arrestTime');
+  final ioName = v('ioName', v('shoName'));
+
+  final p1To1 = v('p1To1', v('accusedName'));
+  final p1To2 = v('p1To2');
+  final p1To3 = v('p1To3');
+  final p1Fact1 = v('p1Fact1', v('orderBody'));
+  final p1Fact2 = v('p1Fact2');
+  final p1Fact3 = v('p1Fact3');
+  final p1Ground1 = v('p1Ground1');
+  final p1Ground2 = v('p1Ground2');
+  final p1Ground3 = v('p1Ground3');
+  final p1Ground4 = v('p1Ground4');
+  final p1Ground5 = v('p1Ground5');
+  final p1Reason1 = v('p1Reason1');
+  final p1Reason2 = v('p1Reason2');
+  final p1Reason3 = v('p1Reason3');
+  final p1Reason4 = v('p1Reason4');
+  final p1Reason5 = v('p1Reason5');
+  final p1RemandDate = v('p1RemandDate', arrestDate);
+  final p1AccusedSig = v('p1AccusedSig');
+  final p1IoSig = v('p1IoSig', ioName);
+
+  const longLine =
+      '-----------------------------------------------------------------------------------------------------------------';
+  const mediumLine =
+      '---------------------------------------------------------------------------';
+
+  final reg = FormImagePdfHelper.mReg(9.5, 1.4);
+  final bld = FormImagePdfHelper.mBld(9.5, 1.4);
+  final headerStyle = FormImagePdfHelper.mBld(13, 1.3);
+  final subHeaderStyle = FormImagePdfHelper.mBld(11, 1.3);
+  final sectionHeader = FormImagePdfHelper.mBld(10, 1.3);
+
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    height: FormImagePdfHelper.a4Height,
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(child: Text('नोटीस', style: headerStyle)),
+        const SizedBox(height: 2),
+        Center(child: Text('बी.एन.एस.एस.कलम ४७(१)', style: subHeaderStyle)),
+        const SizedBox(height: 10),
+        Text('प्रति,', style: bld),
+        const SizedBox(height: 1),
+        Text(p1To1.isNotEmpty ? p1To1 : mediumLine,
+            style: p1To1.isNotEmpty ? bld : reg),
+        const SizedBox(height: 1),
+        Text(p1To2.isNotEmpty ? p1To2 : mediumLine,
+            style: p1To2.isNotEmpty ? bld : reg),
+        const SizedBox(height: 1),
+        Text(p1To3.isNotEmpty ? p1To3 : mediumLine,
+            style: p1To3.isNotEmpty ? bld : reg),
+        const SizedBox(height: 8),
+        Text(
+          'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...',
+          style: bld,
+        ),
+        const SizedBox(height: 8),
+        RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(text: '        आपणास याद्वारे कळविण्यात येते की, '),
+              TextSpan(
+                text: policeStation.isNotEmpty
+                    ? policeStation
+                    : 'म्हाळुंगे एम.आय.डी.सी.',
+                style: bld,
+              ),
+              const TextSpan(text: ' पोलीस स्टेशन, गुन्हा रजि.नंबर '),
+              TextSpan(
+                text: crNo.isNotEmpty ? crNo : '.....',
+                style: bld,
+              ),
+              TextSpan(text: '/$crYear भा.न्या.सं.कलम '),
+              TextSpan(
+                text: bnsSection.isNotEmpty
+                    ? bnsSection
+                    : '....................................................................................',
+                style: bld,
+              ),
+              const TextSpan(
+                  text: ' या गुन्ह्याचे तपासात निष्पन्न झालेल्या '),
+              const TextSpan(
+                  text: 'पुराव्यावरून आपणास दिनांक '),
+              TextSpan(
+                text: arrestDate.isNotEmpty ? arrestDate : '   /   /२०  ',
+                style: bld,
+              ),
+              const TextSpan(text: ' रोजी '),
+              TextSpan(
+                text: arrestTime.isNotEmpty ? arrestTime : '.......',
+                style: bld,
+              ),
+              const TextSpan(
+                  text: ' वा. अटक करण्यात आलेली आहे.अटकेचा आधार व कारणे खालीलप्रमाणे :-'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: sectionHeader),
+        const SizedBox(height: 2),
+        Text(p1Fact1.isNotEmpty ? p1Fact1 : longLine,
+            style: p1Fact1.isNotEmpty ? bld : reg),
+        const SizedBox(height: 2),
+        Text(p1Fact2.isNotEmpty ? p1Fact2 : longLine,
+            style: p1Fact2.isNotEmpty ? bld : reg),
+        const SizedBox(height: 2),
+        Text(p1Fact3.isNotEmpty ? p1Fact3 : longLine,
+            style: p1Fact3.isNotEmpty ? bld : reg),
+        const SizedBox(height: 6),
+        Text('ब) अटकेचा आधार :-', style: sectionHeader),
+        const SizedBox(height: 2),
+        for (final g in [p1Ground1, p1Ground2, p1Ground3, p1Ground4, p1Ground5]) ...[
+          Text(g.isNotEmpty ? g : longLine,
+              style: g.isNotEmpty ? bld : reg),
+          const SizedBox(height: 2),
+        ],
+        const SizedBox(height: 4),
+        Text('क) अटकेचे कारणे :-', style: sectionHeader),
+        const SizedBox(height: 2),
+        for (final r in [p1Reason1, p1Reason2, p1Reason3, p1Reason4, p1Reason5]) ...[
+          Text(r.isNotEmpty ? r : longLine,
+              style: r.isNotEmpty ? bld : reg),
+          const SizedBox(height: 2),
+        ],
+        const SizedBox(height: 6),
+        RichText(
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(text: 'ड) अटक व्यक्तीला दिनांक '),
+              TextSpan(
+                text: p1RemandDate.isNotEmpty ? p1RemandDate : '   /   /२०  ',
+                style: bld,
+              ),
+              const TextSpan(
+                text:
+                    ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+              ),
+            ],
+          ),
+        ),
+        const Spacer(),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 24),
+            child: Text('कळावे,', style: bld),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (p1AccusedSig.isNotEmpty)
+                  Text(p1AccusedSig, style: bld)
+                else
+                  const SizedBox(height: 12),
+                Text('आरोपीची दिनांकीत सही', style: bld),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (p1IoSig.isNotEmpty)
+                  Text(p1IoSig, style: bld)
+                else
+                  const SizedBox(height: 12),
+                Text('तपासी अधिकारी/अंमलदार', style: bld),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildPg2Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final policeStation = v('policeStation', 'म्हाळुंगे एम.आय.डी.सी.');
+  final crNo = v('crNo');
+  final crYear = v('crYear', '२५');
+  final bnsSection = v('bnsSection', v('section'));
+  final arrestDate = v('arrestDate');
+  final arrestTime = v('arrestTime');
+  final ioName = v('ioName', v('shoName'));
+
+  final p1To1 = v('p1To1', v('accusedName'));
+  final p1Fact1 = v('p1Fact1', v('orderBody'));
+  final p1Fact2 = v('p1Fact2');
+  final p1Fact3 = v('p1Fact3');
+  final p1Ground1 = v('p1Ground1');
+  final p1Ground2 = v('p1Ground2');
+  final p1Ground3 = v('p1Ground3');
+  final p1Ground4 = v('p1Ground4');
+  final p1Ground5 = v('p1Ground5');
+  final p1Reason1 = v('p1Reason1');
+  final p1Reason2 = v('p1Reason2');
+  final p1Reason3 = v('p1Reason3');
+  final p1Reason4 = v('p1Reason4');
+  final p1Reason5 = v('p1Reason5');
+  final p1RemandDate = v('p1RemandDate', arrestDate);
+
+  final p2To1 = v('p2To1');
+  final p2To2 = v('p2To2');
+  final p2To3 = v('p2To3');
+  final p2AccusedName = v('p2AccusedName', p1To1);
+  final p2Fact1 = v('p2Fact1', p1Fact1);
+  final p2Fact2 = v('p2Fact2', p1Fact2);
+  final p2Fact3 = v('p2Fact3', p1Fact3);
+  final p2Ground1 = v('p2Ground1', p1Ground1);
+  final p2Ground2 = v('p2Ground2', p1Ground2);
+  final p2Ground3 = v('p2Ground3', p1Ground3);
+  final p2Ground4 = v('p2Ground4', p1Ground4);
+  final p2Ground5 = v('p2Ground5', p1Ground5);
+  final p2Reason1 = v('p2Reason1', p1Reason1);
+  final p2Reason2 = v('p2Reason2', p1Reason2);
+  final p2Reason3 = v('p2Reason3', p1Reason3);
+  final p2Reason4 = v('p2Reason4', p1Reason4);
+  final p2Reason5 = v('p2Reason5', p1Reason5);
+  final p2RemandDate = v('p2RemandDate', p1RemandDate);
+  final p2RelativeSig = v('p2RelativeSig');
+  final p2IoSig = v('p2IoSig', ioName);
+
+  const longLine =
+      '-----------------------------------------------------------------------------------------------------------------';
+  const mediumLine =
+      '---------------------------------------------------------------------------';
+
+  final reg = FormImagePdfHelper.mReg(9.5, 1.4);
+  final bld = FormImagePdfHelper.mBld(9.5, 1.4);
+  final headerStyle = FormImagePdfHelper.mBld(13, 1.3);
+  final subHeaderStyle = FormImagePdfHelper.mBld(11, 1.3);
+  final sectionHeader = FormImagePdfHelper.mBld(10, 1.3);
+
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    height: FormImagePdfHelper.a4Height,
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(child: Text('नोटीस', style: headerStyle)),
+        const SizedBox(height: 2),
+        Center(child: Text('बी.एन.एस.एस.कलम ४८', style: subHeaderStyle)),
+        const SizedBox(height: 10),
+        Text('प्रति,', style: bld),
+        const SizedBox(height: 1),
+        Text(p2To1.isNotEmpty ? p2To1 : mediumLine,
+            style: p2To1.isNotEmpty ? bld : reg),
+        const SizedBox(height: 1),
+        Text(p2To2.isNotEmpty ? p2To2 : mediumLine,
+            style: p2To2.isNotEmpty ? bld : reg),
+        const SizedBox(height: 1),
+        Text(p2To3.isNotEmpty ? p2To3 : mediumLine,
+            style: p2To3.isNotEmpty ? bld : reg),
+        const SizedBox(height: 8),
+        Text(
+          'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...',
+          style: bld,
+        ),
+        const SizedBox(height: 8),
+        RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(text: '        आपणास याद्वारे कळविण्यात येते की, '),
+              TextSpan(
+                text: policeStation.isNotEmpty
+                    ? policeStation
+                    : 'म्हाळुंगे एम.आय.डी.सी.',
+                style: bld,
+              ),
+              const TextSpan(text: ' पोलीस स्टेशन,गुन्हा रजि.नंबर '),
+              TextSpan(
+                text: crNo.isNotEmpty ? crNo : '.....',
+                style: bld,
+              ),
+              TextSpan(text: '/$crYear भा.न्या.सं.कलम '),
+              TextSpan(
+                text: bnsSection.isNotEmpty
+                    ? bnsSection
+                    : '....................................................................................',
+                style: bld,
+              ),
+              const TextSpan(
+                  text: ' या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे '),
+              TextSpan(
+                text: p2AccusedName.isNotEmpty
+                    ? p2AccusedName
+                    : '........................................................................................',
+                style: bld,
+              ),
+              const TextSpan(text: ' यांना दिनांक '),
+              TextSpan(
+                text: arrestDate.isNotEmpty ? arrestDate : '   /   /२०  ',
+                style: bld,
+              ),
+              const TextSpan(text: ' रोजी '),
+              TextSpan(
+                text: arrestTime.isNotEmpty ? arrestTime : '.......',
+                style: bld,
+              ),
+              const TextSpan(text: ' वा. अटक करण्यात आली आहे.'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: sectionHeader),
+        const SizedBox(height: 2),
+        Text(p2Fact1.isNotEmpty ? p2Fact1 : longLine,
+            style: p2Fact1.isNotEmpty ? bld : reg),
+        const SizedBox(height: 2),
+        Text(p2Fact2.isNotEmpty ? p2Fact2 : longLine,
+            style: p2Fact2.isNotEmpty ? bld : reg),
+        const SizedBox(height: 2),
+        Text(p2Fact3.isNotEmpty ? p2Fact3 : longLine,
+            style: p2Fact3.isNotEmpty ? bld : reg),
+        const SizedBox(height: 6),
+        Text('ब) अटकेचा आधार :-', style: sectionHeader),
+        const SizedBox(height: 2),
+        for (final g in [p2Ground1, p2Ground2, p2Ground3, p2Ground4, p2Ground5]) ...[
+          Text(g.isNotEmpty ? g : longLine,
+              style: g.isNotEmpty ? bld : reg),
+          const SizedBox(height: 2),
+        ],
+        const SizedBox(height: 4),
+        Text('क) अटकेचे कारणे :-', style: sectionHeader),
+        const SizedBox(height: 2),
+        for (final r in [p2Reason1, p2Reason2, p2Reason3, p2Reason4, p2Reason5]) ...[
+          Text(r.isNotEmpty ? r : longLine,
+              style: r.isNotEmpty ? bld : reg),
+          const SizedBox(height: 2),
+        ],
+        const SizedBox(height: 6),
+        RichText(
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(text: 'इ) अटक व्यक्तीला दिनांक '),
+              TextSpan(
+                text: p2RemandDate.isNotEmpty ? p2RemandDate : '   /   /२०  ',
+                style: bld,
+              ),
+              const TextSpan(
+                text:
+                    ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+              ),
+            ],
+          ),
+        ),
+        const Spacer(),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 24),
+            child: Text('कळावे,', style: bld),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (p2RelativeSig.isNotEmpty)
+                  Text(p2RelativeSig, style: bld)
+                else
+                  const SizedBox(height: 12),
+                Text('नातेवाईकाची दिनांकीत सही', style: bld),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (p2IoSig.isNotEmpty)
+                  Text(p2IoSig, style: bld)
+                else
+                  const SizedBox(height: 12),
+                Text('तपासी अधिकारी/अंमलदार', style: bld),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+

@@ -4,23 +4,20 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'form_image_pdf_helper.dart';
+
 Future<void> previewMuddemalPavtiPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateMuddemalPavtiPdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Muddemal_Pavti_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPgWidget(doc)],
+    fallbackPdfGenerator: () => generateMuddemalPavtiPdf(doc),
+  );
 }
 
 Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
@@ -347,3 +344,285 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
 
   return pdf.save();
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+Widget _buildPgWidget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final ps = v('policeStation');
+  final dist = v('district', 'यवतमाळ');
+  final crimeNo = v('crimeNo', v('crNoYear', v('crNo', '........../२०......')));
+  final actSec = v('actSec',
+      v('section', '________________________________________________'));
+  final ioName = v('ioName', v('investigatingOfficer'));
+  final ioPs = v('ioPs', v('ioPoliceStation', ps));
+  final ioDist = v('ioDist', v('ioDistrict', 'यवतमाळ'));
+  final accusedName = v('accusedName',
+      '____________________________________________________________________');
+  final seizureDate = v(
+      'seizureDate', v('seizedDate', v('date', '......./ ........./२०.....')));
+  final propertyNo =
+      v('propertyNo', v('malNumber', v('receiptNo', '........../२०......')));
+
+  final rawItems = (doc['items'] is List)
+      ? (doc['items'] as List)
+      : ((doc['muddemalItems'] is List) ? (doc['muddemalItems'] as List) : []);
+
+  final items = <Map<String, dynamic>>[];
+  if (rawItems.isNotEmpty) {
+    for (final item in rawItems) {
+      if (item is Map) {
+        items.add({
+          'description': item['description']?.toString() ?? '',
+          'estimatedValue': item['estimatedValue']?.toString() ?? '',
+          'propertyNo':
+              (item['propertyNo'] ?? item['malNumber'])?.toString() ?? '',
+          'seizedFrom': item['seizedFrom']?.toString() ?? '',
+        });
+      }
+    }
+  } else if ((doc['propertyDescription']?.toString() ?? '').isNotEmpty ||
+      (doc['propertyValue']?.toString() ?? '').isNotEmpty) {
+    items.add({
+      'description': doc['propertyDescription']?.toString() ?? '',
+      'estimatedValue': doc['propertyValue']?.toString() ?? '',
+      'propertyNo': propertyNo,
+      'seizedFrom': doc['seizedFrom']?.toString() ?? '',
+    });
+  }
+
+  final headMohararSig =
+      v('headMohararSig', v('headMoharirSign', v('receiverName')));
+  final investigatingOfficerSig =
+      v('investigatingOfficerSig', v('ioSign', v('ioName')));
+
+  final reg = FormImagePdfHelper.mReg(10.5, 1.45);
+  final bld = FormImagePdfHelper.mBld(10.5, 1.45);
+  final headerTitle = FormImagePdfHelper.mBld(15, 1.3);
+
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    height: FormImagePdfHelper.a4Height,
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: Text(
+            '-:: मुद्देमाल पावती ::-',
+            style: headerTitle.copyWith(decoration: TextDecoration.underline),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Text('१) पोलीस स्टेशन   :-  ', style: bld),
+            Expanded(
+              child: Text(
+                ps.isNotEmpty ? ps : '______________________',
+                style: reg,
+              ),
+            ),
+            Text('जिल्हा $dist', style: bld),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Text('२) अप क्रमांक :- ', style: bld),
+            Text(crimeNo, style: reg),
+            const SizedBox(width: 16),
+            Text('कलम ', style: bld),
+            Expanded(
+              child: Text(actSec, style: reg),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Text('३) अन्वेषन अधिकारी:- ', style: bld),
+            Expanded(
+              child: Text(
+                ioName.isNotEmpty ? ioName : '______________________',
+                style: reg,
+              ),
+            ),
+            Text('पोलीस स्टेशन ', style: bld),
+            Text(
+              ioPs.isNotEmpty ? ioPs : '________',
+              style: reg,
+            ),
+            const SizedBox(width: 8),
+            Text('जिल्हा $ioDist', style: bld),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Text('४) आरोपी नांव :- ', style: bld),
+            Expanded(
+              child: Text(accusedName, style: reg),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Text('५) जप्त माल दिनांक :- ', style: bld),
+            Text(seizureDate, style: reg),
+            const SizedBox(width: 32),
+            Text('माल नंबर :- ', style: bld),
+            Text(propertyNo, style: reg),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Table(
+          border: TableBorder.all(color: Colors.black87, width: 1),
+          columnWidths: const {
+            0: FlexColumnWidth(4),
+            1: FlexColumnWidth(2),
+            2: FlexColumnWidth(2),
+            3: FlexColumnWidth(3),
+          },
+          children: [
+            TableRow(
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.black87, width: 1)),
+              ),
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  alignment: Alignment.center,
+                  child: Text('जप्त मालाचे विवरण', style: bld),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  alignment: Alignment.center,
+                  child: Text('मुल्य अंदाजे', style: bld),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  alignment: Alignment.center,
+                  child: Text('माल नंबर', style: bld),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                  alignment: Alignment.center,
+                  child: Text('कोणाकडुन जप्त केले', style: bld),
+                ),
+              ],
+            ),
+            if (items.isEmpty)
+              TableRow(
+                children: [
+                  Container(
+                    height: 240,
+                    padding: const EdgeInsets.all(6),
+                    child: Text('', style: reg),
+                  ),
+                  Container(
+                    height: 240,
+                    padding: const EdgeInsets.all(6),
+                    child: Text('', style: reg),
+                  ),
+                  Container(
+                    height: 240,
+                    padding: const EdgeInsets.all(6),
+                    alignment: Alignment.topCenter,
+                    child: Text('......./२०....', style: reg),
+                  ),
+                  Container(
+                    height: 240,
+                    padding: const EdgeInsets.all(6),
+                    child: Text('', style: reg),
+                  ),
+                ],
+              )
+            else
+              for (final item in items)
+                TableRow(
+                  children: [
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 180),
+                      padding: const EdgeInsets.all(6),
+                      child: Text(
+                        item['description']?.toString() ?? '',
+                        style: reg,
+                      ),
+                    ),
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 180),
+                      padding: const EdgeInsets.all(6),
+                      child: Text(
+                        item['estimatedValue']?.toString() ?? '',
+                        style: reg,
+                      ),
+                    ),
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 180),
+                      padding: const EdgeInsets.all(6),
+                      alignment: Alignment.topCenter,
+                      child: Text(
+                        (item['propertyNo']?.toString().isNotEmpty ?? false)
+                            ? item['propertyNo'].toString()
+                            : '......./२०....',
+                        style: reg,
+                      ),
+                    ),
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 180),
+                      padding: const EdgeInsets.all(6),
+                      child: Text(
+                        item['seizedFrom']?.toString() ?? '',
+                        style: reg,
+                      ),
+                    ),
+                  ],
+                ),
+          ],
+        ),
+        const Spacer(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              children: [
+                Text('हेडमोहरर सही', style: bld),
+                if (headMohararSig.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(headMohararSig, style: reg),
+                ],
+              ],
+            ),
+            Column(
+              children: [
+                Text('तपास अधिकारी', style: bld),
+                if (investigatingOfficerSig.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(investigatingOfficerSig, style: reg),
+                ],
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Text(
+            'M.R.W',
+            style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+

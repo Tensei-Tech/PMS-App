@@ -4,23 +4,20 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'form_image_pdf_helper.dart';
+
 Future<void> previewMedicalExamS51Pdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateMedicalExamS51Pdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Medical_Exam_Request_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPgWidget(doc)],
+    fallbackPdfGenerator: () => generateMedicalExamS51Pdf(doc),
+  );
 }
 
 Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
@@ -248,3 +245,189 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
 
   return pdf.save();
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+Widget _buildPgWidget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final outpost = v('outpost', '____________');
+  final ps = v('policeStation', '____________');
+  final dateStr = v('date', '......./ ......../२०...');
+
+  final toOfficer = v('toOfficer', '________________________');
+  final toHospital = v('toHospital', '________________________________');
+  final toTahDist = v('toTahDist', '________________________');
+
+  final fromLocation = v(
+    'fromLocation',
+    '________________________________________________________',
+  );
+
+  final subject = v(
+    'subject',
+    '________________________________________________________',
+  );
+
+  final victimName = v('victimName', '____________________________');
+  final victimAge = v('victimAge', '..........');
+  final victimResidence = v('victimResidence', '__________________');
+  final victimTah = v('victimTah', '____________');
+  final victimDist = v('victimDist', '____________');
+  final assaultDetails = v('assaultDetails', '___________________________');
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 52, vertical: 48),
+    children: [
+      // Header
+      Center(
+        child: Column(
+          children: [
+            Text('वैद्यकीय तपासणी', style: FormImagePdfHelper.mBld(16)),
+            const SizedBox(height: 3),
+            Text(
+              '(भारतीय नागरीक सुरक्षा संहिता २०२३ कलम ५१)',
+              style: FormImagePdfHelper.mBld(12),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 24),
+
+      // Top Right
+      Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 240,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('पोलीस दुरक्षेत्र $outpost',
+                  style: FormImagePdfHelper.mReg(11.5)),
+              const SizedBox(height: 3),
+              Text('पोलीस स्टेशन $ps', style: FormImagePdfHelper.mReg(11.5)),
+              const SizedBox(height: 3),
+              Text('दिनांक : $dateStr', style: FormImagePdfHelper.mReg(11.5)),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 20),
+
+      // Recipient
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 60,
+            child: Text('प्रति,', style: FormImagePdfHelper.mBld(12)),
+          ),
+        ],
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 60),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(toOfficer, style: FormImagePdfHelper.mBld(12)),
+            const SizedBox(height: 2),
+            Text(toHospital, style: FormImagePdfHelper.mBld(12)),
+            const SizedBox(height: 2),
+            Text(toTahDist, style: FormImagePdfHelper.mBld(12)),
+          ],
+        ),
+      ),
+      const SizedBox(height: 20),
+
+      // Sender
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 65,
+            child: Text('पासुन :-', style: FormImagePdfHelper.mReg(11.5)),
+          ),
+          Expanded(
+            child: Text(fromLocation, style: FormImagePdfHelper.mReg(11.5)),
+          ),
+        ],
+      ),
+      const SizedBox(height: 16),
+
+      // Subject
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 65,
+            child: Text('विषय :-', style: FormImagePdfHelper.mBld(12)),
+          ),
+          Expanded(
+            child: Text(subject, style: FormImagePdfHelper.mBld(12)),
+          ),
+        ],
+      ),
+      const SizedBox(height: 20),
+
+      // Decorative ००००
+      Center(
+        child: Text(
+          '००००',
+          style: FormImagePdfHelper.mBld(13).copyWith(letterSpacing: 4),
+        ),
+      ),
+      const SizedBox(height: 20),
+
+      // Body Paragraph
+      Text.rich(
+        TextSpan(
+          style: FormImagePdfHelper.mReg(12, 1.6),
+          children: [
+            const TextSpan(
+              text: '        उपरोक्त विषयान्वये सादर आहे की, जखमी नामे ',
+            ),
+            TextSpan(
+              text: '$victimName, ',
+              style: FormImagePdfHelper.mBld(12),
+            ),
+            const TextSpan(text: 'वय '),
+            TextSpan(text: '$victimAge ', style: FormImagePdfHelper.mBld(12)),
+            const TextSpan(text: 'वर्ष रा '),
+            TextSpan(
+                text: '$victimResidence ', style: FormImagePdfHelper.mBld(12)),
+            const TextSpan(text: 'ता '),
+            TextSpan(text: '$victimTah ', style: FormImagePdfHelper.mBld(12)),
+            const TextSpan(text: 'जिल्हा '),
+            TextSpan(text: '$victimDist ', style: FormImagePdfHelper.mBld(12)),
+            const TextSpan(
+              text: 'यांना गैरअर्जदार/ आरोपी यांनी भांडणात मारहाण केल्याचे ',
+            ),
+            TextSpan(
+                text: '$assaultDetails ', style: FormImagePdfHelper.mBld(12)),
+            const TextSpan(
+              text:
+                  'मारलागल्याचे सांगत आहे. तरी मार कशाचा व किती वेळ पुर्विचा आहे, सदर माराची तपासणी होउन आपला अभिप्राय मिळणेस विनंती आहे.',
+            ),
+          ],
+        ),
+        textAlign: TextAlign.justify,
+      ),
+      const Spacer(),
+
+      // Footer
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: FormImagePdfHelper.mReg(8).copyWith(color: Colors.black54),
+        ),
+      ),
+    ],
+  );
+}
+
