@@ -42,8 +42,12 @@ Future<void> previewInquestPanchanamaPdf(
   if (active == 'Civil Surgeon PM Report' || active == '14 Kalmi Form') {
     await FormImagePdfHelper.previewImageBasedPdf(
       context,
-      fileName: 'Medical_Officer_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
-      pages: [_buildCivilSurgeonPg1Widget(doc), _buildCivilSurgeonPg2Widget(doc)],
+      fileName:
+          'Medical_Officer_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      pages: [
+        _buildCivilSurgeonPg1Widget(doc),
+        _buildCivilSurgeonPg2Widget(doc)
+      ],
       fallbackPdfGenerator: () => generateInquestPanchanamaPdf(doc),
     );
     return;
@@ -51,7 +55,8 @@ Future<void> previewInquestPanchanamaPdf(
   if (active == 'Dead Body Handover') {
     await FormImagePdfHelper.previewImageBasedPdf(
       context,
-      fileName: 'Dead_Body_Handover_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      fileName:
+          'Dead_Body_Handover_${DateTime.now().millisecondsSinceEpoch}.pdf',
       pages: [_buildDeadBodyHandoverWidget(doc)],
       fallbackPdfGenerator: () => generateInquestPanchanamaPdf(doc),
     );
@@ -69,8 +74,12 @@ Future<void> previewInquestPanchanamaPdf(
   if (active == 'Marananveshan Panchanama') {
     await FormImagePdfHelper.previewImageBasedPdf(
       context,
-      fileName: 'Marananveshan_Panchanama_${DateTime.now().millisecondsSinceEpoch}.pdf',
-      pages: [_buildMarananveshanPg1Widget(doc), _buildMarananveshanPg2Widget(doc)],
+      fileName:
+          'Marananveshan_Panchanama_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      pages: [
+        _buildMarananveshanPg1Widget(doc),
+        _buildMarananveshanPg2Widget(doc)
+      ],
       fallbackPdfGenerator: () => generateInquestPanchanamaPdf(doc),
     );
     return;
@@ -78,7 +87,8 @@ Future<void> previewInquestPanchanamaPdf(
   if (active == 'Exhumation Panchanama') {
     await FormImagePdfHelper.previewImageBasedPdf(
       context,
-      fileName: 'Exhumation_Panchanama_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      fileName:
+          'Exhumation_Panchanama_${DateTime.now().millisecondsSinceEpoch}.pdf',
       pages: [
         _buildInquestMainPg1Widget(doc, isExhumation: true),
         _buildInquestMainPg2Widget(doc),
@@ -2596,7 +2606,8 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                     _uField(v('reqSubjectPs'), width: 90),
                     Text('  ता-', style: mrB),
                     _uField(v('reqSubjectTa'), width: 80),
-                    Text('  जिल्हा यवतमाळ हिचे/ ह्यांचे प्रेताचे पि.एम', style: mrB),
+                    Text('  जिल्हा यवतमाळ हिचे/ ह्यांचे प्रेताचे पि.एम',
+                        style: mrB),
                   ],
                 ),
                 const SizedBox(height: 3),
@@ -2628,7 +2639,9 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
             _uField(v('reqMargDiaryNo'), width: 60),
             Text('/२०', style: mrR),
             _uField(v('reqMargYear'), width: 40),
-            Text(' कलम १९४ बी.एन.एस.एस २०२३ चा मर्ग दाखल झाला असुन यातील मृतक नामे ', style: mrR),
+            Text(
+                ' कलम १९४ बी.एन.एस.एस २०२३ चा मर्ग दाखल झाला असुन यातील मृतक नामे ',
+                style: mrR),
             _uField(v('reqMargName'), width: 200),
             Text(' पो.स्टे.', style: mrR),
             _uField(v('reqSubjectPs'), width: 85),
@@ -2640,7 +2653,9 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
             _uField(v('reqAdmitDate'), width: 70),
             Text(' रोजी ', style: mrR),
             _uField(v('reqAdmitTime'), width: 55),
-            Text(' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ ', style: mrR),
+            Text(
+                ' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ ',
+                style: mrR),
             _uField(v('reqReasonDetails'), width: 170),
             Text(' दिनांक ', style: mrR),
             _uField(v('reqDeathDate'), width: 70),
@@ -2750,7 +2765,8 @@ Widget _buildRelativeSummonsWidget(Map<String, dynamic> doc) {
           children: [
             Text('नातेवाईकांना समन्स', style: FormImagePdfHelper.mBld(13)),
             const SizedBox(height: 2),
-            Text('(कलम १७९ भारतीय नागरिक सुरक्षा संहिता २०२३ अन्वये)', style: mrB),
+            Text('(कलम १७९ भारतीय नागरिक सुरक्षा संहिता २०२३ अन्वये)',
+                style: mrB),
           ],
         ),
       ),
@@ -2839,13 +2855,25 @@ Widget _buildRelativeSummonsWidget(Map<String, dynamic> doc) {
               children: [
                 Text('सही', style: mrB),
                 const SizedBox(height: 6),
-                Row(children: [Text('१) ', style: mrB), Expanded(child: _uField(v('relSig1')))]),
+                Row(children: [
+                  Text('१) ', style: mrB),
+                  Expanded(child: _uField(v('relSig1')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('२) ', style: mrB), Expanded(child: _uField(v('relSig2')))]),
+                Row(children: [
+                  Text('२) ', style: mrB),
+                  Expanded(child: _uField(v('relSig2')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('३) ', style: mrB), Expanded(child: _uField(v('relSig3')))]),
+                Row(children: [
+                  Text('३) ', style: mrB),
+                  Expanded(child: _uField(v('relSig3')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('४) ', style: mrB), Expanded(child: _uField(v('relSig4')))]),
+                Row(children: [
+                  Text('४) ', style: mrB),
+                  Expanded(child: _uField(v('relSig4')))
+                ]),
               ],
             ),
           ),
@@ -2856,7 +2884,10 @@ Widget _buildRelativeSummonsWidget(Map<String, dynamic> doc) {
               children: [
                 Text('तपासी अधिकारी नांव / सही शिक्या', style: mrB),
                 const SizedBox(height: 4),
-                Row(children: [Text('Name: ', style: mrB), Expanded(child: _uField(v('relIoName')))]),
+                Row(children: [
+                  Text('Name: ', style: mrB),
+                  Expanded(child: _uField(v('relIoName')))
+                ]),
                 _subLabel('नांव'),
                 const SizedBox(height: 3),
                 Row(
@@ -2870,7 +2901,10 @@ Widget _buildRelativeSummonsWidget(Map<String, dynamic> doc) {
                 ),
                 _subLabel('पद                   बक्कल नंबर'),
                 const SizedBox(height: 3),
-                Row(children: [Text('Posting and Address:', style: mrB), Expanded(child: _uField(v('relIoPosting')))]),
+                Row(children: [
+                  Text('Posting and Address:', style: mrB),
+                  Expanded(child: _uField(v('relIoPosting')))
+                ]),
                 _subLabel('नेमणूक व पत्ता'),
               ],
             ),
@@ -2878,7 +2912,9 @@ Widget _buildRelativeSummonsWidget(Map<String, dynamic> doc) {
         ],
       ),
       const Spacer(),
-      Align(alignment: Alignment.centerRight, child: Text('M.R.W', style: FormImagePdfHelper.mReg(7.5))),
+      Align(
+          alignment: Alignment.centerRight,
+          child: Text('M.R.W', style: FormImagePdfHelper.mReg(7.5))),
     ],
   );
 }
@@ -2896,7 +2932,8 @@ Widget _buildPanchaSummonsWidget(Map<String, dynamic> doc) {
           children: [
             Text('पंचांना समन्स', style: FormImagePdfHelper.mBld(13)),
             const SizedBox(height: 2),
-            Text('(कलम १९५ भारतीय नागरिक सुरक्षा संहिता २०२३ अन्वये)', style: mrB),
+            Text('(कलम १९५ भारतीय नागरिक सुरक्षा संहिता २०२३ अन्वये)',
+                style: mrB),
           ],
         ),
       ),
@@ -2985,13 +3022,25 @@ Widget _buildPanchaSummonsWidget(Map<String, dynamic> doc) {
               children: [
                 Text('पंच सही', style: mrB),
                 const SizedBox(height: 6),
-                Row(children: [Text('१) ', style: mrB), Expanded(child: _uField(v('panSig1')))]),
+                Row(children: [
+                  Text('१) ', style: mrB),
+                  Expanded(child: _uField(v('panSig1')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('२) ', style: mrB), Expanded(child: _uField(v('panSig2')))]),
+                Row(children: [
+                  Text('२) ', style: mrB),
+                  Expanded(child: _uField(v('panSig2')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('३) ', style: mrB), Expanded(child: _uField(v('panSig3')))]),
+                Row(children: [
+                  Text('३) ', style: mrB),
+                  Expanded(child: _uField(v('panSig3')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('४) ', style: mrB), Expanded(child: _uField(v('panSig4')))]),
+                Row(children: [
+                  Text('४) ', style: mrB),
+                  Expanded(child: _uField(v('panSig4')))
+                ]),
               ],
             ),
           ),
@@ -3002,7 +3051,10 @@ Widget _buildPanchaSummonsWidget(Map<String, dynamic> doc) {
               children: [
                 Text('तपासी अधिकारी नांव / सही शिक्या', style: mrB),
                 const SizedBox(height: 4),
-                Row(children: [Text('Name: ', style: mrB), Expanded(child: _uField(v('panIoName')))]),
+                Row(children: [
+                  Text('Name: ', style: mrB),
+                  Expanded(child: _uField(v('panIoName')))
+                ]),
                 _subLabel('नांव'),
                 const SizedBox(height: 3),
                 Row(
@@ -3016,7 +3068,10 @@ Widget _buildPanchaSummonsWidget(Map<String, dynamic> doc) {
                 ),
                 _subLabel('पद                   बक्कल नंबर'),
                 const SizedBox(height: 3),
-                Row(children: [Text('Posting and Address:', style: mrB), Expanded(child: _uField(v('panIoPosting')))]),
+                Row(children: [
+                  Text('Posting and Address:', style: mrB),
+                  Expanded(child: _uField(v('panIoPosting')))
+                ]),
                 _subLabel('नेमणूक व पत्ता'),
               ],
             ),
@@ -3024,7 +3079,9 @@ Widget _buildPanchaSummonsWidget(Map<String, dynamic> doc) {
         ],
       ),
       const Spacer(),
-      Align(alignment: Alignment.centerRight, child: Text('M.R.W', style: FormImagePdfHelper.mReg(7.5))),
+      Align(
+          alignment: Alignment.centerRight,
+          child: Text('M.R.W', style: FormImagePdfHelper.mReg(7.5))),
     ],
   );
 }
@@ -3123,19 +3180,55 @@ Widget _buildCivilSurgeonPg1Widget(Map<String, dynamic> doc) {
       ),
       const Divider(color: Colors.black, thickness: 0.8),
       const SizedBox(height: 4),
-      _csPdfRow('1)', 'Name of Deceased', 'मृत व्यक्तीचे नांव', _uField(v('csNameDeceased'))),
+      _csPdfRow('1)', 'Name of Deceased', 'मृत व्यक्तीचे नांव',
+          _uField(v('csNameDeceased'))),
       _csPdfRow('2)', 'Age', 'वय', _uField(v('csAge'))),
-      _csPdfRow('3)', 'Married, Single, Widow or Widower', 'विवाहीत, अविवाहीत, विधवा किंवा विधूर', _uField(v('csMaritalStatus'))),
-      _csPdfRow('4)', 'Date and hour of death', 'मृत्युचा दिनांक आणि वेळ', _csDateTimeAnswer(v('csDeathDate'), v('csDeathTime'))),
-      _csPdfRow('5)', 'Describe condition of body when found, Position, Surroundings and any marks of Violence, bloodstains or vomited matters Which may have existed?', 'प्रेत सापडले त्यावेळची अवस्था, स्थिती, भोवतालची परिस्थिती आणि उपलब्ध असलेल्या मारहाणीच्या खुणा रक्ताचे डाग किंवा वांतीबरोबर पडलेले पदार्थ यांचा तपशील दयावा.', _multilineBox(v('csBodyCondition'), lines: 3)),
-      _csPdfRow('6)', 'Day and hour on which the body was seen by the officer making the report', 'अहवाल पाठविणाऱ्या अधिकाऱ्याने प्रेत पाहिल्याचा दिनांक व वेळ (तास)', _csDateTimeAnswer(v('csSeenDate'), v('csSeenTime'))),
-      _csPdfRow('7)', 'Was the body cold or warm when found?', 'प्रेत सापडले त्यावेळी थंड होते कि गरम', _uField(v('csBodyColdWarm'))),
-      _csPdfRow('8)', 'Had the deceased suffered from recent Illness? If so, what? State duration and Describe the illness as far as Known.', 'मृत व्यक्तीस अलिकडे काही आजार झाला होता काय असल्यास कोणता.', _multilineBox(v('csRecentIllness'), lines: 2)),
-      _csPdfRow('9)', 'Had deceased suffered from accident Injury or if so, describe it.', 'मृत व्यक्तीस कोणत्याही प्रकारचा अपघात, दुखापत किंवा मारहाण झाली होती काय ?', _multilineBox(v('csAccidentInjury'), lines: 2)),
-      _csPdfRow('10)', 'If clothes, weapons, vomited matter of Other articles are forwarded, State why this Is done and what relation they bear to the Case? Describe them.', 'कपडे, हत्यारे, वांतीबरोबर पडलेले पदार्थ किंवा इतर वस्तु पाठविल्या असल्यास तसे का केले व त्याचा प्रकरणाशी संबंध आहे ते लिहावे, त्याचा तपशील दयावा.', _multilineBox(v('csArticlesForwarded'), lines: 3)),
-      _csPdfRow('11)', 'Is death supposed to have been due to Natural causes, accident, suicide or homicide? State briefly and plainly, any suspicions That may exist and why?', 'मृत्यु नैसर्गिक कारणे, अपघात, आत्महत्या किंवा खून यापैकी कशामुळे घडला असे वाटते. काही संशय असल्यास ते थोडक्यात स्पष्टपणे नमुद करावे व कारणे दयावे.', _multilineBox(v('csDeathReason'), lines: 3)),
+      _csPdfRow(
+          '3)',
+          'Married, Single, Widow or Widower',
+          'विवाहीत, अविवाहीत, विधवा किंवा विधूर',
+          _uField(v('csMaritalStatus'))),
+      _csPdfRow('4)', 'Date and hour of death', 'मृत्युचा दिनांक आणि वेळ',
+          _csDateTimeAnswer(v('csDeathDate'), v('csDeathTime'))),
+      _csPdfRow(
+          '5)',
+          'Describe condition of body when found, Position, Surroundings and any marks of Violence, bloodstains or vomited matters Which may have existed?',
+          'प्रेत सापडले त्यावेळची अवस्था, स्थिती, भोवतालची परिस्थिती आणि उपलब्ध असलेल्या मारहाणीच्या खुणा रक्ताचे डाग किंवा वांतीबरोबर पडलेले पदार्थ यांचा तपशील दयावा.',
+          _multilineBox(v('csBodyCondition'), lines: 3)),
+      _csPdfRow(
+          '6)',
+          'Day and hour on which the body was seen by the officer making the report',
+          'अहवाल पाठविणाऱ्या अधिकाऱ्याने प्रेत पाहिल्याचा दिनांक व वेळ (तास)',
+          _csDateTimeAnswer(v('csSeenDate'), v('csSeenTime'))),
+      _csPdfRow(
+          '7)',
+          'Was the body cold or warm when found?',
+          'प्रेत सापडले त्यावेळी थंड होते कि गरम',
+          _uField(v('csBodyColdWarm'))),
+      _csPdfRow(
+          '8)',
+          'Had the deceased suffered from recent Illness? If so, what? State duration and Describe the illness as far as Known.',
+          'मृत व्यक्तीस अलिकडे काही आजार झाला होता काय असल्यास कोणता.',
+          _multilineBox(v('csRecentIllness'), lines: 2)),
+      _csPdfRow(
+          '9)',
+          'Had deceased suffered from accident Injury or if so, describe it.',
+          'मृत व्यक्तीस कोणत्याही प्रकारचा अपघात, दुखापत किंवा मारहाण झाली होती काय ?',
+          _multilineBox(v('csAccidentInjury'), lines: 2)),
+      _csPdfRow(
+          '10)',
+          'If clothes, weapons, vomited matter of Other articles are forwarded, State why this Is done and what relation they bear to the Case? Describe them.',
+          'कपडे, हत्यारे, वांतीबरोबर पडलेले पदार्थ किंवा इतर वस्तु पाठविल्या असल्यास तसे का केले व त्याचा प्रकरणाशी संबंध आहे ते लिहावे, त्याचा तपशील दयावा.',
+          _multilineBox(v('csArticlesForwarded'), lines: 3)),
+      _csPdfRow(
+          '11)',
+          'Is death supposed to have been due to Natural causes, accident, suicide or homicide? State briefly and plainly, any suspicions That may exist and why?',
+          'मृत्यु नैसर्गिक कारणे, अपघात, आत्महत्या किंवा खून यापैकी कशामुळे घडला असे वाटते. काही संशय असल्यास ते थोडक्यात स्पष्टपणे नमुद करावे व कारणे दयावे.',
+          _multilineBox(v('csDeathReason'), lines: 3)),
       const Spacer(),
-      Align(alignment: Alignment.centerRight, child: Text('M.R.W', style: FormImagePdfHelper.mReg(7.5))),
+      Align(
+          alignment: Alignment.centerRight,
+          child: Text('M.R.W', style: FormImagePdfHelper.mReg(7.5))),
     ],
   );
 }
@@ -3171,11 +3264,31 @@ Widget _buildCivilSurgeonPg2Widget(Map<String, dynamic> doc) {
       ),
       const Divider(color: Colors.black, thickness: 0.8),
       const SizedBox(height: 4),
-      _csPdfRow('12)', 'Is there suspicion of poisoning? If, so, is any particular poison supposed to have been employed? Mention any symptoms of poisoning which are reported to have existed during life and any appearances pointing to poisoning observed after death.', 'विष प्रयोग केल्याचा संशय आहे, असल्यास विशिष्ट विषाचा वापर केला आहे वाटते काय? मृत व्यक्ती जिवंत असतांना विषबाधा झाल्याची लक्षणे दिसून आल्याचे कळविण्यात आले होते काय, व विषाचे बाबत मृत्यु नंतर दिसून आलेली चिन्हे नमुद करावी.', _multilineBox(v('csPoisonSuspicion'), lines: 4)),
-      _csPdfRow('13)', 'In the case of a woman, is she supposed to be pregnant of to have been recently delivered ?', 'स्त्रीच्या बाबतीत ती गरोदर असावी किंवा अलीकडे प्रसुती झाली असावी असे वाटते काय ?', _multilineBox(v('csWomanPregnancy'), lines: 2)),
-      _csPdfRow('14)', 'Is abortion or attempted abortion known or suspected? And if the former, has the focus been found?', 'गर्भपात केला किंवा गर्भपात करण्याचा प्रयत्न केला या विषयी माहिती किंवा संशय आहे काय, गर्भपात केला असल्यास गर्भ सापडला काय.', _multilineBox(v('csAbortion'), lines: 2)),
-      _csPdfRow('15)', 'State the finding of the Jury (if any) and mention any reasons they may have given for their findings.', 'ज्युरीचे निष्कर्ष असल्यास नमुद करावेत व निष्कर्षा बाबत त्यांनी काही कारणे दिली असल्यास त्याचा निर्देश करावा.', _multilineBox(v('csJuryFindings'), lines: 2)),
-      _csPdfRow('16)', 'Remarks. Under this head the Police Officer should give any information not included in the above question which he may consider likely to assist the Civil Surgeon informing an opinion of the cause of death.', 'शेरा वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकांना मृत्युच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.', _multilineBox(v('csRemarks'), lines: 4)),
+      _csPdfRow(
+          '12)',
+          'Is there suspicion of poisoning? If, so, is any particular poison supposed to have been employed? Mention any symptoms of poisoning which are reported to have existed during life and any appearances pointing to poisoning observed after death.',
+          'विष प्रयोग केल्याचा संशय आहे, असल्यास विशिष्ट विषाचा वापर केला आहे वाटते काय? मृत व्यक्ती जिवंत असतांना विषबाधा झाल्याची लक्षणे दिसून आल्याचे कळविण्यात आले होते काय, व विषाचे बाबत मृत्यु नंतर दिसून आलेली चिन्हे नमुद करावी.',
+          _multilineBox(v('csPoisonSuspicion'), lines: 4)),
+      _csPdfRow(
+          '13)',
+          'In the case of a woman, is she supposed to be pregnant of to have been recently delivered ?',
+          'स्त्रीच्या बाबतीत ती गरोदर असावी किंवा अलीकडे प्रसुती झाली असावी असे वाटते काय ?',
+          _multilineBox(v('csWomanPregnancy'), lines: 2)),
+      _csPdfRow(
+          '14)',
+          'Is abortion or attempted abortion known or suspected? And if the former, has the focus been found?',
+          'गर्भपात केला किंवा गर्भपात करण्याचा प्रयत्न केला या विषयी माहिती किंवा संशय आहे काय, गर्भपात केला असल्यास गर्भ सापडला काय.',
+          _multilineBox(v('csAbortion'), lines: 2)),
+      _csPdfRow(
+          '15)',
+          'State the finding of the Jury (if any) and mention any reasons they may have given for their findings.',
+          'ज्युरीचे निष्कर्ष असल्यास नमुद करावेत व निष्कर्षा बाबत त्यांनी काही कारणे दिली असल्यास त्याचा निर्देश करावा.',
+          _multilineBox(v('csJuryFindings'), lines: 2)),
+      _csPdfRow(
+          '16)',
+          'Remarks. Under this head the Police Officer should give any information not included in the above question which he may consider likely to assist the Civil Surgeon informing an opinion of the cause of death.',
+          'शेरा वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकांना मृत्युच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.',
+          _multilineBox(v('csRemarks'), lines: 4)),
       const SizedBox(height: 6),
       _multilineBox(v('csExtraNotes'), lines: 1),
       const SizedBox(height: 14),
@@ -3189,7 +3302,10 @@ Widget _buildCivilSurgeonPg2Widget(Map<String, dynamic> doc) {
               children: [
                 _subLabel('तपासणी करणाऱ्या अधिकाऱ्यांची नांव व सही'),
                 const SizedBox(height: 3),
-                Row(children: [Text('Name: ', style: FormImagePdfHelper.mBld(8)), Expanded(child: _uField(v('csIoName')))]),
+                Row(children: [
+                  Text('Name: ', style: FormImagePdfHelper.mBld(8)),
+                  Expanded(child: _uField(v('csIoName')))
+                ]),
                 _subLabel('नांव'),
                 const SizedBox(height: 3),
                 Row(
@@ -3203,7 +3319,11 @@ Widget _buildCivilSurgeonPg2Widget(Map<String, dynamic> doc) {
                 ),
                 _subLabel('पद                   बक्कल नंबर'),
                 const SizedBox(height: 3),
-                Row(children: [Text('Posting and Address:', style: FormImagePdfHelper.mBld(8)), Expanded(child: _uField(v('csIoPosting')))]),
+                Row(children: [
+                  Text('Posting and Address:',
+                      style: FormImagePdfHelper.mBld(8)),
+                  Expanded(child: _uField(v('csIoPosting')))
+                ]),
                 _subLabel('नेमणूक व पत्ता'),
               ],
             ),
@@ -3211,7 +3331,9 @@ Widget _buildCivilSurgeonPg2Widget(Map<String, dynamic> doc) {
         ],
       ),
       const Spacer(),
-      Align(alignment: Alignment.centerRight, child: Text('M.R.W', style: FormImagePdfHelper.mReg(7.5))),
+      Align(
+          alignment: Alignment.centerRight,
+          child: Text('M.R.W', style: FormImagePdfHelper.mReg(7.5))),
     ],
   );
 }
@@ -3265,51 +3387,70 @@ Widget _buildDeadBodyHandoverWidget(Map<String, dynamic> doc) {
           children: [
             const TextSpan(text: '       मी '),
             TextSpan(
-              text: v('ptpReceiverName').isEmpty ? '---------------------------------------------------------' : v('ptpReceiverName'),
+              text: v('ptpReceiverName').isEmpty
+                  ? '---------------------------------------------------------'
+                  : v('ptpReceiverName'),
               style: mrB,
             ),
             const TextSpan(text: ' रा. '),
             TextSpan(
-              text: v('ptpReceiverRa').isEmpty ? '------------------------------------------' : v('ptpReceiverRa'),
+              text: v('ptpReceiverRa').isEmpty
+                  ? '------------------------------------------'
+                  : v('ptpReceiverRa'),
               style: mrB,
             ),
             const TextSpan(text: ' ता '),
             TextSpan(
-              text: v('ptpReceiverTa').isEmpty ? '---------------' : v('ptpReceiverTa'),
+              text: v('ptpReceiverTa').isEmpty
+                  ? '---------------'
+                  : v('ptpReceiverTa'),
               style: mrB,
             ),
             const TextSpan(text: ' जिल्हा '),
             TextSpan(
-              text: v('ptpReceiverDist').isEmpty ? '---------------------' : v('ptpReceiverDist'),
+              text: v('ptpReceiverDist').isEmpty
+                  ? '---------------------'
+                  : v('ptpReceiverDist'),
               style: mrB,
             ),
             const TextSpan(text: ' मो नं '),
             TextSpan(
-              text: v('ptpMoNo').isEmpty ? '......................................' : v('ptpMoNo'),
+              text: v('ptpMoNo').isEmpty
+                  ? '......................................'
+                  : v('ptpMoNo'),
               style: mrB,
             ),
             const TextSpan(text: ' प्रेत ताबा पावती लिहुन देतो की, आज दिनांक '),
             TextSpan(
-              text: v('ptpReceiptDate').isEmpty ? '....../ ......../ २०.....' : v('ptpReceiptDate'),
+              text: v('ptpReceiptDate').isEmpty
+                  ? '....../ ......../ २०.....'
+                  : v('ptpReceiptDate'),
               style: mrB,
             ),
             const TextSpan(text: ' रोजी मृतक नामे '),
             TextSpan(
-              text: v('ptpDeceasedName').isEmpty ? '-------------------------------------------------' : v('ptpDeceasedName'),
+              text: v('ptpDeceasedName').isEmpty
+                  ? '-------------------------------------------------'
+                  : v('ptpDeceasedName'),
               style: mrB,
             ),
             const TextSpan(text: ' रा. '),
             TextSpan(
-              text: v('ptpDeceasedRa').isEmpty ? '------------------------------' : v('ptpDeceasedRa'),
+              text: v('ptpDeceasedRa').isEmpty
+                  ? '------------------------------'
+                  : v('ptpDeceasedRa'),
               style: mrB,
             ),
             const TextSpan(text: ' ता आणि जिल्हा '),
             TextSpan(
-              text: v('ptpDeceasedDist').isEmpty ? '-------------------' : v('ptpDeceasedDist'),
+              text: v('ptpDeceasedDist').isEmpty
+                  ? '-------------------'
+                  : v('ptpDeceasedDist'),
               style: mrB,
             ),
             const TextSpan(
-              text: ' हयाचे / हिचे प्रेत पोस्टमार्टम होवुन अंतिम संस्काराकरीता माझे ताब्यात मिळाले आहे. सदर प्रेत हे नमुद मृतकाचेच आहे. मी मृतकाचा वारसा या नात्याने ताब्यात घेतले आहे. माझी कोणत्याच प्रकारची तक्रार नाही.',
+              text:
+                  ' हयाचे / हिचे प्रेत पोस्टमार्टम होवुन अंतिम संस्काराकरीता माझे ताब्यात मिळाले आहे. सदर प्रेत हे नमुद मृतकाचेच आहे. मी मृतकाचा वारसा या नात्याने ताब्यात घेतले आहे. माझी कोणत्याच प्रकारची तक्रार नाही.',
             ),
           ],
         ),
@@ -3329,11 +3470,20 @@ Widget _buildDeadBodyHandoverWidget(Map<String, dynamic> doc) {
               children: [
                 Text('तपासी अधिकारी नांव व सही शिक्का', style: mrB),
                 const SizedBox(height: 10),
-                Row(children: [Text('नांव : ', style: mrR), Expanded(child: _uField(v('ptpIoName')))]),
+                Row(children: [
+                  Text('नांव : ', style: mrR),
+                  Expanded(child: _uField(v('ptpIoName')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('हुद्दा : ', style: mrR), Expanded(child: _uField(v('ptpIoRank')))]),
+                Row(children: [
+                  Text('हुद्दा : ', style: mrR),
+                  Expanded(child: _uField(v('ptpIoRank')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('पोलीस स्टेशन : ', style: mrR), Expanded(child: _uField(v('ptpIoPs')))]),
+                Row(children: [
+                  Text('पोलीस स्टेशन : ', style: mrR),
+                  Expanded(child: _uField(v('ptpIoPs')))
+                ]),
               ],
             ),
           ),
@@ -3413,7 +3563,8 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
         _uField(v('dpDutyPs'), width: 140),
         const SizedBox(width: 14),
         Text('जिल्हा ', style: mrB),
-        _uField(v('dpDutyDist').isEmpty ? 'यवतमाळ' : v('dpDutyDist'), width: 110),
+        _uField(v('dpDutyDist').isEmpty ? 'यवतमाळ' : v('dpDutyDist'),
+            width: 110),
       ]),
       const SizedBox(height: 8),
       Row(children: [
@@ -3425,7 +3576,9 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
         TextSpan(
           style: mrR,
           children: [
-            const TextSpan(text: '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक '),
+            const TextSpan(
+                text:
+                    '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक '),
             TextSpan(
               text: v('dpMargNo').isEmpty ? '.......' : v('dpMargNo'),
               style: mrB,
@@ -3437,17 +3590,22 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
             ),
             const TextSpan(text: ' कलम '),
             TextSpan(
-              text: v('dpKalam').isEmpty ? '--------------------' : v('dpKalam'),
+              text:
+                  v('dpKalam').isEmpty ? '--------------------' : v('dpKalam'),
               style: mrB,
             ),
             const TextSpan(text: ' मधील मृतक नामे '),
             TextSpan(
-              text: v('dpDeceasedName').isEmpty ? '------------------------------' : v('dpDeceasedName'),
+              text: v('dpDeceasedName').isEmpty
+                  ? '------------------------------'
+                  : v('dpDeceasedName'),
               style: mrB,
             ),
             const TextSpan(text: ' रा. '),
             TextSpan(
-              text: v('dpDeceasedRa').isEmpty ? '-------------------' : v('dpDeceasedRa'),
+              text: v('dpDeceasedRa').isEmpty
+                  ? '-------------------'
+                  : v('dpDeceasedRa'),
               style: mrB,
             ),
             const TextSpan(text: ' ता आणि जिल्हा '),
@@ -3457,13 +3615,17 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
                   : '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'.trim(),
               style: mrB,
             ),
-            const TextSpan(text: ' हयाचे / हिचे प्रेत सोबत घेउन मा.वैद्यकीय अधिकारी '),
+            const TextSpan(
+                text: ' हयाचे / हिचे प्रेत सोबत घेउन मा.वैद्यकीय अधिकारी '),
             TextSpan(
-              text: v('dpMedOfficerName').isEmpty ? '----------------------------' : v('dpMedOfficerName'),
+              text: v('dpMedOfficerName').isEmpty
+                  ? '----------------------------'
+                  : v('dpMedOfficerName'),
               style: mrB,
             ),
             const TextSpan(
-              text: ' यांचेकडे शवविच्छेदनाकरीता दाखल करावे. व शवविच्छेदनानंतर प्रेत मृतकाचे वारसदारास ताब्यात देउन मा. वैद्यकीय अधिकारी यांनी पि. एम दरम्यान व्हिसेरा कपडा बंडल दिल्यास ताब्यात घेउन तपासी अंमलदार यांचेकडे दाखल करावे.',
+              text:
+                  ' यांचेकडे शवविच्छेदनाकरीता दाखल करावे. व शवविच्छेदनानंतर प्रेत मृतकाचे वारसदारास ताब्यात देउन मा. वैद्यकीय अधिकारी यांनी पि. एम दरम्यान व्हिसेरा कपडा बंडल दिल्यास ताब्यात घेउन तपासी अंमलदार यांचेकडे दाखल करावे.',
             ),
           ],
         ),
@@ -3488,11 +3650,20 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
               children: [
                 Text('तपासी अधिकारी नांव व सही शिक्का', style: mrB),
                 const SizedBox(height: 8),
-                Row(children: [Text('नांव :- ', style: mrB), Expanded(child: _uField(v('dpIoName')))]),
+                Row(children: [
+                  Text('नांव :- ', style: mrB),
+                  Expanded(child: _uField(v('dpIoName')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('हुद्दा :- ', style: mrB), Expanded(child: _uField(v('dpIoRank')))]),
+                Row(children: [
+                  Text('हुद्दा :- ', style: mrB),
+                  Expanded(child: _uField(v('dpIoRank')))
+                ]),
                 const SizedBox(height: 4),
-                Row(children: [Text('पोलीस स्टेशन :- ', style: mrB), Expanded(child: _uField(v('dpIoPs')))]),
+                Row(children: [
+                  Text('पोलीस स्टेशन :- ', style: mrB),
+                  Expanded(child: _uField(v('dpIoPs')))
+                ]),
               ],
             ),
           ),
@@ -3507,9 +3678,11 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
   );
 }
 
-Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc, {bool isExhumation = false}) {
+Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
+    {bool isExhumation = false}) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
-  final engBold = GoogleFonts.lora(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.black);
+  final engBold = GoogleFonts.lora(
+      fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.black);
   final engStyle = GoogleFonts.lora(fontSize: 8.5, color: Colors.black87);
   final mrStyle = FormImagePdfHelper.mReg(7.5, 1.2);
 
@@ -3521,22 +3694,27 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc, {bool isExhumation =
           children: [
             Text(
               isExhumation ? 'EXHUMATION PANCHANAMA' : 'INQUEST PANCHANAMA',
-              style: GoogleFonts.lora(fontSize: 12, fontWeight: FontWeight.bold),
+              style:
+                  GoogleFonts.lora(fontSize: 12, fontWeight: FontWeight.bold),
             ),
             Text(
-              isExhumation ? 'कबर खोदून शव बाहेर काढण्याचा पंचनामा (Exhumation Panchanama)' : 'मरणोत्तर पंचनामा',
+              isExhumation
+                  ? 'कबर खोदून शव बाहेर काढण्याचा पंचनामा (Exhumation Panchanama)'
+                  : 'मरणोत्तर पंचनामा',
               style: FormImagePdfHelper.mBld(10),
             ),
             const SizedBox(height: 1),
-            Text('(Under Section - 194 B.N.S.S.)', style: GoogleFonts.lora(fontSize: 8.5, fontWeight: FontWeight.bold)),
-            Text('( भारतीय नागरिक सुरक्षा संहिता २०२३ कलम १९४ अन्वये.)', style: FormImagePdfHelper.mReg(8)),
+            Text('(Under Section - 194 B.N.S.S.)',
+                style: GoogleFonts.lora(
+                    fontSize: 8.5, fontWeight: FontWeight.bold)),
+            Text('( भारतीय नागरिक सुरक्षा संहिता २०२३ कलम १९४ अन्वये.)',
+                style: FormImagePdfHelper.mReg(8)),
           ],
         ),
       ),
       const SizedBox(height: 4),
       const Divider(color: Colors.black, thickness: 0.8),
       const SizedBox(height: 4),
-
       Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 2,
@@ -3553,9 +3731,10 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc, {bool isExhumation =
           _uField(v('firNo'), width: 90),
         ],
       ),
-      Text('   जिल्हा - यवतमाळ             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.', style: mrStyle),
+      Text(
+          '   जिल्हा - यवतमाळ             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.',
+          style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
           Text('2) Act and Section: - ', style: engBold),
@@ -3564,7 +3743,6 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc, {bool isExhumation =
       ),
       Text('   अधिनियम व कलमे :-', style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
           Text('3) Place From where Dead Body Found/Traced : ', style: engBold),
@@ -3576,7 +3754,8 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc, {bool isExhumation =
         spacing: 2,
         runSpacing: 2,
         children: [
-          Text('   प्रेत सापडल्याचे /मिळाल्याचे ठिकाण / जागा     ', style: mrStyle),
+          Text('   प्रेत सापडल्याचे /मिळाल्याचे ठिकाण / जागा     ',
+              style: mrStyle),
           Text('Place:-', style: engStyle),
           _uField(v('foundPlace'), width: 100),
           Text('Date:', style: engStyle),
@@ -3586,59 +3765,59 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc, {bool isExhumation =
         ],
       ),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('4) By whom Dead Body Shown                   :', style: engBold),
+          Text('4) By whom Dead Body Shown                   :',
+              style: engBold),
           Expanded(child: _uField(v('shownBy'))),
         ],
       ),
       Text('   प्रेत कोणी दाखविले :-', style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('5) By whom Dead Body Identified              :', style: engBold),
+          Text('5) By whom Dead Body Identified              :',
+              style: engBold),
           Expanded(child: _uField(v('identifiedBy'))),
         ],
       ),
       Text('   प्रेत कोणी ओळखले :-', style: mrStyle),
       _multilineBox(v('identifiedBy2'), lines: 2),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('a) Dead Body Male/Female                     :', style: engBold),
+          Text('a) Dead Body Male/Female                     :',
+              style: engBold),
           Expanded(child: _uField(v('gender'))),
         ],
       ),
       Text('   अ) प्रेत स्त्री / पुरुष जातीचे :-', style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('6) b) Dead Body Married/Unmarried            :', style: engBold),
+          Text('6) b) Dead Body Married/Unmarried            :',
+              style: engBold),
           Expanded(child: _uField(v('married'))),
         ],
       ),
       Text('   ब) प्रेत विवाहीत /अविवाहीत आहे :-', style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('c) Age of Dead Body                          :', style: engBold),
+          Text('c) Age of Dead Body                          :',
+              style: engBold),
           Expanded(child: _uField(v('age'))),
         ],
       ),
       Text('   क) प्रेताचे वय :-', style: mrStyle),
       const SizedBox(height: 5),
-
       Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 2,
         runSpacing: 2,
         children: [
-          Text('   ड) मृत्यूची तारीख वेळ :-                     ', style: mrStyle),
+          Text('   ड) मृत्यूची तारीख वेळ :-                     ',
+              style: mrStyle),
           Text('Date : ', style: engStyle),
           _uField(v('deathDate'), width: 90),
           const SizedBox(width: 15),
@@ -3646,22 +3825,24 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc, {bool isExhumation =
           _uField(v('deathTime'), width: 90),
         ],
       ),
-      Text('                                                तारीख                                   वेळ', style: mrStyle),
+      Text(
+          '                                                तारीख                                   वेळ',
+          style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('7) Position of Dead Body                     :', style: engBold),
+          Text('7) Position of Dead Body                     :',
+              style: engBold),
           Expanded(child: _uField(v('positionOfBody'))),
         ],
       ),
       Text('   प्रेताची स्थिती / अवस्था (जागा)', style: mrStyle),
       _multilineBox(v('positionOfBody2'), lines: 2),
-
       const Spacer(),
       Align(
         alignment: Alignment.centerRight,
-        child: Text('M.R.W', style: GoogleFonts.lora(fontSize: 8, fontStyle: FontStyle.italic)),
+        child: Text('M.R.W',
+            style: GoogleFonts.lora(fontSize: 8, fontStyle: FontStyle.italic)),
       ),
     ],
   );
@@ -3669,7 +3850,8 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc, {bool isExhumation =
 
 Widget _buildInquestMainPg2Widget(Map<String, dynamic> doc) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
-  final engBold = GoogleFonts.lora(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.black);
+  final engBold = GoogleFonts.lora(
+      fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.black);
   final mrStyle = FormImagePdfHelper.mReg(7.5, 1.2);
 
   Widget injuryRow(String labelEn, String labelMr, String val) {
@@ -3695,23 +3877,23 @@ Widget _buildInquestMainPg2Widget(Map<String, dynamic> doc) {
     children: [
       Row(
         children: [
-          Text('8) Name and Address of Dead Body             :', style: engBold),
+          Text('8) Name and Address of Dead Body             :',
+              style: engBold),
           Expanded(child: _uField(v('nameAddressDeceased'))),
         ],
       ),
       Text('   प्रेताचे संपूर्ण नांव व पत्ता (माहित असल्यास)', style: mrStyle),
       _multilineBox(v('nameAddressDeceased2'), lines: 3),
       const SizedBox(height: 6),
-
       Row(
         children: [
-          Text('9) Description Of injuries Found on Dead Body if any :', style: engBold),
+          Text('9) Description Of injuries Found on Dead Body if any :',
+              style: engBold),
           Expanded(child: _uField(v('injDescription'))),
         ],
       ),
       Text('   प्रेताचे अंगावर असल्यास त्याचे वर्णन :', style: mrStyle),
       const SizedBox(height: 5),
-
       injuryRow('a) Head          :', 'अ) डोके        :', v('injHead')),
       injuryRow('b) Face          :', 'ब) चेहरा        :', v('injFace')),
       injuryRow('c) Neck          :', 'क) मान         :', v('injNeck')),
@@ -3721,13 +3903,14 @@ Widget _buildInquestMainPg2Widget(Map<String, dynamic> doc) {
       injuryRow('g) Left Hand     :', 'ग) डावा हात     :', v('injLeftHand')),
       injuryRow('h) Right Leg     :', 'ह) उजवा पाय     :', v('injRightLeg')),
       injuryRow('i) Left Leg      :', 'ऐ) डावा पाय     :', v('injLeftLeg')),
-      injuryRow('j) Private part  :', 'जे) गुप्त भाग     :', v('injPrivatePart')),
+      injuryRow(
+          'j) Private part  :', 'जे) गुप्त भाग     :', v('injPrivatePart')),
       injuryRow('k) Back          :', 'के) पाठ        :', v('injBack')),
-
       const Spacer(),
       Align(
         alignment: Alignment.centerRight,
-        child: Text('M.R.W', style: GoogleFonts.lora(fontSize: 8, fontStyle: FontStyle.italic)),
+        child: Text('M.R.W',
+            style: GoogleFonts.lora(fontSize: 8, fontStyle: FontStyle.italic)),
       ),
     ],
   );
@@ -3735,89 +3918,95 @@ Widget _buildInquestMainPg2Widget(Map<String, dynamic> doc) {
 
 Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
-  final engBold = GoogleFonts.lora(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.black);
+  final engBold = GoogleFonts.lora(
+      fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.black);
   final engStyle = GoogleFonts.lora(fontSize: 8.5, color: Colors.black87);
   final mrStyle = FormImagePdfHelper.mReg(7.5, 1.2);
 
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
     children: [
-      Text('10)   Injuries of Dead Body Caused By Accidental/Violence :', style: engBold),
+      Text('10)   Injuries of Dead Body Caused By Accidental/Violence :',
+          style: engBold),
       Row(
         children: [
-          Text('Homicide / Other Burn / (Fair / Tejab) ', style: engBold.copyWith(fontSize: 8)),
+          Text('Homicide / Other Burn / (Fair / Tejab) ',
+              style: engBold.copyWith(fontSize: 8)),
           Expanded(child: _uField(v('injAccidentalViolence'))),
         ],
       ),
-      Text('प्रेताचे अंगावरील जखमा अपघाताच्या घोक्यातील / इत्यादी', style: mrStyle),
+      Text('प्रेताचे अंगावरील जखमा अपघाताच्या घोक्यातील / इत्यादी',
+          style: mrStyle),
       Text('होण्यामुळे झाल्या', style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('11) Weapon / Means (if any)                  :', style: engBold),
+          Text('11) Weapon / Means (if any)                  :',
+              style: engBold),
           Expanded(child: _uField(v('weaponMeans'))),
         ],
       ),
       Text('जखमा केलेल्या हत्यार/ साधन असल्यास           :', style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('12) Dead Body Cool / Warm                    :', style: engBold),
+          Text('12) Dead Body Cool / Warm                    :',
+              style: engBold),
           Expanded(child: _uField(v('bodyCoolWarm'))),
         ],
       ),
       Text('प्रेत थंड आहे/ गरम आहे.                       :', style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('13) Position Dead Body by Poisoning          :', style: engBold),
+          Text('13) Position Dead Body by Poisoning          :',
+              style: engBold),
           Expanded(child: _uField(v('poisoningPosition'))),
         ],
       ),
       Text('प्रेताची स्थिती विष प्राशन केलेला असल्यास       :', style: mrStyle),
       const SizedBox(height: 5),
-
-      Text('14) (a) Finger Print has taken by Doctor Not taken Reason', style: engBold),
+      Text('14) (a) Finger Print has taken by Doctor Not taken Reason',
+          style: engBold),
       Row(
         children: [
-          Text('(In case of unidentified Dead Body)          :', style: engStyle),
+          Text('(In case of unidentified Dead Body)          :',
+              style: engStyle),
           Expanded(child: _uField(v('fingerprintReason'))),
         ],
       ),
-      Text('अनोळखी प्रेताचे डॉक्टरांकडून बोटांचे ठसे घेतले/ नाही कारण :', style: mrStyle),
+      Text('अनोळखी प्रेताचे डॉक्टरांकडून बोटांचे ठसे घेतले/ नाही कारण :',
+          style: mrStyle),
       const SizedBox(height: 3),
-
-      Text('(b) Photo has taken/not taken reason (In case of an', style: engBold),
+      Text('(b) Photo has taken/not taken reason (In case of an',
+          style: engBold),
       Row(
         children: [
-          Text('Identified Dead Body)                        :', style: engStyle),
+          Text('Identified Dead Body)                        :',
+              style: engStyle),
           Expanded(child: _uField(v('photoReason'))),
         ],
       ),
       Text('अनोळखी प्रेताचे फोटो घेतले आहेत काय/नाही कारण :', style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
           Text('15) Dead Body sent to P.M. / not reason: ', style: engBold),
           Expanded(child: _uField(v('sentToPMReason'))),
         ],
       ),
-      Text('प्रेत (पोस्ट मार्टम) शविच्छेदन करीता पाठविले/ नाही कारण', style: mrStyle),
+      Text('प्रेत (पोस्ट मार्टम) शविच्छेदन करीता पाठविले/ नाही कारण',
+          style: mrStyle),
       const SizedBox(height: 3),
-
       Row(
         children: [
           Text('(a) At which Hospital Dead Body sent to P.M.:', style: engBold),
           Expanded(child: _uField(v('hospitalName'))),
         ],
       ),
-      Text('कोणत्या रूग्णालयात प्रेत पोस्ट मार्टूम करीता पाठविले :', style: mrStyle),
+      Text('कोणत्या रूग्णालयात प्रेत पोस्ट मार्टूम करीता पाठविले :',
+          style: mrStyle),
       const SizedBox(height: 3),
-
       Text('(b) With whom (Name No. and P.sm)            :', style: engBold),
       Text('कोणा बरोबर पाठविले (नांव व पो.स्टे.)', style: mrStyle),
       Wrap(
@@ -3833,31 +4022,33 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
           _uField(v('sentOfficerPs'), width: 100),
         ],
       ),
-      Text('नांव                                        बक्कल नंबर                 पो.स्टे', style: mrStyle),
+      Text(
+          'नांव                                        बक्कल नंबर                 पो.स्टे',
+          style: mrStyle),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('16) Opinion of Panchas and Police about Death: ', style: engBold),
+          Text('16) Opinion of Panchas and Police about Death: ',
+              style: engBold),
           Expanded(child: _uField(v('opinionPanchas'))),
         ],
       ),
       Text('पंच व पोलीसांचा मृत्यूविषयी अभिप्राय', style: mrStyle),
       _multilineBox(v('opinionPanchas2'), lines: 3),
       const SizedBox(height: 5),
-
       Row(
         children: [
-          Text('17) More information if any                 : ', style: engBold),
+          Text('17) More information if any                 : ',
+              style: engBold),
           Expanded(child: _uField(v('moreInfo'))),
         ],
       ),
       Text('अधिक माहिती असल्यास', style: mrStyle),
-
       const Spacer(),
       Align(
         alignment: Alignment.centerRight,
-        child: Text('M.R.W', style: GoogleFonts.lora(fontSize: 8, fontStyle: FontStyle.italic)),
+        child: Text('M.R.W',
+            style: GoogleFonts.lora(fontSize: 8, fontStyle: FontStyle.italic)),
       ),
     ],
   );
@@ -3865,7 +4056,8 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
 
 Widget _buildInquestMainPg4Widget(Map<String, dynamic> doc) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
-  final engBold = GoogleFonts.lora(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.black);
+  final engBold = GoogleFonts.lora(
+      fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.black);
   final engStyle = GoogleFonts.lora(fontSize: 8.5, color: Colors.black87);
   final mrStyle = FormImagePdfHelper.mReg(7.5, 1.2);
 
@@ -3887,7 +4079,9 @@ Widget _buildInquestMainPg4Widget(Map<String, dynamic> doc) {
           _uField(v('panchanamaTimeTo'), width: 55),
         ],
       ),
-      Text('    पंचनामा केल्याची               दिनांक : -                       वेळ : -                 ते', style: mrStyle),
+      Text(
+          '    पंचनामा केल्याची               दिनांक : -                       वेळ : -                 ते',
+          style: mrStyle),
       const SizedBox(height: 8),
 
       Row(
@@ -4000,7 +4194,8 @@ Widget _buildInquestMainPg4Widget(Map<String, dynamic> doc) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Signature of Investigation Officer', style: engBold),
-                Text('तपासणी करणाऱ्या अधिकाऱ्यांची नांव व सह्या', style: mrStyle),
+                Text('तपासणी करणाऱ्या अधिकाऱ्यांची नांव व सह्या',
+                    style: mrStyle),
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -4037,7 +4232,8 @@ Widget _buildInquestMainPg4Widget(Map<String, dynamic> doc) {
       const Spacer(),
       Align(
         alignment: Alignment.centerRight,
-        child: Text('M.R.W', style: GoogleFonts.lora(fontSize: 8, fontStyle: FontStyle.italic)),
+        child: Text('M.R.W',
+            style: GoogleFonts.lora(fontSize: 8, fontStyle: FontStyle.italic)),
       ),
     ],
   );
@@ -4282,7 +4478,8 @@ Widget _buildMarananveshanPg2Widget(Map<String, dynamic> doc) {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Text('प्रत सादर :- मा.वैद्यकीय अधिकारी ', style: FormImagePdfHelper.mBld(8)),
+                    Text('प्रत सादर :- मा.वैद्यकीय अधिकारी ',
+                        style: FormImagePdfHelper.mBld(8)),
                     Expanded(child: _uField(v('mar11CopyTo'))),
                   ],
                 ),
@@ -4296,7 +4493,8 @@ Widget _buildMarananveshanPg2Widget(Map<String, dynamic> doc) {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('तपासी अधिकारी नांव व सही शिक्का', style: FormImagePdfHelper.mBld(9.5)),
+                Text('तपासी अधिकारी नांव व सही शिक्का',
+                    style: FormImagePdfHelper.mBld(9.5)),
                 const SizedBox(height: 6),
                 Row(
                   children: [
@@ -4332,4 +4530,3 @@ Widget _buildMarananveshanPg2Widget(Map<String, dynamic> doc) {
     ],
   );
 }
-

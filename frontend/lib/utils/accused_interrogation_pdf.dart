@@ -1758,11 +1758,14 @@ Widget _intValText(String? val, [double sz = 7.5]) {
   return Text(text, style: FormImagePdfHelper.valStyle(sz));
 }
 
-Widget _intLblText(String text, {bool bold = true, double sz = 7.5, TextAlign align = TextAlign.left}) {
+Widget _intLblText(String text,
+    {bool bold = true, double sz = 7.5, TextAlign align = TextAlign.left}) {
   return Text(
     text,
     textAlign: align,
-    style: bold ? FormImagePdfHelper.mBld(sz, 1.15) : FormImagePdfHelper.mReg(sz, 1.15),
+    style: bold
+        ? FormImagePdfHelper.mBld(sz, 1.15)
+        : FormImagePdfHelper.mReg(sz, 1.15),
   );
 }
 
@@ -1795,7 +1798,8 @@ Widget _intAddressCell(String res, String tal, String dist, String state) {
   );
 }
 
-Widget _intRelativeBlock(int num, String title, Map<String, dynamic> doc, {bool hasAccomplice = false}) {
+Widget _intRelativeBlock(int num, String title, Map<String, dynamic> doc,
+    {bool hasAccomplice = false}) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
   return Table(
     border: TableBorder.all(color: Colors.black, width: 0.6),
@@ -1807,52 +1811,76 @@ Widget _intRelativeBlock(int num, String title, Map<String, dynamic> doc, {bool 
     children: [
       TableRow(
         children: [
-          Padding(padding: const EdgeInsets.all(2), child: _intLblText('$num.', align: TextAlign.center)),
+          Padding(
+              padding: const EdgeInsets.all(2),
+              child: _intLblText('$num.', align: TextAlign.center)),
           Padding(padding: const EdgeInsets.all(3), child: _intLblText(title)),
-          Padding(padding: const EdgeInsets.all(3), child: _intValText(v('rel${num}Name'))),
+          Padding(
+              padding: const EdgeInsets.all(3),
+              child: _intValText(v('rel${num}Name'))),
         ],
       ),
       TableRow(
         children: [
           const SizedBox(),
           Padding(padding: const EdgeInsets.all(3), child: _intLblText('धंदा')),
-          Padding(padding: const EdgeInsets.all(3), child: _intValText(v('rel${num}Occ'))),
+          Padding(
+              padding: const EdgeInsets.all(3),
+              child: _intValText(v('rel${num}Occ'))),
         ],
       ),
       TableRow(
         children: [
           const SizedBox(),
-          Padding(padding: const EdgeInsets.all(3), child: _intLblText('ह.मुक्काम संपुर्ण पत्ता')),
-          _intAddressCell(v('rel${num}CurrAddr'), v('rel${num}CurrTal'), v('rel${num}CurrDist'), v('rel${num}CurrState')),
+          Padding(
+              padding: const EdgeInsets.all(3),
+              child: _intLblText('ह.मुक्काम संपुर्ण पत्ता')),
+          _intAddressCell(v('rel${num}CurrAddr'), v('rel${num}CurrTal'),
+              v('rel${num}CurrDist'), v('rel${num}CurrState')),
         ],
       ),
       TableRow(
         children: [
           const SizedBox(),
-          Padding(padding: const EdgeInsets.all(3), child: _intLblText('मुळ गावचा संपुर्ण पत्ता')),
-          _intAddressCell(v('rel${num}PermAddr'), v('rel${num}PermTal'), v('rel${num}PermDist'), v('rel${num}PermState')),
+          Padding(
+              padding: const EdgeInsets.all(3),
+              child: _intLblText('मुळ गावचा संपुर्ण पत्ता')),
+          _intAddressCell(v('rel${num}PermAddr'), v('rel${num}PermTal'),
+              v('rel${num}PermDist'), v('rel${num}PermState')),
         ],
       ),
       TableRow(
         children: [
           const SizedBox(),
-          Padding(padding: const EdgeInsets.all(3), child: _intLblText('स्थावर/ जंगम मालमत्ता')),
-          Padding(padding: const EdgeInsets.all(3), child: _intValText(v('rel${num}Prop'))),
+          Padding(
+              padding: const EdgeInsets.all(3),
+              child: _intLblText('स्थावर/ जंगम मालमत्ता')),
+          Padding(
+              padding: const EdgeInsets.all(3),
+              child: _intValText(v('rel${num}Prop'))),
         ],
       ),
       TableRow(
         children: [
           const SizedBox(),
-          Padding(padding: const EdgeInsets.all(3), child: _intLblText('फोन नंबर व इतर माहिती')),
-          Padding(padding: const EdgeInsets.all(3), child: _intValText(v('rel${num}Phone'))),
+          Padding(
+              padding: const EdgeInsets.all(3),
+              child: _intLblText('फोन नंबर व इतर माहिती')),
+          Padding(
+              padding: const EdgeInsets.all(3),
+              child: _intValText(v('rel${num}Phone'))),
         ],
       ),
       if (hasAccomplice)
         TableRow(
           children: [
             const SizedBox(),
-            Padding(padding: const EdgeInsets.all(3), child: _intLblText('आरोपीचे साथीदाराशी नाते व संबंध')),
-            Padding(padding: const EdgeInsets.all(3), child: _intValText(v('rel${num}Relation'))),
+            Padding(
+                padding: const EdgeInsets.all(3),
+                child: _intLblText('आरोपीचे साथीदाराशी नाते व संबंध')),
+            Padding(
+                padding: const EdgeInsets.all(3),
+                child: _intValText(v('rel${num}Relation'))),
           ],
         ),
     ],
@@ -1873,7 +1901,9 @@ Widget _intDescRow(String l1, String v1, String l2, String v2) {
 TableRow _intSimpleRow(String sr, String lbl, String val) {
   return TableRow(
     children: [
-      Padding(padding: const EdgeInsets.all(2), child: _intLblText(sr, align: TextAlign.center)),
+      Padding(
+          padding: const EdgeInsets.all(2),
+          child: _intLblText(sr, align: TextAlign.center)),
       Padding(padding: const EdgeInsets.all(3), child: _intLblText(lbl)),
       Padding(padding: const EdgeInsets.all(3), child: _intValText(val)),
     ],
@@ -1883,13 +1913,16 @@ TableRow _intSimpleRow(String sr, String lbl, String val) {
 Widget _buildIntPg1Widget(Map<String, dynamic> doc) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
   final ps = v('ps').isNotEmpty ? v('ps') : v('policeStation');
-  final crNo = v('crimeNoSection').isNotEmpty ? v('crimeNoSection') : v('crimeNo');
-  final name = v('accusedFullName').isNotEmpty ? v('accusedFullName') : v('accusedName');
+  final crNo =
+      v('crimeNoSection').isNotEmpty ? v('crimeNoSection') : v('crimeNo');
+  final name =
+      v('accusedFullName').isNotEmpty ? v('accusedFullName') : v('accusedName');
 
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     children: [
-      Center(child: _intLblText('-:: अटक आरोपीचा इंट्रोगेशन फॉर्म ::-', sz: 12)),
+      Center(
+          child: _intLblText('-:: अटक आरोपीचा इंट्रोगेशन फॉर्म ::-', sz: 12)),
       const SizedBox(height: 2),
       Center(child: _intLblText('(संपुर्ण वैयक्तीक माहिती)', sz: 9.5)),
       const SizedBox(height: 6),
@@ -1904,9 +1937,15 @@ Widget _buildIntPg1Widget(Map<String, dynamic> doc) {
           TableRow(
             decoration: const BoxDecoration(color: Color(0xFFEEEEEE)),
             children: [
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('अ.क्र', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('विवरण', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('माहिती', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('अ.क्र', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('विवरण', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('माहिती', align: TextAlign.center)),
             ],
           ),
           _intSimpleRow('1.', 'पोलीस स्टेशन', ps),
@@ -1916,63 +1955,102 @@ Widget _buildIntPg1Widget(Map<String, dynamic> doc) {
           TableRow(
             children: [
               const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('धंदा')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('accusedOccupation'))),
+              Padding(
+                  padding: const EdgeInsets.all(3), child: _intLblText('धंदा')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('accusedOccupation'))),
             ],
           ),
           TableRow(
             children: [
               const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('स्थावर/ जंगम मालमत्ता')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('accusedProperty'))),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('स्थावर/ जंगम मालमत्ता')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('accusedProperty'))),
             ],
           ),
           TableRow(
             children: [
               const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('शेती, घर व वाहन')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('accusedFarmHouseVehicle'))),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('शेती, घर व वाहन')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('accusedFarmHouseVehicle'))),
             ],
           ),
           TableRow(
             children: [
               const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('फोन नंबर व इतर माहिती')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('accusedPhoneOther'))),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('फोन नंबर व इतर माहिती')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('accusedPhoneOther'))),
             ],
           ),
           TableRow(
             children: [
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('5.', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('आरोपीचा संपूर्ण पत्ता व राज्य')),
-              _intAddressCell(v('currResAddr'), v('currTaluka'), v('currDistrict'), v('currState')),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('5.', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('आरोपीचा संपूर्ण पत्ता व राज्य')),
+              _intAddressCell(v('currResAddr'), v('currTaluka'),
+                  v('currDistrict'), v('currState')),
             ],
           ),
           TableRow(
             children: [
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('6.', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('आरोपीचा मुळ गांवचा संपूर्ण पत्ता व राज्य')),
-              _intAddressCell(v('permResAddr'), v('permTaluka'), v('permDistrict'), v('permState')),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('6.', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child:
+                      _intLblText('आरोपीचा मुळ गांवचा संपूर्ण पत्ता व राज्य')),
+              _intAddressCell(v('permResAddr'), v('permTaluka'),
+                  v('permDistrict'), v('permState')),
             ],
           ),
           TableRow(
             children: [
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('7.', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('आरोपीचे वर्णन')),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('7.', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('आरोपीचे वर्णन')),
               Padding(
                 padding: const EdgeInsets.all(3),
                 child: Column(
                   children: [
-                    _intDescRow('रंग— ', v('descColor'), 'उंच— ', v('descHeight')),
-                    _intDescRow('जात— ', v('descCaste'), 'व्यंग— ', v('descDeformity')),
-                    _intDescRow('दात— ', v('descTeeth'), 'केस— ', v('descHair')),
-                    _intDescRow('डोळे— ', v('descEyes'), 'पोषख— ', v('descDress')),
-                    _intDescRow('मतदार यादिलीत नांव— ', v('descVoterName'), 'फोड— ', v('descBoil')),
-                    _intDescRow('तिळ— ', v('descMole'), 'गोदने— ', v('descTattoo')),
+                    _intDescRow(
+                        'रंग— ', v('descColor'), 'उंच— ', v('descHeight')),
+                    _intDescRow(
+                        'जात— ', v('descCaste'), 'व्यंग— ', v('descDeformity')),
+                    _intDescRow(
+                        'दात— ', v('descTeeth'), 'केस— ', v('descHair')),
+                    _intDescRow(
+                        'डोळे— ', v('descEyes'), 'पोषख— ', v('descDress')),
+                    _intDescRow('मतदार यादिलीत नांव— ', v('descVoterName'),
+                        'फोड— ', v('descBoil')),
+                    _intDescRow(
+                        'तिळ— ', v('descMole'), 'गोदने— ', v('descTattoo')),
                     _intDescRow('कान— ', v('descEars'), 'नाक— ', v('descNose')),
-                    _intDescRow('मिशी— ', v('descMustache'), 'चेहरा— ', v('descFace')),
-                    _intDescRow('भाषा— ', v('descLanguage'), 'जन्म तारीख— ', v('descDob')),
-                    _intDescRow('वर्ण— ', v('descComplexion'), 'भाजल्याच्या खुणा— ', v('descBurnMarks')),
+                    _intDescRow(
+                        'मिशी— ', v('descMustache'), 'चेहरा— ', v('descFace')),
+                    _intDescRow('भाषा— ', v('descLanguage'), 'जन्म तारीख— ',
+                        v('descDob')),
+                    _intDescRow('वर्ण— ', v('descComplexion'),
+                        'भाजल्याच्या खुणा— ', v('descBurnMarks')),
                     Row(
                       children: [
                         _intLblText('मुख्य ओळख चिन्ह: ', bold: false),
@@ -2001,7 +2079,8 @@ Widget _buildIntPg2Widget(Map<String, dynamic> doc) {
       const SizedBox(height: 8),
       _intRelativeBlock(11, 'आरोपीच्या वडीलांचे संपुर्ण नांव', doc),
       const SizedBox(height: 8),
-      _intRelativeBlock(12, 'आरोपीच्या वडीलांचे वडील यांचे संपुर्ण नांव (आजा)', doc),
+      _intRelativeBlock(
+          12, 'आरोपीच्या वडीलांचे वडील यांचे संपुर्ण नांव (आजा)', doc),
     ],
   );
 }
@@ -2068,13 +2147,17 @@ Widget _buildIntPg7Widget(Map<String, dynamic> doc) {
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     children: [
-      _intRelativeBlock(28, 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)', doc),
+      _intRelativeBlock(
+          28, 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)', doc),
       const SizedBox(height: 8),
-      _intRelativeBlock(29, 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)', doc),
+      _intRelativeBlock(
+          29, 'आरोपीच्या सालीचे संपुर्ण नांव (बायकोच्या बहिणीचे)', doc),
       const SizedBox(height: 8),
-      _intRelativeBlock(30, 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)', doc),
+      _intRelativeBlock(
+          30, 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)', doc),
       const SizedBox(height: 8),
-      _intRelativeBlock(31, 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)', doc),
+      _intRelativeBlock(
+          31, 'आरोपीच्या साळयाचे संपुर्ण नांव (बायकोच्या भावाचे)', doc),
     ],
   );
 }
@@ -2161,78 +2244,132 @@ Widget _buildIntPg12Widget(Map<String, dynamic> doc) {
         children: [
           TableRow(
             children: [
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('49.', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('आरोपीचे शिक्षण')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('edu'))),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('49.', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('आरोपीचे शिक्षण')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('edu'))),
             ],
           ),
           TableRow(
             children: [
               const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('शेवटचे शैक्षणीक वर्ष')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('eduLastYear'))),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('शेवटचे शैक्षणीक वर्ष')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('eduLastYear'))),
             ],
           ),
-          _intSimpleRow('50.', 'कोणत्या शाळेत शिकला त्याचे नांव व पत्ता', v('schoolNameAddr')),
+          _intSimpleRow('50.', 'कोणत्या शाळेत शिकला त्याचे नांव व पत्ता',
+              v('schoolNameAddr')),
           TableRow(
             children: [
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('51.', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('नोकरी असल्यास खाजगी मालकाचे किंवा सरकारी कार्यालयाचे संपुर्ण नांव')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('jobOfficeName'))),
-            ],
-          ),
-          TableRow(
-            children: [
-              const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('मिळणारा मासीक पगार')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('jobSalary'))),
-            ],
-          ),
-          TableRow(
-            children: [
-              const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('नोकरी केव्हा पासुन आहे नोकरीचा कालावधी')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('jobDuration'))),
-            ],
-          ),
-          TableRow(
-            children: [
-              const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('नोकरी असतांना राहण्याचा पत्ता')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('jobStayAddr'))),
-            ],
-          ),
-          TableRow(
-            children: [
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('52.', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('त्यापुर्वी नोकरीच्या मालकाचे / कार्यालयाचे नांव व पत्ता')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('prevJobOffice'))),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('51.', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText(
+                      'नोकरी असल्यास खाजगी मालकाचे किंवा सरकारी कार्यालयाचे संपुर्ण नांव')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('jobOfficeName'))),
             ],
           ),
           TableRow(
             children: [
               const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('नोकरी सोडल्याचे कारण')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('prevJobLeaveReason'))),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('मिळणारा मासीक पगार')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('jobSalary'))),
             ],
           ),
           TableRow(
             children: [
               const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('नोकरीचा कालावधी')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('prevJobDuration'))),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('नोकरी केव्हा पासुन आहे नोकरीचा कालावधी')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('jobDuration'))),
             ],
           ),
           TableRow(
             children: [
               const SizedBox(),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('नोकरीवर असतांना राहण्याचा पत्ता')),
-              Padding(padding: const EdgeInsets.all(3), child: _intValText(v('prevJobStayAddr'))),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('नोकरी असतांना राहण्याचा पत्ता')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('jobStayAddr'))),
             ],
           ),
-          _intSimpleRow('53.', 'सध्या राहत असलेल्या जागी केव्हा पासुन राहत आहे त्या जागेचा पत्ता', v('currentStayDurationAddr')),
-          _intSimpleRow('54.', 'पुर्वी राहत असलेल्या जागेचा पत्ता', v('prevStayAddr')),
-          _intSimpleRow('55.', 'बँक खाते आहे काय असल्यास बँकेचे नांव पत्ता', v('bankAccountDetails')),
+          TableRow(
+            children: [
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('52.', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText(
+                      'त्यापुर्वी नोकरीच्या मालकाचे / कार्यालयाचे नांव व पत्ता')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('prevJobOffice'))),
+            ],
+          ),
+          TableRow(
+            children: [
+              const SizedBox(),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('नोकरी सोडल्याचे कारण')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('prevJobLeaveReason'))),
+            ],
+          ),
+          TableRow(
+            children: [
+              const SizedBox(),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('नोकरीचा कालावधी')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('prevJobDuration'))),
+            ],
+          ),
+          TableRow(
+            children: [
+              const SizedBox(),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText('नोकरीवर असतांना राहण्याचा पत्ता')),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intValText(v('prevJobStayAddr'))),
+            ],
+          ),
+          _intSimpleRow(
+              '53.',
+              'सध्या राहत असलेल्या जागी केव्हा पासुन राहत आहे त्या जागेचा पत्ता',
+              v('currentStayDurationAddr')),
+          _intSimpleRow(
+              '54.', 'पुर्वी राहत असलेल्या जागेचा पत्ता', v('prevStayAddr')),
+          _intSimpleRow('55.', 'बँक खाते आहे काय असल्यास बँकेचे नांव पत्ता',
+              v('bankAccountDetails')),
           _intSimpleRow('56.', 'सवयी', v('habits')),
         ],
       ),
@@ -2254,20 +2391,42 @@ Widget _buildIntPg13Widget(Map<String, dynamic> doc) {
         },
         children: [
           _intSimpleRow('57.', 'नेहमी दारू पिण्याचे ठिकाण', v('alcoholPlace')),
-          _intSimpleRow('58.', 'धंदेवाईक बाई/ रखेल/ प्रेयसी चे संपुर्ण नांव व पत्ता', v('prostituteMistressDetails')),
-          _intSimpleRow('59.', 'गुन्ह्यात प्रवृत्त होण्याचे कारण', v('crimeMotive')),
-          _intSimpleRow('60.', 'प्रथम केलेला गुन्हा व त्यातील साथीदार', v('firstCrimeAccomplices')),
-          _intSimpleRow('61.', 'पुर्वी अटक झाली आहे काय ? कुठल्या परिस्थितीत अटक झाली आहे.', v('prevArrestCircumstances')),
-          _intSimpleRow('62.', 'कोण कोणत्या पोलीस स्टेशनला अटक होता', v('prevArrestPoliceStations')),
-          _intSimpleRow('63.', 'कोण कोणत्या गुन्ह्यात अटक होता.', v('prevArrestCrimeDetails')),
-          _intSimpleRow('64.', 'गुन्ह्यात जामीन घेणाऱ्या जामीनदारांचे नांव व संपुर्ण पत्ता मुळ गावासह', v('bailSuretyNameAddrNative')),
-          _intSimpleRow('65.', 'गुन्ह्यात लावलेल्या वकीलाचे नांव व पत्ता', v('advocateNameAddr')),
+          _intSimpleRow(
+              '58.',
+              'धंदेवाईक बाई/ रखेल/ प्रेयसी चे संपुर्ण नांव व पत्ता',
+              v('prostituteMistressDetails')),
+          _intSimpleRow(
+              '59.', 'गुन्ह्यात प्रवृत्त होण्याचे कारण', v('crimeMotive')),
+          _intSimpleRow('60.', 'प्रथम केलेला गुन्हा व त्यातील साथीदार',
+              v('firstCrimeAccomplices')),
+          _intSimpleRow(
+              '61.',
+              'पुर्वी अटक झाली आहे काय ? कुठल्या परिस्थितीत अटक झाली आहे.',
+              v('prevArrestCircumstances')),
+          _intSimpleRow('62.', 'कोण कोणत्या पोलीस स्टेशनला अटक होता',
+              v('prevArrestPoliceStations')),
+          _intSimpleRow('63.', 'कोण कोणत्या गुन्ह्यात अटक होता.',
+              v('prevArrestCrimeDetails')),
+          _intSimpleRow(
+              '64.',
+              'गुन्ह्यात जामीन घेणाऱ्या जामीनदारांचे नांव व संपुर्ण पत्ता मुळ गावासह',
+              v('bailSuretyNameAddrNative')),
+          _intSimpleRow('65.', 'गुन्ह्यात लावलेल्या वकीलाचे नांव व पत्ता',
+              v('advocateNameAddr')),
           _intSimpleRow('66.', 'शिक्षा झाली आहे काय ?', v('convictionStatus')),
-          _intSimpleRow('67.', 'शिक्षेचा कालावधी व कोणत्या कारागृहात', v('convictionDurationJail')),
+          _intSimpleRow('67.', 'शिक्षेचा कालावधी व कोणत्या कारागृहात',
+              v('convictionDurationJail')),
           _intSimpleRow('68.', 'गुन्हा करण्याची पध्दत', v('modusOperandi')),
-          _intSimpleRow('69.', 'गुन्हा करण्यापुर्वी जागेची माहिती कशी काढतो ?', v('recceMethod')),
-          _intSimpleRow('70.', 'बातमीदार मार्फत माहिती काढत असल्यास त्याचे नांव व पत्ता', v('informerNameAddr')),
-          _intSimpleRow('71.', 'गुन्हा करण्या अगोदर व केल्यानंतर आरोपींचे एकत्र जमण्याचे ठिकाण', v('rendezvousPlace')),
+          _intSimpleRow('69.', 'गुन्हा करण्यापुर्वी जागेची माहिती कशी काढतो ?',
+              v('recceMethod')),
+          _intSimpleRow(
+              '70.',
+              'बातमीदार मार्फत माहिती काढत असल्यास त्याचे नांव व पत्ता',
+              v('informerNameAddr')),
+          _intSimpleRow(
+              '71.',
+              'गुन्हा करण्या अगोदर व केल्यानंतर आरोपींचे एकत्र जमण्याचे ठिकाण',
+              v('rendezvousPlace')),
           _intSimpleRow('72.', 'गुन्हा एकटा करतो काय ?', v('soloCrime')),
           _intSimpleRow('73.', 'साथीदारासह गुन्हा करतो काय ?', v('groupCrime')),
         ],
@@ -2285,13 +2444,17 @@ Widget _buildIntPg14Widget(Map<String, dynamic> doc) {
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     children: [
-      _intRelativeBlock(74, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc, hasAccomplice: true),
+      _intRelativeBlock(74, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc,
+          hasAccomplice: true),
       const SizedBox(height: 8),
-      _intRelativeBlock(75, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc, hasAccomplice: true),
+      _intRelativeBlock(75, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc,
+          hasAccomplice: true),
       const SizedBox(height: 8),
-      _intRelativeBlock(76, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc, hasAccomplice: true),
+      _intRelativeBlock(76, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc,
+          hasAccomplice: true),
       const SizedBox(height: 8),
-      _intRelativeBlock(77, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc, hasAccomplice: true),
+      _intRelativeBlock(77, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc,
+          hasAccomplice: true),
     ],
   );
 }
@@ -2301,9 +2464,11 @@ Widget _buildIntPg15Widget(Map<String, dynamic> doc) {
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     children: [
-      _intRelativeBlock(78, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc, hasAccomplice: true),
+      _intRelativeBlock(78, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc,
+          hasAccomplice: true),
       const SizedBox(height: 8),
-      _intRelativeBlock(79, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc, hasAccomplice: true),
+      _intRelativeBlock(79, 'आरोपीच्या साथीदाराचे संपुर्ण नांव व पत्ता', doc,
+          hasAccomplice: true),
       const SizedBox(height: 8),
       Table(
         border: TableBorder.all(color: Colors.black, width: 0.6),
@@ -2313,10 +2478,14 @@ Widget _buildIntPg15Widget(Map<String, dynamic> doc) {
           2: FlexColumnWidth(4.2),
         },
         children: [
-          _intSimpleRow('80.', 'गुन्हा करण्यासाठी जास्त आवडीचे ठिकाण', v('favoriteCrimePlace')),
-          _intSimpleRow('81.', 'गुन्हा करणाऱ्या टोळीतील सुत्रधाराचे नांव', v('gangLeaderName')),
-          _intSimpleRow('82.', 'गुन्हा करण्यासाठी जातांना प्रवास कशाने करतात', v('travelToCrimeMethod')),
-          _intSimpleRow('83.', 'गुन्हा करून परत जातांना प्रवास कशाने करतात', v('travelFromCrimeMethod')),
+          _intSimpleRow('80.', 'गुन्हा करण्यासाठी जास्त आवडीचे ठिकाण',
+              v('favoriteCrimePlace')),
+          _intSimpleRow('81.', 'गुन्हा करणाऱ्या टोळीतील सुत्रधाराचे नांव',
+              v('gangLeaderName')),
+          _intSimpleRow('82.', 'गुन्हा करण्यासाठी जातांना प्रवास कशाने करतात',
+              v('travelToCrimeMethod')),
+          _intSimpleRow('83.', 'गुन्हा करून परत जातांना प्रवास कशाने करतात',
+              v('travelFromCrimeMethod')),
         ],
       ),
       const SizedBox(height: 12),
@@ -2328,7 +2497,8 @@ Widget _buildIntPg15Widget(Map<String, dynamic> doc) {
   );
 }
 
-TableRow _intFeatureRow(String k1, String lbl1, String k2, String lbl2, Map<String, dynamic> doc) {
+TableRow _intFeatureRow(
+    String k1, String lbl1, String k2, String lbl2, Map<String, dynamic> doc) {
   final bool val1 = doc[k1] == true || doc[k1] == 'true';
   final bool val2 = doc[k2] == true || doc[k2] == 'true';
   return TableRow(
@@ -2345,7 +2515,9 @@ TableRow _intFeatureRow(String k1, String lbl1, String k2, String lbl2, Map<Stri
               ),
               child: val1
                   ? const Center(
-                      child: Text('X', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold)),
+                      child: Text('X',
+                          style: TextStyle(
+                              fontSize: 6, fontWeight: FontWeight.bold)),
                     )
                   : null,
             ),
@@ -2366,7 +2538,9 @@ TableRow _intFeatureRow(String k1, String lbl1, String k2, String lbl2, Map<Stri
               ),
               child: val2
                   ? const Center(
-                      child: Text('X', style: TextStyle(fontSize: 6, fontWeight: FontWeight.bold)),
+                      child: Text('X',
+                          style: TextStyle(
+                              fontSize: 6, fontWeight: FontWeight.bold)),
                     )
                   : null,
             ),
@@ -2392,14 +2566,29 @@ Widget _buildIntPg16Widget(Map<String, dynamic> doc) {
           2: FlexColumnWidth(4.2),
         },
         children: [
-          _intSimpleRow('84.', 'गुन्ह्यात कोणत्या हत्याराचा व वाहनाचा वापर करतात', v('weaponsVehiclesUsed')),
-          _intSimpleRow('85.', 'गुन्ह्यात मिळालेल्या मुद्देमालाची वाटणी कोठे व कशी करतात.', v('bootyDistribution')),
-          _intSimpleRow('86.', 'गुन्ह्यात मिळालेल्या पैश्याची विल्हेवाट', v('moneyDisposal')),
-          _intSimpleRow('87.', 'गुन्ह्यात मिळालेल्या मौल्यवान वस्तुंची विल्हेवाट चांदी/ सोने व इतर वस्तु', v('valuablesDisposal')),
+          _intSimpleRow(
+              '84.',
+              'गुन्ह्यात कोणत्या हत्याराचा व वाहनाचा वापर करतात',
+              v('weaponsVehiclesUsed')),
+          _intSimpleRow(
+              '85.',
+              'गुन्ह्यात मिळालेल्या मुद्देमालाची वाटणी कोठे व कशी करतात.',
+              v('bootyDistribution')),
+          _intSimpleRow('86.', 'गुन्ह्यात मिळालेल्या पैश्याची विल्हेवाट',
+              v('moneyDisposal')),
+          _intSimpleRow(
+              '87.',
+              'गुन्ह्यात मिळालेल्या मौल्यवान वस्तुंची विल्हेवाट चांदी/ सोने व इतर वस्तु',
+              v('valuablesDisposal')),
           TableRow(
             children: [
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('88.', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('गुन्ह्याचे वैशिष्टये लागे असल्यास मार्क करणे')),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('88.', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText(
+                      'गुन्ह्याचे वैशिष्टये लागे असल्यास मार्क करणे')),
               Padding(
                 padding: const EdgeInsets.all(2),
                 child: Table(
@@ -2409,25 +2598,81 @@ Widget _buildIntPg16Widget(Map<String, dynamic> doc) {
                     1: FlexColumnWidth(1),
                   },
                   children: [
-                    _intFeatureRow('feat_defecate', 'घटनास्थळी संडास करणे', 'feat_rape', 'घटनास्थळी स्त्रि /मुलीवर बलात्कार करणे', doc),
-                    _intFeatureRow('feat_cook', 'स्वयंपाक करण्यास लावणे', 'feat_smoke_spit', 'घटनास्थळी बीडी सिगारेट पिणे थुंकने', doc),
-                    _intFeatureRow('feat_spray', 'फिर्यादीचे चेहऱ्यावर स्प्रे मारणे', 'feat_brought_weapon_assault', 'सोबत आणलेल्या हत्याराने मारहाण करणे', doc),
-                    _intFeatureRow('feat_tie_victims', 'घरातील लोकांना बांधुन ठेवणे', 'feat_spot_weapon_assault', 'घटनास्थळावरील हत्यार घेवुन मारहाण करणे', doc),
-                    _intFeatureRow('feat_latch_neighbors', 'शेजारच्या घरांना कड्या लावणे', 'feat_mask_handkerchief', 'चेहऱ्यावर रूमाल बांधुन गुन्हा करणे', doc),
-                    _intFeatureRow('feat_impersonate_police', 'पोलीस असल्याची बतावणी करणे', 'feat_half_pant_baniyan', 'गुन्हा करतांना हाफ पॅन्ट व बनियान वापरणे', doc),
-                    _intFeatureRow('feat_theft_with_inhabitants', 'घरात लोक असतांना चोरी करणे', 'feat_theft_locked_house', 'घराला कुलुप असतांना चोरी करणे', doc),
-                    _intFeatureRow('feat_wall_hole_theft', 'भिंतीला छिद्र पाडुन चोरी करणे', 'feat_intercept_motorcycle', 'वाहनास मोटार सायकलवर येऊन अडवीणे', doc),
-                    _intFeatureRow('feat_target_follow', 'सावज हेरून गुन्हा पाठलाग करणे', 'feat_rope_across_road', 'दोर आडवा लावुन मोटार सायकल अडविणे', doc),
+                    _intFeatureRow(
+                        'feat_defecate',
+                        'घटनास्थळी संडास करणे',
+                        'feat_rape',
+                        'घटनास्थळी स्त्रि /मुलीवर बलात्कार करणे',
+                        doc),
+                    _intFeatureRow(
+                        'feat_cook',
+                        'स्वयंपाक करण्यास लावणे',
+                        'feat_smoke_spit',
+                        'घटनास्थळी बीडी सिगारेट पिणे थुंकने',
+                        doc),
+                    _intFeatureRow(
+                        'feat_spray',
+                        'फिर्यादीचे चेहऱ्यावर स्प्रे मारणे',
+                        'feat_brought_weapon_assault',
+                        'सोबत आणलेल्या हत्याराने मारहाण करणे',
+                        doc),
+                    _intFeatureRow(
+                        'feat_tie_victims',
+                        'घरातील लोकांना बांधुन ठेवणे',
+                        'feat_spot_weapon_assault',
+                        'घटनास्थळावरील हत्यार घेवुन मारहाण करणे',
+                        doc),
+                    _intFeatureRow(
+                        'feat_latch_neighbors',
+                        'शेजारच्या घरांना कड्या लावणे',
+                        'feat_mask_handkerchief',
+                        'चेहऱ्यावर रूमाल बांधुन गुन्हा करणे',
+                        doc),
+                    _intFeatureRow(
+                        'feat_impersonate_police',
+                        'पोलीस असल्याची बतावणी करणे',
+                        'feat_half_pant_baniyan',
+                        'गुन्हा करतांना हाफ पॅन्ट व बनियान वापरणे',
+                        doc),
+                    _intFeatureRow(
+                        'feat_theft_with_inhabitants',
+                        'घरात लोक असतांना चोरी करणे',
+                        'feat_theft_locked_house',
+                        'घराला कुलुप असतांना चोरी करणे',
+                        doc),
+                    _intFeatureRow(
+                        'feat_wall_hole_theft',
+                        'भिंतीला छिद्र पाडुन चोरी करणे',
+                        'feat_intercept_motorcycle',
+                        'वाहनास मोटार सायकलवर येऊन अडवीणे',
+                        doc),
+                    _intFeatureRow(
+                        'feat_target_follow',
+                        'सावज हेरून गुन्हा पाठलाग करणे',
+                        'feat_rope_across_road',
+                        'दोर आडवा लावुन मोटार सायकल अडविणे',
+                        doc),
                   ],
                 ),
               ),
             ],
           ),
-          _intSimpleRow('89.', 'गुन्ह्याचे घटनास्थळा पासुन साथीदारांसह एकत्र जातात की वेगवेगळ्या दिशेने जातात', v('escapeRoutesTogetherOrApart')),
-          _intSimpleRow('90.', 'गुन्हा करतेवेळी पोलीस आल्यास कुठली तयारी असते', v('policeArrivalPlan')),
-          _intSimpleRow('91.', 'गुन्हा करतांना लोक जागे झाल्यास कोणती तयारी असते', v('peopleWakePlan')),
-          _intSimpleRow('92.', 'गुन्ह्यात लोकांनी प्रतिकार केल्यास कोणी तयारी असते', v('resistancePlan')),
-          _intSimpleRow('93.', 'गुन्हा करतांना वापरावयाची भाषा', v('crimeLanguage')),
+          _intSimpleRow(
+              '89.',
+              'गुन्ह्याचे घटनास्थळा पासुन साथीदारांसह एकत्र जातात की वेगवेगळ्या दिशेने जातात',
+              v('escapeRoutesTogetherOrApart')),
+          _intSimpleRow('90.', 'गुन्हा करतेवेळी पोलीस आल्यास कुठली तयारी असते',
+              v('policeArrivalPlan')),
+          _intSimpleRow(
+              '91.',
+              'गुन्हा करतांना लोक जागे झाल्यास कोणती तयारी असते',
+              v('peopleWakePlan')),
+          _intSimpleRow(
+              '92.',
+              'गुन्ह्यात लोकांनी प्रतिकार केल्यास कोणी तयारी असते',
+              v('resistancePlan')),
+          _intSimpleRow(
+              '93.', 'गुन्हा करतांना वापरावयाची भाषा', v('crimeLanguage')),
         ],
       ),
       const SizedBox(height: 12),
@@ -2456,15 +2701,22 @@ Widget _buildIntPg17Widget(Map<String, dynamic> doc) {
         children: [
           TableRow(
             children: [
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('94.', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(3), child: _intLblText('विरोधाकाचे व साथीदार यांचे नांव व पत्ता व विरोध करण्याचे त्याचे कारण')),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('94.', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: _intLblText(
+                      'विरोधाकाचे व साथीदार यांचे नांव व पत्ता व विरोध करण्याचे त्याचे कारण')),
               Column(
                 children: [
                   for (int i = 0; i < 5; i++)
                     Container(
                       decoration: i < 4
                           ? const BoxDecoration(
-                              border: Border(bottom: BorderSide(color: Colors.black, width: 0.5)),
+                              border: Border(
+                                  bottom: BorderSide(
+                                      color: Colors.black, width: 0.5)),
                             )
                           : null,
                       child: Row(
@@ -2473,13 +2725,17 @@ Widget _buildIntPg17Widget(Map<String, dynamic> doc) {
                             width: 20,
                             alignment: Alignment.center,
                             padding: const EdgeInsets.symmetric(vertical: 2),
-                            child: _intLblText(devNums[i], align: TextAlign.center),
+                            child: _intLblText(devNums[i],
+                                align: TextAlign.center),
                           ),
-                          Container(width: 0.5, height: 16, color: Colors.black),
+                          Container(
+                              width: 0.5, height: 16, color: Colors.black),
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              child: _intValText(v('rivalAccompliceReason${i + 1}')),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 2),
+                              child: _intValText(
+                                  v('rivalAccompliceReason${i + 1}')),
                             ),
                           ),
                         ],
@@ -2489,16 +2745,33 @@ Widget _buildIntPg17Widget(Map<String, dynamic> doc) {
               ),
             ],
           ),
-          _intSimpleRow('95.', 'गुन्हा करतांना दोन टोळ्या एकत्र होतात काय', v('gangMerger')),
-          _intSimpleRow('96.', 'दुसऱ्या टोळी बरोबर वाद आहे काय असल्यास वादाचे कारण', v('rivalGangDisputeReason')),
-          _intSimpleRow('97.', 'गुन्ह्यात एखादा साथीदार जखमी असल्यास कोणती तयारी असते', v('injuredAccomplicePlan')),
-          _intSimpleRow('98.', 'गुन्ह्यात एखादा साथीदार अटक झाल्यास त्याला कोणत्या पध्दतीने सोडवितात', v('arrestedAccompliceReleasePlan')),
-          _intSimpleRow('99.', 'कुठल्या हंगामात गुन्हा करण्याचे सोईचे जाते त्याचे कारण काय', v('favorableSeasonReason')),
-          _intSimpleRow('100.', 'गुन्हेगाराला ओळखणारे अधिकारी व कर्मचारी यांचे नांव व मो नं', v('officersRecognizingCriminal')),
+          _intSimpleRow('95.', 'गुन्हा करतांना दोन टोळ्या एकत्र होतात काय',
+              v('gangMerger')),
+          _intSimpleRow(
+              '96.',
+              'दुसऱ्या टोळी बरोबर वाद आहे काय असल्यास वादाचे कारण',
+              v('rivalGangDisputeReason')),
+          _intSimpleRow(
+              '97.',
+              'गुन्ह्यात एखादा साथीदार जखमी असल्यास कोणती तयारी असते',
+              v('injuredAccomplicePlan')),
+          _intSimpleRow(
+              '98.',
+              'गुन्ह्यात एखादा साथीदार अटक झाल्यास त्याला कोणत्या पध्दतीने सोडवितात',
+              v('arrestedAccompliceReleasePlan')),
+          _intSimpleRow(
+              '99.',
+              'कुठल्या हंगामात गुन्हा करण्याचे सोईचे जाते त्याचे कारण काय',
+              v('favorableSeasonReason')),
+          _intSimpleRow(
+              '100.',
+              'गुन्हेगाराला ओळखणारे अधिकारी व कर्मचारी यांचे नांव व मो नं',
+              v('officersRecognizingCriminal')),
         ],
       ),
       const SizedBox(height: 8),
-      _intLblText('101 आज पावेतो किती गुन्हे केले आहे त्याचे वर्णन :—', sz: 9.5),
+      _intLblText('101 आज पावेतो किती गुन्हे केले आहे त्याचे वर्णन :—',
+          sz: 9.5),
       const SizedBox(height: 4),
       Table(
         border: TableBorder.all(color: Colors.black, width: 0.6),
@@ -2513,27 +2786,51 @@ Widget _buildIntPg17Widget(Map<String, dynamic> doc) {
           TableRow(
             decoration: const BoxDecoration(color: Color(0xFFEEEEEE)),
             children: [
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('अ.क्र', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('ठिकाण', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('दिनांक व वेळ', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('मिळाला माल', align: TextAlign.center)),
-              Padding(padding: const EdgeInsets.all(2), child: _intLblText('साथीदारांचे नांव व माहिती', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('अ.क्र', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('ठिकाण', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('दिनांक व वेळ', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('मिळाला माल', align: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: _intLblText('साथीदारांचे नांव व माहिती',
+                      align: TextAlign.center)),
             ],
           ),
           for (int i = 0; i < 10; i++)
             TableRow(
               children: [
-                Padding(padding: const EdgeInsets.all(2), child: _intLblText('${i + 1}.', align: TextAlign.center)),
-                Padding(padding: const EdgeInsets.all(2), child: _intValText(v('pastCrimePlace${i + 1}'))),
-                Padding(padding: const EdgeInsets.all(2), child: _intValText(v('pastCrimeDateTime${i + 1}'))),
-                Padding(padding: const EdgeInsets.all(2), child: _intValText(v('pastCrimeGoods${i + 1}'))),
-                Padding(padding: const EdgeInsets.all(2), child: _intValText(v('pastCrimeAccomplices${i + 1}'))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: _intLblText('${i + 1}.', align: TextAlign.center)),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: _intValText(v('pastCrimePlace${i + 1}'))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: _intValText(v('pastCrimeDateTime${i + 1}'))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: _intValText(v('pastCrimeGoods${i + 1}'))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: _intValText(v('pastCrimeAccomplices${i + 1}'))),
               ],
             ),
         ],
       ),
       const SizedBox(height: 6),
-      _intLblText('टिप :— सावत्र आई किंवा इतर विशेष माहिती असल्यास त्याचे करीता पुरवणी कागद वापरावा', bold: false, sz: 7.5),
+      _intLblText(
+          'टिप :— सावत्र आई किंवा इतर विशेष माहिती असल्यास त्याचे करीता पुरवणी कागद वापरावा',
+          bold: false,
+          sz: 7.5),
       const SizedBox(height: 12),
       Row(
         mainAxisAlignment: MainAxisAlignment.end,

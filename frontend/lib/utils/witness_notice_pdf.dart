@@ -617,7 +617,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       underlineField(addr3, width: double.infinity),
       const SizedBox(height: 20),
       Center(
-        child: Text('० ० ० ०', style: bld.copyWith(fontSize: 13, letterSpacing: 4)),
+        child: Text('० ० ० ०',
+            style: bld.copyWith(fontSize: 13, letterSpacing: 4)),
       ),
       const SizedBox(height: 16),
       Row(

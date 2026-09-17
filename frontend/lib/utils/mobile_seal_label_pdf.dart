@@ -530,10 +530,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                       'सिम कार्ड आहे किं नाही असल्यास खालील माहिती (होय / नाही)',
                       v('simCardPresent')),
                   subRow('सिम कंपनी', v('simCompany')),
-                  subRow('सिमचा कॉलींग क्रमांक',
-                      v('simCallingNo', v('simNo'))),
-                  subRow('सिमकार्डवर दिसणारा सीरीयल क्र',
-                      v('simCardSerialNo')),
+                  subRow('सिमचा कॉलींग क्रमांक', v('simCallingNo', v('simNo'))),
+                  subRow('सिमकार्डवर दिसणारा सीरीयल क्र', v('simCardSerialNo')),
                   subRow(
                       'मेमरी कार्ड आहे किं नाही असल्यास खालील माहिती (होय / नाही)',
                       v('memoryCardPresent')),
@@ -604,8 +602,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               cell(
                 Column(
                   children: [
-                    Text('सिल नमुना',
-                        style: bld, textAlign: TextAlign.center),
+                    Text('सिल नमुना', style: bld, textAlign: TextAlign.center),
                     const SizedBox(height: 24),
                     Text(sealSample, style: valStyle),
                   ],
