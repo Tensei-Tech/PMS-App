@@ -4,23 +4,29 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'form_image_pdf_helper.dart';
+
 Future<void> previewReasonOfArrestPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateReasonOfArrestPdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Reason_of_Arrest_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  final section = (doc['formSection']?.toString() ?? '').toLowerCase();
+  final showMain = section.isEmpty ||
+      (section.contains('main') && !section.contains('continuation'));
+  final showCont = section.isEmpty || section.contains('continuation');
+
+  final pages = <Widget>[];
+  if (showMain) pages.add(_buildPg1Widget(doc));
+  if (showCont) pages.add(_buildPg2Widget(doc));
+
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: pages,
+    fallbackPdfGenerator: () => generateReasonOfArrestPdf(doc),
+  );
 }
 
 Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
@@ -532,4 +538,461 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
   }
 
   return pdf.save();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+Widget _buildPg1Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final outwardNo = v('outwardNo');
+  final outwardYear = v('outwardYear', '२०२५');
+  final policeStation = v('policeStation', v('subjectPs'));
+  final taluka = v('taluka', v('ioTaluka'));
+  final district = v('district', v('ioDistrict'));
+  final noticeDate = v('noticeDate');
+  final accusedNameAddress = v('accusedNameAddress');
+  final subjectPs = v('subjectPs', policeStation);
+  final subjectCrNo = v('subjectCrNo');
+  final subjectSection = v('subjectSection');
+  final ioName = v('ioName', v('ioNameRank'));
+
+  final reg = FormImagePdfHelper.mReg(10.5, 1.45);
+  final bld = FormImagePdfHelper.mBld(10.5, 1.45);
+  final headerStyle = FormImagePdfHelper.mBld(11, 1.3);
+  final titleStyle = FormImagePdfHelper.mBld(14.5, 1.3);
+
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    height: FormImagePdfHelper.a4Height,
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 26),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Text(
+            'भारतीय नागरीक सुरक्षा संहिता,२०२३ चे कलम ३५ (१)(ब)(ii) नुसार अन्वये',
+            style: headerStyle,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Center(
+          child: Text(
+            'सुचनापत्र',
+            style: titleStyle,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.topRight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: reg,
+                  children: [
+                    const TextSpan(text: 'जावक.क्रमांक- '),
+                    TextSpan(
+                      text: outwardNo.isNotEmpty
+                          ? '  $outwardNo  '
+                          : '          ',
+                      style: bld,
+                    ),
+                    TextSpan(text: '/$outwardYear'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 2),
+              RichText(
+                text: TextSpan(
+                  style: reg,
+                  children: [
+                    const TextSpan(text: 'पोलीस स्टेशन '),
+                    TextSpan(
+                      text: policeStation.isNotEmpty
+                          ? policeStation
+                          : '-------------',
+                      style: bld,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 2),
+              RichText(
+                text: TextSpan(
+                  style: reg,
+                  children: [
+                    const TextSpan(text: 'ता.'),
+                    TextSpan(
+                      text: taluka.isNotEmpty ? taluka : '---------',
+                      style: bld,
+                    ),
+                    const TextSpan(text: ' -जिल्हा'),
+                    TextSpan(
+                      text: district.isNotEmpty ? district : '----------',
+                      style: bld,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 2),
+              RichText(
+                text: TextSpan(
+                  style: reg,
+                  children: [
+                    const TextSpan(text: 'दिनांक:- '),
+                    TextSpan(
+                      text:
+                          noticeDate.isNotEmpty ? noticeDate : '    /    /२०२५',
+                      style: bld,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text('प्रति,', style: bld),
+        const SizedBox(height: 2),
+        RichText(
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(text: 'नाव व पत्ता '),
+              TextSpan(
+                text: accusedNameAddress.isNotEmpty
+                    ? accusedNameAddress
+                    : '---------------------------------------------------------------------------------------------------------------------------------------------------',
+                style: accusedNameAddress.isNotEmpty ? bld : reg,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(text: 'विषय:- पोलीस स्टेशन '),
+              TextSpan(
+                text: subjectPs.isNotEmpty ? subjectPs : '---------',
+                style: bld,
+              ),
+              const TextSpan(text: ' गुन्हा रजि.क्र.'),
+              TextSpan(
+                text: subjectCrNo.isNotEmpty ? subjectCrNo : '-------',
+                style: bld,
+              ),
+              const TextSpan(text: 'कलम '),
+              TextSpan(
+                text: subjectSection.isNotEmpty ? subjectSection : '-----',
+                style: bld,
+              ),
+              const TextSpan(
+                text:
+                    ' --- भा.न्या.स. नुसार दाखल असलेल्या गुन्ह्यांचे अनुषंगाने आरोपीस अटक करतांना अटक करण्यासाठी आधारभूत मुद्दे आणि अटकेची कारणे कळविणे बाबत.',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(
+                text:
+                    '       आपणास या सुचनापत्राद्वारे कळविण्यात येते की,आपल्या विरुद्ध पोलीस ठाणे ',
+              ),
+              TextSpan(
+                text:
+                    policeStation.isNotEmpty ? policeStation : '-------------',
+                style: bld,
+              ),
+              const TextSpan(text: 'येथे गुन्हा रजि.क्र.'),
+              TextSpan(
+                text: subjectCrNo.isNotEmpty ? subjectCrNo : '-------',
+                style: bld,
+              ),
+              const TextSpan(text: '/-- कलम '),
+              TextSpan(
+                text:
+                    subjectSection.isNotEmpty ? subjectSection : '------------',
+                style: bld,
+              ),
+              const TextSpan(
+                text:
+                    ' भारतीय न्याय संहिता २०२३ अन्वये गुन्हा नोंद करण्यात आला असुन,आम्ही',
+              ),
+              TextSpan(
+                text: ioName.isNotEmpty ? ioName : '--------------',
+                style: bld,
+              ),
+              const TextSpan(
+                text:
+                    ' तपासी अधिकारी म्हणून सदर गुन्ह्यांचा तपास करीत आहोत.सदर गुन्ह्यांचे तपासकामी आपणास अटक करणे गरजेचे असून भारतीय नागरीक सुरक्षा संहिता २०२३ चे कलम ३५ (१)(ब)(ii) नुसार ) अटकेची कारणे खालील प्रमाणे आहेत.',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            'अटकेची कारणे (REASONS FOR ARREST)',
+            style: FormImagePdfHelper.mBld(10.5),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 8),
+        for (var i = 1; i <= 5; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: RichText(
+              text: TextSpan(
+                style: reg,
+                children: [
+                  TextSpan(
+                    text: '${['१', '२', '३', '४', '५'][i - 1]}. ',
+                    style: bld,
+                  ),
+                  TextSpan(
+                    text: v('reason$i').isNotEmpty
+                        ? v('reason$i')
+                        : '---------------------------------------------------------------------------------------------------------------------------------------------------',
+                    style: v('reason$i').isNotEmpty ? bld : reg,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        const Spacer(),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Text('२..', style: bld),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildPg2Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final relativeName = v('relativeName');
+  final relativeAddress = v('relativeAddress');
+  final relativePhone = v('relativePhone');
+  final accusedSig = v('accusedSig');
+  final accusedNameSig = v('accusedNameSig');
+  final accusedDateTime = v('accusedDateTime');
+  final ioNameRank = v('ioNameRank');
+  final ioPs = v('ioPs');
+  final ioTaluka = v('ioTaluka');
+  final ioDistrict = v('ioDistrict');
+
+  final reg = FormImagePdfHelper.mReg(10.5, 1.45);
+  final bld = FormImagePdfHelper.mBld(10.5, 1.45);
+
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    height: FormImagePdfHelper.a4Height,
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 26),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Text(
+            '..२..',
+            style: FormImagePdfHelper.mBld(12),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 18),
+        RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: reg,
+            children: const [
+              TextSpan(
+                text:
+                    '       आपणास असेही कळविण्यांत येते की, नमुद गुन्हा हा दखलपात्र असुन अजामीनपात्र आहे आणि त्यामुळे आपण त्या गुन्ह्यात न्यायालयात जामिनाचा अर्ज सादर करुन न्यायालयाचे आदेशाने जामिनावर मुक्त होवु शकता.',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(
+                text: '       आपल्या अटकेची माहीती आपले नातेवाईक/ मित्र ',
+              ),
+              TextSpan(
+                text: relativeName.isNotEmpty
+                    ? relativeName
+                    : '-----------------',
+                style: bld,
+              ),
+              const TextSpan(text: 'रा.'),
+              TextSpan(
+                text: relativeAddress.isNotEmpty
+                    ? relativeAddress
+                    : '------------------',
+                style: bld,
+              ),
+              const TextSpan(
+                text: 'यांना लेखी सुचनेव्दारे/फोन क्रमांक ',
+              ),
+              TextSpan(
+                text: relativePhone.isNotEmpty ? relativePhone : '---------',
+                style: bld,
+              ),
+              const TextSpan(
+                text: 'यावर संपर्क करुन देण्यांत आली आहे.',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        RichText(
+          text: TextSpan(
+            style: reg,
+            children: const [
+              TextSpan(
+                text: '       याकरीता आपणास सुचनापत्र देण्यांत येत आहे.',
+              ),
+            ],
+          ),
+        ),
+        const Spacer(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('मला सुचनापत्र प्राप्त झाले', style: bld),
+                const SizedBox(height: 12),
+                RichText(
+                  text: TextSpan(
+                    style: bld,
+                    children: [
+                      const TextSpan(text: '(आरोपीची सही) '),
+                      TextSpan(
+                        text:
+                            accusedSig.isNotEmpty ? accusedSig : '-----------',
+                        style: bld,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                RichText(
+                  text: TextSpan(
+                    style: bld,
+                    children: [
+                      const TextSpan(text: 'आरोपीचे नांव'),
+                      TextSpan(
+                        text: accusedNameSig.isNotEmpty
+                            ? ' $accusedNameSig'
+                            : '-------------',
+                        style: bld,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                RichText(
+                  text: TextSpan(
+                    style: bld,
+                    children: [
+                      const TextSpan(text: 'दिनांक : व वेळ'),
+                      TextSpan(
+                        text: accusedDateTime.isNotEmpty
+                            ? ' $accusedDateTime'
+                            : '----------',
+                        style: bld,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('तपास अधि सही/-', style: bld),
+                const SizedBox(height: 12),
+                RichText(
+                  text: TextSpan(
+                    style: bld,
+                    children: [
+                      const TextSpan(text: 'नाव/हुद्दा'),
+                      TextSpan(
+                        text: ioNameRank.isNotEmpty
+                            ? ' $ioNameRank'
+                            : '----------',
+                        style: bld,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                RichText(
+                  text: TextSpan(
+                    style: bld,
+                    children: [
+                      const TextSpan(text: 'पोलीस स्टेशन'),
+                      TextSpan(
+                        text: ioPs.isNotEmpty ? ' $ioPs' : '-----------',
+                        style: bld,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                RichText(
+                  text: TextSpan(
+                    style: bld,
+                    children: [
+                      const TextSpan(text: 'ता.'),
+                      TextSpan(
+                        text: ioTaluka.isNotEmpty ? ' $ioTaluka ' : '-------',
+                        style: bld,
+                      ),
+                      const TextSpan(text: ' जिल्हा'),
+                      TextSpan(
+                        text: ioDistrict.isNotEmpty
+                            ? ' $ioDistrict'
+                            : '---------',
+                        style: bld,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
 }

@@ -4,23 +4,20 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'form_image_pdf_helper.dart';
+
 Future<void> previewGroundOfArrestPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateGroundOfArrestPdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Ground_of_Arrest_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPg1Widget(doc), _buildPg2Widget(doc)],
+    fallbackPdfGenerator: () => generateGroundOfArrestPdf(doc),
+  );
 }
 
 Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
@@ -405,4 +402,336 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
   );
 
   return pdf.save();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+Widget _buildPg1Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final outwardNo = v('outwardNo', '          ');
+  final outwardYear = v('outwardYear', '२५');
+  final policeStation = v('policeStation', '------------------');
+  final taluka = v('taluka', '------------');
+  final district = v('district', '--------------');
+  final noticeDate = v('noticeDate', '     /       /२०२५');
+
+  final accusedNameAddress = v(
+    'accusedNameAddress',
+    '---------------------------------------------------------------------------------------',
+  );
+  final accusedNameAddressLine2 = v(
+    'accusedNameAddressLine2',
+    '----------------------------------------------------------------------------------------------------',
+  );
+
+  final subjectPs = v('subjectPs', '----------');
+  final subjectCrNo = v('subjectCrNo', '-------');
+  final subjectSection = v('subjectSection', '----- ---');
+
+  final firPs = v('firPs', '-------------------');
+  final firCrNo = v('firCrNo', '-------');
+  final firCrYear = v('firCrYear', '--');
+  final firActSec = v('firActSec', '------------');
+  final ioName = v('ioName', '--------------------');
+
+  final briefDescription = v(
+    'briefDescription',
+    '----------------------------------------------------------------------',
+  );
+  final briefDescLine2 = v(
+    'briefDescLine2',
+    '----------------------------------------------------------------------------------------------------',
+  );
+  final briefDescLine3 = v(
+    'briefDescLine3',
+    '----------------------------------------------------------------------------------------------------',
+  );
+  final briefDescLine4 = v(
+    'briefDescLine4',
+    '----------------------------------------------------------------------------------------------------',
+  );
+  final briefDescLine5 = v(
+    'briefDescLine5',
+    '-------------------------------------------------',
+  );
+
+  final reg = FormImagePdfHelper.mReg(10.5, 1.45);
+  final bld = FormImagePdfHelper.mBld(10.5, 1.45);
+  final headerTitle = FormImagePdfHelper.mBld(13.5, 1.3);
+
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    height: FormImagePdfHelper.a4Height,
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 40),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: Column(
+            children: [
+              Text(
+                'भारतीय नागरीक सुरक्षा संहिता, २०२३ चे कलम ४७ (१)(२) अन्वये',
+                style: headerTitle,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 3),
+              Text('सुचनापत्र', style: headerTitle),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Align(
+          alignment: Alignment.topRight,
+          child: SizedBox(
+            width: 260,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('जावक.क्रमांक- $outwardNo /२०$outwardYear', style: reg),
+                const SizedBox(height: 2),
+                Text('पोलीस स्टेशन $policeStation', style: reg),
+                const SizedBox(height: 2),
+                Text('ता.-$taluka -जिल्हा-$district', style: reg),
+                const SizedBox(height: 2),
+                Text('दिनांक:- $noticeDate', style: reg),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text('प्रति,', style: bld),
+        const SizedBox(height: 4),
+        Text('नाव व पत्ता $accusedNameAddress', style: reg),
+        Text(accusedNameAddressLine2, style: reg),
+        const SizedBox(height: 16),
+        RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: reg,
+            children: [
+              TextSpan(
+                text:
+                    'विषय:- पोलीस स्टेशन $subjectPs गुन्हा रजि.क्र.$subjectCrNo कलम $subjectSection भा.न्या.स.\n',
+                style: bld,
+              ),
+              const TextSpan(
+                text:
+                    '        नुसार दाखल असलेल्या गुन्ह्यांचे अनुषंगाने आरोपीस अटक करतांना अटक\n        करण्यासाठी आधारभूत मुद्दे आणि अटकेची कारणे कळविणे बाबत.',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(
+                text:
+                    '        आपणास या सुचनापत्राद्वारे कळविण्यात येते की,आपल्या विरुद्ध पोलीस ठाणे ',
+              ),
+              TextSpan(text: '$firPs ', style: bld),
+              const TextSpan(text: 'येथे गुन्हा रजि.क्र.'),
+              TextSpan(text: '$firCrNo/$firCrYear ', style: bld),
+              const TextSpan(text: 'कलम '),
+              TextSpan(text: '$firActSec ', style: bld),
+              const TextSpan(
+                text:
+                    'भारतीय न्याय संहिता २०२३ अन्वये गुन्हा नोंद करण्यात आला असुन, आम्ही ',
+              ),
+              TextSpan(text: '$ioName ', style: bld),
+              const TextSpan(
+                text:
+                    'तपासी अधिकारी म्हणून सदर गुन्ह्यांचा तपास करीत आहोत.सदर गुन्ह्यांचे तपासकामी आपणास अटक करणे गरजेचे असून भारतीय नागरीक सुरक्षा संहिता २०२३ चे कलम ४७ (१)(२) नुसार आपणास अटक करण्यासाठी आधारभूत मुद्दे (भारतीय नागरीक सुरक्षा संहिता २०२३ चे कलम ४७ (१)(२) नुसार ) खालील प्रमाणे आहेत.',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text('गुन्ह्यांचे संक्षीप्त विवरण :- $briefDescription', style: reg),
+        Text(briefDescLine2, style: reg),
+        Text(briefDescLine3, style: reg),
+        Text(briefDescLine4, style: reg),
+        Text(briefDescLine5, style: reg),
+        const SizedBox(height: 16),
+        Text('(अधिक माहितीसाठी फिर्यादीची प्रत सोबत जोडली आहे)', style: reg),
+        const Spacer(),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Text('२..', style: bld),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildPg2Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final ground1 = v('ground1',
+      '-----------------------------------------------------------------------------------------------');
+  final ground1Line2 = v('ground1Line2',
+      '-----------------------------------------------------------------------------------------------');
+  final ground2 = v('ground2',
+      '-----------------------------------------------------------------------------------------------');
+  final ground2Line2 = v('ground2Line2',
+      '-----------------------------------------------------------------------------------------------');
+  final ground3 = v('ground3',
+      '-----------------------------------------------------------------------------------------------');
+  final ground3Line2 = v('ground3Line2',
+      '-----------------------------------------------------------------------------------------------');
+  final ground4 = v('ground4',
+      '-----------------------------------------------------------------------------------------------');
+  final ground4Line2 = v('ground4Line2',
+      '-----------------------------------------------------------------------------------------------');
+  final ground5 = v('ground5',
+      '-----------------------------------------------------------------------------------------------');
+  final ground5Line2 = v('ground5Line2',
+      '-----------------------------------------------------------------------------------------------');
+
+  final relativeName = v('relativeName', '----------------');
+  final relativeAddress = v('relativeAddress', '--------------------');
+  final relativePhone = v('relativePhone', '---------');
+
+  final accusedSig = v('accusedSig', '-----------------');
+  final accusedName = v('accusedName', '----- ---------');
+  final accusedDateTime = v('accusedDateTime', '-----------------');
+
+  final ioSig = v('ioSig', '');
+  final ioNameRank = v('ioNameRank', '------------');
+  final ioPs = v('ioPs', '----------');
+  final ioTah = v('ioTah', '-------');
+  final ioDist = v('ioDist', '---------');
+
+  final reg = FormImagePdfHelper.mReg(10.5, 1.45);
+  final bld = FormImagePdfHelper.mBld(10.5, 1.45);
+  final headerTitle = FormImagePdfHelper.mBld(13.5, 1.3);
+
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    height: FormImagePdfHelper.a4Height,
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 40),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(child: Text('..२..', style: bld)),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            'अटक करण्यासाठी आधारभूत मुद्दे (GROUNDS OF ARREST)',
+            style: headerTitle,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text('१. $ground1', style: reg),
+        Padding(
+          padding: const EdgeInsets.only(left: 14),
+          child: Text(ground1Line2, style: reg),
+        ),
+        const SizedBox(height: 6),
+        Text('२. $ground2', style: reg),
+        Padding(
+          padding: const EdgeInsets.only(left: 14),
+          child: Text(ground2Line2, style: reg),
+        ),
+        const SizedBox(height: 6),
+        Text('३. $ground3', style: reg),
+        Padding(
+          padding: const EdgeInsets.only(left: 14),
+          child: Text(ground3Line2, style: reg),
+        ),
+        const SizedBox(height: 6),
+        Text('४. $ground4', style: reg),
+        Padding(
+          padding: const EdgeInsets.only(left: 14),
+          child: Text(ground4Line2, style: reg),
+        ),
+        const SizedBox(height: 6),
+        Text('५. $ground5', style: reg),
+        Padding(
+          padding: const EdgeInsets.only(left: 14),
+          child: Text(ground5Line2, style: reg),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          '        आपणास असेही कळविण्यात येते की, नमुद गुन्हा हा दखलपात्र असुन अजामीनपात्र आहे आणि त्यामुळे आपण त्या गुन्ह्यात न्यायालयात जामिनाचा अर्ज सादर करुन न्यायालयाचे आदेशाने जामिनावर मुक्त होवु शकता.',
+          style: reg,
+          textAlign: TextAlign.justify,
+        ),
+        const SizedBox(height: 12),
+        RichText(
+          textAlign: TextAlign.justify,
+          text: TextSpan(
+            style: reg,
+            children: [
+              const TextSpan(
+                text: '        आपल्या अटकेची माहीती आपले नातेवाईक/ मित्र ',
+              ),
+              TextSpan(text: '$relativeName ', style: bld),
+              const TextSpan(text: 'रा.'),
+              TextSpan(text: '$relativeAddress ', style: bld),
+              const TextSpan(text: 'यांना लेखी सुचनेद्वारे/फोन क्रमांक '),
+              TextSpan(text: '$relativePhone ', style: bld),
+              const TextSpan(
+                text: 'यावर संपर्क करुन देण्यांत आली आहे.',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          '        याकरीता आपणास सुचनापत्र देण्यांत येत आहे.',
+          style: reg,
+        ),
+        const Spacer(),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('मला सुचनापत्र प्राप्त झाले', style: bld),
+                  const SizedBox(height: 6),
+                  Text('(आरोपीची सही $accusedSig)', style: reg),
+                  const SizedBox(height: 4),
+                  Text('आरोपीचे नांव $accusedName', style: reg),
+                  const SizedBox(height: 4),
+                  Text('दिनांक:व वेळ $accusedDateTime', style: reg),
+                ],
+              ),
+            ),
+            const SizedBox(width: 32),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('तपास अधि सही/- $ioSig', style: bld),
+                  const SizedBox(height: 6),
+                  Text('नाव/हुद्दा $ioNameRank', style: reg),
+                  const SizedBox(height: 4),
+                  Text('पोलीस स्टेशन $ioPs', style: reg),
+                  const SizedBox(height: 4),
+                  Text('ता.-$ioTah जिल्हा-$ioDist', style: reg),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
 }

@@ -4,23 +4,20 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'form_image_pdf_helper.dart';
+
 Future<void> previewInjuryCertificatePdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateInjuryCertificatePdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Injury_Certificate_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPgWidget(doc)],
+    fallbackPdfGenerator: () => generateInjuryCertificatePdf(doc),
+  );
 }
 
 Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
@@ -344,5 +341,307 @@ pw.Widget _buildPdfDataCell(String text, pw.TextStyle style) {
       text,
       style: style.copyWith(fontSize: 8),
     ),
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+Widget _buildPgWidget(Map<String, dynamic> doc) {
+  String v(String key) => doc[key]?.toString().trim() ?? '';
+
+  Widget underlineValue(String text, {double minWidth = 60}) {
+    return Container(
+      constraints: BoxConstraints(minWidth: minWidth),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(width: 0.8, color: Colors.black87)),
+      ),
+      padding: const EdgeInsets.only(bottom: 1),
+      child: Text(
+        text.isEmpty ? ' ' : text,
+        style: FormImagePdfHelper.valStyle(10.5),
+      ),
+    );
+  }
+
+  final rawInjuries = doc['injuries'];
+  final List<Map<String, String>> injuryList = [];
+  if (rawInjuries is List && rawInjuries.isNotEmpty) {
+    for (final item in rawInjuries) {
+      if (item is Map) {
+        injuryList.add({
+          'typeOfInjury': item['typeOfInjury']?.toString() ?? '',
+          'siteOnBody': item['siteOnBody']?.toString() ?? '',
+          'ageOfInjury': item['ageOfInjury']?.toString() ?? '',
+          'size': item['size']?.toString() ?? '',
+          'color': item['color']?.toString() ?? '',
+          'probableWeapon': item['probableWeapon']?.toString() ?? '',
+          'simpleGrievous': item['simpleGrievous']?.toString() ?? '',
+          'remark': item['remark']?.toString() ?? '',
+        });
+      }
+    }
+  }
+  while (injuryList.length < 6) {
+    injuryList.add({
+      'typeOfInjury': '',
+      'siteOnBody': '',
+      'ageOfInjury': '',
+      'size': '',
+      'color': '',
+      'probableWeapon': '',
+      'simpleGrievous': '',
+      'remark': '',
+    });
+  }
+
+  Widget headerCell(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      alignment: Alignment.center,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: FormImagePdfHelper.mBld(8.5),
+      ),
+    );
+  }
+
+  Widget dataCell(String text) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: FormImagePdfHelper.valStyle(8.5),
+      ),
+    );
+  }
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
+    children: [
+      Center(
+        child: Text(
+          'INJURY CERTIFICATE',
+          style: FormImagePdfHelper.mBld(16).copyWith(
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      ),
+      const SizedBox(height: 14),
+
+      // Top Right MLC / Date
+      Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 240,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text('MLC No.:-', style: FormImagePdfHelper.mBld(11)),
+                  const SizedBox(width: 4),
+                  Expanded(child: underlineValue(v('mlcNo'), minWidth: 100)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text('Date. ', style: FormImagePdfHelper.mBld(11)),
+                  const SizedBox(width: 4),
+                  Expanded(child: underlineValue(v('mlcDate'), minWidth: 100)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 16),
+
+      // Certificate Body Paragraph
+      Text.rich(
+        TextSpan(
+          style: FormImagePdfHelper.mReg(10.5, 1.45),
+          children: [
+            const TextSpan(text: 'Certified that shri/smt  '),
+            TextSpan(
+              text: v('patientName').isEmpty
+                  ? '....................................................................................'
+                  : v('patientName'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  age  '),
+            TextSpan(
+              text: v('patientAge').isEmpty ? '..........' : v('patientAge'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  about years\n'),
+            const TextSpan(
+                text: 'bearing following identification mark R/O.  '),
+            TextSpan(
+              text: v('idMarkAndAddress').isEmpty
+                  ? '.......................................................'
+                  : v('idMarkAndAddress'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  tah  '),
+            TextSpan(
+              text: v('tah').isEmpty ? '...................' : v('tah'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  dist.  '),
+            TextSpan(
+              text:
+                  v('dist').isEmpty ? '...........................' : v('dist'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '\nbrought to this hospital by PC/HC.  '),
+            TextSpan(
+              text: v('broughtBy').isEmpty
+                  ? '..........................'
+                  : v('broughtBy'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  B.No.  '),
+            TextSpan(
+              text: v('buckleNo').isEmpty ? '.......' : v('buckleNo'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  Police station.  '),
+            TextSpan(
+              text: v('policeStation').isEmpty
+                  ? '.......................'
+                  : v('policeStation'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '\nat  '),
+            TextSpan(
+              text: v('broughtTime').isEmpty ? '.......' : v('broughtTime'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  AM/PM on  '),
+            TextSpan(
+              text: v('broughtDate').isEmpty
+                  ? '....../....../20......'
+                  : v('broughtDate'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  & examination by me on  '),
+            TextSpan(
+              text: v('examDate').isEmpty
+                  ? '....../....... /20.....'
+                  : v('examDate'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  at  '),
+            TextSpan(
+              text: v('examTime').isEmpty ? '....../.......' : v('examTime'),
+              style: FormImagePdfHelper.mBld(10.5),
+            ),
+            const TextSpan(text: '  AM/PM'),
+          ],
+        ),
+      ),
+      const SizedBox(height: 14),
+
+      // 9-Column Table
+      Table(
+        border: TableBorder.all(color: Colors.black, width: 0.8),
+        columnWidths: const {
+          0: FixedColumnWidth(28),
+          1: FlexColumnWidth(2),
+          2: FlexColumnWidth(2.2),
+          3: FlexColumnWidth(1.5),
+          4: FlexColumnWidth(1.2),
+          5: FlexColumnWidth(1.2),
+          6: FlexColumnWidth(2),
+          7: FlexColumnWidth(1.6),
+          8: FlexColumnWidth(1.5),
+        },
+        children: [
+          TableRow(
+            decoration: const BoxDecoration(color: Color(0xFFF1F5F9)),
+            children: [
+              headerCell('Sr\nno'),
+              headerCell('Type of\ninjury'),
+              headerCell('Site on\nbody'),
+              headerCell('Age of\ninjury'),
+              headerCell('Size'),
+              headerCell('Color'),
+              headerCell('Probable\nweapon'),
+              headerCell('Simple/\nGrievous'),
+              headerCell('Remark'),
+            ],
+          ),
+          for (int i = 0; i < injuryList.length; i++)
+            TableRow(
+              children: [
+                Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text('${i + 1}', style: FormImagePdfHelper.mBld(8.5)),
+                ),
+                dataCell(injuryList[i]['typeOfInjury'] ?? ''),
+                dataCell(injuryList[i]['siteOnBody'] ?? ''),
+                dataCell(injuryList[i]['ageOfInjury'] ?? ''),
+                dataCell(injuryList[i]['size'] ?? ''),
+                dataCell(injuryList[i]['color'] ?? ''),
+                dataCell(injuryList[i]['probableWeapon'] ?? ''),
+                dataCell(injuryList[i]['simpleGrievous'] ?? ''),
+                dataCell(injuryList[i]['remark'] ?? ''),
+              ],
+            ),
+        ],
+      ),
+      const SizedBox(height: 30),
+
+      // Footer Section
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Text('Date:- ', style: FormImagePdfHelper.mBld(11)),
+                underlineValue(v('footerDate'), minWidth: 80),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Text('Place:- ', style: FormImagePdfHelper.mBld(11)),
+                underlineValue(v('footerPlace'), minWidth: 80),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Medical officer', style: FormImagePdfHelper.mBld(11)),
+                Text('Name and Sign', style: FormImagePdfHelper.mBld(11)),
+                const SizedBox(height: 4),
+                underlineValue(v('moName'), minWidth: 100),
+              ],
+            ),
+          ),
+        ],
+      ),
+      const Spacer(),
+
+      // Footer
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: FormImagePdfHelper.mReg(8).copyWith(color: Colors.black54),
+        ),
+      ),
+    ],
   );
 }

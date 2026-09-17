@@ -4,23 +4,20 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'form_image_pdf_helper.dart';
+
 Future<void> previewTransitRemandPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateTransitRemandPdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Transit_Remand_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPgWidget(doc)],
+    fallbackPdfGenerator: () => generateTransitRemandPdf(doc),
+  );
 }
 
 Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
@@ -145,4 +142,115 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
   );
 
   return pdf.save();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+Widget _buildPgWidget(Map<String, dynamic> doc) {
+  String v(String key) => doc[key]?.toString().trim() ?? '';
+
+  final outwardNo = v('outwardNo');
+  final outwardYear = v('outwardYear').isNotEmpty ? v('outwardYear') : '2021';
+  final psName = v('psName').isNotEmpty ? v('psName') : 'Wakad Police Station,';
+  final psCity = v('psCity').isNotEmpty ? v('psCity') : 'Pimpri Chichwad.';
+  final date = v('date').isNotEmpty
+      ? v('date')
+      : '${v('dateDay')} ${v('dateMonthYear')}'.trim();
+
+  final courtLine1 = v('courtLine1');
+  final courtLine2 = v('courtLine2');
+
+  final officerName =
+      v('officerName').isNotEmpty ? v('officerName') : 'Jitendra S. Girnar';
+  final officerRank =
+      v('officerRank').isNotEmpty ? v('officerRank') : 'Police Sub Inpector';
+  final officerPs = v('officerPs').isNotEmpty
+      ? v('officerPs')
+      : 'Wakad Police Station, Pimpri Chichwad.';
+  final subjectHours = v('subjectHours').isNotEmpty ? v('subjectHours') : '72';
+
+  final bodyText = v('body').isNotEmpty
+      ? v('body')
+      : '    Regarding the above mentioned subject, most humbly request that a complaint has been registered at Wakad Police Station, Pimpri Chinchwad with FIR No. 912/2021 u/s 377,498(A), 347,504,34 of IPC by complainant Mrs. Sushama Chalamalasetti, Age 31 years, Profession house wife, residing at B901, Titanium Park, Park Street, Wakad Pune. The name of the accused being 1) Mahesh Babu Gunukula, Age 36 ears profession Service, residing at D No. 4, 153, Gudlavaleru, Gudlavaleru MDL 521356, Crishna District Andhra Pradesh and 2) Shiva Prasad Gunukula, Age 63 years (relation father in law). Against he complainant the accused conspired to get the property of complainant at Mumbai which is joint name with her mother and the property in USA. On decline to transfer the property in accused husbands name they harassed her confired her in a room further mentally and physically harassed her. The accused no. 1 also had unnatural sexual offence against the wish of the complainant. The same has been registered under the above mention complainant and I am Investigating the same.\n\n'
+          '    During Investigation I had arrest accuse no. 1) Mahesh Babu Gunukula, Age 36 ears profession Service, residing at D No. 4, 153, Gudlavaleru, Gudlavaleru MDL 521356, Crishna District Andhra Pradesh in --------- Police station at --------am/pm on dt.   /11/2021 wide station diary no. ----/21.\n\n'
+          '    To produce accused before Hon. JMFC., No.09, Shivajinagar, Pune I want transit remand of accused for 2 hrs. so please give me transit remand of accused.';
+
+  final signOffName = v('signOffName');
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 52, vertical: 48),
+    children: [
+      // Header block left-aligned
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Outward No.  $outwardNo /$outwardYear',
+              style: FormImagePdfHelper.mBld(11.5)),
+          const SizedBox(height: 2),
+          Text(psName, style: FormImagePdfHelper.mBld(11.5)),
+          const SizedBox(height: 2),
+          Text(psCity, style: FormImagePdfHelper.mBld(11.5)),
+          const SizedBox(height: 2),
+          Text('Date -  $date', style: FormImagePdfHelper.mBld(11.5)),
+        ],
+      ),
+      const SizedBox(height: 20),
+
+      // To
+      Text('To,', style: FormImagePdfHelper.mBld(12.5)),
+      const SizedBox(height: 6),
+      Text(
+        'Hon.- ${courtLine1.isEmpty ? '----------------------------------------' : courtLine1}',
+        style: FormImagePdfHelper.mBld(11.5),
+      ),
+      if (courtLine2.isNotEmpty) ...[
+        const SizedBox(height: 4),
+        Text(courtLine2, style: FormImagePdfHelper.mBld(11.5)),
+      ],
+      const SizedBox(height: 18),
+
+      // Report
+      Text('Report- $officerName, $officerRank',
+          style: FormImagePdfHelper.mBld(11.5)),
+      Padding(
+        padding: const EdgeInsets.only(left: 45),
+        child: Text(officerPs, style: FormImagePdfHelper.mBld(11.5)),
+      ),
+      const SizedBox(height: 18),
+
+      // Sub
+      Text('Sub- To get Transit Remand for $subjectHours hrs.',
+          style: FormImagePdfHelper.mBld(11.5)),
+      const SizedBox(height: 16),
+
+      // ---000---
+      Text('---000---', style: FormImagePdfHelper.mBld(11.5)),
+      const SizedBox(height: 14),
+
+      // Respected Sir
+      Text('Respected Sir,', style: FormImagePdfHelper.mBld(11.5)),
+      const SizedBox(height: 8),
+
+      // Body
+      Text(
+        bodyText,
+        style: FormImagePdfHelper.mReg(11, 1.45),
+        textAlign: TextAlign.left,
+      ),
+      const SizedBox(height: 36),
+
+      // Your Faithfully
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Your Faithfully', style: FormImagePdfHelper.mBld(11.5)),
+          const SizedBox(height: 24),
+          if (signOffName.isNotEmpty)
+            Text(signOffName, style: FormImagePdfHelper.valStyle(11.5)),
+        ],
+      ),
+    ],
+  );
 }
