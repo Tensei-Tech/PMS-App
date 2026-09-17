@@ -4,25 +4,42 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'form_image_pdf_helper.dart';
 import 'marathi_text_renderer.dart';
 
 Future<void> previewJuvenileSocialReportPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateJuvenileSocialReportPdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Juvenile_Social_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
+  final active = doc['formSection']?.toString().trim();
+  List<Widget> pages;
+  if (active == 'Juvenile Social Part I') {
+    pages = [_buildPg1Widget(doc)];
+  } else if (active == 'Juvenile Social Part II') {
+    pages = [_buildPg2Widget(doc)];
+  } else if (active == 'Juvenile Social Part III') {
+    pages = [_buildPg3Widget(doc)];
+  } else if (active == 'Juvenile Social Part IV' ||
+      active == 'Juvenile Social Part V') {
+    pages = [_buildPg4Widget(doc), _buildPg5Widget(doc)];
+  } else {
+    pages = [
+      _buildPg1Widget(doc),
+      _buildPg2Widget(doc),
+      _buildPg3Widget(doc),
+      _buildPg4Widget(doc),
+      _buildPg5Widget(doc),
+    ];
   }
+
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: pages,
+    fallbackPdfGenerator: () => generateJuvenileSocialReportPdf(doc),
+  );
 }
 
 Future<Uint8List> generateJuvenileSocialReportPdf(
@@ -876,4 +893,397 @@ Future<MarathiImageCache> _preRenderJuvenileMarathi(
   }
 
   return cache;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDERS (Juvenile Social Report Parts I-IV) ──────
+// ══════════════════════════════════════════════════════════════════════════════
+
+TableRow _buildJuvTableRow(String num, String label, String value, TextStyle bold, TextStyle val) {
+  return TableRow(
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(3),
+        child: Text(num, style: bold, textAlign: TextAlign.center),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(3),
+        child: Text(label, style: bold),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(3),
+        child: Text(value, style: val),
+      ),
+    ],
+  );
+}
+
+Widget _buildJuvField(String label, String value, TextStyle bold, TextStyle val, {double width = 0}) {
+  final child = Container(
+    decoration: const BoxDecoration(
+      border: Border(bottom: BorderSide(width: 0.5, color: Colors.black)),
+    ),
+    padding: const EdgeInsets.only(left: 3, bottom: 1),
+    child: Text(value, style: val),
+  );
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 3),
+    child: Row(
+      mainAxisSize: width > 0 ? MainAxisSize.min : MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(label, style: bold),
+        if (width > 0)
+          SizedBox(width: width, child: child)
+        else
+          Expanded(child: child),
+      ],
+    ),
+  );
+}
+
+Widget _buildJuvBullet(String label, String value, TextStyle bold, TextStyle val) {
+  return Padding(
+    padding: const EdgeInsets.only(left: 14, bottom: 2),
+    child: Row(
+      children: [
+        Text(label, style: bold),
+        const SizedBox(width: 4),
+        Text(value, style: val),
+      ],
+    ),
+  );
+}
+
+Widget _buildPg1Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final bld = FormImagePdfHelper.mBld(8.5, 1.3);
+  final valStyle = FormImagePdfHelper.valStyle(8.5);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+    children: [
+      Center(
+        child: Text(
+          '—:: विधीसंघर्षग्रस्त बालक याचा सामाजीक पार्श्वभुमी अहवाल ::—',
+          style: FormImagePdfHelper.mBld(12),
+        ),
+      ),
+      const SizedBox(height: 10),
+      Table(
+        border: TableBorder.all(color: Colors.black, width: 0.5),
+        columnWidths: const {
+          0: FixedColumnWidth(30),
+          1: FlexColumnWidth(2.2),
+          2: FlexColumnWidth(3.8),
+        },
+        children: [
+          TableRow(
+            children: [
+              Padding(padding: const EdgeInsets.all(3), child: Text('अ.क्र.', style: bld, textAlign: TextAlign.center)),
+              Padding(padding: const EdgeInsets.all(3), child: Text('विवरण', style: bld, textAlign: TextAlign.center)),
+              Padding(padding: const EdgeInsets.all(3), child: Text('माहिती', style: bld, textAlign: TextAlign.center)),
+            ],
+          ),
+          _buildJuvTableRow('१.', 'पोलीस स्टेशन व जिल्हा', v('psDist', v('policeStation')), bld, valStyle),
+          _buildJuvTableRow('२.', 'अपराध क्रमांक', v('crimeNo', v('crNo')), bld, valStyle),
+          _buildJuvTableRow('३.', 'कलम व अधिनियम', v('sectionAct', v('section')), bld, valStyle),
+          _buildJuvTableRow('४.', 'गुन्हा घडला ता व वेळ', v('crimeDateTime'), bld, valStyle),
+          _buildJuvTableRow('५.', 'गुन्हा दाखल ता व वेळ', v('firDateTime'), bld, valStyle),
+          _buildJuvTableRow('६.', 'तपासी अधिकारी यांचे नांव', v('ioName'), bld, valStyle),
+          _buildJuvTableRow('७.', 'बाल कल्याण पोलीस अधिकारी नांव', v('cwpoName'), bld, valStyle),
+          _buildJuvTableRow('', 'बालक', v('childName', v('juvenileName')), bld, valStyle),
+          _buildJuvTableRow('', 'वडील', v('fatherName', v('guardianName')), bld, valStyle),
+          _buildJuvTableRow('', 'जन्म तारीख', v('dob', v('juvenileAge')), bld, valStyle),
+          _buildJuvTableRow('', 'पत्ता', v('address', v('juvenileAddress')), bld, valStyle),
+          _buildJuvTableRow('', 'धर्म', v('religion'), bld, valStyle),
+          _buildJuvTableRow('', 'बालकास अपंगत्व आहे काय ?', v('hasDisability', 'नाही'), bld, valStyle),
+          _buildJuvTableRow('', 'कर्णबधीर', v('deaf', 'नाही'), bld, valStyle),
+          _buildJuvTableRow('', 'मुक', v('dumb', 'नाही'), bld, valStyle),
+          _buildJuvTableRow('', 'शारीरीक अपंगत्व', v('physicalDisability', 'नाही'), bld, valStyle),
+          _buildJuvTableRow('', 'मानसीक अपंगत्व', v('mentalDisability', 'नाही'), bld, valStyle),
+          _buildJuvTableRow('', 'इतर', v('otherDisability'), bld, valStyle),
+        ],
+      ),
+      const Spacer(),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text('M.R.W', style: FormImagePdfHelper.mReg(8)),
+      ),
+    ],
+  );
+}
+
+Widget _buildPg2Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final bld = FormImagePdfHelper.mBld(8, 1.25);
+  final reg = FormImagePdfHelper.mReg(8, 1.25);
+  final valStyle = FormImagePdfHelper.valStyle(8);
+  final famCount = int.tryParse(doc['familyRowCount']?.toString() ?? '') ?? 5;
+
+  TableRow dualRow(String n1, String l1, bool c1, String n2, String l2, bool c2) {
+    return TableRow(
+      children: [
+        Padding(padding: const EdgeInsets.all(2), child: Text(n1, style: bld, textAlign: TextAlign.center)),
+        Padding(
+          padding: const EdgeInsets.all(2),
+          child: Row(
+            children: [
+              Text(c1 ? '[x] ' : '[ ] ', style: bld),
+              Text(l1, style: reg),
+            ],
+          ),
+        ),
+        Padding(padding: const EdgeInsets.all(2), child: Text(n2, style: bld, textAlign: TextAlign.center)),
+        Padding(
+          padding: const EdgeInsets.all(2),
+          child: Row(
+            children: [
+              Text(c2 ? '[x] ' : '[ ] ', style: bld),
+              Text(l2, style: reg),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+    children: [
+      Text('८) कौटुंबीक माहिती :-', style: bld),
+      const SizedBox(height: 4),
+      Table(
+        border: TableBorder.all(color: Colors.black, width: 0.5),
+        columnWidths: const {
+          0: FixedColumnWidth(22),
+          1: FlexColumnWidth(1.6),
+          2: FixedColumnWidth(26),
+          3: FixedColumnWidth(26),
+          4: FlexColumnWidth(1.0),
+          5: FlexColumnWidth(1.0),
+          6: FlexColumnWidth(1.0),
+          7: FlexColumnWidth(1.1),
+          8: FlexColumnWidth(1.2),
+          9: FlexColumnWidth(1.2),
+        },
+        children: [
+          TableRow(
+            children: [
+              for (final h in ['क्र', 'नाव', 'नाते', 'वय', 'लिंग', 'शिक्षण', 'व्यवसाय', 'उत्पन्न', 'आरोग्य', 'व्यसन'])
+                Padding(padding: const EdgeInsets.all(2), child: Text(h, style: bld, textAlign: TextAlign.center)),
+            ],
+          ),
+          for (var i = 1; i <= famCount; i++)
+            TableRow(
+              children: [
+                Padding(padding: const EdgeInsets.all(2), child: Text('$i', style: bld, textAlign: TextAlign.center)),
+                Padding(padding: const EdgeInsets.all(2), child: Text(v('fam${i}Name'), style: valStyle)),
+                Padding(padding: const EdgeInsets.all(2), child: Text(v('fam${i}Relation'), style: valStyle)),
+                Padding(padding: const EdgeInsets.all(2), child: Text(v('fam${i}Age'), style: valStyle)),
+                Padding(padding: const EdgeInsets.all(2), child: Text(v('fam${i}Sex'), style: valStyle)),
+                Padding(padding: const EdgeInsets.all(2), child: Text(v('fam${i}Edu'), style: valStyle)),
+                Padding(padding: const EdgeInsets.all(2), child: Text(v('fam${i}Occ'), style: valStyle)),
+                Padding(padding: const EdgeInsets.all(2), child: Text(v('fam${i}Income'), style: valStyle)),
+                Padding(padding: const EdgeInsets.all(2), child: Text(v('fam${i}Health'), style: valStyle)),
+                Padding(padding: const EdgeInsets.all(2), child: Text(v('fam${i}Addiction'), style: valStyle)),
+              ],
+            ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      _buildJuvField('९) शाळा सोडल्याचे कारण :- ', v('schoolDropReasonPage2'), bld, valStyle),
+      _buildJuvField('१०) कुटुंब सदस्य यांचा गुन्ह्यामध्ये सहभाग आहे काय :- ', v('familyInCrime'), bld, valStyle),
+      const SizedBox(height: 8),
+      Text('११) बालकाला असलेल्या सवई व्यसन :-', style: bld),
+      const SizedBox(height: 4),
+      Table(
+        border: TableBorder.all(color: Colors.black, width: 0.5),
+        columnWidths: const {
+          0: FixedColumnWidth(26),
+          1: FlexColumnWidth(1),
+          2: FixedColumnWidth(26),
+          3: FlexColumnWidth(1),
+        },
+        children: [
+          TableRow(
+            children: [
+              Padding(padding: const EdgeInsets.all(2), child: Text('अ.क्र.', style: bld, textAlign: TextAlign.center)),
+              Padding(padding: const EdgeInsets.all(2), child: Text('अ (सवयी / व्यसने)', style: bld)),
+              Padding(padding: const EdgeInsets.all(2), child: Text('अ.क्र.', style: bld, textAlign: TextAlign.center)),
+              Padding(padding: const EdgeInsets.all(2), child: Text('ब (छंद / आवडी)', style: bld)),
+            ],
+          ),
+          dualRow('1.', 'धुम्रपान', doc['habit_smoking'] == true, '1.', 'टि.व्ही पाहणे', doc['hobby_watching_tv'] == true),
+          dualRow('2.', 'दारू', doc['habit_alcohol'] == true, '2.', 'खेळ खेळणे', doc['hobby_playing_games'] == true),
+          dualRow('3.', 'जुगार', doc['habit_gambling'] == true, '3.', 'पुस्तक वाचणे', doc['hobby_reading_books'] == true),
+          dualRow('4.', 'भिक मागणे', doc['habit_begging'] == true, '4.', 'चित्र काढणे', doc['hobby_drawing'] == true),
+          dualRow('5.', 'खराॅ/ पान मसाला', doc['habit_tobacco_pan'] == true, '5.', 'कला गायन', doc['hobby_singing_art'] == true),
+          TableRow(
+            children: [
+              Padding(padding: const EdgeInsets.all(2), child: Text('6.', style: bld, textAlign: TextAlign.center)),
+              Padding(padding: const EdgeInsets.all(2), child: Text(v('habit_other'), style: valStyle)),
+              Padding(padding: const EdgeInsets.all(2), child: Text('6.', style: bld, textAlign: TextAlign.center)),
+              Padding(padding: const EdgeInsets.all(2), child: Text(v('hobby_other'), style: valStyle)),
+            ],
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      _buildJuvField('१२) बालकाचे नोकरीचा तपशील :- ', v('childJobDetails'), bld, valStyle),
+    ],
+  );
+}
+
+Widget _buildPg3Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final bld = FormImagePdfHelper.mBld(8.5, 1.3);
+  final reg = FormImagePdfHelper.mReg(8.5, 1.3);
+  final valStyle = FormImagePdfHelper.valStyle(8.5);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+    children: [
+      _buildJuvField('१३) उत्पन्न वापराचा तपशिल :- ', v('incomeUsageDetails'), bld, valStyle),
+      _buildJuvBullet('कौटुंबीक गरजा भागविण्यासाठी :- ', v('incomeUsageFamily', 'नाही'), bld, valStyle),
+      _buildJuvBullet('स्वतः साठी :- ', v('incomeUsageSelf', 'नाही'), bld, valStyle),
+      _buildJuvBullet('कपडे खरेदी करीता :- ', v('incomeUsageClothes', 'नाही'), bld, valStyle),
+      _buildJuvBullet('जुगार खेळण्यासाठी :- ', v('incomeUsageGambling', 'नाही'), bld, valStyle),
+      _buildJuvBullet('व्यसन नशा करण्याकरीता :- ', v('incomeUsageAddiction', 'नाही'), bld, valStyle),
+      _buildJuvBullet('साठविणेसाठी :- ', v('incomeUsageSavings', 'नाही'), bld, valStyle),
+      const SizedBox(height: 8),
+      Text('१४) बालकाची शैक्षणीक माहिती :-', style: bld),
+      _buildJuvField('   निवड: ', v('educationLevel'), bld, valStyle),
+      const SizedBox(height: 8),
+      Text('१५) शाळा सोडल्याचे कारण :-', style: bld),
+      if (doc['schoolLeavingReasons'] is List)
+        for (final r in (doc['schoolLeavingReasons'] as List))
+          Padding(
+            padding: const EdgeInsets.only(left: 10, bottom: 2),
+            child: Text('• $r', style: reg),
+          ),
+      _buildJuvField('   इतर: ', v('schoolLeavingOther'), bld, valStyle),
+      const SizedBox(height: 8),
+      Text('१६) बालक शिकलेल्या शाळेचा तपशिल :-', style: bld),
+      _buildJuvField('   शाळेचा प्रकार: ', v('schoolType'), bld, valStyle),
+      const SizedBox(height: 8),
+      _buildJuvField('१७) व्यावसायीक प्रशिक्षण :- ', v('vocationalTraining', 'नाही'), bld, valStyle),
+      const Spacer(),
+      Align(alignment: Alignment.bottomRight, child: Text('M.R.W', style: bld)),
+    ],
+  );
+}
+
+Widget _buildPg4Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final bld = FormImagePdfHelper.mBld(8.5, 1.3);
+  final reg = FormImagePdfHelper.mReg(8.5, 1.3);
+  final valStyle = FormImagePdfHelper.valStyle(8.5);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+    children: [
+      Text('१८) कोणत्या प्रकारचे मित्र जास्त आहेत :-', style: bld),
+      if (doc['friendTypes'] is List)
+        for (final f in (doc['friendTypes'] as List))
+          Padding(
+            padding: const EdgeInsets.only(left: 10, bottom: 2),
+            child: Text('• $f', style: reg),
+          ),
+      _buildJuvBullet('व्यसनी :- ', v('friendsAddicted', 'नाही'), bld, valStyle),
+      _buildJuvBullet('गुन्हेगारी पार्श्वभुमी असणारे :- ', v('friendsCriminal', 'नाही'), bld, valStyle),
+      const SizedBox(height: 8),
+      _buildJuvField('१९) बालकावर कोणत्या प्रकारचा छळ अत्याचार झाला आहे काय ? :- ', v('childAbused', 'नाही'), bld, valStyle),
+      const SizedBox(height: 4),
+      Table(
+        border: TableBorder.all(color: Colors.black, width: 0.5),
+        columnWidths: const {
+          0: FixedColumnWidth(26),
+          1: FlexColumnWidth(2.6),
+          2: FlexColumnWidth(3.4),
+        },
+        children: [
+          TableRow(
+            children: [
+              Padding(padding: const EdgeInsets.all(2), child: Text('अ.क्र.', style: bld, textAlign: TextAlign.center)),
+              Padding(padding: const EdgeInsets.all(2), child: Text('छळ अत्याचार प्रकार', style: bld)),
+              Padding(padding: const EdgeInsets.all(2), child: Text('शेरा', style: bld)),
+            ],
+          ),
+          _buildJuvTableRow('1.', 'शाब्दीक छळ- पालक/ भावंडे/ नियोक्ता/ इतर', v('abuseVerbal'), bld, valStyle),
+          _buildJuvTableRow('2.', 'शारीरीक छळ - नमुद करा', v('abusePhysical'), bld, valStyle),
+          _buildJuvTableRow('3.', 'लैंगीक छळ - पालक/ भावंडे/ नियोक्ता/ इतर', v('abuseSexual'), bld, valStyle),
+          _buildJuvTableRow('4.', 'इतर - नमुद करा', v('abuseOther'), bld, valStyle),
+        ],
+      ),
+      const SizedBox(height: 8),
+      _buildJuvField('२०) बालक कोणत्या गुन्ह्यांचा बळी Victim आहे काय :- ', v('childVictim', 'नाही'), bld, valStyle),
+      _buildJuvField('२१) प्रौढ/ प्रौढांचा गट नशेचे साहित्य वाहतुकीसाठी बालकाचा वापर करतात काय ? :- ', v('childDrugCarrier', 'नाही'), bld, valStyle),
+      _buildJuvField('२२) बालकाचा आरोप असलेल्या गुन्ह्यामागे कारण (पालकाकडुन दुर्लक्ष, मित्र) :- ', v('crimeReason'), bld, valStyle),
+      _buildJuvField('२३) कोणत्या परिस्थितीत / घटनेमध्ये बालकास पकडले आहे :- ', v('arrestCircumstances'), bld, valStyle),
+      _buildJuvField('२४) बालकाकडुन मिळालेल्या मालमत्तेची माहिती :- ', v('propertyFromChild'), bld, valStyle),
+      const Spacer(),
+      Align(alignment: Alignment.bottomRight, child: Text('M.R.W', style: bld)),
+    ],
+  );
+}
+
+Widget _buildPg5Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final bld = FormImagePdfHelper.mBld(9, 1.3);
+  final valStyle = FormImagePdfHelper.valStyle(9);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+    children: [
+      Text('२५) बालकावर आरोप असलेल्या गुन्ह्यामध्ये बालकाची भुमीका :-', style: bld),
+      _buildJuvField('   ', v('childRoleInCrime'), bld, valStyle),
+      const SizedBox(height: 14),
+      Text('२६) बाल कल्याण पोलीस अधिकारी मार्फत बालका बाबत सुचना :-', style: bld),
+      _buildJuvField('   ', v('cwpoInstructions'), bld, valStyle),
+      const SizedBox(height: 60),
+      Align(
+        alignment: Alignment.centerRight,
+        child: SizedBox(
+          width: 250,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(child: Text('अन्वेषण अधिकारी सही', style: bld)),
+              const SizedBox(height: 12),
+              _buildJuvField('नांव :- ', v('signOfficerName'), bld, valStyle),
+              Row(
+                children: [
+                  Expanded(child: _buildJuvField('पद :- ', v('signOfficerRank'), bld, valStyle)),
+                  const SizedBox(width: 4),
+                  SizedBox(width: 70, child: _buildJuvField('-ब.नं. ', v('signOfficerBadge'), bld, valStyle)),
+                ],
+              ),
+              _buildJuvField('नेमणुक :- ', v('signOfficerPosting'), bld, valStyle),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
 }
