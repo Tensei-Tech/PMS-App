@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-
 import '../widgets/form_section_utils.dart';
 
 Future<void> previewInquestPanchanamaPdf(
@@ -72,9 +71,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
       ),
       child: pw.Text(
         text.isEmpty ? ' ' : text,
-        maxLines: 1,
-        softWrap: false,
-        overflow: pw.TextOverflow.clip,
         style: pw.TextStyle(
             font: devanagariBold, fontSize: 8, fontWeight: pw.FontWeight.bold),
       ),
@@ -92,8 +88,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
       ),
       child: pw.Text(
         text.isEmpty ? ' ' : text,
-        maxLines: lines,
-        overflow: pw.TextOverflow.clip,
         style: pw.TextStyle(font: devanagariRegular, fontSize: 8),
       ),
     );
@@ -151,9 +145,9 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 8),
             pw.Divider(color: PdfColors.black, thickness: 0.8),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 1) Dist, PS, Year, FIR
             pw.Wrap(
@@ -161,20 +155,22 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               spacing: 2,
               runSpacing: 2,
               children: [
-                pw.Text('1) Dist. (YAVATMAL)', style: engBold),
-                pw.SizedBox(width: 20),
+                pw.Text('1) Dist.:- ', style: engBold),
+                underlineField(v('dist'), width: 80),
+                pw.SizedBox(width: 10),
                 pw.Text('P.S.:-', style: engBold),
-                underlineField(v('ps'), width: 100),
-                pw.Text('Year:-20', style: engBold),
-                underlineField(v('year'), width: 35),
+                underlineField(v('ps'), width: 80),
+                pw.SizedBox(width: 10),
+                pw.Text('Year:- ', style: engBold),
+                underlineField(v('year'), width: 40),
                 pw.SizedBox(width: 10),
                 pw.Text('FIR/AD/U.D.No:-', style: engBold),
-                underlineField(v('firNo'), width: 90),
+                underlineField(v('firNo'), width: 80),
               ],
             ),
             subLabel(
-                '   जिल्हा - यवतमाळ             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.'),
-            pw.SizedBox(height: 6),
+                '   जिल्हा                                पो.स्टे.                         वर्ष                        पहिली खबर क्र./ अकस्मात मृत्यू क्र.'),
+            pw.SizedBox(height: 12),
 
             // 2) Act and Section
             pw.Row(
@@ -184,7 +180,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('   अधिनियम व कलमे :-'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 3) Place where body found
             pw.Row(
@@ -208,7 +204,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 underlineField(v('foundTime'), width: 55),
               ],
             ),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 4) By whom shown
             pw.Row(
@@ -219,7 +215,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('   प्रेत कोणी दाखविले :-'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 5) By whom identified
             pw.Row(
@@ -231,7 +227,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ),
             subLabel('   प्रेत कोणी ओळखले :-'),
             multilineBox(v('identifiedBy2'), lines: 2),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // a) Male/Female
             pw.Row(
@@ -242,7 +238,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('   अ) प्रेत स्त्री / पुरुष जातीचे :-'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 6) b) Married/Unmarried
             pw.Row(
@@ -253,7 +249,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('   ब) प्रेत विवाहीत /अविवाहीत आहे :-'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // c) Age
             pw.Row(
@@ -264,9 +260,14 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('   क) प्रेताचे वय :-'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // d) Date & Time of Death
+            pw.Row(
+              children: [
+                pw.Text('d) Date and Time of Death                    :', style: engBold),
+              ],
+            ),
             pw.Wrap(
               crossAxisAlignment: pw.WrapCrossAlignment.center,
               spacing: 2,
@@ -282,7 +283,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ),
             subLabel(
                 '                                                तारीख                                   वेळ'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 7) Position
             pw.Row(
@@ -339,7 +340,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('   प्रेताचे अंगावर असल्यास त्याचे वर्णन :'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             injuryRow('a) Head          :', 'अ) डोके        :', v('injHead')),
             injuryRow('b) Face          :', 'ब) चेहरा        :', v('injFace')),
@@ -394,7 +395,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ),
             subLabel('प्रेताचे अंगावरील जखमा अपघाताच्या घोक्यातील / इत्यादी'),
             subLabel('होण्यामुळे झाल्या'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 11) Weapon / Means
             pw.Row(
@@ -405,7 +406,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('जखमा केलेल्या हत्यार/ साधन असल्यास           :'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 12) Cool/Warm
             pw.Row(
@@ -416,7 +417,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('प्रेत थंड आहे/ गरम आहे.                       :'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 13) Poisoning
             pw.Row(
@@ -427,7 +428,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('प्रेताची स्थिती विष प्राशन केलेला असल्यास       :'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 14) Fingerprint & Photo
             pw.Text('14) (a) Finger Print has taken by Doctor Not taken Reason',
@@ -441,7 +442,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ),
             subLabel(
                 'अनोळखी प्रेताचे डॉक्टरांकडून बोटांचे ठसे घेतले/ नाही कारण :'),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 8),
 
             pw.Text('(b) Photo has taken/not taken reason (In case of an',
                 style: engBold),
@@ -453,7 +454,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('अनोळखी प्रेताचे फोटो घेतले आहेत काय/नाही कारण :'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 15) Dead Body sent to PM
             pw.Row(
@@ -464,7 +465,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('प्रेत (पोस्ट मार्टम) शविच्छेदन करीता पाठविले/ नाही कारण'),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 8),
 
             pw.Row(
               children: [
@@ -474,7 +475,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel('कोणत्या रूग्णालयात प्रेत पोस्ट मार्टूम करीता पाठविले :'),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 8),
 
             pw.Text('(b) With whom (Name No. and P.sm)            :',
                 style: engBold),
@@ -494,7 +495,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ),
             subLabel(
                 'नांव                                        बक्कल नंबर                 पो.स्टे'),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 16) Opinion of Panchas
             pw.Row(
@@ -506,7 +507,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ),
             subLabel('पंच व पोलीसांचा मृत्यूविषयी अभिप्राय'),
             multilineBox(v('opinionPanchas2'), lines: 4),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // 17) More info
             pw.Row(
@@ -585,7 +586,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // Panch 1
             pw.Row(
@@ -610,7 +611,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // Panch 2
             pw.Row(
@@ -635,7 +636,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // Panch 3
             pw.Row(
@@ -674,7 +675,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                       pw.Text('Signature of Investigation Officer',
                           style: engBold),
                       subLabel('तपासणी करणाऱ्या अधिकाऱ्यांची नांव व सह्या'),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('Name: ', style: engStyle),
@@ -682,7 +683,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                         ],
                       ),
                       subLabel('नांव'),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('Rank: ', style: engStyle),
@@ -693,7 +694,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                         ],
                       ),
                       subLabel('पद                   बक्कल नंबर'),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('Posting and Address:', style: engStyle),
@@ -798,7 +799,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 8),
             pw.Divider(color: PdfColors.black, thickness: 0.8),
             pw.Row(
               children: [
@@ -824,7 +825,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             pw.Divider(color: PdfColors.black, thickness: 0.8),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 8),
             csPdfRow('1)', 'Name of Deceased', 'मृत व्यक्तीचे नांव',
                 underlineField(v('csNameDeceased'))),
             csPdfRow('2)', 'Age', 'वय', underlineField(v('csAge'))),
@@ -915,7 +916,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             pw.Divider(color: PdfColors.black, thickness: 0.8),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 8),
 
             csPdfRow(
                 '12)',
@@ -943,7 +944,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 'शेरा वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकांना मृत्युच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.',
                 multilineBox(v('csRemarks'), lines: 4)),
 
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
             multilineBox(v('csExtraNotes'), lines: 1),
             pw.SizedBox(height: 14),
 
@@ -1121,15 +1122,15 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
             pw.Center(
                 child: pw.Text('० ० ० ०',
                     style: mrStyle.copyWith(letterSpacing: 4, fontSize: 8))),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // Body (महोदय)
             pw.Text('महोदय,', style: mrBold.copyWith(fontSize: 8.5)),
-            pw.SizedBox(height: 4),
+            pw.SizedBox(height: 8),
             pw.Padding(
               padding: const pw.EdgeInsets.only(left: 12.0),
               child: pw.Wrap(
@@ -1234,7 +1235,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                     children: [
                       pw.Text('तपासी अधिकारी नांव /सही शिक्या',
                           style: mrBold.copyWith(fontSize: 8)),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('Name: ', style: engStyle),
@@ -1407,28 +1408,28 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text('सही', style: mrBold.copyWith(fontSize: 9)),
-                      pw.SizedBox(height: 6),
+                      pw.SizedBox(height: 12),
                       pw.Row(
                         children: [
                           pw.Text('१) ', style: mrBold.copyWith(fontSize: 8.5)),
                           pw.Expanded(child: underlineField(v('relSig1'))),
                         ],
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('२) ', style: mrBold.copyWith(fontSize: 8.5)),
                           pw.Expanded(child: underlineField(v('relSig2'))),
                         ],
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('३) ', style: mrBold.copyWith(fontSize: 8.5)),
                           pw.Expanded(child: underlineField(v('relSig3'))),
                         ],
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('४) ', style: mrBold.copyWith(fontSize: 8.5)),
@@ -1446,7 +1447,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                     children: [
                       pw.Text('तपासी अधिकारी नांव / सही शिक्या',
                           style: mrBold.copyWith(fontSize: 8.5)),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('Name: ', style: engStyle),
@@ -1619,28 +1620,28 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text('पंच सही', style: mrBold.copyWith(fontSize: 9)),
-                      pw.SizedBox(height: 6),
+                      pw.SizedBox(height: 12),
                       pw.Row(
                         children: [
                           pw.Text('१) ', style: mrBold.copyWith(fontSize: 8.5)),
                           pw.Expanded(child: underlineField(v('panSig1'))),
                         ],
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('२) ', style: mrBold.copyWith(fontSize: 8.5)),
                           pw.Expanded(child: underlineField(v('panSig2'))),
                         ],
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('३) ', style: mrBold.copyWith(fontSize: 8.5)),
                           pw.Expanded(child: underlineField(v('panSig3'))),
                         ],
                       ),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('४) ', style: mrBold.copyWith(fontSize: 8.5)),
@@ -1658,7 +1659,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                     children: [
                       pw.Text('तपासी अधिकारी नांव / सही शिक्या',
                           style: mrBold.copyWith(fontSize: 8.5)),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(
                         children: [
                           pw.Text('Name: ', style: engStyle),
@@ -1885,7 +1886,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 style: mrBold.copyWith(fontSize: 9.5)),
             pw.SizedBox(height: 1),
             multilineBox(v('mar13Injuries'), lines: 4),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // १४) प्रेतावरील इतर खुणा...
             pw.Text(
@@ -1894,7 +1895,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ),
             pw.SizedBox(height: 1),
             multilineBox(v('mar14OtherMarks'), lines: 4),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // १५) मृतकाचे अंगावरील दागीने...
             pw.Text(
@@ -1903,21 +1904,21 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             ),
             pw.SizedBox(height: 1),
             multilineBox(v('mar15OrnamentsDisposal'), lines: 3),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // १६) पंच व अन्वेषण अधिकारी यांचा अभिप्राय :-
             pw.Text('१६) पंच व अन्वेषण अधिकारी यांचा अभिप्राय :-',
                 style: mrBold.copyWith(fontSize: 9.5)),
             pw.SizedBox(height: 1),
             multilineBox(v('mar16Opinion'), lines: 3),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // १७) प्रेताची काय विल्हेवाट लावली ? :-
             pw.Text('१७) प्रेताची काय विल्हेवाट लावली ? :-',
                 style: mrBold.copyWith(fontSize: 9.5)),
             pw.SizedBox(height: 1),
             multilineBox(v('mar17BodyDisposal'), lines: 3),
-            pw.SizedBox(height: 6),
+            pw.SizedBox(height: 12),
 
             // १८) पंचनामा संपविल्याची दिनांक व वेळ :-
             pw.Text('१८) पंचनामा संपविल्याची दिनांक व वेळ :-',
@@ -2056,13 +2057,13 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                           style: mrBold.copyWith(fontSize: 10)),
                       pw.Expanded(child: underlineField(v('ptpPs'))),
                     ]),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 8),
                     pw.Row(children: [
                       pw.Text('कॅम्प            : ',
                           style: mrBold.copyWith(fontSize: 10)),
                       pw.Expanded(child: underlineField(v('ptpCamp'))),
                     ]),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 8),
                     pw.Row(children: [
                       pw.Text('दिनांक          : ',
                           style: mrBold.copyWith(fontSize: 10)),
@@ -2164,13 +2165,13 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                             style: mrStyle.copyWith(fontSize: 10)),
                         pw.Expanded(child: underlineField(v('ptpIoName'))),
                       ]),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(children: [
                         pw.Text('हुद्दा : ',
                             style: mrStyle.copyWith(fontSize: 10)),
                         pw.Expanded(child: underlineField(v('ptpIoRank'))),
                       ]),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(children: [
                         pw.Text('पोलीस स्टेशन : ',
                             style: mrStyle.copyWith(fontSize: 10)),
@@ -2239,13 +2240,13 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                           style: mrBold.copyWith(fontSize: 10)),
                       pw.Expanded(child: underlineField(v('dpPs'))),
                     ]),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 8),
                     pw.Row(children: [
                       pw.Text('कॅम्प            : ',
                           style: mrBold.copyWith(fontSize: 10)),
                       pw.Expanded(child: underlineField(v('dpCamp'))),
                     ]),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 8),
                     pw.Row(children: [
                       pw.Text('दिनांक          : ',
                           style: mrBold.copyWith(fontSize: 10)),
@@ -2361,13 +2362,13 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                             style: mrBold.copyWith(fontSize: 9)),
                         pw.Expanded(child: underlineField(v('dpIoName'))),
                       ]),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(children: [
                         pw.Text('हुद्दा :- ',
                             style: mrBold.copyWith(fontSize: 9)),
                         pw.Expanded(child: underlineField(v('dpIoRank'))),
                       ]),
-                      pw.SizedBox(height: 4),
+                      pw.SizedBox(height: 8),
                       pw.Row(children: [
                         pw.Text('पोलीस स्टेशन :- ',
                             style: mrBold.copyWith(fontSize: 9)),
@@ -2391,3 +2392,4 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
 
   return pdf.save();
 }
+

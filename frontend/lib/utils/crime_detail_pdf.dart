@@ -145,23 +145,33 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
 
   // Load Map Image if available
   pw.MemoryImage? mapImage;
-  final mapPath = doc['mapImagePath']?.toString() ?? '';
-  if (mapPath.isNotEmpty) {
+  
+  if (doc['mapImageBytes'] != null) {
     try {
-      if (kIsWeb) {
-        if (mapPath.startsWith('data:image')) {
-          final uri = Uri.parse(mapPath);
-          mapImage = pw.MemoryImage(uri.data!.contentAsBytes());
-        }
-      } else {
-        final file = File(mapPath);
-        if (await file.exists()) {
-          final bytes = await file.readAsBytes();
-          mapImage = pw.MemoryImage(bytes);
-        }
-      }
+      final List<int> byteList = List<int>.from(doc['mapImageBytes'] as Iterable<dynamic>);
+      mapImage = pw.MemoryImage(Uint8List.fromList(byteList));
     } catch (e) {
       // Ignore load errors
+    }
+  } else {
+    final mapPath = doc['mapImagePath']?.toString() ?? '';
+    if (mapPath.isNotEmpty) {
+      try {
+        if (kIsWeb) {
+          if (mapPath.startsWith('data:image')) {
+            final uri = Uri.parse(mapPath);
+            mapImage = pw.MemoryImage(uri.data!.contentAsBytes());
+          }
+        } else {
+          final file = File(mapPath);
+          if (await file.exists()) {
+            final bytes = await file.readAsBytes();
+            mapImage = pw.MemoryImage(bytes);
+          }
+        }
+      } catch (e) {
+        // Ignore load errors
+      }
     }
   }
 
@@ -222,7 +232,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Expanded(
-                  flex: 22,
+                  flex: 30,
                   child: _buildPdfInlineField(
                     label: '1) District: ',
                     marathiLabelKey: 'lbl_district',
@@ -236,7 +246,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                 ),
                 pw.SizedBox(width: 8),
                 pw.Expanded(
-                  flex: 28,
+                  flex: 30,
                   child: _buildPdfInlineField(
                     label: 'P.S.: ',
                     marathiLabelKey: 'lbl_ps',
@@ -250,7 +260,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                 ),
                 pw.SizedBox(width: 8),
                 pw.Expanded(
-                  flex: 15,
+                  flex: 18,
                   child: _buildPdfInlineField(
                     label: 'Year: ',
                     marathiLabelKey: 'lbl_year',
@@ -873,6 +883,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                               : pw.Text(
                                   doc['motiveOfCrime'].toString(),
                                   style: valueStyle.copyWith(fontSize: 9),
+                                  maxLines: 1,
                                 ),
                         ),
                     ],
@@ -1519,7 +1530,7 @@ pw.Widget _buildPdfLinedField({
   required MarathiImageCache cache,
 }) {
   final lines = _splitTextIntoLines(fallbackValue, 40);
-  final total = lines.length < linesCount ? linesCount : lines.length;
+  final total = linesCount; // Cap to linesCount to prevent pw.Row height overflow on large inputs
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1542,7 +1553,7 @@ pw.Widget _buildPdfLinedField({
           padding: const pw.EdgeInsets.only(left: 4, bottom: 2),
           child: cache.has('${valKeyPrefix}_line_$i')
               ? cache.img('${valKeyPrefix}_line_$i')
-              : pw.Text(i < lines.length ? lines[i] : '', style: style),
+              : pw.Text(i < lines.length ? lines[i] : '', style: style, maxLines: 1),
         ),
       ],
     ],
@@ -1608,7 +1619,7 @@ List<pw.Widget> _buildPdfLinedBlock(
       padding: const pw.EdgeInsets.only(left: 4, bottom: 2),
       child: cache.has(lineKey)
           ? cache.img(lineKey)
-          : pw.Text(textLine, style: style),
+          : pw.Text(textLine, style: style, maxLines: 1),
     );
   });
 }
@@ -1625,14 +1636,30 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
     }
     final words = para.split(' ');
     var currentLine = '';
+    
     for (final word in words) {
-      if (currentLine.isEmpty) {
-        currentLine = word;
-      } else if ('$currentLine $word'.length <= maxChars) {
-        currentLine = '$currentLine $word';
-      } else {
-        result.add(currentLine);
-        currentLine = word;
+      var remainingWord = word;
+      
+      while (remainingWord.isNotEmpty) {
+        if (currentLine.isEmpty) {
+          if (remainingWord.length <= maxChars) {
+            currentLine = remainingWord;
+            remainingWord = '';
+          } else {
+            currentLine = remainingWord.substring(0, maxChars);
+            result.add(currentLine);
+            currentLine = '';
+            remainingWord = remainingWord.substring(maxChars);
+          }
+        } else {
+          if ('$currentLine $remainingWord'.length <= maxChars) {
+            currentLine = '$currentLine $remainingWord';
+            remainingWord = '';
+          } else {
+            result.add(currentLine);
+            currentLine = '';
+          }
+        }
       }
     }
     if (currentLine.isNotEmpty) {
