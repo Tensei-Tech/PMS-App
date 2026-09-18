@@ -348,6 +348,7 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
 
 Widget _buildPgWidget(Map<String, dynamic> doc) {
   String v(String key) => doc[key]?.toString().trim() ?? '';
+  final valBld = FormImagePdfHelper.mBld(11).copyWith(decoration: TextDecoration.underline);
 
   Widget underlineField(String label, String value, {double minWidth = 100}) {
     return Padding(
@@ -376,6 +377,39 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     );
   }
 
+  Widget policeStationUnderlineField(String label, String value, {double minWidth = 100}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(label, style: FormImagePdfHelper.mBld(11)),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Container(
+              constraints: BoxConstraints(minWidth: minWidth),
+              decoration: const BoxDecoration(
+                border: Border(
+                    bottom: BorderSide(width: 0.8, color: Colors.black87)),
+              ),
+              padding: const EdgeInsets.only(bottom: 2),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value.isEmpty ? ' ' : value,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: FormImagePdfHelper.valStyle(11),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 36),
     children: [
@@ -387,7 +421,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              underlineField('पोलीस स्टेशन :', v('ps')),
+              policeStationUnderlineField('पोलीस स्टेशन :', v('ps')),
               underlineField('कॅम्प :', v('camp')),
               underlineField('दिनांक :-', v('date')),
             ],
@@ -436,49 +470,49 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text: v('officerName').isEmpty
                   ? '__________________________________________________'
                   : v('officerName'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('officerName').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  पोलीस स्टेशन  '),
             TextSpan(
               text: v('officerPs').isEmpty
                   ? '__________________'
                   : v('officerPs'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('officerPs').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  यांनी दिनांक  '),
             TextSpan(
               text: v('summonDate').isEmpty
                   ? '...../ ....../ २०....'
                   : v('summonDate'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('summonDate').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  रोजी वरील नमुद पंचांना मौजा  '),
             TextSpan(
               text:
                   v('mauza').isEmpty ? '________________________' : v('mauza'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('mauza').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  येथे बोलवून कळविले की, पो.स्टे.  '),
             TextSpan(
               text: v('firPs').isEmpty ? '__________________' : v('firPs'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('firPs').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  येथे अप.क्र.  '),
             TextSpan(
               text: v('crimeNo').isEmpty ? '.........' : v('crimeNo'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('crimeNo').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: ' / २०'),
             TextSpan(
               text: v('crimeYear').isEmpty ? '....' : v('crimeYear'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('crimeYear').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  कलम  '),
             TextSpan(
               text: v('actSec').isEmpty
                   ? '........................................'
                   : v('actSec'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('actSec').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(
               text:
@@ -488,19 +522,19 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text: v('accusedName').isEmpty
                   ? '__________________________________________________'
                   : v('accusedName'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('accusedName').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  ता.-  '),
             TextSpan(
               text: v('accusedTah').isEmpty
                   ? '__________________'
                   : v('accusedTah'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('accusedTah').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  जि '),
             TextSpan(
               text: v('accusedDist').isEmpty ? 'यवतमाळ' : v('accusedDist'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('accusedDist').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(
               text:
@@ -522,7 +556,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text: v('searchPlace').isEmpty
                   ? '__________________________________________________'
                   : v('searchPlace'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('searchPlace').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(
                 text: '  त्याचे घरी जावुन आवाज दिला असता त्याचे घरी  '),
@@ -530,7 +564,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text: v('personFound').isEmpty
                   ? '__________________________________________________'
                   : v('personFound'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('personFound').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(
               text:
@@ -540,7 +574,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text: v('searchPremises').isEmpty
                   ? '__________________________________________________'
                   : v('searchPremises'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('searchPremises').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(
               text:
@@ -550,7 +584,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text: v('seizureProperty').isEmpty
                   ? '__________________________________________________'
                   : v('seizureProperty'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('seizureProperty').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(
               text:
@@ -572,18 +606,18 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text: v('panchDate').isEmpty
                   ? '......./ ...../ २०....'
                   : v('panchDate'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('panchDate').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  चे  '),
             TextSpan(
               text:
                   v('startTime').isEmpty ? '....../ ........' : v('startTime'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('startTime').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(text: '  वा सुरू करून  '),
             TextSpan(
               text: v('endTime').isEmpty ? '...../ .....' : v('endTime'),
-              style: FormImagePdfHelper.mBld(11),
+              style: v('endTime').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
             ),
             const TextSpan(
               text:
