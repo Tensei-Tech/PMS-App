@@ -572,19 +572,30 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
   final rawActSec = v('p1_actSec', v('actSec'));
   final actSec = rawActSec.isNotEmpty ? rawActSec : '------------';
   final rawComplainantName = v('p1_complainantName', v('complainantName'));
-  final complainantName = rawComplainantName.isNotEmpty ? rawComplainantName : '---------------------------------------';
-  final rawComplainantResidence = v('p1_complainantResidence', v('complainantResidence'));
-  final complainantResidence = rawComplainantResidence.isNotEmpty ? rawComplainantResidence : '------------------';
+  final complainantName = rawComplainantName.isNotEmpty
+      ? rawComplainantName
+      : '---------------------------------------';
+  final rawComplainantResidence =
+      v('p1_complainantResidence', v('complainantResidence'));
+  final complainantResidence = rawComplainantResidence.isNotEmpty
+      ? rawComplainantResidence
+      : '------------------';
   final rawComplainantTah = v('p1_complainantTah', v('complainantTah'));
-  final complainantTah = rawComplainantTah.isNotEmpty ? rawComplainantTah : '-----------';
+  final complainantTah =
+      rawComplainantTah.isNotEmpty ? rawComplainantTah : '-----------';
   final rawComplainantDist = v('p1_complainantDist', v('complainantDist'));
-  final complainantDist = rawComplainantDist.isNotEmpty ? rawComplainantDist : 'यवतमाळ';
+  final complainantDist =
+      rawComplainantDist.isNotEmpty ? rawComplainantDist : 'यवतमाळ';
 
   final ioNameSig = v('p1_ioNameSig', v('ioNameSig'));
   final rawPanch1Receipt = v('p1_panch1Receipt', v('panch1Receipt'));
-  final panch1Receipt = rawPanch1Receipt.isNotEmpty ? rawPanch1Receipt : '-----------------------';
+  final panch1Receipt = rawPanch1Receipt.isNotEmpty
+      ? rawPanch1Receipt
+      : '-----------------------';
   final rawPanch2Receipt = v('p1_panch2Receipt', v('panch2Receipt'));
-  final panch2Receipt = rawPanch2Receipt.isNotEmpty ? rawPanch2Receipt : '-----------------------';
+  final panch2Receipt = rawPanch2Receipt.isNotEmpty
+      ? rawPanch2Receipt
+      : '-----------------------';
 
   final reg = FormImagePdfHelper.mReg(11, 1.6);
   final bld = FormImagePdfHelper.mBld(11, 1.6);
@@ -592,7 +603,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
   final headerSub = FormImagePdfHelper.mBld(11, 1.3);
 
   TextStyle valBld(String raw) => bld.copyWith(
-        decoration: raw.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+        decoration:
+            raw.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
       );
 
   return FormImagePdfHelper.buildA4Page(
@@ -754,17 +766,25 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
             ),
             TextSpan(text: '$firPs ', style: valBld(rawFirPs)),
             const TextSpan(text: 'येथील अप / मर्ग/ स्टे.डा क्रमांक '),
-            TextSpan(text: '$crimeNo/२०$crimeYear ', style: valBld(rawCrimeNo.isNotEmpty ? rawCrimeNo : rawCrimeYear)),
+            TextSpan(
+                text: '$crimeNo/२०$crimeYear ',
+                style:
+                    valBld(rawCrimeNo.isNotEmpty ? rawCrimeNo : rawCrimeYear)),
             const TextSpan(text: 'कलम '),
             TextSpan(text: '$actSec ', style: valBld(rawActSec)),
             const TextSpan(text: 'मधील फिर्यादी नामे '),
-            TextSpan(text: '$complainantName ', style: valBld(rawComplainantName)),
+            TextSpan(
+                text: '$complainantName ', style: valBld(rawComplainantName)),
             const TextSpan(text: 'रा '),
-            TextSpan(text: '$complainantResidence ', style: valBld(rawComplainantResidence)),
+            TextSpan(
+                text: '$complainantResidence ',
+                style: valBld(rawComplainantResidence)),
             const TextSpan(text: 'ता '),
-            TextSpan(text: '$complainantTah ', style: valBld(rawComplainantTah)),
+            TextSpan(
+                text: '$complainantTah ', style: valBld(rawComplainantTah)),
             const TextSpan(text: 'जिल्हा '),
-            TextSpan(text: '$complainantDist ', style: valBld(rawComplainantDist)),
+            TextSpan(
+                text: '$complainantDist ', style: valBld(rawComplainantDist)),
             const TextSpan(
               text:
                   'यांनी तक्रार दिली वरून सदरचा गुन्हा नोंद होउन तपासात आहे. तरी सदर गुन्ह्यामधील घटनास्थळाचा/ जप्ती पंचनामा करावयाचा असल्याने आपण पंच म्हणुन हजर राहा असे सांगीतल्या वरून पंच हजर आले आहे.',
@@ -841,15 +861,19 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   final panch2Line2 = v('p2_panch2Line2');
 
   final rawRaidDate = v('p2_raidDate', v('raidDate'));
-  final raidDate = rawRaidDate.isNotEmpty ? rawRaidDate : '......./ ......./२०.....';
+  final raidDate =
+      rawRaidDate.isNotEmpty ? rawRaidDate : '......./ ......./२०.....';
   final rawVillage = v('p2_village', v('village'));
   final village = rawVillage.isNotEmpty ? rawVillage : '-------------';
   final rawSuspectName = v('p2_suspectName', v('suspectName'));
-  final suspectName = rawSuspectName.isNotEmpty ? rawSuspectName : '---------------------------------------';
+  final suspectName = rawSuspectName.isNotEmpty
+      ? rawSuspectName
+      : '---------------------------------------';
   final rawSuspectAge = v('p2_suspectAge', v('suspectAge'));
   final suspectAge = rawSuspectAge.isNotEmpty ? rawSuspectAge : '........';
   final rawSuspectResidence = v('p2_suspectResidence', v('suspectResidence'));
-  final suspectResidence = rawSuspectResidence.isNotEmpty ? rawSuspectResidence : '--------------';
+  final suspectResidence =
+      rawSuspectResidence.isNotEmpty ? rawSuspectResidence : '--------------';
   final rawSuspectTah = v('p2_suspectTah', v('suspectTah'));
   final suspectTah = rawSuspectTah.isNotEmpty ? rawSuspectTah : '-----------';
   final rawSuspectDist = v('p2_suspectDist', v('suspectDist'));
@@ -857,9 +881,13 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
 
   final ioNameSig = v('p2_ioNameSig', v('ioNameSig'));
   final rawPanch1Receipt = v('p2_panch1Receipt', v('panch1Receipt'));
-  final panch1Receipt = rawPanch1Receipt.isNotEmpty ? rawPanch1Receipt : '-----------------------';
+  final panch1Receipt = rawPanch1Receipt.isNotEmpty
+      ? rawPanch1Receipt
+      : '-----------------------';
   final rawPanch2Receipt = v('p2_panch2Receipt', v('panch2Receipt'));
-  final panch2Receipt = rawPanch2Receipt.isNotEmpty ? rawPanch2Receipt : '-----------------------';
+  final panch2Receipt = rawPanch2Receipt.isNotEmpty
+      ? rawPanch2Receipt
+      : '-----------------------';
 
   final reg = FormImagePdfHelper.mReg(11, 1.6);
   final bld = FormImagePdfHelper.mBld(11, 1.6);
@@ -867,7 +895,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   final headerSub = FormImagePdfHelper.mBld(11, 1.3);
 
   TextStyle valBld(String raw) => bld.copyWith(
-        decoration: raw.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+        decoration:
+            raw.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
       );
 
   return FormImagePdfHelper.buildA4Page(
@@ -1038,7 +1067,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             const TextSpan(text: 'वय '),
             TextSpan(text: '$suspectAge ', style: valBld(rawSuspectAge)),
             const TextSpan(text: 'रा '),
-            TextSpan(text: '$suspectResidence ', style: valBld(rawSuspectResidence)),
+            TextSpan(
+                text: '$suspectResidence ', style: valBld(rawSuspectResidence)),
             const TextSpan(text: 'ता '),
             TextSpan(text: '$suspectTah ', style: valBld(rawSuspectTah)),
             const TextSpan(text: 'जिल्हा '),

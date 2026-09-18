@@ -930,7 +930,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _kal14AccidentHowCtrl.text = doc['kal14AccidentHow'] ?? '';
     final rawAccidentDate = (doc['kal14AccidentDate'] ?? '').toString().trim();
     final rawAccidentTime = (doc['kal14AccidentTime'] ?? '').toString().trim();
-    final rawAccidentDT = (doc['kal14AccidentDateTime'] ?? '').toString().trim();
+    final rawAccidentDT =
+        (doc['kal14AccidentDateTime'] ?? '').toString().trim();
     if (rawAccidentDate.isNotEmpty || rawAccidentTime.isNotEmpty) {
       _kal14AccidentDateCtrl.text = rawAccidentDate;
       _kal14AccidentTimeCtrl.text = rawAccidentTime;
@@ -1021,13 +1022,17 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _dpDutyDateYearCtrl.text = doc['dpDutyDateYear']?.toString() ?? '';
     _dpDutyTimeHoursCtrl.text = doc['dpDutyTimeHours']?.toString() ?? '';
     _dpDutyTimeMinutesCtrl.text = doc['dpDutyTimeMinutes']?.toString() ?? '';
-    if (_dpDutyDateDayCtrl.text.isNotEmpty && _dpDutyDateMonthCtrl.text.isNotEmpty) {
+    if (_dpDutyDateDayCtrl.text.isNotEmpty &&
+        _dpDutyDateMonthCtrl.text.isNotEmpty) {
       final y = _dpDutyDateYearCtrl.text.trim();
       final fullY = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
-      _dpDutyDateCtrl.text = '${_dpDutyDateDayCtrl.text.padLeft(2, '0')}/${_dpDutyDateMonthCtrl.text.padLeft(2, '0')}/$fullY';
+      _dpDutyDateCtrl.text =
+          '${_dpDutyDateDayCtrl.text.padLeft(2, '0')}/${_dpDutyDateMonthCtrl.text.padLeft(2, '0')}/$fullY';
     }
-    if (_dpDutyTimeHoursCtrl.text.isNotEmpty && _dpDutyTimeMinutesCtrl.text.isNotEmpty) {
-      _dpDutyTimeCtrl.text = '${_dpDutyTimeHoursCtrl.text.padLeft(2, '0')}:${_dpDutyTimeMinutesCtrl.text.padLeft(2, '0')}';
+    if (_dpDutyTimeHoursCtrl.text.isNotEmpty &&
+        _dpDutyTimeMinutesCtrl.text.isNotEmpty) {
+      _dpDutyTimeCtrl.text =
+          '${_dpDutyTimeHoursCtrl.text.padLeft(2, '0')}:${_dpDutyTimeMinutesCtrl.text.padLeft(2, '0')}';
     }
     _dpMargNoCtrl.text = doc['dpMargNo'] ?? '';
     _dpMargYearCtrl.text = doc['dpMargYear'] ?? '';
@@ -2271,9 +2276,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         return ListenableBuilder(
           listenable: controller,
           builder: (context, _) {
-            final text = controller.text.isEmpty
-                ? (hintText ?? '')
-                : controller.text;
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
 
             final tp = TextPainter(
               text: TextSpan(
@@ -2290,14 +2294,17 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             double effectiveFontSize = baseFontSize;
             final double textW = tp.width + 12.0;
 
-            if (hasFiniteWidth && textW > availableWidth && availableWidth > 30) {
-              final scale = ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
-              effectiveFontSize = (baseFontSize * scale).clamp(8.5, baseFontSize);
+            if (hasFiniteWidth &&
+                textW > availableWidth &&
+                availableWidth > 30) {
+              final scale =
+                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+              effectiveFontSize =
+                  (baseFontSize * scale).clamp(8.5, baseFontSize);
             }
 
-            final widthToUse = hasFiniteWidth
-                ? availableWidth
-                : textW.clamp(baseMin, baseMax);
+            final widthToUse =
+                hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
 
             return SizedBox(
               width: widthToUse,
@@ -2856,9 +2863,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       _datePickerField(
-                          controller: _reqDateCtrl,
-                          style: style,
-                          width: 140),
+                          controller: _reqDateCtrl, style: style, width: 140),
                     ],
                   ),
                 ],
@@ -2881,9 +2886,17 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   style: marathiStyle.copyWith(
                       fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 4),
-              _wrappingUnderlineInput(controller: _reqToCtrl, style: style, minWidth: 260, maxWidth: 450),
+              _wrappingUnderlineInput(
+                  controller: _reqToCtrl,
+                  style: style,
+                  minWidth: 260,
+                  maxWidth: 450),
               const SizedBox(height: 4),
-              _wrappingUnderlineInput(controller: _reqTo2Ctrl, style: style, minWidth: 260, maxWidth: 450),
+              _wrappingUnderlineInput(
+                  controller: _reqTo2Ctrl,
+                  style: style,
+                  minWidth: 260,
+                  maxWidth: 450),
             ],
           ),
         ),
@@ -2897,7 +2910,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           children: [
             Text('पासुन  :-    पोलीस स्टेशन',
                 style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
-            _policeStationField(controller: _reqFromPsCtrl, style: style, minWidth: 160),
+            _policeStationField(
+                controller: _reqFromPsCtrl, style: style, minWidth: 160),
             Text('   जिल्हा ',
                 style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
             _inlineBlank(
@@ -2995,14 +3009,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             children: [
               Text('सविनय सेवेशी सादर आहे की, आज दिनांक ', style: marathiStyle),
               _datePickerField(
-                  controller: _reqMargDateCtrl,
-                  style: style,
-                  width: 130),
+                  controller: _reqMargDateCtrl, style: style, width: 130),
               Text(' रोजी ', style: marathiStyle),
               _timePickerField(
-                  controller: _reqMargTimeCtrl,
-                  style: style,
-                  width: 90),
+                  controller: _reqMargTimeCtrl, style: style, width: 90),
               Text(' वाजता पोलीस स्टेशन ', style: marathiStyle),
               _policeStationField(
                   controller: _reqMargPsCtrl, style: style, minWidth: 140),
@@ -3016,13 +3026,19 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   ' कलम १९४ बी.एन.एस.एस २०२३ चा मर्ग दाखल झाला असुन यातील मृतक नामे ',
                   style: marathiStyle),
               _wrappingUnderlineInput(
-                  controller: _reqMargNameCtrl, style: style, minWidth: 240, maxWidth: 450),
+                  controller: _reqMargNameCtrl,
+                  style: style,
+                  minWidth: 240,
+                  maxWidth: 450),
               Text(' पो.स्टे.', style: marathiStyle),
               _policeStationField(
                   controller: _reqSubjectPsCtrl, style: style, minWidth: 140),
               Text(' ता-', style: marathiStyle),
               _wrappingUnderlineInput(
-                  controller: _reqMargTaCtrl, style: style, minWidth: 100, maxWidth: 200),
+                  controller: _reqMargTaCtrl,
+                  style: style,
+                  minWidth: 100,
+                  maxWidth: 200),
               Text(' जिल्हा ', style: marathiStyle),
               _inlineBlank(controller: _reqDistCtrl, style: style, width: 80),
               Text(' ही/ह्या ', style: marathiStyle),
@@ -3034,14 +3050,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   hintText: 'दवाखान्याचे नांव'),
               Text(' येथे दिनांक ', style: marathiStyle),
               _datePickerField(
-                  controller: _reqAdmitDateCtrl,
-                  style: style,
-                  width: 130),
+                  controller: _reqAdmitDateCtrl, style: style, width: 130),
               Text(' रोजी ', style: marathiStyle),
               _timePickerField(
-                  controller: _reqAdmitTimeCtrl,
-                  style: style,
-                  width: 90),
+                  controller: _reqAdmitTimeCtrl, style: style, width: 90),
               Text(
                   ' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ ',
                   style: marathiStyle),
@@ -3053,14 +3065,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               Text(' मुळे मयत झाला/झाली आहे. सदर मयत isम हा/ही दिनांक ',
                   style: marathiStyle),
               _datePickerField(
-                  controller: _reqDeathDateCtrl,
-                  style: style,
-                  width: 130),
+                  controller: _reqDeathDateCtrl, style: style, width: 130),
               Text(' रोजी ', style: marathiStyle),
               _timePickerField(
-                  controller: _reqDeathTimeCtrl,
-                  style: style,
-                  width: 90),
+                  controller: _reqDeathTimeCtrl, style: style, width: 90),
               Text(' वाजता मरण पावला आहे.', style: marathiStyle),
             ],
           ),
@@ -3262,9 +3270,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       _datePickerField(
-                          controller: _relDateCtrl,
-                          style: style,
-                          width: 140),
+                          controller: _relDateCtrl, style: style, width: 140),
                     ],
                   ),
                 ],
@@ -3304,7 +3310,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ',
                   style: marathiStyle),
               _wrappingUnderlineInput(
-                  controller: _relWeNameCtrl, style: style, minWidth: 200, maxWidth: 350),
+                  controller: _relWeNameCtrl,
+                  style: style,
+                  minWidth: 200,
+                  maxWidth: 350),
               Text(' पोलीस स्टेशन ', style: marathiStyle),
               _policeStationField(
                   controller: _relPsNameCtrl, style: style, minWidth: 160),
@@ -3319,11 +3328,22 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   controller: _relActSecCtrl, style: style, width: 180),
               Text(' मधील मृतक नामे ', style: marathiStyle),
               _wrappingUnderlineInput(
-                  controller: _relDeceasedNameCtrl, style: style, minWidth: 220, maxWidth: 400),
+                  controller: _relDeceasedNameCtrl,
+                  style: style,
+                  minWidth: 220,
+                  maxWidth: 400),
               Text(' ता-', style: marathiStyle),
-              _wrappingUnderlineInput(controller: _relTaCtrl, style: style, minWidth: 90, maxWidth: 180),
+              _wrappingUnderlineInput(
+                  controller: _relTaCtrl,
+                  style: style,
+                  minWidth: 90,
+                  maxWidth: 180),
               Text(' जिल्हा ', style: marathiStyle),
-              _wrappingUnderlineInput(controller: _relDistCtrl, style: style, minWidth: 90, maxWidth: 180),
+              _wrappingUnderlineInput(
+                  controller: _relDistCtrl,
+                  style: style,
+                  minWidth: 90,
+                  maxWidth: 180),
               Text(
                   ' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण प्रेत ओळखुन देवून मृतकाचे नातेवाईक या नात्याने पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत आमचे सोबत हजर राहावे.',
                   style: marathiStyle),
@@ -3532,9 +3552,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                               fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       _datePickerField(
-                          controller: _panDateCtrl,
-                          style: style,
-                          width: 140),
+                          controller: _panDateCtrl, style: style, width: 140),
                     ],
                   ),
                 ],
@@ -3574,10 +3592,16 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ',
                   style: marathiStyle),
               _wrappingUnderlineInput(
-                  controller: _panWeNameCtrl, style: style, minWidth: 200, maxWidth: 350),
+                  controller: _panWeNameCtrl,
+                  style: style,
+                  minWidth: 200,
+                  maxWidth: 350),
               Text(' पोलीस स्टेशन ', style: marathiStyle),
               _wrappingUnderlineInput(
-                  controller: _panPsNameCtrl, style: style, minWidth: 140, maxWidth: 280),
+                  controller: _panPsNameCtrl,
+                  style: style,
+                  minWidth: 140,
+                  maxWidth: 280),
               Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ',
                   style: marathiStyle),
               _inlineBlank(
@@ -3589,11 +3613,22 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                   controller: _panActSecCtrl, style: style, width: 180),
               Text(' मधील मृतक नामे ', style: marathiStyle),
               _wrappingUnderlineInput(
-                  controller: _panDeceasedNameCtrl, style: style, minWidth: 220, maxWidth: 400),
+                  controller: _panDeceasedNameCtrl,
+                  style: style,
+                  minWidth: 220,
+                  maxWidth: 400),
               Text(' ता-', style: marathiStyle),
-              _wrappingUnderlineInput(controller: _panTaCtrl, style: style, minWidth: 90, maxWidth: 180),
+              _wrappingUnderlineInput(
+                  controller: _panTaCtrl,
+                  style: style,
+                  minWidth: 90,
+                  maxWidth: 180),
               Text(' जिल्हा ', style: marathiStyle),
-              _wrappingUnderlineInput(controller: _panDistCtrl, style: style, minWidth: 90, maxWidth: 180),
+              _wrappingUnderlineInput(
+                  controller: _panDistCtrl,
+                  style: style,
+                  minWidth: 90,
+                  maxWidth: 180),
               Text(
                   ' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत पंच म्हणुन आमचे सोबत हजर राहावे.',
                   style: marathiStyle),
@@ -3701,7 +3736,10 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                       const SizedBox(width: 4),
                       Expanded(
                           child: _wrappingUnderlineInput(
-                              controller: _panIoPostingCtrl, style: style, minWidth: 140, maxWidth: 300)),
+                              controller: _panIoPostingCtrl,
+                              style: style,
+                              minWidth: 140,
+                              maxWidth: 300)),
                     ],
                   ),
                   _subLabel('नेमणूक व पत्ता', marathiStyle),
@@ -5596,8 +5634,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                             size: 18,
                             color: Colors.black87,
                           ),
-                          suffixIconConstraints: const BoxConstraints(
-                              minWidth: 28, minHeight: 24),
+                          suffixIconConstraints:
+                              const BoxConstraints(minWidth: 28, minHeight: 24),
                           border: const UnderlineInputBorder(
                             borderSide:
                                 BorderSide(color: Colors.black54, width: 1),
@@ -5651,8 +5689,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                             size: 18,
                             color: Colors.black87,
                           ),
-                          suffixIconConstraints: const BoxConstraints(
-                              minWidth: 28, minHeight: 24),
+                          suffixIconConstraints:
+                              const BoxConstraints(minWidth: 28, minHeight: 24),
                           border: const UnderlineInputBorder(
                             borderSide:
                                 BorderSide(color: Colors.black54, width: 1),

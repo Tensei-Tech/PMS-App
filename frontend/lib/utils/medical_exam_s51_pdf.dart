@@ -264,30 +264,42 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final dateStr = rawDate.isNotEmpty ? rawDate : '......./ ......../२०...';
 
   final rawToOfficer = v('toOfficer');
-  final toOfficer = rawToOfficer.isNotEmpty ? rawToOfficer : '________________________';
+  final toOfficer =
+      rawToOfficer.isNotEmpty ? rawToOfficer : '________________________';
   final rawToHospital = v('toHospital');
-  final toHospital = rawToHospital.isNotEmpty ? rawToHospital : '________________________________';
+  final toHospital = rawToHospital.isNotEmpty
+      ? rawToHospital
+      : '________________________________';
   final rawToTahDist = v('toTahDist');
-  final toTahDist = rawToTahDist.isNotEmpty ? rawToTahDist : '________________________';
+  final toTahDist =
+      rawToTahDist.isNotEmpty ? rawToTahDist : '________________________';
 
   final rawFromLocation = v('fromLocation');
-  final fromLocation = rawFromLocation.isNotEmpty ? rawFromLocation : '________________________________________________________';
+  final fromLocation = rawFromLocation.isNotEmpty
+      ? rawFromLocation
+      : '________________________________________________________';
 
   final rawSubject = v('subject');
-  final subject = rawSubject.isNotEmpty ? rawSubject : '________________________________________________________';
+  final subject = rawSubject.isNotEmpty
+      ? rawSubject
+      : '________________________________________________________';
 
   final rawVictimName = v('victimName');
-  final victimName = rawVictimName.isNotEmpty ? rawVictimName : '____________________________';
+  final victimName =
+      rawVictimName.isNotEmpty ? rawVictimName : '____________________________';
   final rawVictimAge = v('victimAge');
   final victimAge = rawVictimAge.isNotEmpty ? rawVictimAge : '..........';
   final rawVictimResidence = v('victimResidence');
-  final victimResidence = rawVictimResidence.isNotEmpty ? rawVictimResidence : '__________________';
+  final victimResidence =
+      rawVictimResidence.isNotEmpty ? rawVictimResidence : '__________________';
   final rawVictimTah = v('victimTah');
   final victimTah = rawVictimTah.isNotEmpty ? rawVictimTah : '____________';
   final rawVictimDist = v('victimDist');
   final victimDist = rawVictimDist.isNotEmpty ? rawVictimDist : '____________';
   final rawAssaultDetails = v('assaultDetails');
-  final assaultDetails = rawAssaultDetails.isNotEmpty ? rawAssaultDetails : '___________________________';
+  final assaultDetails = rawAssaultDetails.isNotEmpty
+      ? rawAssaultDetails
+      : '___________________________';
 
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 52, vertical: 48),
@@ -318,7 +330,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('पोलीस दुरक्षेत्र ', style: FormImagePdfHelper.mReg(11.5)),
+                  Text('पोलीस दुरक्षेत्र ',
+                      style: FormImagePdfHelper.mReg(11.5)),
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -413,21 +426,27 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             Text(
               toOfficer,
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawToOfficer.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawToOfficer.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
             const SizedBox(height: 3),
             Text(
               toHospital,
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawToHospital.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawToHospital.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
             const SizedBox(height: 3),
             Text(
               toTahDist,
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawToTahDist.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawToTahDist.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
           ],
@@ -479,7 +498,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             child: Text(
               subject,
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawSubject.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawSubject.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
           ),
@@ -507,35 +528,45 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             TextSpan(
               text: '$victimName, ',
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawVictimName.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawVictimName.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
             const TextSpan(text: 'वय '),
             TextSpan(
               text: '$victimAge ',
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawVictimAge.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawVictimAge.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
             const TextSpan(text: 'वर्ष रा '),
             TextSpan(
               text: '$victimResidence ',
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawVictimResidence.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawVictimResidence.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
             const TextSpan(text: 'ता '),
             TextSpan(
               text: '$victimTah ',
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawVictimTah.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawVictimTah.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
             const TextSpan(text: 'जिल्हा '),
             TextSpan(
               text: '$victimDist ',
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawVictimDist.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawVictimDist.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
             const TextSpan(
@@ -544,7 +575,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             TextSpan(
               text: '$assaultDetails ',
               style: FormImagePdfHelper.mBld(12).copyWith(
-                decoration: rawAssaultDetails.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+                decoration: rawAssaultDetails.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
               ),
             ),
             const TextSpan(

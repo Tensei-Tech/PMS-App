@@ -626,9 +626,8 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
         return ListenableBuilder(
           listenable: controller,
           builder: (context, _) {
-            final text = controller.text.isEmpty
-                ? (hintText ?? '')
-                : controller.text;
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
 
             final tp = TextPainter(
               text: TextSpan(
@@ -645,9 +644,13 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
             double effectiveFontSize = baseFontSize;
             final double textW = tp.width + 12.0;
 
-            if (hasFiniteWidth && textW > availableWidth && availableWidth > 30) {
-              final scale = ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
-              effectiveFontSize = (baseFontSize * scale).clamp(8.5, baseFontSize);
+            if (hasFiniteWidth &&
+                textW > availableWidth &&
+                availableWidth > 30) {
+              final scale =
+                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+              effectiveFontSize =
+                  (baseFontSize * scale).clamp(8.5, baseFontSize);
             }
 
             final double computedWidth = hasFiniteWidth
