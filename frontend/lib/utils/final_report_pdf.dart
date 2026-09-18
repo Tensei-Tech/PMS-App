@@ -6,24 +6,39 @@ import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'marathi_text_renderer.dart';
 import '../widgets/form_section_utils.dart';
+import 'form_image_pdf_helper.dart';
 
 Future<void> previewFinalReportPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateFinalReportPdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Final_Report_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
+  final active = doc['formSection']?.toString().trim();
+  List<Widget> pages;
+  if (active == 'Final Report Part I') {
+    pages = [_buildFrPg1Widget(doc)];
+  } else if (active == 'Final Report Part II') {
+    pages = [_buildFrPg2Widget(doc)];
+  } else if (active == 'Final Report Part III') {
+    pages = [_buildFrPg3Widget(doc)];
+  } else if (active == 'Final Report Part IV') {
+    pages = [_buildFrPg4Widget(doc)];
+  } else {
+    pages = [
+      _buildFrPg1Widget(doc),
+      _buildFrPg2Widget(doc),
+      _buildFrPg3Widget(doc),
+      _buildFrPg4Widget(doc),
+    ];
   }
+
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: pages,
+    fallbackPdfGenerator: () => generateFinalReportPdf(doc),
+  );
 }
 
 Future<Uint8List> generateFinalReportPdf(Map<String, dynamic> doc) async {
@@ -1047,4 +1062,622 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     }
   }
   return cache;
+}
+
+Widget _frUnderline(String text, {double? width}) {
+  final content = text.trim();
+  return Container(
+    width: width,
+    padding: const EdgeInsets.only(bottom: 1, left: 2, right: 2),
+    decoration: const BoxDecoration(
+      border: Border(bottom: BorderSide(width: 0.6, color: Colors.black)),
+    ),
+    child: Text(
+      content.isEmpty ? ' ' : content,
+      style: FormImagePdfHelper.valStyle(8),
+    ),
+  );
+}
+
+Widget _frField(String label, String val, {double width = 0}) {
+  final content = val.trim();
+  final valChild = Container(
+    decoration: const BoxDecoration(
+      border: Border(bottom: BorderSide(width: 0.6, color: Colors.black)),
+    ),
+    padding: const EdgeInsets.only(left: 3, bottom: 1),
+    child: Text(
+      content.isEmpty ? ' ' : content,
+      style: FormImagePdfHelper.valStyle(8),
+    ),
+  );
+
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 2.5),
+    child: Row(
+      mainAxisSize: width > 0 ? MainAxisSize.min : MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(label, style: FormImagePdfHelper.mBld(8, 1.2)),
+        if (width > 0)
+          SizedBox(width: width, child: valChild)
+        else
+          Expanded(child: valChild),
+      ],
+    ),
+  );
+}
+
+Widget _frMultiline(String label, String text, {int lines = 4}) {
+  final content = text.trim();
+  final split = _splitLines(content, 90);
+  final count = split.length > lines ? split.length : lines;
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (label.isNotEmpty) Text(label, style: FormImagePdfHelper.mBld(8, 1.2)),
+      if (label.isNotEmpty) const SizedBox(height: 2),
+      for (var i = 0; i < count; i++)
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 2),
+          padding: const EdgeInsets.only(left: 4, bottom: 1),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(width: 0.6, color: Colors.black)),
+          ),
+          child: Text(
+            i < split.length ? split[i] : ' ',
+            style: FormImagePdfHelper.valStyle(8),
+          ),
+        ),
+    ],
+  );
+}
+
+Widget _buildFrPg1Widget(Map<String, dynamic> doc) {
+  String v(String k) => doc[k]?.toString().trim() ?? '';
+  final propCount =
+      int.tryParse(doc['propertyRowCount']?.toString() ?? '') ?? 2;
+  final bld = FormImagePdfHelper.mBld(8, 1.25);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+    children: [
+      Center(
+          child: Text('FINAL REPORT FORM', style: FormImagePdfHelper.mBld(12))),
+      Center(
+          child:
+              Text('अंतिम अहवाल नमुना', style: FormImagePdfHelper.mBld(9.5))),
+      Center(child: Text('( UNDER SECTION 193 B.N.S.S.2023 )', style: bld)),
+      const SizedBox(height: 6),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text('IN THE COURT OF : ', style: bld),
+          Text('न्यायालय : ', style: bld),
+          Expanded(child: _frUnderline(v('court'))),
+          const SizedBox(width: 6),
+          Text('Dist / जिल्हा : ', style: bld),
+          SizedBox(width: 80, child: _frUnderline(v('courtDist'))),
+        ],
+      ),
+      const SizedBox(height: 4),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text('1.Dist : ', style: bld),
+          SizedBox(width: 70, child: _frUnderline(v('dist'))),
+          const SizedBox(width: 6),
+          Text('P.S: ', style: bld),
+          Expanded(flex: 2, child: _frUnderline(v('ps'))),
+          const SizedBox(width: 6),
+          Text('Year: ', style: bld),
+          SizedBox(width: 45, child: _frUnderline(v('year'))),
+          const SizedBox(width: 6),
+          Text('FIR No : ', style: bld),
+          SizedBox(width: 50, child: _frUnderline(v('firNo'))),
+          Text(' /20', style: bld),
+          SizedBox(width: 25, child: _frUnderline(v('firYearSuffix'))),
+          const SizedBox(width: 6),
+          Text('Date : ', style: bld),
+          SizedBox(width: 65, child: _frUnderline(v('headerDate'))),
+        ],
+      ),
+      const SizedBox(height: 4),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text('2.Final Report/Charge Sheet No. : ', style: bld),
+          SizedBox(width: 50, child: _frUnderline(v('reportNo'))),
+          Text(' /20', style: bld),
+          SizedBox(width: 25, child: _frUnderline(v('reportYearSuffix'))),
+          const SizedBox(width: 8),
+          Text('Date : ', style: bld),
+          SizedBox(width: 70, child: _frUnderline(v('reportDate'))),
+        ],
+      ),
+      const SizedBox(height: 4),
+      Row(
+        children: [
+          Expanded(flex: 2, child: _frField('3. (a) Act : ', v('act'))),
+          const SizedBox(width: 8),
+          Expanded(flex: 3, child: _frField('(b) Section : ', v('section'))),
+        ],
+      ),
+      _frField(
+          '4. Type of Final Report ( अंतिम अहवालाचा प्रकार ) : ',
+          v('reportType') +
+              (v('reportTypeCustom').isNotEmpty
+                  ? ' - ${v('reportTypeCustom')}'
+                  : '')),
+      _frMultiline(
+          '5. If Final Report unoccurred / false / mistake of fact or law / undetected (जर अंतिम अहवाल अदखलपात्र, खोटा, वस्तुस्थितीची किंवा कायद्याची चूक / निष्पन्न न झालेला असेल तर ) :',
+          v('frUnoccurred'),
+          lines: 2),
+      Row(
+        children: [
+          Expanded(
+              flex: 3,
+              child: _frField('6. If Charge sheeted ( आरोपपत्र ठेवल्यास ) : ',
+                  v('chargeSheeted'))),
+          const SizedBox(width: 8),
+          Expanded(
+              flex: 2,
+              child: _frField(
+                  'Original / Supplementary : ', v('originalSupplementary'))),
+        ],
+      ),
+      Row(
+        children: [
+          Expanded(
+              flex: 3, child: _frField('7. Name of the I.O. : ', v('ioName'))),
+          const SizedBox(width: 8),
+          SizedBox(width: 110, child: _frField('Rank : ', v('ioRank'))),
+          const SizedBox(width: 8),
+          SizedBox(width: 65, child: _frField('No. : ', v('ioNo'))),
+        ],
+      ),
+      _frField('   Police Station / पोलीस स्टेशन: ', v('ioPs')),
+      const SizedBox(height: 3),
+      _frField('9. (a) Name of Complainant/Informant : ', v('complainantName')),
+      _frField('   (b) Father\'s/Husband\'s Name : ', v('complainantFather')),
+      const SizedBox(height: 4),
+      Text(
+        '10. Details of Properties/Articles/Documents recovered/seized during investigation and relied upon : Enclosed with C/S.( separate list can be attached, if necessary )',
+        style: bld,
+      ),
+      const SizedBox(height: 3),
+      Table(
+        border: TableBorder.all(color: Colors.black, width: 0.5),
+        columnWidths: const {
+          0: FixedColumnWidth(28),
+          1: FlexColumnWidth(2.6),
+          2: FlexColumnWidth(1.4),
+          3: FlexColumnWidth(1.6),
+          4: FlexColumnWidth(2.2),
+          5: FlexColumnWidth(1.4),
+        },
+        children: [
+          TableRow(
+            children: [
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('Sr.\nअ.क्र',
+                      style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('Property Description\nमालाचे वर्णन',
+                      style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('Estimated Value\nअंदाजे किंमत',
+                      style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('Ps Property Register No\nमुददेमाल नोंद वही क्र',
+                      style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('From Whom Recovered\nकोणाकडून हस्तगत',
+                      style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('Disposal\nविल्हेवाट',
+                      style: bld, textAlign: TextAlign.center)),
+            ],
+          ),
+          for (var i = 1; i <= propCount; i++)
+            TableRow(
+              children: [
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child:
+                        Text('$i.', style: bld, textAlign: TextAlign.center)),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('prop${i}Desc'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('prop${i}Value'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('prop${i}Reg'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('prop${i}From'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('prop${i}Disposal'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+              ],
+            ),
+        ],
+      ),
+      const Spacer(),
+      Align(
+          alignment: Alignment.bottomRight,
+          child: Text('Page 1', style: FormImagePdfHelper.mReg(7.5))),
+    ],
+  );
+}
+
+Widget _buildFrPg2Widget(Map<String, dynamic> doc) {
+  String v(String k) => doc[k]?.toString().trim() ?? '';
+  final bld = FormImagePdfHelper.mBld(8, 1.2);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+    children: [
+      Align(alignment: Alignment.topRight, child: Text('Page : 2', style: bld)),
+      const SizedBox(height: 3),
+      Text(
+        '11. i) Particulars of accused persons charge-sheeted ( use separate sheet for each accused ) : आरोपपत्र ठेवलेल्या आरोपीचा तपशिल ( प्रत्येक आरोपीसाठी स्वतंत्र कागद वापरावा ) :',
+        style: bld,
+      ),
+      const SizedBox(height: 4),
+      Row(
+        children: [
+          Expanded(flex: 3, child: _frField('(i) Name : ', v('accName'))),
+          const SizedBox(width: 10),
+          Expanded(
+              flex: 2,
+              child: _frField('Where verified : ', v('accNameVerified'))),
+        ],
+      ),
+      _frField('(ii) Father\'s/Husband\'s Name : ', v('accFather')),
+      Row(
+        children: [
+          Expanded(
+              flex: 3,
+              child: _frField(
+                  '(iii) Date/Year of Birth ( जन्मतारीख ) : ', v('accDob'))),
+          const SizedBox(width: 10),
+          SizedBox(width: 80, child: _frField('Age : ', v('accAge'))),
+          const SizedBox(width: 10),
+          SizedBox(width: 90, child: _frField('(iv) Sex : ', v('accSex'))),
+        ],
+      ),
+      _frField('(v) Nationality ( राष्ट्रीयत्व ) : ', v('accNationality')),
+      Row(
+        children: [
+          Expanded(
+              flex: 3,
+              child: _frField('(vi) Passport No. : ', v('accPassport'))),
+          const SizedBox(width: 8),
+          Expanded(
+              flex: 2,
+              child: _frField('Date of issue : ', v('accPassportDate'))),
+          const SizedBox(width: 8),
+          Expanded(
+              flex: 2,
+              child: _frField('Place of issue : ', v('accPassportPlace'))),
+        ],
+      ),
+      Row(
+        children: [
+          Expanded(
+              flex: 2,
+              child: _frField('(vii) Religion ( धर्म ) : ', v('accReligion'))),
+          const SizedBox(width: 10),
+          Expanded(
+              flex: 3, child: _frField('Whether SC/ST/OBC : ', v('accScSt'))),
+        ],
+      ),
+      _frField('(viii) Occupation ( धंदा ) : ', v('accOccupation')),
+      Row(
+        children: [
+          Expanded(
+              flex: 4,
+              child: _frField('(ix) Address ( पत्ता ) : ', v('accAddress'))),
+          const SizedBox(width: 10),
+          Expanded(
+              flex: 2,
+              child: _frField('Whether verified : ', v('accAddressVerified'))),
+        ],
+      ),
+      Row(
+        children: [
+          Expanded(
+              child: _frField(
+                  '(x) Provisional Criminal No. : ', v('accProvCriminalNo'))),
+          const SizedBox(width: 10),
+          Expanded(
+              child: _frField(
+                  'Regular Criminal No. : ', v('accRegularCriminalNo'))),
+        ],
+      ),
+      Row(
+        children: [
+          Expanded(
+              flex: 2,
+              child: _frField('(xi) Date of Arrest : ', v('accArrestDate'))),
+          const SizedBox(width: 8),
+          SizedBox(width: 90, child: _frField('Time : ', v('accArrestTime'))),
+          const SizedBox(width: 8),
+          Expanded(
+              flex: 2,
+              child:
+                  _frField('(xii) Date on which bailed : ', v('accBailDate'))),
+        ],
+      ),
+      _frField(
+          '(xiii) Date on which forwarded to Court : ', v('accForwardedCourt')),
+      _frField('(xiv) Under Acts & Sections : ', v('accActsSections')),
+      _frMultiline(
+          '(xv) Name & Address of Bailers / Sureties ( जामीनदारांचे नांव व पत्ता ) :',
+          v('accBailers'),
+          lines: 2),
+      _frMultiline('(xvi) Previous convictions with case references : ',
+          v('accPrevConvictions'),
+          lines: 2),
+      _frField('(xvii) Status of the accused ( आरोपीची सद्यस्थिती ) : ',
+          v('accStatus')),
+      const SizedBox(height: 6),
+      Text(
+        '12. Particulars of accused persons not charge-sheeted ( Suspect ) ( Use separate sheet for each person ) आरोपपत्र न ठेवलेल्या आरोपीचा तपशिल ( संशयित ) ( प्रत्येक व्यक्तीसाठी स्वतंत्र कागद वापरावा ) :',
+        style: bld,
+      ),
+      const SizedBox(height: 2),
+      _frMultiline('', v('notChargeSheeted'), lines: 4),
+      const Spacer(),
+      Align(
+          alignment: Alignment.bottomRight,
+          child: Text('Page 2', style: FormImagePdfHelper.mReg(7.5))),
+    ],
+  );
+}
+
+Widget _buildFrPg3Widget(Map<String, dynamic> doc) {
+  String v(String k) => doc[k]?.toString().trim() ?? '';
+  final witnessCount =
+      int.tryParse(doc['witnessRowCount']?.toString() ?? '') ?? 3;
+  final bld = FormImagePdfHelper.mBld(8, 1.2);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+    children: [
+      Align(alignment: Alignment.topRight, child: Text('Page : 3', style: bld)),
+      const SizedBox(height: 3),
+      Text(
+        '13. Particulars of witnesses to be examined ( तपासावयाच्या साक्षीदारांचा तपशील ) :',
+        style: bld,
+      ),
+      const SizedBox(height: 4),
+      Table(
+        border: TableBorder.all(color: Colors.black, width: 0.5),
+        columnWidths: const {
+          0: FixedColumnWidth(26),
+          1: FlexColumnWidth(2.8),
+          2: FlexColumnWidth(1.0),
+          3: FlexColumnWidth(1.4),
+          4: FlexColumnWidth(2.6),
+          5: FlexColumnWidth(2.2),
+        },
+        children: [
+          TableRow(
+            children: [
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child:
+                      Text('अ.क्र', style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('साक्षीदारांचे नांव',
+                      style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('वय', style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child:
+                      Text('व्यवसाय', style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('राहण्याचा पत्ता',
+                      style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Text('सादर करावयाच्या\nपुराव्याचा प्रकार',
+                      style: bld, textAlign: TextAlign.center)),
+            ],
+          ),
+          TableRow(
+            children: [
+              Padding(
+                  padding: const EdgeInsets.all(1),
+                  child: Text('1', style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(1),
+                  child: Text('2', style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(1),
+                  child: Text('3', style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(1),
+                  child: Text('4', style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(1),
+                  child: Text('5', style: bld, textAlign: TextAlign.center)),
+              Padding(
+                  padding: const EdgeInsets.all(1),
+                  child: Text('6', style: bld, textAlign: TextAlign.center)),
+            ],
+          ),
+          for (var i = 1; i <= witnessCount; i++)
+            TableRow(
+              children: [
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child:
+                        Text('$i.', style: bld, textAlign: TextAlign.center)),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('witness${i}Name'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('witness${i}Age'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('witness${i}Occupation'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('witness${i}Address'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+                Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Text(v('witness${i}Evidence'),
+                        style: FormImagePdfHelper.valStyle(7.5))),
+              ],
+            ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      Text(
+        '14. If F.I.R. is false and in case of malicious prosecution, action taken or proposed to be taken under section 182 / 211 I.P.C. should be mentioned :',
+        style: bld,
+      ),
+      Text(
+        '(तकार खोटी असेल तर भादंवि १८२/२११ अन्वये केलेली किंवा करावयाची कार्यवाही नमुद करावी.)',
+        style: FormImagePdfHelper.mReg(7.5),
+      ),
+      _frField('   ', v('falseFirAction')),
+      const SizedBox(height: 8),
+      _frField(
+          '15. Result of laboratory analysis (प्रयोगशाळा विश्लेषकाचा निष्कर्ष) : ',
+          v('labAnalysis')),
+      const Spacer(),
+      Align(
+          alignment: Alignment.bottomRight,
+          child: Text('Page 3', style: FormImagePdfHelper.mReg(7.5))),
+    ],
+  );
+}
+
+Widget _buildFrPg4Widget(Map<String, dynamic> doc) {
+  String v(String k) => doc[k]?.toString().trim() ?? '';
+  final bld = FormImagePdfHelper.mBld(8, 1.25);
+  final mrR = FormImagePdfHelper.mReg(8, 1.25);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+    children: [
+      Align(
+          alignment: Alignment.topRight, child: Text('Form : 5 E', style: bld)),
+      const SizedBox(height: 4),
+      Text('16. Brief Facts of the Case (Add separate sheet, if necessary.)',
+          style: bld),
+      Text('    थोडक्यात माहिती ( आवश्यक असल्यास वेगळा कागद जोडावा. ) :',
+          style: mrR),
+      const SizedBox(height: 2),
+      Text('महोदय,', style: bld),
+      const SizedBox(height: 2),
+      _frMultiline('', v('briefFacts'), lines: 14),
+      const SizedBox(height: 8),
+      Text('टिप :-', style: bld),
+      Row(
+        children: [
+          Expanded(
+              child: _frField(
+                  '17. Refer Notice Served: ', v('referNoticeServed'))),
+          const SizedBox(width: 8),
+          Expanded(child: _frField('Date: ', v('referNoticeDate'))),
+          const SizedBox(width: 8),
+          Expanded(child: _frField('Dispatched on: ', v('dispatchedOn'))),
+        ],
+      ),
+      const SizedBox(height: 14),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Signature of the Officer Incharge,', style: bld),
+                Text('Police Station / पो.स्टे. प्रभारी अधिकाऱ्याची सही',
+                    style: mrR),
+                const SizedBox(height: 4),
+                _frField('Name : ', v('shoName')),
+                Row(
+                  children: [
+                    Expanded(child: _frField('Rank : ', v('shoRank'))),
+                    const SizedBox(width: 4),
+                    Expanded(child: _frField('No. : ', v('shoNo'))),
+                  ],
+                ),
+                _frField('Police Station : ', v('shoPs')),
+              ],
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Signature of Investigating Officer,', style: bld),
+                Text('तपासी अंमलदाराची सही', style: mrR),
+                const SizedBox(height: 4),
+                _frField(
+                    'Name : ',
+                    v('submitIoName').isNotEmpty
+                        ? v('submitIoName')
+                        : v('ioName')),
+                Row(
+                  children: [
+                    Expanded(
+                        child: _frField(
+                            'Rank : ',
+                            v('submitIoRank').isNotEmpty
+                                ? v('submitIoRank')
+                                : v('ioRank'))),
+                    const SizedBox(width: 4),
+                    Expanded(
+                        child: _frField(
+                            'No. : ',
+                            v('submitIoNo').isNotEmpty
+                                ? v('submitIoNo')
+                                : v('ioNo'))),
+                  ],
+                ),
+                _frField('Police Station : ',
+                    v('submitIoPs').isNotEmpty ? v('submitIoPs') : v('ioPs')),
+              ],
+            ),
+          ),
+        ],
+      ),
+      const Spacer(),
+      Align(
+          alignment: Alignment.bottomRight,
+          child: Text('Page 4', style: FormImagePdfHelper.mReg(7.5))),
+    ],
+  );
 }
