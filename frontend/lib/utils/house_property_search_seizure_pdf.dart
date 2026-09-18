@@ -308,7 +308,6 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
 
   // Sections 1–10
   if (showsSection('Search Seizure Form')) {
-
     // PAGE 2 — Sections 1–10
     pdf.addPage(
       pw.Page(
@@ -606,7 +605,8 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                       child: pw.Column(
                         children: [
                           pw.Text('Property',
-                              style: englishBold, textAlign: pw.TextAlign.center),
+                              style: englishBold,
+                              textAlign: pw.TextAlign.center),
                           mLbl('lbl_property_hdr'),
                         ],
                       ),

@@ -433,7 +433,8 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('6. Particulars of the Accused :-', style: englishBold),
+                  pw.Text('6. Particulars of the Accused :-',
+                      style: englishBold),
                   mLbl('lbl_6_title_m1'),
                 ],
               ),
@@ -1085,12 +1086,18 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                     pw.Text('(d) Income Group :-', style: englishBold),
                     mLbl('lbl_11d_m1'),
                     pw.SizedBox(height: 4),
-                    check('', doc['incomeLower'] == true, isMarathi: true, mKey: 'lbl_11di_m1'),
-                    check('', doc['incomeLowerMid'] == true, isMarathi: true, mKey: 'lbl_11dii_m1'),
-                    check('', doc['incomeMiddle'] == true, isMarathi: true, mKey: 'lbl_11diii_m1'),
-                    check('', doc['incomeUpperMid'] == true, isMarathi: true, mKey: 'lbl_11div_m1'),
-                    check('', doc['incomeUpperMid2'] == true, isMarathi: true, mKey: 'lbl_11dv_m1'),
-                    check('', doc['incomeUpper'] == true, isMarathi: true, mKey: 'lbl_11dvi_m1'),
+                    check('', doc['incomeLower'] == true,
+                        isMarathi: true, mKey: 'lbl_11di_m1'),
+                    check('', doc['incomeLowerMid'] == true,
+                        isMarathi: true, mKey: 'lbl_11dii_m1'),
+                    check('', doc['incomeMiddle'] == true,
+                        isMarathi: true, mKey: 'lbl_11diii_m1'),
+                    check('', doc['incomeUpperMid'] == true,
+                        isMarathi: true, mKey: 'lbl_11div_m1'),
+                    check('', doc['incomeUpperMid2'] == true,
+                        isMarathi: true, mKey: 'lbl_11dv_m1'),
+                    check('', doc['incomeUpper'] == true,
+                        isMarathi: true, mKey: 'lbl_11dvi_m1'),
                   ],
                 ),
               ),
@@ -1108,42 +1115,88 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     _yesNoRow(
-                      '(a) Is dangerous ?', 'lbl_12a_m1', doc['isDangerous'] == true, englishStyle, englishBold, mLbl,
+                      '(a) Is dangerous ?',
+                      'lbl_12a_m1',
+                      doc['isDangerous'] == true,
+                      englishStyle,
+                      englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(b) Previously escaped any bail ?', 'lbl_12b_m1', doc['prevEscaped'] == true, englishStyle, englishBold, mLbl,
+                      '(b) Previously escaped any bail ?',
+                      'lbl_12b_m1',
+                      doc['prevEscaped'] == true,
+                      englishStyle,
+                      englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(c) Is generally armed?', 'lbl_12c_m1', doc['generallyArmed'] == true, englishStyle, englishBold, mLbl,
+                      '(c) Is generally armed?',
+                      'lbl_12c_m1',
+                      doc['generallyArmed'] == true,
+                      englishStyle,
+                      englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(d) Operates with accomplices?', 'lbl_12d_m1', doc['operatesWithAccomplices'] == true, englishStyle, englishBold, mLbl,
+                      '(d) Operates with accomplices?',
+                      'lbl_12d_m1',
+                      doc['operatesWithAccomplices'] == true,
+                      englishStyle,
+                      englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(e) Has past criminal records ?', 'lbl_12e_m1', doc['pastCriminal'] == true, englishStyle, englishBold, mLbl,
+                      '(e) Has past criminal records ?',
+                      'lbl_12e_m1',
+                      doc['pastCriminal'] == true,
+                      englishStyle,
+                      englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(f) Is recidivism', 'lbl_12f_m1', doc['isRecidivism'] == true, englishStyle, englishBold, mLbl,
+                      '(f) Is recidivism',
+                      'lbl_12f_m1',
+                      doc['isRecidivism'] == true,
+                      englishStyle,
+                      englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(g) Is likely to escape bail ?', 'lbl_12g_m1', doc['likelyToEscape'] == true, englishStyle, englishBold, mLbl,
+                      '(g) Is likely to escape bail ?',
+                      'lbl_12g_m1',
+                      doc['likelyToEscape'] == true,
+                      englishStyle,
+                      englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(h) Is released on bail. Likely to commit crime or threaten victims/witnesses.', '', doc['releasedOnBail'] == true, englishStyle, englishBold, mLbl,
+                      '(h) Is released on bail. Likely to commit crime or threaten victims/witnesses.',
+                      '',
+                      doc['releasedOnBail'] == true,
+                      englishStyle,
+                      englishBold,
+                      mLbl,
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.only(left: 16),
                       child: mLbl('lbl_12h_m1'),
                     ),
                     _yesNoRow(
-                      '(i) Is wanted many other case?', 'lbl_12i_m1', doc['wantedMany'] == true, englishStyle, englishBold, mLbl,
+                      '(i) Is wanted many other case?',
+                      'lbl_12i_m1',
+                      doc['wantedMany'] == true,
+                      englishStyle,
+                      englishBold,
+                      mLbl,
                     ),
                     pw.Row(
                       children: [
                         pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            pw.Text('(If yes give case ref. Sec.)', style: englishStyle),
+                            pw.Text('(If yes give case ref. Sec.)',
+                                style: englishStyle),
                             mLbl('lbl_12i_m2'),
                           ],
                         ),
@@ -1335,21 +1388,17 @@ pw.Widget _yesNoRow(
       crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
         pw.Expanded(
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-               pw.Text(enLabel, style: style),
-               if (mKey.isNotEmpty) mLbl(mKey),
-            ]
-          )
-        ),
-        pw.Row(
-          children: [
-            pw.Text('Yes/No ', style: boldStyle),
-            mLbl('lbl_yes_no'),
-            pw.Text(value ? ' [Yes]' : ' [No]', style: style),
-          ]
-        ),
+            child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+              pw.Text(enLabel, style: style),
+              if (mKey.isNotEmpty) mLbl(mKey),
+            ])),
+        pw.Row(children: [
+          pw.Text('Yes/No ', style: boldStyle),
+          mLbl('lbl_yes_no'),
+          pw.Text(value ? ' [Yes]' : ' [No]', style: style),
+        ]),
       ],
     ),
   );
@@ -1611,26 +1660,58 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   // --- NEW KEYS FOR SECTION 6, 11, 12, 13, 14 ---
   await addLbl('lbl_6_title_m1', '( आरोपीचा तपशील ) :-', marathiLabelStyle);
   await addLbl('lbl_6i_m1', '(नांव) :-', marathiLabelStyle);
-  await addLbl('lbl_6ii_m1', '(पित्याचे/पतीचे/पालकाचे नांव ) :-', marathiLabelStyle);
+  await addLbl(
+      'lbl_6ii_m1', '(पित्याचे/पतीचे/पालकाचे नांव ) :-', marathiLabelStyle);
   await addLbl('lbl_6iii_m1', '(पहिले टोपण नांव ):-', marathiLabelStyle);
   await addLbl('lbl_6iv_m1', '(दुसरे टोपण नांव ):-', marathiLabelStyle);
   await addLbl('lbl_6v_m1', '(राष्ट्रीयत्व) :-', marathiLabelStyle);
-  await addLbl('lbl_11di_m1', '(i) Lower Income (Below Rs. 25000 P.Y.) = कमी उत्पन्न ( द.सा.रू २५००० पेक्ष कमी )', marathiLabelStyle);
-  await addLbl('lbl_11dii_m1', '(ii) Lower Middle Income (From Rs. 25001 to 50000) = कमी मध्यम उत्पन्न ( २५००१ ते ५००००)', marathiLabelStyle);
-  await addLbl('lbl_11diii_m1', '(iii) Middle Income (From 50001 to 100000) = मध्यम उत्पन्न (२५,००१ ते १००,००० )', marathiLabelStyle);
-  await addLbl('lbl_11div_m1', '(iv) Upper Middle Income (/From 100000 to 200000)= उच्च मध्यम उत्पन्न ( १००,००१ ते  २००,०००)', marathiLabelStyle);
-  await addLbl('lbl_11dv_m1', '(v) Upper Middle Income (Rs. 200000 to 300000) = उच्च मध्यम उत्पन्न ( २००,००१ ते ३००,०००)', marathiLabelStyle);
-  await addLbl('lbl_11dvi_m1', '(vi) Upper Income (above 300000) =SSE = उच्च उत्पन्न ( ३००,०००)', marathiLabelStyle);
+  await addLbl(
+      'lbl_11di_m1',
+      '(i) Lower Income (Below Rs. 25000 P.Y.) = कमी उत्पन्न ( द.सा.रू २५००० पेक्ष कमी )',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11dii_m1',
+      '(ii) Lower Middle Income (From Rs. 25001 to 50000) = कमी मध्यम उत्पन्न ( २५००१ ते ५००००)',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11diii_m1',
+      '(iii) Middle Income (From 50001 to 100000) = मध्यम उत्पन्न (२५,००१ ते १००,००० )',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11div_m1',
+      '(iv) Upper Middle Income (/From 100000 to 200000)= उच्च मध्यम उत्पन्न ( १००,००१ ते  २००,०००)',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11dv_m1',
+      '(v) Upper Middle Income (Rs. 200000 to 300000) = उच्च मध्यम उत्पन्न ( २००,००१ ते ३००,०००)',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11dvi_m1',
+      '(vi) Upper Income (above 300000) =SSE = उच्च उत्पन्न ( ३००,०००)',
+      marathiLabelStyle);
   await addLbl('lbl_12a_m1', '(धोकादायक आहे किंवा कसे?)', marathiLabelStyle);
-  await addLbl('lbl_12b_m1', '( पुर्वी जामीनावर असतांना पळुन गेला किंवा काय ? )', marathiLabelStyle);
-  await addLbl('lbl_12c_m1', '( नेहमी सशस्त्र असतो किंवा नसतो ?)', marathiLabelStyle);
-  await addLbl('lbl_12d_m1', '( साथीदारासह काम करतो किंवा कसे ? )', marathiLabelStyle);
-  await addLbl('lbl_12e_m1', '(गुन्हेगारी पार्श्वभुमी आहे किंवा नाही ? )', marathiLabelStyle);
-  await addLbl('lbl_12f_m1', '(वारंवार अपराध करतो किंवा काय ? )', marathiLabelStyle);
-  await addLbl('lbl_12g_m1', '(जामीनावर असतांना पळूनजाण्याचा संभव किंवा नाही ? )', marathiLabelStyle);
-  await addLbl('lbl_12h_m1', '(जामीनावर साडल्यास लगेच दुसरा गुन्हा करण्याचा किंवा बळींना/ साक्षेदारांना धाकदपटशा दाखविण्याचा संभव आहे किंवा नाही?)', marathiLabelStyle);
-  await addLbl('lbl_12i_m1', '(दुसऱ्या कोणत्याही प्रकरणात पाहिजे किंवा काय ?)', marathiLabelStyle);
-  await addLbl('lbl_12i_m2', '( जर होय असेल तर त्या प्रकरणाचा संदर्भ व कलमे दयवीत ?)', marathiLabelStyle);
+  await addLbl('lbl_12b_m1',
+      '( पुर्वी जामीनावर असतांना पळुन गेला किंवा काय ? )', marathiLabelStyle);
+  await addLbl(
+      'lbl_12c_m1', '( नेहमी सशस्त्र असतो किंवा नसतो ?)', marathiLabelStyle);
+  await addLbl(
+      'lbl_12d_m1', '( साथीदारासह काम करतो किंवा कसे ? )', marathiLabelStyle);
+  await addLbl('lbl_12e_m1', '(गुन्हेगारी पार्श्वभुमी आहे किंवा नाही ? )',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_12f_m1', '(वारंवार अपराध करतो किंवा काय ? )', marathiLabelStyle);
+  await addLbl('lbl_12g_m1',
+      '(जामीनावर असतांना पळूनजाण्याचा संभव किंवा नाही ? )', marathiLabelStyle);
+  await addLbl(
+      'lbl_12h_m1',
+      '(जामीनावर साडल्यास लगेच दुसरा गुन्हा करण्याचा किंवा बळींना/ साक्षेदारांना धाकदपटशा दाखविण्याचा संभव आहे किंवा नाही?)',
+      marathiLabelStyle);
+  await addLbl('lbl_12i_m1', '(दुसऱ्या कोणत्याही प्रकरणात पाहिजे किंवा काय ?)',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_12i_m2',
+      '( जर होय असेल तर त्या प्रकरणाचा संदर्भ व कलमे दयवीत ?)',
+      marathiLabelStyle);
   await addLbl('lbl_yes_no', '(होय/नाही)', marathiLabelStyle);
   await addLbl('lbl_io_sig', 'सही :-', marathiLabelStyle);
   // ----------------------------------------------

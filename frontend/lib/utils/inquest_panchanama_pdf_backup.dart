@@ -265,7 +265,8 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             // d) Date & Time of Death
             pw.Row(
               children: [
-                pw.Text('d) Date and Time of Death                    :', style: engBold),
+                pw.Text('d) Date and Time of Death                    :',
+                    style: engBold),
               ],
             ),
             pw.Wrap(
@@ -2392,4 +2393,3 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
 
   return pdf.save();
 }
-

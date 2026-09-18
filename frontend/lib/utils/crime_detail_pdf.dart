@@ -145,10 +145,11 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
 
   // Load Map Image if available
   pw.MemoryImage? mapImage;
-  
+
   if (doc['mapImageBytes'] != null) {
     try {
-      final List<int> byteList = List<int>.from(doc['mapImageBytes'] as Iterable<dynamic>);
+      final List<int> byteList =
+          List<int>.from(doc['mapImageBytes'] as Iterable<dynamic>);
       mapImage = pw.MemoryImage(Uint8List.fromList(byteList));
     } catch (e) {
       // Ignore load errors
@@ -1530,7 +1531,8 @@ pw.Widget _buildPdfLinedField({
   required MarathiImageCache cache,
 }) {
   final lines = _splitTextIntoLines(fallbackValue, 40);
-  final total = linesCount; // Cap to linesCount to prevent pw.Row height overflow on large inputs
+  final total =
+      linesCount; // Cap to linesCount to prevent pw.Row height overflow on large inputs
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1553,7 +1555,8 @@ pw.Widget _buildPdfLinedField({
           padding: const pw.EdgeInsets.only(left: 4, bottom: 2),
           child: cache.has('${valKeyPrefix}_line_$i')
               ? cache.img('${valKeyPrefix}_line_$i')
-              : pw.Text(i < lines.length ? lines[i] : '', style: style, maxLines: 1),
+              : pw.Text(i < lines.length ? lines[i] : '',
+                  style: style, maxLines: 1),
         ),
       ],
     ],
@@ -1636,10 +1639,10 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
     }
     final words = para.split(' ');
     var currentLine = '';
-    
+
     for (final word in words) {
       var remainingWord = word;
-      
+
       while (remainingWord.isNotEmpty) {
         if (currentLine.isEmpty) {
           if (remainingWord.length <= maxChars) {

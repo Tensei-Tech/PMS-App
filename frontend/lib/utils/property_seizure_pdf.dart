@@ -886,7 +886,8 @@ pw.Widget _buildPdfLinedField({
   required MarathiImageCache cache,
 }) {
   final lines = _splitTextIntoLines(fallbackValue, 40);
-  final total = linesCount; // Cap to linesCount to prevent pw.Row height overflow on large inputs
+  final total =
+      linesCount; // Cap to linesCount to prevent pw.Row height overflow on large inputs
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -959,10 +960,10 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
     }
     final words = para.split(' ');
     var currentLine = '';
-    
+
     for (final word in words) {
       var remainingWord = word;
-      
+
       while (remainingWord.isNotEmpty) {
         if (currentLine.isEmpty) {
           if (remainingWord.length <= maxChars) {
