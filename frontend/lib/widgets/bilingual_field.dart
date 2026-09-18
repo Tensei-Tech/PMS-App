@@ -35,7 +35,7 @@ class BilingualSimpleUnderlineInput extends StatelessWidget {
         isDense: true,
         filled: false,
         fillColor: Colors.transparent,
-        contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
+        contentPadding: const EdgeInsets.only(bottom: 0, top: 6),
         border: const UnderlineInputBorder(
           borderSide: BorderSide(color: Colors.black54, width: 1),
         ),

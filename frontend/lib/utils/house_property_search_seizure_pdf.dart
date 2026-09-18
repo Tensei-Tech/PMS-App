@@ -1,12 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'marathi_text_renderer.dart';
-import 'form_io_terminology.dart';
+
 import '../widgets/form_section_utils.dart';
+import 'form_io_terminology.dart';
+import 'marathi_text_renderer.dart';
 
 Future<void> previewHousePropertySearchSeizurePdf(
   BuildContext context,
@@ -55,6 +56,7 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
     fontWeight: pw.FontWeight.bold,
     color: PdfColors.black,
   );
+  // ignore: unused_local_variable
   final headerStyle = pw.TextStyle(
     font: loraBold,
     fontSize: 14,
@@ -106,18 +108,18 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
     double? width,
     bool expanded = false,
   }) {
-    return pw.Row(
-      mainAxisSize: expanded ? pw.MainAxisSize.max : pw.MainAxisSize.min,
-      crossAxisAlignment: pw.CrossAxisAlignment.end,
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+        pw.Row(
+          mainAxisSize: expanded ? pw.MainAxisSize.max : pw.MainAxisSize.min,
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             pw.Text(enLabel, style: englishBold),
-            mLbl(mKey),
+            underlineField(valKey, fallback, width: width, expanded: expanded),
           ],
         ),
-        underlineField(valKey, fallback, width: width, expanded: expanded),
+        mLbl(mKey),
       ],
     );
   }
@@ -130,17 +132,17 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
   ) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text(enLabel, style: englishBold),
-              mLbl(mKey),
+              underlineField(valKey, fallback, expanded: true),
             ],
           ),
-          underlineField(valKey, fallback, expanded: true),
+          mLbl(mKey),
         ],
       ),
     );
@@ -205,18 +207,26 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
               ),
               pw.Padding(
                 padding: const pw.EdgeInsets.only(left: 16),
-                child: underlineField(
-                  l2Key,
-                  doc[l2Key]?.toString() ?? '',
-                  expanded: true,
+                child: pw.Row(
+                  children: [
+                    underlineField(
+                      l2Key,
+                      doc[l2Key]?.toString() ?? '',
+                      expanded: true,
+                    ),
+                  ],
                 ),
               ),
               pw.Padding(
                 padding: const pw.EdgeInsets.only(left: 16),
-                child: underlineField(
-                  l3Key,
-                  doc[l3Key]?.toString() ?? '',
-                  expanded: true,
+                child: pw.Row(
+                  children: [
+                    underlineField(
+                      l3Key,
+                      doc[l3Key]?.toString() ?? '',
+                      expanded: true,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -298,37 +308,6 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
 
   // Sections 1–10
   if (showsSection('Search Seizure Form')) {
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(40),
-        build: (_) => pw.Column(
-          children: [
-            pw.Spacer(flex: 2),
-            pw.Center(
-              child: pw.Column(
-                children: [
-                  pw.Text('HOUSE/PROPERTY SEARCH', style: headerStyle),
-                  pw.Text('& SEIZURI FORM', style: headerStyle),
-                  pw.SizedBox(height: 8),
-                  cache.has('title_mr')
-                      ? cache.img('title_mr')
-                      : pw.Text(
-                          'घरझडती पंचनामा/ मालमत्ता शोध व जप्तीचा पंचनामा',
-                          style: englishStyle),
-                ],
-              ),
-            ),
-            pw.Spacer(flex: 3),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold),
-            ),
-          ],
-        ),
-      ),
-    );
-
     // PAGE 2 — Sections 1–10
     pdf.addPage(
       pw.Page(
@@ -341,17 +320,19 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
               child: pw.Column(
                 children: [
                   pw.Text(
-                    'HOUSE/PROPERTY SEARCH & SEIZURI FORM',
-                    style: headerStyle.copyWith(fontSize: 12),
+                    'HOUSE/PROPERTY SEARCH & SEIZURE FORM',
+                    style: englishBold.copyWith(fontSize: 15),
                     textAlign: pw.TextAlign.center,
                   ),
+                  pw.SizedBox(height: 4),
                   mLbl('title_mr'),
                   pw.SizedBox(height: 4),
                   pw.Text(
-                    '(Search/Production/Recovery U/s 185 B.N.S.S. 2023)',
-                    style: englishBold,
+                    '(Search/ Production/ Recovery u/s. 185 B.N.S.S)',
+                    style: englishStyle.copyWith(fontSize: 9),
                     textAlign: pw.TextAlign.center,
                   ),
+                  pw.SizedBox(height: 2),
                   mLbl('lbl_statute'),
                 ],
               ),
@@ -383,23 +364,28 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                   doc['year']?.toString() ?? '',
                   width: 35,
                 ),
-                pw.Row(
-                  mainAxisSize: pw.MainAxisSize.min,
-                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    inlineField(
-                      'FIR No : ',
-                      'lbl_fir',
-                      'val_firNo',
-                      doc['firNo']?.toString() ?? '',
-                      width: 40,
+                    pw.Row(
+                      mainAxisSize: pw.MainAxisSize.min,
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Text('FIR No : ', style: englishBold),
+                        underlineField(
+                          'val_firNo',
+                          doc['firNo']?.toString() ?? '',
+                          width: 40,
+                        ),
+                        pw.Text('/20', style: englishBold),
+                        underlineField(
+                          'val_firYearSuffix',
+                          doc['firYearSuffix']?.toString() ?? '',
+                          width: 22,
+                        ),
+                      ],
                     ),
-                    pw.Text('/20', style: englishBold),
-                    underlineField(
-                      'val_firYearSuffix',
-                      doc['firYearSuffix']?.toString() ?? '',
-                      width: 22,
-                    ),
+                    mLbl('lbl_fir'),
                   ],
                 ),
                 inlineField(
@@ -455,7 +441,10 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
               'val_profReceiver',
               doc['profReceiver']?.toString() ?? '',
             ),
-            pw.Row(
+            pw.Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              crossAxisAlignment: pw.WrapCrossAlignment.end,
               children: [
                 inlineField(
                   'Name : - ',
@@ -464,7 +453,6 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                   doc['personName']?.toString() ?? '',
                   width: 70,
                 ),
-                pw.SizedBox(width: 6),
                 inlineField(
                   'Father\'s/Husband\'s Name : ',
                   'lbl_person_father',
@@ -481,7 +469,10 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                 ),
               ],
             ),
-            pw.Row(
+            pw.Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              crossAxisAlignment: pw.WrapCrossAlignment.end,
               children: [
                 inlineField(
                   'Age : ',
@@ -490,7 +481,6 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                   doc['personAge']?.toString() ?? '',
                   width: 35,
                 ),
-                pw.SizedBox(width: 6),
                 inlineField(
                   'Occupation : ',
                   'lbl_person_occ',
@@ -509,10 +499,14 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
             ),
             pw.Padding(
               padding: const pw.EdgeInsets.only(left: 8),
-              child: underlineField(
-                'val_personAddressLine2',
-                doc['personAddressLine2']?.toString() ?? '',
-                expanded: true,
+              child: pw.Row(
+                children: [
+                  underlineField(
+                    'val_personAddressLine2',
+                    doc['personAddressLine2']?.toString() ?? '',
+                    expanded: true,
+                  ),
+                ],
               ),
             ),
             multiline(
@@ -608,8 +602,14 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(4),
-                      child: pw.Text('Property/ मालमत्ता',
-                          style: englishBold, textAlign: pw.TextAlign.center),
+                      child: pw.Column(
+                        children: [
+                          pw.Text('Property',
+                              style: englishBold,
+                              textAlign: pw.TextAlign.center),
+                          mLbl('lbl_property_hdr'),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -632,7 +632,10 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
               ],
             ),
             pw.SizedBox(height: 6),
-            pw.Row(
+            pw.Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              crossAxisAlignment: pw.WrapCrossAlignment.end,
               children: [
                 inlineField(
                   '13) Property seized : (a) Date : ',
@@ -641,7 +644,6 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                   doc['seizeDate']?.toString() ?? '',
                   width: 55,
                 ),
-                pw.SizedBox(width: 6),
                 inlineField(
                   '(b) Time : ',
                   'lbl_seize_time_from',
@@ -686,30 +688,30 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       inlineField(
-                        '15) शिक्याचा नमुना :- Date : ',
+                        '15) Specimen of Seal :- Date : ',
                         'lbl_seal_date',
                         'val_sealSampleDate',
                         doc['sealSampleDate']?.toString() ?? '',
                         width: 55,
                       ),
                       pw.SizedBox(height: 6),
-                      pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              pw.Text(
-                                '16) Signature of person from whom seized : ',
-                                style: englishBold,
-                              ),
-                              mLbl('lbl_seized_sig'),
-                            ],
+                          pw.Text(
+                            '16) Signature of person from whom seized : ',
+                            style: englishBold,
                           ),
-                          underlineField(
-                            'val_seizedPersonSig',
-                            doc['seizedPersonSig']?.toString() ?? '',
-                            expanded: true,
+                          mLbl('lbl_seized_sig'),
+                          pw.SizedBox(height: 4),
+                          pw.Row(
+                            children: [
+                              underlineField(
+                                'val_seizedPersonSig',
+                                doc['seizedPersonSig']?.toString() ?? '',
+                                expanded: true,
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -785,13 +787,23 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
     final words = para.split(' ');
     var currentLine = '';
     for (final word in words) {
-      if (currentLine.isEmpty) {
-        currentLine = word;
-      } else if ('$currentLine $word'.length <= maxChars) {
-        currentLine = '$currentLine $word';
-      } else {
-        result.add(currentLine);
-        currentLine = word;
+      var w = word;
+      while (w.isNotEmpty) {
+        if (currentLine.isEmpty) {
+          if (w.length <= maxChars) {
+            currentLine = w;
+            w = '';
+          } else {
+            result.add(w.substring(0, maxChars));
+            w = w.substring(maxChars);
+          }
+        } else if (currentLine.length + 1 + w.length <= maxChars) {
+          currentLine = '$currentLine $w';
+          w = '';
+        } else {
+          result.add(currentLine);
+          currentLine = '';
+        }
       }
     }
     if (currentLine.isNotEmpty) result.add(currentLine);
@@ -827,7 +839,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addLbl('title_mr', 'घरझडती पंचनामा/ मालमत्ता शोध व जप्तीचा पंचनामा');
   await addLbl(
     'lbl_statute',
-    '(कलम १८५ भारतीय नागरी संरक्षण अधिनियम २०२३ अन्वये झडती/हजर करणे/परत मिळविणे)',
+    '(कलम १८५ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये झडती/हजर करणे/परत मिळविणे)',
   );
   await addLbl('lbl_dist', 'जिल्हा');
   await addLbl('lbl_ps', 'पोलीस स्टेशन');
@@ -874,11 +886,12 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'खालील मालमत्ता पोत्यात बंद/शिक्का मारून खालील साक्षीदारांची सही घेण्यात आली.',
   );
   await addLbl('lbl_sr_no', 'अनु.क्र');
+  await addLbl('lbl_property_hdr', 'मालमत्ता');
   await addLbl('lbl_seize_date', 'जप्त केलेली मालमत्ता दिनांक');
   await addLbl('lbl_seize_time_from', 'वेळ');
   await addLbl('lbl_seize_time_to', 'ते');
   await addLbl('lbl_witness_header', 'साक्षीदारांचे नांव व पत्ता / सह्या');
-  await addLbl('lbl_seal_date', 'दिनांक');
+  await addLbl('lbl_seal_date', 'शिक्याचा नमुना :- दिनांक');
   await addLbl('lbl_seized_sig', 'ज्यांच्याकडून माल जप्त केला त्याची सही');
   await addLbl('lbl_io_header', FormIoTerminology.signatureHeader);
   await addLbl('lbl_io_name', FormIoTerminology.name);

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../utils/form_io_terminology.dart';
 import 'bilingual_field.dart';
+import 'form_io_signature_block.dart';
 import 'form_paper_page.dart';
+import 'form_section_utils.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
-import 'form_section_utils.dart';
-import 'form_io_signature_block.dart';
-import '../utils/form_io_terminology.dart';
 
 class InquestPanchanamaFormView extends StatefulWidget {
   final Map<String, dynamic>? existingRecord;
@@ -4073,12 +4074,13 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           _buildCivilSurgeonPage6(serifStyle, marathiLabelStyle),
         ],
         if (_shows(kCivilSurgeon) &&
-            (_shows(kVinantiArj) || widget.formSection?.isEmpty == true))
+            (_shows(kVinantiArj) && widget.formSection == kVinantiArj))
           const SizedBox(height: 24),
-        if (_shows(kVinantiArj)) ...[
+        if (_shows(kVinantiArj) && widget.formSection == kVinantiArj) ...[
           _buildVinantiArjPage7(serifStyle, marathiLabelStyle),
         ],
         if (_shows(kVinantiArj) &&
+            widget.formSection == kVinantiArj &&
             (_shows(kRelativeSummons) || widget.formSection?.isEmpty == true))
           const SizedBox(height: 24),
         if (_shows(kRelativeSummons)) ...[

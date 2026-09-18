@@ -151,6 +151,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
   TextEditingController get _physicalEvidenceCtrl =>
       __physicalEvidenceCtrl ??= TextEditingController();
   String? _mapImagePath;
+  Uint8List? _mapImageBytes;
 
   @override
   void initState() {
@@ -263,6 +264,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       'propertyDetails': _propertyDetailsCtrl.text.trim(),
       'placeDescriptionCont': _placeDescriptionContCtrl.text.trim(),
       'mapImagePath': _mapImagePath,
+      'mapImageBytes': _mapImageBytes,
       'physicalEvidence': _physicalEvidenceCtrl.text.trim(),
       'panchnamaDate': _panchnamaDateCombined,
       'panchnamaDateDay': _panchnamaDateDayCtrl.text.trim(),
@@ -1116,8 +1118,10 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                   final picker = ImagePicker();
                   final x = await picker.pickImage(source: ImageSource.gallery);
                   if (x != null) {
+                    final bytes = await x.readAsBytes();
                     setState(() {
                       _mapImagePath = x.path;
+                      _mapImageBytes = bytes;
                     });
                   }
                 },
@@ -1182,6 +1186,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                                   onPressed: () {
                                     setState(() {
                                       _mapImagePath = null;
+                                      _mapImageBytes = null;
                                     });
                                   },
                                 ),

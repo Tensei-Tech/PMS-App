@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_section_utils.dart';
@@ -543,40 +543,50 @@ class HousePropertySearchSeizureFormViewState
                 child: Column(
                   children: [
                     Text(
-                      'HOUSE/PROPERTY SEARCH & SEIZURI FORM',
+                      'HOUSE/PROPERTY SEARCH & SEIZURE FORM',
                       style: serifStyle.copyWith(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       'घरझडती पंचनामा/ मालमत्ता शोध व जप्तीचा पंचनामा',
-                      style: marathiLabelStyle.copyWith(
+                      style: GoogleFonts.notoSansDevanagari(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
-                      '(Search/Production/Recovery U/s 185 B.N.S.S. 2023)',
-                      style: serifStyle.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      '(Search/ Production/ Recovery u/s. 185 B.N.S.S)',
+                      style: serifStyle.copyWith(fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      '(कलम १८५ भारतीय नागरी संरक्षण अधिनियम २०२३ अन्वये झडती/हजर करणे/परत मिळवणे)',
-                      style: marathiLabelStyle.copyWith(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    RichText(
                       textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: GoogleFonts.notoSansDevanagari(
+                          fontSize: 12,
+                          color: Colors.black87,
+                        ),
+                        children: [
+                          const TextSpan(
+                            text:
+                                '(कलम १८५ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये झडती/हजर ',
+                          ),
+                          TextSpan(
+                            text: 'करणे/परत',
+                            style: TextStyle(color: Colors.blue.shade900),
+                          ),
+                          const TextSpan(text: ' मिळविणे)'),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -592,175 +602,175 @@ class HousePropertySearchSeizureFormViewState
                 runSpacing: 8,
                 children: [
                   // District
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text('1) District:',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          Text('जिल्हा',
-                              style: marathiLabelStyle.copyWith(
-                                  fontSize: 10, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 90,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _distCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(width: 4),
-                      SizedBox(
-                        width: 90,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _distCtrl,
-                          serifStyle: serifStyle,
-                        ),
-                      ),
+                      Text('जिल्हा',
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   // P.S.
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text('P.S.:',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          Text('पोलीस स्टेशन',
-                              style: marathiLabelStyle.copyWith(
-                                  fontSize: 10, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 110,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _psCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(width: 4),
-                      SizedBox(
-                        width: 110,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _psCtrl,
-                          serifStyle: serifStyle,
-                        ),
-                      ),
+                      Text('पोलीस स्टेशन',
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   // Year
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Year:---------',
+                          Text('Year:',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          Text('वर्ष',
-                              style: marathiLabelStyle.copyWith(
-                                  fontSize: 10, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 55,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _yearCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YYYY',
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(width: 4),
-                      SizedBox(
-                        width: 55,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _yearCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'YYYY',
-                        ),
-                      ),
+                      Text('वर्ष',
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   // FIR No
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('FIR No:---------',
+                          Text('FIR No:',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          Text('पहिली खबर क्र.',
-                              style: marathiLabelStyle.copyWith(
-                                  fontSize: 10, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 4),
+                          SizedBox(
+                            width: 55,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _firNoCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text('/20',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                          SizedBox(
+                            width: 35,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _firYearSuffixCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(width: 4),
-                      SizedBox(
-                        width: 55,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _firNoCtrl,
-                          serifStyle: serifStyle,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Text('/20',
-                            style: serifStyle.copyWith(
-                                fontWeight: FontWeight.bold)),
-                      ),
-                      SizedBox(
-                        width: 35,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _firYearSuffixCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'YY',
-                        ),
-                      ),
+                      Text('पहिली खबर क्र.',
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   // Date
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Date:...../......./20.......',
+                          Text('Date:',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          Text('तारीख',
-                              style: marathiLabelStyle.copyWith(
-                                  fontSize: 10, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 6),
+                          SizedBox(
+                            width: 34,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _headerDateDayCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'DD',
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text('/', style: serifStyle),
+                          ),
+                          SizedBox(
+                            width: 34,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _headerDateMonthCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'MM',
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text('/20',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                          SizedBox(
+                            width: 34,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _headerDateYearCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(width: 6),
-                      SizedBox(
-                        width: 34,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _headerDateDayCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'DD',
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Text('/', style: serifStyle),
-                      ),
-                      SizedBox(
-                        width: 34,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _headerDateMonthCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'MM',
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Text('/20',
-                            style: serifStyle.copyWith(
-                                fontWeight: FontWeight.bold)),
-                      ),
-                      SizedBox(
-                        width: 34,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _headerDateYearCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'YY',
-                        ),
-                      ),
+                      Text('तारीख',
+                          style: marathiLabelStyle.copyWith(
+                              fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -922,32 +932,32 @@ class HousePropertySearchSeizureFormViewState
                   const SizedBox(height: 8),
 
                   // *Professional Receiver of Stolen Property
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
                             '*Professional Receiver of Stolen Property: -   Yes/No.',
                             style: serifStyle.copyWith(
                                 fontWeight: FontWeight.bold),
                           ),
-                          Text(
-                            'चोरीचा माल घेणारा सराईत                     :-   होय/ नाही',
-                            style: marathiLabelStyle.copyWith(
-                                fontSize: 11, fontWeight: FontWeight.bold),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 100,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _profReceiverCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'होय / नाही',
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 100,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _profReceiverCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'होय / नाही',
-                        ),
+                      Text(
+                        'चोरीचा माल घेणारा सराईत                     :-   होय/ नाही',
+                        style: marathiLabelStyle.copyWith(
+                            fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -1133,31 +1143,31 @@ class HousePropertySearchSeizureFormViewState
               const SizedBox(height: 14),
 
               // 8) Identification repuired
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         '8) Identification repuired   : -   Yes / No.',
                         style: serifStyle.copyWith(fontWeight: FontWeight.bold),
                       ),
-                      Text(
-                        'ओळख पटवावी लागली काय     : -   होय/ नाही',
-                        style: marathiLabelStyle.copyWith(
-                            fontSize: 11, fontWeight: FontWeight.bold),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 100,
+                        child: BilingualSimpleUnderlineInput(
+                          controller: _identificationRequiredCtrl,
+                          serifStyle: serifStyle,
+                          hintText: 'होय / नाही',
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 100,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _identificationRequiredCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'होय / नाही',
-                    ),
+                  Text(
+                    'ओळख पटवावी लागली काय     : -   होय/ नाही',
+                    style: marathiLabelStyle.copyWith(
+                        fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),

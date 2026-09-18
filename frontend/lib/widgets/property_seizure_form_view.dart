@@ -427,7 +427,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 child: Column(
                   children: [
                     Text(
-                      'PROPERTY SEACH & SEIZURE FORM',
+                      'PROPERTY SEARCH & SEIZURE FORM',
                       style: serifStyle.copyWith(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

@@ -114,25 +114,25 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
     String fallback, {
     double? width,
   }) {
-    return pw.Row(
-      mainAxisSize: pw.MainAxisSize.min,
-      crossAxisAlignment: pw.CrossAxisAlignment.end,
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+        pw.Row(
+          mainAxisSize: pw.MainAxisSize.min,
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             pw.Text(enLabel, style: englishBold),
-            mLbl(mKey),
+            pw.Container(
+              width: width,
+              padding: const pw.EdgeInsets.only(left: 4, right: 4, bottom: 2),
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+              ),
+              child: renderText(valKey, fallback, englishStyle),
+            ),
           ],
         ),
-        pw.Container(
-          width: width,
-          padding: const pw.EdgeInsets.only(left: 4, right: 4, bottom: 2),
-          decoration: const pw.BoxDecoration(
-            border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-          ),
-          child: renderText(valKey, fallback, englishStyle),
-        ),
+        mLbl(mKey),
       ],
     );
   }
@@ -430,45 +430,54 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
               pw.SizedBox(height: 12),
 
               // 6
-              pw.Text(
-                '6. Particulars of the Accused ( आरोपीचा तपशील ) :-',
-                style: englishBold,
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('6. Particulars of the Accused :-',
+                      style: englishBold),
+                  mLbl('lbl_6_title_m1'),
+                ],
               ),
               pw.Padding(
                 padding: const pw.EdgeInsets.only(left: 16),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    field(
-                      '(i) Name (नांव) :-',
+                    buildInlineFieldWithMLbl(
+                      '(i) Name :',
+                      'lbl_6i_m1',
                       'val_accName',
                       doc['accusedName'],
                       width: 300,
                     ),
                     pw.SizedBox(height: 4),
-                    field(
-                      '(ii)Father’s/Husband’s/Guardian\'s Name (पित्याचे/पतीचे/पालकाचे नांव ) :-',
+                    buildInlineFieldWithMLbl(
+                      '(ii)Father\'s/Husband\'s/Guardian\'s Name :',
+                      'lbl_6ii_m1',
                       'val_accFather',
                       doc['accusedFather'],
                       width: 200,
                     ),
                     pw.SizedBox(height: 4),
-                    field(
-                      '(iii)Fist Alias (पहिले टोपण नांव ):-',
+                    buildInlineFieldWithMLbl(
+                      '(iii)First Alias :',
+                      'lbl_6iii_m1',
                       'val_accAlias1',
                       doc['accusedAlias1'],
                       width: 250,
                     ),
                     pw.SizedBox(height: 4),
-                    field(
-                      '(iv)Second Alias (दुसरे टोपण नांव ):-',
+                    buildInlineFieldWithMLbl(
+                      '(iv)Second Alias :',
+                      'lbl_6iv_m1',
                       'val_accAlias2',
                       doc['accusedAlias2'],
                       width: 250,
                     ),
                     pw.SizedBox(height: 4),
-                    field(
-                      '(v) Nationality (राष्ट्रीयत्व) :-',
+                    buildInlineFieldWithMLbl(
+                      '(v) Nationality :',
+                      'lbl_6v_m1',
                       'val_accNat',
                       doc['accusedNationality'],
                       width: 200,
@@ -1074,36 +1083,21 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                       ],
                     ),
                     pw.SizedBox(height: 12),
-                    pw.Text(
-                      '(d) Income Group ( उत्पन्न गट ) :-',
-                      style: englishBold,
-                    ),
+                    pw.Text('(d) Income Group :-', style: englishBold),
                     mLbl('lbl_11d_m1'),
                     pw.SizedBox(height: 4),
-                    check(
-                      '(i) Lower Income (Below Rs. 25000 P.Y.) = कमी उत्पन्न ( द.सा.रू २५००० पेक्ष कमी )',
-                      doc['incomeLower'] == true,
-                    ),
-                    check(
-                      '(ii) Lower Middle Income (From Rs. 25001 to 50000) = कमी मध्यम उत्पन्न ( २५००१ ते ५००००)',
-                      doc['incomeLowerMid'] == true,
-                    ),
-                    check(
-                      '(iii) Middle Income (From 50001 to 100000) = मध्यम उत्पन्न (२५,००१ ते १००,००० )',
-                      doc['incomeMiddle'] == true,
-                    ),
-                    check(
-                      '(iv) Upper Middle Income (/From 100000 to 200000)= उच्च मध्यम उत्पन्न ( १००,००१ ते  २००,०००)',
-                      doc['incomeUpperMid'] == true,
-                    ),
-                    check(
-                      '(v) Upper Middle Income (Rs. 200000 to 300000) = उच्च मध्यम उत्पन्न ( २००,००१ ते ३००,०००)',
-                      doc['incomeUpperMid2'] == true,
-                    ),
-                    check(
-                      '(vi) Upper Income (above 300000) =SSE = उच्च उत्पन्न ( ३००,०००)',
-                      doc['incomeUpper'] == true,
-                    ),
+                    check('', doc['incomeLower'] == true,
+                        isMarathi: true, mKey: 'lbl_11di_m1'),
+                    check('', doc['incomeLowerMid'] == true,
+                        isMarathi: true, mKey: 'lbl_11dii_m1'),
+                    check('', doc['incomeMiddle'] == true,
+                        isMarathi: true, mKey: 'lbl_11diii_m1'),
+                    check('', doc['incomeUpperMid'] == true,
+                        isMarathi: true, mKey: 'lbl_11div_m1'),
+                    check('', doc['incomeUpperMid2'] == true,
+                        isMarathi: true, mKey: 'lbl_11dv_m1'),
+                    check('', doc['incomeUpper'] == true,
+                        isMarathi: true, mKey: 'lbl_11dvi_m1'),
                   ],
                 ),
               ),
@@ -1121,71 +1115,90 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     _yesNoRow(
-                      '(a) Is dangerous ? (धोकादायक आहे किंवा कसे?)',
+                      '(a) Is dangerous ?',
+                      'lbl_12a_m1',
                       doc['isDangerous'] == true,
                       englishStyle,
                       englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(b) Previously escaped any bail ? ( पुर्वी जामीनावर असतांना पळुन गेला किंवा काय ? )',
+                      '(b) Previously escaped any bail ?',
+                      'lbl_12b_m1',
                       doc['prevEscaped'] == true,
                       englishStyle,
                       englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(c) Is generally armed? ( नेहमी सशस्त्र असतो किंवा नसतो ?)',
+                      '(c) Is generally armed?',
+                      'lbl_12c_m1',
                       doc['generallyArmed'] == true,
                       englishStyle,
                       englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(d) Operates with accomplices? ( साथीदारासह काम करतो किंवा कसे ? )',
+                      '(d) Operates with accomplices?',
+                      'lbl_12d_m1',
                       doc['operatesWithAccomplices'] == true,
                       englishStyle,
                       englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(e) Has past criminal records ? (गुन्हेगारी पार्श्वभुमी आहे किंवा नाही ? )',
+                      '(e) Has past criminal records ?',
+                      'lbl_12e_m1',
                       doc['pastCriminal'] == true,
                       englishStyle,
                       englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(f) Is recidivism (वारंवार अपराध करतो किंवा काय ? )',
+                      '(f) Is recidivism',
+                      'lbl_12f_m1',
                       doc['isRecidivism'] == true,
                       englishStyle,
                       englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
-                      '(g) Is likely to escape bail ? (जामीनावर असतांना पळूनजाण्याचा संभव किंवा नाही ? )',
+                      '(g) Is likely to escape bail ?',
+                      'lbl_12g_m1',
                       doc['likelyToEscape'] == true,
                       englishStyle,
                       englishBold,
+                      mLbl,
                     ),
                     _yesNoRow(
                       '(h) Is released on bail. Likely to commit crime or threaten victims/witnesses.',
+                      '',
                       doc['releasedOnBail'] == true,
                       englishStyle,
                       englishBold,
+                      mLbl,
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.only(left: 16),
-                      child: pw.Text(
-                        '(जामीनावर साडल्यास लगेच दुसरा गुन्हा करण्याचा किंवा बळींना/ साक्षेदारांना धाकदपटशा दाखविण्याचा संभव आहे किंवा नाही?)',
-                        style: englishStyle,
-                      ),
+                      child: mLbl('lbl_12h_m1'),
                     ),
                     _yesNoRow(
-                      '(i) Is wanted many other case? (दुसऱ्या कोणत्याही प्रकरणात पाहिजे किंवा काय ?)',
+                      '(i) Is wanted many other case?',
+                      'lbl_12i_m1',
                       doc['wantedMany'] == true,
                       englishStyle,
                       englishBold,
+                      mLbl,
                     ),
                     pw.Row(
                       children: [
-                        pw.Text(
-                          '(If yes give case ref. Sec.) ( जर होय असेल तर त्या प्रकरणाचा संदर्भ व कलमे दयवीत ?)',
-                          style: englishStyle,
+                        pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text('(If yes give case ref. Sec.)',
+                                style: englishStyle),
+                            mLbl('lbl_12i_m2'),
+                          ],
                         ),
                         pw.SizedBox(width: 8),
                         pw.Expanded(
@@ -1214,7 +1227,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                 children: [
                   pw.Expanded(
                     child: buildInlineFieldWithMLbl(
-                      '13. पंचाची नांवे (1) :',
+                      '13. ',
                       'lbl_13_m1',
                       'val_p1Name',
                       doc['panch1Name'],
@@ -1222,7 +1235,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   ),
                   pw.Expanded(
                     child: buildInlineFieldWithMLbl(
-                      'पंचाच्या सहया (1) :',
+                      '',
                       'lbl_13_m2',
                       'val_p1Sig',
                       doc['panch1Sig'],
@@ -1249,7 +1262,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   ),
                   pw.Expanded(
                     child: buildInlineFieldWithMLbl(
-                      'पंचाच्या सहया (2) :',
+                      '',
                       'lbl_13_m3',
                       'val_p2Sig',
                       doc['panch2Sig'],
@@ -1310,8 +1323,9 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                           style: englishBold,
                         ),
                         pw.SizedBox(height: 8),
-                        field(
-                          'Signature / सही :-',
+                        buildInlineFieldWithMLbl(
+                          'Signature / ',
+                          'lbl_io_sig',
                           'val_ioSig',
                           doc['ioSig'],
                           width: 150,
@@ -1360,19 +1374,31 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
 }
 
 pw.Widget _yesNoRow(
-  String label,
+  String enLabel,
+  String mKey,
   bool value,
   pw.TextStyle style,
   pw.TextStyle boldStyle,
+  pw.Widget Function(String) mLbl,
 ) {
   return pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 2),
     child: pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
-        pw.Expanded(child: pw.Text(label, style: style)),
-        pw.Text('Yes/No (होय/नाही) ', style: boldStyle),
-        pw.Text(value ? '[Yes]' : '[No]', style: style),
+        pw.Expanded(
+            child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+              pw.Text(enLabel, style: style),
+              if (mKey.isNotEmpty) mLbl(mKey),
+            ])),
+        pw.Row(children: [
+          pw.Text('Yes/No ', style: boldStyle),
+          mLbl('lbl_yes_no'),
+          pw.Text(value ? ' [Yes]' : ' [No]', style: style),
+        ]),
       ],
     ),
   );
@@ -1630,6 +1656,65 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addLbl('lbl_13_m3', 'पंचाच्या सहया (2) :', marathiLabelStyle);
 
   await addLbl('lbl_14_m1', 'आरोपीची सही व आरोपीचा व अंगठा', marathiLabelStyle);
+
+  // --- NEW KEYS FOR SECTION 6, 11, 12, 13, 14 ---
+  await addLbl('lbl_6_title_m1', '( आरोपीचा तपशील ) :-', marathiLabelStyle);
+  await addLbl('lbl_6i_m1', '(नांव) :-', marathiLabelStyle);
+  await addLbl(
+      'lbl_6ii_m1', '(पित्याचे/पतीचे/पालकाचे नांव ) :-', marathiLabelStyle);
+  await addLbl('lbl_6iii_m1', '(पहिले टोपण नांव ):-', marathiLabelStyle);
+  await addLbl('lbl_6iv_m1', '(दुसरे टोपण नांव ):-', marathiLabelStyle);
+  await addLbl('lbl_6v_m1', '(राष्ट्रीयत्व) :-', marathiLabelStyle);
+  await addLbl(
+      'lbl_11di_m1',
+      '(i) Lower Income (Below Rs. 25000 P.Y.) = कमी उत्पन्न ( द.सा.रू २५००० पेक्ष कमी )',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11dii_m1',
+      '(ii) Lower Middle Income (From Rs. 25001 to 50000) = कमी मध्यम उत्पन्न ( २५००१ ते ५००००)',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11diii_m1',
+      '(iii) Middle Income (From 50001 to 100000) = मध्यम उत्पन्न (२५,००१ ते १००,००० )',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11div_m1',
+      '(iv) Upper Middle Income (/From 100000 to 200000)= उच्च मध्यम उत्पन्न ( १००,००१ ते  २००,०००)',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11dv_m1',
+      '(v) Upper Middle Income (Rs. 200000 to 300000) = उच्च मध्यम उत्पन्न ( २००,००१ ते ३००,०००)',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_11dvi_m1',
+      '(vi) Upper Income (above 300000) =SSE = उच्च उत्पन्न ( ३००,०००)',
+      marathiLabelStyle);
+  await addLbl('lbl_12a_m1', '(धोकादायक आहे किंवा कसे?)', marathiLabelStyle);
+  await addLbl('lbl_12b_m1',
+      '( पुर्वी जामीनावर असतांना पळुन गेला किंवा काय ? )', marathiLabelStyle);
+  await addLbl(
+      'lbl_12c_m1', '( नेहमी सशस्त्र असतो किंवा नसतो ?)', marathiLabelStyle);
+  await addLbl(
+      'lbl_12d_m1', '( साथीदारासह काम करतो किंवा कसे ? )', marathiLabelStyle);
+  await addLbl('lbl_12e_m1', '(गुन्हेगारी पार्श्वभुमी आहे किंवा नाही ? )',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_12f_m1', '(वारंवार अपराध करतो किंवा काय ? )', marathiLabelStyle);
+  await addLbl('lbl_12g_m1',
+      '(जामीनावर असतांना पळूनजाण्याचा संभव किंवा नाही ? )', marathiLabelStyle);
+  await addLbl(
+      'lbl_12h_m1',
+      '(जामीनावर साडल्यास लगेच दुसरा गुन्हा करण्याचा किंवा बळींना/ साक्षेदारांना धाकदपटशा दाखविण्याचा संभव आहे किंवा नाही?)',
+      marathiLabelStyle);
+  await addLbl('lbl_12i_m1', '(दुसऱ्या कोणत्याही प्रकरणात पाहिजे किंवा काय ?)',
+      marathiLabelStyle);
+  await addLbl(
+      'lbl_12i_m2',
+      '( जर होय असेल तर त्या प्रकरणाचा संदर्भ व कलमे दयवीत ?)',
+      marathiLabelStyle);
+  await addLbl('lbl_yes_no', '(होय/नाही)', marathiLabelStyle);
+  await addLbl('lbl_io_sig', 'सही :-', marathiLabelStyle);
+  // ----------------------------------------------
 
   await addLbl('lbl_15_m1', 'ठिकाण', marathiLabelStyle);
   await addLbl('lbl_15_m2', 'तारीख', marathiLabelStyle);
