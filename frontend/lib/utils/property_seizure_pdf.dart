@@ -84,7 +84,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
               child: pw.Column(
                 children: [
                   pw.Text(
-                    'PROPERTY SEACH & SEIZURE FORM',
+                    'PROPERTY SEARCH & SEIZURE FORM',
                     style: englishBold.copyWith(fontSize: 15),
                   ),
                   pw.SizedBox(height: 4),
@@ -844,7 +844,7 @@ pw.Widget _buildPdfUnderlineField({
     padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
     child: hasValImg
         ? cache.img(valKey)
-        : pw.Text(fallbackValue, style: valueStyle),
+        : pw.Text(fallbackValue, style: valueStyle, maxLines: 1),
   );
   return expanded ? pw.SizedBox(width: double.infinity, child: child) : child;
 }
@@ -886,7 +886,8 @@ pw.Widget _buildPdfLinedField({
   required MarathiImageCache cache,
 }) {
   final lines = _splitTextIntoLines(fallbackValue, 40);
-  final total = lines.length < linesCount ? linesCount : lines.length;
+  final total =
+      linesCount; // Cap to linesCount to prevent pw.Row height overflow on large inputs
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -928,7 +929,7 @@ pw.Widget _buildPdfLinedFieldValue({
   final lineKey = '${valKeyPrefix}_line_$lineIndex';
   if (cache.has(lineKey)) return cache.img(lineKey);
   if (lineIndex == 0 && cache.has(valKeyPrefix)) return cache.img(valKeyPrefix);
-  return pw.Text(fallbackText, style: style);
+  return pw.Text(fallbackText, style: style, maxLines: 1);
 }
 
 String _joinNonEmpty(List<dynamic> parts) {
@@ -959,14 +960,30 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
     }
     final words = para.split(' ');
     var currentLine = '';
+
     for (final word in words) {
-      if (currentLine.isEmpty) {
-        currentLine = word;
-      } else if ('$currentLine $word'.length <= maxChars) {
-        currentLine = '$currentLine $word';
-      } else {
-        result.add(currentLine);
-        currentLine = word;
+      var remainingWord = word;
+
+      while (remainingWord.isNotEmpty) {
+        if (currentLine.isEmpty) {
+          if (remainingWord.length <= maxChars) {
+            currentLine = remainingWord;
+            remainingWord = '';
+          } else {
+            currentLine = remainingWord.substring(0, maxChars);
+            result.add(currentLine);
+            currentLine = '';
+            remainingWord = remainingWord.substring(maxChars);
+          }
+        } else {
+          if ('$currentLine $remainingWord'.length <= maxChars) {
+            currentLine = '$currentLine $remainingWord';
+            remainingWord = '';
+          } else {
+            result.add(currentLine);
+            currentLine = '';
+          }
+        }
       }
     }
     if (currentLine.isNotEmpty) {

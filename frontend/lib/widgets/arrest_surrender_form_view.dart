@@ -975,33 +975,33 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
               const SizedBox(height: 14),
 
               // Alphanumeric Code of the Accused
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Flexible(
-                        child: Text(
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
                           'Alphanumeric Code of the Accused (Write A1 to A9 for the first 9 persons, B1 for 10 th person and so on)',
                           style:
                               serifStyle.copyWith(fontWeight: FontWeight.bold),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      SizedBox(
-                        width: 120,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _accusedCodeCtrl,
-                          serifStyle: serifStyle,
+                        const SizedBox(height: 2),
+                        Text(
+                          'आरोपीचा सांकेतिक क्रमांक ( पहिल्या ९ व्यक्तींसाठी अ १ ते अ ९, दहाव्या व्यक्तीसाठी ब १ या प्रमाणे पुढे असे लिहावे )',
+                          style: marathiLabelStyle,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'आरोपीचा सांकेतिक क्रमांक ( पहिल्या ९ व्यक्तींसाठी अ १ ते अ ९, दहाव्या व्यक्तीसाठी ब १ या प्रमाणे पुढे असे लिहावे )',
-                    style: marathiLabelStyle,
+                  const SizedBox(width: 6),
+                  SizedBox(
+                    width: 120,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _accusedCodeCtrl,
+                      serifStyle: serifStyle,
+                    ),
                   ),
                 ],
               ),
@@ -1223,52 +1223,54 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
               const SizedBox(height: 20),
 
               // 3) Court name
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '3. Name of the Court ( if surrendered) :- ',
                         style: serifStyle.copyWith(fontWeight: FontWeight.bold),
                       ),
-                      Expanded(
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _courtNameCtrl,
-                          serifStyle: serifStyle,
-                        ),
-                      ),
+                      const SizedBox(height: 2),
+                      Text('न्यायालयाचे नाव ( स्वाधीन झाल्यास ) :-',
+                          style: marathiLabelStyle),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text('न्यायालयाचे नाव ( स्वाधीन झाल्यास ) :-',
-                      style: marathiLabelStyle),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _courtNameCtrl,
+                      serifStyle: serifStyle,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
 
               // 4) Acts and sections
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '4. Acts and sections:- ',
                         style: serifStyle.copyWith(fontWeight: FontWeight.bold),
                       ),
-                      Expanded(
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _actsSectionsCtrl,
-                          serifStyle: serifStyle,
-                        ),
-                      ),
+                      const SizedBox(height: 2),
+                      Text('अधिनियम व कलमे :', style: marathiLabelStyle),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text('अधिनियम व कलमे :', style: marathiLabelStyle),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _actsSectionsCtrl,
+                      serifStyle: serifStyle,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),

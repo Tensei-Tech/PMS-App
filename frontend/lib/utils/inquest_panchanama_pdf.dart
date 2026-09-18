@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+
 import '../widgets/form_section_utils.dart';
 import 'form_image_pdf_helper.dart';
 import 'form_io_terminology.dart';
@@ -171,6 +172,9 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
       ),
       child: pw.Text(
         text.isEmpty ? ' ' : text,
+        maxLines: 1,
+        softWrap: false,
+        overflow: pw.TextOverflow.clip,
         style: pw.TextStyle(
             font: devanagariBold, fontSize: 8, fontWeight: pw.FontWeight.bold),
       ),
@@ -188,6 +192,8 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
       ),
       child: pw.Text(
         text.isEmpty ? ' ' : text,
+        maxLines: lines,
+        overflow: pw.TextOverflow.clip,
         style: pw.TextStyle(font: devanagariRegular, fontSize: 8),
       ),
     );
