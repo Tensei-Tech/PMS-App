@@ -531,9 +531,15 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
       ),
-      child: Text(
-        text,
-        style: FormImagePdfHelper.valStyle(10),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text(
+          text.isEmpty ? ' ' : text,
+          maxLines: 1,
+          softWrap: false,
+          style: FormImagePdfHelper.valStyle(10),
+        ),
       ),
     );
   }
@@ -676,7 +682,11 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             SizedBox(
               width: 180,
               child: Center(
-                child: Text(ioSign, style: FormImagePdfHelper.valStyle(10.5)),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(ioSign.isEmpty ? ' ' : ioSign,
+                      style: FormImagePdfHelper.valStyle(10.5)),
+                ),
               ),
             ),
             Container(

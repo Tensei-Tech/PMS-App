@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
@@ -33,14 +32,116 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
   final _dateCtrl = TextEditingController();
 
   String get _dateCombined {
+    if (_dateCtrl.text.trim().isNotEmpty) {
+      return _dateCtrl.text.trim();
+    }
     final d = _dateDayCtrl.text.trim();
     final m = _dateMonthCtrl.text.trim();
     final y = _dateYearCtrl.text.trim();
     if (d.isEmpty && m.isEmpty && y.isEmpty) {
-      return _dateCtrl.text.trim();
+      return '';
     }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
+  Future<void> _pickDateForController({
+    required TextEditingController controller,
+    TextEditingController? dayCtrl,
+    TextEditingController? monthCtrl,
+    TextEditingController? yearCtrl,
+  }) async {
+    final now = DateTime.now();
+    DateTime initial = now;
+    final currentText = controller.text.trim();
+    if (currentText.isNotEmpty) {
+      final parts = currentText.split(RegExp(r'[/.-]'));
+      if (parts.length >= 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        int? y = int.tryParse(parts[2]);
+        if (y != null && y < 100) y += 2000;
+        if (d != null && m != null && y != null) {
+          try {
+            initial = DateTime(y, m, d);
+          } catch (_) {}
+        }
+      }
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1990),
+      lastDate: DateTime(2040),
+    );
+    if (picked != null) {
+      final dStr = picked.day.toString().padLeft(2, '0');
+      final mStr = picked.month.toString().padLeft(2, '0');
+      final yFullStr = picked.year.toString();
+      final yShortStr = (picked.year % 100).toString().padLeft(2, '0');
+      controller.text = '$dStr/$mStr/$yFullStr';
+      if (dayCtrl != null) dayCtrl.text = dStr;
+      if (monthCtrl != null) monthCtrl.text = mStr;
+      if (yearCtrl != null) yearCtrl.text = yShortStr;
+      if (mounted) setState(() {});
+    }
+  }
+
+  Widget _datePickerField({
+    required TextEditingController controller,
+    TextEditingController? dayCtrl,
+    TextEditingController? monthCtrl,
+    TextEditingController? yearCtrl,
+    double width = 140,
+    String hint = 'DD/MM/YYYY',
+  }) {
+    return SizedBox(
+      width: width,
+      child: TextFormField(
+        controller: controller,
+        readOnly: true,
+        onTap: widget.readOnly
+            ? null
+            : () => _pickDateForController(
+                  controller: controller,
+                  dayCtrl: dayCtrl,
+                  monthCtrl: monthCtrl,
+                  yearCtrl: yearCtrl,
+                ),
+        style: FormTypography.serifStyle()
+            .copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 4),
+          hintText: hint,
+          hintStyle: FormTypography.serifStyle().copyWith(
+            fontSize: 12,
+            color: Colors.grey.shade400,
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 1.0),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          ),
+          suffixIcon: widget.readOnly
+              ? null
+              : InkWell(
+                  onTap: () => _pickDateForController(
+                    controller: controller,
+                    dayCtrl: dayCtrl,
+                    monthCtrl: monthCtrl,
+                    yearCtrl: yearCtrl,
+                  ),
+                  child: const Icon(Icons.calendar_today_outlined, size: 16),
+                ),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 24,
+            minHeight: 24,
+          ),
+        ),
+      ),
+    );
   }
 
   // ── ACCUSED DETAILS ──
@@ -66,11 +167,14 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
   final _firDateCtrl = TextEditingController();
 
   String get _firDateCombined {
+    if (_firDateCtrl.text.trim().isNotEmpty) {
+      return _firDateCtrl.text.trim();
+    }
     final d = _firDayCtrl.text.trim();
     final m = _firMonthCtrl.text.trim();
     final y = _firYearCtrl.text.trim();
     if (d.isEmpty && m.isEmpty && y.isEmpty) {
-      return _firDateCtrl.text.trim();
+      return '';
     }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
@@ -281,6 +385,170 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
     });
   }
 
+  Widget _wrappingUnderlineInput({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 100,
+    double? maxWidth,
+    String? hintText,
+    TextInputType? keyboardType,
+  }) {
+    final effectiveMin = minWidth;
+    final effectiveMax = maxWidth ?? 800.0;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final text =
+            controller.text.isEmpty ? (hintText ?? '') : controller.text;
+        final tp = TextPainter(
+          text: TextSpan(
+            text: text,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout();
+
+        final measured = tp.width + 20.0;
+        final calcWidth = measured < effectiveMin
+            ? effectiveMin
+            : (measured > effectiveMax ? effectiveMax : measured);
+
+        return SizedBox(
+          width: calcWidth,
+          child: TextFormField(
+            controller: controller,
+            readOnly: widget.readOnly,
+            maxLines: 1,
+            keyboardType: keyboardType ?? TextInputType.text,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+              color: const Color(0xFF0D47A1),
+              height: 1.35,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                color: Colors.grey.shade400,
+                fontSize: 12,
+              ),
+              border: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 140,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    final baseMin = minWidth;
+    final baseMax = maxWidth ?? 600.0;
+    const double baseFontSize = 13.5;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final availableWidth = hasFiniteWidth ? constraints.maxWidth : baseMax;
+
+        return ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
+
+            final tp = TextPainter(
+              text: TextSpan(
+                text: text,
+                style: style.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: baseFontSize,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+            )..layout();
+
+            double effectiveFontSize = baseFontSize;
+            final double textW = tp.width + 12.0;
+
+            if (hasFiniteWidth &&
+                textW > availableWidth &&
+                availableWidth > 30) {
+              final scale =
+                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+              effectiveFontSize =
+                  (baseFontSize * scale).clamp(8.5, baseFontSize);
+            }
+
+            final double computedWidth = hasFiniteWidth
+                ? availableWidth
+                : (textW < baseMin
+                    ? baseMin
+                    : (textW > baseMax ? baseMax : textW));
+
+            return SizedBox(
+              width: computedWidth,
+              child: TextFormField(
+                controller: controller,
+                maxLines: 1,
+                scrollPhysics: const ClampingScrollPhysics(),
+                style: style.copyWith(
+                  fontSize: effectiveFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  hintText: hintText,
+                  hintStyle: style.copyWith(
+                    color: Colors.grey.shade400,
+                    fontSize: effectiveFontSize,
+                  ),
+                  border: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF333333), width: 1.0),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF555555), width: 1.0),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final serif = FormTypography.serifStyle();
@@ -294,11 +562,6 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
     final headerLabelStyle = marathi.copyWith(
       fontSize: 14.5,
       fontWeight: FontWeight.w600,
-      color: Colors.black87,
-    );
-    final serifBold = serif.copyWith(
-      fontWeight: FontWeight.bold,
-      fontSize: 14.5,
       color: Colors.black87,
     );
 
@@ -324,9 +587,9 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                         Text('पोलीस स्टेशन', style: headerLabelStyle),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: BilingualSimpleUnderlineInput(
+                          child: _policeStationField(
                             controller: _psCtrl,
-                            serifStyle: serif,
+                            style: serif,
                           ),
                         ),
                       ],
@@ -336,31 +599,12 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                       children: [
                         Text('दिनांक :', style: headerLabelStyle),
                         const SizedBox(width: 6),
-                        SizedBox(
-                          width: 38,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateDayCtrl,
-                            serifStyle: serif,
-                            hintText: '.......',
-                          ),
-                        ),
-                        Text('/', style: serifBold),
-                        SizedBox(
-                          width: 42,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateMonthCtrl,
-                            serifStyle: serif,
-                            hintText: '........',
-                          ),
-                        ),
-                        Text('/ २०', style: headerLabelStyle),
-                        SizedBox(
-                          width: 44,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateYearCtrl,
-                            serifStyle: serif,
-                            hintText: '....',
-                          ),
+                        _datePickerField(
+                          controller: _dateCtrl,
+                          dayCtrl: _dateDayCtrl,
+                          monthCtrl: _dateMonthCtrl,
+                          yearCtrl: _dateYearCtrl,
+                          width: 140,
                         ),
                       ],
                     ),
@@ -408,15 +652,22 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                 ),
                 Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      BilingualSimpleUnderlineInput(
+                      _wrappingUnderlineInput(
                         controller: _accusedNameLine1Ctrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 260,
+                        maxWidth: 700,
+                        hintText: 'नाव व पत्ता ओळ १',
                       ),
                       const SizedBox(height: 10),
-                      BilingualSimpleUnderlineInput(
+                      _wrappingUnderlineInput(
                         controller: _accusedNameLine2Ctrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 260,
+                        maxWidth: 700,
+                        hintText: 'ओळ २',
                       ),
                     ],
                   ),
@@ -432,9 +683,11 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                 const SizedBox(width: 8),
                 Expanded(
                   flex: 5,
-                  child: BilingualSimpleUnderlineInput(
+                  child: _wrappingUnderlineInput(
                     controller: _mobileNoCtrl,
-                    serifStyle: serif,
+                    style: serif,
+                    minWidth: 120,
+                    maxWidth: 250,
                   ),
                 ),
                 const SizedBox(width: 24),
@@ -442,9 +695,11 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                 const SizedBox(width: 8),
                 Expanded(
                   flex: 5,
-                  child: BilingualSimpleUnderlineInput(
+                  child: _wrappingUnderlineInput(
                     controller: _aadhaarNoCtrl,
-                    serifStyle: serif,
+                    style: serif,
+                    minWidth: 120,
+                    maxWidth: 250,
                   ),
                 ),
               ],
@@ -457,9 +712,11 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                 Text('ईमेल :-', style: headerLabelStyle),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: BilingualSimpleUnderlineInput(
+                  child: _wrappingUnderlineInput(
                     controller: _emailCtrl,
-                    serifStyle: serif,
+                    style: serif,
+                    minWidth: 200,
+                    maxWidth: 450,
                   ),
                 ),
               ],
@@ -476,96 +733,70 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                   '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 200,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _firPsCtrl,
-                    serifStyle: serif,
-                  ),
+                _policeStationField(
+                  controller: _firPsCtrl,
+                  style: serif,
+                  minWidth: 140,
+                  maxWidth: 280,
                 ),
                 Text('जिल्हा', style: bodyTextStyle),
-                SizedBox(
-                  width: 95,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _firDistCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _firDistCtrl,
+                  style: serif,
+                  minWidth: 90,
+                  maxWidth: 180,
                 ),
                 Text('येथे अपराध क्रमांक', style: bodyTextStyle),
-                SizedBox(
-                  width: 100,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _crimeNoCtrl,
-                    serifStyle: serif,
-                    hintText: '............',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _crimeNoCtrl,
+                  style: serif,
+                  minWidth: 80,
+                  maxWidth: 140,
+                  hintText: '............',
                 ),
                 Text('/ २०', style: bodyTextStyle),
-                SizedBox(
-                  width: 44,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _crimeYearCtrl,
-                    serifStyle: serif,
-                    hintText: '.....',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _crimeYearCtrl,
+                  style: serif,
+                  minWidth: 40,
+                  maxWidth: 80,
+                  hintText: 'YY',
                 ),
                 Text('कलम', style: bodyTextStyle),
-                SizedBox(
-                  width: 260,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _actSecCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _actSecCtrl,
+                  style: serif,
+                  minWidth: 180,
+                  maxWidth: 350,
                 ),
-                SizedBox(
-                  width: 240,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _actSecLine2Ctrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _actSecLine2Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 300,
                 ),
                 Text('भा.न्या.संहिता २०२३ व सह कलम', style: bodyTextStyle),
-                SizedBox(
-                  width: 240,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _coActSecCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _coActSecCtrl,
+                  style: serif,
+                  minWidth: 180,
+                  maxWidth: 300,
                 ),
-                SizedBox(
-                  width: 220,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _coActSecLine2Ctrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _coActSecLine2Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 300,
                 ),
-                Text('प्रमाणे दिनांक', style: bodyTextStyle),
-                SizedBox(
-                  width: 38,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _firDayCtrl,
-                    serifStyle: serif,
-                    hintText: '.....',
-                  ),
+                Text('प्रमाणे दिनांक ', style: bodyTextStyle),
+                _datePickerField(
+                  controller: _firDateCtrl,
+                  dayCtrl: _firDayCtrl,
+                  monthCtrl: _firMonthCtrl,
+                  yearCtrl: _firYearCtrl,
+                  width: 140,
                 ),
-                Text('/', style: serifBold),
-                SizedBox(
-                  width: 38,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _firMonthCtrl,
-                    serifStyle: serif,
-                    hintText: '.....',
-                  ),
-                ),
-                Text('/ २०', style: bodyTextStyle),
-                SizedBox(
-                  width: 44,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _firYearCtrl,
-                    serifStyle: serif,
-                    hintText: '......',
-                  ),
-                ),
+                const SizedBox(width: 4),
                 Text(
                   'गुन्हा दाखल असुन सदर गुन्ह्याचा तपास आम्ही स्वतः करत आहोत. सदर गुन्ह्याच्या तपासकामी आपणास अटक करण्यात येत आहे.',
                   style: bodyTextStyle,
@@ -581,30 +812,28 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
               runSpacing: 12,
               children: [
                 Text('        सदर गुन्हा दखलपात्र असुन', style: bodyTextStyle),
-                SizedBox(
-                  width: 170,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _bailTypeCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _bailTypeCtrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 260,
                 ),
                 Text(
                   'आहे. आपल्या अटकेबाबतची माहित भारतीय नागरीक सुरक्षा संहिता २०२३ कलम (४८) प्रमाणे आपले नातेवाईक/ मित्र.....',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 320,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _relativeDetailsLine1Ctrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _relativeDetailsLine1Ctrl,
+                  style: serif,
+                  minWidth: 260,
+                  maxWidth: 700,
+                  hintText: 'नातेवाईक नांव, पत्ता व मो.नं.',
                 ),
-                SizedBox(
-                  width: 360,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _relativeDetailsLine2Ctrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _relativeDetailsLine2Ctrl,
+                  style: serif,
+                  minWidth: 260,
+                  maxWidth: 700,
                 ),
                 Text(
                   'यांना समक्ष/फोनद्वारे देण्यात आली असुन अटक पंचनाम्यावर त्यांची स्वाक्षरी घेण्यात आली आहे.',
@@ -635,9 +864,11 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                     children: [
                       Text('आरोपीची स्वाक्षरी', style: headerLabelStyle),
                       const SizedBox(height: 10),
-                      BilingualSimpleUnderlineInput(
+                      _wrappingUnderlineInput(
                         controller: _accusedSigCtrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 180,
+                        maxWidth: 220,
                       ),
                     ],
                   ),
@@ -648,9 +879,11 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                     children: [
                       Text('तपासी अधिकारी नांव व सही', style: headerLabelStyle),
                       const SizedBox(height: 10),
-                      BilingualSimpleUnderlineInput(
+                      _wrappingUnderlineInput(
                         controller: _ioNameSigCtrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 200,
+                        maxWidth: 270,
                       ),
                     ],
                   ),
