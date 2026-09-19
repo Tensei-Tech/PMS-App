@@ -448,7 +448,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: Text(
-                actSec.isNotEmpty ? actSec : '____________________________________',
+                actSec.isNotEmpty
+                    ? actSec
+                    : '____________________________________',
                 style: reg,
               ),
             ),
@@ -492,7 +494,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: Text(
-                accusedName.isNotEmpty ? accusedName : '________________________________________________',
+                accusedName.isNotEmpty
+                    ? accusedName
+                    : '________________________________________________',
                 style: reg,
               ),
             ),
@@ -524,148 +528,144 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         ],
       ),
       const SizedBox(height: 20),
-        Table(
-          border: TableBorder.all(color: Colors.black87, width: 1),
-          columnWidths: const {
-            0: FlexColumnWidth(4),
-            1: FlexColumnWidth(2),
-            2: FlexColumnWidth(2),
-            3: FlexColumnWidth(3),
-          },
-          children: [
-            TableRow(
-              decoration: const BoxDecoration(
-                border:
-                    Border(bottom: BorderSide(color: Colors.black87, width: 1)),
+      Table(
+        border: TableBorder.all(color: Colors.black87, width: 1),
+        columnWidths: const {
+          0: FlexColumnWidth(4),
+          1: FlexColumnWidth(2),
+          2: FlexColumnWidth(2),
+          3: FlexColumnWidth(3),
+        },
+        children: [
+          TableRow(
+            decoration: const BoxDecoration(
+              border:
+                  Border(bottom: BorderSide(color: Colors.black87, width: 1)),
+            ),
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                alignment: Alignment.center,
+                child: Text('जप्त मालाचे विवरण', style: bld),
               ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                alignment: Alignment.center,
+                child: Text('मुल्य अंदाजे', style: bld),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                alignment: Alignment.center,
+                child: Text('माल नंबर', style: bld),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                alignment: Alignment.center,
+                child: Text('कोणाकडुन जप्त केले', style: bld),
+              ),
+            ],
+          ),
+          if (items.isEmpty)
+            TableRow(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                  alignment: Alignment.center,
-                  child: Text('जप्त मालाचे विवरण', style: bld),
+                  height: 240,
+                  padding: const EdgeInsets.all(6),
+                  child: Text('', style: reg),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                  alignment: Alignment.center,
-                  child: Text('मुल्य अंदाजे', style: bld),
+                  height: 240,
+                  padding: const EdgeInsets.all(6),
+                  child: Text('', style: reg),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                  alignment: Alignment.center,
-                  child: Text('माल नंबर', style: bld),
+                  height: 240,
+                  padding: const EdgeInsets.all(6),
+                  alignment: Alignment.topCenter,
+                  child: Text('......./२०....', style: reg),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                  alignment: Alignment.center,
-                  child: Text('कोणाकडुन जप्त केले', style: bld),
+                  height: 240,
+                  padding: const EdgeInsets.all(6),
+                  child: Text('', style: reg),
                 ),
               ],
-            ),
-            if (items.isEmpty)
+            )
+          else
+            for (final item in items)
               TableRow(
                 children: [
                   Container(
-                    height: 240,
+                    constraints: const BoxConstraints(minHeight: 180),
                     padding: const EdgeInsets.all(6),
-                    child: Text('', style: reg),
+                    child: Text(
+                      item['description']?.toString() ?? '',
+                      style: reg,
+                    ),
                   ),
                   Container(
-                    height: 240,
+                    constraints: const BoxConstraints(minHeight: 180),
                     padding: const EdgeInsets.all(6),
-                    child: Text('', style: reg),
+                    child: Text(
+                      item['estimatedValue']?.toString() ?? '',
+                      style: reg,
+                    ),
                   ),
                   Container(
-                    height: 240,
+                    constraints: const BoxConstraints(minHeight: 180),
                     padding: const EdgeInsets.all(6),
                     alignment: Alignment.topCenter,
-                    child: Text('......./२०....', style: reg),
+                    child: Text(
+                      (item['propertyNo']?.toString().isNotEmpty ?? false)
+                          ? item['propertyNo'].toString()
+                          : '......./२०....',
+                      style: reg,
+                    ),
                   ),
                   Container(
-                    height: 240,
+                    constraints: const BoxConstraints(minHeight: 180),
                     padding: const EdgeInsets.all(6),
-                    child: Text('', style: reg),
+                    child: Text(
+                      item['seizedFrom']?.toString() ?? '',
+                      style: reg,
+                    ),
                   ),
                 ],
-              )
-            else
-              for (final item in items)
-                TableRow(
-                  children: [
-                    Container(
-                      constraints: const BoxConstraints(minHeight: 180),
-                      padding: const EdgeInsets.all(6),
-                      child: Text(
-                        item['description']?.toString() ?? '',
-                        style: reg,
-                      ),
-                    ),
-                    Container(
-                      constraints: const BoxConstraints(minHeight: 180),
-                      padding: const EdgeInsets.all(6),
-                      child: Text(
-                        item['estimatedValue']?.toString() ?? '',
-                        style: reg,
-                      ),
-                    ),
-                    Container(
-                      constraints: const BoxConstraints(minHeight: 180),
-                      padding: const EdgeInsets.all(6),
-                      alignment: Alignment.topCenter,
-                      child: Text(
-                        (item['propertyNo']?.toString().isNotEmpty ?? false)
-                            ? item['propertyNo'].toString()
-                            : '......./२०....',
-                        style: reg,
-                      ),
-                    ),
-                    Container(
-                      constraints: const BoxConstraints(minHeight: 180),
-                      padding: const EdgeInsets.all(6),
-                      child: Text(
-                        item['seizedFrom']?.toString() ?? '',
-                        style: reg,
-                      ),
-                    ),
-                  ],
-                ),
-          ],
-        ),
-        const Spacer(),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              children: [
-                Text('हेडमोहरर सही', style: bld),
-                if (headMohararSig.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(headMohararSig, style: reg),
-                ],
+              ),
+        ],
+      ),
+      const Spacer(),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            children: [
+              Text('हेडमोहरर सही', style: bld),
+              if (headMohararSig.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(headMohararSig, style: reg),
               ],
-            ),
-            Column(
-              children: [
-                Text('तपास अधिकारी', style: bld),
-                if (investigatingOfficerSig.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(investigatingOfficerSig, style: reg),
-                ],
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: Text(
-            'M.R.W',
-            style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700),
+            ],
           ),
+          Column(
+            children: [
+              Text('तपास अधिकारी', style: bld),
+              if (investigatingOfficerSig.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(investigatingOfficerSig, style: reg),
+              ],
+            ],
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700),
         ),
-      ],
-    );
+      ),
+    ],
+  );
 }

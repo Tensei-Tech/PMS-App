@@ -503,11 +503,12 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       children: [
         cell(Text(label, style: bld),
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
-        cell(FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(value.isEmpty ? ' ' : value, style: valStyle),
-        ),
+        cell(
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(value.isEmpty ? ' ' : value, style: valStyle),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
       ],
     );

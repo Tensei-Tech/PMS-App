@@ -108,7 +108,8 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                   monthCtrl: monthCtrl,
                   yearCtrl: yearCtrl,
                 ),
-        style: FormTypography.serifStyle().copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+        style: FormTypography.serifStyle()
+            .copyWith(fontSize: 13, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(vertical: 4),

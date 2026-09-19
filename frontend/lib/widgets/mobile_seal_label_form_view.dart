@@ -203,20 +203,26 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
         controller: controller,
         readOnly: true,
         onTap: () => _pickDateForController(controller, onChanged: onChanged),
-        style: GoogleFonts.notoSansDevanagari(fontSize: 12, color: Colors.black87),
+        style:
+            GoogleFonts.notoSansDevanagari(fontSize: 12, color: Colors.black87),
         decoration: InputDecoration(
           isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
           hintText: hintText,
-          hintStyle: GoogleFonts.notoSansDevanagari(fontSize: 11, color: Colors.grey.shade400),
+          hintStyle: GoogleFonts.notoSansDevanagari(
+              fontSize: 11, color: Colors.grey.shade400),
           suffixIcon: InkWell(
-            onTap: () => _pickDateForController(controller, onChanged: onChanged),
+            onTap: () =>
+                _pickDateForController(controller, onChanged: onChanged),
             child: const Padding(
               padding: EdgeInsets.only(left: 4, bottom: 2),
-              child: Icon(Icons.calendar_today_outlined, size: 15, color: Color(0xFF1A365D)),
+              child: Icon(Icons.calendar_today_outlined,
+                  size: 15, color: Color(0xFF1A365D)),
             ),
           ),
-          suffixIconConstraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 20, minHeight: 20),
           enabledBorder: const UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black54, width: 0.8),
           ),
@@ -240,20 +246,26 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
         controller: controller,
         readOnly: true,
         onTap: () => _pickTimeForController(controller, onChanged: onChanged),
-        style: GoogleFonts.notoSansDevanagari(fontSize: 12, color: Colors.black87),
+        style:
+            GoogleFonts.notoSansDevanagari(fontSize: 12, color: Colors.black87),
         decoration: InputDecoration(
           isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
           hintText: hintText,
-          hintStyle: GoogleFonts.notoSansDevanagari(fontSize: 11, color: Colors.grey.shade400),
+          hintStyle: GoogleFonts.notoSansDevanagari(
+              fontSize: 11, color: Colors.grey.shade400),
           suffixIcon: InkWell(
-            onTap: () => _pickTimeForController(controller, onChanged: onChanged),
+            onTap: () =>
+                _pickTimeForController(controller, onChanged: onChanged),
             child: const Padding(
               padding: EdgeInsets.only(left: 4, bottom: 2),
-              child: Icon(Icons.access_time, size: 15, color: Color(0xFF1A365D)),
+              child:
+                  Icon(Icons.access_time, size: 15, color: Color(0xFF1A365D)),
             ),
           ),
-          suffixIconConstraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 20, minHeight: 20),
           enabledBorder: const UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black54, width: 0.8),
           ),
@@ -435,7 +447,6 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
       'sealSample': _sealSampleCtrl.text.trim(),
     };
   }
-
 
   Widget _tableCellInput(
     TextEditingController ctrl,
@@ -635,11 +646,13 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                 TableRow(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
                       child: Text('जप्तीचे ठिकाण तारीख वेळ', style: marathi),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 4),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -659,20 +672,24 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
                               isDense: true,
                               filled: false,
                               fillColor: Colors.transparent,
-                              contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
+                              contentPadding:
+                                  const EdgeInsets.only(bottom: 4, top: 2),
                               hintText: 'ठिकाण (Place of seizure)...',
                               hintStyle: serif.copyWith(
                                 color: Colors.grey.shade400,
                                 fontSize: 12,
                               ),
                               border: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+                                borderSide: BorderSide(
+                                    color: Color(0xFF333333), width: 1.0),
                               ),
                               enabledBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+                                borderSide: BorderSide(
+                                    color: Color(0xFF555555), width: 1.0),
                               ),
                               focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+                                borderSide: BorderSide(
+                                    color: Color(0xFF1976D2), width: 1.5),
                               ),
                             ),
                           ),

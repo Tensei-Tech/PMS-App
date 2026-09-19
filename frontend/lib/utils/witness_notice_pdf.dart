@@ -684,7 +684,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               child: Center(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(ioSign.isEmpty ? ' ' : ioSign, style: FormImagePdfHelper.valStyle(10.5)),
+                  child: Text(ioSign.isEmpty ? ' ' : ioSign,
+                      style: FormImagePdfHelper.valStyle(10.5)),
                 ),
               ),
             ),

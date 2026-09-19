@@ -74,6 +74,7 @@ class JuvenileSocialReportFormViewState
       _psDistCtrl.text = dist;
     }
   }
+
   final _crimeNoCtrl = TextEditingController();
   final _sectionActCtrl = TextEditingController();
   final _crimeDateTimeCtrl = TextEditingController();
@@ -1380,7 +1381,8 @@ class JuvenileSocialReportFormViewState
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text('८) बालक शिकत असल्यास शाळेत जाणे का बंद केले :- ',
+                    child: Text(
+                        '८) बालक शिकत असल्यास शाळेत जाणे का बंद केले :- ',
                         style: marathiLabelStyle),
                   ),
                   Expanded(

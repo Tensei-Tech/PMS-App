@@ -3900,8 +3900,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text('Place:-',
-                          style: serifStyle.copyWith(
-                              fontWeight: FontWeight.bold)),
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       _wrappingUnderlineInput(
                         controller: _foundPlaceCtrl,
@@ -3916,8 +3916,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text('Date:',
-                          style: serifStyle.copyWith(
-                              fontWeight: FontWeight.bold)),
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       _datePickerField(
                         controller: _foundDateCtrl,
@@ -3934,8 +3934,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text('time:',
-                          style: serifStyle.copyWith(
-                              fontWeight: FontWeight.bold)),
+                          style:
+                              serifStyle.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(width: 4),
                       _timePickerField(
                         controller: _foundTimeCtrl,

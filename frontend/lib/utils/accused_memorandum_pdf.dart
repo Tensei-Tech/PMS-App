@@ -188,8 +188,10 @@ Widget _bilingualField(String eng, String mr, String val,
 // ─────────────────────────────────────────────────────────────────────────────
 
 Widget _pg1(Map<String, dynamic> doc) {
-  final dist = _v(doc, 'dist').isNotEmpty ? _v(doc, 'dist') : _v(doc, 'district');
-  final ps = _v(doc, 'ps').isNotEmpty ? _v(doc, 'ps') : _v(doc, 'policeStation');
+  final dist =
+      _v(doc, 'dist').isNotEmpty ? _v(doc, 'dist') : _v(doc, 'district');
+  final ps =
+      _v(doc, 'ps').isNotEmpty ? _v(doc, 'ps') : _v(doc, 'policeStation');
   final year = _v(doc, 'year');
   final firNo = _v(doc, 'firNo');
   final firDate = _v(doc, 'firDate');

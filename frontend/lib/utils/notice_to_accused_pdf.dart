@@ -455,195 +455,195 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         child: Column(
           children: [
             Text('-:: आरोपीस सुचनापत्र ::-', style: headerTitle),
-              const SizedBox(height: 3),
-              Text(
-                '(भारतीय नागरी सुरक्षा संहिता २०२३ कलम ४७ (१)(२))',
-                style: headerSub.copyWith(decoration: TextDecoration.underline),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 28),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('नांव :- ', style: bld),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      border: Border(bottom: borderLine),
-                    ),
-                    child: Text(
-                      accusedLine1.isNotEmpty ? accusedLine1 : ' ',
-                      style: reg,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    decoration: const BoxDecoration(
-                      border: Border(bottom: borderLine),
-                    ),
-                    child: Text(
-                      accusedLine2.isNotEmpty ? accusedLine2 : ' ',
-                      style: reg,
-                    ),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 3),
+            Text(
+              '(भारतीय नागरी सुरक्षा संहिता २०२३ कलम ४७ (१)(२))',
+              style: headerSub.copyWith(decoration: TextDecoration.underline),
             ),
           ],
         ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            Text('मो.नं.:-', style: bld),
-            const SizedBox(width: 4),
-            Expanded(
-              flex: 5,
-              child: Container(
-                decoration: const BoxDecoration(
-                  border: Border(bottom: borderLine),
-                ),
-                child: Text(mobileNo, style: reg),
-              ),
-            ),
-            const SizedBox(width: 20),
-            Text('आधार क्र :-', style: bld),
-            const SizedBox(width: 4),
-            Expanded(
-              flex: 5,
-              child: Container(
-                decoration: const BoxDecoration(
-                  border: Border(bottom: borderLine),
-                ),
-                child: Text(aadhaarNo, style: reg),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Text('ईमेल :-', style: bld),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  border: Border(bottom: borderLine),
-                ),
-                child: Text(email, style: reg),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        RichText(
-          textAlign: TextAlign.justify,
-          text: TextSpan(
-            style: reg.copyWith(height: 1.6),
-            children: [
-              const TextSpan(
-                text:
-                    '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन ',
-              ),
-              TextSpan(text: '$firPs ', style: bld),
-              TextSpan(text: 'जिल्हा $firDist येथे अपराध क्रमांक'),
-              TextSpan(text: ' $crimeNo / २०$crimeYear ', style: bld),
-              const TextSpan(text: 'कलम '),
-              TextSpan(text: '$actSec ', style: bld),
-              const TextSpan(
-                text: 'भा.न्या.संहिता २०२३ व सह कलम ',
-              ),
-              TextSpan(text: '$coActSec ', style: bld),
-              const TextSpan(text: 'प्रमाणे दिनांक '),
-              TextSpan(text: '$firDate ', style: bld),
-              const TextSpan(
-                text:
-                    'गुन्हा दाखल असुन सदर गुन्ह्याचा तपास आम्ही स्वतः करत आहोत. सदर गुन्ह्याच्या तपासकामी आपणास अटक करण्यात येत आहे.',
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        RichText(
-          textAlign: TextAlign.justify,
-          text: TextSpan(
-            style: reg.copyWith(height: 1.6),
-            children: [
-              const TextSpan(
-                text: '        सदर गुन्हा दखलपात्र असुन ',
-              ),
-              TextSpan(text: '$bailType ', style: bld),
-              const TextSpan(
-                text:
-                    'आहे. आपल्या अटकेबाबतची माहित भारतीय नागरीक सुरक्षा संहिता २०२३ कलम (४८) प्रमाणे आपले नातेवाईक/ मित्र..... ',
-              ),
-              TextSpan(text: '$relativeDetails ', style: bld),
-              const TextSpan(
-                text:
-                    'यांना समक्ष/फोनद्वारे देण्यात आली असुन अटक पंचनाम्यावर त्यांची स्वाक्षरी घेण्यात आली आहे.',
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.only(left: 28),
-          child: Text(
-            'करीता आपणास सुचनापत्र देण्यात येत आहे.',
-            style: reg,
-          ),
-        ),
-        const Spacer(),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
+      ),
+      const SizedBox(height: 28),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('नांव :- ', style: bld),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('आरोपीची स्वाक्षरी', style: bld),
-                const SizedBox(height: 12),
-                if (accusedSig.isNotEmpty)
-                  Text(accusedSig, style: reg)
-                else
-                  Container(
-                    width: 150,
-                    decoration: const BoxDecoration(
-                      border: Border(bottom: borderLine),
-                    ),
-                    height: 1,
+                Container(
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: borderLine),
                   ),
+                  child: Text(
+                    accusedLine1.isNotEmpty ? accusedLine1 : ' ',
+                    style: reg,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: borderLine),
+                  ),
+                  child: Text(
+                    accusedLine2.isNotEmpty ? accusedLine2 : ' ',
+                    style: reg,
+                  ),
+                ),
               ],
             ),
-            Column(
-              children: [
-                Text('तपासी अधिकारी नांव व सही', style: bld),
-                const SizedBox(height: 12),
-                if (ioNameSig.isNotEmpty)
-                  Text(ioNameSig, style: reg)
-                else
-                  Container(
-                    width: 170,
-                    decoration: const BoxDecoration(
-                      border: Border(bottom: borderLine),
-                    ),
-                    height: 1,
-                  ),
-              ],
+          ),
+        ],
+      ),
+      const SizedBox(height: 14),
+      Row(
+        children: [
+          Text('मो.नं.:-', style: bld),
+          const SizedBox(width: 4),
+          Expanded(
+            flex: 5,
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(bottom: borderLine),
+              ),
+              child: Text(mobileNo, style: reg),
+            ),
+          ),
+          const SizedBox(width: 20),
+          Text('आधार क्र :-', style: bld),
+          const SizedBox(width: 4),
+          Expanded(
+            flex: 5,
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(bottom: borderLine),
+              ),
+              child: Text(aadhaarNo, style: reg),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      Row(
+        children: [
+          Text('ईमेल :-', style: bld),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(bottom: borderLine),
+              ),
+              child: Text(email, style: reg),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 24),
+      RichText(
+        textAlign: TextAlign.justify,
+        text: TextSpan(
+          style: reg.copyWith(height: 1.6),
+          children: [
+            const TextSpan(
+              text:
+                  '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन ',
+            ),
+            TextSpan(text: '$firPs ', style: bld),
+            TextSpan(text: 'जिल्हा $firDist येथे अपराध क्रमांक'),
+            TextSpan(text: ' $crimeNo / २०$crimeYear ', style: bld),
+            const TextSpan(text: 'कलम '),
+            TextSpan(text: '$actSec ', style: bld),
+            const TextSpan(
+              text: 'भा.न्या.संहिता २०२३ व सह कलम ',
+            ),
+            TextSpan(text: '$coActSec ', style: bld),
+            const TextSpan(text: 'प्रमाणे दिनांक '),
+            TextSpan(text: '$firDate ', style: bld),
+            const TextSpan(
+              text:
+                  'गुन्हा दाखल असुन सदर गुन्ह्याचा तपास आम्ही स्वतः करत आहोत. सदर गुन्ह्याच्या तपासकामी आपणास अटक करण्यात येत आहे.',
             ),
           ],
         ),
-        const SizedBox(height: 24),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: Text(
-            'M.R.W',
-            style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700),
-          ),
+      ),
+      const SizedBox(height: 16),
+      RichText(
+        textAlign: TextAlign.justify,
+        text: TextSpan(
+          style: reg.copyWith(height: 1.6),
+          children: [
+            const TextSpan(
+              text: '        सदर गुन्हा दखलपात्र असुन ',
+            ),
+            TextSpan(text: '$bailType ', style: bld),
+            const TextSpan(
+              text:
+                  'आहे. आपल्या अटकेबाबतची माहित भारतीय नागरीक सुरक्षा संहिता २०२३ कलम (४८) प्रमाणे आपले नातेवाईक/ मित्र..... ',
+            ),
+            TextSpan(text: '$relativeDetails ', style: bld),
+            const TextSpan(
+              text:
+                  'यांना समक्ष/फोनद्वारे देण्यात आली असुन अटक पंचनाम्यावर त्यांची स्वाक्षरी घेण्यात आली आहे.',
+            ),
+          ],
         ),
-      ],
-    );
-  }
+      ),
+      const SizedBox(height: 16),
+      Padding(
+        padding: const EdgeInsets.only(left: 28),
+        child: Text(
+          'करीता आपणास सुचनापत्र देण्यात येत आहे.',
+          style: reg,
+        ),
+      ),
+      const Spacer(),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Text('आरोपीची स्वाक्षरी', style: bld),
+              const SizedBox(height: 12),
+              if (accusedSig.isNotEmpty)
+                Text(accusedSig, style: reg)
+              else
+                Container(
+                  width: 150,
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: borderLine),
+                  ),
+                  height: 1,
+                ),
+            ],
+          ),
+          Column(
+            children: [
+              Text('तपासी अधिकारी नांव व सही', style: bld),
+              const SizedBox(height: 12),
+              if (ioNameSig.isNotEmpty)
+                Text(ioNameSig, style: reg)
+              else
+                Container(
+                  width: 170,
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: borderLine),
+                  ),
+                  height: 1,
+                ),
+            ],
+          ),
+        ],
+      ),
+      const SizedBox(height: 24),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700),
+        ),
+      ),
+    ],
+  );
+}

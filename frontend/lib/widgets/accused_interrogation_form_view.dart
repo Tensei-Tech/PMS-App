@@ -789,7 +789,8 @@ class AccusedInterrogationFormViewState
           isDense: true,
           filled: false,
           fillColor: Colors.transparent,
-          contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
           hintText: hintText,
           hintStyle: serifStyle.copyWith(
             color: Colors.grey.shade400,

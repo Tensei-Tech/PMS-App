@@ -226,7 +226,8 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
               child: Text(
                 no,
                 style: isHeader
-                    ? marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13)
+                    ? marathi.copyWith(
+                        fontWeight: FontWeight.bold, fontSize: 13)
                     : marathi.copyWith(fontSize: 12),
               ),
             ),
@@ -242,8 +243,10 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
               child: Text(
                 title,
                 style: isHeader
-                    ? marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13)
-                    : marathi.copyWith(fontWeight: FontWeight.w600, fontSize: 12),
+                    ? marathi.copyWith(
+                        fontWeight: FontWeight.bold, fontSize: 13)
+                    : marathi.copyWith(
+                        fontWeight: FontWeight.w600, fontSize: 12),
               ),
             ),
             Expanded(

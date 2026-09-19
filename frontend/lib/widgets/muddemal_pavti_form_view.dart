@@ -171,20 +171,25 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
         controller: controller,
         readOnly: true,
         onTap: () => _pickDateForController(controller),
-        style: GoogleFonts.notoSansDevanagari(fontSize: 13, color: Colors.black87),
+        style:
+            GoogleFonts.notoSansDevanagari(fontSize: 13, color: Colors.black87),
         decoration: InputDecoration(
           isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
           hintText: hintText,
-          hintStyle: GoogleFonts.notoSansDevanagari(fontSize: 12, color: Colors.grey.shade400),
+          hintStyle: GoogleFonts.notoSansDevanagari(
+              fontSize: 12, color: Colors.grey.shade400),
           suffixIcon: InkWell(
             onTap: () => _pickDateForController(controller),
             child: const Padding(
               padding: EdgeInsets.only(left: 4, bottom: 2),
-              child: Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF1A365D)),
+              child: Icon(Icons.calendar_today_outlined,
+                  size: 16, color: Color(0xFF1A365D)),
             ),
           ),
-          suffixIconConstraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 20, minHeight: 20),
           enabledBorder: const UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.black54, width: 0.8),
           ),
@@ -338,7 +343,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
-        final text = controller.text.isEmpty ? (hintText ?? '') : controller.text;
+        final text =
+            controller.text.isEmpty ? (hintText ?? '') : controller.text;
         final tp = TextPainter(
           text: TextSpan(
             text: text,
@@ -412,7 +418,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
         return ListenableBuilder(
           listenable: controller,
           builder: (context, _) {
-            final text = controller.text.isEmpty ? (hintText ?? '') : controller.text;
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
             final tp = TextPainter(
               text: TextSpan(
                 text: text,
@@ -428,14 +435,20 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
             double effectiveFontSize = baseFontSize;
             final double textW = tp.width + 12.0;
 
-            if (hasFiniteWidth && textW > availableWidth && availableWidth > 30) {
-              final scale = ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
-              effectiveFontSize = (baseFontSize * scale).clamp(8.5, baseFontSize);
+            if (hasFiniteWidth &&
+                textW > availableWidth &&
+                availableWidth > 30) {
+              final scale =
+                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+              effectiveFontSize =
+                  (baseFontSize * scale).clamp(8.5, baseFontSize);
             }
 
             final double computedWidth = hasFiniteWidth
                 ? availableWidth
-                : (textW < baseMin ? baseMin : (textW > baseMax ? baseMax : textW));
+                : (textW < baseMin
+                    ? baseMin
+                    : (textW > baseMax ? baseMax : textW));
 
             return SizedBox(
               width: computedWidth,
@@ -451,20 +464,24 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                 ),
                 decoration: InputDecoration(
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   hintText: hintText,
                   hintStyle: style.copyWith(
                     color: Colors.grey.shade400,
                     fontSize: effectiveFontSize,
                   ),
                   border: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+                    borderSide:
+                        BorderSide(color: Color(0xFF333333), width: 1.0),
                   ),
                   enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+                    borderSide:
+                        BorderSide(color: Color(0xFF555555), width: 1.0),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                    borderSide:
+                        BorderSide(color: Color(0xFF1976D2), width: 2.0),
                   ),
                 ),
               ),

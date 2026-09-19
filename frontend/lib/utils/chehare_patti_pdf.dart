@@ -120,7 +120,8 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
             child: pw.Row(
               mainAxisSize: pw.MainAxisSize.min,
               children: [
-                pw.Text('पोलीस स्टेशन :- ', style: bold.copyWith(fontSize: 9.5)),
+                pw.Text('पोलीस स्टेशन :- ',
+                    style: bold.copyWith(fontSize: 9.5)),
                 pw.Text(ps, style: bold.copyWith(fontSize: 9.5)),
                 pw.SizedBox(width: 32),
                 pw.Text('जिल्हा :- ', style: bold.copyWith(fontSize: 9.5)),

@@ -314,8 +314,11 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
       child: TextFormField(
         controller: controller,
         readOnly: true,
-        onTap: widget.readOnly ? null : () => _pickDateForController(controller: controller),
-        style: FormTypography.serifStyle().copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+        onTap: widget.readOnly
+            ? null
+            : () => _pickDateForController(controller: controller),
+        style: FormTypography.serifStyle()
+            .copyWith(fontSize: 13, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(vertical: 4),
@@ -355,8 +358,11 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
       child: TextFormField(
         controller: controller,
         readOnly: true,
-        onTap: widget.readOnly ? null : () => _pickTimeForController(controller: controller),
-        style: FormTypography.serifStyle().copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+        onTap: widget.readOnly
+            ? null
+            : () => _pickTimeForController(controller: controller),
+        style: FormTypography.serifStyle()
+            .copyWith(fontSize: 13, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(vertical: 4),
@@ -399,7 +405,8 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
-        final text = controller.text.isEmpty ? (hintText ?? '') : controller.text;
+        final text =
+            controller.text.isEmpty ? (hintText ?? '') : controller.text;
         final tp = TextPainter(
           text: TextSpan(
             text: text,
@@ -473,7 +480,8 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
         return ListenableBuilder(
           listenable: controller,
           builder: (context, _) {
-            final text = controller.text.isEmpty ? (hintText ?? '') : controller.text;
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
             final tp = TextPainter(
               text: TextSpan(
                 text: text,
@@ -489,14 +497,20 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
             double effectiveFontSize = baseFontSize;
             final double textW = tp.width + 12.0;
 
-            if (hasFiniteWidth && textW > availableWidth && availableWidth > 30) {
-              final scale = ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
-              effectiveFontSize = (baseFontSize * scale).clamp(8.5, baseFontSize);
+            if (hasFiniteWidth &&
+                textW > availableWidth &&
+                availableWidth > 30) {
+              final scale =
+                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+              effectiveFontSize =
+                  (baseFontSize * scale).clamp(8.5, baseFontSize);
             }
 
             final double computedWidth = hasFiniteWidth
                 ? availableWidth
-                : (textW < baseMin ? baseMin : (textW > baseMax ? baseMax : textW));
+                : (textW < baseMin
+                    ? baseMin
+                    : (textW > baseMax ? baseMax : textW));
 
             return SizedBox(
               width: computedWidth,
@@ -512,20 +526,24 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                 ),
                 decoration: InputDecoration(
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                   hintText: hintText,
                   hintStyle: style.copyWith(
                     color: Colors.grey.shade400,
                     fontSize: effectiveFontSize,
                   ),
                   border: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+                    borderSide:
+                        BorderSide(color: Color(0xFF333333), width: 1.0),
                   ),
                   enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+                    borderSide:
+                        BorderSide(color: Color(0xFF555555), width: 1.0),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                    borderSide:
+                        BorderSide(color: Color(0xFF1976D2), width: 2.0),
                   ),
                 ),
               ),
