@@ -48,20 +48,20 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
-    fontSize: 9,
+    fontSize: 8,
     color: PdfColors.black,
   );
 
   final pw.TextStyle englishBold = pw.TextStyle(
     font: loraBold,
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: pw.FontWeight.bold,
     color: PdfColors.black,
   );
 
   final pw.TextStyle headerEnglishStyle = pw.TextStyle(
     font: loraBold,
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: pw.FontWeight.bold,
     color: PdfColors.black,
   );
@@ -87,7 +87,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
   pw.Widget field(
     String labelText,
     String valKey,
-    String fallback, {
+    dynamic fallback, {
     double? width,
   }) {
     return pw.Row(
@@ -97,11 +97,11 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
         pw.Text(labelText, style: englishBold),
         pw.Container(
           width: width,
-          padding: const pw.EdgeInsets.only(left: 4, right: 4, bottom: 2),
+          padding: const pw.EdgeInsets.only(left: 2, right: 2, bottom: 1),
           decoration: const pw.BoxDecoration(
             border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
           ),
-          child: renderText(valKey, fallback, englishStyle),
+          child: renderText(valKey, fallback?.toString(), englishStyle),
         ),
       ],
     );
@@ -111,7 +111,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
     String enLabel,
     String mKey,
     String valKey,
-    String fallback, {
+    dynamic fallback, {
     double? width,
   }) {
     return pw.Column(
@@ -124,15 +124,41 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
             pw.Text(enLabel, style: englishBold),
             pw.Container(
               width: width,
-              padding: const pw.EdgeInsets.only(left: 4, right: 4, bottom: 2),
+              padding: const pw.EdgeInsets.only(left: 2, right: 2, bottom: 1),
               decoration: const pw.BoxDecoration(
                 border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
               ),
-              child: renderText(valKey, fallback, englishStyle),
+              child: renderText(valKey, fallback?.toString(), englishStyle),
             ),
           ],
         ),
-        mLbl(mKey),
+        if (mKey.isNotEmpty) mLbl(mKey),
+      ],
+    );
+  }
+
+  pw.Widget buildStackedFieldWithMLbl(
+    String enLabel,
+    String mKey,
+    String valKey,
+    dynamic fallback, {
+    double? width,
+  }) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(enLabel, style: englishBold),
+        pw.SizedBox(height: 1),
+        if (mKey.isNotEmpty) mLbl(mKey),
+        pw.SizedBox(height: 2),
+        pw.Container(
+          width: width,
+          padding: const pw.EdgeInsets.only(left: 2, right: 2, bottom: 1),
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+          ),
+          child: renderText(valKey, fallback?.toString(), englishStyle),
+        ),
       ],
     );
   }
@@ -168,13 +194,12 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
   // --- PAGE 1 ---
   if (showsSection('Form 3-A')) {
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
+          return [
               // Title
               pw.Center(
                 child: pw.Column(
@@ -183,45 +208,45 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                       'ARREST/COURT SURRENDER FORM',
                       style: headerEnglishStyle,
                     ),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 1),
                     mLbl('title_m1'),
                     mLbl('title_m2'),
-                    pw.SizedBox(height: 8),
+                    pw.SizedBox(height: 2),
                     pw.Text(
                       '(Separate Memo for each accused)',
-                      style: englishBold,
+                      style: englishBold.copyWith(fontSize: 7.5),
                     ),
                     mLbl('title_m3'),
                   ],
                 ),
               ),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 5),
 
               // 1
               pw.Wrap(
                 spacing: 8,
-                runSpacing: 4,
+                runSpacing: 2,
                 children: [
                   buildInlineFieldWithMLbl(
                     '1.Dist.',
                     'lbl_dist',
                     'val_dist',
                     doc['dist'],
-                    width: 60,
+                    width: 55,
                   ),
                   buildInlineFieldWithMLbl(
                     'P.S.:',
                     'lbl_ps',
                     'val_ps',
                     doc['ps'],
-                    width: 60,
+                    width: 55,
                   ),
                   buildInlineFieldWithMLbl(
                     'FIR/Proceeding/G.D.No:',
                     'lbl_fir',
                     'val_fir',
                     doc['firNo'],
-                    width: 60,
+                    width: 55,
                   ),
                   buildInlineFieldWithMLbl(
                     'Year:-20',
@@ -235,167 +260,109 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                     'lbl_date',
                     'val_date',
                     doc['date'],
-                    width: 60,
+                    width: 55,
                   ),
                 ],
+              ),
+              pw.SizedBox(height: 3),
+              buildStackedFieldWithMLbl(
+                'Alphanumeric Code of the Accused (Write A1 to A9 for the first 9 persons, B1 for 10 th person and so on).',
+                'lbl_code',
+                'val_code',
+                doc['accusedCode'],
+                width: double.infinity,
               ),
               pw.SizedBox(height: 4),
-              pw.Row(
-                children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        'Alphanumeric Code of the Accused (Write A1 to A9 for the first 9 persons, B1 for 10 th person and so on).',
-                        style: englishBold,
-                      ),
-                      mLbl('lbl_code'),
-                    ],
-                  ),
-                  pw.Expanded(
-                    child: pw.Container(
-                      decoration: const pw.BoxDecoration(
-                        border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                      ),
-                      child: renderText(
-                        'val_code',
-                        doc['accusedCode'],
-                        englishStyle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 12),
 
               // 2
               pw.Wrap(
                 spacing: 8,
-                runSpacing: 4,
+                runSpacing: 2,
                 children: [
                   buildInlineFieldWithMLbl(
                     '2. Date, Time & place of Arrest/surrender :- Date',
                     'lbl_arr_date',
                     'val_arrDate',
                     doc['arrestDate'],
-                    width: 60,
+                    width: 55,
                   ),
                   buildInlineFieldWithMLbl(
                     'Time',
                     'lbl_arr_time',
                     'val_arrTime',
                     doc['arrestTime'],
-                    width: 60,
+                    width: 50,
                   ),
                   buildInlineFieldWithMLbl(
                     'G.D.No.',
                     'lbl_arr_gd',
                     'val_arrGd',
                     doc['arrestGdNo'],
-                    width: 60,
+                    width: 50,
                   ),
                 ],
               ),
-              pw.SizedBox(height: 4),
+              pw.SizedBox(height: 2),
               pw.Wrap(
                 spacing: 8,
-                runSpacing: 4,
+                runSpacing: 2,
                 children: [
                   buildInlineFieldWithMLbl(
                     'Place of Arrest: - P.S.',
                     'lbl_arr_ps',
                     'val_arrPlace',
                     doc['arrestPlace'],
-                    width: 100,
+                    width: 90,
                   ),
                   buildInlineFieldWithMLbl(
                     'Dist.',
                     'lbl_arr_dist',
                     'val_arrDist',
                     doc['arrestDist'],
-                    width: 80,
+                    width: 70,
                   ),
                   buildInlineFieldWithMLbl(
                     'State.',
                     'lbl_arr_state',
                     'val_arrState',
                     doc['arrestState'],
-                    width: 80,
+                    width: 70,
                   ),
                 ],
               ),
-              pw.SizedBox(height: 12),
+              pw.SizedBox(height: 4),
 
               // 3
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.end,
-                children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        '3. Name of the Court ( if surrendered) :-',
-                        style: englishBold,
-                      ),
-                      mLbl('lbl_court'),
-                    ],
-                  ),
-                  pw.SizedBox(width: 4),
-                  pw.Expanded(
-                    child: pw.Container(
-                      decoration: const pw.BoxDecoration(
-                        border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                      ),
-                      child: renderText(
-                        'val_court',
-                        doc['courtName'],
-                        englishStyle,
-                      ),
-                    ),
-                  ),
-                ],
+              buildStackedFieldWithMLbl(
+                '3. Name of the Court ( if surrendered) :-',
+                'lbl_court',
+                'val_court',
+                doc['courtName'],
+                width: double.infinity,
               ),
-              pw.SizedBox(height: 12),
+              pw.SizedBox(height: 4),
 
               // 4
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.end,
-                children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('4. Acts and sections:-', style: englishBold),
-                      mLbl('lbl_acts'),
-                    ],
-                  ),
-                  pw.SizedBox(width: 4),
-                  pw.Expanded(
-                    child: pw.Container(
-                      decoration: const pw.BoxDecoration(
-                        border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                      ),
-                      child: renderText(
-                        'val_acts',
-                        doc['actsSections'],
-                        englishStyle,
-                      ),
-                    ),
-                  ),
-                ],
+              buildStackedFieldWithMLbl(
+                '4. Acts and sections:-',
+                'lbl_acts',
+                'val_acts',
+                doc['actsSections'],
+                width: double.infinity,
               ),
-              pw.SizedBox(height: 12),
+              pw.SizedBox(height: 4),
 
               // 5
               pw.Text(
                 '5. Arrested and forward / Arrested and released on bail or PR bound / Arrested but released on anticipatory bail/ Arrested and remanded to police Custody / Surrender in court and bailed out / Surrender in court and sent to judicial Custody / Surrender in court and remanded to police custody (tie applicable potion).',
-                style: englishBold,
+                style: englishBold.copyWith(fontSize: 7.5),
               ),
               mLbl('lbl_5_m1'),
               mLbl('lbl_5_m2'),
-              pw.SizedBox(height: 4),
+              pw.SizedBox(height: 2),
               pw.Wrap(
                 spacing: 8,
-                runSpacing: 4,
+                runSpacing: 2,
                 children: [
                   check(
                     'Arrested and forward',
@@ -427,11 +394,11 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   ),
                 ],
               ),
-              pw.SizedBox(height: 12),
+              pw.SizedBox(height: 4),
 
               // 6
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text('6. Particulars of the Accused :-',
                       style: englishBold),
@@ -439,277 +406,241 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                 ],
               ),
               pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 16),
+                padding: const pw.EdgeInsets.only(left: 8),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    buildInlineFieldWithMLbl(
+                    buildStackedFieldWithMLbl(
                       '(i) Name :',
                       'lbl_6i_m1',
                       'val_accName',
                       doc['accusedName'],
-                      width: 300,
+                      width: double.infinity,
                     ),
-                    pw.SizedBox(height: 4),
-                    buildInlineFieldWithMLbl(
+                    pw.SizedBox(height: 2),
+                    buildStackedFieldWithMLbl(
                       '(ii)Father\'s/Husband\'s/Guardian\'s Name :',
                       'lbl_6ii_m1',
                       'val_accFather',
                       doc['accusedFather'],
-                      width: 200,
+                      width: double.infinity,
                     ),
-                    pw.SizedBox(height: 4),
-                    buildInlineFieldWithMLbl(
-                      '(iii)First Alias :',
-                      'lbl_6iii_m1',
-                      'val_accAlias1',
-                      doc['accusedAlias1'],
-                      width: 250,
+                    pw.SizedBox(height: 2),
+                    pw.Row(
+                      children: [
+                        pw.Expanded(
+                          child: buildStackedFieldWithMLbl(
+                            '(iii)First Alias :',
+                            'lbl_6iii_m1',
+                            'val_accAlias1',
+                            doc['accusedAlias1'],
+                          ),
+                        ),
+                        pw.SizedBox(width: 12),
+                        pw.Expanded(
+                          child: buildStackedFieldWithMLbl(
+                            '(iv)Second Alias :',
+                            'lbl_6iv_m1',
+                            'val_accAlias2',
+                            doc['accusedAlias2'],
+                          ),
+                        ),
+                      ],
                     ),
-                    pw.SizedBox(height: 4),
-                    buildInlineFieldWithMLbl(
-                      '(iv)Second Alias :',
-                      'lbl_6iv_m1',
-                      'val_accAlias2',
-                      doc['accusedAlias2'],
-                      width: 250,
-                    ),
-                    pw.SizedBox(height: 4),
-                    buildInlineFieldWithMLbl(
+                    pw.SizedBox(height: 2),
+                    buildStackedFieldWithMLbl(
                       '(v) Nationality :',
                       'lbl_6v_m1',
                       'val_accNat',
                       doc['accusedNationality'],
-                      width: 200,
+                      width: double.infinity,
                     ),
-                    pw.SizedBox(height: 4),
-                    pw.Wrap(
-                      spacing: 16,
-                      runSpacing: 4,
-                      children: [
-                        field(
-                          '(vi) (a) Voter ID. Card No: -',
-                          'val_accVoter',
-                          doc['accusedVoter'],
-                          width: 100,
-                        ),
-                        field(
-                          '(b) *Passport No: -',
-                          'val_accPass',
-                          doc['accusedPassport'],
-                          width: 100,
-                        ),
-                      ],
-                    ),
-                    pw.Wrap(
-                      spacing: 16,
-                      runSpacing: 4,
-                      children: [mLbl('lbl_6vi_m1'), mLbl('lbl_6vi_m2')],
-                    ),
-                    pw.Wrap(
-                      spacing: 16,
-                      runSpacing: 4,
-                      children: [
-                        field(
-                          '(c) Date of iisue :-',
-                          'val_accDateIss',
-                          doc['accusedDateIssue'],
-                          width: 100,
-                        ),
-                        field(
-                          '(d) *Place or Issue :-',
-                          'val_accPlaceIss',
-                          doc['accusedPlaceIssue'],
-                          width: 100,
-                        ),
-                      ],
-                    ),
-                    pw.Wrap(
-                      spacing: 16,
-                      runSpacing: 4,
-                      children: [mLbl('lbl_6vi_m3'), mLbl('lbl_6vi_m4')],
-                    ),
-                    pw.Wrap(
-                      spacing: 16,
-                      runSpacing: 4,
-                      children: [
-                        buildInlineFieldWithMLbl(
-                          '(vii) Religion: -',
-                          'lbl_6vii_m1',
-                          'val_accRelig',
-                          doc['accusedReligion'],
-                          width: 100,
-                        ),
-                        buildInlineFieldWithMLbl(
-                          '(viii) *Cast/Tribe: -',
-                          'lbl_6viii_m1',
-                          'val_accCaste',
-                          doc['accusedCaste'],
-                          width: 100,
-                        ),
-                      ],
-                    ),
-                    pw.Wrap(
-                      spacing: 16,
-                      runSpacing: 4,
-                      children: [
-                        buildInlineFieldWithMLbl(
-                          '(ix) SC/ST/OBC :-',
-                          'lbl_6ix_m1',
-                          'val_accScSt',
-                          doc['accusedScSt'],
-                          width: 100,
-                        ),
-                        buildInlineFieldWithMLbl(
-                          '(x)*Occupation :-',
-                          'lbl_6x_m1',
-                          'val_accOcc',
-                          doc['accusedOccupation'],
-                          width: 100,
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 2),
                     pw.Row(
-                      crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text(
-                              '(xi) Permanent Address :-',
-                              style: englishBold,
-                            ),
-                            mLbl('lbl_6xi_m1'),
-                          ],
-                        ),
-                        pw.SizedBox(width: 4),
                         pw.Expanded(
-                          child: pw.Container(
-                            decoration: const pw.BoxDecoration(
-                              border: pw.Border(
-                                bottom: pw.BorderSide(width: 0.5),
-                              ),
-                            ),
-                            child: renderText(
-                              'val_permAddr',
-                              doc['permAddress'],
-                              englishStyle,
-                            ),
+                          child: buildStackedFieldWithMLbl(
+                            '(vi) (a) Voter ID Card No: -',
+                            'lbl_6vi_m1',
+                            'val_accVoter',
+                            doc['accusedVoter'],
+                          ),
+                        ),
+                        pw.SizedBox(width: 12),
+                        pw.Expanded(
+                          child: buildStackedFieldWithMLbl(
+                            '(b) *Passport No: -',
+                            'lbl_6vi_m2',
+                            'val_accPass',
+                            doc['accusedPassport'],
                           ),
                         ),
                       ],
                     ),
-                    pw.Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        buildInlineFieldWithMLbl(
-                          'State :-',
-                          'lbl_state',
-                          'val_permState',
-                          doc['permState'],
-                          width: 80,
-                        ),
-                        buildInlineFieldWithMLbl(
-                          'Dist.:-',
-                          'lbl_dist2',
-                          'val_permDist',
-                          doc['permDist'],
-                          width: 80,
-                        ),
-                        buildInlineFieldWithMLbl(
-                          'P.S. :-',
-                          'lbl_ps2',
-                          'val_permPs',
-                          doc['permPs'],
-                          width: 80,
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 2),
                     pw.Row(
-                      crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text(
-                              '(xii) Present Address:-',
-                              style: englishBold,
-                            ),
-                            mLbl('lbl_6xii_m1'),
-                          ],
-                        ),
-                        pw.SizedBox(width: 4),
                         pw.Expanded(
-                          child: pw.Container(
-                            decoration: const pw.BoxDecoration(
-                              border: pw.Border(
-                                bottom: pw.BorderSide(width: 0.5),
-                              ),
-                            ),
-                            child: renderText(
-                              'val_presAddr',
-                              doc['presAddress'],
-                              englishStyle,
-                            ),
+                          child: buildStackedFieldWithMLbl(
+                            '(c) Date of issue :-',
+                            'lbl_6vi_m3',
+                            'val_accDateIss',
+                            doc['accusedDateIssue'],
+                          ),
+                        ),
+                        pw.SizedBox(width: 12),
+                        pw.Expanded(
+                          child: buildStackedFieldWithMLbl(
+                            '(d) *Place of Issue :-',
+                            'lbl_6vi_m4',
+                            'val_accPlaceIss',
+                            doc['accusedPlaceIssue'],
                           ),
                         ),
                       ],
                     ),
-                    pw.Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
+                    pw.SizedBox(height: 2),
+                    pw.Row(
                       children: [
-                        buildInlineFieldWithMLbl(
-                          'State: -',
-                          'lbl_state',
-                          'val_presState',
-                          doc['presState'],
-                          width: 80,
+                        pw.Expanded(
+                          child: buildStackedFieldWithMLbl(
+                            '(vii) Religion: -',
+                            'lbl_6vii_m1',
+                            'val_accRelig',
+                            doc['accusedReligion'],
+                          ),
                         ),
-                        buildInlineFieldWithMLbl(
-                          'Dist.:-',
-                          'lbl_dist2',
-                          'val_presDist',
-                          doc['presDist'],
-                          width: 80,
+                        pw.SizedBox(width: 12),
+                        pw.Expanded(
+                          child: buildStackedFieldWithMLbl(
+                            '(viii) *Cast/Tribe: -',
+                            'lbl_6viii_m1',
+                            'val_accCaste',
+                            doc['accusedCaste'],
+                          ),
                         ),
-                        buildInlineFieldWithMLbl(
-                          'P.S. :-',
-                          'lbl_ps2',
-                          'val_presPs',
-                          doc['presPs'],
-                          width: 80,
+                      ],
+                    ),
+                    pw.SizedBox(height: 2),
+                    pw.Row(
+                      children: [
+                        pw.Expanded(
+                          child: buildStackedFieldWithMLbl(
+                            '(ix) SC/ST/OBC :-',
+                            'lbl_6ix_m1',
+                            'val_accScSt',
+                            doc['accusedScSt'],
+                          ),
+                        ),
+                        pw.SizedBox(width: 12),
+                        pw.Expanded(
+                          child: buildStackedFieldWithMLbl(
+                            '(x)*Occupation :-',
+                            'lbl_6x_m1',
+                            'val_accOcc',
+                            doc['accusedOccupation'],
+                          ),
+                        ),
+                      ],
+                    ),
+                    pw.SizedBox(height: 2),
+                    buildStackedFieldWithMLbl(
+                      '(xi) Permanent Address :-',
+                      'lbl_6xi_m1',
+                      'val_permAddr',
+                      doc['permAddress'],
+                      width: double.infinity,
+                    ),
+                    pw.SizedBox(height: 1),
+                    pw.Row(
+                      children: [
+                        pw.Expanded(
+                          child: buildInlineFieldWithMLbl(
+                            'State :-',
+                            'lbl_state',
+                            'val_permState',
+                            doc['permState'],
+                            width: 70,
+                          ),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Expanded(
+                          child: buildInlineFieldWithMLbl(
+                            'Dist.:-',
+                            'lbl_dist2',
+                            'val_permDist',
+                            doc['permDist'],
+                            width: 70,
+                          ),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Expanded(
+                          child: buildInlineFieldWithMLbl(
+                            'P.S. :-',
+                            'lbl_ps2',
+                            'val_permPs',
+                            doc['permPs'],
+                            width: 70,
+                          ),
+                        ),
+                      ],
+                    ),
+                    pw.SizedBox(height: 2),
+                    buildStackedFieldWithMLbl(
+                      '(xii) Present Address:-',
+                      'lbl_6xii_m1',
+                      'val_presAddr',
+                      doc['presAddress'],
+                      width: double.infinity,
+                    ),
+                    pw.SizedBox(height: 1),
+                    pw.Row(
+                      children: [
+                        pw.Expanded(
+                          child: buildInlineFieldWithMLbl(
+                            'State: -',
+                            'lbl_state',
+                            'val_presState',
+                            doc['presState'],
+                            width: 70,
+                          ),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Expanded(
+                          child: buildInlineFieldWithMLbl(
+                            'Dist.:-',
+                            'lbl_dist2',
+                            'val_presDist',
+                            doc['presDist'],
+                            width: 70,
+                          ),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Expanded(
+                          child: buildInlineFieldWithMLbl(
+                            'P.S. :-',
+                            'lbl_ps2',
+                            'val_presPs',
+                            doc['presPs'],
+                            width: 70,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              pw.SizedBox(height: 12),
+              pw.SizedBox(height: 4),
 
               // 7
-              pw.Text(
+              buildStackedFieldWithMLbl(
                 '7. Injuries, cause of injuries and physical condition of the accused person (indicate if medically examined)',
-                style: englishBold,
-              ),
-              mLbl('lbl_7_m1'),
-              pw.Container(
+                'lbl_7_m1',
+                'val_injuries',
+                doc['injuries'],
                 width: double.infinity,
-                height: 20,
-                decoration: const pw.BoxDecoration(
-                  border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                ),
-                child: renderText(
-                  'val_injuries',
-                  doc['injuries'],
-                  englishStyle,
-                ),
               ),
-            ],
-          );
+          ];
         },
       ),
     );
@@ -718,13 +649,12 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
   // --- PAGE 2 ---
   if (showsSection('Form 3-B')) {
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
+          return [
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Text('From: 3-B', style: englishBold),
@@ -866,21 +796,19 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                 style: englishBold,
               ),
               mLbl('lbl_8_m8'),
-            ],
-          );
+          ];
         },
       ),
     );
 
     // --- PAGE 3: Physical Features (Landscape) ---
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4.landscape,
         margin: const pw.EdgeInsets.all(24),
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
+          return [
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Text('From: 3-B (cont.)', style: englishBold),
@@ -966,8 +894,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   ),
                 ],
               ),
-            ],
-          );
+          ];
         },
       ),
     );
@@ -976,18 +903,17 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
   // --- PAGE 4 ---
   if (showsSection('Form 3-C')) {
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
+          return [
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Text('From: 3-C', style: englishBold),
               ),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 4),
 
               // 10
               pw.Row(
@@ -1017,7 +943,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   ),
                 ],
               ),
-              pw.SizedBox(height: 12),
+              pw.SizedBox(height: 5),
 
               // 11
               pw.Text(
@@ -1025,23 +951,24 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                 style: englishBold,
               ),
               pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 16),
+                padding: const pw.EdgeInsets.only(left: 8),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
                       '(a) Living Status: - Living alone/Living with Family/with Associate in Pucca House/Hotel/ Hostel/',
-                      style: englishBold,
+                      style: englishBold.copyWith(fontSize: 7.5),
                     ),
                     pw.Text(
                       '                                 Kacheha House / Thatehed House / Slum/ Homeless/ Harbourer.',
-                      style: englishBold,
+                      style: englishBold.copyWith(fontSize: 7.5),
                     ),
                     mLbl('lbl_11a_m1'),
                     mLbl('lbl_11a_m2'),
+                    pw.SizedBox(height: 2),
                     pw.Wrap(
                       spacing: 8,
-                      runSpacing: 4,
+                      runSpacing: 2,
                       children: [
                         check('Living alone', doc['livingAlone'] == true),
                         check(
@@ -1062,46 +989,77 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                         check('Harbourer', doc['livingHarbourer'] == true),
                       ],
                     ),
-                    pw.SizedBox(height: 12),
+                    pw.SizedBox(height: 4),
                     pw.Row(
                       children: [
-                        buildInlineFieldWithMLbl(
-                          '(b)Educational qualifications(s)',
-                          'lbl_11b_m1',
-                          'val_edu',
-                          doc['eduQual'],
-                          width: 120,
+                        pw.Expanded(
+                          child: buildInlineFieldWithMLbl(
+                            '(b)Educational qualifications(s)',
+                            'lbl_11b_m1',
+                            'val_edu',
+                            doc['eduQual'],
+                            width: 100,
+                          ),
                         ),
-                        pw.SizedBox(width: 16),
-                        buildInlineFieldWithMLbl(
-                          '(c) occupation',
-                          'lbl_11c_m1',
-                          'val_occ2',
-                          doc['occupation2'],
-                          width: 120,
+                        pw.SizedBox(width: 8),
+                        pw.Expanded(
+                          child: buildInlineFieldWithMLbl(
+                            '(c) occupation',
+                            'lbl_11c_m1',
+                            'val_occ2',
+                            doc['occupation2'],
+                            width: 100,
+                          ),
                         ),
                       ],
                     ),
-                    pw.SizedBox(height: 12),
+                    pw.SizedBox(height: 4),
                     pw.Text('(d) Income Group :-', style: englishBold),
                     mLbl('lbl_11d_m1'),
-                    pw.SizedBox(height: 4),
-                    check('', doc['incomeLower'] == true,
-                        isMarathi: true, mKey: 'lbl_11di_m1'),
-                    check('', doc['incomeLowerMid'] == true,
-                        isMarathi: true, mKey: 'lbl_11dii_m1'),
-                    check('', doc['incomeMiddle'] == true,
-                        isMarathi: true, mKey: 'lbl_11diii_m1'),
-                    check('', doc['incomeUpperMid'] == true,
-                        isMarathi: true, mKey: 'lbl_11div_m1'),
-                    check('', doc['incomeUpperMid2'] == true,
-                        isMarathi: true, mKey: 'lbl_11dv_m1'),
-                    check('', doc['incomeUpper'] == true,
-                        isMarathi: true, mKey: 'lbl_11dvi_m1'),
+                    pw.SizedBox(height: 2),
+                    pw.Row(
+                      children: [
+                        pw.Expanded(
+                          child: check('', doc['incomeLower'] == true,
+                              isMarathi: true, mKey: 'lbl_11di_m1'),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Expanded(
+                          child: check('', doc['incomeLowerMid'] == true,
+                              isMarathi: true, mKey: 'lbl_11dii_m1'),
+                        ),
+                      ],
+                    ),
+                    pw.Row(
+                      children: [
+                        pw.Expanded(
+                          child: check('', doc['incomeMiddle'] == true,
+                              isMarathi: true, mKey: 'lbl_11diii_m1'),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Expanded(
+                          child: check('', doc['incomeUpperMid'] == true,
+                              isMarathi: true, mKey: 'lbl_11div_m1'),
+                        ),
+                      ],
+                    ),
+                    pw.Row(
+                      children: [
+                        pw.Expanded(
+                          child: check('', doc['incomeUpperMid2'] == true,
+                              isMarathi: true, mKey: 'lbl_11dv_m1'),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Expanded(
+                          child: check('', doc['incomeUpper'] == true,
+                              isMarathi: true, mKey: 'lbl_11dvi_m1'),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 5),
 
               // 12
               pw.Text(
@@ -1110,7 +1068,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
               ),
               mLbl('lbl_12_m1'),
               pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 16),
+                padding: const pw.EdgeInsets.only(left: 8),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
@@ -1179,7 +1137,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                       mLbl,
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.only(left: 16),
+                      padding: const pw.EdgeInsets.only(left: 8),
                       child: mLbl('lbl_12h_m1'),
                     ),
                     _yesNoRow(
@@ -1220,7 +1178,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   ],
                 ),
               ),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 5),
 
               // 13
               pw.Row(
@@ -1243,18 +1201,18 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   ),
                 ],
               ),
-              pw.SizedBox(height: 4),
+              pw.SizedBox(height: 2),
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'Name and Address of the witnesses/Panchas\n(At Least one witness necessary)',
-                    style: englishBold,
+                    'Name and Address of the witnesses/Panchas (At Least one witness necessary)',
+                    style: englishBold.copyWith(fontSize: 7.5),
                   ),
-                  pw.Text('Signature\n', style: englishBold),
+                  pw.Text('Signature\n', style: englishBold.copyWith(fontSize: 7.5)),
                 ],
               ),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 2),
               pw.Row(
                 children: [
                   pw.Expanded(
@@ -1270,9 +1228,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   ),
                 ],
               ),
-              pw.SizedBox(height: 4),
-              pw.Text('(At Least one witness necessary)', style: englishBold),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 5),
 
               // 14 & 15
               pw.Row(
@@ -1287,29 +1243,29 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                           style: englishBold,
                         ),
                         mLbl('lbl_14_m1'),
-                        pw.SizedBox(height: 16),
+                        pw.SizedBox(height: 4),
                         field(
                           ':',
                           'val_arrSig',
                           doc['arrestedPersonSig'],
-                          width: 150,
+                          width: 130,
                         ),
-                        pw.SizedBox(height: 16),
+                        pw.SizedBox(height: 6),
                         pw.Text('15.', style: englishBold),
                         buildInlineFieldWithMLbl(
                           'Place: ',
                           'lbl_15_m1',
                           'val_fPlace',
                           doc['finalPlace'],
-                          width: 100,
+                          width: 90,
                         ),
-                        pw.SizedBox(height: 8),
+                        pw.SizedBox(height: 3),
                         buildInlineFieldWithMLbl(
                           'Date: ',
                           'lbl_15_m2',
                           'val_fDate',
                           doc['finalDate'],
-                          width: 100,
+                          width: 90,
                         ),
                       ],
                     ),
@@ -1322,23 +1278,23 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                           'Signature of the Investigation Officer with:',
                           style: englishBold,
                         ),
-                        pw.SizedBox(height: 8),
+                        pw.SizedBox(height: 3),
                         buildInlineFieldWithMLbl(
                           'Signature / ',
                           'lbl_io_sig',
                           'val_ioSig',
                           doc['ioSig'],
-                          width: 150,
+                          width: 130,
                         ),
-                        pw.SizedBox(height: 16),
+                        pw.SizedBox(height: 4),
                         buildInlineFieldWithMLbl(
                           'Name: ',
                           'lbl_15_m3',
                           'val_fName',
                           doc['finalName'],
-                          width: 150,
+                          width: 130,
                         ),
-                        pw.SizedBox(height: 8),
+                        pw.SizedBox(height: 3),
                         pw.Row(
                           children: [
                             buildInlineFieldWithMLbl(
@@ -1346,7 +1302,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                               'lbl_15_m4',
                               'val_fRank',
                               doc['finalRank'],
-                              width: 80,
+                              width: 70,
                             ),
                             pw.SizedBox(width: 8),
                             buildInlineFieldWithMLbl(
@@ -1354,7 +1310,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                               'lbl_15_m5',
                               'val_fNo',
                               doc['finalNo'],
-                              width: 60,
+                              width: 50,
                             ),
                           ],
                         ),
@@ -1363,8 +1319,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   ),
                 ],
               ),
-            ],
-          );
+          ];
         },
       ),
     );
@@ -1382,7 +1337,7 @@ pw.Widget _yesNoRow(
   pw.Widget Function(String) mLbl,
 ) {
   return pw.Padding(
-    padding: const pw.EdgeInsets.symmetric(vertical: 2),
+    padding: const pw.EdgeInsets.symmetric(vertical: 1),
     child: pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       crossAxisAlignment: pw.CrossAxisAlignment.end,
@@ -1479,19 +1434,19 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final cache = MarathiImageCache();
 
   final headerStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: FontWeight.bold,
     color: Colors.black,
   );
 
   final marathiLabelStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 9,
+    fontSize: 7.5,
     fontWeight: FontWeight.bold,
     color: Colors.black,
   );
 
   final valueStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 9,
+    fontSize: 8,
     color: Colors.blue.shade900,
   );
 

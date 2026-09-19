@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+ 
+import '../utils/form_io_terminology.dart';
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
+import 'form_section_utils.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
-import '../utils/form_io_terminology.dart';
-import 'form_section_utils.dart';
 
 class ArrestSurrenderFormView extends StatefulWidget {
   final bool readOnly;
@@ -975,35 +976,14 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
               const SizedBox(height: 14),
 
               // Alphanumeric Code of the Accused
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Alphanumeric Code of the Accused (Write A1 to A9 for the first 9 persons, B1 for 10 th person and so on)',
-                          style:
-                              serifStyle.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'आरोपीचा सांकेतिक क्रमांक ( पहिल्या ९ व्यक्तींसाठी अ १ ते अ ९, दहाव्या व्यक्तीसाठी ब १ या प्रमाणे पुढे असे लिहावे )',
-                          style: marathiLabelStyle,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  SizedBox(
-                    width: 120,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _accusedCodeCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                ],
+              BilingualWideField(
+                label:
+                    'Alphanumeric Code of the Accused (Write A1 to A9 for the first 9 persons, B1 for 10 th person and so on)',
+                marathiLabel:
+                    'आरोपीचा सांकेतिक क्रमांक ( पहिल्या ९ व्यक्तींसाठी अ १ ते अ ९, दहाव्या व्यक्तीसाठी ब १ या प्रमाणे पुढे असे लिहावे )',
+                controller: _accusedCodeCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
               ),
               const SizedBox(height: 20),
 
@@ -1223,55 +1203,22 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
               const SizedBox(height: 20),
 
               // 3) Court name
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '3. Name of the Court ( if surrendered) :- ',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 2),
-                      Text('न्यायालयाचे नाव ( स्वाधीन झाल्यास ) :-',
-                          style: marathiLabelStyle),
-                    ],
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _courtNameCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                ],
+              BilingualWideField(
+                label: '3. Name of the Court ( if surrendered) :-',
+                marathiLabel: 'न्यायालयाचे नाव ( स्वाधीन झाल्यास ) :-',
+                controller: _courtNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
               ),
               const SizedBox(height: 20),
 
               // 4) Acts and sections
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '4. Acts and sections:- ',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 2),
-                      Text('अधिनियम व कलमे :', style: marathiLabelStyle),
-                    ],
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _actsSectionsCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                ],
+              BilingualWideField(
+                label: '4. Acts and sections:-',
+                marathiLabel: 'अधिनियम व कलमे :',
+                controller: _actsSectionsCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
               ),
               const SizedBox(height: 24),
 
