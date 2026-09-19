@@ -7,6 +7,7 @@ import 'package:printing/printing.dart';
 
 import '../widgets/form_section_utils.dart';
 import 'form_image_pdf_helper.dart';
+import 'form_io_terminology.dart';
 
 Future<void> previewInquestPanchanamaPdf(
   BuildContext context,
@@ -40,7 +41,7 @@ Future<void> previewInquestPanchanamaPdf(
     );
     return;
   }
-  if (active == 'Civil Surgeon PM Report' || active == '14 Kalmi Form') {
+  if (active == 'Civil Surgeon PM Report') {
     await FormImagePdfHelper.previewImageBasedPdf(
       context,
       fileName:
@@ -49,6 +50,15 @@ Future<void> previewInquestPanchanamaPdf(
         _buildCivilSurgeonPg1Widget(doc),
         _buildCivilSurgeonPg2Widget(doc)
       ],
+      fallbackPdfGenerator: () => generateInquestPanchanamaPdf(doc),
+    );
+    return;
+  }
+  if (active == '14 Kalmi Form' || active == '14-Kalmi Form with Inquest') {
+    await FormImagePdfHelper.previewImageBasedPdf(
+      context,
+      fileName: '14_Kalmi_Form_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      pages: [_buildKalmi14Pg1Widget(doc), _buildKalmi14Pg2Widget(doc)],
       fallbackPdfGenerator: () => generateInquestPanchanamaPdf(doc),
     );
     return;
@@ -2116,6 +2126,246 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
     );
   }
 
+  if (showsSection('14 Kalmi Form') ||
+      showsSection('14-Kalmi Form with Inquest')) {
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 26),
+        build: (_) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Align(
+              alignment: pw.Alignment.topRight,
+              child: pw.Text('Page 12 (१४-कलमी फॉर्म)',
+                  style: mrBold.copyWith(fontSize: 9)),
+            ),
+            pw.Divider(thickness: 1.0),
+            pw.Center(
+              child: pw.Column(
+                children: [
+                  pw.Text(
+                      '14-Clause Form (to be submitted with Inquest Panchanama)',
+                      style: engBold.copyWith(fontSize: 11)),
+                  pw.Text(
+                      '१४ कलमी फॉर्म व इन्क्वेस्ट पंचनामा सोबत द्यावाचा फॉर्म',
+                      style: mrBold.copyWith(fontSize: 10)),
+                  pw.Text(
+                      'Submitted to Medical Officer / मा.वैद्यकीय अधिकारी यांना सादर',
+                      style: mrBold.copyWith(fontSize: 9)),
+                ],
+              ),
+            ),
+            pw.Divider(thickness: 0.8),
+            pw.SizedBox(height: 6),
+            pw.Text('1) Name and age of deceased (मृतकाचे नाव व वय):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            underlineField(v('kal14NameAge')),
+            pw.SizedBox(height: 5),
+            pw.Text('2) Address of deceased (मृतकाचा पत्ता):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            underlineField(v('kal14Address')),
+            pw.SizedBox(height: 5),
+            pw.Text(
+                '3) When dead body was sent to P.M. (शवविच्छेदन करण्यास प्रेत केव्हा पाठविले):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            underlineField(v('kal14ShavFrom')),
+            pw.SizedBox(height: 5),
+            pw.Text(
+                '4) When dead body reached to Medical Officer (मा. वैद्यकीय अधिकारी यांचेकडे प्रेत केव्हा पोहोचले):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            underlineField(v('kal14ShavTo')),
+            pw.SizedBox(height: 5),
+            pw.Text("5) Mother's name of deceased (मृतकाचे आईचे नाव):",
+                style: engBold.copyWith(fontSize: 8.5)),
+            underlineField(v('kal14AaiName')),
+            pw.SizedBox(height: 5),
+            pw.Text("6) Father's name of deceased (मृतकाचे वडीलांचे नाव):",
+                style: engBold.copyWith(fontSize: 8.5)),
+            underlineField(v('kal14BaapName')),
+            pw.SizedBox(height: 5),
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('7) Religion of deceased (मृतकाचा धर्म):',
+                          style: engBold.copyWith(fontSize: 8.5)),
+                      underlineField(v('kal14Dharm')),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('8) Occupation of deceased (मृतकाचा व्यवसाय):',
+                          style: engBold.copyWith(fontSize: 8.5)),
+                      underlineField(v('kal14Vyavsay')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 5),
+            pw.Text('9) Any Addiction/Habit (काही व्यसन होते काय?):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            pw.Row(children: [
+              pw.Text('१) सिगारेट / बिडी: ',
+                  style: mrStyle.copyWith(fontSize: 8)),
+              underlineField(
+                  '${doc['kal14Cigarette'] == true ? 'होय' : 'नाही'} (दिवस: ${v('kal14CigaretteDays')})',
+                  width: 140),
+              pw.SizedBox(width: 12),
+              pw.Text('२) दारू: ', style: mrStyle.copyWith(fontSize: 8)),
+              underlineField(
+                  '${doc['kal14Daru'] == true ? 'होय' : 'नाही'} (दिवस: ${v('kal14DaruDays')})',
+                  width: 140),
+            ]),
+            pw.SizedBox(height: 3),
+            pw.Row(children: [
+              pw.Text('३) तंबाखु: ', style: mrStyle.copyWith(fontSize: 8)),
+              underlineField(
+                  '${doc['kal14Tambakhu'] == true ? 'होय' : 'नाही'} (दिवस: ${v('kal14TambakhuDays')})',
+                  width: 140),
+              pw.SizedBox(width: 12),
+              pw.Text('४) पान मसाला / गुटखा: ',
+                  style: mrStyle.copyWith(fontSize: 8)),
+              underlineField(
+                  '${doc['kal14PanMasala'] == true ? 'होय' : 'नाही'} (दिवस: ${v('kal14PanMasalaDays')})',
+                  width: 140),
+            ]),
+            pw.SizedBox(height: 5),
+            pw.Text('10) Any other disease (काही इतर आजार होता काय?):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            underlineField(v('kal14Aajar')),
+            pw.Spacer(),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text('M.R.W', style: engStyle.copyWith(fontSize: 8)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 26),
+        build: (_) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Align(
+              alignment: pw.Alignment.topRight,
+              child: pw.Text('Page 13 (१४-कलमी फॉर्म)',
+                  style: mrBold.copyWith(fontSize: 9)),
+            ),
+            pw.Divider(thickness: 1.0),
+            pw.SizedBox(height: 6),
+            pw.Text(
+                '11) In case of vehicular accident (वाहन अपघाताची घटना असल्यास):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 10),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                      '(a) Vehicle type / वाहनाचा प्रकार: ${v('kal14VehicleName')}',
+                      style: mrStyle.copyWith(fontSize: 8)),
+                  pw.Text(
+                      '(b) Driver / Passenger / चालक / प्रवासी: ${v('kal14DriverPass')}',
+                      style: mrStyle.copyWith(fontSize: 8)),
+                  pw.Text(
+                      '(c) Pedestrian / पायी चालणारा: ${v('kal14Pedestrian')}',
+                      style: mrStyle.copyWith(fontSize: 8)),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Text(
+                '12) Detail information of accident / fall from height (अपघात कसा झाला / उंचीवरून पडल्याची माहिती):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            underlineField(v('kal14AccidentHow')),
+            pw.SizedBox(height: 4),
+            pw.Text(
+                'Accident Date & Time (अपघाताची दिनांक व वेळ): ${_formatDateTimeKal14(v('kal14AccidentDateTime').isNotEmpty ? v('kal14AccidentDateTime') : [
+                    v('kal14AccidentDate'),
+                    v('kal14AccidentTime')
+                  ].where((s) => s.isNotEmpty).join(', '))}',
+                style: mrStyle.copyWith(fontSize: 8)),
+            pw.SizedBox(height: 4),
+            underlineField(v('kal14FallInfo')),
+            pw.SizedBox(height: 6),
+            pw.Text('13) In case of female deceased (मृतक स्त्री असल्यास):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 10),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                      '(a) Months of pregnancy / गरोदर असल्यास महिने: ${v('kal14PregnantMonths')}',
+                      style: mrStyle.copyWith(fontSize: 8)),
+                  pw.Text(
+                      '(b) Delivery or abortion info / प्रसूती किंवा गर्भपात तपशील: ${v('kal14DeliveredAbortion')}',
+                      style: mrStyle.copyWith(fontSize: 8)),
+                  pw.Text(
+                      '(c) Days passed / दिवस किती झाले: ${v('kal14PregnantDays')}',
+                      style: mrStyle.copyWith(fontSize: 8)),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Text(
+                '14) Name of person who identified dead body (शव ओळखणाऱ्याचे नाव):',
+                style: engBold.copyWith(fontSize: 8.5)),
+            underlineField(v('kal14IdentifierName')),
+            pw.SizedBox(height: 20),
+            pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.SizedBox(
+                width: 250,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('तपासी अंमलदाराची सही / शिक्का',
+                        style: mrBold.copyWith(fontSize: 9.5)),
+                    pw.SizedBox(height: 6),
+                    pw.Row(children: [
+                      pw.Text('नांव : ', style: mrBold.copyWith(fontSize: 8.5)),
+                      pw.Expanded(child: underlineField(v('kal14IoName'))),
+                    ]),
+                    pw.SizedBox(height: 4),
+                    pw.Row(children: [
+                      pw.Text('हुद्दा : ',
+                          style: mrBold.copyWith(fontSize: 8.5)),
+                      pw.Expanded(child: underlineField(v('kal14IoRank'))),
+                    ]),
+                    pw.SizedBox(height: 4),
+                    pw.Row(children: [
+                      pw.Text('पोलीस स्टेशन : ',
+                          style: mrBold.copyWith(fontSize: 8.5)),
+                      pw.Expanded(child: underlineField(v('kal14IoPs'))),
+                    ]),
+                  ],
+                ),
+              ),
+            ),
+            pw.Spacer(),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text('M.R.W', style: engStyle.copyWith(fontSize: 8)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   if (showsSection('Dead Body Handover')) {
     pdf.addPage(
       pw.Page(
@@ -2482,10 +2732,15 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
   return pdf.save();
 }
 
-Widget _uField(String val, {double? width}) {
+Widget _uField(String val,
+    {double? width, double? minWidth, double? maxWidth}) {
   final content = val.trim();
   return Container(
     width: width,
+    constraints: BoxConstraints(
+      minWidth: minWidth ?? width ?? 0,
+      maxWidth: maxWidth ?? width ?? double.infinity,
+    ),
     padding: const EdgeInsets.only(bottom: 1, left: 3, right: 3),
     decoration: const BoxDecoration(
       border: Border(bottom: BorderSide(width: 0.8, color: Colors.black)),
@@ -2493,6 +2748,38 @@ Widget _uField(String val, {double? width}) {
     child: Text(
       content.isEmpty ? ' ' : content,
       style: FormImagePdfHelper.valStyle(9),
+    ),
+  );
+}
+
+Widget _uPoliceStationPdfField(
+  String val, {
+  double? width,
+  double minWidth = 100,
+  double? maxWidth,
+  TextStyle? textStyle,
+}) {
+  final content = val.trim();
+  final style = textStyle ?? FormImagePdfHelper.valStyle(9);
+  return Container(
+    width: width,
+    constraints: BoxConstraints(
+      minWidth: minWidth,
+      maxWidth: maxWidth ?? double.infinity,
+    ),
+    padding: const EdgeInsets.only(bottom: 1, left: 2, right: 2),
+    decoration: const BoxDecoration(
+      border: Border(bottom: BorderSide(width: 0.8, color: Colors.black)),
+    ),
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Text(
+        content.isEmpty ? ' ' : content,
+        maxLines: 1,
+        softWrap: false,
+        style: style,
+      ),
     ),
   );
 }
@@ -2507,10 +2794,11 @@ Widget _subLabel(String text) {
 Widget _multilineBox(String text, {int lines = 3}) {
   final content = text.trim();
   final list = content.isEmpty ? [''] : content.split('\n');
+  final totalLines = lines > list.length ? lines : list.length;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      for (var i = 0; i < lines; i++)
+      for (var i = 0; i < totalLines; i++)
         Container(
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 2),
@@ -2542,25 +2830,30 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('पोलीस स्टेशन', style: mrB),
-                  _uField(v('reqPs'), width: 110),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('दिनांक :- ', style: mrB),
-                  _uField(v('reqDate'), width: 90),
-                ],
-              ),
-            ],
+          SizedBox(
+            width: 280,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('पोलीस स्टेशन : ', style: mrB),
+                    Expanded(
+                      child: _uPoliceStationPdfField(v('reqPs')),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('दिनांक :- ', style: mrB),
+                    _uField(v('reqDate'), width: 90),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -2584,7 +2877,7 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text('पासुन  :-    पोलीस स्टेशन', style: mrB),
-          _uField(v('reqFromPs'), width: 120),
+          _uPoliceStationPdfField(v('reqFromPs'), width: 130),
           Text('  जिल्हा यवतमाळ.', style: mrB),
         ],
       ),
@@ -2609,7 +2902,7 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text('पो.स्टे.', style: mrB),
-                    _uField(v('reqSubjectPs'), width: 90),
+                    _uPoliceStationPdfField(v('reqSubjectPs'), width: 95),
                     Text('  ता-', style: mrB),
                     _uField(v('reqSubjectTa'), width: 80),
                     Text('  जिल्हा यवतमाळ हिचे/ ह्यांचे प्रेताचे पि.एम',
@@ -2640,7 +2933,7 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
             Text(' रोजी ', style: mrR),
             _uField(v('reqMargTime'), width: 55),
             Text(' वाजता पोलीस स्टेशन ', style: mrR),
-            _uField(v('reqMargPs'), width: 95),
+            _uPoliceStationPdfField(v('reqMargPs'), width: 100),
             Text(' मर्ग/ स्टेशन डायरी क्र.', style: mrR),
             _uField(v('reqMargDiaryNo'), width: 60),
             Text('/२०', style: mrR),
@@ -2650,7 +2943,7 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                 style: mrR),
             _uField(v('reqMargName'), width: 200),
             Text(' पो.स्टे.', style: mrR),
-            _uField(v('reqSubjectPs'), width: 85),
+            _uPoliceStationPdfField(v('reqSubjectPs'), width: 95),
             Text(' ता-', style: mrR),
             _uField(v('reqMargTa'), width: 75),
             Text(' जिल्हा यवतमाळ ही/ह्या ', style: mrR),
@@ -2662,7 +2955,7 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
             Text(
                 ' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ ',
                 style: mrR),
-            _uField(v('reqReasonDetails'), width: 170),
+            _uField(v('reqReasonDetails'), minWidth: 170, maxWidth: 650),
             Text(' दिनांक ', style: mrR),
             _uField(v('reqDeathDate'), width: 70),
             Text(' रोजी ', style: mrR),
@@ -2705,7 +2998,7 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text('पो.स्टे. : ', style: mrB),
-                    _uField(v('reqHastePs'), width: 110),
+                    _uPoliceStationPdfField(v('reqHastePs'), width: 110),
                   ],
                 ),
               ],
@@ -2740,7 +3033,7 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                 Row(
                   children: [
                     Text('Posting: ', style: FormImagePdfHelper.mBld(8.5)),
-                    Expanded(child: _uField(v('reqIoPosting'))),
+                    Expanded(child: _uPoliceStationPdfField(v('reqIoPosting'))),
                   ],
                 ),
                 _subLabel('नेमणूक व पत्ता'),
@@ -2780,33 +3073,38 @@ Widget _buildRelativeSummonsWidget(Map<String, dynamic> doc) {
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('पोलीस स्टेशन', style: mrB),
-                  _uField(v('relPs'), width: 110),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('कॅम्प :- ', style: mrB),
-                  _uField(v('relCamp'), width: 120),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('दिनांक :- ', style: mrB),
-                  _uField(v('relDate'), width: 90),
-                ],
-              ),
-            ],
+          SizedBox(
+            width: 280,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('पोलीस स्टेशन : ', style: mrB),
+                    Expanded(
+                      child: _uPoliceStationPdfField(v('relPs')),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('कॅम्प :- ', style: mrB),
+                    _uField(v('relCamp'), width: 120),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('दिनांक :- ', style: mrB),
+                    _uField(v('relDate'), width: 90),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -2831,7 +3129,7 @@ Widget _buildRelativeSummonsWidget(Map<String, dynamic> doc) {
             Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ', style: mrR),
             _uField(v('relWeName'), width: 160),
             Text(' पोलीस स्टेशन ', style: mrR),
-            _uField(v('relPsName'), width: 110),
+            _uPoliceStationPdfField(v('relPsName'), minWidth: 110),
             Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ', style: mrR),
             _uField(v('relCrDiaryNo'), width: 60),
             Text('/२०', style: mrR),
@@ -2909,7 +3207,7 @@ Widget _buildRelativeSummonsWidget(Map<String, dynamic> doc) {
                 const SizedBox(height: 3),
                 Row(children: [
                   Text('Posting and Address:', style: mrB),
-                  Expanded(child: _uField(v('relIoPosting')))
+                  Expanded(child: _uPoliceStationPdfField(v('relIoPosting')))
                 ]),
                 _subLabel('नेमणूक व पत्ता'),
               ],
@@ -2947,33 +3245,38 @@ Widget _buildPanchaSummonsWidget(Map<String, dynamic> doc) {
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('पोलीस स्टेशन', style: mrB),
-                  _uField(v('panPs'), width: 110),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('कॅम्प :- ', style: mrB),
-                  _uField(v('panCamp'), width: 120),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text('दिनांक :- ', style: mrB),
-                  _uField(v('panDate'), width: 90),
-                ],
-              ),
-            ],
+          SizedBox(
+            width: 280,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('पोलीस स्टेशन : ', style: mrB),
+                    Expanded(
+                      child: _uPoliceStationPdfField(v('panPs')),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('कॅम्प :- ', style: mrB),
+                    _uField(v('panCamp'), width: 120),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('दिनांक :- ', style: mrB),
+                    _uField(v('panDate'), width: 90),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -2998,7 +3301,7 @@ Widget _buildPanchaSummonsWidget(Map<String, dynamic> doc) {
             Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ', style: mrR),
             _uField(v('panWeName'), width: 160),
             Text(' पोलीस स्टेशन ', style: mrR),
-            _uField(v('panPsName'), width: 110),
+            _uPoliceStationPdfField(v('panPsName'), minWidth: 110),
             Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ', style: mrR),
             _uField(v('panCrDiaryNo'), width: 60),
             Text('/२०', style: mrR),
@@ -3076,7 +3379,7 @@ Widget _buildPanchaSummonsWidget(Map<String, dynamic> doc) {
                 const SizedBox(height: 3),
                 Row(children: [
                   Text('Posting and Address:', style: mrB),
-                  Expanded(child: _uField(v('panIoPosting')))
+                  Expanded(child: _uPoliceStationPdfField(v('panIoPosting')))
                 ]),
                 _subLabel('नेमणूक व पत्ता'),
               ],
@@ -3364,14 +3667,17 @@ Widget _buildDeadBodyHandoverWidget(Map<String, dynamic> doc) {
       Align(
         alignment: Alignment.topRight,
         child: SizedBox(
-          width: 250,
+          width: 280,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [
-                Text('पोलीस स्टेशन  : ', style: mrB),
-                Expanded(child: _uField(v('ptpPs'))),
-              ]),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('पोलीस स्टेशन  : ', style: mrB),
+                  Expanded(child: _uPoliceStationPdfField(v('ptpPs'))),
+                ],
+              ),
               const SizedBox(height: 4),
               Row(children: [
                 Text('कॅम्प            : ', style: mrB),
@@ -3486,10 +3792,13 @@ Widget _buildDeadBodyHandoverWidget(Map<String, dynamic> doc) {
                   Expanded(child: _uField(v('ptpIoRank')))
                 ]),
                 const SizedBox(height: 4),
-                Row(children: [
-                  Text('पोलीस स्टेशन : ', style: mrR),
-                  Expanded(child: _uField(v('ptpIoPs')))
-                ]),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('पोलीस स्टेशन : ', style: mrR),
+                    Expanded(child: _uPoliceStationPdfField(v('ptpIoPs'))),
+                  ],
+                ),
               ],
             ),
           ),
@@ -3535,14 +3844,17 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
       Align(
         alignment: Alignment.topRight,
         child: SizedBox(
-          width: 250,
+          width: 280,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [
-                Text('पोलीस स्टेशन  : ', style: mrB),
-                Expanded(child: _uField(v('dpPs'))),
-              ]),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('पोलीस स्टेशन  : ', style: mrB),
+                  Expanded(child: _uPoliceStationPdfField(v('dpPs'))),
+                ],
+              ),
               const SizedBox(height: 4),
               Row(children: [
                 Text('कॅम्प            : ', style: mrB),
@@ -3566,7 +3878,7 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
       Row(children: [
         const SizedBox(width: 80),
         Text('पोलीस स्टेशन ', style: mrB),
-        _uField(v('dpDutyPs'), width: 140),
+        _uPoliceStationPdfField(v('dpDutyPs'), width: 140),
         const SizedBox(width: 14),
         Text('जिल्हा ', style: mrB),
         _uField(v('dpDutyDist').isEmpty ? 'यवतमाळ' : v('dpDutyDist'),
@@ -3575,7 +3887,7 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
       const SizedBox(height: 8),
       Row(children: [
         Text('नोकरीचा दिनांक व वेळ    :- ', style: mrB),
-        _uField(v('dpDutyDateTime'), width: 230),
+        Expanded(child: _uField(v('dpDutyDateTime'))),
       ]),
       const SizedBox(height: 18),
       Text.rich(
@@ -3666,10 +3978,13 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
                   Expanded(child: _uField(v('dpIoRank')))
                 ]),
                 const SizedBox(height: 4),
-                Row(children: [
-                  Text('पोलीस स्टेशन :- ', style: mrB),
-                  Expanded(child: _uField(v('dpIoPs')))
-                ]),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('पोलीस स्टेशन :- ', style: mrB),
+                    Expanded(child: _uPoliceStationPdfField(v('dpIoPs'))),
+                  ],
+                ),
               ],
             ),
           ),
@@ -4532,6 +4847,805 @@ Widget _buildMarananveshanPg2Widget(Map<String, dynamic> doc) {
       Align(
         alignment: Alignment.bottomRight,
         child: Text('M.R.W', style: FormImagePdfHelper.mReg(8)),
+      ),
+    ],
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 14-Point Medical Officer Form (१४-कलमी फॉर्म) Helpers & Pages
+// ─────────────────────────────────────────────────────────────────────────────
+
+String _formatDateTimeKal14(String raw) {
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty) return '';
+
+  // 1. Check for ISO format: YYYY-MM-DD[T or space]HH:MM[:SS]
+  final isoMatch = RegExp(
+    r'^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s]+(\d{1,2}):(\d{1,2}))?',
+  ).firstMatch(trimmed);
+  if (isoMatch != null) {
+    final y = isoMatch.group(1)!;
+    final m = isoMatch.group(2)!.padLeft(2, '0');
+    final d = isoMatch.group(3)!.padLeft(2, '0');
+    final hh = isoMatch.group(4);
+    final mm = isoMatch.group(5);
+    final timeStr = hh != null && mm != null
+        ? ', ${hh.padLeft(2, '0')}:${mm.padLeft(2, '0')}'
+        : '';
+    return '$d/$m/$y$timeStr';
+  }
+
+  // 2. Check for DD-MM-YYYY or DD/MM/YYYY with optional time
+  final dmyMatch = RegExp(
+    r'^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?:[,\s]+(\d{1,2}):(\d{1,2}))?',
+  ).firstMatch(trimmed);
+  if (dmyMatch != null) {
+    final d = dmyMatch.group(1)!.padLeft(2, '0');
+    final m = dmyMatch.group(2)!.padLeft(2, '0');
+    var y = dmyMatch.group(3)!;
+    if (y.length == 2) y = '20$y';
+    final hh = dmyMatch.group(4);
+    final mm = dmyMatch.group(5);
+    final timeStr = hh != null && mm != null
+        ? ', ${hh.padLeft(2, '0')}:${mm.padLeft(2, '0')}'
+        : '';
+    return '$d/$m/$y$timeStr';
+  }
+
+  // 3. Check for Time only: HH:MM
+  final timeOnly = RegExp(r'^(\d{1,2}):(\d{1,2})$').firstMatch(trimmed);
+  if (timeOnly != null) {
+    return '${timeOnly.group(1)!.padLeft(2, '0')}:${timeOnly.group(2)!.padLeft(2, '0')}';
+  }
+
+  return trimmed;
+}
+
+class _Kal14LinedText extends StatelessWidget {
+  final String text;
+  final int minLines;
+  final double lineHeight;
+  final TextStyle textStyle;
+
+  const _Kal14LinedText({
+    required this.text,
+    this.minLines = 1,
+    this.lineHeight = 23.0,
+    required this.textStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final val = text.trim();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : 714.0;
+
+        int lines = minLines;
+        if (val.isNotEmpty) {
+          final tp = TextPainter(
+            text: TextSpan(
+              text: val,
+              style: textStyle.copyWith(
+                height: lineHeight / (textStyle.fontSize ?? 11.5),
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: (width - 8) > 0 ? (width - 8) : 100);
+
+          final measuredLines = tp.computeLineMetrics().length;
+          final newlineCount = '\n'.allMatches(val).length + 1;
+          final contentLines =
+              measuredLines > newlineCount ? measuredLines : newlineCount;
+          if (contentLines > lines) {
+            lines = contentLines;
+          }
+        }
+
+        final totalHeight = lines * lineHeight;
+
+        return SizedBox(
+          width: width,
+          height: totalHeight,
+          child: CustomPaint(
+            painter: _Kal14LinePainter(
+              lines: lines,
+              lineHeight: lineHeight,
+              lineColor: Colors.black54,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                val.isEmpty ? ' ' : val,
+                style: textStyle.copyWith(
+                  height: lineHeight / (textStyle.fontSize ?? 11.5),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _Kal14LinePainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+  final Color lineColor;
+
+  const _Kal14LinePainter({
+    required this.lines,
+    required this.lineHeight,
+    required this.lineColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = (i * lineHeight) - 1.0;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _Kal14LinePainter oldDelegate) {
+    return oldDelegate.lines != lines ||
+        oldDelegate.lineHeight != lineHeight ||
+        oldDelegate.lineColor != lineColor;
+  }
+}
+
+Widget _kal14FieldBlock({
+  required String labelEn,
+  required String labelMr,
+  required String value,
+  int minLines = 1,
+  double lineHeight = 23.0,
+  required TextStyle engStyle,
+  required TextStyle mrStyle,
+  required TextStyle valStyle,
+  double bottomSpacing = 10.0,
+}) {
+  return Padding(
+    padding: EdgeInsets.only(bottom: bottomSpacing),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (labelEn.isNotEmpty) Text(labelEn, style: engStyle),
+        if (labelMr.isNotEmpty) ...[
+          const SizedBox(height: 1),
+          Text(labelMr, style: mrStyle),
+        ],
+        const SizedBox(height: 3),
+        _Kal14LinedText(
+          text: value,
+          minLines: minLines,
+          lineHeight: lineHeight,
+          textStyle: valStyle,
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _kal14HabitRow({
+  required String labelEn,
+  required String labelMr,
+  required dynamic checkedVal,
+  required String daysVal,
+  required TextStyle engStyle,
+  required TextStyle mrStyle,
+  required TextStyle valStyle,
+  double bottomSpacing = 8.0,
+}) {
+  final isChecked = checkedVal == true ||
+      checkedVal?.toString().toLowerCase() == 'true' ||
+      checkedVal?.toString() == 'होय' ||
+      checkedVal?.toString() == 'yes';
+  final days = daysVal.trim();
+
+  return Padding(
+    padding: EdgeInsets.only(bottom: bottomSpacing),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(labelEn, style: engStyle.copyWith(fontSize: 10.0)),
+              const SizedBox(height: 1),
+              Text(labelMr, style: mrStyle.copyWith(fontSize: 9.5)),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isChecked ? Colors.green.shade800 : Colors.grey.shade400,
+              width: 1.0,
+            ),
+            borderRadius: BorderRadius.circular(4),
+            color: isChecked ? Colors.green.shade50 : Colors.grey.shade50,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'होय',
+                style: GoogleFonts.notoSansDevanagari(
+                  fontSize: 10.0,
+                  fontWeight: isChecked ? FontWeight.bold : FontWeight.normal,
+                  color: isChecked ? Colors.green.shade900 : Colors.black54,
+                  decoration: isChecked ? TextDecoration.underline : null,
+                ),
+              ),
+              Text(
+                ' / ',
+                style: GoogleFonts.poppins(
+                  fontSize: 10.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
+                'नाही',
+                style: GoogleFonts.notoSansDevanagari(
+                  fontSize: 10.0,
+                  fontWeight: !isChecked ? FontWeight.bold : FontWeight.normal,
+                  color: !isChecked ? Colors.black87 : Colors.black54,
+                  decoration: !isChecked ? TextDecoration.underline : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 140,
+          child: Row(
+            children: [
+              Text(
+                'दिवस / Days: ',
+                style: mrStyle.copyWith(fontSize: 9.5),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: _Kal14LinedText(
+                  text: days,
+                  minLines: 1,
+                  lineHeight: 21.0,
+                  textStyle: valStyle.copyWith(fontSize: 10.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildKalmi14Pg1Widget(Map<String, dynamic> doc) {
+  String v(String k) => doc[k]?.toString().trim() ?? '';
+
+  final engBold = GoogleFonts.poppins(
+    fontSize: 10.5,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+  );
+  final mrBold = GoogleFonts.notoSansDevanagari(
+    fontSize: 10.0,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    height: 1.25,
+  );
+  final valStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 11.0,
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF0D47A1),
+  );
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 22),
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      // Top Tag
+      const Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          'Page 12 (१४-कलमी फॉर्म)',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+        ),
+      ),
+      const SizedBox(height: 2),
+      const Divider(color: Colors.black, thickness: 1.0, height: 6),
+      const SizedBox(height: 4),
+
+      // Form Heading
+      Center(
+        child: Column(
+          children: [
+            Text(
+              '14-Clause Form (to be submitted with Inquest Panchanama)',
+              style: GoogleFonts.poppins(
+                fontSize: 13.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              '१४ कलमी फॉर्म व इन्क्वेस्ट पंचनामा सोबत द्यावाचा फॉर्म',
+              style: GoogleFonts.notoSansDevanagari(
+                fontSize: 11.5,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Submitted to Medical Officer / मा.वैद्यकीय अधिकारी यांना सादर',
+              style: GoogleFonts.notoSansDevanagari(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 4),
+      const Divider(color: Colors.black, thickness: 0.8, height: 6),
+      const SizedBox(height: 6),
+
+      // 1) Name and age
+      _kal14FieldBlock(
+        labelEn: '1) Name and age of deceased :-',
+        labelMr: '१) मृतकाचे नांव व वय :',
+        value: v('kal14NameAge'),
+        minLines: 1,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 8,
+      ),
+
+      // 2) Full address
+      _kal14FieldBlock(
+        labelEn: '2) Full address of deceased (village, taluka, district) :-',
+        labelMr: '२) मृतकाचा पूर्ण पत्ता गांव तालुका जिल्हा:',
+        value: v('kal14Address'),
+        minLines: 2,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 8,
+      ),
+
+      // 3) Shav From & To
+      _kal14FieldBlock(
+        labelEn: '3) Place from where dead body was brought :-',
+        labelMr:
+            '३) मृतकाचे शव (प्रेत) ज्या ठिकाणाहुन आणले त्या जागेचे नांव पत्ता :',
+        value: v('kal14ShavFrom'),
+        minLines: 2,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14FieldBlock(
+        labelEn: 'Place to which dead body was brought :-',
+        labelMr: 'आणले त्या जागेचे नांव पत्ता :',
+        value: v('kal14ShavTo'),
+        minLines: 2,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 8,
+      ),
+
+      // 4) Mother's Name & Address
+      _kal14FieldBlock(
+        labelEn: "4) Full name and address of deceased's mother :-",
+        labelMr: '४) मृतकाचे आईचे पूर्ण नांव व पत्ता :',
+        value: v('kal14AaiName'),
+        minLines: 2,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 8,
+      ),
+
+      // 5) Father's Name & Address
+      _kal14FieldBlock(
+        labelEn: "5) Full name and address of deceased's father :-",
+        labelMr: '५) मृतकाचे वडीलांचे पूर्ण नांव व पत्ता :',
+        value: v('kal14BaapName'),
+        minLines: 2,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 8,
+      ),
+
+      // 6) Religion & Occupation
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('6) Religion of deceased :-', style: engBold),
+                  const SizedBox(height: 1),
+                  Text('६) मृतकाचा धर्म :', style: mrBold),
+                  const SizedBox(height: 3),
+                  _Kal14LinedText(
+                    text: v('kal14Dharm'),
+                    minLines: 1,
+                    lineHeight: 23.0,
+                    textStyle: valStyle,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Occupation of deceased :-', style: engBold),
+                  const SizedBox(height: 1),
+                  Text('मृतकाचा व्यवसाय :', style: mrBold),
+                  const SizedBox(height: 3),
+                  _Kal14LinedText(
+                    text: v('kal14Vyavsay'),
+                    minLines: 1,
+                    lineHeight: 23.0,
+                    textStyle: valStyle,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // Habits (7 to 10)
+      _kal14HabitRow(
+        labelEn:
+            '7) Did the deceased smoke cigarettes? If yes, since how many days :-',
+        labelMr: '७) मृतक हा सिगरेट पित होता काय असल्यास किती दिवसांपासुन :',
+        checkedVal: doc['kal14Cigarette'],
+        daysVal: v('kal14CigaretteDays'),
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14HabitRow(
+        labelEn:
+            '8) Did the deceased have alcohol addiction? If yes, since how many days :-',
+        labelMr: '८) मृतकाला दारूचे व्यसन होते काय असल्यास किती दिवसांपासुन :',
+        checkedVal: doc['kal14Daru'],
+        daysVal: v('kal14DaruDays'),
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14HabitRow(
+        labelEn:
+            '9) Did the deceased have tobacco addiction? If yes, since how many days :-',
+        labelMr:
+            '९) मृतकाला तंबाखुचे व्यसन होते काय असल्यास किती दिवसांपासुन :',
+        checkedVal: doc['kal14Tambakhu'],
+        daysVal: v('kal14TambakhuDays'),
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14HabitRow(
+        labelEn:
+            '10) Did the deceased have habit of pan masala, supari? If yes, since how many days :-',
+        labelMr:
+            '१०) मृतकाला पान मसाला, सुपारी खाण्याची सवय होती काय ? असल्यास किती दिवसांपासुन :',
+        checkedVal: doc['kal14PanMasala'],
+        daysVal: v('kal14PanMasalaDays'),
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+
+      const Spacer(),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: GoogleFonts.poppins(fontSize: 10, color: Colors.black54),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _buildKalmi14Pg2Widget(Map<String, dynamic> doc) {
+  String v(String k) => doc[k]?.toString().trim() ?? '';
+
+  final engBold = GoogleFonts.poppins(
+    fontSize: 10.5,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+  );
+  final mrBold = GoogleFonts.notoSansDevanagari(
+    fontSize: 10.0,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    height: 1.25,
+  );
+  final valStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 11.0,
+    fontWeight: FontWeight.w600,
+    color: const Color(0xFF0D47A1),
+  );
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 22),
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      // Top Tag
+      const Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          'Page 13 (१४-कलमी फॉर्म)',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+        ),
+      ),
+      const SizedBox(height: 2),
+      const Divider(color: Colors.black, thickness: 1.0, height: 6),
+      const SizedBox(height: 6),
+
+      // 11) Vehicle accident
+      Text('11) In case of vehicle accident :-', style: engBold),
+      const SizedBox(height: 1),
+      Text('११) वाहन अपघाताची केस असल्यास :', style: mrBold),
+      const SizedBox(height: 6),
+
+      _kal14FieldBlock(
+        labelEn: 'a) Name of vehicle involved in accident :-',
+        labelMr: 'अ) अपघात झालेल्या वाहनाचे नांव :',
+        value: v('kal14VehicleName'),
+        minLines: 1,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14FieldBlock(
+        labelEn: 'b) Deceased was driver or passenger :-',
+        labelMr: 'ब) मृतक ड्रायव्हर किंवा पॅसेंजर :',
+        value: v('kal14DriverPass'),
+        minLines: 1,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14FieldBlock(
+        labelEn: 'c) Or pedestrian (specify) :-',
+        labelMr: 'क) किंवा पादचारी या पैकी काय होता :',
+        value: v('kal14Pedestrian'),
+        minLines: 1,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14FieldBlock(
+        labelEn: 'd) How the accident occurred :-',
+        labelMr: 'ड) अपघात कसा झाला :',
+        value: v('kal14AccidentHow'),
+        minLines: 2,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14FieldBlock(
+        labelEn: 'Date and time of accident :-',
+        labelMr: 'अपघात झाल्याची तारीख व वेळ :',
+        value: _formatDateTimeKal14(
+          v('kal14AccidentDateTime').isNotEmpty
+              ? v('kal14AccidentDateTime')
+              : [v('kal14AccidentDate'), v('kal14AccidentTime')]
+                  .where((s) => s.isNotEmpty)
+                  .join(', '),
+        ),
+        minLines: 1,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 8,
+      ),
+
+      // 12) Fall Info
+      _kal14FieldBlock(
+        labelEn: '12) If death was due to fall, give details :-',
+        labelMr: '१२) मृत्यू हा पडून झाला असल्यास त्याबाबत माहिती :',
+        value: v('kal14FallInfo'),
+        minLines: 2,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 8,
+      ),
+
+      // 13) Female Deceased pregnancy / abortion
+      _kal14FieldBlock(
+        labelEn:
+            '13) If deceased is female — was she pregnant? If yes, how many months?',
+        labelMr:
+            '१३) मृतक ही स्त्री असल्यास ती गरोदर होती काय? असल्यास किती महिने?',
+        value: v('kal14PregnantMonths'),
+        minLines: 1,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14FieldBlock(
+        labelEn: 'If female — had delivery or abortion occurred?',
+        labelMr:
+            'मृतक ही स्त्री असल्यास ती बाळांत झाली होती काय किंवा तिचे अबोर्शिन झाले होते काय?',
+        value: v('kal14DeliveredAbortion'),
+        minLines: 2,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 6,
+      ),
+      _kal14FieldBlock(
+        labelEn: 'If yes, since how many days?',
+        labelMr: 'असल्यास किती दिवसांपासून ?',
+        value: v('kal14PregnantDays'),
+        minLines: 1,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 8,
+      ),
+
+      // 14) Identifier name & relation
+      _kal14FieldBlock(
+        labelEn:
+            '14) Name, address and relationship of person identifying the deceased :-',
+        labelMr:
+            '१४) मृतकाची ओळख पटविणाऱ्याचे नांव व पत्ता व मृतकाशी त्याचे काय संबंध नाते आहे (लिहावे) :',
+        value: v('kal14IdentifierName'),
+        minLines: 2,
+        lineHeight: 23.0,
+        engStyle: engBold,
+        mrStyle: mrBold,
+        valStyle: valStyle,
+        bottomSpacing: 12,
+      ),
+
+      // IO Signature
+      Align(
+        alignment: Alignment.centerRight,
+        child: SizedBox(
+          width: 320,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'I.O. Name, Rank & Signature / Seal',
+                style: engBold.copyWith(fontSize: 11.0),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                FormIoTerminology.signatureHeaderSeal,
+                style: mrBold.copyWith(fontSize: 10.5),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${FormIoTerminology.name} : ',
+                    style: mrBold,
+                  ),
+                  Expanded(
+                    child: _Kal14LinedText(
+                      text: v('kal14IoName'),
+                      minLines: 1,
+                      lineHeight: 22.0,
+                      textStyle: valStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${FormIoTerminology.rank} : ',
+                    style: mrBold,
+                  ),
+                  Expanded(
+                    child: _Kal14LinedText(
+                      text: v('kal14IoRank'),
+                      minLines: 1,
+                      lineHeight: 22.0,
+                      textStyle: valStyle,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'पोलीस स्टेशन : ',
+                    style: mrBold,
+                  ),
+                  Expanded(
+                    child: _Kal14LinedText(
+                      text: v('kal14IoPs'),
+                      minLines: 1,
+                      lineHeight: 22.0,
+                      textStyle: valStyle,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+
+      const Spacer(),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: GoogleFonts.poppins(fontSize: 10, color: Colors.black54),
+        ),
       ),
     ],
   );

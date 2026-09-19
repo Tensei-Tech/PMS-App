@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
@@ -39,14 +38,264 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
   final _p1DateYearCtrl = TextEditingController();
 
   String get _p1DateCombined {
+    if (_p1DateCtrl.text.trim().isNotEmpty) {
+      return _p1DateCtrl.text.trim();
+    }
     final d = _p1DateDayCtrl.text.trim();
     final m = _p1DateMonthCtrl.text.trim();
     final y = _p1DateYearCtrl.text.trim();
     if (d.isEmpty && m.isEmpty && y.isEmpty) {
-      return _p1DateCtrl.text.trim();
+      return '';
     }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
+  Future<void> _pickDateForController({
+    required TextEditingController controller,
+    TextEditingController? dayCtrl,
+    TextEditingController? monthCtrl,
+    TextEditingController? yearCtrl,
+  }) async {
+    final now = DateTime.now();
+    DateTime initial = now;
+    final currentText = controller.text.trim();
+    if (currentText.isNotEmpty) {
+      final parts = currentText.split(RegExp(r'[/.-]'));
+      if (parts.length >= 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        int? y = int.tryParse(parts[2]);
+        if (y != null && y < 100) y += 2000;
+        if (d != null && m != null && y != null) {
+          try {
+            initial = DateTime(y, m, d);
+          } catch (_) {}
+        }
+      }
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1990),
+      lastDate: DateTime(2040),
+    );
+    if (picked != null) {
+      final dStr = picked.day.toString().padLeft(2, '0');
+      final mStr = picked.month.toString().padLeft(2, '0');
+      final yFullStr = picked.year.toString();
+      final yShortStr = (picked.year % 100).toString().padLeft(2, '0');
+      controller.text = '$dStr/$mStr/$yFullStr';
+      if (dayCtrl != null) dayCtrl.text = dStr;
+      if (monthCtrl != null) monthCtrl.text = mStr;
+      if (yearCtrl != null) yearCtrl.text = yShortStr;
+      if (mounted) setState(() {});
+    }
+  }
+
+  Widget _datePickerField({
+    required TextEditingController controller,
+    TextEditingController? dayCtrl,
+    TextEditingController? monthCtrl,
+    TextEditingController? yearCtrl,
+    double width = 140,
+    String hint = 'DD/MM/YYYY',
+  }) {
+    return SizedBox(
+      width: width,
+      child: TextFormField(
+        controller: controller,
+        readOnly: true,
+        onTap: widget.readOnly
+            ? null
+            : () => _pickDateForController(
+                  controller: controller,
+                  dayCtrl: dayCtrl,
+                  monthCtrl: monthCtrl,
+                  yearCtrl: yearCtrl,
+                ),
+        style: FormTypography.serifStyle().copyWith(fontSize: 13),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 4),
+          hintText: hint,
+          hintStyle: FormTypography.serifStyle().copyWith(
+            fontSize: 12,
+            color: Colors.black38,
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black87, width: 1.0),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          ),
+          suffixIcon: widget.readOnly
+              ? null
+              : InkWell(
+                  onTap: () => _pickDateForController(
+                    controller: controller,
+                    dayCtrl: dayCtrl,
+                    monthCtrl: monthCtrl,
+                    yearCtrl: yearCtrl,
+                  ),
+                  child: const Icon(Icons.calendar_today, size: 16),
+                ),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 24,
+            minHeight: 24,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _wrappingUnderlineInput({
+    required TextEditingController controller,
+    double minWidth = 100,
+    double maxWidth = 350,
+    String? hintText,
+    TextInputType? keyboardType,
+  }) {
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final text =
+            controller.text.isEmpty ? (hintText ?? '') : controller.text;
+        final style = FormTypography.serifStyle().copyWith(fontSize: 13);
+        final tp = TextPainter(
+          text: TextSpan(
+            text: text,
+            style: style,
+          ),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout();
+
+        final measured = tp.width + 20.0;
+        final calcWidth = measured < minWidth
+            ? minWidth
+            : (measured > 800.0 ? 800.0 : measured);
+
+        return SizedBox(
+          width: calcWidth,
+          child: TextFormField(
+            controller: controller,
+            readOnly: widget.readOnly,
+            maxLines: 1,
+            keyboardType: keyboardType ?? TextInputType.text,
+            style: style,
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 4),
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                fontSize: 12,
+                color: Colors.black38,
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black87, width: 1.0),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue, width: 1.5),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    double minWidth = 100,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    final baseMin = minWidth;
+    final baseMax = maxWidth ?? 600.0;
+    const double baseFontSize = 13.0;
+    final style = FormTypography.serifStyle().copyWith(fontSize: baseFontSize);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final availableWidth = hasFiniteWidth ? constraints.maxWidth : baseMax;
+
+        return ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
+
+            final tp = TextPainter(
+              text: TextSpan(
+                text: text,
+                style: style.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: baseFontSize,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+            )..layout();
+
+            double effectiveFontSize = baseFontSize;
+            final double textW = tp.width + 12.0;
+
+            if (hasFiniteWidth &&
+                textW > availableWidth &&
+                availableWidth > 30) {
+              final scale =
+                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+              effectiveFontSize =
+                  (baseFontSize * scale).clamp(8.5, baseFontSize);
+            }
+
+            final double computedWidth = hasFiniteWidth
+                ? availableWidth
+                : (textW < baseMin
+                    ? baseMin
+                    : (textW > baseMax ? baseMax : textW));
+
+            return SizedBox(
+              width: computedWidth,
+              child: TextFormField(
+                controller: controller,
+                readOnly: widget.readOnly,
+                maxLines: 1,
+                scrollPhysics: const ClampingScrollPhysics(),
+                style: style.copyWith(
+                  fontSize: effectiveFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                  hintText: hintText,
+                  hintStyle: style.copyWith(
+                    color: Colors.grey.shade400,
+                    fontSize: effectiveFontSize,
+                  ),
+                  border: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF333333), width: 1.0),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF555555), width: 1.0),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   final _p1Panch1Line1Ctrl = TextEditingController();
@@ -76,11 +325,14 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
   final _p2DateYearCtrl = TextEditingController();
 
   String get _p2DateCombined {
+    if (_p2DateCtrl.text.trim().isNotEmpty) {
+      return _p2DateCtrl.text.trim();
+    }
     final d = _p2DateDayCtrl.text.trim();
     final m = _p2DateMonthCtrl.text.trim();
     final y = _p2DateYearCtrl.text.trim();
     if (d.isEmpty && m.isEmpty && y.isEmpty) {
-      return _p2DateCtrl.text.trim();
+      return '';
     }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
@@ -97,11 +349,14 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
   final _p2RaidYearCtrl = TextEditingController();
 
   String get _p2RaidDateCombined {
+    if (_p2RaidDateCtrl.text.trim().isNotEmpty) {
+      return _p2RaidDateCtrl.text.trim();
+    }
     final d = _p2RaidDayCtrl.text.trim();
     final m = _p2RaidMonthCtrl.text.trim();
     final y = _p2RaidYearCtrl.text.trim();
     if (d.isEmpty && m.isEmpty && y.isEmpty) {
-      return _p2RaidDateCtrl.text.trim();
+      return '';
     }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
@@ -236,6 +491,12 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _p1DateYearCtrl.text = yr;
       }
+    } else if (_p1DateCtrl.text.isEmpty && _p1DateDayCtrl.text.isNotEmpty) {
+      final d = _p1DateDayCtrl.text.trim();
+      final m = _p1DateMonthCtrl.text.trim();
+      final y = _p1DateYearCtrl.text.trim();
+      final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+      _p1DateCtrl.text = '$d/$m/$yFull';
     }
 
     _p1Panch1Line1Ctrl.text =
@@ -302,6 +563,12 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _p2DateYearCtrl.text = yr;
       }
+    } else if (_p2DateCtrl.text.isEmpty && _p2DateDayCtrl.text.isNotEmpty) {
+      final d = _p2DateDayCtrl.text.trim();
+      final m = _p2DateMonthCtrl.text.trim();
+      final y = _p2DateYearCtrl.text.trim();
+      final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+      _p2DateCtrl.text = '$d/$m/$yFull';
     }
 
     _p2Panch1Line1Ctrl.text =
@@ -325,6 +592,12 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _p2RaidYearCtrl.text = yr;
       }
+    } else if (_p2RaidDateCtrl.text.isEmpty && _p2RaidDayCtrl.text.isNotEmpty) {
+      final d = _p2RaidDayCtrl.text.trim();
+      final m = _p2RaidMonthCtrl.text.trim();
+      final y = _p2RaidYearCtrl.text.trim();
+      final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+      _p2RaidDateCtrl.text = '$d/$m/$yFull';
     }
 
     _p2VillageCtrl.text =
@@ -371,11 +644,6 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
       fontWeight: FontWeight.w600,
       color: Colors.black87,
     );
-    final serifBold = serif.copyWith(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-      color: Colors.black87,
-    );
 
     return FormViewScaffold(
       readOnly: widget.readOnly,
@@ -393,7 +661,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
             Align(
               alignment: Alignment.centerRight,
               child: SizedBox(
-                width: 310,
+                width: 380,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -402,9 +670,8 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                         Text('पोलीस स्टेशन', style: headerLabelStyle),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: BilingualSimpleUnderlineInput(
+                          child: _policeStationField(
                             controller: _p1PsCtrl,
-                            serifStyle: serif,
                           ),
                         ),
                       ],
@@ -414,31 +681,12 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                       children: [
                         Text('दिनांक :', style: headerLabelStyle),
                         const SizedBox(width: 6),
-                        SizedBox(
-                          width: 36,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _p1DateDayCtrl,
-                            serifStyle: serif,
-                            hintText: '.......',
-                          ),
-                        ),
-                        Text('/', style: serifBold),
-                        SizedBox(
-                          width: 36,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _p1DateMonthCtrl,
-                            serifStyle: serif,
-                            hintText: '.......',
-                          ),
-                        ),
-                        Text('/ २०', style: headerLabelStyle),
-                        SizedBox(
-                          width: 40,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _p1DateYearCtrl,
-                            serifStyle: serif,
-                            hintText: '...',
-                          ),
+                        _datePickerField(
+                          controller: _p1DateCtrl,
+                          dayCtrl: _p1DateDayCtrl,
+                          monthCtrl: _p1DateMonthCtrl,
+                          yearCtrl: _p1DateYearCtrl,
+                          width: 140,
                         ),
                       ],
                     ),
@@ -496,9 +744,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           Text('१)', style: headerLabelStyle),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: BilingualSimpleUnderlineInput(
+                            child: _wrappingUnderlineInput(
                               controller: _p1Panch1Line1Ctrl,
-                              serifStyle: serif,
+                              minWidth: 200,
+                              maxWidth: 500,
                             ),
                           ),
                         ],
@@ -506,9 +755,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                       const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.only(left: 24),
-                        child: BilingualSimpleUnderlineInput(
+                        child: _wrappingUnderlineInput(
                           controller: _p1Panch1Line2Ctrl,
-                          serifStyle: serif,
+                          minWidth: 200,
+                          maxWidth: 500,
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -520,9 +770,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           Text('२)', style: headerLabelStyle),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: BilingualSimpleUnderlineInput(
+                            child: _wrappingUnderlineInput(
                               controller: _p1Panch2Line1Ctrl,
-                              serifStyle: serif,
+                              minWidth: 200,
+                              maxWidth: 500,
                             ),
                           ),
                         ],
@@ -530,9 +781,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                       const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.only(left: 24),
-                        child: BilingualSimpleUnderlineInput(
+                        child: _wrappingUnderlineInput(
                           controller: _p1Panch2Line2Ctrl,
-                          serifStyle: serif,
+                          minWidth: 200,
+                          maxWidth: 500,
                         ),
                       ),
                     ],
@@ -567,70 +819,54 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                   '        आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 150,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p1FirPsCtrl,
-                    serifStyle: serif,
-                  ),
+                _policeStationField(
+                  controller: _p1FirPsCtrl,
+                  minWidth: 120,
+                  maxWidth: 300,
                 ),
                 Text('येथील अप / मर्ग/ स्टे.डा क्रमांक', style: bodyTextStyle),
-                SizedBox(
-                  width: 90,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p1CrimeNoCtrl,
-                    serifStyle: serif,
-                    hintText: '........',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p1CrimeNoCtrl,
+                  minWidth: 60,
+                  maxWidth: 120,
+                  hintText: '........',
                 ),
                 Text('/ २०', style: bodyTextStyle),
-                SizedBox(
-                  width: 48,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p1CrimeYearCtrl,
-                    serifStyle: serif,
-                    hintText: '.....',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p1CrimeYearCtrl,
+                  minWidth: 40,
+                  maxWidth: 80,
+                  hintText: '.....',
                 ),
                 Text('कलम', style: bodyTextStyle),
-                SizedBox(
-                  width: 240,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p1ActSecCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p1ActSecCtrl,
+                  minWidth: 180,
+                  maxWidth: 450,
                 ),
                 Text('मधील फिर्यादी नामे', style: bodyTextStyle),
-                SizedBox(
-                  width: 260,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p1ComplainantNameCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p1ComplainantNameCtrl,
+                  minWidth: 200,
+                  maxWidth: 450,
                 ),
                 Text('रा', style: bodyTextStyle),
-                SizedBox(
-                  width: 130,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p1ComplainantResidenceCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p1ComplainantResidenceCtrl,
+                  minWidth: 120,
+                  maxWidth: 300,
                 ),
                 Text('ता', style: bodyTextStyle),
-                SizedBox(
-                  width: 110,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p1ComplainantTahCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p1ComplainantTahCtrl,
+                  minWidth: 100,
+                  maxWidth: 250,
                 ),
                 Text('जिल्हा', style: bodyTextStyle),
-                SizedBox(
-                  width: 110,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p1ComplainantDistCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p1ComplainantDistCtrl,
+                  minWidth: 100,
+                  maxWidth: 250,
                 ),
                 Text(
                   'यांनी तक्रार दिली वरून सदरचा गुन्हा नोंद होउन तपासात आहे. तरी सदर गुन्ह्यामधील घटनास्थळाचा/ जप्ती पंचनामा करावयाचा असल्याने आपण पंच म्हणुन हजर राहा असे सांगीतल्या वरून पंच हजर आले आहे.',
@@ -661,9 +897,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                   children: [
                     Text('तपासी अधिकारी नांव व सही', style: headerLabelStyle),
                     const SizedBox(height: 10),
-                    BilingualSimpleUnderlineInput(
+                    _wrappingUnderlineInput(
                       controller: _p1IoNameSigCtrl,
-                      serifStyle: serif,
+                      minWidth: 180,
+                      maxWidth: 240,
                     ),
                   ],
                 ),
@@ -681,12 +918,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                   children: [
                     Text('१)', style: headerLabelStyle),
                     const SizedBox(width: 8),
-                    SizedBox(
-                      width: 280,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _p1Panch1ReceiptCtrl,
-                        serifStyle: serif,
-                      ),
+                    _wrappingUnderlineInput(
+                      controller: _p1Panch1ReceiptCtrl,
+                      minWidth: 200,
+                      maxWidth: 400,
                     ),
                   ],
                 ),
@@ -695,12 +930,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                   children: [
                     Text('२)', style: headerLabelStyle),
                     const SizedBox(width: 8),
-                    SizedBox(
-                      width: 280,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _p1Panch2ReceiptCtrl,
-                        serifStyle: serif,
-                      ),
+                    _wrappingUnderlineInput(
+                      controller: _p1Panch2ReceiptCtrl,
+                      minWidth: 200,
+                      maxWidth: 400,
                     ),
                   ],
                 ),
@@ -741,7 +974,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
             Align(
               alignment: Alignment.centerRight,
               child: SizedBox(
-                width: 310,
+                width: 380,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -750,9 +983,8 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                         Text('पोलीस स्टेशन', style: headerLabelStyle),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: BilingualSimpleUnderlineInput(
+                          child: _policeStationField(
                             controller: _p2PsCtrl,
-                            serifStyle: serif,
                           ),
                         ),
                       ],
@@ -762,31 +994,12 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                       children: [
                         Text('दिनांक :', style: headerLabelStyle),
                         const SizedBox(width: 6),
-                        SizedBox(
-                          width: 36,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _p2DateDayCtrl,
-                            serifStyle: serif,
-                            hintText: '.......',
-                          ),
-                        ),
-                        Text('/', style: serifBold),
-                        SizedBox(
-                          width: 36,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _p2DateMonthCtrl,
-                            serifStyle: serif,
-                            hintText: '.......',
-                          ),
-                        ),
-                        Text('/ २०', style: headerLabelStyle),
-                        SizedBox(
-                          width: 40,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _p2DateYearCtrl,
-                            serifStyle: serif,
-                            hintText: '...',
-                          ),
+                        _datePickerField(
+                          controller: _p2DateCtrl,
+                          dayCtrl: _p2DateDayCtrl,
+                          monthCtrl: _p2DateMonthCtrl,
+                          yearCtrl: _p2DateYearCtrl,
+                          width: 140,
                         ),
                       ],
                     ),
@@ -844,9 +1057,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           Text('१)', style: headerLabelStyle),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: BilingualSimpleUnderlineInput(
+                            child: _wrappingUnderlineInput(
                               controller: _p2Panch1Line1Ctrl,
-                              serifStyle: serif,
+                              minWidth: 200,
+                              maxWidth: 500,
                             ),
                           ),
                         ],
@@ -854,9 +1068,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                       const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.only(left: 24),
-                        child: BilingualSimpleUnderlineInput(
+                        child: _wrappingUnderlineInput(
                           controller: _p2Panch1Line2Ctrl,
-                          serifStyle: serif,
+                          minWidth: 200,
+                          maxWidth: 500,
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -868,9 +1083,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           Text('२)', style: headerLabelStyle),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: BilingualSimpleUnderlineInput(
+                            child: _wrappingUnderlineInput(
                               controller: _p2Panch2Line1Ctrl,
-                              serifStyle: serif,
+                              minWidth: 200,
+                              maxWidth: 500,
                             ),
                           ),
                         ],
@@ -878,9 +1094,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                       const SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.only(left: 24),
-                        child: BilingualSimpleUnderlineInput(
+                        child: _wrappingUnderlineInput(
                           controller: _p2Panch2Line2Ctrl,
-                          serifStyle: serif,
+                          minWidth: 200,
+                          maxWidth: 500,
                         ),
                       ),
                     ],
@@ -915,81 +1132,51 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                   '        आपणास या सुचनापत्र देण्यात येते की, आज दिनांक:',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 36,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p2RaidDayCtrl,
-                    serifStyle: serif,
-                    hintText: '.......',
-                  ),
-                ),
-                Text('/', style: serifBold),
-                SizedBox(
-                  width: 36,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p2RaidMonthCtrl,
-                    serifStyle: serif,
-                    hintText: '.......',
-                  ),
-                ),
-                Text('/ २०', style: bodyTextStyle),
-                SizedBox(
-                  width: 48,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p2RaidYearCtrl,
-                    serifStyle: serif,
-                    hintText: '.....',
-                  ),
+                _datePickerField(
+                  controller: _p2RaidDateCtrl,
+                  dayCtrl: _p2RaidDayCtrl,
+                  monthCtrl: _p2RaidMonthCtrl,
+                  yearCtrl: _p2RaidYearCtrl,
+                  width: 140,
                 ),
                 Text('रोजी ग्राम', style: bodyTextStyle),
-                SizedBox(
-                  width: 140,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p2VillageCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p2VillageCtrl,
+                  minWidth: 120,
+                  maxWidth: 300,
                 ),
                 Text('येथीलनामे', style: bodyTextStyle),
-                SizedBox(
-                  width: 260,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p2SuspectNameCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p2SuspectNameCtrl,
+                  minWidth: 200,
+                  maxWidth: 450,
                 ),
                 Text('वय', style: bodyTextStyle),
-                SizedBox(
-                  width: 48,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p2SuspectAgeCtrl,
-                    serifStyle: serif,
-                    hintText: '........',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p2SuspectAgeCtrl,
+                  minWidth: 40,
+                  maxWidth: 80,
+                  hintText: '........',
+                  keyboardType: TextInputType.number,
                 ),
                 Text('वर्ष', style: bodyTextStyle),
                 Text('----------- रा.', style: bodyTextStyle),
-                SizedBox(
-                  width: 130,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p2SuspectResidenceCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p2SuspectResidenceCtrl,
+                  minWidth: 120,
+                  maxWidth: 300,
                 ),
                 Text('ता', style: bodyTextStyle),
-                SizedBox(
-                  width: 110,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p2SuspectTahCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p2SuspectTahCtrl,
+                  minWidth: 100,
+                  maxWidth: 250,
                 ),
                 Text('जिल्हा', style: bodyTextStyle),
-                SizedBox(
-                  width: 110,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _p2SuspectDistCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _p2SuspectDistCtrl,
+                  minWidth: 100,
+                  maxWidth: 250,
                 ),
                 Text(
                   'हा त्याचे घरी दारू विक्री करतो अशा माहिती वरून त्याचे घरी दारूबाबत प्रोहिबीशन रेड करावयाचा असल्याने आपण जप्त पंच म्हणुन सोबत चला व हजर राहावे.',
@@ -1020,9 +1207,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                   children: [
                     Text('तपासी अधिकारी नांव व सही', style: headerLabelStyle),
                     const SizedBox(height: 10),
-                    BilingualSimpleUnderlineInput(
+                    _wrappingUnderlineInput(
                       controller: _p2IoNameSigCtrl,
-                      serifStyle: serif,
+                      minWidth: 180,
+                      maxWidth: 240,
                     ),
                   ],
                 ),
@@ -1040,12 +1228,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                   children: [
                     Text('१)', style: headerLabelStyle),
                     const SizedBox(width: 8),
-                    SizedBox(
-                      width: 280,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _p2Panch1ReceiptCtrl,
-                        serifStyle: serif,
-                      ),
+                    _wrappingUnderlineInput(
+                      controller: _p2Panch1ReceiptCtrl,
+                      minWidth: 200,
+                      maxWidth: 400,
                     ),
                   ],
                 ),
@@ -1054,12 +1240,10 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                   children: [
                     Text('२)', style: headerLabelStyle),
                     const SizedBox(width: 8),
-                    SizedBox(
-                      width: 280,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _p2Panch2ReceiptCtrl,
-                        serifStyle: serif,
-                      ),
+                    _wrappingUnderlineInput(
+                      controller: _p2Panch2ReceiptCtrl,
+                      minWidth: 200,
+                      maxWidth: 400,
                     ),
                   ],
                 ),
