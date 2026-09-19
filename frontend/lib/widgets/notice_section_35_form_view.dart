@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_section_utils.dart';
 import 'form_table_helpers.dart';
@@ -237,6 +236,306 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _pickDateForController({
+    required TextEditingController controller,
+  }) async {
+    final now = DateTime.now();
+    DateTime initial = now;
+    final currentText = controller.text.trim();
+    if (currentText.isNotEmpty) {
+      final parts = currentText.split(RegExp(r'[/.-]'));
+      if (parts.length >= 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        int? y = int.tryParse(parts[2]);
+        if (y != null && y < 100) y += 2000;
+        if (d != null && m != null && y != null) {
+          try {
+            initial = DateTime(y, m, d);
+          } catch (_) {}
+        }
+      }
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1990),
+      lastDate: DateTime(2040),
+    );
+    if (picked != null) {
+      final dStr = picked.day.toString().padLeft(2, '0');
+      final mStr = picked.month.toString().padLeft(2, '0');
+      final yFullStr = picked.year.toString();
+      controller.text = '$dStr/$mStr/$yFullStr';
+      if (mounted) setState(() {});
+    }
+  }
+
+  Future<void> _pickTimeForController({
+    required TextEditingController controller,
+  }) async {
+    TimeOfDay initialTime = TimeOfDay.now();
+    final parts = controller.text.trim().split(RegExp(r'[/.:]'));
+    if (parts.length >= 2) {
+      final h = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      if (h != null && m != null && h >= 0 && h < 24 && m >= 0 && m < 60) {
+        initialTime = TimeOfDay(hour: h, minute: m);
+      }
+    }
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child ?? const SizedBox(),
+        );
+      },
+    );
+
+    if (picked != null) {
+      final hh = picked.hour.toString().padLeft(2, '0');
+      final mm = picked.minute.toString().padLeft(2, '0');
+      setState(() {
+        controller.text = '$hh:$mm';
+      });
+    }
+  }
+
+  Widget _datePickerField({
+    required TextEditingController controller,
+    double width = 140,
+    String hint = 'DD/MM/YYYY',
+  }) {
+    return SizedBox(
+      width: width,
+      child: TextFormField(
+        controller: controller,
+        readOnly: true,
+        onTap: widget.readOnly ? null : () => _pickDateForController(controller: controller),
+        style: FormTypography.serifStyle().copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 4),
+          hintText: hint,
+          hintStyle: FormTypography.serifStyle().copyWith(
+            fontSize: 12,
+            color: Colors.grey.shade400,
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 1.0),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          ),
+          suffixIcon: widget.readOnly
+              ? null
+              : InkWell(
+                  onTap: () => _pickDateForController(controller: controller),
+                  child: const Icon(Icons.calendar_today_outlined, size: 16),
+                ),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 24,
+            minHeight: 24,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _timePickerField({
+    required TextEditingController controller,
+    double width = 100,
+    String hint = 'HH:MM',
+  }) {
+    return SizedBox(
+      width: width,
+      child: TextFormField(
+        controller: controller,
+        readOnly: true,
+        onTap: widget.readOnly ? null : () => _pickTimeForController(controller: controller),
+        style: FormTypography.serifStyle().copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 4),
+          hintText: hint,
+          hintStyle: FormTypography.serifStyle().copyWith(
+            fontSize: 12,
+            color: Colors.grey.shade400,
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 1.0),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          ),
+          suffixIcon: widget.readOnly
+              ? null
+              : InkWell(
+                  onTap: () => _pickTimeForController(controller: controller),
+                  child: const Icon(Icons.access_time, size: 16),
+                ),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 24,
+            minHeight: 24,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _wrappingUnderlineInput({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 100,
+    double? maxWidth,
+    String? hintText,
+    TextInputType? keyboardType,
+  }) {
+    final effectiveMin = minWidth;
+    final effectiveMax = maxWidth ?? 800.0;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final text = controller.text.isEmpty ? (hintText ?? '') : controller.text;
+        final tp = TextPainter(
+          text: TextSpan(
+            text: text,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout();
+        final measured = tp.width + 20.0;
+        final calcWidth = measured < effectiveMin
+            ? effectiveMin
+            : (measured > effectiveMax ? effectiveMax : measured);
+
+        return SizedBox(
+          width: calcWidth,
+          child: TextFormField(
+            controller: controller,
+            readOnly: widget.readOnly,
+            maxLines: 1,
+            keyboardType: keyboardType ?? TextInputType.text,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+              color: const Color(0xFF0D47A1),
+              height: 1.35,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                color: Colors.grey.shade400,
+                fontSize: 12,
+              ),
+              border: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 140,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    final baseMin = minWidth;
+    final baseMax = maxWidth ?? 600.0;
+    const double baseFontSize = 13.5;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final availableWidth = hasFiniteWidth ? constraints.maxWidth : baseMax;
+
+        return ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            final text = controller.text.isEmpty ? (hintText ?? '') : controller.text;
+            final tp = TextPainter(
+              text: TextSpan(
+                text: text,
+                style: style.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: baseFontSize,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+            )..layout();
+
+            double effectiveFontSize = baseFontSize;
+            final double textW = tp.width + 12.0;
+
+            if (hasFiniteWidth && textW > availableWidth && availableWidth > 30) {
+              final scale = ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+              effectiveFontSize = (baseFontSize * scale).clamp(8.5, baseFontSize);
+            }
+
+            final double computedWidth = hasFiniteWidth
+                ? availableWidth
+                : (textW < baseMin ? baseMin : (textW > baseMax ? baseMax : textW));
+
+            return SizedBox(
+              width: computedWidth,
+              child: TextFormField(
+                controller: controller,
+                readOnly: widget.readOnly,
+                maxLines: 1,
+                scrollPhysics: const ClampingScrollPhysics(),
+                style: style.copyWith(
+                  fontSize: effectiveFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  hintText: hintText,
+                  hintStyle: style.copyWith(
+                    color: Colors.grey.shade400,
+                    fontSize: effectiveFontSize,
+                  ),
+                  border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // PAGE 1 BUILDER (तपास व ९ अटी सूचनापत्र)
   // ═══════════════════════════════════════════════════════════════════════════
@@ -262,9 +561,10 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                       ),
                     ),
                     Expanded(
-                      child: BilingualSimpleUnderlineInput(
+                      child: _policeStationField(
                         controller: _p1PsCtrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 100,
                       ),
                     ),
                   ],
@@ -279,12 +579,10 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                         fontSize: 13,
                       ),
                     ),
-                    Expanded(
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _p1DateCtrl,
-                        serifStyle: serif,
-                        hintText: '......./ ......./२०...',
-                      ),
+                    const SizedBox(width: 4),
+                    _datePickerField(
+                      controller: _p1DateCtrl,
+                      width: 140,
                     ),
                   ],
                 ),
@@ -328,20 +626,26 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
           ),
         ),
         const SizedBox(height: 4),
-        BilingualSimpleUnderlineInput(
+        _wrappingUnderlineInput(
           controller: _p1RecipientLine1Ctrl,
-          serifStyle: serif,
+          style: serif,
+          minWidth: 260,
+          maxWidth: 700,
           hintText: 'नाव / पत्ता...',
         ),
         const SizedBox(height: 6),
-        BilingualSimpleUnderlineInput(
+        _wrappingUnderlineInput(
           controller: _p1RecipientLine2Ctrl,
-          serifStyle: serif,
+          style: serif,
+          minWidth: 260,
+          maxWidth: 700,
         ),
         const SizedBox(height: 6),
-        BilingualSimpleUnderlineInput(
+        _wrappingUnderlineInput(
           controller: _p1RecipientLine3Ctrl,
-          serifStyle: serif,
+          style: serif,
+          minWidth: 260,
+          maxWidth: 700,
         ),
         const SizedBox(height: 12),
 
@@ -355,9 +659,11 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
               ),
             ),
             Expanded(
-              child: BilingualSimpleUnderlineInput(
+              child: _wrappingUnderlineInput(
                 controller: _p1AadhaarCtrl,
-                serifStyle: serif,
+                style: serif,
+                minWidth: 200,
+                maxWidth: 600,
               ),
             ),
           ],
@@ -374,9 +680,11 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
               ),
             ),
             Expanded(
-              child: BilingualSimpleUnderlineInput(
+              child: _wrappingUnderlineInput(
                 controller: _p1EmailCtrl,
-                serifStyle: serif,
+                style: serif,
+                minWidth: 200,
+                maxWidth: 600,
               ),
             ),
           ],
@@ -386,76 +694,63 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
         // Paragraph 1
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 10,
           children: [
             Text(
               '        भारतीय नागरी संरक्षण संहिता सन २०२३ मधील कलम ३५ (३) अन्वये प्रदान केलेल्या अधिकाराचा वापर करून मी खाली स्वाक्षरी करणार निर्देशित करतो की, दिनांक',
               style: marathi.copyWith(fontSize: 13, height: 1.8),
             ),
-            SizedBox(
+            _datePickerField(
+              controller: _p1IncidentDateCtrl,
               width: 140,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p1IncidentDateCtrl,
-                serifStyle: serif,
-                hintText: '....../ ....../२०.....',
-              ),
             ),
             Text(
               ' रोजी पोलीस स्टेशन ',
               style: marathi.copyWith(fontSize: 13, height: 1.8),
             ),
-            SizedBox(
-              width: 140,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p1IncidentPsCtrl,
-                serifStyle: serif,
-              ),
+            _policeStationField(
+              controller: _p1IncidentPsCtrl,
+              style: serif,
+              minWidth: 130,
+              maxWidth: 300,
             ),
             Text(
               ' येथे दाखल असलेला अपराध क्रमांक ',
               style: marathi.copyWith(fontSize: 13, height: 1.8),
             ),
-            SizedBox(
-              width: 130,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p1CrimeNoCtrl,
-                serifStyle: serif,
-                hintText: '........./२०....',
-              ),
+            _wrappingUnderlineInput(
+              controller: _p1CrimeNoCtrl,
+              style: serif,
+              minWidth: 120,
+              maxWidth: 240,
+              hintText: '........./२०....',
             ),
             Text(
               ' कलम ',
               style: marathi.copyWith(fontSize: 13, height: 1.8),
             ),
-            SizedBox(
-              width: 180,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p1ActSecCtrl,
-                serifStyle: serif,
-              ),
+            _wrappingUnderlineInput(
+              controller: _p1ActSecCtrl,
+              style: serif,
+              minWidth: 160,
+              maxWidth: 500,
             ),
             Text(
               ' तपासा दरम्यान हे निष्पन्न झाले की, या गुन्हयाच्या तपासाच्या अनुषंगाने तथ्य आणि वस्तुस्थिती जाणून घेण्यासाठी तुमच्याकडे विचारपुस करण्यासाठी सबळ व वाजवी कारणे आहेत. त्यामुळे तुम्हास दिनांक ',
               style: marathi.copyWith(fontSize: 13, height: 1.8),
             ),
-            SizedBox(
+            _datePickerField(
+              controller: _p1AppearanceDateCtrl,
               width: 140,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p1AppearanceDateCtrl,
-                serifStyle: serif,
-                hintText: '....../ ....../२०.....',
-              ),
             ),
             Text(
               ' रोजी ',
               style: marathi.copyWith(fontSize: 13, height: 1.8),
             ),
-            SizedBox(
-              width: 110,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p1AppearanceTimeCtrl,
-                serifStyle: serif,
-                hintText: '......../ .......',
-              ),
+            _timePickerField(
+              controller: _p1AppearanceTimeCtrl,
+              width: 100,
             ),
             Text(
               ' वाजता ठाण्यात माझे समक्ष न चुकता उपस्थित राहण्याचे निर्देश देण्यात येत आहे.',
@@ -534,9 +829,11 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  BilingualSimpleUnderlineInput(
+                  _wrappingUnderlineInput(
                     controller: _p1AccusedSigCtrl,
-                    serifStyle: serif,
+                    style: serif,
+                    minWidth: 160,
+                    maxWidth: 220,
                   ),
                 ],
               ),
@@ -554,9 +851,11 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  BilingualSimpleUnderlineInput(
+                  _wrappingUnderlineInput(
                     controller: _p1IoSigCtrl,
-                    serifStyle: serif,
+                    style: serif,
+                    minWidth: 160,
+                    maxWidth: 220,
                   ),
                 ],
               ),
@@ -595,9 +894,10 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                       ),
                     ),
                     Expanded(
-                      child: BilingualSimpleUnderlineInput(
+                      child: _policeStationField(
                         controller: _p2PsCtrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 100,
                       ),
                     ),
                   ],
@@ -612,12 +912,10 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                         fontSize: 13,
                       ),
                     ),
-                    Expanded(
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _p2DateCtrl,
-                        serifStyle: serif,
-                        hintText: '......./ ......./२०...',
-                      ),
+                    const SizedBox(width: 4),
+                    _datePickerField(
+                      controller: _p2DateCtrl,
+                      width: 140,
                     ),
                   ],
                 ),
@@ -661,71 +959,75 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
           ),
         ),
         const SizedBox(height: 6),
-        BilingualSimpleUnderlineInput(
+        _wrappingUnderlineInput(
           controller: _p2RecipientLine1Ctrl,
-          serifStyle: serif,
+          style: serif,
+          minWidth: 260,
+          maxWidth: 700,
           hintText: 'नाव / पत्ता...',
         ),
         const SizedBox(height: 8),
-        BilingualSimpleUnderlineInput(
+        _wrappingUnderlineInput(
           controller: _p2RecipientLine2Ctrl,
-          serifStyle: serif,
+          style: serif,
+          minWidth: 260,
+          maxWidth: 700,
         ),
         const SizedBox(height: 8),
-        BilingualSimpleUnderlineInput(
+        _wrappingUnderlineInput(
           controller: _p2RecipientLine3Ctrl,
-          serifStyle: serif,
+          style: serif,
+          minWidth: 260,
+          maxWidth: 700,
         ),
         const SizedBox(height: 24),
 
         // Paragraph 1
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 10,
           children: [
             Text(
               '        आपणास या नोटीस व्दारे कळविण्यात येते की, आपना विरूध्द पोलीस स्टेशन ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),
             ),
-            SizedBox(
-              width: 140,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p2IncidentPsCtrl,
-                serifStyle: serif,
-              ),
+            _policeStationField(
+              controller: _p2IncidentPsCtrl,
+              style: serif,
+              minWidth: 130,
+              maxWidth: 300,
             ),
             Text(
               ' जिल्हा ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),
             ),
-            SizedBox(
-              width: 100,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p2DistCtrl,
-                serifStyle: serif,
-              ),
+            _wrappingUnderlineInput(
+              controller: _p2DistCtrl,
+              style: serif,
+              minWidth: 100,
+              maxWidth: 240,
             ),
             Text(
               ' येथे अपराध क्रमांक ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),
             ),
-            SizedBox(
-              width: 130,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p2CrimeNoCtrl,
-                serifStyle: serif,
-                hintText: '........./२०........',
-              ),
+            _wrappingUnderlineInput(
+              controller: _p2CrimeNoCtrl,
+              style: serif,
+              minWidth: 120,
+              maxWidth: 240,
+              hintText: '........./२०........',
             ),
             Text(
               ' कलम ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),
             ),
-            SizedBox(
-              width: 220,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p2ActSecCtrl,
-                serifStyle: serif,
-              ),
+            _wrappingUnderlineInput(
+              controller: _p2ActSecCtrl,
+              style: serif,
+              minWidth: 180,
+              maxWidth: 600,
             ),
             Text(
               ' अन्वये गुन्हा नोंद करण्यात आलेला आहे. सदर अपराधा मध्ये शिक्षा ७ वर्षा पेक्षा कमी आहे किंवा ७ वर्षा पर्यंत द्रव्यदंडा सह किंवा त्या व्यतिरीक्त होवू शकते त्यामुळे सध्या आपनास अटक करणे गरजेचे वाटत नाही.',
@@ -738,51 +1040,44 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
         // Paragraph 2
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 10,
           children: [
             Text(
               '        तरी वरील अपराधा मध्ये दोषारोपपत्र न्यायप्रविष्ठ करावयाचा असल्याने आपण दिनांक :. ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),
             ),
-            SizedBox(
+            _datePickerField(
+              controller: _p2CourtDateCtrl,
               width: 140,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p2CourtDateCtrl,
-                serifStyle: serif,
-                hintText: '......./ ......./२०.....',
-              ),
             ),
             Text(
               ' रोजी ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),
             ),
-            SizedBox(
-              width: 80,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p2CourtTimeCtrl,
-                serifStyle: serif,
-              ),
+            _timePickerField(
+              controller: _p2CourtTimeCtrl,
+              width: 100,
             ),
             Text(
               ' वाजता पोलीस स्टेशन ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),
             ),
-            SizedBox(
-              width: 140,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p2CourtPsCtrl,
-                serifStyle: serif,
-              ),
+            _policeStationField(
+              controller: _p2CourtPsCtrl,
+              style: serif,
+              minWidth: 130,
+              maxWidth: 300,
             ),
             Text(
               ' येथे हजर यावे त्यानंतर मा.वि.न्यायदंडाधिकारी साहेब प्रथम श्रेणी कोर्ट ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),
             ),
-            SizedBox(
-              width: 140,
-              child: BilingualSimpleUnderlineInput(
-                controller: _p2CourtNameCtrl,
-                serifStyle: serif,
-              ),
+            _wrappingUnderlineInput(
+              controller: _p2CourtNameCtrl,
+              style: serif,
+              minWidth: 140,
+              maxWidth: 400,
             ),
             Text(
               ' येथील न्यायालयात जामीनदारासह न चुकता हजर राहावे.',
@@ -808,9 +1103,11 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                BilingualSimpleUnderlineInput(
+                _wrappingUnderlineInput(
                   controller: _p2IoSigCtrl,
-                  serifStyle: serif,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 220,
                 ),
               ],
             ),
@@ -834,9 +1131,11 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                BilingualSimpleUnderlineInput(
+                _wrappingUnderlineInput(
                   controller: _p2AccusedAckSigCtrl,
-                  serifStyle: serif,
+                  style: serif,
+                  minWidth: 180,
+                  maxWidth: 260,
                 ),
               ],
             ),

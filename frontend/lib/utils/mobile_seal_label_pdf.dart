@@ -86,6 +86,19 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
     );
   }
 
+  String ps = doc['policeStation']?.toString().trim() ?? '';
+  String dist = doc['district']?.toString().trim() ?? '';
+  if (ps.isEmpty && dist.isEmpty) {
+    final psDist = doc['psDistrict']?.toString().trim() ?? '';
+    if (psDist.contains(',')) {
+      final parts = psDist.split(',');
+      ps = parts[0].trim();
+      dist = parts.sublist(1).join(',').trim();
+    } else {
+      ps = psDist;
+    }
+  }
+
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
@@ -114,8 +127,33 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                 1: pw.FlexColumnWidth(3.2),
               },
               children: [
-                buildFormRow('lbl_ps_district', 'val_psDistrict',
-                    doc['psDistrict'] ?? doc['policeStation']),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(4),
+                      child: mLbl('lbl_ps_district'),
+                    ),
+                    pw.Container(
+                      alignment: pw.Alignment.centerLeft,
+                      padding: const pw.EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 3),
+                      child: pw.Row(
+                        children: [
+                          mLbl('lbl_ps_label'),
+                          pw.SizedBox(width: 4),
+                          pw.Expanded(
+                            child:
+                                renderText('val_policeStation', ps, valueStyle),
+                          ),
+                          pw.SizedBox(width: 20),
+                          mLbl('lbl_district_label'),
+                          pw.SizedBox(width: 4),
+                          renderText('val_district', dist, valueStyle),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
                 buildFormRow(
                     'lbl_crime_sec',
                     'val_crimeNoSection',
@@ -312,6 +350,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'hdr_notice':
         'सुचना :— जप्ती नंतर हॅश व्हॅल्यु किंवा निरीक्षण पंचनामा झाला असेल तर मुद्देमालाच्या लेबल व पहिल्या जप्तीची तारीख त्यानंतर झालेली पंचनामा नंतर सिलबंद केल्याचा तारखा नमुद कराव्यात',
     'lbl_ps_district': 'पोलीस स्टेशन जिल्हा',
+    'lbl_ps_label': 'पोस्टे : ',
+    'lbl_district_label': 'जिल्हा : ',
     'lbl_crime_sec': 'अपराध क्रमांक व कलम',
     'lbl_seizing_officer': 'जप्त करणारे अधिकारी नांव हुद्दा पोस्टे',
     'lbl_seized_from': 'कोणाकडुन जप्त केले त्याचे नांव पत्ता',
@@ -354,6 +394,21 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     }
   }
 
+  String prePs = doc['policeStation']?.toString().trim() ?? '';
+  String preDist = doc['district']?.toString().trim() ?? '';
+  if (prePs.isEmpty && preDist.isEmpty) {
+    final psDist = doc['psDistrict']?.toString().trim() ?? '';
+    if (psDist.contains(',')) {
+      final parts = psDist.split(',');
+      prePs = parts[0].trim();
+      preDist = parts.sublist(1).join(',').trim();
+    } else {
+      prePs = psDist;
+    }
+  }
+  addIfDevanagari('val_policeStation', prePs);
+  addIfDevanagari('val_district', preDist);
+
   doc.forEach((key, value) {
     addIfDevanagari('val_$key', value);
   });
@@ -362,6 +417,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'hdr_title',
     'hdr_subtitle',
     'lbl_ps_district',
+    'lbl_ps_label',
+    'lbl_district_label',
     'lbl_crime_sec',
     'lbl_seizing_officer',
     'lbl_seized_from',
@@ -432,7 +489,11 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     return TableRow(
       children: [
         cell(Text(label, style: bld)),
-        cell(Text(value, style: valStyle)),
+        cell(FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(value.isEmpty ? ' ' : value, style: valStyle),
+        )),
       ],
     );
   }
@@ -442,18 +503,42 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       children: [
         cell(Text(label, style: bld),
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
-        cell(Text(value, style: valStyle),
+        cell(FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(value.isEmpty ? ' ' : value, style: valStyle),
+        ),
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
       ],
     );
   }
 
-  final psDist = v('psDistrict', v('policeStation'));
+  String psVal = v('policeStation');
+  String distVal = v('district');
+  if (psVal.isEmpty && distVal.isEmpty) {
+    final combined = v('psDistrict');
+    if (combined.contains(',')) {
+      final parts = combined.split(',');
+      psVal = parts[0].trim();
+      distVal = parts.sublist(1).join(',').trim();
+    } else {
+      psVal = combined;
+    }
+  }
   final crimeSec = v('crimeNoSection', '${v('crNo')} ${v('section')}'.trim());
   final seizingOff = v('seizingOfficer', v('ioName'));
   final seizedFrom = v('seizedFrom');
   final accusedName = v('accusedName');
-  final seizurePlaceDt = v('seizurePlaceDateTime', v('seizedDate'));
+  final seizurePlaceDt = v('seizurePlaceDateTime', () {
+    final pl = v('seizurePlace');
+    final dt = v('seizureDate');
+    final tm = v('seizureTime');
+    final pts = <String>[];
+    if (pl.isNotEmpty) pts.add(pl);
+    if (dt.isNotEmpty) pts.add('दि. $dt');
+    if (tm.isNotEmpty) pts.add('वेळ $tm');
+    return pts.isNotEmpty ? pts.join(', ') : v('seizedDate');
+  }());
   final exhibitNo = v('exhibitNoLetter', v('labelNo'));
   final seizedPersonSign = v('seizedPersonSign');
   final panch1Sign = v('panch1Sign');
@@ -486,7 +571,22 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           1: FlexColumnWidth(3.2),
         },
         children: [
-          formRow('पोलीस स्टेशन जिल्हा', psDist),
+          TableRow(
+            children: [
+              cell(Text('पोलीस स्टेशन जिल्हा', style: bld)),
+              cell(Row(
+                children: [
+                  Text('पोस्टे : ', style: bld),
+                  Expanded(
+                    child: Text(psVal, style: valStyle),
+                  ),
+                  const SizedBox(width: 20),
+                  Text('जिल्हा : ', style: bld),
+                  Text(distVal, style: valStyle),
+                ],
+              )),
+            ],
+          ),
           formRow('अपराध क्रमांक व कलम', crimeSec),
           formRow('जप्त करणारे अधिकारी नांव हुद्दा पोस्टे', seizingOff),
           formRow('कोणाकडुन जप्त केले त्याचे नांव पत्ता', seizedFrom),

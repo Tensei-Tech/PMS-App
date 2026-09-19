@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
@@ -150,20 +149,303 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
     };
   }
 
-  Widget _inlineInput(
-    TextEditingController ctrl,
-    TextStyle serifStyle, {
-    String? hintText,
-    double minWidth = 100,
+  Future<void> _pickDateForController({
+    required TextEditingController controller,
+  }) async {
+    final now = DateTime.now();
+    DateTime initial = now;
+    final currentText = controller.text.trim();
+    if (currentText.isNotEmpty) {
+      final parts = currentText.split(RegExp(r'[/.-]'));
+      if (parts.length >= 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        int? y = int.tryParse(parts[2]);
+        if (y != null && y < 100) y += 2000;
+        if (d != null && m != null && y != null) {
+          try {
+            initial = DateTime(y, m, d);
+          } catch (_) {}
+        }
+      }
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1990),
+      lastDate: DateTime(2040),
+    );
+    if (picked != null) {
+      final dStr = picked.day.toString().padLeft(2, '0');
+      final mStr = picked.month.toString().padLeft(2, '0');
+      final yFullStr = picked.year.toString();
+      controller.text = '$dStr/$mStr/$yFullStr';
+      if (mounted) setState(() {});
+    }
+  }
+
+  Future<void> _pickTimeForController({
+    required TextEditingController controller,
+  }) async {
+    TimeOfDay initialTime = TimeOfDay.now();
+    final parts = controller.text.trim().split(RegExp(r'[/.:]'));
+    if (parts.length >= 2) {
+      final h = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      if (h != null && m != null && h >= 0 && h < 24 && m >= 0 && m < 60) {
+        initialTime = TimeOfDay(hour: h, minute: m);
+      }
+    }
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child ?? const SizedBox(),
+        );
+      },
+    );
+
+    if (picked != null) {
+      final hh = picked.hour.toString().padLeft(2, '0');
+      final mm = picked.minute.toString().padLeft(2, '0');
+      setState(() {
+        controller.text = '$hh:$mm';
+      });
+    }
+  }
+
+  Widget _datePickerField({
+    required TextEditingController controller,
+    double width = 140,
+    String hint = 'DD/MM/YYYY',
   }) {
-    return Container(
-      constraints: BoxConstraints(minWidth: minWidth),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: BilingualSimpleUnderlineInput(
-        controller: ctrl,
-        hintText: hintText,
-        serifStyle: serifStyle.copyWith(fontSize: 13),
+    return SizedBox(
+      width: width,
+      child: TextFormField(
+        controller: controller,
+        readOnly: true,
+        onTap: widget.readOnly ? null : () => _pickDateForController(controller: controller),
+        style: FormTypography.serifStyle().copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 4),
+          hintText: hint,
+          hintStyle: FormTypography.serifStyle().copyWith(
+            fontSize: 12,
+            color: Colors.grey.shade400,
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 1.0),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          ),
+          suffixIcon: widget.readOnly
+              ? null
+              : InkWell(
+                  onTap: () => _pickDateForController(controller: controller),
+                  child: const Icon(Icons.calendar_today_outlined, size: 16),
+                ),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 24,
+            minHeight: 24,
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _timePickerField({
+    required TextEditingController controller,
+    double width = 100,
+    String hint = 'HH:MM',
+  }) {
+    return SizedBox(
+      width: width,
+      child: TextFormField(
+        controller: controller,
+        readOnly: true,
+        onTap: widget.readOnly ? null : () => _pickTimeForController(controller: controller),
+        style: FormTypography.serifStyle().copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 4),
+          hintText: hint,
+          hintStyle: FormTypography.serifStyle().copyWith(
+            fontSize: 12,
+            color: Colors.grey.shade400,
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 1.0),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          ),
+          suffixIcon: widget.readOnly
+              ? null
+              : InkWell(
+                  onTap: () => _pickTimeForController(controller: controller),
+                  child: const Icon(Icons.access_time, size: 16),
+                ),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 24,
+            minHeight: 24,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _wrappingUnderlineInput({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 100,
+    double? maxWidth,
+    String? hintText,
+    TextInputType? keyboardType,
+  }) {
+    final effectiveMin = minWidth;
+    final effectiveMax = maxWidth ?? 800.0;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final text = controller.text.isEmpty ? (hintText ?? '') : controller.text;
+        final tp = TextPainter(
+          text: TextSpan(
+            text: text,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout();
+        final measured = tp.width + 20.0;
+        final calcWidth = measured < effectiveMin
+            ? effectiveMin
+            : (measured > effectiveMax ? effectiveMax : measured);
+
+        return SizedBox(
+          width: calcWidth,
+          child: TextFormField(
+            controller: controller,
+            readOnly: widget.readOnly,
+            maxLines: 1,
+            keyboardType: keyboardType ?? TextInputType.text,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+              color: const Color(0xFF0D47A1),
+              height: 1.35,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                color: Colors.grey.shade400,
+                fontSize: 12,
+              ),
+              border: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 140,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    final baseMin = minWidth;
+    final baseMax = maxWidth ?? 600.0;
+    const double baseFontSize = 13.5;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final availableWidth = hasFiniteWidth ? constraints.maxWidth : baseMax;
+
+        return ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            final text = controller.text.isEmpty ? (hintText ?? '') : controller.text;
+            final tp = TextPainter(
+              text: TextSpan(
+                text: text,
+                style: style.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: baseFontSize,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+            )..layout();
+
+            double effectiveFontSize = baseFontSize;
+            final double textW = tp.width + 12.0;
+
+            if (hasFiniteWidth && textW > availableWidth && availableWidth > 30) {
+              final scale = ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+              effectiveFontSize = (baseFontSize * scale).clamp(8.5, baseFontSize);
+            }
+
+            final double computedWidth = hasFiniteWidth
+                ? availableWidth
+                : (textW < baseMin ? baseMin : (textW > baseMax ? baseMax : textW));
+
+            return SizedBox(
+              width: computedWidth,
+              child: TextFormField(
+                controller: controller,
+                readOnly: widget.readOnly,
+                maxLines: 1,
+                scrollPhysics: const ClampingScrollPhysics(),
+                style: style.copyWith(
+                  fontSize: effectiveFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  hintText: hintText,
+                  hintStyle: style.copyWith(
+                    color: Colors.grey.shade400,
+                    fontSize: effectiveFontSize,
+                  ),
+                  border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -195,7 +477,12 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                                 marathi.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(width: 6),
                         Expanded(
-                            child: _inlineInput(_policeStationCtrl, serif)),
+                          child: _policeStationField(
+                            controller: _policeStationCtrl,
+                            style: serif,
+                            minWidth: 100,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -207,12 +494,9 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                             style:
                                 marathi.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(width: 6),
-                        Expanded(
-                          child: _inlineInput(
-                            _noticeDateCtrl,
-                            serif,
-                            hintText: '......./......./२०...',
-                          ),
+                        _datePickerField(
+                          controller: _noticeDateCtrl,
+                          width: 140,
                         ),
                       ],
                     ),
@@ -256,17 +540,40 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                 Text(':—', style: marathi),
                 const SizedBox(width: 8),
                 Expanded(
-                    child:
-                        _inlineInput(_panchNameCtrl, serif, hintText: 'नाव')),
+                  child: _wrappingUnderlineInput(
+                    controller: _panchNameCtrl,
+                    style: serif,
+                    minWidth: 260,
+                    maxWidth: 700,
+                    hintText: 'नाव',
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            _inlineInput(_panchAddressLine1Ctrl, serif,
-                hintText: 'पत्ता / व्यवसाय / वय ओळ १'),
+            _wrappingUnderlineInput(
+              controller: _panchAddressLine1Ctrl,
+              style: serif,
+              minWidth: 260,
+              maxWidth: 700,
+              hintText: 'पत्ता / व्यवसाय / वय ओळ १',
+            ),
             const SizedBox(height: 12),
-            _inlineInput(_panchAddressLine2Ctrl, serif, hintText: 'ओळ २'),
+            _wrappingUnderlineInput(
+              controller: _panchAddressLine2Ctrl,
+              style: serif,
+              minWidth: 260,
+              maxWidth: 700,
+              hintText: 'ओळ २',
+            ),
             const SizedBox(height: 12),
-            _inlineInput(_panchAddressLine3Ctrl, serif, hintText: 'ओळ ३'),
+            _wrappingUnderlineInput(
+              controller: _panchAddressLine3Ctrl,
+              style: serif,
+              minWidth: 260,
+              maxWidth: 700,
+              hintText: 'ओळ ३',
+            ),
             const SizedBox(height: 24),
 
             // Centered Symbol "००००"
@@ -285,64 +592,59 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
             // Body Paragraph with Inline Fields
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 10,
               children: [
                 Text(
                   'आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 160,
-                  child: _inlineInput(
-                    _bodyPoliceStationCtrl,
-                    serif,
-                    hintText: _policeStationCtrl.text.isNotEmpty
-                        ? _policeStationCtrl.text
-                        : 'पोलीस स्टेशन',
-                  ),
+                _policeStationField(
+                  controller: _bodyPoliceStationCtrl,
+                  style: serif,
+                  minWidth: 140,
+                  maxWidth: 300,
+                  hintText: _policeStationCtrl.text.isNotEmpty
+                      ? _policeStationCtrl.text
+                      : 'पोलीस स्टेशन',
                 ),
                 Text(
                   ' येथे अपराध क्रमांक ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 140,
-                  child: _inlineInput(
-                    _crNoYearCtrl,
-                    serif,
-                    hintText: '......... / २०.....',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _crNoYearCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 240,
+                  hintText: '......... / २०.....',
                 ),
                 Text(
                   ' कलम ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_sectionCtrl, serif, hintText: 'कलम'),
+                _wrappingUnderlineInput(
+                  controller: _sectionCtrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 500,
+                  hintText: 'कलम',
                 ),
                 Text(
                   ' अन्वये गुन्हा नोंद असुन सदर गुन्ह्याचे तपासकामी आपणाकडे चौकशी करून आपला जबाब नोंदविणे आवश्यक असल्याने, आपण दिनांक : ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 150,
-                  child: _inlineInput(
-                    _appearanceDateCtrl,
-                    serif,
-                    hintText: '......./......./२०.....',
-                  ),
+                _datePickerField(
+                  controller: _appearanceDateCtrl,
+                  width: 140,
                 ),
                 Text(
                   ' रोजी ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 110,
-                  child: _inlineInput(
-                    _appearanceTimeCtrl,
-                    serif,
-                    hintText: '......./.......',
-                  ),
+                _timePickerField(
+                  controller: _appearanceTimeCtrl,
+                  width: 100,
                 ),
                 Text(
                   ' वाजता आमचे समक्ष न चुकता हजर राहावे.',
@@ -365,10 +667,12 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 200,
-                    child:
-                        _inlineInput(_ioSignCtrl, serif, hintText: 'नाव / सही'),
+                  _wrappingUnderlineInput(
+                    controller: _ioSignCtrl,
+                    style: serif,
+                    minWidth: 160,
+                    maxWidth: 220,
+                    hintText: 'नाव / सही',
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -395,26 +699,34 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_ackLine1Ctrl, serif,
-                      hintText: 'स्वाक्षरी / नाव'),
+                _wrappingUnderlineInput(
+                  controller: _ackLine1Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 260,
+                  hintText: 'स्वाक्षरी / नाव',
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_ackLine2Ctrl, serif,
-                      hintText: 'दिनांक व वेळ'),
+                _wrappingUnderlineInput(
+                  controller: _ackLine2Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 260,
+                  hintText: 'दिनांक व वेळ',
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_ackLine3Ctrl, serif),
+                _wrappingUnderlineInput(
+                  controller: _ackLine3Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 260,
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_ackLine4Ctrl, serif),
+                _wrappingUnderlineInput(
+                  controller: _ackLine4Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 260,
                 ),
               ],
             ),

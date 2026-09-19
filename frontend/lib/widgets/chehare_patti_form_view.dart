@@ -210,56 +210,63 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
           bottom: BorderSide(color: Colors.black, width: 1),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 55,
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              border: Border(
-                right: BorderSide(color: Colors.black, width: 1),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 55,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                border: Border(
+                  right: BorderSide(color: Colors.black, width: 1),
+                ),
+              ),
+              child: Text(
+                no,
+                style: isHeader
+                    ? marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13)
+                    : marathi.copyWith(fontSize: 12),
               ),
             ),
-            child: Text(
-              no,
-              style: isHeader
-                  ? marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13)
-                  : marathi.copyWith(fontSize: 12),
-            ),
-          ),
-          Container(
-            width: 220,
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-            decoration: const BoxDecoration(
-              border: Border(
-                right: BorderSide(color: Colors.black, width: 1),
+            Container(
+              width: 220,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+              alignment: Alignment.centerLeft,
+              decoration: const BoxDecoration(
+                border: Border(
+                  right: BorderSide(color: Colors.black, width: 1),
+                ),
+              ),
+              child: Text(
+                title,
+                style: isHeader
+                    ? marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13)
+                    : marathi.copyWith(fontWeight: FontWeight.w600, fontSize: 12),
               ),
             ),
-            child: Text(
-              title,
-              style: isHeader
-                  ? marathi.copyWith(fontWeight: FontWeight.bold, fontSize: 13)
-                  : marathi.copyWith(fontWeight: FontWeight.w600, fontSize: 12),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: inputWidget,
+              ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: inputWidget,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _tableInput(TextEditingController ctrl, {String? hint}) {
+  Widget _tableInput(TextEditingController ctrl,
+      {String? hint, int minLines = 1}) {
     final serif = FormTypography.serifStyle();
     return TextField(
       controller: ctrl,
       readOnly: widget.readOnly,
+      minLines: minLines,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
       style: serif.copyWith(
         fontSize: 12,
         fontWeight: FontWeight.bold,
@@ -271,6 +278,140 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
         border: InputBorder.none,
         hintText: hint,
         hintStyle: serif.copyWith(color: Colors.grey.shade400, fontSize: 11),
+      ),
+    );
+  }
+
+  Future<void> _pickDateForController(
+    BuildContext context,
+    TextEditingController targetCtrl,
+  ) async {
+    DateTime initial = DateTime.now();
+    final raw = targetCtrl.text.trim();
+    if (raw.isNotEmpty) {
+      final parts = raw.split(RegExp(r'[-/.]'));
+      if (parts.length >= 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        int? y = int.tryParse(parts[2]);
+        if (y != null && y < 100) y += 2000;
+        if (d != null && m != null && y != null) {
+          try {
+            initial = DateTime(y, m, d);
+          } catch (_) {}
+        }
+      }
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+      locale: const Locale('en', 'IN'),
+    );
+    if (picked != null) {
+      final dStr = picked.day.toString().padLeft(2, '0');
+      final mStr = picked.month.toString().padLeft(2, '0');
+      final yStr = picked.year.toString();
+      targetCtrl.text = '$dStr/$mStr/$yStr';
+      setState(() {});
+    }
+  }
+
+  Widget _datePickerField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double? width,
+    String hintText = 'DD/MM/YYYY',
+  }) {
+    return SizedBox(
+      width: width,
+      child: InkWell(
+        onTap: widget.readOnly
+            ? null
+            : () => _pickDateForController(context, controller),
+        mouseCursor: widget.readOnly
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        child: IgnorePointer(
+          ignoring: true,
+          child: TextFormField(
+            controller: controller,
+            readOnly: true,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: const Color(0xFF0D47A1),
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.only(bottom: 2, top: 4),
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                color: Colors.grey.shade400,
+                fontSize: 12,
+              ),
+              suffixIcon: const Icon(
+                Icons.calendar_today_outlined,
+                size: 16,
+                color: Colors.black87,
+              ),
+              suffixIconConstraints:
+                  const BoxConstraints(minWidth: 24, minHeight: 22),
+              border: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black54, width: 1.0),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black54, width: 0.8),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _underlineField({
+    required TextEditingController controller,
+    required TextStyle style,
+    String? hintText,
+    int minLines = 1,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: widget.readOnly,
+      minLines: minLines,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
+      style: style.copyWith(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFF0D47A1),
+      ),
+      decoration: InputDecoration(
+        isDense: true,
+        filled: false,
+        fillColor: Colors.transparent,
+        contentPadding: const EdgeInsets.only(bottom: 2, top: 4),
+        border: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black54, width: 1.0),
+        ),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black54, width: 0.8),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+        ),
+        hintText: hintText,
+        hintStyle: style.copyWith(
+          color: Colors.grey.shade400,
+          fontSize: 11.5,
+        ),
       ),
     );
   }
@@ -298,10 +439,9 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
                       children: [
                         Text('दिनांक : ', style: marathi),
                         Expanded(
-                          child: BilingualSimpleUnderlineInput(
+                          child: _datePickerField(
                             controller: _dateCtrl,
-                            serifStyle: serif,
-                            hintText: '......./ ...../ २०.......',
+                            style: serif,
                           ),
                         ),
                       ],
@@ -323,40 +463,46 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
             const SizedBox(height: 12),
 
             // ── SUBHEADER: POLICE STATION & DISTRICT ──
-            Center(
-              child: SizedBox(
-                width: 500,
-                child: Row(
-                  children: [
-                    Text(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
                       'पोलीस स्टेशन :- ',
                       style: marathi.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
                     ),
-                    Expanded(
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _psCtrl,
-                        serifStyle: serif,
-                      ),
+                  ),
+                  Expanded(
+                    child: _underlineField(
+                      controller: _psCtrl,
+                      style: serif,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
+                  ),
+                  const SizedBox(width: 32),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
                       'जिल्हा :- ',
                       style: marathi.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
                     ),
-                    Expanded(
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _distCtrl,
-                        serifStyle: serif,
-                      ),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: _underlineField(
+                      controller: _distCtrl,
+                      style: serif,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -405,24 +551,10 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
                   _buildTableRow(
                     '२.',
                     'आरोपीचे नांव व पत्ता मो नं',
-                    TextField(
-                      controller: _accusedDetailsCtrl,
-                      readOnly: widget.readOnly,
-                      minLines: 3,
-                      maxLines: 4,
-                      style: serif.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade900,
-                      ),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                        border: InputBorder.none,
-                        hintText: 'संपूर्ण नांव, पत्ता व मोबाईल नंबर...',
-                        hintStyle: serif.copyWith(
-                            color: Colors.grey.shade400, fontSize: 11),
-                      ),
+                    _tableInput(
+                      _accusedDetailsCtrl,
+                      hint: 'संपूर्ण नांव, पत्ता व मोबाईल नंबर...',
+                      minLines: 2,
                     ),
                   ),
 

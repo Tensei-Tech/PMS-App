@@ -59,7 +59,21 @@ class JuvenileSocialReportFormViewState
   }
 
   // ─── PAGE 1 CONTROLLERS (Items 1–7 & Child particulars) ──────────────────
+  final _psCtrl = TextEditingController();
+  final _distCtrl = TextEditingController();
   final _psDistCtrl = TextEditingController();
+
+  void _updateCombinedPsDist() {
+    final ps = _psCtrl.text.trim();
+    final dist = _distCtrl.text.trim();
+    if (ps.isNotEmpty && dist.isNotEmpty) {
+      _psDistCtrl.text = '$ps, $dist';
+    } else if (ps.isNotEmpty) {
+      _psDistCtrl.text = ps;
+    } else {
+      _psDistCtrl.text = dist;
+    }
+  }
   final _crimeNoCtrl = TextEditingController();
   final _sectionActCtrl = TextEditingController();
   final _crimeDateTimeCtrl = TextEditingController();
@@ -179,6 +193,9 @@ class JuvenileSocialReportFormViewState
     _famAddictionCtrls =
         List.generate(_familyRowCount, (_) => TextEditingController());
 
+    _psCtrl.addListener(_updateCombinedPsDist);
+    _distCtrl.addListener(_updateCombinedPsDist);
+
     if (widget.existingRecord != null) {
       hydrateFrom(widget.existingRecord!);
     }
@@ -196,6 +213,10 @@ class JuvenileSocialReportFormViewState
 
   @override
   void dispose() {
+    _psCtrl.removeListener(_updateCombinedPsDist);
+    _distCtrl.removeListener(_updateCombinedPsDist);
+    _psCtrl.dispose();
+    _distCtrl.dispose();
     _psDistCtrl.dispose();
     _crimeNoCtrl.dispose();
     _sectionActCtrl.dispose();
@@ -270,8 +291,25 @@ class JuvenileSocialReportFormViewState
 
   void hydrateFrom(Map<String, dynamic> data) {
     setState(() {
-      _psDistCtrl.text =
-          data['psDist']?.toString() ?? data['policeStation']?.toString() ?? '';
+      if (data.containsKey('policeStation') || data.containsKey('district')) {
+        _psCtrl.text = data['policeStation']?.toString() ?? '';
+        _distCtrl.text = data['district']?.toString() ?? '';
+        _psDistCtrl.text = data['psDist']?.toString() ??
+            ('${_psCtrl.text}, ${_distCtrl.text}').trim();
+      } else {
+        final combined = data['psDist']?.toString() ??
+            data['policeStation']?.toString() ??
+            '';
+        _psDistCtrl.text = combined;
+        if (combined.contains(',')) {
+          final parts = combined.split(',');
+          _psCtrl.text = parts[0].trim();
+          _distCtrl.text = parts.sublist(1).join(',').trim();
+        } else {
+          _psCtrl.text = combined;
+          _distCtrl.text = '';
+        }
+      }
       _crimeNoCtrl.text =
           data['crimeNo']?.toString() ?? data['crNo']?.toString() ?? '';
       _sectionActCtrl.text =
@@ -452,6 +490,8 @@ class JuvenileSocialReportFormViewState
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
       'psDist': _psDistCtrl.text.trim(),
+      'policeStation': _psCtrl.text.trim(),
+      'district': _distCtrl.text.trim(),
       'crimeNo': _crimeNoCtrl.text.trim(),
       'sectionAct': _sectionActCtrl.text.trim(),
       'crimeDateTime': _crimeDateTimeCtrl.text.trim(),
@@ -534,13 +574,183 @@ class JuvenileSocialReportFormViewState
     return map;
   }
 
-  Widget _tableCellInput(TextEditingController ctrl, TextStyle serifStyle,
-      {TextAlign align = TextAlign.left}) {
+  Widget _tableCellInput(
+    TextEditingController ctrl,
+    TextStyle serifStyle, {
+    TextAlign align = TextAlign.left,
+    String? hintText,
+    int minLines = 1,
+    Widget? suffixIcon,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: BilingualSimpleUnderlineInput(
+      child: TextFormField(
         controller: ctrl,
-        serifStyle: serifStyle.copyWith(fontSize: 11),
+        readOnly: widget.readOnly,
+        minLines: minLines,
+        maxLines: null,
+        textAlign: align,
+        keyboardType: TextInputType.multiline,
+        style: serifStyle.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
+        ),
+        decoration: InputDecoration(
+          isDense: true,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          hintText: hintText,
+          hintStyle: serifStyle.copyWith(
+            color: Colors.grey.shade400,
+            fontSize: 11,
+          ),
+          suffixIcon: suffixIcon,
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 20, maxHeight: 20),
+          border: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black87, width: 1.5),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickDateForController(
+    BuildContext context,
+    TextEditingController targetCtrl,
+  ) async {
+    if (widget.readOnly) return;
+    DateTime initial = DateTime.now();
+    final raw = targetCtrl.text.trim();
+    if (raw.isNotEmpty) {
+      final parts = raw.split(RegExp(r'[-/.]'));
+      if (parts.length >= 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        int? y = int.tryParse(parts[2]);
+        if (y != null && y < 100) y += 2000;
+        if (d != null && m != null && y != null) {
+          try {
+            initial = DateTime(y, m, d);
+          } catch (_) {}
+        }
+      }
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+      locale: const Locale('en', 'IN'),
+    );
+    if (picked != null) {
+      final dStr = picked.day.toString().padLeft(2, '0');
+      final mStr = picked.month.toString().padLeft(2, '0');
+      final yStr = picked.year.toString();
+      targetCtrl.text = '$dStr/$mStr/$yStr';
+      setState(() {});
+    }
+  }
+
+  Widget _datePickerField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double? width,
+    String hintText = 'DD/MM/YYYY',
+  }) {
+    return SizedBox(
+      width: width,
+      child: InkWell(
+        onTap: widget.readOnly
+            ? null
+            : () => _pickDateForController(context, controller),
+        child: IgnorePointer(
+          ignoring: true,
+          child: TextFormField(
+            controller: controller,
+            readOnly: true,
+            style: style.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                color: Colors.grey.shade400,
+                fontSize: 11,
+              ),
+              suffixIcon: const Icon(
+                Icons.calendar_today_outlined,
+                size: 15,
+                color: Colors.black54,
+              ),
+              suffixIconConstraints:
+                  const BoxConstraints(minWidth: 20, maxHeight: 20),
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+              border: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black54, width: 0.8),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black54, width: 0.8),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black87, width: 1.5),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _multilineUnderlineInput({
+    required TextEditingController controller,
+    required TextStyle serifStyle,
+    String? hintText,
+    int minLines = 1,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: widget.readOnly,
+      minLines: minLines,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
+      style: serifStyle.copyWith(
+        fontSize: 12.5,
+        fontWeight: FontWeight.w600,
+        color: Colors.black87,
+      ),
+      decoration: InputDecoration(
+        isDense: true,
+        filled: false,
+        fillColor: Colors.transparent,
+        contentPadding: const EdgeInsets.only(bottom: 2, top: 4),
+        hintText: hintText,
+        hintStyle: serifStyle.copyWith(
+          color: Colors.grey.shade400,
+          fontSize: 11.5,
+        ),
+        border: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black54, width: 0.8),
+        ),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black54, width: 0.8),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black87, width: 1.5),
+        ),
       ),
     );
   }
@@ -732,7 +942,51 @@ class JuvenileSocialReportFormViewState
                         child: Text('पोलीस स्टेशन व जिल्हा',
                             style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_psDistCtrl, serifStyle),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 4),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                'पोस्टे : ',
+                                style: marathiLabelStyle.copyWith(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: _tableCellInput(
+                                _psCtrl,
+                                serifStyle,
+                                hintText: 'पोलीस स्टेशन',
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                'जिल्हा : ',
+                                style: marathiLabelStyle.copyWith(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 130,
+                              child: _tableCellInput(
+                                _distCtrl,
+                                serifStyle,
+                                hintText: 'जिल्हा',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                   TableRow(
@@ -763,7 +1017,18 @@ class JuvenileSocialReportFormViewState
                         child: Text('गुन्हा घडला ता व वेळ',
                             style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_crimeDateTimeCtrl, serifStyle),
+                      _tableCellInput(
+                        _crimeDateTimeCtrl,
+                        serifStyle,
+                        suffixIcon: InkWell(
+                          onTap: widget.readOnly
+                              ? null
+                              : () => _pickDateForController(
+                                  context, _crimeDateTimeCtrl),
+                          child: const Icon(Icons.calendar_today_outlined,
+                              size: 15, color: Colors.black54),
+                        ),
+                      ),
                     ],
                   ),
                   TableRow(
@@ -774,7 +1039,18 @@ class JuvenileSocialReportFormViewState
                         child: Text('गुन्हा दाखल ता व वेळ',
                             style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_firDateTimeCtrl, serifStyle),
+                      _tableCellInput(
+                        _firDateTimeCtrl,
+                        serifStyle,
+                        suffixIcon: InkWell(
+                          onTap: widget.readOnly
+                              ? null
+                              : () => _pickDateForController(
+                                  context, _firDateTimeCtrl),
+                          child: const Icon(Icons.calendar_today_outlined,
+                              size: 15, color: Colors.black54),
+                        ),
+                      ),
                     ],
                   ),
                   TableRow(
@@ -826,7 +1102,14 @@ class JuvenileSocialReportFormViewState
                         padding: const EdgeInsets.all(6),
                         child: Text('जन्म तारीख', style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_dobCtrl, serifStyle),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
+                        child: _datePickerField(
+                          controller: _dobCtrl,
+                          style: serifStyle,
+                        ),
+                      ),
                     ],
                   ),
                   TableRow(
@@ -836,7 +1119,7 @@ class JuvenileSocialReportFormViewState
                         padding: const EdgeInsets.all(6),
                         child: Text('पत्ता', style: marathiLabelStyle),
                       ),
-                      _tableCellInput(_addressCtrl, serifStyle),
+                      _tableCellInput(_addressCtrl, serifStyle, minLines: 2),
                     ],
                   ),
                   TableRow(
@@ -1093,12 +1376,15 @@ class JuvenileSocialReportFormViewState
               const SizedBox(height: 8),
 
               Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('८) बालक शिकत असल्यास शाळेत जाणे का बंद केले :- ',
-                      style: marathiLabelStyle),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text('८) बालक शिकत असल्यास शाळेत जाणे का बंद केले :- ',
+                        style: marathiLabelStyle),
+                  ),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: _multilineUnderlineInput(
                       controller: _schoolDropReasonPage2Ctrl,
                       serifStyle: serifStyle,
                     ),
@@ -1108,13 +1394,16 @@ class JuvenileSocialReportFormViewState
               const SizedBox(height: 8),
 
               Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                      '९) कुटुंबातील इतर व्यक्तीवर काही गुन्हे दाखल आहेत का :- ',
-                      style: marathiLabelStyle),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                        '९) कुटुंबातील इतर व्यक्तीवर काही गुन्हे दाखल आहेत का :- ',
+                        style: marathiLabelStyle),
+                  ),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: _multilineUnderlineInput(
                       controller: _familyInCrimeCtrl,
                       serifStyle: serifStyle,
                     ),
@@ -1209,13 +1498,16 @@ class JuvenileSocialReportFormViewState
               const SizedBox(height: 12),
 
               Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('११) बालकाचे नोकरीचा तपशील :- ',
-                      style: marathiLabelStyle.copyWith(
-                          fontWeight: FontWeight.bold)),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text('११) बालकाचे नोकरीचा तपशील :- ',
+                        style: marathiLabelStyle.copyWith(
+                            fontWeight: FontWeight.bold)),
+                  ),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: _multilineUnderlineInput(
                       controller: _childJobDetailsCtrl,
                       serifStyle: serifStyle,
                     ),
@@ -1494,27 +1786,30 @@ class JuvenileSocialReportFormViewState
                 style: marathiLabelStyle.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
-              BilingualSimpleUnderlineInput(
+              _multilineUnderlineInput(
                 controller: _crimeReasonCtrl,
                 serifStyle: serifStyle,
+                minLines: 2,
               ),
               const SizedBox(height: 10),
               Text('२३) कोणत्या परिस्थितीत / घटनेमध्ये बालकास पकडले आहे :-',
                   style:
                       marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              BilingualSimpleUnderlineInput(
+              _multilineUnderlineInput(
                 controller: _arrestCircumstancesCtrl,
                 serifStyle: serifStyle,
+                minLines: 2,
               ),
               const SizedBox(height: 10),
               Text('२४) बालकाकडुन मिळालेल्या मालमत्तेची माहिती :-',
                   style:
                       marathiLabelStyle.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              BilingualSimpleUnderlineInput(
+              _multilineUnderlineInput(
                 controller: _propertyFromChildCtrl,
                 serifStyle: serifStyle,
+                minLines: 1,
               ),
               const SizedBox(height: 16),
               Align(
@@ -1540,9 +1835,10 @@ class JuvenileSocialReportFormViewState
                   style: marathiLabelStyle.copyWith(
                       fontWeight: FontWeight.bold, fontSize: 11.5)),
               const SizedBox(height: 4),
-              BilingualSimpleUnderlineInput(
+              _multilineUnderlineInput(
                 controller: _childRoleInCrimeCtrl,
                 serifStyle: serifStyle,
+                minLines: 2,
               ),
               const SizedBox(height: 20),
 
@@ -1550,11 +1846,12 @@ class JuvenileSocialReportFormViewState
                   style: marathiLabelStyle.copyWith(
                       fontWeight: FontWeight.bold, fontSize: 11.5)),
               const SizedBox(height: 4),
-              BilingualSimpleUnderlineInput(
+              _multilineUnderlineInput(
                 controller: _cwpoInstructionsCtrl,
                 serifStyle: serifStyle,
+                minLines: 2,
               ),
-              const SizedBox(height: 80),
+              const SizedBox(height: 30),
 
               // Signature Block
               Align(

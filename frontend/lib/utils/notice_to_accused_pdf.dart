@@ -368,28 +368,26 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
 
   const borderLine = BorderSide(color: Colors.black87, width: 0.8);
 
-  final ps = v('policeStation', '--------');
-  final dateStr = v('date', '......./ ......../२०....');
+  final ps = v('policeStation');
+  final dateStr = v('date');
 
   final accusedLine1 = v('accusedName', v('accusedNameAddress'));
   final accusedLine2 = v('accusedNameLine2');
 
-  final mobileNo = v('mobileNo', '..................................');
-  final aadhaarNo = v('aadhaarNo', '..................................');
-  final email = v('email',
-      '.........................................................................');
+  final mobileNo = v('mobileNo');
+  final aadhaarNo = v('aadhaarNo');
+  final email = v('email');
 
-  final firPs = v('firPs', '...................');
+  final firPs = v('firPs');
   final firDist = v('firDist', 'यवतमाळ');
-  final crimeNo = v('crimeNumberOnly', v('crimeNo', '............'));
+  final crimeNo = v('crimeNumberOnly', v('crimeNo'));
   final crimeYear = v('crimeYear', '२५');
-  final actSec = v('actSec', '...................................');
-  final coActSec = v('coActSec', '.............................');
-  final firDate = v('firDate', '...../...../२०.....');
+  final actSec = v('actSec');
+  final coActSec = v('coActSec');
+  final firDate = v('firDate');
 
   final bailType = v('bailType', 'अजमीनपात्र/ जामीनपात्र');
-  final relativeDetails = v('relativeDetails',
-      '.....................................................................................');
+  final relativeDetails = v('relativeDetails');
 
   final accusedSig = v('accusedSig');
   final ioNameSig = v('ioNameSig');
@@ -399,60 +397,64 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final headerTitle = FormImagePdfHelper.mBld(16, 1.3);
   final headerSub = FormImagePdfHelper.mBld(11, 1.3);
 
-  return Container(
-    width: FormImagePdfHelper.a4Width,
-    height: FormImagePdfHelper.a4Height,
-    color: Colors.white,
-    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 44),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Align(
-          alignment: Alignment.topRight,
-          child: SizedBox(
-            width: 250,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text('पोलीस स्टेशन ', style: bld),
-                    Expanded(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          border: Border(bottom: borderLine),
-                        ),
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 36),
+    children: [
+      Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 260,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text('पोलीस स्टेशन ', style: bld),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: borderLine),
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
-                        child: Text(ps, style: reg),
+                        child: Text(
+                          ps.isEmpty ? ' ' : ps,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: reg,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text('दिनांक :', style: bld),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          border: Border(bottom: borderLine),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        child: Text(dateStr, style: reg),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text('दिनांक :', style: bld),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: borderLine),
                       ),
+                      alignment: Alignment.centerLeft,
+                      child: Text(dateStr.isEmpty ? ' ' : dateStr, style: reg),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 24),
-        Center(
-          child: Column(
-            children: [
-              Text('-:: आरोपीस सुचनापत्र ::-', style: headerTitle),
+      ),
+      const SizedBox(height: 20),
+      Center(
+        child: Column(
+          children: [
+            Text('-:: आरोपीस सुचनापत्र ::-', style: headerTitle),
               const SizedBox(height: 3),
               Text(
                 '(भारतीय नागरी सुरक्षा संहिता २०२३ कलम ४७ (१)(२))',
@@ -643,6 +645,5 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ),
       ],
-    ),
-  );
-}
+    );
+  }

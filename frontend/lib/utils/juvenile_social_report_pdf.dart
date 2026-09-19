@@ -104,6 +104,19 @@ Future<Uint8List> generateJuvenileSocialReportPdf(
     );
   }
 
+  String ps = doc['policeStation']?.toString().trim() ?? '';
+  String dist = doc['district']?.toString().trim() ?? '';
+  if (ps.isEmpty && dist.isEmpty) {
+    final psDist = doc['psDist']?.toString().trim() ?? '';
+    if (psDist.contains(',')) {
+      final parts = psDist.split(',');
+      ps = parts[0].trim();
+      dist = parts.sublist(1).join(',').trim();
+    } else {
+      ps = psDist;
+    }
+  }
+
   // ══════════════════════════════════════════════════════════════════
   // PAGE 1 — Personal & Disability
   // ══════════════════════════════════════════════════════════════════
@@ -147,13 +160,21 @@ Future<Uint8List> generateJuvenileSocialReportPdf(
                 ],
               ),
               _pdfTableRow(
-                  '१.',
-                  'पोलीस स्टेशन व जिल्हा',
-                  val(
-                      'val_psDist',
-                      doc['psDist']?.toString() ??
-                          doc['policeStation']?.toString()),
-                  englishBold),
+                '१.',
+                'पोलीस स्टेशन व जिल्हा',
+                pw.Row(
+                  children: [
+                    pw.Text('पोस्टे : ', style: englishBold),
+                    pw.Expanded(
+                      child: val('val_policeStation', ps),
+                    ),
+                    pw.SizedBox(width: 20),
+                    pw.Text('जिल्हा : ', style: englishBold),
+                    val('val_district', dist),
+                  ],
+                ),
+                englishBold,
+              ),
               _pdfTableRow(
                   '२.',
                   'अपराध क्रमांक',
@@ -872,6 +893,22 @@ Future<MarathiImageCache> _preRenderJuvenileMarathi(
     'signOfficerBadge',
     'signOfficerPosting',
   ];
+
+  String prePs = doc['policeStation']?.toString().trim() ?? '';
+  String preDist = doc['district']?.toString().trim() ?? '';
+  if (prePs.isEmpty && preDist.isEmpty) {
+    final psDist = doc['psDist']?.toString().trim() ?? '';
+    if (psDist.contains(',')) {
+      final parts = psDist.split(',');
+      prePs = parts[0].trim();
+      preDist = parts.sublist(1).join(',').trim();
+    } else {
+      prePs = psDist;
+    }
+  }
+  await addVal('val_policeStation', prePs);
+  await addVal('val_district', preDist);
+
   for (final k in keys) {
     await addVal('val_$k', doc[k]?.toString());
   }
@@ -964,6 +1001,19 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
+  String psVal = v('policeStation');
+  String distVal = v('district');
+  if (psVal.isEmpty && distVal.isEmpty) {
+    final combined = v('psDist');
+    if (combined.contains(',')) {
+      final parts = combined.split(',');
+      psVal = parts[0].trim();
+      distVal = parts.sublist(1).join(',').trim();
+    } else {
+      psVal = combined;
+    }
+  }
+
   final bld = FormImagePdfHelper.mBld(8.5, 1.3);
   final valStyle = FormImagePdfHelper.valStyle(8.5);
 
@@ -1001,8 +1051,32 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                       Text('माहिती', style: bld, textAlign: TextAlign.center)),
             ],
           ),
-          _buildJuvTableRow('१.', 'पोलीस स्टेशन व जिल्हा',
-              v('psDist', v('policeStation')), bld, valStyle),
+          TableRow(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(3),
+                child: Text('१.', style: bld, textAlign: TextAlign.center),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(3),
+                child: Text('पोलीस स्टेशन व जिल्हा', style: bld),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(3),
+                child: Row(
+                  children: [
+                    Text('पोस्टे : ', style: bld),
+                    Expanded(
+                      child: Text(psVal, style: valStyle),
+                    ),
+                    const SizedBox(width: 20),
+                    Text('जिल्हा : ', style: bld),
+                    Text(distVal, style: valStyle),
+                  ],
+                ),
+              ),
+            ],
+          ),
           _buildJuvTableRow(
               '२.', 'अपराध क्रमांक', v('crimeNo', v('crNo')), bld, valStyle),
           _buildJuvTableRow('३.', 'कलम व अधिनियम',

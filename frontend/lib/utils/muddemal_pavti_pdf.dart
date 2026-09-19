@@ -57,10 +57,8 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   final ioDist = v('ioDist', v('ioDistrict', 'यवतमाळ'));
   final accusedName = v('accusedName',
       '____________________________________________________________________');
-  final seizureDate = v(
-      'seizureDate', v('seizedDate', v('date', '......./ ........./२०.....')));
-  final propertyNo =
-      v('propertyNo', v('malNumber', v('receiptNo', '........../२०......')));
+  final seizureDate = v('seizureDate', v('seizedDate', v('date')));
+  final propertyNo = v('propertyNo', v('malNumber', v('receiptNo')));
 
   final rawItems = (doc['items'] is List)
       ? (doc['items'] as List)
@@ -365,10 +363,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final ioDist = v('ioDist', v('ioDistrict', 'यवतमाळ'));
   final accusedName = v('accusedName',
       '____________________________________________________________________');
-  final seizureDate = v(
-      'seizureDate', v('seizedDate', v('date', '......./ ........./२०.....')));
-  final propertyNo =
-      v('propertyNo', v('malNumber', v('receiptNo', '........../२०......')));
+  final seizureDate = v('seizureDate', v('seizedDate', v('date')));
+  final propertyNo = v('propertyNo', v('malNumber', v('receiptNo')));
 
   final rawItems = (doc['items'] is List)
       ? (doc['items'] as List)
@@ -406,84 +402,128 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final bld = FormImagePdfHelper.mBld(10.5, 1.45);
   final headerTitle = FormImagePdfHelper.mBld(15, 1.3);
 
-  return Container(
-    width: FormImagePdfHelper.a4Width,
-    height: FormImagePdfHelper.a4Height,
-    color: Colors.white,
+  return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Center(
-          child: Text(
-            '-:: मुद्देमाल पावती ::-',
-            style: headerTitle.copyWith(decoration: TextDecoration.underline),
-          ),
+    children: [
+      Center(
+        child: Text(
+          '-:: मुद्देमाल पावती ::-',
+          style: headerTitle.copyWith(decoration: TextDecoration.underline),
         ),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            Text('१) पोलीस स्टेशन   :-  ', style: bld),
-            Expanded(
+      ),
+      const SizedBox(height: 24),
+      Row(
+        children: [
+          Text('१) पोलीस स्टेशन   :-  ', style: bld),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
               child: Text(
                 ps.isNotEmpty ? ps : '______________________',
                 style: reg,
               ),
             ),
-            Text('जिल्हा $dist', style: bld),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Text('२) अप क्रमांक :- ', style: bld),
-            Text(crimeNo, style: reg),
-            const SizedBox(width: 16),
-            Text('कलम ', style: bld),
-            Expanded(
-              child: Text(actSec, style: reg),
+          ),
+          const SizedBox(width: 8),
+          Text('जिल्हा $dist', style: bld),
+        ],
+      ),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Text('२) अप क्रमांक :- ', style: bld),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              crimeNo.isNotEmpty ? crimeNo : '________/२०____',
+              style: reg,
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Text('३) अन्वेषन अधिकारी:- ', style: bld),
-            Expanded(
+          ),
+          const SizedBox(width: 16),
+          Text('कलम ', style: bld),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                actSec.isNotEmpty ? actSec : '____________________________________',
+                style: reg,
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Text('३) अन्वेषन अधिकारी:- ', style: bld),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
               child: Text(
                 ioName.isNotEmpty ? ioName : '______________________',
                 style: reg,
               ),
             ),
-            Text('पोलीस स्टेशन ', style: bld),
-            Text(
+          ),
+          const SizedBox(width: 8),
+          Text('पोलीस स्टेशन ', style: bld),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
               ioPs.isNotEmpty ? ioPs : '________',
               style: reg,
             ),
-            const SizedBox(width: 8),
-            Text('जिल्हा $ioDist', style: bld),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Text('४) आरोपी नांव :- ', style: bld),
-            Expanded(
-              child: Text(accusedName, style: reg),
+          ),
+          const SizedBox(width: 8),
+          Text('जिल्हा $ioDist', style: bld),
+        ],
+      ),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Text('४) आरोपी नांव :- ', style: bld),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                accusedName.isNotEmpty ? accusedName : '________________________________________________',
+                style: reg,
+              ),
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Text('५) जप्त माल दिनांक :- ', style: bld),
-            Text(seizureDate, style: reg),
-            const SizedBox(width: 32),
-            Text('माल नंबर :- ', style: bld),
-            Text(propertyNo, style: reg),
-          ],
-        ),
-        const SizedBox(height: 20),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Text('५) जप्त माल दिनांक :- ', style: bld),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              seizureDate.isNotEmpty ? seizureDate : '________________',
+              style: reg,
+            ),
+          ),
+          const SizedBox(width: 32),
+          Text('माल नंबर :- ', style: bld),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              propertyNo.isNotEmpty ? propertyNo : '________________',
+              style: reg,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 20),
         Table(
           border: TableBorder.all(color: Colors.black87, width: 1),
           columnWidths: const {
@@ -627,6 +667,5 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ),
       ],
-    ),
-  );
+    );
 }
