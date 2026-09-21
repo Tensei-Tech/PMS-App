@@ -93,7 +93,7 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
 
   final dateStr = v('date', '......./ ...../ २०.......');
   final ps = v('policeStation');
-  final district = v('district', 'यवतमाळ');
+  final district = v('district');
 
   pdf.addPage(
     pw.MultiPage(
@@ -117,12 +117,16 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
 
           // ── SUBHEADER ──
           pw.Center(
-            child: pw.Text(
-              'पोलीस स्टेशन :- ____________________जिल्हा $district'.replaceAll(
-                '____________________',
-                ps.isNotEmpty ? ps : '____________________',
-              ),
-              style: bold.copyWith(fontSize: 9.5),
+            child: pw.Row(
+              mainAxisSize: pw.MainAxisSize.min,
+              children: [
+                pw.Text('पोलीस स्टेशन :- ',
+                    style: bold.copyWith(fontSize: 9.5)),
+                pw.Text(ps, style: bold.copyWith(fontSize: 9.5)),
+                pw.SizedBox(width: 32),
+                pw.Text('जिल्हा :- ', style: bold.copyWith(fontSize: 9.5)),
+                pw.Text(district, style: bold.copyWith(fontSize: 9.5)),
+              ],
             ),
           ),
           pw.SizedBox(height: 8),
@@ -278,7 +282,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
 
   final dateStr = v('date', '......./ ...../ २०.......');
   final ps = v('policeStation');
-  final district = v('district', 'यवतमाळ');
+  final district = v('district');
 
   TableRow buildRow(String no, String title, Widget content,
       {bool isHeader = false}) {
@@ -358,12 +362,15 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
 
       // Subheader
       Center(
-        child: Text(
-          'पोलीस स्टेशन :- ____________________जिल्हा $district'.replaceAll(
-            '____________________',
-            ps.isNotEmpty ? ps : '____________________',
-          ),
-          style: FormImagePdfHelper.mBld(10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('पोलीस स्टेशन :- ', style: FormImagePdfHelper.mBld(10)),
+            Text(ps, style: FormImagePdfHelper.mBld(10)),
+            const SizedBox(width: 32),
+            Text('जिल्हा :- ', style: FormImagePdfHelper.mBld(10)),
+            Text(district, style: FormImagePdfHelper.mBld(10)),
+          ],
         ),
       ),
       const SizedBox(height: 6),

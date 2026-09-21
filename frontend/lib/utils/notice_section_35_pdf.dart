@@ -481,34 +481,20 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
-  final p1Ps = v('p1PoliceStation', v('policeStation', '_______________'));
-  final p1Date = v('p1NoticeDate', v('noticeDate', '......./ ......./२०...'));
-  final p1Recipient1 = v(
-      'p1RecipientLine1',
-      v('recipientLine1',
-          '____________________________________________________________________'));
-  final p1Recipient2 = v(
-      'p1RecipientLine2',
-      v('recipientLine2',
-          '____________________________________________________________________'));
-  final p1Recipient3 = v(
-      'p1RecipientLine3',
-      v('recipientLine3',
-          '____________________________________________________________________'));
-  final p1Aadhaar =
-      v('p1AadhaarNo', v('aadhaarNo', '___________________________'));
-  final p1Email = v('p1Email', v('email', '_______________________________'));
+  final p1Ps = v('p1PoliceStation', v('policeStation'));
+  final p1Date = v('p1NoticeDate', v('noticeDate'));
+  final p1Recipient1 = v('p1RecipientLine1', v('recipientLine1'));
+  final p1Recipient2 = v('p1RecipientLine2', v('recipientLine2'));
+  final p1Recipient3 = v('p1RecipientLine3', v('recipientLine3'));
+  final p1Aadhaar = v('p1AadhaarNo', v('aadhaarNo'));
+  final p1Email = v('p1Email', v('email'));
 
-  final p1IncDate =
-      v('p1IncidentDate', v('incidentDate', '....../ ....../२०.....'));
-  final p1IncPs = v('p1IncidentPs', v('incidentPs', '------------------'));
-  final p1CrimeNo = v('p1CrimeNo', v('crimeNo', '........./२०....'));
-  final p1ActSec = v('p1ActSec',
-      v('actSec', '............. ...................................'));
-  final p1AppDate =
-      v('p1AppearanceDate', v('appearanceDate', '....../ ....../२०.....'));
-  final p1AppTime =
-      v('p1AppearanceTime', v('appearanceTime', '......../ .......'));
+  final p1IncDate = v('p1IncidentDate', v('incidentDate'));
+  final p1IncPs = v('p1IncidentPs', v('incidentPs'));
+  final p1CrimeNo = v('p1CrimeNo', v('crimeNo'));
+  final p1ActSec = v('p1ActSec', v('actSec'));
+  final p1AppDate = v('p1AppearanceDate', v('appearanceDate'));
+  final p1AppTime = v('p1AppearanceTime', v('appearanceTime'));
 
   final p1AccusedSig = v('p1AccusedSig', v('accusedSig'));
   final p1IoSig = v('p1IoSig', v('investigatingOfficerSig'));
@@ -526,7 +512,19 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('पोलीस स्टेशन ', style: FormImagePdfHelper.mBld(11)),
-                Text(p1Ps, style: FormImagePdfHelper.valStyle(11)),
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      p1Ps.isEmpty ? ' ' : p1Ps,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: FormImagePdfHelper.valStyle(11),
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 3),
@@ -534,7 +532,10 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
-                Text(p1Date, style: FormImagePdfHelper.valStyle(11)),
+                Text(
+                  p1Date.isEmpty ? ' ' : p1Date,
+                  style: FormImagePdfHelper.valStyle(11),
+                ),
               ],
             ),
           ],
@@ -697,34 +698,21 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
-  final p2Ps = v('p2PoliceStation', v('policeStation', '_______________'));
-  final p2Date = v('p2NoticeDate', v('noticeDate', '......./ ......./२०...'));
-  final p2Recipient1 = v(
-      'p2RecipientLine1',
-      v('recipientLine1',
-          '____________________________________________________________________'));
-  final p2Recipient2 = v(
-      'p2RecipientLine2',
-      v('recipientLine2',
-          '____________________________________________________________________'));
-  final p2Recipient3 = v(
-      'p2RecipientLine3',
-      v('recipientLine3',
-          '____________________________________________________________________'));
+  final p2Ps = v('p2PoliceStation', v('policeStation'));
+  final p2Date = v('p2NoticeDate', v('noticeDate'));
+  final p2Recipient1 = v('p2RecipientLine1', v('recipientLine1'));
+  final p2Recipient2 = v('p2RecipientLine2', v('recipientLine2'));
+  final p2Recipient3 = v('p2RecipientLine3', v('recipientLine3'));
 
-  final p2IncPs = v('p2IncidentPs', v('incidentPs', '------------------'));
+  final p2IncPs = v('p2IncidentPs', v('incidentPs'));
   final p2Dist = v('p2District', v('district', 'यवतमाळ'));
-  final p2CrimeNo = v('p2CrimeNo', v('crimeNo', '........./२०........'));
-  final p2ActSec = v(
-      'p2ActSec',
-      v('actSec',
-          '.................................................................................'));
+  final p2CrimeNo = v('p2CrimeNo', v('crimeNo'));
+  final p2ActSec = v('p2ActSec', v('actSec'));
 
-  final p2CourtDate =
-      v('p2CourtDate', v('courtDate', '......./ ......./२०.....'));
+  final p2CourtDate = v('p2CourtDate', v('courtDate'));
   final p2CourtTime = v('p2CourtTime', '१०:३०');
-  final p2CourtPs = v('p2CourtPs', v('courtPs', '------------------'));
-  final p2CourtName = v('p2CourtName', v('courtName', '------------------'));
+  final p2CourtPs = v('p2CourtPs', v('courtPs'));
+  final p2CourtName = v('p2CourtName', v('courtName'));
 
   final p2IoSig = v('p2IoSig', v('investigatingOfficerSig'));
   final p2AccusedAckSig = v('p2AccusedAckSig');
@@ -742,7 +730,19 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('पोलीस स्टेशन ', style: FormImagePdfHelper.mBld(11)),
-                Text(p2Ps, style: FormImagePdfHelper.valStyle(11)),
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      p2Ps.isEmpty ? ' ' : p2Ps,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: FormImagePdfHelper.valStyle(11),
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 4),
@@ -750,7 +750,10 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
-                Text(p2Date, style: FormImagePdfHelper.valStyle(11)),
+                Text(
+                  p2Date.isEmpty ? ' ' : p2Date,
+                  style: FormImagePdfHelper.valStyle(11),
+                ),
               ],
             ),
           ],

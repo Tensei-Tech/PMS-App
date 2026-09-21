@@ -188,8 +188,10 @@ Widget _bilingualField(String eng, String mr, String val,
 // ─────────────────────────────────────────────────────────────────────────────
 
 Widget _pg1(Map<String, dynamic> doc) {
-  final dist = _v(doc, 'dist');
-  final ps = _v(doc, 'ps');
+  final dist =
+      _v(doc, 'dist').isNotEmpty ? _v(doc, 'dist') : _v(doc, 'district');
+  final ps =
+      _v(doc, 'ps').isNotEmpty ? _v(doc, 'ps') : _v(doc, 'policeStation');
   final year = _v(doc, 'year');
   final firNo = _v(doc, 'firNo');
   final firDate = _v(doc, 'firDate');
@@ -268,13 +270,13 @@ Widget _pg1(Map<String, dynamic> doc) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('1) ', style: _eBld(10)),
-            _bilingualField('District:', 'जिल्हा', dist, width: 110),
+            _bilingualField('District:', 'जिल्हा', dist, width: 95),
+            const SizedBox(width: 20),
+            _bilingualField('P.S.:', 'पोलीस ठाणे', ps, width: 135),
             const SizedBox(width: 8),
-            _bilingualField('P.S.:', 'पोलीस ठाणे', ps, width: 120),
+            _bilingualField('Year:', 'वर्ष', year, width: 65),
             const SizedBox(width: 8),
-            _bilingualField('Year:', 'वर्ष', year, width: 70),
-            const SizedBox(width: 8),
-            _bilingualField('FIR No:', 'गु.र.क्र.', firNo, width: 120),
+            _bilingualField('FIR No:', 'गु.र.क्र.', firNo, width: 110),
             const SizedBox(width: 8),
             _bilingualField('Date:', 'दिनांक', firDate, expand: true),
           ],

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
@@ -769,13 +768,44 @@ class AccusedInterrogationFormViewState
 
   Widget _tableCellInput(
     TextEditingController ctrl,
-    TextStyle serifStyle,
-  ) {
+    TextStyle serifStyle, {
+    String? hintText,
+    int minLines = 1,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      child: BilingualSimpleUnderlineInput(
+      child: TextFormField(
         controller: ctrl,
-        serifStyle: serifStyle.copyWith(fontSize: 11),
+        readOnly: widget.readOnly,
+        minLines: minLines,
+        maxLines: null,
+        keyboardType: TextInputType.multiline,
+        style: serifStyle.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
+        ),
+        decoration: InputDecoration(
+          isDense: true,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          hintText: hintText,
+          hintStyle: serifStyle.copyWith(
+            color: Colors.grey.shade400,
+            fontSize: 11,
+          ),
+          border: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black87, width: 1.5),
+          ),
+        ),
       ),
     );
   }
@@ -791,6 +821,102 @@ class AccusedInterrogationFormViewState
     );
   }
 
+  Future<void> _pickDateForController(
+    BuildContext context,
+    TextEditingController targetCtrl,
+  ) async {
+    if (widget.readOnly) return;
+    DateTime initial = DateTime.now();
+    final raw = targetCtrl.text.trim();
+    if (raw.isNotEmpty) {
+      final parts = raw.split(RegExp(r'[-/.]'));
+      if (parts.length >= 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        int? y = int.tryParse(parts[2]);
+        if (y != null && y < 100) y += 2000;
+        if (d != null && m != null && y != null) {
+          try {
+            initial = DateTime(y, m, d);
+          } catch (_) {}
+        }
+      }
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+      locale: const Locale('en', 'IN'),
+    );
+    if (picked != null) {
+      final dStr = picked.day.toString().padLeft(2, '0');
+      final mStr = picked.month.toString().padLeft(2, '0');
+      final yStr = picked.year.toString();
+      targetCtrl.text = '$dStr/$mStr/$yStr';
+      setState(() {});
+    }
+  }
+
+  Widget _datePickerField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double? width,
+    String hintText = 'DD/MM/YYYY',
+  }) {
+    return SizedBox(
+      width: width,
+      child: InkWell(
+        onTap: widget.readOnly
+            ? null
+            : () => _pickDateForController(context, controller),
+        mouseCursor: widget.readOnly
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        child: IgnorePointer(
+          ignoring: true,
+          child: TextFormField(
+            controller: controller,
+            readOnly: true,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              color: const Color(0xFF0D47A1),
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              fillColor: Colors.transparent,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                color: Colors.grey.shade400,
+                fontSize: 11,
+              ),
+              suffixIcon: const Icon(
+                Icons.calendar_today_outlined,
+                size: 15,
+                color: Colors.black87,
+              ),
+              suffixIconConstraints:
+                  const BoxConstraints(minWidth: 20, minHeight: 20),
+              border: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black54, width: 0.8),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black54, width: 0.8),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildAddressSubGrid({
     required TextEditingController resAddr,
     required TextEditingController taluka,
@@ -802,29 +928,43 @@ class AccusedInterrogationFormViewState
     return Column(
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('रा. ', style: marathiLabelStyle),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('रा. ', style: marathiLabelStyle),
+            ),
             Expanded(
               flex: 3,
               child: _tableCellInput(resAddr, serifStyle),
             ),
-            const SizedBox(width: 8),
-            Text('ता ', style: marathiLabelStyle),
+            const SizedBox(width: 16),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('ता ', style: marathiLabelStyle),
+            ),
             Expanded(
               flex: 2,
               child: _tableCellInput(taluka, serifStyle),
             ),
           ],
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('जिल्हा ', style: marathiLabelStyle),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('जिल्हा ', style: marathiLabelStyle),
+            ),
             Expanded(
               child: _tableCellInput(dist, serifStyle),
             ),
-            const SizedBox(width: 8),
-            Text('राज्य ', style: marathiLabelStyle),
+            const SizedBox(width: 16),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('राज्य ', style: marathiLabelStyle),
+            ),
             Expanded(
               child: _tableCellInput(state, serifStyle),
             ),
@@ -1354,8 +1494,9 @@ class AccusedInterrogationFormViewState
                               const SizedBox(width: 4),
                               Text('जन्म तारीख— ', style: marathiLabelStyle),
                               Expanded(
-                                  child: _tableCellInput(
-                                      _descDobCtrl, serifStyle)),
+                                  child: _datePickerField(
+                                      controller: _descDobCtrl,
+                                      style: serifStyle)),
                             ],
                           ),
                           Row(

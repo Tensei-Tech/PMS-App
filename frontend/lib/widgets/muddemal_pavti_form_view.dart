@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
 import 'form_typography.dart';
@@ -116,6 +115,90 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
     _headMohararSigCtrl.dispose();
     _investigatingOfficerSigCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDateForController(TextEditingController controller) async {
+    if (widget.readOnly) return;
+    DateTime initial = DateTime.now();
+    final raw = controller.text.trim();
+    if (raw.isNotEmpty) {
+      final parts = raw.split('/');
+      if (parts.length == 3) {
+        final d = int.tryParse(parts[0]);
+        final m = int.tryParse(parts[1]);
+        final y = int.tryParse(parts[2]);
+        if (d != null && m != null && y != null) {
+          initial = DateTime(y, m, d);
+        }
+      }
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF1A365D),
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      final day = picked.day.toString().padLeft(2, '0');
+      final month = picked.month.toString().padLeft(2, '0');
+      final year = picked.year.toString();
+      setState(() {
+        controller.text = '$day/$month/$year';
+      });
+    }
+  }
+
+  Widget _datePickerField({
+    required TextEditingController controller,
+    double width = 140,
+    String hintText = 'DD/MM/YYYY',
+  }) {
+    return SizedBox(
+      width: width,
+      child: TextFormField(
+        controller: controller,
+        readOnly: true,
+        onTap: () => _pickDateForController(controller),
+        style:
+            GoogleFonts.notoSansDevanagari(fontSize: 13, color: Colors.black87),
+        decoration: InputDecoration(
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+          hintText: hintText,
+          hintStyle: GoogleFonts.notoSansDevanagari(
+              fontSize: 12, color: Colors.grey.shade400),
+          suffixIcon: InkWell(
+            onTap: () => _pickDateForController(controller),
+            child: const Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 2),
+              child: Icon(Icons.calendar_today_outlined,
+                  size: 16, color: Color(0xFF1A365D)),
+            ),
+          ),
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 20, minHeight: 20),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF1A365D), width: 1.5),
+          ),
+        ),
+      ),
+    );
   }
 
   void _addRow() {
@@ -247,6 +330,168 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
     if (mounted) setState(() {});
   }
 
+  Widget _wrappingUnderlineInput({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 100,
+    double? maxWidth,
+    String? hintText,
+    TextInputType? keyboardType,
+  }) {
+    final effectiveMin = minWidth;
+    final effectiveMax = maxWidth ?? 800.0;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final text =
+            controller.text.isEmpty ? (hintText ?? '') : controller.text;
+        final tp = TextPainter(
+          text: TextSpan(
+            text: text,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout();
+        final measured = tp.width + 20.0;
+        final calcWidth = measured < effectiveMin
+            ? effectiveMin
+            : (measured > effectiveMax ? effectiveMax : measured);
+
+        return SizedBox(
+          width: calcWidth,
+          child: TextFormField(
+            controller: controller,
+            readOnly: widget.readOnly,
+            maxLines: 1,
+            keyboardType: keyboardType ?? TextInputType.text,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+              color: const Color(0xFF0D47A1),
+              height: 1.35,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                color: Colors.grey.shade400,
+                fontSize: 12,
+              ),
+              border: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 140,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    final baseMin = minWidth;
+    final baseMax = maxWidth ?? 600.0;
+    const double baseFontSize = 13.5;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final availableWidth = hasFiniteWidth ? constraints.maxWidth : baseMax;
+
+        return ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
+            final tp = TextPainter(
+              text: TextSpan(
+                text: text,
+                style: style.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: baseFontSize,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+            )..layout();
+
+            double effectiveFontSize = baseFontSize;
+            final double textW = tp.width + 12.0;
+
+            if (hasFiniteWidth &&
+                textW > availableWidth &&
+                availableWidth > 30) {
+              final scale =
+                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+              effectiveFontSize =
+                  (baseFontSize * scale).clamp(8.5, baseFontSize);
+            }
+
+            final double computedWidth = hasFiniteWidth
+                ? availableWidth
+                : (textW < baseMin
+                    ? baseMin
+                    : (textW > baseMax ? baseMax : textW));
+
+            return SizedBox(
+              width: computedWidth,
+              child: TextFormField(
+                controller: controller,
+                readOnly: widget.readOnly,
+                maxLines: 1,
+                scrollPhysics: const ClampingScrollPhysics(),
+                style: style.copyWith(
+                  fontSize: effectiveFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  hintText: hintText,
+                  hintStyle: style.copyWith(
+                    color: Colors.grey.shade400,
+                    fontSize: effectiveFontSize,
+                  ),
+                  border: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF333333), width: 1.0),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF555555), width: 1.0),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final serif = FormTypography.serifStyle();
@@ -272,7 +517,10 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
             const SizedBox(height: 24),
 
             // ── ROW 1: पोलीस स्टेशन ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '१) पोलीस स्टेशन   :-  ',
@@ -281,11 +529,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _psCtrl,
-                    serifStyle: serif,
-                  ),
+                _policeStationField(
+                  controller: _psCtrl,
+                  style: serif,
+                  minWidth: 150,
+                  maxWidth: 350,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -295,18 +543,21 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _distCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _distCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 300,
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── ROW 2: अप क्रमांक व कलम ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '२) अप क्रमांक :- ',
@@ -315,13 +566,12 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 140,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _crimeNoCtrl,
-                    serifStyle: serif,
-                    hintText: '........../२०......',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _crimeNoCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 260,
+                  hintText: '........../२०......',
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -331,18 +581,21 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _actSecCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _actSecCtrl,
+                  style: serif,
+                  minWidth: 200,
+                  maxWidth: 600,
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── ROW 3: अन्वेषन अधिकारी ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '३) अन्वेषन अधिकारी:- ',
@@ -351,11 +604,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _ioNameCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _ioNameCtrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 350,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -365,12 +618,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 120,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _ioPsCtrl,
-                    serifStyle: serif,
-                  ),
+                _policeStationField(
+                  controller: _ioPsCtrl,
+                  style: serif,
+                  minWidth: 130,
+                  maxWidth: 300,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -380,19 +632,21 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 120,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _ioDistCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _ioDistCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 260,
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── ROW 4: आरोपी नांव ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '४) आरोपी नांव :- ',
@@ -401,18 +655,21 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _accusedNameCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _accusedNameCtrl,
+                  style: serif,
+                  minWidth: 260,
+                  maxWidth: 700,
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── ROW 5: जप्त माल दिनांक व माल नंबर ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '५) जप्त माल दिनांक :- ',
@@ -421,13 +678,9 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 160,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _seizureDateCtrl,
-                    serifStyle: serif,
-                    hintText: '......./ ........./२०.....',
-                  ),
+                _datePickerField(
+                  controller: _seizureDateCtrl,
+                  width: 140,
                 ),
                 const SizedBox(width: 24),
                 Text(
@@ -437,13 +690,12 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 140,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _propertyNoCtrl,
-                    serifStyle: serif,
-                    hintText: '........../२०......',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _propertyNoCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 260,
+                  hintText: '........../२०......',
                 ),
               ],
             ),
@@ -722,9 +974,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      BilingualSimpleUnderlineInput(
+                      _wrappingUnderlineInput(
                         controller: _headMohararSigCtrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 160,
+                        maxWidth: 200,
                       ),
                     ],
                   ),
@@ -741,9 +995,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      BilingualSimpleUnderlineInput(
+                      _wrappingUnderlineInput(
                         controller: _investigatingOfficerSigCtrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 160,
+                        maxWidth: 200,
                       ),
                     ],
                   ),
