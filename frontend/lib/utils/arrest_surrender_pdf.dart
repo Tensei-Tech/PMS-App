@@ -200,446 +200,445 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         build: (pw.Context context) {
           return [
-              // Title
-              pw.Center(
-                child: pw.Column(
-                  children: [
-                    pw.Text(
-                      'ARREST/COURT SURRENDER FORM',
-                      style: headerEnglishStyle,
-                    ),
-                    pw.SizedBox(height: 1),
-                    mLbl('title_m1'),
-                    mLbl('title_m2'),
-                    pw.SizedBox(height: 2),
-                    pw.Text(
-                      '(Separate Memo for each accused)',
-                      style: englishBold.copyWith(fontSize: 7.5),
-                    ),
-                    mLbl('title_m3'),
-                  ],
+            // Title
+            pw.Center(
+              child: pw.Column(
+                children: [
+                  pw.Text(
+                    'ARREST/COURT SURRENDER FORM',
+                    style: headerEnglishStyle,
+                  ),
+                  pw.SizedBox(height: 1),
+                  mLbl('title_m1'),
+                  mLbl('title_m2'),
+                  pw.SizedBox(height: 2),
+                  pw.Text(
+                    '(Separate Memo for each accused)',
+                    style: englishBold.copyWith(fontSize: 7.5),
+                  ),
+                  mLbl('title_m3'),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 5),
+
+            // 1
+            pw.Wrap(
+              spacing: 8,
+              runSpacing: 2,
+              children: [
+                buildInlineFieldWithMLbl(
+                  '1.Dist.',
+                  'lbl_dist',
+                  'val_dist',
+                  doc['dist'],
+                  width: 55,
                 ),
-              ),
-              pw.SizedBox(height: 5),
-
-              // 1
-              pw.Wrap(
-                spacing: 8,
-                runSpacing: 2,
-                children: [
-                  buildInlineFieldWithMLbl(
-                    '1.Dist.',
-                    'lbl_dist',
-                    'val_dist',
-                    doc['dist'],
-                    width: 55,
-                  ),
-                  buildInlineFieldWithMLbl(
-                    'P.S.:',
-                    'lbl_ps',
-                    'val_ps',
-                    doc['ps'],
-                    width: 55,
-                  ),
-                  buildInlineFieldWithMLbl(
-                    'FIR/Proceeding/G.D.No:',
-                    'lbl_fir',
-                    'val_fir',
-                    doc['firNo'],
-                    width: 55,
-                  ),
-                  buildInlineFieldWithMLbl(
-                    'Year:-20',
-                    'lbl_year',
-                    'val_year',
-                    doc['year'],
-                    width: 30,
-                  ),
-                  buildInlineFieldWithMLbl(
-                    'Date',
-                    'lbl_date',
-                    'val_date',
-                    doc['date'],
-                    width: 55,
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 3),
-              buildStackedFieldWithMLbl(
-                'Alphanumeric Code of the Accused (Write A1 to A9 for the first 9 persons, B1 for 10 th person and so on).',
-                'lbl_code',
-                'val_code',
-                doc['accusedCode'],
-                width: double.infinity,
-              ),
-              pw.SizedBox(height: 4),
-
-              // 2
-              pw.Wrap(
-                spacing: 8,
-                runSpacing: 2,
-                children: [
-                  buildInlineFieldWithMLbl(
-                    '2. Date, Time & place of Arrest/surrender :- Date',
-                    'lbl_arr_date',
-                    'val_arrDate',
-                    doc['arrestDate'],
-                    width: 55,
-                  ),
-                  buildInlineFieldWithMLbl(
-                    'Time',
-                    'lbl_arr_time',
-                    'val_arrTime',
-                    doc['arrestTime'],
-                    width: 50,
-                  ),
-                  buildInlineFieldWithMLbl(
-                    'G.D.No.',
-                    'lbl_arr_gd',
-                    'val_arrGd',
-                    doc['arrestGdNo'],
-                    width: 50,
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 2),
-              pw.Wrap(
-                spacing: 8,
-                runSpacing: 2,
-                children: [
-                  buildInlineFieldWithMLbl(
-                    'Place of Arrest: - P.S.',
-                    'lbl_arr_ps',
-                    'val_arrPlace',
-                    doc['arrestPlace'],
-                    width: 90,
-                  ),
-                  buildInlineFieldWithMLbl(
-                    'Dist.',
-                    'lbl_arr_dist',
-                    'val_arrDist',
-                    doc['arrestDist'],
-                    width: 70,
-                  ),
-                  buildInlineFieldWithMLbl(
-                    'State.',
-                    'lbl_arr_state',
-                    'val_arrState',
-                    doc['arrestState'],
-                    width: 70,
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 4),
-
-              // 3
-              buildStackedFieldWithMLbl(
-                '3. Name of the Court ( if surrendered) :-',
-                'lbl_court',
-                'val_court',
-                doc['courtName'],
-                width: double.infinity,
-              ),
-              pw.SizedBox(height: 4),
-
-              // 4
-              buildStackedFieldWithMLbl(
-                '4. Acts and sections:-',
-                'lbl_acts',
-                'val_acts',
-                doc['actsSections'],
-                width: double.infinity,
-              ),
-              pw.SizedBox(height: 4),
-
-              // 5
-              pw.Text(
-                '5. Arrested and forward / Arrested and released on bail or PR bound / Arrested but released on anticipatory bail/ Arrested and remanded to police Custody / Surrender in court and bailed out / Surrender in court and sent to judicial Custody / Surrender in court and remanded to police custody (tie applicable potion).',
-                style: englishBold.copyWith(fontSize: 7.5),
-              ),
-              mLbl('lbl_5_m1'),
-              mLbl('lbl_5_m2'),
-              pw.SizedBox(height: 2),
-              pw.Wrap(
-                spacing: 8,
-                runSpacing: 2,
-                children: [
-                  check(
-                    'Arrested and forward',
-                    doc['arrestedAndForwarded'] == true,
-                  ),
-                  check(
-                    'Arrested and released on bail',
-                    doc['arrestedAndBailed'] == true,
-                  ),
-                  check(
-                    'Arrested but released on anticipatory bail',
-                    doc['arrestedButAnticipatory'] == true,
-                  ),
-                  check(
-                    'Arrested and remanded to police Custody',
-                    doc['arrestedAndRemandedPolice'] == true,
-                  ),
-                  check(
-                    'Surrender in court and bailed out',
-                    doc['surrenderBailed'] == true,
-                  ),
-                  check(
-                    'Surrender in court and sent to judicial Custody',
-                    doc['surrenderJudicial'] == true,
-                  ),
-                  check(
-                    'Surrender in court and remanded to police custody',
-                    doc['surrenderPolice'] == true,
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 4),
-
-              // 6
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('6. Particulars of the Accused :-',
-                      style: englishBold),
-                  mLbl('lbl_6_title_m1'),
-                ],
-              ),
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 8),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    buildStackedFieldWithMLbl(
-                      '(i) Name :',
-                      'lbl_6i_m1',
-                      'val_accName',
-                      doc['accusedName'],
-                      width: double.infinity,
-                    ),
-                    pw.SizedBox(height: 2),
-                    buildStackedFieldWithMLbl(
-                      '(ii)Father\'s/Husband\'s/Guardian\'s Name :',
-                      'lbl_6ii_m1',
-                      'val_accFather',
-                      doc['accusedFather'],
-                      width: double.infinity,
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(iii)First Alias :',
-                            'lbl_6iii_m1',
-                            'val_accAlias1',
-                            doc['accusedAlias1'],
-                          ),
-                        ),
-                        pw.SizedBox(width: 12),
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(iv)Second Alias :',
-                            'lbl_6iv_m1',
-                            'val_accAlias2',
-                            doc['accusedAlias2'],
-                          ),
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 2),
-                    buildStackedFieldWithMLbl(
-                      '(v) Nationality :',
-                      'lbl_6v_m1',
-                      'val_accNat',
-                      doc['accusedNationality'],
-                      width: double.infinity,
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(vi) (a) Voter ID Card No: -',
-                            'lbl_6vi_m1',
-                            'val_accVoter',
-                            doc['accusedVoter'],
-                          ),
-                        ),
-                        pw.SizedBox(width: 12),
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(b) *Passport No: -',
-                            'lbl_6vi_m2',
-                            'val_accPass',
-                            doc['accusedPassport'],
-                          ),
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(c) Date of issue :-',
-                            'lbl_6vi_m3',
-                            'val_accDateIss',
-                            doc['accusedDateIssue'],
-                          ),
-                        ),
-                        pw.SizedBox(width: 12),
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(d) *Place of Issue :-',
-                            'lbl_6vi_m4',
-                            'val_accPlaceIss',
-                            doc['accusedPlaceIssue'],
-                          ),
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(vii) Religion: -',
-                            'lbl_6vii_m1',
-                            'val_accRelig',
-                            doc['accusedReligion'],
-                          ),
-                        ),
-                        pw.SizedBox(width: 12),
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(viii) *Cast/Tribe: -',
-                            'lbl_6viii_m1',
-                            'val_accCaste',
-                            doc['accusedCaste'],
-                          ),
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(ix) SC/ST/OBC :-',
-                            'lbl_6ix_m1',
-                            'val_accScSt',
-                            doc['accusedScSt'],
-                          ),
-                        ),
-                        pw.SizedBox(width: 12),
-                        pw.Expanded(
-                          child: buildStackedFieldWithMLbl(
-                            '(x)*Occupation :-',
-                            'lbl_6x_m1',
-                            'val_accOcc',
-                            doc['accusedOccupation'],
-                          ),
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 2),
-                    buildStackedFieldWithMLbl(
-                      '(xi) Permanent Address :-',
-                      'lbl_6xi_m1',
-                      'val_permAddr',
-                      doc['permAddress'],
-                      width: double.infinity,
-                    ),
-                    pw.SizedBox(height: 1),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: buildInlineFieldWithMLbl(
-                            'State :-',
-                            'lbl_state',
-                            'val_permState',
-                            doc['permState'],
-                            width: 70,
-                          ),
-                        ),
-                        pw.SizedBox(width: 8),
-                        pw.Expanded(
-                          child: buildInlineFieldWithMLbl(
-                            'Dist.:-',
-                            'lbl_dist2',
-                            'val_permDist',
-                            doc['permDist'],
-                            width: 70,
-                          ),
-                        ),
-                        pw.SizedBox(width: 8),
-                        pw.Expanded(
-                          child: buildInlineFieldWithMLbl(
-                            'P.S. :-',
-                            'lbl_ps2',
-                            'val_permPs',
-                            doc['permPs'],
-                            width: 70,
-                          ),
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 2),
-                    buildStackedFieldWithMLbl(
-                      '(xii) Present Address:-',
-                      'lbl_6xii_m1',
-                      'val_presAddr',
-                      doc['presAddress'],
-                      width: double.infinity,
-                    ),
-                    pw.SizedBox(height: 1),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: buildInlineFieldWithMLbl(
-                            'State: -',
-                            'lbl_state',
-                            'val_presState',
-                            doc['presState'],
-                            width: 70,
-                          ),
-                        ),
-                        pw.SizedBox(width: 8),
-                        pw.Expanded(
-                          child: buildInlineFieldWithMLbl(
-                            'Dist.:-',
-                            'lbl_dist2',
-                            'val_presDist',
-                            doc['presDist'],
-                            width: 70,
-                          ),
-                        ),
-                        pw.SizedBox(width: 8),
-                        pw.Expanded(
-                          child: buildInlineFieldWithMLbl(
-                            'P.S. :-',
-                            'lbl_ps2',
-                            'val_presPs',
-                            doc['presPs'],
-                            width: 70,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                buildInlineFieldWithMLbl(
+                  'P.S.:',
+                  'lbl_ps',
+                  'val_ps',
+                  doc['ps'],
+                  width: 55,
                 ),
-              ),
-              pw.SizedBox(height: 4),
+                buildInlineFieldWithMLbl(
+                  'FIR/Proceeding/G.D.No:',
+                  'lbl_fir',
+                  'val_fir',
+                  doc['firNo'],
+                  width: 55,
+                ),
+                buildInlineFieldWithMLbl(
+                  'Year:-20',
+                  'lbl_year',
+                  'val_year',
+                  doc['year'],
+                  width: 30,
+                ),
+                buildInlineFieldWithMLbl(
+                  'Date',
+                  'lbl_date',
+                  'val_date',
+                  doc['date'],
+                  width: 55,
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 3),
+            buildStackedFieldWithMLbl(
+              'Alphanumeric Code of the Accused (Write A1 to A9 for the first 9 persons, B1 for 10 th person and so on).',
+              'lbl_code',
+              'val_code',
+              doc['accusedCode'],
+              width: double.infinity,
+            ),
+            pw.SizedBox(height: 4),
 
-              // 7
-              buildStackedFieldWithMLbl(
-                '7. Injuries, cause of injuries and physical condition of the accused person (indicate if medically examined)',
-                'lbl_7_m1',
-                'val_injuries',
-                doc['injuries'],
-                width: double.infinity,
+            // 2
+            pw.Wrap(
+              spacing: 8,
+              runSpacing: 2,
+              children: [
+                buildInlineFieldWithMLbl(
+                  '2. Date, Time & place of Arrest/surrender :- Date',
+                  'lbl_arr_date',
+                  'val_arrDate',
+                  doc['arrestDate'],
+                  width: 55,
+                ),
+                buildInlineFieldWithMLbl(
+                  'Time',
+                  'lbl_arr_time',
+                  'val_arrTime',
+                  doc['arrestTime'],
+                  width: 50,
+                ),
+                buildInlineFieldWithMLbl(
+                  'G.D.No.',
+                  'lbl_arr_gd',
+                  'val_arrGd',
+                  doc['arrestGdNo'],
+                  width: 50,
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 2),
+            pw.Wrap(
+              spacing: 8,
+              runSpacing: 2,
+              children: [
+                buildInlineFieldWithMLbl(
+                  'Place of Arrest: - P.S.',
+                  'lbl_arr_ps',
+                  'val_arrPlace',
+                  doc['arrestPlace'],
+                  width: 90,
+                ),
+                buildInlineFieldWithMLbl(
+                  'Dist.',
+                  'lbl_arr_dist',
+                  'val_arrDist',
+                  doc['arrestDist'],
+                  width: 70,
+                ),
+                buildInlineFieldWithMLbl(
+                  'State.',
+                  'lbl_arr_state',
+                  'val_arrState',
+                  doc['arrestState'],
+                  width: 70,
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 4),
+
+            // 3
+            buildStackedFieldWithMLbl(
+              '3. Name of the Court ( if surrendered) :-',
+              'lbl_court',
+              'val_court',
+              doc['courtName'],
+              width: double.infinity,
+            ),
+            pw.SizedBox(height: 4),
+
+            // 4
+            buildStackedFieldWithMLbl(
+              '4. Acts and sections:-',
+              'lbl_acts',
+              'val_acts',
+              doc['actsSections'],
+              width: double.infinity,
+            ),
+            pw.SizedBox(height: 4),
+
+            // 5
+            pw.Text(
+              '5. Arrested and forward / Arrested and released on bail or PR bound / Arrested but released on anticipatory bail/ Arrested and remanded to police Custody / Surrender in court and bailed out / Surrender in court and sent to judicial Custody / Surrender in court and remanded to police custody (tie applicable potion).',
+              style: englishBold.copyWith(fontSize: 7.5),
+            ),
+            mLbl('lbl_5_m1'),
+            mLbl('lbl_5_m2'),
+            pw.SizedBox(height: 2),
+            pw.Wrap(
+              spacing: 8,
+              runSpacing: 2,
+              children: [
+                check(
+                  'Arrested and forward',
+                  doc['arrestedAndForwarded'] == true,
+                ),
+                check(
+                  'Arrested and released on bail',
+                  doc['arrestedAndBailed'] == true,
+                ),
+                check(
+                  'Arrested but released on anticipatory bail',
+                  doc['arrestedButAnticipatory'] == true,
+                ),
+                check(
+                  'Arrested and remanded to police Custody',
+                  doc['arrestedAndRemandedPolice'] == true,
+                ),
+                check(
+                  'Surrender in court and bailed out',
+                  doc['surrenderBailed'] == true,
+                ),
+                check(
+                  'Surrender in court and sent to judicial Custody',
+                  doc['surrenderJudicial'] == true,
+                ),
+                check(
+                  'Surrender in court and remanded to police custody',
+                  doc['surrenderPolice'] == true,
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 4),
+
+            // 6
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('6. Particulars of the Accused :-', style: englishBold),
+                mLbl('lbl_6_title_m1'),
+              ],
+            ),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 8),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  buildStackedFieldWithMLbl(
+                    '(i) Name :',
+                    'lbl_6i_m1',
+                    'val_accName',
+                    doc['accusedName'],
+                    width: double.infinity,
+                  ),
+                  pw.SizedBox(height: 2),
+                  buildStackedFieldWithMLbl(
+                    '(ii)Father\'s/Husband\'s/Guardian\'s Name :',
+                    'lbl_6ii_m1',
+                    'val_accFather',
+                    doc['accusedFather'],
+                    width: double.infinity,
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(iii)First Alias :',
+                          'lbl_6iii_m1',
+                          'val_accAlias1',
+                          doc['accusedAlias1'],
+                        ),
+                      ),
+                      pw.SizedBox(width: 12),
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(iv)Second Alias :',
+                          'lbl_6iv_m1',
+                          'val_accAlias2',
+                          doc['accusedAlias2'],
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 2),
+                  buildStackedFieldWithMLbl(
+                    '(v) Nationality :',
+                    'lbl_6v_m1',
+                    'val_accNat',
+                    doc['accusedNationality'],
+                    width: double.infinity,
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(vi) (a) Voter ID Card No: -',
+                          'lbl_6vi_m1',
+                          'val_accVoter',
+                          doc['accusedVoter'],
+                        ),
+                      ),
+                      pw.SizedBox(width: 12),
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(b) *Passport No: -',
+                          'lbl_6vi_m2',
+                          'val_accPass',
+                          doc['accusedPassport'],
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(c) Date of issue :-',
+                          'lbl_6vi_m3',
+                          'val_accDateIss',
+                          doc['accusedDateIssue'],
+                        ),
+                      ),
+                      pw.SizedBox(width: 12),
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(d) *Place of Issue :-',
+                          'lbl_6vi_m4',
+                          'val_accPlaceIss',
+                          doc['accusedPlaceIssue'],
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(vii) Religion: -',
+                          'lbl_6vii_m1',
+                          'val_accRelig',
+                          doc['accusedReligion'],
+                        ),
+                      ),
+                      pw.SizedBox(width: 12),
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(viii) *Cast/Tribe: -',
+                          'lbl_6viii_m1',
+                          'val_accCaste',
+                          doc['accusedCaste'],
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(ix) SC/ST/OBC :-',
+                          'lbl_6ix_m1',
+                          'val_accScSt',
+                          doc['accusedScSt'],
+                        ),
+                      ),
+                      pw.SizedBox(width: 12),
+                      pw.Expanded(
+                        child: buildStackedFieldWithMLbl(
+                          '(x)*Occupation :-',
+                          'lbl_6x_m1',
+                          'val_accOcc',
+                          doc['accusedOccupation'],
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 2),
+                  buildStackedFieldWithMLbl(
+                    '(xi) Permanent Address :-',
+                    'lbl_6xi_m1',
+                    'val_permAddr',
+                    doc['permAddress'],
+                    width: double.infinity,
+                  ),
+                  pw.SizedBox(height: 1),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: buildInlineFieldWithMLbl(
+                          'State :-',
+                          'lbl_state',
+                          'val_permState',
+                          doc['permState'],
+                          width: 70,
+                        ),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        child: buildInlineFieldWithMLbl(
+                          'Dist.:-',
+                          'lbl_dist2',
+                          'val_permDist',
+                          doc['permDist'],
+                          width: 70,
+                        ),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        child: buildInlineFieldWithMLbl(
+                          'P.S. :-',
+                          'lbl_ps2',
+                          'val_permPs',
+                          doc['permPs'],
+                          width: 70,
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 2),
+                  buildStackedFieldWithMLbl(
+                    '(xii) Present Address:-',
+                    'lbl_6xii_m1',
+                    'val_presAddr',
+                    doc['presAddress'],
+                    width: double.infinity,
+                  ),
+                  pw.SizedBox(height: 1),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: buildInlineFieldWithMLbl(
+                          'State: -',
+                          'lbl_state',
+                          'val_presState',
+                          doc['presState'],
+                          width: 70,
+                        ),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        child: buildInlineFieldWithMLbl(
+                          'Dist.:-',
+                          'lbl_dist2',
+                          'val_presDist',
+                          doc['presDist'],
+                          width: 70,
+                        ),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        child: buildInlineFieldWithMLbl(
+                          'P.S. :-',
+                          'lbl_ps2',
+                          'val_presPs',
+                          doc['presPs'],
+                          width: 70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
+            ),
+            pw.SizedBox(height: 4),
+
+            // 7
+            buildStackedFieldWithMLbl(
+              '7. Injuries, cause of injuries and physical condition of the accused person (indicate if medically examined)',
+              'lbl_7_m1',
+              'val_injuries',
+              doc['injuries'],
+              width: double.infinity,
+            ),
           ];
         },
       ),
@@ -655,147 +654,147 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         build: (pw.Context context) {
           return [
-              pw.Align(
-                alignment: pw.Alignment.centerRight,
-                child: pw.Text('From: 3-B', style: englishBold),
-              ),
-              pw.SizedBox(height: 8),
+            pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text('From: 3-B', style: englishBold),
+            ),
+            pw.SizedBox(height: 8),
 
-              // 8
-              pw.Text(
-                '8. The accused, after vying informed of the grounds of arrest and his leagal rights, was duty taken. Into custody',
-                style: englishBold,
-              ),
-              pw.Wrap(
-                crossAxisAlignment: pw.WrapCrossAlignment.end,
-                children: [
-                  pw.Text('on :', style: englishBold),
-                  pw.Container(
-                    width: 80,
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                    ),
-                    child: renderText(
-                      'val_cusDate',
-                      doc['custodyDate'],
-                      englishStyle,
-                    ),
+            // 8
+            pw.Text(
+              '8. The accused, after vying informed of the grounds of arrest and his leagal rights, was duty taken. Into custody',
+              style: englishBold,
+            ),
+            pw.Wrap(
+              crossAxisAlignment: pw.WrapCrossAlignment.end,
+              children: [
+                pw.Text('on :', style: englishBold),
+                pw.Container(
+                  width: 80,
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
                   ),
-                  pw.Text(' (date) at :', style: englishBold),
-                  pw.Container(
-                    width: 80,
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                    ),
-                    child: renderText(
-                      'val_cusHours',
-                      doc['custodyHours'],
-                      englishStyle,
-                    ),
+                  child: renderText(
+                    'val_cusDate',
+                    doc['custodyDate'],
+                    englishStyle,
                   ),
-                  pw.Text(' (hours) at :', style: englishBold),
-                  pw.Container(
-                    width: 120,
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                    ),
-                    child: renderText(
-                      'val_cusPlace',
-                      doc['custodyPlace'],
-                      englishStyle,
-                    ),
+                ),
+                pw.Text(' (date) at :', style: englishBold),
+                pw.Container(
+                  width: 80,
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
                   ),
-                  pw.Text('(place).', style: englishBold),
-                ],
-              ),
-              mLbl('lbl_8_m1'),
-              mLbl('lbl_8_m2'),
-              pw.SizedBox(height: 8),
+                  child: renderText(
+                    'val_cusHours',
+                    doc['custodyHours'],
+                    englishStyle,
+                  ),
+                ),
+                pw.Text(' (hours) at :', style: englishBold),
+                pw.Container(
+                  width: 120,
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+                  ),
+                  child: renderText(
+                    'val_cusPlace',
+                    doc['custodyPlace'],
+                    englishStyle,
+                  ),
+                ),
+                pw.Text('(place).', style: englishBold),
+              ],
+            ),
+            mLbl('lbl_8_m1'),
+            mLbl('lbl_8_m2'),
+            pw.SizedBox(height: 8),
 
-              pw.Text(
-                'The following article(s) was/were found on physical search. Conducted on the person of the accused. And were taken into possession for which a receipt was given to the accused. **',
-                style: englishBold,
-              ),
-              mLbl('lbl_8_m3'),
-              pw.SizedBox(height: 8),
+            pw.Text(
+              'The following article(s) was/were found on physical search. Conducted on the person of the accused. And were taken into possession for which a receipt was given to the accused. **',
+              style: englishBold,
+            ),
+            mLbl('lbl_8_m3'),
+            pw.SizedBox(height: 8),
 
-              pw.Row(
-                children: [
-                  pw.Expanded(
-                    child: field('1 ', 'val_art1', doc['article1'], width: 150),
-                  ),
-                  pw.Expanded(
-                    child: field('2 ', 'val_art2', doc['article2'], width: 150),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 4),
-              pw.Row(
-                children: [
-                  pw.Expanded(
-                    child: field('3 ', 'val_art3', doc['article3'], width: 150),
-                  ),
-                  pw.Expanded(
-                    child: field('4 ', 'val_art4', doc['article4'], width: 150),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 4),
-              pw.Row(
-                children: [
-                  pw.Expanded(
-                    child: field('5 ', 'val_art5', doc['article5'], width: 150),
-                  ),
-                  pw.Expanded(
-                    child: field('6 ', 'val_art6', doc['article6'], width: 150),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 12),
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: field('1 ', 'val_art1', doc['article1'], width: 150),
+                ),
+                pw.Expanded(
+                  child: field('2 ', 'val_art2', doc['article2'], width: 150),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 4),
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: field('3 ', 'val_art3', doc['article3'], width: 150),
+                ),
+                pw.Expanded(
+                  child: field('4 ', 'val_art4', doc['article4'], width: 150),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 4),
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: field('5 ', 'val_art5', doc['article5'], width: 150),
+                ),
+                pw.Expanded(
+                  child: field('6 ', 'val_art6', doc['article6'], width: 150),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 12),
 
-              pw.Text(
-                'Necessary wearing apparels were left on the accused for the sake of human dignity and body protection',
-                style: englishBold,
-              ),
-              mLbl('lbl_8_m4'),
-              pw.SizedBox(height: 8),
-              pw.Text(
-                'The accused was cautioned to keep him/herself covered for purpose of identification.',
-                style: englishBold,
-              ),
-              mLbl('lbl_8_m5'),
-              pw.SizedBox(height: 8),
+            pw.Text(
+              'Necessary wearing apparels were left on the accused for the sake of human dignity and body protection',
+              style: englishBold,
+            ),
+            mLbl('lbl_8_m4'),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              'The accused was cautioned to keep him/herself covered for purpose of identification.',
+              style: englishBold,
+            ),
+            mLbl('lbl_8_m5'),
+            pw.SizedBox(height: 8),
 
-              pw.Row(
-                children: [
-                  field(
-                    'Intimation given to Name: ',
-                    'val_intName',
-                    doc['intimationName'],
-                    width: 150,
-                  ),
-                  pw.SizedBox(width: 16),
-                  field(
-                    '(Relationship):',
-                    'val_intRel',
-                    doc['intimationRel'],
-                    width: 100,
-                  ),
-                ],
-              ),
-              pw.Row(
-                children: [
-                  mLbl('lbl_8_m6'),
-                  pw.SizedBox(width: 150),
-                  mLbl('lbl_8_m7'),
-                ],
-              ),
-              pw.SizedBox(height: 8),
-              pw.Text(
-                '** If no article found, NIL, may be indicated in the bland space provided below:-',
-                style: englishBold,
-              ),
-              mLbl('lbl_8_m8'),
+            pw.Row(
+              children: [
+                field(
+                  'Intimation given to Name: ',
+                  'val_intName',
+                  doc['intimationName'],
+                  width: 150,
+                ),
+                pw.SizedBox(width: 16),
+                field(
+                  '(Relationship):',
+                  'val_intRel',
+                  doc['intimationRel'],
+                  width: 100,
+                ),
+              ],
+            ),
+            pw.Row(
+              children: [
+                mLbl('lbl_8_m6'),
+                pw.SizedBox(width: 150),
+                mLbl('lbl_8_m7'),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              '** If no article found, NIL, may be indicated in the bland space provided below:-',
+              style: englishBold,
+            ),
+            mLbl('lbl_8_m8'),
           ];
         },
       ),
@@ -809,91 +808,91 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         build: (pw.Context context) {
           return [
-              pw.Align(
-                alignment: pw.Alignment.centerRight,
-                child: pw.Text('From: 3-B (cont.)', style: englishBold),
-              ),
-              pw.SizedBox(height: 8),
-              pw.Text(
-                '9. Physical features, deformities and other details of the accused:-',
-                style: englishBold,
-              ),
-              mLbl('lbl_9_m1'),
-              pw.SizedBox(height: 8),
-              _buildPdfTable(
-                headers: [
-                  'Sr. No.\nअ.क्र.',
-                  'Sex\nलिंग',
-                  'Date/year of\nBirth\nजन्म तारीख/\nवर्ष',
-                  'Build\nबांधा',
-                  'Height in\nCms.\nउंची से.मी.',
-                  'Complexion\nवर्ण',
-                  'identification\n(Mark)\nओळखचिन्ह',
-                  'Deformities\nPeculiarities\nव्यंग व\nवैशिष्टे',
-                  'Teeth\nदात',
-                  'Hair\nकेस',
-                ],
-                colIndices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                doc: doc,
-                cache: cache,
-                englishStyle: englishStyle,
-                englishBold: englishBold,
-              ),
-              pw.SizedBox(height: 10),
-              _buildPdfTable(
-                headers: [
-                  'Eye\nडोळे',
-                  'Habits\nसवयी',
-                  'Dress\nHabits\nपोषाखाच्या\nसवयी',
-                  'Languages\nबोली/ भाषा',
-                  'Burn Mark\nभाजल्याच्या\nखुणा',
-                  'Leucoderma\nकोळ',
-                  'Mole\nतिळ',
-                  'Scar\nवण',
-                  'Tattoo\nगोंदण',
-                  'Forehead\nकपाळ',
-                ],
-                colIndices: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-                doc: doc,
-                cache: cache,
-                englishStyle: englishStyle,
-                englishBold: englishBold,
-              ),
-              pw.SizedBox(height: 10),
-              _buildPdfTable(
-                headers: [
-                  'Ear\nकान',
-                  'Noes\nनाक',
-                  'Moustaches\nमिशी',
-                  'Speech/voice\nबोलण्याची पध्दत',
-                  'Face\nचेहरा',
-                  'Lips\nओठ',
-                ],
-                colIndices: [21, 22, 23, 24, 25, 26],
-                doc: doc,
-                cache: cache,
-                englishStyle: englishStyle,
-                englishBold: englishBold,
-              ),
-              pw.SizedBox(height: 12),
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.end,
-                children: [
-                  pw.Text('Other features if any: ', style: englishBold),
-                  pw.Expanded(
-                    child: pw.Container(
-                      decoration: const pw.BoxDecoration(
-                        border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                      ),
-                      child: renderText(
-                        'val_otherFeatures',
-                        doc['otherFeatures']?.toString(),
-                        englishStyle,
-                      ),
+            pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text('From: 3-B (cont.)', style: englishBold),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              '9. Physical features, deformities and other details of the accused:-',
+              style: englishBold,
+            ),
+            mLbl('lbl_9_m1'),
+            pw.SizedBox(height: 8),
+            _buildPdfTable(
+              headers: [
+                'Sr. No.\nअ.क्र.',
+                'Sex\nलिंग',
+                'Date/year of\nBirth\nजन्म तारीख/\nवर्ष',
+                'Build\nबांधा',
+                'Height in\nCms.\nउंची से.मी.',
+                'Complexion\nवर्ण',
+                'identification\n(Mark)\nओळखचिन्ह',
+                'Deformities\nPeculiarities\nव्यंग व\nवैशिष्टे',
+                'Teeth\nदात',
+                'Hair\nकेस',
+              ],
+              colIndices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+              doc: doc,
+              cache: cache,
+              englishStyle: englishStyle,
+              englishBold: englishBold,
+            ),
+            pw.SizedBox(height: 10),
+            _buildPdfTable(
+              headers: [
+                'Eye\nडोळे',
+                'Habits\nसवयी',
+                'Dress\nHabits\nपोषाखाच्या\nसवयी',
+                'Languages\nबोली/ भाषा',
+                'Burn Mark\nभाजल्याच्या\nखुणा',
+                'Leucoderma\nकोळ',
+                'Mole\nतिळ',
+                'Scar\nवण',
+                'Tattoo\nगोंदण',
+                'Forehead\nकपाळ',
+              ],
+              colIndices: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+              doc: doc,
+              cache: cache,
+              englishStyle: englishStyle,
+              englishBold: englishBold,
+            ),
+            pw.SizedBox(height: 10),
+            _buildPdfTable(
+              headers: [
+                'Ear\nकान',
+                'Noes\nनाक',
+                'Moustaches\nमिशी',
+                'Speech/voice\nबोलण्याची पध्दत',
+                'Face\nचेहरा',
+                'Lips\nओठ',
+              ],
+              colIndices: [21, 22, 23, 24, 25, 26],
+              doc: doc,
+              cache: cache,
+              englishStyle: englishStyle,
+              englishBold: englishBold,
+            ),
+            pw.SizedBox(height: 12),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text('Other features if any: ', style: englishBold),
+                pw.Expanded(
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+                    ),
+                    child: renderText(
+                      'val_otherFeatures',
+                      doc['otherFeatures']?.toString(),
+                      englishStyle,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
           ];
         },
       ),
@@ -909,416 +908,417 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         build: (pw.Context context) {
           return [
-              pw.Align(
-                alignment: pw.Alignment.centerRight,
-                child: pw.Text('From: 3-C', style: englishBold),
-              ),
-              pw.SizedBox(height: 4),
+            pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text('From: 3-C', style: englishBold),
+            ),
+            pw.SizedBox(height: 4),
 
-              // 10
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.end,
+            // 10
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      '10. Whether finger print taken or not? :',
+                      style: englishBold,
+                    ),
+                    mLbl('lbl_10_m1'),
+                  ],
+                ),
+                pw.SizedBox(width: 8),
+                pw.Expanded(
+                  child: pw.Container(
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+                    ),
+                    child: pw.Text(
+                      doc['fingerprintTaken'] == true ? 'Yes' : 'No',
+                      style: englishStyle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 5),
+
+            // 11
+            pw.Text(
+              '11. Socio-economic profile of the accused showing.',
+              style: englishBold,
+            ),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 8),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Column(
+                  pw.Text(
+                    '(a) Living Status: - Living alone/Living with Family/with Associate in Pucca House/Hotel/ Hostel/',
+                    style: englishBold.copyWith(fontSize: 7.5),
+                  ),
+                  pw.Text(
+                    '                                 Kacheha House / Thatehed House / Slum/ Homeless/ Harbourer.',
+                    style: englishBold.copyWith(fontSize: 7.5),
+                  ),
+                  mLbl('lbl_11a_m1'),
+                  mLbl('lbl_11a_m2'),
+                  pw.SizedBox(height: 2),
+                  pw.Wrap(
+                    spacing: 8,
+                    runSpacing: 2,
+                    children: [
+                      check('Living alone', doc['livingAlone'] == true),
+                      check(
+                        'Living with Family',
+                        doc['livingWithFamily'] == true,
+                      ),
+                      check(
+                        'with Associate',
+                        doc['livingWithAssociate'] == true,
+                      ),
+                      check('Pucca House', doc['livingPucca'] == true),
+                      check('Hotel', doc['livingHotel'] == true),
+                      check('Hostel', doc['livingHostel'] == true),
+                      check('Kacheha House', doc['livingKachcha'] == true),
+                      check('Thatehed House', doc['livingThatched'] == true),
+                      check('Slum', doc['livingSlum'] == true),
+                      check('Homeless', doc['livingHomeless'] == true),
+                      check('Harbourer', doc['livingHarbourer'] == true),
+                    ],
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: buildInlineFieldWithMLbl(
+                          '(b)Educational qualifications(s)',
+                          'lbl_11b_m1',
+                          'val_edu',
+                          doc['eduQual'],
+                          width: 100,
+                        ),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        child: buildInlineFieldWithMLbl(
+                          '(c) occupation',
+                          'lbl_11c_m1',
+                          'val_occ2',
+                          doc['occupation2'],
+                          width: 100,
+                        ),
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Text('(d) Income Group :-', style: englishBold),
+                  mLbl('lbl_11d_m1'),
+                  pw.SizedBox(height: 2),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: check('', doc['incomeLower'] == true,
+                            isMarathi: true, mKey: 'lbl_11di_m1'),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        child: check('', doc['incomeLowerMid'] == true,
+                            isMarathi: true, mKey: 'lbl_11dii_m1'),
+                      ),
+                    ],
+                  ),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: check('', doc['incomeMiddle'] == true,
+                            isMarathi: true, mKey: 'lbl_11diii_m1'),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        child: check('', doc['incomeUpperMid'] == true,
+                            isMarathi: true, mKey: 'lbl_11div_m1'),
+                      ),
+                    ],
+                  ),
+                  pw.Row(
+                    children: [
+                      pw.Expanded(
+                        child: check('', doc['incomeUpperMid2'] == true,
+                            isMarathi: true, mKey: 'lbl_11dv_m1'),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        child: check('', doc['incomeUpper'] == true,
+                            isMarathi: true, mKey: 'lbl_11dvi_m1'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 5),
+
+            // 12
+            pw.Text(
+              '12. Whether the accused person as per the observations and known police records:',
+              style: englishBold,
+            ),
+            mLbl('lbl_12_m1'),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 8),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  _yesNoRow(
+                    '(a) Is dangerous ?',
+                    'lbl_12a_m1',
+                    doc['isDangerous'] == true,
+                    englishStyle,
+                    englishBold,
+                    mLbl,
+                  ),
+                  _yesNoRow(
+                    '(b) Previously escaped any bail ?',
+                    'lbl_12b_m1',
+                    doc['prevEscaped'] == true,
+                    englishStyle,
+                    englishBold,
+                    mLbl,
+                  ),
+                  _yesNoRow(
+                    '(c) Is generally armed?',
+                    'lbl_12c_m1',
+                    doc['generallyArmed'] == true,
+                    englishStyle,
+                    englishBold,
+                    mLbl,
+                  ),
+                  _yesNoRow(
+                    '(d) Operates with accomplices?',
+                    'lbl_12d_m1',
+                    doc['operatesWithAccomplices'] == true,
+                    englishStyle,
+                    englishBold,
+                    mLbl,
+                  ),
+                  _yesNoRow(
+                    '(e) Has past criminal records ?',
+                    'lbl_12e_m1',
+                    doc['pastCriminal'] == true,
+                    englishStyle,
+                    englishBold,
+                    mLbl,
+                  ),
+                  _yesNoRow(
+                    '(f) Is recidivism',
+                    'lbl_12f_m1',
+                    doc['isRecidivism'] == true,
+                    englishStyle,
+                    englishBold,
+                    mLbl,
+                  ),
+                  _yesNoRow(
+                    '(g) Is likely to escape bail ?',
+                    'lbl_12g_m1',
+                    doc['likelyToEscape'] == true,
+                    englishStyle,
+                    englishBold,
+                    mLbl,
+                  ),
+                  _yesNoRow(
+                    '(h) Is released on bail. Likely to commit crime or threaten victims/witnesses.',
+                    '',
+                    doc['releasedOnBail'] == true,
+                    englishStyle,
+                    englishBold,
+                    mLbl,
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(left: 8),
+                    child: mLbl('lbl_12h_m1'),
+                  ),
+                  _yesNoRow(
+                    '(i) Is wanted many other case?',
+                    'lbl_12i_m1',
+                    doc['wantedMany'] == true,
+                    englishStyle,
+                    englishBold,
+                    mLbl,
+                  ),
+                  pw.Row(
+                    children: [
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('(If yes give case ref. Sec.)',
+                              style: englishStyle),
+                          mLbl('lbl_12i_m2'),
+                        ],
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Expanded(
+                        child: pw.Container(
+                          decoration: const pw.BoxDecoration(
+                            border: pw.Border(
+                              bottom: pw.BorderSide(width: 0.5),
+                            ),
+                          ),
+                          child: renderText(
+                            'val_caseRef',
+                            doc['caseRefSec'],
+                            englishStyle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 5),
+
+            // 13
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: buildInlineFieldWithMLbl(
+                    '13. ',
+                    'lbl_13_m1',
+                    'val_p1Name',
+                    doc['panch1Name'],
+                  ),
+                ),
+                pw.Expanded(
+                  child: buildInlineFieldWithMLbl(
+                    '',
+                    'lbl_13_m2',
+                    'val_p1Sig',
+                    doc['panch1Sig'],
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 2),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'Name and Address of the witnesses/Panchas (At Least one witness necessary)',
+                  style: englishBold.copyWith(fontSize: 7.5),
+                ),
+                pw.Text('Signature\n',
+                    style: englishBold.copyWith(fontSize: 7.5)),
+              ],
+            ),
+            pw.SizedBox(height: 2),
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: field('(2):', 'val_p2Name', doc['panch2Name']),
+                ),
+                pw.Expanded(
+                  child: buildInlineFieldWithMLbl(
+                    '',
+                    'lbl_13_m3',
+                    'val_p2Sig',
+                    doc['panch2Sig'],
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 5),
+
+            // 14 & 15
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Expanded(
+                  child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        '10. Whether finger print taken or not? :',
+                        '14. Signature and Thumb hapression of Arrested person',
                         style: englishBold,
                       ),
-                      mLbl('lbl_10_m1'),
+                      mLbl('lbl_14_m1'),
+                      pw.SizedBox(height: 4),
+                      field(
+                        ':',
+                        'val_arrSig',
+                        doc['arrestedPersonSig'],
+                        width: 130,
+                      ),
+                      pw.SizedBox(height: 6),
+                      pw.Text('15.', style: englishBold),
+                      buildInlineFieldWithMLbl(
+                        'Place: ',
+                        'lbl_15_m1',
+                        'val_fPlace',
+                        doc['finalPlace'],
+                        width: 90,
+                      ),
+                      pw.SizedBox(height: 3),
+                      buildInlineFieldWithMLbl(
+                        'Date: ',
+                        'lbl_15_m2',
+                        'val_fDate',
+                        doc['finalDate'],
+                        width: 90,
+                      ),
                     ],
                   ),
-                  pw.SizedBox(width: 8),
-                  pw.Expanded(
-                    child: pw.Container(
-                      decoration: const pw.BoxDecoration(
-                        border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                      ),
-                      child: pw.Text(
-                        doc['fingerprintTaken'] == true ? 'Yes' : 'No',
-                        style: englishStyle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 5),
-
-              // 11
-              pw.Text(
-                '11. Socio-economic profile of the accused showing.',
-                style: englishBold,
-              ),
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 8),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      '(a) Living Status: - Living alone/Living with Family/with Associate in Pucca House/Hotel/ Hostel/',
-                      style: englishBold.copyWith(fontSize: 7.5),
-                    ),
-                    pw.Text(
-                      '                                 Kacheha House / Thatehed House / Slum/ Homeless/ Harbourer.',
-                      style: englishBold.copyWith(fontSize: 7.5),
-                    ),
-                    mLbl('lbl_11a_m1'),
-                    mLbl('lbl_11a_m2'),
-                    pw.SizedBox(height: 2),
-                    pw.Wrap(
-                      spacing: 8,
-                      runSpacing: 2,
-                      children: [
-                        check('Living alone', doc['livingAlone'] == true),
-                        check(
-                          'Living with Family',
-                          doc['livingWithFamily'] == true,
-                        ),
-                        check(
-                          'with Associate',
-                          doc['livingWithAssociate'] == true,
-                        ),
-                        check('Pucca House', doc['livingPucca'] == true),
-                        check('Hotel', doc['livingHotel'] == true),
-                        check('Hostel', doc['livingHostel'] == true),
-                        check('Kacheha House', doc['livingKachcha'] == true),
-                        check('Thatehed House', doc['livingThatched'] == true),
-                        check('Slum', doc['livingSlum'] == true),
-                        check('Homeless', doc['livingHomeless'] == true),
-                        check('Harbourer', doc['livingHarbourer'] == true),
-                      ],
-                    ),
-                    pw.SizedBox(height: 4),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: buildInlineFieldWithMLbl(
-                            '(b)Educational qualifications(s)',
-                            'lbl_11b_m1',
-                            'val_edu',
-                            doc['eduQual'],
-                            width: 100,
-                          ),
-                        ),
-                        pw.SizedBox(width: 8),
-                        pw.Expanded(
-                          child: buildInlineFieldWithMLbl(
-                            '(c) occupation',
-                            'lbl_11c_m1',
-                            'val_occ2',
-                            doc['occupation2'],
-                            width: 100,
-                          ),
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 4),
-                    pw.Text('(d) Income Group :-', style: englishBold),
-                    mLbl('lbl_11d_m1'),
-                    pw.SizedBox(height: 2),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: check('', doc['incomeLower'] == true,
-                              isMarathi: true, mKey: 'lbl_11di_m1'),
-                        ),
-                        pw.SizedBox(width: 8),
-                        pw.Expanded(
-                          child: check('', doc['incomeLowerMid'] == true,
-                              isMarathi: true, mKey: 'lbl_11dii_m1'),
-                        ),
-                      ],
-                    ),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: check('', doc['incomeMiddle'] == true,
-                              isMarathi: true, mKey: 'lbl_11diii_m1'),
-                        ),
-                        pw.SizedBox(width: 8),
-                        pw.Expanded(
-                          child: check('', doc['incomeUpperMid'] == true,
-                              isMarathi: true, mKey: 'lbl_11div_m1'),
-                        ),
-                      ],
-                    ),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(
-                          child: check('', doc['incomeUpperMid2'] == true,
-                              isMarathi: true, mKey: 'lbl_11dv_m1'),
-                        ),
-                        pw.SizedBox(width: 8),
-                        pw.Expanded(
-                          child: check('', doc['incomeUpper'] == true,
-                              isMarathi: true, mKey: 'lbl_11dvi_m1'),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
-              ),
-              pw.SizedBox(height: 5),
-
-              // 12
-              pw.Text(
-                '12. Whether the accused person as per the observations and known police records:',
-                style: englishBold,
-              ),
-              mLbl('lbl_12_m1'),
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 8),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    _yesNoRow(
-                      '(a) Is dangerous ?',
-                      'lbl_12a_m1',
-                      doc['isDangerous'] == true,
-                      englishStyle,
-                      englishBold,
-                      mLbl,
-                    ),
-                    _yesNoRow(
-                      '(b) Previously escaped any bail ?',
-                      'lbl_12b_m1',
-                      doc['prevEscaped'] == true,
-                      englishStyle,
-                      englishBold,
-                      mLbl,
-                    ),
-                    _yesNoRow(
-                      '(c) Is generally armed?',
-                      'lbl_12c_m1',
-                      doc['generallyArmed'] == true,
-                      englishStyle,
-                      englishBold,
-                      mLbl,
-                    ),
-                    _yesNoRow(
-                      '(d) Operates with accomplices?',
-                      'lbl_12d_m1',
-                      doc['operatesWithAccomplices'] == true,
-                      englishStyle,
-                      englishBold,
-                      mLbl,
-                    ),
-                    _yesNoRow(
-                      '(e) Has past criminal records ?',
-                      'lbl_12e_m1',
-                      doc['pastCriminal'] == true,
-                      englishStyle,
-                      englishBold,
-                      mLbl,
-                    ),
-                    _yesNoRow(
-                      '(f) Is recidivism',
-                      'lbl_12f_m1',
-                      doc['isRecidivism'] == true,
-                      englishStyle,
-                      englishBold,
-                      mLbl,
-                    ),
-                    _yesNoRow(
-                      '(g) Is likely to escape bail ?',
-                      'lbl_12g_m1',
-                      doc['likelyToEscape'] == true,
-                      englishStyle,
-                      englishBold,
-                      mLbl,
-                    ),
-                    _yesNoRow(
-                      '(h) Is released on bail. Likely to commit crime or threaten victims/witnesses.',
-                      '',
-                      doc['releasedOnBail'] == true,
-                      englishStyle,
-                      englishBold,
-                      mLbl,
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.only(left: 8),
-                      child: mLbl('lbl_12h_m1'),
-                    ),
-                    _yesNoRow(
-                      '(i) Is wanted many other case?',
-                      'lbl_12i_m1',
-                      doc['wantedMany'] == true,
-                      englishStyle,
-                      englishBold,
-                      mLbl,
-                    ),
-                    pw.Row(
-                      children: [
-                        pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text('(If yes give case ref. Sec.)',
-                                style: englishStyle),
-                            mLbl('lbl_12i_m2'),
-                          ],
-                        ),
-                        pw.SizedBox(width: 8),
-                        pw.Expanded(
-                          child: pw.Container(
-                            decoration: const pw.BoxDecoration(
-                              border: pw.Border(
-                                bottom: pw.BorderSide(width: 0.5),
-                              ),
-                            ),
-                            child: renderText(
-                              'val_caseRef',
-                              doc['caseRefSec'],
-                              englishStyle,
-                            ),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'Signature of the Investigation Officer with:',
+                        style: englishBold,
+                      ),
+                      pw.SizedBox(height: 3),
+                      buildInlineFieldWithMLbl(
+                        'Signature / ',
+                        'lbl_io_sig',
+                        'val_ioSig',
+                        doc['ioSig'],
+                        width: 130,
+                      ),
+                      pw.SizedBox(height: 4),
+                      buildInlineFieldWithMLbl(
+                        'Name: ',
+                        'lbl_15_m3',
+                        'val_fName',
+                        doc['finalName'],
+                        width: 130,
+                      ),
+                      pw.SizedBox(height: 3),
+                      pw.Row(
+                        children: [
+                          buildInlineFieldWithMLbl(
+                            'Rank: ',
+                            'lbl_15_m4',
+                            'val_fRank',
+                            doc['finalRank'],
+                            width: 70,
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          pw.SizedBox(width: 8),
+                          buildInlineFieldWithMLbl(
+                            'No: ',
+                            'lbl_15_m5',
+                            'val_fNo',
+                            doc['finalNo'],
+                            width: 50,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              pw.SizedBox(height: 5),
-
-              // 13
-              pw.Row(
-                children: [
-                  pw.Expanded(
-                    child: buildInlineFieldWithMLbl(
-                      '13. ',
-                      'lbl_13_m1',
-                      'val_p1Name',
-                      doc['panch1Name'],
-                    ),
-                  ),
-                  pw.Expanded(
-                    child: buildInlineFieldWithMLbl(
-                      '',
-                      'lbl_13_m2',
-                      'val_p1Sig',
-                      doc['panch1Sig'],
-                    ),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 2),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(
-                    'Name and Address of the witnesses/Panchas (At Least one witness necessary)',
-                    style: englishBold.copyWith(fontSize: 7.5),
-                  ),
-                  pw.Text('Signature\n', style: englishBold.copyWith(fontSize: 7.5)),
-                ],
-              ),
-              pw.SizedBox(height: 2),
-              pw.Row(
-                children: [
-                  pw.Expanded(
-                    child: field('(2):', 'val_p2Name', doc['panch2Name']),
-                  ),
-                  pw.Expanded(
-                    child: buildInlineFieldWithMLbl(
-                      '',
-                      'lbl_13_m3',
-                      'val_p2Sig',
-                      doc['panch2Sig'],
-                    ),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 5),
-
-              // 14 & 15
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Expanded(
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          '14. Signature and Thumb hapression of Arrested person',
-                          style: englishBold,
-                        ),
-                        mLbl('lbl_14_m1'),
-                        pw.SizedBox(height: 4),
-                        field(
-                          ':',
-                          'val_arrSig',
-                          doc['arrestedPersonSig'],
-                          width: 130,
-                        ),
-                        pw.SizedBox(height: 6),
-                        pw.Text('15.', style: englishBold),
-                        buildInlineFieldWithMLbl(
-                          'Place: ',
-                          'lbl_15_m1',
-                          'val_fPlace',
-                          doc['finalPlace'],
-                          width: 90,
-                        ),
-                        pw.SizedBox(height: 3),
-                        buildInlineFieldWithMLbl(
-                          'Date: ',
-                          'lbl_15_m2',
-                          'val_fDate',
-                          doc['finalDate'],
-                          width: 90,
-                        ),
-                      ],
-                    ),
-                  ),
-                  pw.Expanded(
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          'Signature of the Investigation Officer with:',
-                          style: englishBold,
-                        ),
-                        pw.SizedBox(height: 3),
-                        buildInlineFieldWithMLbl(
-                          'Signature / ',
-                          'lbl_io_sig',
-                          'val_ioSig',
-                          doc['ioSig'],
-                          width: 130,
-                        ),
-                        pw.SizedBox(height: 4),
-                        buildInlineFieldWithMLbl(
-                          'Name: ',
-                          'lbl_15_m3',
-                          'val_fName',
-                          doc['finalName'],
-                          width: 130,
-                        ),
-                        pw.SizedBox(height: 3),
-                        pw.Row(
-                          children: [
-                            buildInlineFieldWithMLbl(
-                              'Rank: ',
-                              'lbl_15_m4',
-                              'val_fRank',
-                              doc['finalRank'],
-                              width: 70,
-                            ),
-                            pw.SizedBox(width: 8),
-                            buildInlineFieldWithMLbl(
-                              'No: ',
-                              'lbl_15_m5',
-                              'val_fNo',
-                              doc['finalNo'],
-                              width: 50,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              ],
+            ),
           ];
         },
       ),

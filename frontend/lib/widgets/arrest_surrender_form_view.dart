@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
- 
+
 import '../utils/form_io_terminology.dart';
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
