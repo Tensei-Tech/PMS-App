@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -102,11 +103,14 @@ class MarathiImageCache {
   }
 
   /// Get a `pw.Image` widget for a pre-rendered text.
-  pw.Widget img(String key, {double? width, double? height}) {
+  pw.Widget img(String key, {double? width, double? height, double? maxWidth}) {
     final data = _cache[key];
     if (data == null || data.isEmpty) return pw.SizedBox(width: 0, height: 0);
 
-    final w = width ?? data.width;
+    double w = width ?? data.width;
+    if (maxWidth != null && maxWidth > 0 && w > maxWidth) {
+      w = maxWidth;
+    }
     final scale = data.width > 0 ? w / data.width : 1.0;
     return pw.Image(
       pw.MemoryImage(data.bytes),

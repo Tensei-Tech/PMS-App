@@ -106,7 +106,9 @@ class FormImagePdfHelper {
           margin: pw.EdgeInsets.zero,
           build: (_) => pw.Image(
             pw.MemoryImage(png),
-            fit: pw.BoxFit.contain,
+            fit: pw.BoxFit.fill,
+            width: PdfPageFormat.a4.width,
+            height: PdfPageFormat.a4.height,
           ),
         ),
       );

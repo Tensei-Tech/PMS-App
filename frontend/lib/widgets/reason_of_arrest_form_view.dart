@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'form_date_pickers.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
@@ -36,7 +37,7 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
   }
 
   final _outwardNoCtrl = TextEditingController();
-  final _outwardYearCtrl = TextEditingController(text: '2025');
+  final _outwardYearCtrl = TextEditingController();
   final _policeStationCtrl = TextEditingController();
   final _talukaCtrl = TextEditingController();
   final _districtCtrl = TextEditingController();
@@ -59,6 +60,7 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
   final _accusedSigCtrl = TextEditingController();
   final _accusedNameSigCtrl = TextEditingController();
   final _accusedDateTimeCtrl = TextEditingController();
+  final _accusedTimeCtrl = TextEditingController();
   final _ioSigCtrl = TextEditingController();
   final _ioNameRankCtrl = TextEditingController();
   final _ioPsCtrl = TextEditingController();
@@ -92,6 +94,7 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
       _accusedSigCtrl,
       _accusedNameSigCtrl,
       _accusedDateTimeCtrl,
+      _accusedTimeCtrl,
       _ioSigCtrl,
       _ioNameRankCtrl,
       _ioPsCtrl,
@@ -130,7 +133,11 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
       'relativePhone': _relativePhoneCtrl.text.trim(),
       'accusedSig': _accusedSigCtrl.text.trim(),
       'accusedNameSig': _accusedNameSigCtrl.text.trim(),
-      'accusedDateTime': _accusedDateTimeCtrl.text.trim(),
+      'accusedDateTime':
+          '${_accusedDateTimeCtrl.text.trim()} ${_accusedTimeCtrl.text.trim()}'
+              .trim(),
+      'accusedDateOnly': _accusedDateTimeCtrl.text.trim(),
+      'accusedTimeOnly': _accusedTimeCtrl.text.trim(),
       'ioSig': _ioSigCtrl.text.trim(),
       'ioNameRank': _ioNameRankCtrl.text.trim(),
       'ioPs': _ioPsCtrl.text.trim(),
@@ -165,6 +172,8 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
       'accusedSig': _accusedSigCtrl,
       'accusedNameSig': _accusedNameSigCtrl,
       'accusedDateTime': _accusedDateTimeCtrl,
+      'accusedDateOnly': _accusedDateTimeCtrl,
+      'accusedTimeOnly': _accusedTimeCtrl,
       'ioSig': _ioSigCtrl,
       'ioNameRank': _ioNameRankCtrl,
       'ioPs': _ioPsCtrl,
@@ -266,9 +275,11 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text('दिनांक:- ', style: marathiBold),
-                  _UnderlineInput(
+                  const SizedBox(width: 4),
+                  formDatePickerField(
+                    context,
                     controller: _noticeDateCtrl,
-                    width: 120,
+                    width: 140,
                     readOnly: widget.readOnly,
                   ),
                 ],
@@ -558,13 +569,17 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('दिनांक:व वेळ ', style: marathiBold),
-                    ),
-                    _UnderlineInput(
+                    Text('दिनांक व वेळ ', style: marathiBold),
+                    formDatePickerField(
+                      context,
                       controller: _accusedDateTimeCtrl,
-                      width: 160,
+                      width: 140,
+                      readOnly: widget.readOnly,
+                    ),
+                    formTimePickerField(
+                      context,
+                      controller: _accusedTimeCtrl,
+                      width: 110,
                       readOnly: widget.readOnly,
                     ),
                   ],

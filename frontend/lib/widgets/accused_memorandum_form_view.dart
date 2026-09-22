@@ -8,6 +8,7 @@ import 'form_table_helpers.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
 import 'responsive_field_row.dart';
+import 'form_date_pickers.dart';
 
 /// Accused Memorandum Form (आरोपीचे निवेदन पंचनामा)
 /// Under Section 23(2) Bhartiya Sakshya Adhiniyam, 2023 कलम २३ (२) भारतीय साक्ष अधिनियम २०२३
@@ -733,141 +734,6 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
     );
   }
 
-  Future<void> _pickDateForController({
-    required TextEditingController controller,
-    TextEditingController? dayCtrl,
-    TextEditingController? monthCtrl,
-    TextEditingController? yearCtrl,
-  }) async {
-    if (widget.readOnly) return;
-    DateTime initial = DateTime.now();
-    final raw = controller.text.trim();
-    if (raw.isNotEmpty) {
-      final parts = raw.split(RegExp(r'[-/.]'));
-      if (parts.length >= 3) {
-        final d = int.tryParse(parts[0]);
-        final m = int.tryParse(parts[1]);
-        int? y = int.tryParse(parts[2]);
-        if (y != null && y < 100) y += 2000;
-        if (d != null && m != null && y != null) {
-          try {
-            initial = DateTime(y, m, d);
-          } catch (_) {}
-        }
-      }
-    } else if (dayCtrl != null &&
-        dayCtrl.text.isNotEmpty &&
-        monthCtrl != null &&
-        monthCtrl.text.isNotEmpty) {
-      final d = int.tryParse(dayCtrl.text);
-      final m = int.tryParse(monthCtrl.text);
-      int? y = int.tryParse(yearCtrl?.text ?? '');
-      if (y != null && y < 100) y += 2000;
-      if (d != null && m != null && y != null) {
-        try {
-          initial = DateTime(y, m, d);
-        } catch (_) {}
-      }
-    }
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-      locale: const Locale('en', 'IN'),
-    );
-    if (picked != null) {
-      final dStr = picked.day.toString().padLeft(2, '0');
-      final mStr = picked.month.toString().padLeft(2, '0');
-      final yStr = picked.year.toString();
-      controller.text = '$dStr/$mStr/$yStr';
-      if (dayCtrl != null) dayCtrl.text = dStr;
-      if (monthCtrl != null) monthCtrl.text = mStr;
-      if (yearCtrl != null) {
-        yearCtrl.text = yStr.length == 4 ? yStr.substring(2) : yStr;
-      }
-      setState(() {});
-    }
-  }
-
-  Widget _datePickerField({
-    required TextEditingController controller,
-    TextEditingController? dayCtrl,
-    TextEditingController? monthCtrl,
-    TextEditingController? yearCtrl,
-    double? width,
-    String hint = 'DD/MM/YYYY',
-  }) {
-    if (controller.text.isEmpty &&
-        dayCtrl != null &&
-        dayCtrl.text.isNotEmpty &&
-        monthCtrl != null &&
-        monthCtrl.text.isNotEmpty) {
-      final yr = yearCtrl?.text.trim() ?? '';
-      final fullYr = yr.length == 2 ? '20$yr' : yr;
-      controller.text =
-          '${dayCtrl.text.padLeft(2, '0')}/${monthCtrl.text.padLeft(2, '0')}/$fullYr';
-    }
-
-    return SizedBox(
-      width: width,
-      child: TextFormField(
-        controller: controller,
-        readOnly: true,
-        onTap: widget.readOnly
-            ? null
-            : () => _pickDateForController(
-                  controller: controller,
-                  dayCtrl: dayCtrl,
-                  monthCtrl: monthCtrl,
-                  yearCtrl: yearCtrl,
-                ),
-        style: FormTypography.serifStyle().copyWith(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFF0D47A1),
-        ),
-        decoration: InputDecoration(
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 4),
-          hintText: hint,
-          hintStyle: FormTypography.serifStyle().copyWith(
-            fontSize: 12,
-            color: Colors.black38,
-          ),
-          border: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.black54, width: 1.0),
-          ),
-          enabledBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.black54, width: 0.8),
-          ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
-          ),
-          suffixIcon: widget.readOnly
-              ? null
-              : InkWell(
-                  onTap: () => _pickDateForController(
-                    controller: controller,
-                    dayCtrl: dayCtrl,
-                    monthCtrl: monthCtrl,
-                    yearCtrl: yearCtrl,
-                  ),
-                  child: const Icon(
-                    Icons.calendar_today_outlined,
-                    size: 16,
-                    color: Colors.black87,
-                  ),
-                ),
-          suffixIconConstraints: const BoxConstraints(
-            minWidth: 24,
-            minHeight: 24,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _multilineUnderlineField({
     required TextEditingController controller,
     required TextStyle style,
@@ -1016,12 +882,14 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
               const SizedBox(height: 2),
               Text('तारीख', style: marathiLabelStyle),
               const SizedBox(height: 4),
-              _datePickerField(
+              formDatePickerField(
+                context,
                 controller: _firDateCtrl,
                 dayCtrl: _firDateDayCtrl,
                 monthCtrl: _firDateMonthCtrl,
                 yearCtrl: _firDateYearCtrl,
-                hint: 'DD/MM/YYYY',
+                hintText: 'DD/MM/YYYY',
+                readOnly: widget.readOnly,
               ),
             ],
           ),
@@ -1131,13 +999,15 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _datePickerField(
+                      formDatePickerField(
+                        context,
                         controller: _arrestDateCtrl,
                         dayCtrl: _arrestDateDayCtrl,
                         monthCtrl: _arrestDateMonthCtrl,
                         yearCtrl: _arrestDateYearCtrl,
                         width: 140,
-                        hint: 'DD/MM/YYYY',
+                        hintText: 'DD/MM/YYYY',
+                        readOnly: widget.readOnly,
                       ),
                       const SizedBox(height: 2),
                       Text('तारीख', style: marathiLabelStyle),
@@ -1257,13 +1127,15 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _datePickerField(
+                      formDatePickerField(
+                        context,
                         controller: _memDateCtrl,
                         dayCtrl: _memDateDayCtrl,
                         monthCtrl: _memDateMonthCtrl,
                         yearCtrl: _memDateYearCtrl,
                         width: 140,
-                        hint: 'DD/MM/YYYY',
+                        hintText: 'DD/MM/YYYY',
+                        readOnly: widget.readOnly,
                       ),
                       const SizedBox(height: 2),
                       Text('तारीख', style: marathiLabelStyle),
@@ -1381,13 +1253,15 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _datePickerField(
+                      formDatePickerField(
+                        context,
                         controller: _furtherDateCtrl,
                         dayCtrl: _furtherDateDayCtrl,
                         monthCtrl: _furtherDateMonthCtrl,
                         yearCtrl: _furtherDateYearCtrl,
                         width: 140,
-                        hint: 'DD/MM/YYYY',
+                        hintText: 'DD/MM/YYYY',
+                        readOnly: widget.readOnly,
                       ),
                       const SizedBox(height: 2),
                       Text('तारीख', style: marathiLabelStyle),

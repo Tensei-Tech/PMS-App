@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'form_paper_page.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// AB Form for Medical Examination:
 /// Page 1: Form A (Certificate by registered medical practitioner)
@@ -378,18 +379,20 @@ class AbFormViewState extends State<AbFormView> {
           runSpacing: 6,
           children: [
             Text('on', style: bodyStyle),
-            _UnderlineInput(
+            formDatePickerField(
+              context,
               controller: _broughtDateCtrl,
               width: 150,
               readOnly: widget.readOnly,
             ),
             Text('at', style: bodyStyle),
-            _UnderlineInput(
+            formTimePickerField(
+              context,
               controller: _broughtTimeCtrl,
-              width: 90,
+              width: 110,
               readOnly: widget.readOnly,
             ),
-            Text('(a.m./p.m. and was examined by MO )', style: bodyStyle),
+            Text('(and was examined by MO )', style: bodyStyle),
           ],
         ),
         const SizedBox(height: 4),
@@ -399,18 +402,19 @@ class AbFormViewState extends State<AbFormView> {
           runSpacing: 6,
           children: [
             Text('on', style: bodyStyle),
-            _UnderlineInput(
+            formDatePickerField(
+              context,
               controller: _examinedDateCtrl,
-              width: 120,
+              width: 150,
               readOnly: widget.readOnly,
             ),
             Text('at', style: bodyStyle),
-            _UnderlineInput(
+            formTimePickerField(
+              context,
               controller: _examinedTimeCtrl,
-              width: 90,
+              width: 110,
               readOnly: widget.readOnly,
             ),
-            Text('a.m./p.m.', style: bodyStyle),
           ],
         ),
         const SizedBox(height: 14),
@@ -531,7 +535,8 @@ class AbFormViewState extends State<AbFormView> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('Dated  ', style: boldStyle),
-                    _UnderlineInput(
+                    formDatePickerField(
+                      context,
                       controller: _formADatedCtrl,
                       width: 160,
                       readOnly: widget.readOnly,
@@ -543,7 +548,8 @@ class AbFormViewState extends State<AbFormView> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('Time   ', style: boldStyle),
-                    _UnderlineInput(
+                    formTimePickerField(
+                      context,
                       controller: _formATimeCtrl,
                       width: 160,
                       readOnly: widget.readOnly,
@@ -727,7 +733,8 @@ class AbFormViewState extends State<AbFormView> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Date :- ', style: boldStyle),
-              _UnderlineInput(
+              formDatePickerField(
+                context,
                 controller: _formBDateCtrl,
                 width: 130,
                 readOnly: widget.readOnly,
@@ -755,10 +762,12 @@ class AbFormViewState extends State<AbFormView> {
               readOnly: widget.readOnly,
             ),
             Text('of', style: bodyStyle),
-            _UnderlineInput(
-              controller: _policeStationCtrl,
-              width: 130,
-              readOnly: widget.readOnly,
+            Expanded(
+              child: _UnderlineInput(
+                controller: _policeStationCtrl,
+                width: double.infinity,
+                readOnly: widget.readOnly,
+              ),
             ),
             Text('Police station a phial bearing serial No.', style: bodyStyle),
             _UnderlineInput(
@@ -773,16 +782,18 @@ class AbFormViewState extends State<AbFormView> {
               readOnly: widget.readOnly,
             ),
             Text('c.c. of venues blood collected by me on', style: bodyStyle),
-            _UnderlineInput(
+            formDatePickerField(
+              context,
               controller: _collectionDateCtrl,
-              width: 110,
+              width: 130,
               readOnly: widget.readOnly,
             ),
             Text('at', style: bodyStyle),
-            _UnderlineInput(
+            formTimePickerField(
+              context,
               controller: _collectionTimeCtrl,
-              width: 90,
-              hintText: 'a.m./p.m.',
+              width: 110,
+              hintText: 'Time',
               readOnly: widget.readOnly,
             ),
             Text('from the body of Shri/smt/Kumari', style: bodyStyle),

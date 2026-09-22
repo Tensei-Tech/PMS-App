@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// Order / Notice u/s 47 & 48 BNSS
 /// Page 1: नोटीस बी.एन.एस.एस.कलम ४७(१) (Notice to Accused)
@@ -41,10 +42,9 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
   bool get _showAll => !_showPage1 && !_showPage2;
 
   // Shared / Case fields
-  final _policeStationCtrl =
-      TextEditingController(text: 'म्हाळुंगे एम.आय.डी.सी.');
+  final _policeStationCtrl = TextEditingController();
   final _crNoCtrl = TextEditingController();
-  final _crYearCtrl = TextEditingController(text: '२५');
+  final _crYearCtrl = TextEditingController();
   final _bnsSectionCtrl = TextEditingController();
   final _arrestDateCtrl = TextEditingController();
   final _arrestTimeCtrl = TextEditingController();
@@ -361,17 +361,17 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
               readOnly: widget.readOnly,
             ),
             Text('या गुन्ह्यात तपास कामी दि.', style: marathiBody),
-            _UnderlineInput(
+            formDatePickerField(
+              context,
               controller: _arrestDateCtrl,
-              width: 100,
-              hintText: '   /   /२०  ',
+              width: 140,
               readOnly: widget.readOnly,
             ),
             Text('रोजी', style: marathiBody),
-            _UnderlineInput(
+            formTimePickerField(
+              context,
               controller: _arrestTimeCtrl,
-              width: 80,
-              hintText: '..........',
+              width: 110,
               readOnly: widget.readOnly,
             ),
             Text(
@@ -478,10 +478,10 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
           runSpacing: 6,
           children: [
             Text('इ) आपणास दिनांक', style: marathiBody),
-            _UnderlineInput(
+            formDatePickerField(
+              context,
               controller: _p1RemandDateCtrl,
-              width: 100,
-              hintText: '   /   /२०  ',
+              width: 140,
               readOnly: widget.readOnly,
             ),
             Text(
@@ -630,17 +630,17 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
               readOnly: widget.readOnly,
             ),
             Text('यांना दिनांक', style: marathiBody),
-            _UnderlineInput(
+            formDatePickerField(
+              context,
               controller: _arrestDateCtrl,
-              width: 100,
-              hintText: '   /   /२०  ',
+              width: 140,
               readOnly: widget.readOnly,
             ),
             Text('रोजी', style: marathiBody),
-            _UnderlineInput(
+            formTimePickerField(
+              context,
               controller: _arrestTimeCtrl,
-              width: 80,
-              hintText: '.......',
+              width: 110,
               readOnly: widget.readOnly,
             ),
             Text('वा. अटक करण्यात आली आहे.', style: marathiBody),
@@ -744,10 +744,10 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
           runSpacing: 6,
           children: [
             Text('इ) अटक व्यक्तीला दिनांक', style: marathiBody),
-            _UnderlineInput(
+            formDatePickerField(
+              context,
               controller: _p2RemandDateCtrl,
-              width: 100,
-              hintText: '   /   /२०  ',
+              width: 140,
               readOnly: widget.readOnly,
             ),
             Text(

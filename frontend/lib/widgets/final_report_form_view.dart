@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
+import 'form_date_pickers.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
 import 'responsive_field_row.dart';
@@ -702,16 +703,16 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
                     flex: 2,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _headerDateCtrl,
-                      serifStyle: serifStyle,
-                    ),
+                    child: formDatePickerField(context,
+                        controller: _headerDateCtrl,
+                        readOnly: widget.readOnly,
+                        width: double.infinity),
                   ),
                 ],
               ),
               const SizedBox(height: 2),
               Text(
-                'जिल्हा— यवतमाळ पोलीस ठाणे- ------- वर्ष:-२०.....पहिली खबर क्र......../२०२४ तारीख...../...../२०.....',
+                'जिल्हा— ......... पोलीस ठाणे- ------- वर्ष:-२०.....पहिली खबर क्र......../२०.... तारीख...../...../२०.....',
                 style: marathiLabelStyle.copyWith(
                     fontSize: 9.5, color: Colors.black87),
               ),
@@ -773,10 +774,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                                   fontWeight: FontWeight.bold),
                             ),
                             Expanded(
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _reportDateCtrl,
-                                serifStyle: serifStyle,
-                              ),
+                              child: formDatePickerField(context,
+                                  controller: _reportDateCtrl,
+                                  readOnly: widget.readOnly,
+                                  width: double.infinity),
                             ),
                           ],
                         ),
@@ -1299,10 +1300,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   Text('(iii) Date/Year of Birth ( जन्मतारीख ) : ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _accDobCtrl,
-                      serifStyle: serifStyle,
-                    ),
+                    child: formDatePickerField(context,
+                        controller: _accDobCtrl,
+                        readOnly: widget.readOnly,
+                        width: double.infinity),
                   ),
                   const SizedBox(width: 12),
                   Text('वय ',
@@ -1373,10 +1374,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   Text('Date of issue : ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _accPassportDateCtrl,
-                      serifStyle: serifStyle,
-                    ),
+                    child: formDatePickerField(context,
+                        controller: _accPassportDateCtrl,
+                        readOnly: widget.readOnly,
+                        width: double.infinity),
                   ),
                   const SizedBox(width: 12),
                   Text('Place of Issue : ',
@@ -1526,18 +1527,18 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   Text('(xiii) Date of Arrest (अटकेची तारीख.) : दिनांक ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _accArrestDateCtrl,
-                      serifStyle: serifStyle,
-                    ),
+                    child: formDatePickerField(context,
+                        controller: _accArrestDateCtrl,
+                        readOnly: widget.readOnly,
+                        width: double.infinity),
                   ),
                   Text(' चे ', style: marathiLabelStyle),
                   SizedBox(
                     width: 80,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _accArrestTimeCtrl,
-                      serifStyle: serifStyle,
-                    ),
+                    child: formTimePickerField(context,
+                        controller: _accArrestTimeCtrl,
+                        readOnly: widget.readOnly,
+                        width: double.infinity),
                   ),
                   Text(' वाजता', style: marathiLabelStyle),
                 ],
@@ -1552,10 +1553,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                       '(xiv) Date of release on bail (जामीनावर सोडल्याची तारीख.) : ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _accBailDateCtrl,
-                      serifStyle: serifStyle,
-                    ),
+                    child: formDatePickerField(context,
+                        controller: _accBailDateCtrl,
+                        readOnly: widget.readOnly,
+                        width: double.infinity),
                   ),
                 ],
               ),
@@ -1961,10 +1962,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   ),
                   SizedBox(
                     width: 120,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _referNoticeDateCtrl,
-                      serifStyle: serifStyle,
-                    ),
+                    child: formDatePickerField(context,
+                        controller: _referNoticeDateCtrl,
+                        readOnly: widget.readOnly,
+                        width: double.infinity),
                   ),
                 ],
               ),
@@ -1983,10 +1984,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     style: serifStyle.copyWith(fontWeight: FontWeight.bold),
                   ),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _dispatchedOnCtrl,
-                      serifStyle: serifStyle,
-                    ),
+                    child: formDatePickerField(context,
+                        controller: _dispatchedOnCtrl,
+                        readOnly: widget.readOnly,
+                        width: double.infinity),
                   ),
                 ],
               ),

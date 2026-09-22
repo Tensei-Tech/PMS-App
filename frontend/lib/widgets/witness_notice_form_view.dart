@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// Witness Notice (—:: साक्षीदार सुचनापत्र ::—).
 class WitnessNoticeFormView extends StatefulWidget {
@@ -147,162 +148,6 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
       'witnessSig': _ackLine1Ctrl.text.trim(),
       'witnessReceiptDate': _ackLine2Ctrl.text.trim(),
     };
-  }
-
-  Future<void> _pickDateForController({
-    required TextEditingController controller,
-  }) async {
-    final now = DateTime.now();
-    DateTime initial = now;
-    final currentText = controller.text.trim();
-    if (currentText.isNotEmpty) {
-      final parts = currentText.split(RegExp(r'[/.-]'));
-      if (parts.length >= 3) {
-        final d = int.tryParse(parts[0]);
-        final m = int.tryParse(parts[1]);
-        int? y = int.tryParse(parts[2]);
-        if (y != null && y < 100) y += 2000;
-        if (d != null && m != null && y != null) {
-          try {
-            initial = DateTime(y, m, d);
-          } catch (_) {}
-        }
-      }
-    }
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(1990),
-      lastDate: DateTime(2040),
-    );
-    if (picked != null) {
-      final dStr = picked.day.toString().padLeft(2, '0');
-      final mStr = picked.month.toString().padLeft(2, '0');
-      final yFullStr = picked.year.toString();
-      controller.text = '$dStr/$mStr/$yFullStr';
-      if (mounted) setState(() {});
-    }
-  }
-
-  Future<void> _pickTimeForController({
-    required TextEditingController controller,
-  }) async {
-    TimeOfDay initialTime = TimeOfDay.now();
-    final parts = controller.text.trim().split(RegExp(r'[/.:]'));
-    if (parts.length >= 2) {
-      final h = int.tryParse(parts[0]);
-      final m = int.tryParse(parts[1]);
-      if (h != null && m != null && h >= 0 && h < 24 && m >= 0 && m < 60) {
-        initialTime = TimeOfDay(hour: h, minute: m);
-      }
-    }
-
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-          child: child ?? const SizedBox(),
-        );
-      },
-    );
-
-    if (picked != null) {
-      final hh = picked.hour.toString().padLeft(2, '0');
-      final mm = picked.minute.toString().padLeft(2, '0');
-      setState(() {
-        controller.text = '$hh:$mm';
-      });
-    }
-  }
-
-  Widget _datePickerField({
-    required TextEditingController controller,
-    double width = 140,
-    String hint = 'DD/MM/YYYY',
-  }) {
-    return SizedBox(
-      width: width,
-      child: TextFormField(
-        controller: controller,
-        readOnly: true,
-        onTap: widget.readOnly
-            ? null
-            : () => _pickDateForController(controller: controller),
-        style: FormTypography.serifStyle()
-            .copyWith(fontSize: 13, fontWeight: FontWeight.w600),
-        decoration: InputDecoration(
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 4),
-          hintText: hint,
-          hintStyle: FormTypography.serifStyle().copyWith(
-            fontSize: 12,
-            color: Colors.grey.shade400,
-          ),
-          enabledBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.black54, width: 1.0),
-          ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.blue, width: 1.5),
-          ),
-          suffixIcon: widget.readOnly
-              ? null
-              : InkWell(
-                  onTap: () => _pickDateForController(controller: controller),
-                  child: const Icon(Icons.calendar_today_outlined, size: 16),
-                ),
-          suffixIconConstraints: const BoxConstraints(
-            minWidth: 24,
-            minHeight: 24,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _timePickerField({
-    required TextEditingController controller,
-    double width = 100,
-    String hint = 'HH:MM',
-  }) {
-    return SizedBox(
-      width: width,
-      child: TextFormField(
-        controller: controller,
-        readOnly: true,
-        onTap: widget.readOnly
-            ? null
-            : () => _pickTimeForController(controller: controller),
-        style: FormTypography.serifStyle()
-            .copyWith(fontSize: 13, fontWeight: FontWeight.w600),
-        decoration: InputDecoration(
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 4),
-          hintText: hint,
-          hintStyle: FormTypography.serifStyle().copyWith(
-            fontSize: 12,
-            color: Colors.grey.shade400,
-          ),
-          enabledBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.black54, width: 1.0),
-          ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.blue, width: 1.5),
-          ),
-          suffixIcon: widget.readOnly
-              ? null
-              : InkWell(
-                  onTap: () => _pickTimeForController(controller: controller),
-                  child: const Icon(Icons.access_time, size: 16),
-                ),
-          suffixIconConstraints: const BoxConstraints(
-            minWidth: 24,
-            minHeight: 24,
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _wrappingUnderlineInput({
@@ -512,9 +357,11 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                             style:
                                 marathi.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(width: 6),
-                        _datePickerField(
+                        formDatePickerField(
+                          context,
                           controller: _noticeDateCtrl,
                           width: 140,
+                          readOnly: widget.readOnly,
                         ),
                       ],
                     ),
@@ -652,17 +499,21 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   ' अन्वये गुन्हा नोंद असुन सदर गुन्ह्याचे तपासकामी आपणाकडे चौकशी करून आपला जबाब नोंदविणे आवश्यक असल्याने, आपण दिनांक : ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                _datePickerField(
+                formDatePickerField(
+                  context,
                   controller: _appearanceDateCtrl,
                   width: 140,
+                  readOnly: widget.readOnly,
                 ),
                 Text(
                   ' रोजी ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                _timePickerField(
+                formTimePickerField(
+                  context,
                   controller: _appearanceTimeCtrl,
                   width: 100,
+                  readOnly: widget.readOnly,
                 ),
                 Text(
                   ' वाजता आमचे समक्ष न चुकता हजर राहावे.',

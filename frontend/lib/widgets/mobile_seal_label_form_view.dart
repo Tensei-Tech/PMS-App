@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'form_paper_page.dart';
 import 'form_typography.dart';
@@ -203,15 +202,17 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
         controller: controller,
         readOnly: true,
         onTap: () => _pickDateForController(controller, onChanged: onChanged),
-        style:
-            GoogleFonts.notoSansDevanagari(fontSize: 12, color: Colors.black87),
+        style: FormTypography.marathiLabelStyle(
+            fontSize: 12, fontWeight: FontWeight.normal, color: Colors.black87),
         decoration: InputDecoration(
           isDense: true,
           contentPadding:
               const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
           hintText: hintText,
-          hintStyle: GoogleFonts.notoSansDevanagari(
-              fontSize: 11, color: Colors.grey.shade400),
+          hintStyle: FormTypography.marathiLabelStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.normal,
+              color: Colors.grey.shade400),
           suffixIcon: InkWell(
             onTap: () =>
                 _pickDateForController(controller, onChanged: onChanged),
@@ -246,15 +247,17 @@ class MobileSealLabelFormViewState extends State<MobileSealLabelFormView> {
         controller: controller,
         readOnly: true,
         onTap: () => _pickTimeForController(controller, onChanged: onChanged),
-        style:
-            GoogleFonts.notoSansDevanagari(fontSize: 12, color: Colors.black87),
+        style: FormTypography.marathiLabelStyle(
+            fontSize: 12, fontWeight: FontWeight.normal, color: Colors.black87),
         decoration: InputDecoration(
           isDense: true,
           contentPadding:
               const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
           hintText: hintText,
-          hintStyle: GoogleFonts.notoSansDevanagari(
-              fontSize: 11, color: Colors.grey.shade400),
+          hintStyle: FormTypography.marathiLabelStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.normal,
+              color: Colors.grey.shade400),
           suffixIcon: InkWell(
             onTap: () =>
                 _pickTimeForController(controller, onChanged: onChanged),

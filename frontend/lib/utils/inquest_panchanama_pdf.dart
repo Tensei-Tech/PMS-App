@@ -273,7 +273,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
               ],
             ),
             subLabel(
-                '   जिल्हा - यवतमाळ             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.'),
+                '   जिल्हा - .........             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.'),
             pw.SizedBox(height: 6),
 
             // 2) Act and Section
@@ -2733,7 +2733,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
 }
 
 Widget _uField(String val,
-    {double? width, double? minWidth, double? maxWidth}) {
+    {double? width, double? minWidth, double? maxWidth, double fontSize = 9}) {
   final content = val.trim();
   return Container(
     width: width,
@@ -2752,7 +2752,7 @@ Widget _uField(String val,
         content.isEmpty ? ' ' : content,
         maxLines: 1,
         softWrap: false,
-        style: FormImagePdfHelper.valStyle(9),
+        style: FormImagePdfHelper.valStyle(fontSize),
       ),
     ),
   );
@@ -2814,7 +2814,7 @@ Widget _multilineBox(String text, {int lines = 3}) {
           ),
           child: Text(
             i < list.length ? list[i] : ' ',
-            style: FormImagePdfHelper.valStyle(9),
+            style: FormImagePdfHelper.valStyle(10.5),
           ),
         ),
     ],
@@ -2823,8 +2823,8 @@ Widget _multilineBox(String text, {int lines = 3}) {
 
 Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
-  final mrB = FormImagePdfHelper.mBld(8.5, 1.35);
-  final mrR = FormImagePdfHelper.mReg(8.5, 1.35);
+  final mrB = FormImagePdfHelper.mBld(10.5, 1.35);
+  final mrR = FormImagePdfHelper.mReg(10.5, 1.35);
 
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
@@ -2846,7 +2846,8 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                   children: [
                     Text('पोलीस स्टेशन : ', style: mrB),
                     Expanded(
-                      child: _uPoliceStationPdfField(v('reqPs')),
+                      child: _uPoliceStationPdfField(v('reqPs'),
+                          textStyle: FormImagePdfHelper.valStyle(10.5)),
                     ),
                   ],
                 ),
@@ -2855,7 +2856,7 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text('दिनांक :- ', style: mrB),
-                    _uField(v('reqDate'), width: 90),
+                    _uField(v('reqDate'), width: 90, fontSize: 10.5),
                   ],
                 ),
               ],
@@ -2872,9 +2873,9 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
           children: [
             Text('मा. न्यायवैद्यक शास्त्र विभाग प्रमुख', style: mrB),
             const SizedBox(height: 2),
-            _uField(v('reqTo'), width: 240),
+            _uField(v('reqTo'), width: 240, fontSize: 10.5),
             const SizedBox(height: 2),
-            _uField(v('reqTo2'), width: 240),
+            _uField(v('reqTo2'), width: 240, fontSize: 10.5),
           ],
         ),
       ),
@@ -2883,7 +2884,8 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text('पासुन  :-    पोलीस स्टेशन', style: mrB),
-          _uPoliceStationPdfField(v('reqFromPs'), width: 130),
+          _uPoliceStationPdfField(v('reqFromPs'),
+              width: 130, textStyle: FormImagePdfHelper.valStyle(10.5)),
           Text('  जिल्हा यवतमाळ.', style: mrB),
         ],
       ),
@@ -2900,7 +2902,7 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text('मृतक नामे ', style: mrB),
-                    _uField(v('reqSubjectName'), width: 300),
+                    _uField(v('reqSubjectName'), minWidth: 300, maxWidth: 450),
                   ],
                 ),
                 const SizedBox(height: 3),
@@ -2908,10 +2910,11 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text('पो.स्टे.', style: mrB),
-                    _uPoliceStationPdfField(v('reqSubjectPs'), width: 95),
+                    _uPoliceStationPdfField(v('reqSubjectPs'),
+                        minWidth: 95, maxWidth: 450),
                     Text('  ता-', style: mrB),
-                    _uField(v('reqSubjectTa'), width: 80),
-                    Text('  जिल्हा यवतमाळ हिचे/ ह्यांचे प्रेताचे पि.एम',
+                    _uField(v('reqSubjectTa'), minWidth: 80, maxWidth: 450),
+                    Text('  जिल्हा ......... हिचे/ ह्यांचे प्रेताचे पि.एम',
                         style: mrB),
                   ],
                 ),
@@ -2935,37 +2938,39 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
           spacing: 2,
           children: [
             Text('सविनय सेवेशी सादर आहे की, आज दिनांक ', style: mrR),
-            _uField(v('reqMargDate'), width: 75),
+            _uField(v('reqMargDate'), minWidth: 75, maxWidth: 150),
             Text(' रोजी ', style: mrR),
-            _uField(v('reqMargTime'), width: 50),
+            _uField(v('reqMargTime'), minWidth: 50, maxWidth: 150),
             Text(' वाजता पोलीस स्टेशन ', style: mrR),
-            _uPoliceStationPdfField(v('reqMargPs'), width: 100),
+            _uPoliceStationPdfField(v('reqMargPs'),
+                minWidth: 100, maxWidth: 450),
             Text(' मर्ग/ स्टेशन डायरी क्र.', style: mrR),
-            _uField(v('reqMargDiaryNo'), width: 60),
+            _uField(v('reqMargDiaryNo'), minWidth: 60, maxWidth: 200),
             Text('/२०', style: mrR),
-            _uField(v('reqMargYear'), width: 40),
+            _uField(v('reqMargYear'), minWidth: 40, maxWidth: 100),
             Text(
                 ' कलम १९४ बी.एन.एस.एस २०२३ चा मर्ग दाखल झाला असुन यातील मृतक नामे ',
                 style: mrR),
-            _uField(v('reqMargName'), width: 200),
+            _uField(v('reqMargName'), minWidth: 200, maxWidth: 450),
             Text(' पो.स्टे.', style: mrR),
-            _uPoliceStationPdfField(v('reqSubjectPs'), width: 95),
+            _uPoliceStationPdfField(v('reqSubjectPs'),
+                minWidth: 95, maxWidth: 450),
             Text(' ता-', style: mrR),
-            _uField(v('reqMargTa'), width: 75),
-            Text(' जिल्हा यवतमाळ ही/ह्या ', style: mrR),
-            _uField(v('reqHospitalName'), width: 150),
+            _uField(v('reqMargTa'), minWidth: 75, maxWidth: 450),
+            Text(' जिल्हा ......... ही/ह्या ', style: mrR),
+            _uField(v('reqHospitalName'), minWidth: 150, maxWidth: 450),
             Text(' येथे दिनांक ', style: mrR),
-            _uField(v('reqAdmitDate'), width: 75),
+            _uField(v('reqAdmitDate'), minWidth: 75, maxWidth: 150),
             Text(' रोजी ', style: mrR),
-            _uField(v('reqAdmitTime'), width: 50),
+            _uField(v('reqAdmitTime'), minWidth: 50, maxWidth: 150),
             Text(
                 ' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ ',
                 style: mrR),
             _uField(v('reqReasonDetails'), minWidth: 170, maxWidth: 650),
             Text(' दिनांक ', style: mrR),
-            _uField(v('reqDeathDate'), width: 75),
+            _uField(v('reqDeathDate'), minWidth: 75, maxWidth: 150),
             Text(' रोजी ', style: mrR),
-            _uField(v('reqDeathTime'), width: 50),
+            _uField(v('reqDeathTime'), minWidth: 50, maxWidth: 150),
             Text(' वाजता मरण पावला आहे.', style: mrR),
           ],
         ),
@@ -2992,19 +2997,21 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
                   child: Text('इंक्वेस्ट पंचनामा', style: mrB),
                 ),
                 const SizedBox(height: 10),
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text('हस्ते : ', style: mrB),
-                    _uField(v('reqHasteName'), width: 110),
+                    Expanded(child: _uField(v('reqHasteName'), fontSize: 10.5)),
                   ],
                 ),
                 const SizedBox(height: 3),
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text('पो.स्टे. : ', style: mrB),
-                    _uPoliceStationPdfField(v('reqHastePs'), width: 110),
+                    Expanded(
+                        child: _uPoliceStationPdfField(v('reqHastePs'),
+                            textStyle: FormImagePdfHelper.valStyle(10.5))),
                   ],
                 ),
               ],
@@ -4059,7 +4066,7 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
         ],
       ),
       Text(
-          '   जिल्हा - यवतमाळ             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.',
+          '   जिल्हा - .........             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.',
           style: mrStyle),
       const SizedBox(height: 5),
       Row(

@@ -239,31 +239,23 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                   ),
                   const pw.TextSpan(text: 'on '),
                   pw.TextSpan(
-                    text: broughtDate.isNotEmpty
-                        ? broughtDate
-                        : '............................................................',
+                    text: broughtDate.isNotEmpty ? broughtDate : '',
                     style: broughtDate.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(text: ' at '),
                   pw.TextSpan(
-                    text: broughtTime.isNotEmpty
-                        ? broughtTime
-                        : '..............................',
+                    text: broughtTime.isNotEmpty ? broughtTime : '',
                     style: broughtTime.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(
                       text: ' (a.m./p.m. and was examined by MO ) on '),
                   pw.TextSpan(
-                    text: examinedDate.isNotEmpty
-                        ? examinedDate
-                        : '.........................',
+                    text: examinedDate.isNotEmpty ? examinedDate : '',
                     style: examinedDate.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(text: ' at '),
                   pw.TextSpan(
-                    text: examinedTime.isNotEmpty
-                        ? examinedTime
-                        : '................',
+                    text: examinedTime.isNotEmpty ? examinedTime : '',
                     style: examinedTime.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(text: ' a.m./p.m.'),
@@ -569,9 +561,13 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                         : '..............................................',
                     style: messengerName.isNotEmpty ? bold : body,
                   ),
+                  const pw.TextSpan(text: ' of '),
                   pw.TextSpan(
-                      text:
-                          ' of ${policeStation.isNotEmpty ? policeStation : '....................................'} Police station a phial bearing serial No. '),
+                    text: policeStation.isNotEmpty ? policeStation : '',
+                    style: policeStation.isNotEmpty ? bold : body,
+                  ),
+                  const pw.TextSpan(
+                      text: ' Police station a phial bearing serial No. '),
                   pw.TextSpan(
                     text: phialSerial.isNotEmpty
                         ? phialSerial
@@ -582,9 +578,7 @@ Future<Uint8List> generateAbFormPdf(Map<String, dynamic> doc) async {
                       text:
                           ' containing ${bloodAmountCc.isNotEmpty ? bloodAmountCc : '.....'} c.c. of venues blood collected by me on '),
                   pw.TextSpan(
-                    text: collectionDate.isNotEmpty
-                        ? collectionDate
-                        : '.......................................',
+                    text: collectionDate.isNotEmpty ? collectionDate : '',
                     style: collectionDate.isNotEmpty ? bold : body,
                   ),
                   const pw.TextSpan(text: ' at '),

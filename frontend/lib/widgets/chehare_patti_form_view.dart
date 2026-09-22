@@ -6,6 +6,7 @@ import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// चेहरे पट्टी (Chehare Patti - Descriptive Roll of Accused)
 class CheharePattiFormView extends StatefulWidget {
@@ -285,100 +286,6 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
     );
   }
 
-  Future<void> _pickDateForController(
-    BuildContext context,
-    TextEditingController targetCtrl,
-  ) async {
-    DateTime initial = DateTime.now();
-    final raw = targetCtrl.text.trim();
-    if (raw.isNotEmpty) {
-      final parts = raw.split(RegExp(r'[-/.]'));
-      if (parts.length >= 3) {
-        final d = int.tryParse(parts[0]);
-        final m = int.tryParse(parts[1]);
-        int? y = int.tryParse(parts[2]);
-        if (y != null && y < 100) y += 2000;
-        if (d != null && m != null && y != null) {
-          try {
-            initial = DateTime(y, m, d);
-          } catch (_) {}
-        }
-      }
-    }
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-      locale: const Locale('en', 'IN'),
-    );
-    if (picked != null) {
-      final dStr = picked.day.toString().padLeft(2, '0');
-      final mStr = picked.month.toString().padLeft(2, '0');
-      final yStr = picked.year.toString();
-      targetCtrl.text = '$dStr/$mStr/$yStr';
-      setState(() {});
-    }
-  }
-
-  Widget _datePickerField({
-    required TextEditingController controller,
-    required TextStyle style,
-    double? width,
-    String hintText = 'DD/MM/YYYY',
-  }) {
-    return SizedBox(
-      width: width,
-      child: InkWell(
-        onTap: widget.readOnly
-            ? null
-            : () => _pickDateForController(context, controller),
-        mouseCursor: widget.readOnly
-            ? SystemMouseCursors.basic
-            : SystemMouseCursors.click,
-        child: IgnorePointer(
-          ignoring: true,
-          child: TextFormField(
-            controller: controller,
-            readOnly: true,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-              color: const Color(0xFF0D47A1),
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: false,
-              fillColor: Colors.transparent,
-              contentPadding: const EdgeInsets.only(bottom: 2, top: 4),
-              hintText: hintText,
-              hintStyle: style.copyWith(
-                color: Colors.grey.shade400,
-                fontSize: 12,
-              ),
-              suffixIcon: const Icon(
-                Icons.calendar_today_outlined,
-                size: 16,
-                color: Colors.black87,
-              ),
-              suffixIconConstraints:
-                  const BoxConstraints(minWidth: 24, minHeight: 22),
-              border: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black54, width: 1.0),
-              ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black54, width: 0.8),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _underlineField({
     required TextEditingController controller,
     required TextStyle style,
@@ -442,9 +349,10 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
                       children: [
                         Text('दिनांक : ', style: marathi),
                         Expanded(
-                          child: _datePickerField(
+                          child: formDatePickerField(
+                            context,
                             controller: _dateCtrl,
-                            style: serif,
+                            readOnly: widget.readOnly,
                           ),
                         ),
                       ],

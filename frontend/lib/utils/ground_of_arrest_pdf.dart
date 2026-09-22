@@ -54,12 +54,12 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
       build: (pw.Context context) {
-        final outwardNo = v('outwardNo', '          ');
-        final outwardYear = v('outwardYear', '२५');
-        final policeStation = v('policeStation', '------------------');
-        final taluka = v('taluka', '------------');
-        final district = v('district', '--------------');
-        final noticeDate = v('noticeDate', '     /       /२०२५');
+        final outwardNo = v('');
+        final outwardYear = v('');
+        final policeStation = v('');
+        final taluka = v('');
+        final district = v('');
+        final noticeDate = v('');
 
         final accusedNameAddress = v(
           'accusedNameAddress',
@@ -70,15 +70,15 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
           '----------------------------------------------------------------------------------------------------',
         );
 
-        final subjectPs = v('subjectPs', '----------');
-        final subjectCrNo = v('subjectCrNo', '-------');
-        final subjectSection = v('subjectSection', '----- ---');
+        final subjectPs = v('');
+        final subjectCrNo = v('');
+        final subjectSection = v('');
 
-        final firPs = v('firPs', '-------------------');
-        final firCrNo = v('firCrNo', '-------');
-        final firCrYear = v('firCrYear', '--');
-        final firActSec = v('firActSec', '------------');
-        final ioName = v('ioName', '--------------------');
+        final firPs = v('');
+        final firCrNo = v('');
+        final firCrYear = v('');
+        final firActSec = v('');
+        final ioName = v('');
 
         final briefDescription = v(
           'briefDescription',
@@ -250,19 +250,19 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
         final ground5Line2 = v('ground5Line2',
             '-----------------------------------------------------------------------------------------------');
 
-        final relativeName = v('relativeName', '----------------');
-        final relativeAddress = v('relativeAddress', '--------------------');
-        final relativePhone = v('relativePhone', '---------');
+        final relativeName = v('');
+        final relativeAddress = v('');
+        final relativePhone = v('');
 
-        final accusedSig = v('accusedSig', '-----------------');
-        final accusedName = v('accusedName', '----- ---------');
-        final accusedDateTime = v('accusedDateTime', '-----------------');
+        final accusedSig = v('');
+        final accusedName = v('');
+        final accusedDateTime = v('');
 
-        final ioSig = v('ioSig', '');
-        final ioNameRank = v('ioNameRank', '------------');
-        final ioPs = v('ioPs', '----------');
-        final ioTah = v('ioTah', '-------');
-        final ioDist = v('ioDist', '---------');
+        final ioSig = v('');
+        final ioNameRank = v('');
+        final ioPs = v('');
+        final ioTah = v('');
+        final ioDist = v('');
 
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -414,12 +414,12 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
-  final outwardNo = v('outwardNo', '          ');
-  final outwardYear = v('outwardYear', '२५');
-  final policeStation = v('policeStation', '------------------');
-  final taluka = v('taluka', '------------');
-  final district = v('district', '--------------');
-  final noticeDate = v('noticeDate', '     /       /२०२५');
+  final outwardNo = v('');
+  final outwardYear = v('');
+  final policeStation = v('');
+  final taluka = v('');
+  final district = v('');
+  final noticeDate = v('');
 
   final accusedNameAddress = v(
     'accusedNameAddress',
@@ -430,15 +430,15 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
     '----------------------------------------------------------------------------------------------------',
   );
 
-  final subjectPs = v('subjectPs', '----------');
-  final subjectCrNo = v('subjectCrNo', '-------');
-  final subjectSection = v('subjectSection', '----- ---');
+  final subjectPs = v('');
+  final subjectCrNo = v('');
+  final subjectSection = v('');
 
-  final firPs = v('firPs', '-------------------');
-  final firCrNo = v('firCrNo', '-------');
-  final firCrYear = v('firCrYear', '--');
-  final firActSec = v('firActSec', '------------');
-  final ioName = v('ioName', '--------------------');
+  final firPs = v('');
+  final firCrNo = v('');
+  final firCrYear = v('');
+  final firActSec = v('');
+  final ioName = v('');
 
   final briefDescription = v(
     'briefDescription',
@@ -600,19 +600,19 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   final ground5Line2 = v('ground5Line2',
       '-----------------------------------------------------------------------------------------------');
 
-  final relativeName = v('relativeName', '----------------');
-  final relativeAddress = v('relativeAddress', '--------------------');
-  final relativePhone = v('relativePhone', '---------');
+  final relativeName = v('');
+  final relativeAddress = v('');
+  final relativePhone = v('');
 
-  final accusedSig = v('accusedSig', '-----------------');
-  final accusedName = v('accusedName', '----- ---------');
-  final accusedDateTime = v('accusedDateTime', '-----------------');
+  final accusedSig = v('');
+  final accusedName = v('');
+  final accusedDateTime = v('');
 
-  final ioSig = v('ioSig', '');
-  final ioNameRank = v('ioNameRank', '------------');
-  final ioPs = v('ioPs', '----------');
-  final ioTah = v('ioTah', '-------');
-  final ioDist = v('ioDist', '---------');
+  final ioSig = v('');
+  final ioNameRank = v('');
+  final ioPs = v('');
+  final ioTah = v('');
+  final ioDist = v('');
 
   final reg = FormImagePdfHelper.mReg(10.5, 1.45);
   final bld = FormImagePdfHelper.mBld(10.5, 1.45);
