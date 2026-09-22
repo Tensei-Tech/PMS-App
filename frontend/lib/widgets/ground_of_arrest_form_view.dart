@@ -5,6 +5,7 @@ import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// भारतीय नागरीक सुरक्षा संहिता, २०२३ चे कलम ४७ (१)(२) अन्वये सुचनापत्र (GROUNDS OF ARREST) — 2 A4 Pages
 class GroundOfArrestFormView extends StatefulWidget {
@@ -35,7 +36,7 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
 
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
-  final _dateYearCtrl = TextEditingController(text: '२५');
+  final _dateYearCtrl = TextEditingController();
   final _noticeDateCtrl = TextEditingController();
 
   String get _noticeDateCombined {
@@ -95,7 +96,8 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
   // Signatures Left
   final _accusedSigCtrl = TextEditingController();
   final _accusedNameCtrl = TextEditingController();
-  final _accusedDateTimeCtrl = TextEditingController();
+  final _accusedDateTimeCtrl = TextEditingController(); // acts as Date
+  final _accusedTimeCtrl = TextEditingController();
 
   // Signatures Right
   final _ioSigCtrl = TextEditingController();
@@ -205,8 +207,11 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
       'relativeAddress': _relativeAddressCtrl.text.trim(),
       'relativePhone': _relativePhoneCtrl.text.trim(),
       'accusedSig': _accusedSigCtrl.text.trim(),
-      'accusedName': _accusedNameCtrl.text.trim(),
-      'accusedDateTime': _accusedDateTimeCtrl.text.trim(),
+      'accusedDateTime':
+          '${_accusedDateTimeCtrl.text.trim()} ${_accusedTimeCtrl.text.trim()}'
+              .trim(),
+      'accusedDateOnly': _accusedDateTimeCtrl.text.trim(),
+      'accusedTimeOnly': _accusedTimeCtrl.text.trim(),
       'ioSig': _ioSigCtrl.text.trim(),
       'ioNameRank': _ioNameRankCtrl.text.trim(),
       'ioPs': _ioPsCtrl.text.trim(),
@@ -262,6 +267,8 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
       'accusedSig': _accusedSigCtrl,
       'accusedName': _accusedNameCtrl,
       'accusedDateTime': _accusedDateTimeCtrl,
+      'accusedDateOnly': _accusedDateTimeCtrl,
+      'accusedTimeOnly': _accusedTimeCtrl,
       'ioSig': _ioSigCtrl,
       'ioNameRank': _ioNameRankCtrl,
       'ioPs': _ioPsCtrl,
@@ -270,20 +277,6 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
     }.entries) {
       setCtrl(e.value, e.key);
     }
-
-    if (_dateDayCtrl.text.isEmpty && _noticeDateCtrl.text.isNotEmpty) {
-      final parts = _noticeDateCtrl.text.split(RegExp(r'[/.-]'));
-      if (parts.length >= 3) {
-        _dateDayCtrl.text = parts[0].trim();
-        _dateMonthCtrl.text = parts[1].trim();
-        var yr = parts[2].trim();
-        if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
-        _dateYearCtrl.text = yr;
-      }
-    }
-
-    if (_outwardYearCtrl.text.isEmpty) _outwardYearCtrl.text = '२५';
-    if (_dateYearCtrl.text.isEmpty) _dateYearCtrl.text = '२५';
 
     if (mounted) setState(() {});
   }
@@ -412,31 +405,15 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                     ),
                     const SizedBox(height: 6),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text('दिनांक:- ', style: headerLabelStyle),
                         const SizedBox(width: 4),
-                        SizedBox(
-                          width: 34,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateDayCtrl,
-                            serifStyle: serif,
-                          ),
-                        ),
-                        Text('/', style: serifBold),
-                        SizedBox(
-                          width: 34,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateMonthCtrl,
-                            serifStyle: serif,
-                          ),
-                        ),
-                        Text('/२०', style: headerLabelStyle),
-                        SizedBox(
-                          width: 36,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateYearCtrl,
-                            serifStyle: serif,
-                          ),
+                        formDatePickerField(
+                          context,
+                          controller: _noticeDateCtrl,
+                          width: 140,
+                          readOnly: widget.readOnly,
                         ),
                       ],
                     ),
@@ -865,13 +842,20 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                       ),
                       const SizedBox(height: 10),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text('दिनांक:व वेळ ', style: headerLabelStyle),
-                          Expanded(
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _accusedDateTimeCtrl,
-                              serifStyle: serif,
-                            ),
+                          formDatePickerField(
+                            context,
+                            controller: _accusedDateTimeCtrl,
+                            width: 140,
+                            readOnly: widget.readOnly,
+                          ),
+                          formTimePickerField(
+                            context,
+                            controller: _accusedTimeCtrl,
+                            width: 110,
+                            readOnly: widget.readOnly,
                           ),
                         ],
                       ),

@@ -75,9 +75,9 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
     return val.isEmpty ? fallback : val;
   }
 
-  final policeStation = v('policeStation', 'म्हाळुंगे एम.आय.डी.सी.');
+  final policeStation = v('');
   final crNo = v('crNo');
-  final crYear = v('crYear', '२५');
+  final crYear = v('');
   final bnsSection = v('bnsSection', v('section'));
   final arrestDate = v('arrestDate');
   final arrestTime = v('arrestTime');
@@ -611,9 +611,9 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
-  final policeStation = v('policeStation', 'म्हाळुंगे एम.आय.डी.सी.');
+  final policeStation = v('');
   final crNo = v('crNo');
-  final crYear = v('crYear', '२५');
+  final crYear = v('');
   final bnsSection = v('bnsSection', v('section'));
   final arrestDate = v('arrestDate');
   final arrestTime = v('arrestTime');
@@ -820,9 +820,9 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
-  final policeStation = v('policeStation', 'म्हाळुंगे एम.आय.डी.सी.');
+  final policeStation = v('');
   final crNo = v('crNo');
-  final crYear = v('crYear', '२५');
+  final crYear = v('');
   final bnsSection = v('bnsSection', v('section'));
   final arrestDate = v('arrestDate');
   final arrestTime = v('arrestTime');

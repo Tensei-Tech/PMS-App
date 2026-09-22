@@ -61,7 +61,7 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
   }
 
   final outwardNo = v('outwardNo');
-  final outwardYear = v('outwardYear', '२०२५');
+  final outwardYear = v('');
   final policeStation = v('policeStation', v('subjectPs'));
   final taluka = v('taluka', v('ioTaluka'));
   final district = v('district', v('ioDistrict'));
@@ -551,7 +551,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
   }
 
   final outwardNo = v('outwardNo');
-  final outwardYear = v('outwardYear', '२०२५');
+  final outwardYear = v('');
   final policeStation = v('policeStation', v('subjectPs'));
   final taluka = v('taluka', v('ioTaluka'));
   final district = v('district', v('ioDistrict'));

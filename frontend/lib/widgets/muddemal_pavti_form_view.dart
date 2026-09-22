@@ -5,6 +5,7 @@ import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// -:: मुद्देमाल पावती ::- (Muddemal Pavti)
 class MuddemalPavtiFormView extends StatefulWidget {
@@ -115,90 +116,6 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
     _headMohararSigCtrl.dispose();
     _investigatingOfficerSigCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickDateForController(TextEditingController controller) async {
-    if (widget.readOnly) return;
-    DateTime initial = DateTime.now();
-    final raw = controller.text.trim();
-    if (raw.isNotEmpty) {
-      final parts = raw.split('/');
-      if (parts.length == 3) {
-        final d = int.tryParse(parts[0]);
-        final m = int.tryParse(parts[1]);
-        final y = int.tryParse(parts[2]);
-        if (d != null && m != null && y != null) {
-          initial = DateTime(y, m, d);
-        }
-      }
-    }
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF1A365D),
-              onPrimary: Colors.white,
-              onSurface: Colors.black87,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      final day = picked.day.toString().padLeft(2, '0');
-      final month = picked.month.toString().padLeft(2, '0');
-      final year = picked.year.toString();
-      setState(() {
-        controller.text = '$day/$month/$year';
-      });
-    }
-  }
-
-  Widget _datePickerField({
-    required TextEditingController controller,
-    double width = 140,
-    String hintText = 'DD/MM/YYYY',
-  }) {
-    return SizedBox(
-      width: width,
-      child: TextFormField(
-        controller: controller,
-        readOnly: true,
-        onTap: () => _pickDateForController(controller),
-        style:
-            GoogleFonts.notoSansDevanagari(fontSize: 13, color: Colors.black87),
-        decoration: InputDecoration(
-          isDense: true,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
-          hintText: hintText,
-          hintStyle: GoogleFonts.notoSansDevanagari(
-              fontSize: 12, color: Colors.grey.shade400),
-          suffixIcon: InkWell(
-            onTap: () => _pickDateForController(controller),
-            child: const Padding(
-              padding: EdgeInsets.only(left: 4, bottom: 2),
-              child: Icon(Icons.calendar_today_outlined,
-                  size: 16, color: Color(0xFF1A365D)),
-            ),
-          ),
-          suffixIconConstraints:
-              const BoxConstraints(minWidth: 20, minHeight: 20),
-          enabledBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.black54, width: 0.8),
-          ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF1A365D), width: 1.5),
-          ),
-        ),
-      ),
-    );
   }
 
   void _addRow() {
@@ -678,9 +595,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                _datePickerField(
+                formDatePickerField(
+                  context,
                   controller: _seizureDateCtrl,
                   width: 140,
+                  readOnly: widget.readOnly,
                 ),
                 const SizedBox(width: 24),
                 Text(

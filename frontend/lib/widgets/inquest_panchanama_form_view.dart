@@ -1904,13 +1904,14 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   Widget _multilineBlankBox({
     required TextEditingController controller,
     required TextStyle style,
-    int minLines = 2,
+    int minLines = 1,
   }) {
     return TextFormField(
       controller: controller,
       readOnly: widget.readOnly,
       minLines: minLines,
       maxLines: null,
+      keyboardType: TextInputType.multiline,
       style: style.copyWith(
         fontWeight: FontWeight.w500,
         fontSize: 13.5,
@@ -1921,7 +1922,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         isDense: true,
         filled: false,
         fillColor: Colors.transparent,
-        contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         border: UnderlineInputBorder(
             borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
         enabledBorder: UnderlineInputBorder(
@@ -2544,7 +2545,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qTextMr:
               'प्रेत सापडले त्यावेळची अवस्था, स्थिती, भोवतालची परिस्थिती आणि उपलब्ध असलेल्या मारहाणीच्या खुणा रक्ताचे डाग किंवा वांतीबरोबर पडलेले पदार्थ यांचा तपशील दयावा.',
           answerWidget: _multilineBlankBox(
-              controller: _csBodyConditionCtrl, style: style, minLines: 4),
+              controller: _csBodyConditionCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2584,7 +2585,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               'Had the deceased suffered from recent Illness? If so, what? State duration and Describe the illness as far as Known.',
           qTextMr: 'मृत व्यक्तीस अलिकडे काही आजार झाला होता काय असल्यास कोणता.',
           answerWidget: _multilineBlankBox(
-              controller: _csRecentIllnessCtrl, style: style, minLines: 3),
+              controller: _csRecentIllnessCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2597,7 +2598,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qTextMr:
               'मृत व्यक्तीस कोणत्याही प्रकारचा अपघात, दुखापत किंवा मारहाण झाली होती काय ?',
           answerWidget: _multilineBlankBox(
-              controller: _csAccidentInjuryCtrl, style: style, minLines: 2),
+              controller: _csAccidentInjuryCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2610,7 +2611,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qTextMr:
               'कपडे, हत्यारे, वांतीबरोबर पडलेले पदार्थ किंवा इतर वस्तु पाठविल्या असल्यास तसे का केले व त्याचा प्रकरणाशी संबंध आहे ते लिहावे, त्याचा तपशील दयावा.',
           answerWidget: _multilineBlankBox(
-              controller: _csArticlesForwardedCtrl, style: style, minLines: 4),
+              controller: _csArticlesForwardedCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2623,7 +2624,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qTextMr:
               'मृत्यु नैसर्गिक कारणे, अपघात, आत्महत्या किंवा खून यापैकी कशामुळे घडला असे वाटते. काही संशय असल्यास ते थोडक्यात स्पष्टपणे नमुद करावे व कारणे दयावे.',
           answerWidget: _multilineBlankBox(
-              controller: _csDeathReasonCtrl, style: style, minLines: 4),
+              controller: _csDeathReasonCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2688,7 +2689,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qTextMr:
               'विष प्रयोग केल्याचा संशय आहे, असल्यास विशिष्ट विषाचा वापर केला आहे वाटते काय? मृत व्यक्ती जिवंत असतांना विषबाधा झाल्याची लक्षणे दिसून आल्याचे कळविण्यात आले होते काय, व विषाचे बाबत मृत्यु नंतर दिसून आलेली चिन्हे नमुद करावी.',
           answerWidget: _multilineBlankBox(
-              controller: _csPoisonSuspicionCtrl, style: style, minLines: 5),
+              controller: _csPoisonSuspicionCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2701,7 +2702,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qTextMr:
               'स्त्रीच्या बाबतीत ती गरोदर असावी किंवा अलीकडे प्रसुती झाली असावी असे वाटते काय ?',
           answerWidget: _multilineBlankBox(
-              controller: _csWomanPregnancyCtrl, style: style, minLines: 2),
+              controller: _csWomanPregnancyCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2714,7 +2715,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qTextMr:
               'गर्भपात केला किंवा गर्भपात करण्याचा प्रयत्न केला या विषयी माहिती किंवा संशय आहे काय, गर्भपात केला असल्यास गर्भ सापडला काय.',
           answerWidget: _multilineBlankBox(
-              controller: _csAbortionCtrl, style: style, minLines: 2),
+              controller: _csAbortionCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2727,7 +2728,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qTextMr:
               'ज्युरीचे निष्कर्ष असल्यास नमुद करावेत व निष्कर्षा बाबत त्यांनी काही कारणे दिली असल्यास त्याचा निर्देश करावा.',
           answerWidget: _multilineBlankBox(
-              controller: _csJuryFindingsCtrl, style: style, minLines: 2),
+              controller: _csJuryFindingsCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -2740,7 +2741,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
           qTextMr:
               'शेरा वरील प्रश्नात समाविष्ट न झालेली परंतु पोलीस अधिकाऱ्यांच्या मते जिल्हा शल्यचिकित्सकांना मृत्युच्या कारणाविषयी आपले मत बनविण्यास सहाय्यभूत होण्याचा संभव आहे अशी कोणत्याही प्रकारची माहिती या शीर्षका खाली दयावी.',
           answerWidget: _multilineBlankBox(
-              controller: _csRemarksCtrl, style: style, minLines: 5),
+              controller: _csRemarksCtrl, style: style, minLines: 1),
           style: style,
           marathiStyle: marathiStyle,
         ),
@@ -3302,7 +3303,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     fontWeight: FontWeight.bold, fontSize: 13)),
             Expanded(
               child: _multilineBlankBox(
-                  controller: _relToNameCtrl, style: style, minLines: 4),
+                  controller: _relToNameCtrl, style: style, minLines: 1),
             ),
           ],
         ),
@@ -3584,7 +3585,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     fontWeight: FontWeight.bold, fontSize: 13)),
             Expanded(
               child: _multilineBlankBox(
-                  controller: _panToNameCtrl, style: style, minLines: 4),
+                  controller: _panToNameCtrl, style: style, minLines: 1),
             ),
           ],
         ),
@@ -4746,7 +4747,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '१) पंचाचे नांव व पत्ता :-',
           _marPanchNameAddressCtrl,
-          minLines: 4,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4799,7 +4800,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '५) अन्वेषण अधिकाऱ्याचे नांव, हुद्दा :-',
           _marIoDetailsCtrl,
-          minLines: 2,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4808,7 +4809,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '६) फिर्यादीचे नांव :-',
           _marComplainantNameCtrl,
-          minLines: 2,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4817,7 +4818,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '७) मृतकाचे नांव व पत्ता :-',
           _marDeceasedNameAddressCtrl,
-          minLines: 2,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4826,7 +4827,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '८) प्रेत दाखविणाऱ्याचे/ओळखणाऱ्याचे नांव :-',
           _marShownByNameCtrl,
-          minLines: 2,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4835,7 +4836,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '९) प्रेत ठेवले आहे त्या ठिकाणाचे वर्णन :-',
           _marThikanDescriptionCtrl,
-          minLines: 3,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4844,7 +4845,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '१०) प्रेताची स्थिती:-',
           _marBodyConditionCtrl,
-          minLines: 4,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4853,7 +4854,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '११) प्रेताचे अंगावरील कपड्याचे वर्णन :-',
           _marBodyClothesCtrl,
-          minLines: 3,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4862,7 +4863,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '१२) प्रेताचे अंगावरील दागीने व इतर वस्तु :-',
           _marBodyOrnamentsCtrl,
-          minLines: 3,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4916,7 +4917,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '१३) मृतकाच्या शरीरावरील मार, जखमा इत्यादी :-',
           _mar13InjuriesCtrl,
-          minLines: 4,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4925,7 +4926,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '१४) प्रेतावरील इतर खुणा, लघवी, विर्यपतन, विष्टा किंवा वांती झाली काय ? तपासणीकरीता नमुने घेतले काय सविस्तर उल्लेख करावा :-',
           _mar14OtherMarksCtrl,
-          minLines: 4,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4934,7 +4935,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '१५) मृतकाचे अंगावरील दागीने व इतर वस्तुंची काय विल्हेवाट लावली :-',
           _mar15OrnamentsDisposalCtrl,
-          minLines: 3,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4943,7 +4944,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '१६) पंच व अन्वेषण अधिकारी यांचा अभिप्राय :-',
           _mar16OpinionCtrl,
-          minLines: 3,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4952,7 +4953,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '१७) प्रेताची काय विल्हेवाट लावली ? :-',
           _mar17BodyDisposalCtrl,
-          minLines: 3,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -4961,7 +4962,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         _marathiMultilineField(
           '१८) पंचनामा संपविल्याची दिनांक व वेळ :-',
           _mar18DateTimeCtrl,
-          minLines: 2,
+          minLines: 1,
           labelStyle: labelStyle,
           serifStyle: valueStyle,
         ),
@@ -5108,7 +5109,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   Widget _marathiMultilineField(
     String label,
     TextEditingController controller, {
-    int minLines = 2,
+    int minLines = 1,
     TextStyle? labelStyle,
     TextStyle? serifStyle,
   }) {

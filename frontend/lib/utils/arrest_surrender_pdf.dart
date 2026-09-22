@@ -66,21 +66,26 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
     color: PdfColors.black,
   );
 
-  pw.Widget renderText(String key, String? val, pw.TextStyle engStyle) {
+  pw.Widget renderText(
+    String key,
+    String? val,
+    pw.TextStyle engStyle, {
+    double? maxWidth,
+  }) {
     if (val == null || val.isEmpty) return pw.SizedBox();
     if (containsDevanagari(val)) {
       if (cache.has(key)) {
         return pw.Container(
           alignment: pw.Alignment.topLeft,
-          child: cache.img(key),
+          child: cache.img(key, maxWidth: maxWidth),
         );
       }
     }
     return pw.Text(val, style: engStyle);
   }
 
-  pw.Widget mLbl(String key) {
-    if (cache.has(key)) return cache.img(key);
+  pw.Widget mLbl(String key, {double? width, double? maxWidth}) {
+    if (cache.has(key)) return cache.img(key, width: width, maxWidth: maxWidth);
     return pw.SizedBox();
   }
 
@@ -101,7 +106,12 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
           decoration: const pw.BoxDecoration(
             border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
           ),
-          child: renderText(valKey, fallback?.toString(), englishStyle),
+          child: renderText(
+            valKey,
+            fallback?.toString(),
+            englishStyle,
+            maxWidth: width,
+          ),
         ),
       ],
     );
@@ -128,11 +138,51 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
               decoration: const pw.BoxDecoration(
                 border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
               ),
-              child: renderText(valKey, fallback?.toString(), englishStyle),
+              child: renderText(
+                valKey,
+                fallback?.toString(),
+                englishStyle,
+                maxWidth: width,
+              ),
             ),
           ],
         ),
-        if (mKey.isNotEmpty) mLbl(mKey),
+        if (mKey.isNotEmpty)
+          mLbl(mKey, maxWidth: width != null ? width + 60 : 240),
+      ],
+    );
+  }
+
+  pw.Widget buildFlexibleFieldWithMLbl(
+    String enLabel,
+    String mKey,
+    String valKey,
+    dynamic fallback,
+  ) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            if (enLabel.isNotEmpty) pw.Text(enLabel, style: englishBold),
+            pw.Expanded(
+              child: pw.Container(
+                padding: const pw.EdgeInsets.only(left: 2, right: 2, bottom: 1),
+                decoration: const pw.BoxDecoration(
+                  border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+                ),
+                child: renderText(
+                  valKey,
+                  fallback?.toString(),
+                  englishStyle,
+                  maxWidth: 220,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (mKey.isNotEmpty) mLbl(mKey, maxWidth: 240),
       ],
     );
   }
@@ -149,7 +199,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
       children: [
         pw.Text(enLabel, style: englishBold),
         pw.SizedBox(height: 1),
-        if (mKey.isNotEmpty) mLbl(mKey),
+        if (mKey.isNotEmpty) mLbl(mKey, maxWidth: width ?? 250),
         pw.SizedBox(height: 2),
         pw.Container(
           width: width,
@@ -157,7 +207,12 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
           decoration: const pw.BoxDecoration(
             border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
           ),
-          child: renderText(valKey, fallback?.toString(), englishStyle),
+          child: renderText(
+            valKey,
+            fallback?.toString(),
+            englishStyle,
+            maxWidth: width ?? 250,
+          ),
         ),
       ],
     );
@@ -188,6 +243,35 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
             ? mLbl(mKey)
             : pw.Text(text, style: englishStyle),
       ],
+    );
+  }
+
+  pw.Widget buildIncomeItem(
+    bool value,
+    String mKey,
+  ) {
+    return pw.Expanded(
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Container(
+            width: 10,
+            height: 10,
+            margin: const pw.EdgeInsets.only(top: 1.5),
+            decoration: pw.BoxDecoration(border: pw.Border.all(width: 1)),
+            child: value
+                ? pw.Center(
+                    child:
+                        pw.Text('X', style: englishBold.copyWith(fontSize: 8)),
+                  )
+                : pw.SizedBox(),
+          ),
+          pw.SizedBox(width: 4),
+          pw.Expanded(
+            child: mLbl(mKey, maxWidth: 240),
+          ),
+        ],
+      ),
     );
   }
 
@@ -888,6 +972,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                       'val_otherFeatures',
                       doc['otherFeatures']?.toString(),
                       englishStyle,
+                      maxWidth: 650,
                     ),
                   ),
                 ),
@@ -918,30 +1003,26 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      '10. Whether finger print taken or not? :',
-                      style: englishBold,
-                    ),
-                    mLbl('lbl_10_m1'),
-                  ],
+                pw.Text(
+                  '10. Whether finger print taken or not? : ',
+                  style: englishBold,
                 ),
-                pw.SizedBox(width: 8),
-                pw.Expanded(
-                  child: pw.Container(
-                    decoration: const pw.BoxDecoration(
-                      border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
-                    ),
-                    child: pw.Text(
-                      doc['fingerprintTaken'] == true ? 'Yes' : 'No',
-                      style: englishStyle,
-                    ),
+                pw.Container(
+                  width: 50,
+                  padding:
+                      const pw.EdgeInsets.only(left: 2, right: 2, bottom: 1),
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+                  ),
+                  child: pw.Text(
+                    doc['fingerprintTaken'] == true ? 'Yes' : 'No',
+                    style: englishStyle,
                   ),
                 ),
               ],
             ),
+            pw.SizedBox(height: 1),
+            mLbl('lbl_10_m1', maxWidth: 500),
             pw.SizedBox(height: 5),
 
             // 11
@@ -966,8 +1047,8 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   mLbl('lbl_11a_m2'),
                   pw.SizedBox(height: 2),
                   pw.Wrap(
-                    spacing: 8,
-                    runSpacing: 2,
+                    spacing: 20,
+                    runSpacing: 6,
                     children: [
                       check('Living alone', doc['livingAlone'] == true),
                       check(
@@ -992,22 +1073,22 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   pw.Row(
                     children: [
                       pw.Expanded(
-                        child: buildInlineFieldWithMLbl(
+                        child: buildStackedFieldWithMLbl(
                           '(b)Educational qualifications(s)',
                           'lbl_11b_m1',
                           'val_edu',
                           doc['eduQual'],
-                          width: 100,
+                          width: double.infinity,
                         ),
                       ),
-                      pw.SizedBox(width: 8),
+                      pw.SizedBox(width: 12),
                       pw.Expanded(
-                        child: buildInlineFieldWithMLbl(
+                        child: buildStackedFieldWithMLbl(
                           '(c) occupation',
                           'lbl_11c_m1',
                           'val_occ2',
                           doc['occupation2'],
-                          width: 100,
+                          width: double.infinity,
                         ),
                       ),
                     ],
@@ -1017,42 +1098,35 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                   mLbl('lbl_11d_m1'),
                   pw.SizedBox(height: 2),
                   pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Expanded(
-                        child: check('', doc['incomeLower'] == true,
-                            isMarathi: true, mKey: 'lbl_11di_m1'),
-                      ),
+                      buildIncomeItem(
+                          doc['incomeLower'] == true, 'lbl_11di_m1'),
                       pw.SizedBox(width: 8),
-                      pw.Expanded(
-                        child: check('', doc['incomeLowerMid'] == true,
-                            isMarathi: true, mKey: 'lbl_11dii_m1'),
-                      ),
+                      buildIncomeItem(
+                          doc['incomeLowerMid'] == true, 'lbl_11dii_m1'),
                     ],
                   ),
+                  pw.SizedBox(height: 4),
                   pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Expanded(
-                        child: check('', doc['incomeMiddle'] == true,
-                            isMarathi: true, mKey: 'lbl_11diii_m1'),
-                      ),
+                      buildIncomeItem(
+                          doc['incomeMiddle'] == true, 'lbl_11diii_m1'),
                       pw.SizedBox(width: 8),
-                      pw.Expanded(
-                        child: check('', doc['incomeUpperMid'] == true,
-                            isMarathi: true, mKey: 'lbl_11div_m1'),
-                      ),
+                      buildIncomeItem(
+                          doc['incomeUpperMid'] == true, 'lbl_11div_m1'),
                     ],
                   ),
+                  pw.SizedBox(height: 4),
                   pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Expanded(
-                        child: check('', doc['incomeUpperMid2'] == true,
-                            isMarathi: true, mKey: 'lbl_11dv_m1'),
-                      ),
+                      buildIncomeItem(
+                          doc['incomeUpperMid2'] == true, 'lbl_11dv_m1'),
                       pw.SizedBox(width: 8),
-                      pw.Expanded(
-                        child: check('', doc['incomeUpper'] == true,
-                            isMarathi: true, mKey: 'lbl_11dvi_m1'),
-                      ),
+                      buildIncomeItem(
+                          doc['incomeUpper'] == true, 'lbl_11dvi_m1'),
                     ],
                   ),
                 ],
@@ -1169,6 +1243,7 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
                             'val_caseRef',
                             doc['caseRefSec'],
                             englishStyle,
+                            maxWidth: 250,
                           ),
                         ),
                       ),
@@ -1183,15 +1258,16 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
             pw.Row(
               children: [
                 pw.Expanded(
-                  child: buildInlineFieldWithMLbl(
+                  child: buildFlexibleFieldWithMLbl(
                     '13. ',
                     'lbl_13_m1',
                     'val_p1Name',
                     doc['panch1Name'],
                   ),
                 ),
+                pw.SizedBox(width: 8),
                 pw.Expanded(
-                  child: buildInlineFieldWithMLbl(
+                  child: buildFlexibleFieldWithMLbl(
                     '',
                     'lbl_13_m2',
                     'val_p1Sig',
@@ -1216,10 +1292,32 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
             pw.Row(
               children: [
                 pw.Expanded(
-                  child: field('(2):', 'val_p2Name', doc['panch2Name']),
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('(2):', style: englishBold),
+                      pw.Expanded(
+                        child: pw.Container(
+                          padding: const pw.EdgeInsets.only(
+                              left: 2, right: 2, bottom: 1),
+                          decoration: const pw.BoxDecoration(
+                            border:
+                                pw.Border(bottom: pw.BorderSide(width: 0.5)),
+                          ),
+                          child: renderText(
+                            'val_p2Name',
+                            doc['panch2Name']?.toString(),
+                            englishStyle,
+                            maxWidth: 220,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                pw.SizedBox(width: 8),
                 pw.Expanded(
-                  child: buildInlineFieldWithMLbl(
+                  child: buildFlexibleFieldWithMLbl(
                     '',
                     'lbl_13_m3',
                     'val_p2Sig',
@@ -1334,7 +1432,7 @@ pw.Widget _yesNoRow(
   bool value,
   pw.TextStyle style,
   pw.TextStyle boldStyle,
-  pw.Widget Function(String) mLbl,
+  pw.Widget Function(String, {double? maxWidth, double? width}) mLbl,
 ) {
   return pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 1),
@@ -1347,11 +1445,11 @@ pw.Widget _yesNoRow(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
               pw.Text(enLabel, style: style),
-              if (mKey.isNotEmpty) mLbl(mKey),
+              if (mKey.isNotEmpty) mLbl(mKey, maxWidth: 380),
             ])),
         pw.Row(children: [
           pw.Text('Yes/No ', style: boldStyle),
-          mLbl('lbl_yes_no'),
+          mLbl('lbl_yes_no', maxWidth: 60),
           pw.Text(value ? ' [Yes]' : ' [No]', style: style),
         ]),
       ],
@@ -1623,27 +1721,33 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addLbl(
       'lbl_11di_m1',
       '(i) Lower Income (Below Rs. 25000 P.Y.) = कमी उत्पन्न ( द.सा.रू २५००० पेक्ष कमी )',
-      marathiLabelStyle);
+      marathiLabelStyle,
+      maxWidth: 240);
   await addLbl(
       'lbl_11dii_m1',
       '(ii) Lower Middle Income (From Rs. 25001 to 50000) = कमी मध्यम उत्पन्न ( २५००१ ते ५००००)',
-      marathiLabelStyle);
+      marathiLabelStyle,
+      maxWidth: 240);
   await addLbl(
       'lbl_11diii_m1',
       '(iii) Middle Income (From 50001 to 100000) = मध्यम उत्पन्न (२५,००१ ते १००,००० )',
-      marathiLabelStyle);
+      marathiLabelStyle,
+      maxWidth: 240);
   await addLbl(
       'lbl_11div_m1',
       '(iv) Upper Middle Income (/From 100000 to 200000)= उच्च मध्यम उत्पन्न ( १००,००१ ते  २००,०००)',
-      marathiLabelStyle);
+      marathiLabelStyle,
+      maxWidth: 240);
   await addLbl(
       'lbl_11dv_m1',
       '(v) Upper Middle Income (Rs. 200000 to 300000) = उच्च मध्यम उत्पन्न ( २००,००१ ते ३००,०००)',
-      marathiLabelStyle);
+      marathiLabelStyle,
+      maxWidth: 240);
   await addLbl(
       'lbl_11dvi_m1',
       '(vi) Upper Income (above 300000) =SSE = उच्च उत्पन्न ( ३००,०००)',
-      marathiLabelStyle);
+      marathiLabelStyle,
+      maxWidth: 240);
   await addLbl('lbl_12a_m1', '(धोकादायक आहे किंवा कसे?)', marathiLabelStyle);
   await addLbl('lbl_12b_m1',
       '( पुर्वी जामीनावर असतांना पळुन गेला किंवा काय ? )', marathiLabelStyle);
@@ -1796,15 +1900,51 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'val_otherFeatures': 'otherFeatures',
   };
 
+  const twoColKeys = {
+    'val_accAlias1',
+    'val_accAlias2',
+    'val_accVoter',
+    'val_accPass',
+    'val_accDateIss',
+    'val_accPlaceIss',
+    'val_accRelig',
+    'val_accCaste',
+    'val_accScSt',
+    'val_accOcc',
+    'val_edu',
+    'val_occ2',
+    'val_p1Name',
+    'val_p1Sig',
+    'val_p2Name',
+    'val_p2Sig',
+    'val_fRank',
+    'val_fNo',
+  };
+
+  const threeColKeys = {
+    'val_permState',
+    'val_permDist',
+    'val_permPs',
+    'val_presState',
+    'val_presDist',
+    'val_presPs',
+  };
+
   for (final entry in valueKeyMap.entries) {
-    await addVal(entry.key, doc[entry.value]?.toString());
+    double maxW = 500.0;
+    if (twoColKeys.contains(entry.key)) {
+      maxW = 220.0;
+    } else if (threeColKeys.contains(entry.key)) {
+      maxW = 120.0;
+    }
+    await addVal(entry.key, doc[entry.value]?.toString(), maxWidth: maxW);
   }
 
   // Table values
   if (doc['physTable'] is Map) {
     final pt = doc['physTable'] as Map<String, dynamic>;
     for (int i = 1; i <= 26; i++) {
-      await addVal('tbl_v_$i', pt[i.toString()]);
+      await addVal('tbl_v_$i', pt[i.toString()], maxWidth: 70.0);
     }
   }
 

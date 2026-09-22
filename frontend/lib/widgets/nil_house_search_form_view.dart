@@ -5,6 +5,7 @@ import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// निल घरझडती पंचनामा (Nil House Search Panchanama)
 class NilHouseSearchFormView extends StatefulWidget {
@@ -304,240 +305,6 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _pickDateForController(
-    BuildContext context,
-    TextEditingController targetCtrl, {
-    TextEditingController? dayCtrl,
-    TextEditingController? monthCtrl,
-    TextEditingController? yearCtrl,
-  }) async {
-    DateTime initial = DateTime.now();
-    final cur = targetCtrl.text.trim();
-    if (cur.isNotEmpty) {
-      final parts = cur.split(RegExp(r'[/.-]'));
-      if (parts.length == 3) {
-        final d = int.tryParse(parts[0]);
-        final m = int.tryParse(parts[1]);
-        int? y = int.tryParse(parts[2]);
-        if (y != null && y < 100) y += 2000;
-        if (d != null && m != null && y != null) {
-          try {
-            initial = DateTime(y, m, d);
-          } catch (_) {}
-        }
-      }
-    }
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-      locale: const Locale('en', 'IN'),
-    );
-    if (picked != null) {
-      final dStr = picked.day.toString().padLeft(2, '0');
-      final mStr = picked.month.toString().padLeft(2, '0');
-      final yStr = picked.year.toString();
-      targetCtrl.text = '$dStr/$mStr/$yStr';
-      if (dayCtrl != null) dayCtrl.text = dStr;
-      if (monthCtrl != null) monthCtrl.text = mStr;
-      if (yearCtrl != null) {
-        yearCtrl.text = yStr.length == 4 ? yStr.substring(2) : yStr;
-      }
-      setState(() {});
-    }
-  }
-
-  Future<void> _pickTimeForController(
-    BuildContext context,
-    TextEditingController targetCtrl, {
-    TextEditingController? hoursCtrl,
-    TextEditingController? minutesCtrl,
-  }) async {
-    TimeOfDay initial = TimeOfDay.now();
-    final cur = targetCtrl.text.trim();
-    if (cur.isNotEmpty) {
-      final parts = cur.split(RegExp(r'[:/.]'));
-      if (parts.length >= 2) {
-        final h = int.tryParse(parts[0]);
-        final m = int.tryParse(parts[1]);
-        if (h != null && m != null && h >= 0 && h < 24 && m >= 0 && m < 60) {
-          initial = TimeOfDay(hour: h, minute: m);
-        }
-      }
-    }
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initial,
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
-    );
-    if (picked != null) {
-      final hStr = picked.hour.toString().padLeft(2, '0');
-      final mStr = picked.minute.toString().padLeft(2, '0');
-      targetCtrl.text = '$hStr:$mStr';
-      if (hoursCtrl != null) hoursCtrl.text = hStr;
-      if (minutesCtrl != null) minutesCtrl.text = mStr;
-      setState(() {});
-    }
-  }
-
-  Widget _datePickerField({
-    required TextEditingController controller,
-    required TextStyle style,
-    double? width,
-    String hintText = 'DD/MM/YYYY',
-    TextEditingController? dayCtrl,
-    TextEditingController? monthCtrl,
-    TextEditingController? yearCtrl,
-  }) {
-    if (controller.text.isEmpty &&
-        dayCtrl != null &&
-        dayCtrl.text.isNotEmpty &&
-        monthCtrl != null &&
-        monthCtrl.text.isNotEmpty) {
-      final yr = yearCtrl?.text.trim() ?? '';
-      final fullYr = yr.length == 2 ? '20$yr' : yr;
-      controller.text =
-          '${dayCtrl.text.padLeft(2, '0')}/${monthCtrl.text.padLeft(2, '0')}/$fullYr';
-    }
-
-    return SizedBox(
-      width: width,
-      child: InkWell(
-        onTap: widget.readOnly
-            ? null
-            : () => _pickDateForController(
-                  context,
-                  controller,
-                  dayCtrl: dayCtrl,
-                  monthCtrl: monthCtrl,
-                  yearCtrl: yearCtrl,
-                ),
-        mouseCursor: widget.readOnly
-            ? SystemMouseCursors.basic
-            : SystemMouseCursors.click,
-        child: IgnorePointer(
-          ignoring: true,
-          child: TextFormField(
-            controller: controller,
-            readOnly: true,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-              color: const Color(0xFF0D47A1),
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: false,
-              fillColor: Colors.transparent,
-              contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
-              hintText: hintText,
-              hintStyle: style.copyWith(
-                color: Colors.grey.shade400,
-                fontSize: 12,
-              ),
-              suffixIcon: const Icon(
-                Icons.calendar_today_outlined,
-                size: 16,
-                color: Colors.black87,
-              ),
-              suffixIconConstraints:
-                  const BoxConstraints(minWidth: 24, minHeight: 22),
-              border: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
-              ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _timePickerField({
-    required TextEditingController controller,
-    required TextStyle style,
-    double? width,
-    String hintText = 'HH:MM',
-    TextEditingController? hoursCtrl,
-    TextEditingController? minutesCtrl,
-  }) {
-    if (controller.text.isEmpty &&
-        hoursCtrl != null &&
-        hoursCtrl.text.isNotEmpty &&
-        minutesCtrl != null &&
-        minutesCtrl.text.isNotEmpty) {
-      controller.text =
-          '${hoursCtrl.text.padLeft(2, '0')}:${minutesCtrl.text.padLeft(2, '0')}';
-    }
-
-    return SizedBox(
-      width: width,
-      child: InkWell(
-        onTap: widget.readOnly
-            ? null
-            : () => _pickTimeForController(
-                  context,
-                  controller,
-                  hoursCtrl: hoursCtrl,
-                  minutesCtrl: minutesCtrl,
-                ),
-        mouseCursor: widget.readOnly
-            ? SystemMouseCursors.basic
-            : SystemMouseCursors.click,
-        child: IgnorePointer(
-          ignoring: true,
-          child: TextFormField(
-            controller: controller,
-            readOnly: true,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-              color: const Color(0xFF0D47A1),
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: false,
-              fillColor: Colors.transparent,
-              contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
-              hintText: hintText,
-              hintStyle: style.copyWith(
-                color: Colors.grey.shade400,
-                fontSize: 12,
-              ),
-              suffixIcon: const Icon(
-                Icons.access_time,
-                size: 16,
-                color: Colors.black87,
-              ),
-              suffixIconConstraints:
-                  const BoxConstraints(minWidth: 24, minHeight: 22),
-              border: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
-              ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _wrappingUnderlineInput({
     required TextEditingController controller,
     required TextStyle style,
@@ -780,13 +547,14 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                       children: [
                         Text('दिनांक          :-', style: headerLabelStyle),
                         const SizedBox(width: 6),
-                        _datePickerField(
+                        formDatePickerField(
+                          context,
                           controller: _dateCtrl,
-                          style: serif,
                           width: 140,
                           dayCtrl: _dateDayCtrl,
                           monthCtrl: _dateMonthCtrl,
                           yearCtrl: _dateYearCtrl,
+                          readOnly: widget.readOnly,
                         ),
                       ],
                     ),
@@ -881,13 +649,14 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                   maxWidth: 280,
                 ),
                 Text('यांनी दिनांक ', style: bodyTextStyle),
-                _datePickerField(
+                formDatePickerField(
+                  context,
                   controller: _summonDateCtrl,
-                  style: serif,
                   width: 140,
                   dayCtrl: _summonDateDayCtrl,
                   monthCtrl: _summonDateMonthCtrl,
                   yearCtrl: _summonDateYearCtrl,
+                  readOnly: widget.readOnly,
                 ),
                 Text('रोजी वरील नमुद पंचांना मौजा', style: bodyTextStyle),
                 _wrappingUnderlineInput(
@@ -1013,29 +782,28 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
               children: [
                 Text('       निल घरझडती पंचनामा आज दिनांक ',
                     style: bodyTextStyle),
-                _datePickerField(
+                formDatePickerField(
+                  context,
                   controller: _panchDateCtrl,
-                  style: serif,
                   width: 140,
                   dayCtrl: _panchDateDayCtrl,
                   monthCtrl: _panchDateMonthCtrl,
                   yearCtrl: _panchDateYearCtrl,
+                  readOnly: widget.readOnly,
                 ),
                 Text('चे ', style: bodyTextStyle),
-                _timePickerField(
+                formTimePickerField(
+                  context,
                   controller: _startTimeCtrl,
-                  style: serif,
                   width: 90,
-                  hoursCtrl: _startTimeHoursCtrl,
-                  minutesCtrl: _startTimeMinutesCtrl,
+                  readOnly: widget.readOnly,
                 ),
                 Text('वा सुरू करून ', style: bodyTextStyle),
-                _timePickerField(
+                formTimePickerField(
+                  context,
                   controller: _endTimeCtrl,
-                  style: serif,
                   width: 90,
-                  hoursCtrl: _endTimeHoursCtrl,
-                  minutesCtrl: _endTimeMinutesCtrl,
+                  readOnly: widget.readOnly,
                 ),
                 Text(
                   'वा मोक्यावर संपविला. पंचनामा पंचाना वाचुन दाखविला/ वाचुन पाहिला, बरोबर असल्याचे खात्री करून त्यावर त्यांनी सह्या केल्या.',

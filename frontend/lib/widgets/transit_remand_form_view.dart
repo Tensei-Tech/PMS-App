@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'form_paper_page.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// Editable Transit Remand Requisition Form (Left-aligned Letter format).
 class TransitRemandFormView extends StatefulWidget {
@@ -23,37 +24,29 @@ class TransitRemandFormView extends StatefulWidget {
 
 class TransitRemandFormViewState extends State<TransitRemandFormView> {
   // Header fields
-  final _outwardNoCtrl = TextEditingController(text: '');
-  final _outwardYearCtrl = TextEditingController(text: '2021');
-  final _psNameCtrl = TextEditingController(text: 'Wakad Police Station,');
-  final _psCityCtrl = TextEditingController(text: 'Pimpri Chichwad.');
-  final _dateDayCtrl = TextEditingController(text: '');
-  final _dateMonthYearCtrl = TextEditingController(text: '/11/2021');
+  final _outwardNoCtrl = TextEditingController();
+  final _outwardYearCtrl = TextEditingController();
+  final _psNameCtrl = TextEditingController();
+  final _psCityCtrl = TextEditingController();
+  final _dateCtrl = TextEditingController();
 
   // Addressee fields
-  final _courtLine1Ctrl = TextEditingController(text: '');
-  final _courtLine2Ctrl = TextEditingController(text: '');
+  final _courtLine1Ctrl = TextEditingController();
+  final _courtLine2Ctrl = TextEditingController();
 
   // Report fields
-  final _officerNameCtrl = TextEditingController(text: 'Jitendra S. Girnar');
-  final _officerRankCtrl = TextEditingController(text: 'Police Sub Inpector');
-  final _officerPsCtrl = TextEditingController(
-    text: 'Wakad Police Station, Pimpri Chichwad.',
-  );
+  final _officerNameCtrl = TextEditingController();
+  final _officerRankCtrl = TextEditingController();
+  final _officerPsCtrl = TextEditingController();
 
   // Subject
-  final _subjectHoursCtrl = TextEditingController(text: '72');
+  final _subjectHoursCtrl = TextEditingController();
 
   // Body text
-  final _bodyCtrl = TextEditingController(
-    text:
-        '    Regarding the above mentioned subject, most humbly request that a complaint has been registered at Wakad Police Station, Pimpri Chinchwad with FIR No. 912/2021 u/s 377,498(A), 347,504,34 of IPC by complainant Mrs. Sushama Chalamalasetti, Age 31 years, Profession house wife, residing at B901, Titanium Park, Park Street, Wakad Pune. The name of the accused being 1) Mahesh Babu Gunukula, Age 36 ears profession Service, residing at D No. 4, 153, Gudlavaleru, Gudlavaleru MDL 521356, Crishna District Andhra Pradesh and 2) Shiva Prasad Gunukula, Age 63 years (relation father in law). Against he complainant the accused conspired to get the property of complainant at Mumbai which is joint name with her mother and the property in USA. On decline to transfer the property in accused husbands name they harassed her confired her in a room further mentally and physically harassed her. The accused no. 1 also had unnatural sexual offence against the wish of the complainant. The same has been registered under the above mention complainant and I am Investigating the same.\n\n'
-        '    During Investigation I had arrest accuse no. 1) Mahesh Babu Gunukula, Age 36 ears profession Service, residing at D No. 4, 153, Gudlavaleru, Gudlavaleru MDL 521356, Crishna District Andhra Pradesh in --------- Police station at --------am/pm on dt.   /11/2021 wide station diary no. ----/21.\n\n'
-        '    To produce accused before Hon. JMFC., No.09, Shivajinagar, Pune I want transit remand of accused for 2 hrs. so please give me transit remand of accused.',
-  );
+  final _bodyCtrl = TextEditingController();
 
   // Footer / Sign-off
-  final _signOffNameCtrl = TextEditingController(text: '');
+  final _signOffNameCtrl = TextEditingController();
 
   @override
   void dispose() {
@@ -61,8 +54,7 @@ class TransitRemandFormViewState extends State<TransitRemandFormView> {
     _outwardYearCtrl.dispose();
     _psNameCtrl.dispose();
     _psCityCtrl.dispose();
-    _dateDayCtrl.dispose();
-    _dateMonthYearCtrl.dispose();
+    _dateCtrl.dispose();
     _courtLine1Ctrl.dispose();
     _courtLine2Ctrl.dispose();
     _officerNameCtrl.dispose();
@@ -75,8 +67,7 @@ class TransitRemandFormViewState extends State<TransitRemandFormView> {
   }
 
   Map<String, dynamic> collectData() {
-    final fullDate =
-        '${_dateDayCtrl.text.trim()} ${_dateMonthYearCtrl.text.trim()}'.trim();
+    final fullDate = _dateCtrl.text.trim();
     final fullOutward =
         '${_outwardNoCtrl.text.trim()}/${_outwardYearCtrl.text.trim()}';
 
@@ -88,8 +79,8 @@ class TransitRemandFormViewState extends State<TransitRemandFormView> {
       'fullOutward': fullOutward,
       'psName': _psNameCtrl.text.trim(),
       'psCity': _psCityCtrl.text.trim(),
-      'dateDay': _dateDayCtrl.text.trim(),
-      'dateMonthYear': _dateMonthYearCtrl.text.trim(),
+      'dateDay': '',
+      'dateMonthYear': '',
       'date': fullDate,
       'courtLine1': _courtLine1Ctrl.text.trim(),
       'courtLine2': _courtLine2Ctrl.text.trim(),
@@ -101,11 +92,11 @@ class TransitRemandFormViewState extends State<TransitRemandFormView> {
       'signOffName': _signOffNameCtrl.text.trim(),
 
       // Legacy compatibility mappings for case title & search indexing
-      'eFirNo': '912/2021',
+      'eFirNo': '',
       'eDate': fullDate,
       'm1Date': fullDate,
-      'eArrestedName': 'Mahesh Babu Gunukula',
-      'm1AccusedName': 'Mahesh Babu Gunukula',
+      'eArrestedName': '',
+      'm1AccusedName': '',
     };
   }
 
@@ -122,11 +113,12 @@ class TransitRemandFormViewState extends State<TransitRemandFormView> {
     if (data.containsKey('psCity')) {
       _psCityCtrl.text = data['psCity']?.toString() ?? '';
     }
-    if (data.containsKey('dateDay')) {
-      _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
-    }
-    if (data.containsKey('dateMonthYear')) {
-      _dateMonthYearCtrl.text = data['dateMonthYear']?.toString() ?? '';
+    if (data.containsKey('date')) {
+      _dateCtrl.text = data['date']?.toString() ?? '';
+    } else {
+      final day = data['dateDay']?.toString() ?? '';
+      final my = data['dateMonthYear']?.toString() ?? '';
+      _dateCtrl.text = '$day $my'.trim();
     }
     if (data.containsKey('courtLine1')) {
       _courtLine1Ctrl.text = data['courtLine1']?.toString() ?? '';
@@ -238,13 +230,13 @@ class TransitRemandFormViewState extends State<TransitRemandFormView> {
                   const SizedBox(height: 6),
                   _buildEditableUnderline(
                     controller: _psNameCtrl,
-                    hintText: 'Wakad Police Station,',
+                    hintText: 'Police Station',
                     fontWeight: FontWeight.bold,
                   ),
                   const SizedBox(height: 6),
                   _buildEditableUnderline(
                     controller: _psCityCtrl,
-                    hintText: 'Pimpri Chichwad.',
+                    hintText: 'District / City',
                     fontWeight: FontWeight.bold,
                   ),
                   const SizedBox(height: 6),
@@ -252,19 +244,11 @@ class TransitRemandFormViewState extends State<TransitRemandFormView> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text('Date - ', style: boldLabel),
-                      SizedBox(
-                        width: 32,
-                        child: _buildEditableUnderline(
-                          controller: _dateDayCtrl,
-                          hintText: '    ',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildEditableUnderline(
-                          controller: _dateMonthYearCtrl,
-                          hintText: '/11/2021',
-                        ),
+                      formDatePickerField(
+                        context,
+                        controller: _dateCtrl,
+                        width: 140,
+                        readOnly: widget.readOnly,
                       ),
                     ],
                   ),

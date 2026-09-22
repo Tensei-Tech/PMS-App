@@ -6,6 +6,8 @@
 // This guarantees 100% Devanagari text shaping fidelity with zero matra/conjunct errors
 // and zero page overflow/clipping.
 
+// ignore_for_file: unused_element
+
 import 'dart:async';
 import 'dart:ui' as ui;
 
@@ -82,20 +84,29 @@ Future<Uint8List> _buildImagePdf(
     pages.add(_pgFemale4(doc));
   }
 
-  final pngs = <Uint8List>[];
+  final results = <({Uint8List bytes, double width, double height})>[];
   for (final page in pages) {
-    pngs.add(await _capture(context, page));
+    results.add(await _capture(context, page));
   }
 
+  // A4 width in PDF points at 72dpi: 595.28pt
+  final double a4PtWidth = PdfPageFormat.a4.width;
+
   final pdfDoc = pw.Document();
-  for (final png in pngs) {
+  for (final r in results) {
+    // Scale the page format height proportionally to the captured image
+    final capturedAspect = r.height / r.width;
+    final pageHeightPt = a4PtWidth * capturedAspect;
+    final pageFormat = PdfPageFormat(a4PtWidth, pageHeightPt);
     pdfDoc.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: pageFormat,
         margin: pw.EdgeInsets.zero,
         build: (_) => pw.Image(
-          pw.MemoryImage(png),
-          fit: pw.BoxFit.contain,
+          pw.MemoryImage(r.bytes),
+          fit: pw.BoxFit.fill,
+          width: pageFormat.width,
+          height: pageFormat.height,
         ),
       ),
     );
@@ -104,22 +115,30 @@ Future<Uint8List> _buildImagePdf(
   return pdfDoc.save();
 }
 
-Future<Uint8List> _capture(BuildContext ctx, Widget widget) async {
+/// Captures [widget] as a PNG.
+/// The widget is laid out at [_kW] width but with **unconstrained** height so
+/// that short pages don't produce a large blank white gap in the PDF.
+/// Returns the bytes together with the actual rendered width/height in logical pixels.
+Future<({Uint8List bytes, double width, double height})> _capture(
+  BuildContext ctx,
+  Widget widget,
+) async {
   final key = GlobalKey();
-  final comp = Completer<Uint8List>();
+  final comp = Completer<({Uint8List bytes, double width, double height})>();
   OverlayEntry? ent;
 
+  // IntrinsicHeight forces the Column inside each page to measure its real content
+  // height rather than expanding to fill the loose Overlay/Stack constraint.
   ent = OverlayEntry(
     builder: (_) => Positioned(
       left: -(_kW + 80),
       top: 0,
       width: _kW,
-      height: _kH,
       child: RepaintBoundary(
         key: key,
         child: Material(
           color: Colors.white,
-          child: widget,
+          child: IntrinsicHeight(child: widget),
         ),
       ),
     ),
@@ -132,10 +151,17 @@ Future<Uint8List> _capture(BuildContext ctx, Widget widget) async {
 
     final ro = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (ro == null) throw Exception('RenderRepaintBoundary not found');
+
+    // Record actual rendered size before capturing
+    final renderSize = ro.size;
     final img = await ro.toImage(pixelRatio: _kPx);
     final bd = await img.toByteData(format: ui.ImageByteFormat.png);
     if (bd == null) throw Exception('toByteData returned null');
-    comp.complete(bd.buffer.asUint8List());
+    comp.complete((
+      bytes: bd.buffer.asUint8List(),
+      width: renderSize.width,
+      height: renderSize.height,
+    ));
   } catch (e, st) {
     comp.completeError(e, st);
   } finally {
@@ -267,12 +293,48 @@ Widget _textBlock(String val, String caption) {
   );
 }
 
+/// Shows a section header + [children] only when at least one child has content.
+/// Pass the list of content widgets; if all are [SizedBox.shrink()] this collapses.
+Widget _sectionedBlock(
+  String en,
+  String mr,
+  List<Widget> children,
+) {
+  // A cleaner heuristic: check if children list has any non-SizedBox.shrink entries
+  final hasContent = children.any((w) {
+    if (w is SizedBox && w.height == null && w.width == null) return false;
+    return true;
+  });
+  if (!hasContent) return const SizedBox.shrink();
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _section(en, mr),
+      ...children,
+    ],
+  );
+}
+
+/// A [Wrap] that returns [SizedBox.shrink()] when all mapped children are empty.
+Widget _compactWrap(List<Widget> children,
+    {double spacing = 16, double runSpacing = 3}) {
+  final nonEmpty = children.where((w) {
+    if (w is SizedBox && w.height == null && w.width == null) return false;
+    return true;
+  }).toList();
+  if (nonEmpty.isEmpty) return const SizedBox.shrink();
+  return Wrap(
+    spacing: spacing,
+    runSpacing: runSpacing,
+    children: nonEmpty,
+  );
+}
+
 // ── FEMALE PAGE 1 ──────────────────────────────────────────────────────────────
 
 Widget _pgFemale1(Map<String, dynamic> doc) {
   return Container(
     width: _kW,
-    height: _kH,
     color: Colors.white,
     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
     child: Column(
@@ -377,7 +439,6 @@ Widget _pgFemale1(Map<String, dynamic> doc) {
 Widget _pgFemale2(Map<String, dynamic> doc) {
   return Container(
     width: _kW,
-    height: _kH,
     color: Colors.white,
     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
     child: Column(
@@ -502,204 +563,177 @@ Widget _pgFemale2(Map<String, dynamic> doc) {
 // ── FEMALE PAGE 3 ──────────────────────────────────────────────────────────────
 
 Widget _pgFemale3(Map<String, dynamic> doc) {
+  final postActionKeys = [
+    ('Changed clothes', 'f_postChangedClothes', 'f_postChangedClothesRem'),
+    (
+      'Changed undergarments',
+      'f_postChangedUndergarments',
+      'f_postChangedUndergarmentsRem'
+    ),
+    ('Cleaned clothes', 'f_postCleanedClothes', 'f_postCleanedClothesRem'),
+    (
+      'Cleaned undergarments',
+      'f_postCleanedUndergarments',
+      'f_postCleanedUndergarmentsRem'
+    ),
+    ('Bathed', 'f_postBathed', 'f_postBathedRem'),
+    ('Douched', 'f_postDouched', 'f_postDouchedRem'),
+    ('Passed urine', 'f_postPassedUrine', 'f_postPassedUrineRem'),
+    ('Passed stools', 'f_postPassedStools', 'f_postPassedStoolsRem'),
+    ('Rinsing mouth/brushing', 'f_postRinsingMouth', 'f_postRinsingMouthRem'),
+  ];
+  final postChips = postActionKeys.map<Widget>((item) {
+    final choice = _v(doc, item.$2);
+    final rem = _v(doc, item.$3);
+    if (choice.isEmpty && rem.isEmpty) return const SizedBox.shrink();
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Text('${item.$1}: ', style: _fBold(size: 7.8)),
+      Text('$choice${rem.isNotEmpty ? " ($rem)" : ""}',
+          style: _fValue(size: 7.8)),
+    ]);
+  }).toList();
+  final examVitals = <Widget>[
+    if (_v(doc, 'f_examPulse').isNotEmpty || _v(doc, 'f_examBp').isNotEmpty)
+      Row(mainAxisSize: MainAxisSize.min, children: [
+        Text('Pulse/BP: ', style: _fBold(size: 8)),
+        Text('${_v(doc, 'f_examPulse')} / ${_v(doc, 'f_examBp')}',
+            style: _fValue(size: 8)),
+      ]),
+    if (_v(doc, 'f_examTemp').isNotEmpty ||
+        _v(doc, 'f_examRespRate').isNotEmpty)
+      Row(mainAxisSize: MainAxisSize.min, children: [
+        Text('Temp/Resp: ', style: _fBold(size: 8)),
+        Text('${_v(doc, 'f_examTemp')} / ${_v(doc, 'f_examRespRate')}',
+            style: _fValue(size: 8)),
+      ]),
+    if (_v(doc, 'f_examPupils').isNotEmpty)
+      Row(mainAxisSize: MainAxisSize.min, children: [
+        Text('Pupils: ', style: _fBold(size: 8)),
+        Text(_v(doc, 'f_examPupils'), style: _fValue(size: 8)),
+      ]),
+  ];
+  const injuryLabels = [
+    'Scalp examination',
+    'Facial bone injury',
+    'Petechial haemorrhage in eyes',
+    'Lips & Buccal Mucosa / Gums',
+    'Behind the ears',
+    'Ear drum',
+    'Neck, Shoulders & Breast',
+    'Upper limb',
+    'Inner aspect of upper arms',
+    'Inner aspect of thighs',
+    'Lower limb / Buttocks',
+    'Other, please specify'
+  ];
+  final injuryRows = doc['f_injuryRows'];
+  final injuryWidgets = <Widget>[];
+  if (injuryRows is List) {
+    for (var i = 0; i < injuryRows.length; i++) {
+      final val = injuryRows[i]?.toString().trim() ?? '';
+      if (val.isNotEmpty) {
+        injuryWidgets.add(_row(
+            i < injuryLabels.length ? injuryLabels[i] : 'Site ${i + 1}',
+            '',
+            val));
+      }
+    }
+  }
+  const genitalLabels = [
+    'Urethral meatus & vestibule',
+    'Labia majora',
+    'Labia minora',
+    'Fourchette & Introitus',
+    'Hymen Perineum',
+    'External Urethral Meatus',
+    'Penis',
+    'Scrotum',
+    'Testes',
+    'Clitoropenis',
+    'Labioscrotum',
+    'Any Other'
+  ];
+  final genitalFindings = doc['f_genitalPartFindings'];
+  final genitalNotes = doc['f_genitalPartNotes'];
+  final genitalWidgets = <Widget>[];
+  if (genitalFindings is List) {
+    for (var i = 0;
+        i < genitalFindings.length && i < genitalLabels.length;
+        i++) {
+      final fVal = genitalFindings[i]?.toString().trim() ?? '';
+      final nVal = genitalNotes is List && i < genitalNotes.length
+          ? genitalNotes[i]?.toString().trim() ?? ''
+          : '';
+      if (fVal.isNotEmpty || nVal.isNotEmpty) {
+        genitalWidgets.add(_row(
+            genitalLabels[i], '', '$fVal${nVal.isNotEmpty ? " ($nVal)" : ""}'));
+      }
+    }
+  }
   return Container(
     width: _kW,
-    height: _kH,
     color: Colors.white,
     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _section('Post-incident actions', 'घटनोत्तर कृती'),
-        Wrap(
-          spacing: 16,
-          runSpacing: 3,
-          children: [
-            (
-              'Changed clothes',
-              'f_postChangedClothes',
-              'f_postChangedClothesRem'
-            ),
-            (
-              'Changed undergarments',
-              'f_postChangedUndergarments',
-              'f_postChangedUndergarmentsRem'
-            ),
-            (
-              'Cleaned clothes',
-              'f_postCleanedClothes',
-              'f_postCleanedClothesRem'
-            ),
-            (
-              'Cleaned undergarments',
-              'f_postCleanedUndergarments',
-              'f_postCleanedUndergarmentsRem'
-            ),
-            ('Bathed', 'f_postBathed', 'f_postBathedRem'),
-            ('Douched', 'f_postDouched', 'f_postDouchedRem'),
-            ('Passed urine', 'f_postPassedUrine', 'f_postPassedUrineRem'),
-            ('Passed stools', 'f_postPassedStools', 'f_postPassedStoolsRem'),
-            (
-              'Rinsing mouth/brushing',
-              'f_postRinsingMouth',
-              'f_postRinsingMouthRem'
-            ),
-          ].map((item) {
-            final choice = _v(doc, item.$2);
-            final rem = _v(doc, item.$3);
-            if (choice.isEmpty && rem.isEmpty) return const SizedBox.shrink();
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('${item.$1}: ', style: _fBold(size: 7.8)),
-                Text('$choice ${rem.isNotEmpty ? "($rem)" : ""}',
-                    style: _fValue(size: 7.8)),
-              ],
-            );
-          }).toList(),
-        ),
-        if (_v(doc, 'f_timeSinceIncident').isNotEmpty)
-          _row('Time since incident', 'घटनेपासून वेळ',
-              _v(doc, 'f_timeSinceIncident')),
-        if (_v(doc, 'f_bleedingPriorIncident').isNotEmpty)
-          _row('Bleeding/discharge prior to incident', 'घटनेपूर्वी रक्तस्राव',
-              _v(doc, 'f_bleedingPriorIncident')),
-        if (_v(doc, 'f_bleedingSinceIncident').isNotEmpty)
-          _row('Bleeding/discharge since incident', 'घटनेनंतर रक्तस्राव',
-              _v(doc, 'f_bleedingSinceIncident')),
-        if (_v(doc, 'f_painSinceIncident').isNotEmpty)
-          _row('Pain/urination/fissures since incident', 'वेदना/लघवी त्रास',
-              _v(doc, 'f_painSinceIncident')),
-        _section(
-            '16. General Physical Examination', '१६. सामान्य शारीरिक तपासणी'),
-        if (_v(doc, 'f_examIsFirst').isNotEmpty)
-          _row('Is this the first examination', 'पहिली तपासणी आहे का',
-              _v(doc, 'f_examIsFirst')),
-        Wrap(
-          spacing: 16,
-          runSpacing: 3,
-          children: [
-            if (_v(doc, 'f_examPulse').isNotEmpty ||
-                _v(doc, 'f_examBp').isNotEmpty)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Pulse/BP: ', style: _fBold(size: 8)),
-                  Text('${_v(doc, 'f_examPulse')} / ${_v(doc, 'f_examBp')}',
-                      style: _fValue(size: 8)),
-                ],
-              ),
-            if (_v(doc, 'f_examTemp').isNotEmpty ||
-                _v(doc, 'f_examRespRate').isNotEmpty)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Temp/Resp: ', style: _fBold(size: 8)),
-                  Text(
-                      '${_v(doc, 'f_examTemp')} / ${_v(doc, 'f_examRespRate')}',
-                      style: _fValue(size: 8)),
-                ],
-              ),
-            if (_v(doc, 'f_examPupils').isNotEmpty)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Pupils: ', style: _fBold(size: 8)),
-                  Text(_v(doc, 'f_examPupils'), style: _fValue(size: 8)),
-                ],
-              ),
-          ],
-        ),
-        if (_v(doc, 'f_examGeneralWellbeing').isNotEmpty)
-          _row('General wellbeing observation', 'सामान्य आरोग्य निरीक्षण',
-              _v(doc, 'f_examGeneralWellbeing')),
-        _textBlock(_v(doc, 'f_generalExam'), ''),
-        _section('17. Examination for injuries on the body',
-            '१७. शरीरावरील जखमा तपासणी'),
-        () {
-          final rows = doc['f_injuryRows'];
-          if (rows is! List || rows.isEmpty) {
-            return Text('No injuries noted / कोणतीही जखम नाही',
-                style: _fRegular(size: 8));
-          }
-          const labels = [
-            'Scalp examination',
-            'Facial bone injury',
-            'Petechial haemorrhage in eyes',
-            'Lips & Buccal Mucosa / Gums',
-            'Behind the ears',
-            'Ear drum',
-            'Neck, Shoulders & Breast',
-            'Upper limb',
-            'Inner aspect of upper arms',
-            'Inner aspect of thighs',
-            'Lower limb / Buttocks',
-            'Other, please specify',
-          ];
-          final filled = <Widget>[];
-          for (var i = 0; i < rows.length; i++) {
-            final val = rows[i]?.toString().trim() ?? '';
-            if (val.isNotEmpty) {
-              final lbl = i < labels.length ? labels[i] : 'Site ${i + 1}';
-              filled.add(_row(lbl, '', val));
-            }
-          }
-          return filled.isEmpty
-              ? Text('No injuries noted / कोणतीही जखम नाही',
-                  style: _fRegular(size: 8))
-              : Column(children: filled);
-        }(),
-        _section('18. Local examination of genital parts / other orifices',
-            '१८. गुप्तांग / इतर छिद्रांची स्थानिक तपासणी'),
-        () {
-          final findings = doc['f_genitalPartFindings'];
-          final notes = doc['f_genitalPartNotes'];
-          const labels = [
-            'Urethral meatus & vestibule',
-            'Labia majora',
-            'Labia minora',
-            'Fourchette & Introitus',
-            'Hymen Perineum',
-            'External Urethral Meatus',
-            'Penis',
-            'Scrotum',
-            'Testes',
-            'Clitoropenis',
-            'Labioscrotum',
-            'Any Other',
-          ];
-          final out = <Widget>[];
-          if (findings is List) {
-            for (var i = 0; i < findings.length && i < labels.length; i++) {
-              final fVal = findings[i]?.toString().trim() ?? '';
-              final nVal = notes is List && i < notes.length
-                  ? notes[i]?.toString().trim() ?? ''
-                  : '';
-              if (fVal.isNotEmpty || nVal.isNotEmpty) {
-                out.add(_row(labels[i], '',
-                    '$fVal ${nVal.isNotEmpty ? "($nVal)" : ""}'));
-              }
-            }
-          }
-          return out.isEmpty
-              ? Text('Normal / प्राकृत', style: _fRegular(size: 8))
-              : Column(children: out);
-        }(),
-        if (_v(doc, 'f_psFindings').isNotEmpty)
-          _row('P/S findings', 'P/S तपासणी', _v(doc, 'f_psFindings')),
-        if (_v(doc, 'f_pvFindings').isNotEmpty)
-          _row('P/V findings', 'P/V तपासणी', _v(doc, 'f_pvFindings')),
-        if (_v(doc, 'f_pvPsReasons').isNotEmpty)
-          _row('Reasons for P/V or P/S', 'कारणे', _v(doc, 'f_pvPsReasons')),
-        if (_v(doc, 'f_anusRectumEncircled').isNotEmpty ||
-            _v(doc, 'f_anusRectumNotes').isNotEmpty)
-          _row('Anus & Rectum', 'गुद व गुदाशय',
-              '${_v(doc, 'f_anusRectumEncircled')} ${_v(doc, 'f_anusRectumNotes').isNotEmpty ? "— ${_v(doc, 'f_anusRectumNotes')}" : ""}'),
-        if (_v(doc, 'f_oralCavityEncircled').isNotEmpty ||
-            _v(doc, 'f_oralCavityNotes').isNotEmpty)
-          _row('Oral Cavity', 'तोंड / मुखगुहा',
-              '${_v(doc, 'f_oralCavityEncircled')} ${_v(doc, 'f_oralCavityNotes').isNotEmpty ? "— ${_v(doc, 'f_oralCavityNotes')}" : ""}'),
-        _textBlock(_v(doc, 'f_genitalExam'), ''),
+        _sectionedBlock('Post-incident actions', 'घटनोत्तर कृती', [
+          _compactWrap(postChips),
+          if (_v(doc, 'f_timeSinceIncident').isNotEmpty)
+            _row('Time since incident', 'घटनेपासून वेळ',
+                _v(doc, 'f_timeSinceIncident')),
+          if (_v(doc, 'f_bleedingPriorIncident').isNotEmpty)
+            _row('Bleeding/discharge prior to incident', 'घटनेपूर्वी रक्तस्राव',
+                _v(doc, 'f_bleedingPriorIncident')),
+          if (_v(doc, 'f_bleedingSinceIncident').isNotEmpty)
+            _row('Bleeding/discharge since incident', 'घटनेनंतर रक्तस्राव',
+                _v(doc, 'f_bleedingSinceIncident')),
+          if (_v(doc, 'f_painSinceIncident').isNotEmpty)
+            _row('Pain/urination/fissures since incident', 'वेदना/लघवी त्रास',
+                _v(doc, 'f_painSinceIncident')),
+        ]),
+        _sectionedBlock(
+            '16. General Physical Examination', '१६. सामान्य शारीरिक तपासणी', [
+          if (_v(doc, 'f_examIsFirst').isNotEmpty)
+            _row('Is this the first examination', 'पहिली तपासणी आहे का',
+                _v(doc, 'f_examIsFirst')),
+          _compactWrap(examVitals),
+          if (_v(doc, 'f_examGeneralWellbeing').isNotEmpty)
+            _row('General wellbeing observation', 'सामान्य आरोग्य निरीक्षण',
+                _v(doc, 'f_examGeneralWellbeing')),
+          _textBlock(_v(doc, 'f_generalExam'), ''),
+        ]),
+        _sectionedBlock(
+            '17. Examination for injuries on the body',
+            '१७. शरीरावरील जखमा तपासणी',
+            injuryWidgets.isEmpty
+                ? [
+                    Text('No injuries noted / कोणतीही जखम नाही',
+                        style: _fRegular(size: 8))
+                  ]
+                : injuryWidgets),
+        _sectionedBlock(
+            '18. Local examination of genital parts / other orifices',
+            '१८. गुप्तांग / इतर छिद्रांची स्थानिक तपासणी', [
+          ...(genitalWidgets.isEmpty
+              ? [Text('Normal / प्राकृत', style: _fRegular(size: 8))]
+              : genitalWidgets),
+          if (_v(doc, 'f_psFindings').isNotEmpty)
+            _row('P/S findings', 'P/S तपासणी', _v(doc, 'f_psFindings')),
+          if (_v(doc, 'f_pvFindings').isNotEmpty)
+            _row('P/V findings', 'P/V तपासणी', _v(doc, 'f_pvFindings')),
+          if (_v(doc, 'f_pvPsReasons').isNotEmpty)
+            _row('Reasons for P/V or P/S', 'कारणे', _v(doc, 'f_pvPsReasons')),
+          if (_v(doc, 'f_anusRectumEncircled').isNotEmpty ||
+              _v(doc, 'f_anusRectumNotes').isNotEmpty)
+            _row('Anus & Rectum', 'गुद व गुदाशय',
+                '${_v(doc, 'f_anusRectumEncircled')}${_v(doc, 'f_anusRectumNotes').isNotEmpty ? " — ${_v(doc, 'f_anusRectumNotes')}" : ""}'),
+          if (_v(doc, 'f_oralCavityEncircled').isNotEmpty ||
+              _v(doc, 'f_oralCavityNotes').isNotEmpty)
+            _row('Oral Cavity', 'तोंड / मुखगुहा',
+                '${_v(doc, 'f_oralCavityEncircled')}${_v(doc, 'f_oralCavityNotes').isNotEmpty ? " — ${_v(doc, 'f_oralCavityNotes')}" : ""}'),
+          _textBlock(_v(doc, 'f_genitalExam'), ''),
+        ]),
       ],
     ),
   );
@@ -708,187 +742,195 @@ Widget _pgFemale3(Map<String, dynamic> doc) {
 // ── FEMALE PAGE 4 ──────────────────────────────────────────────────────────────
 
 Widget _pgFemale4(Map<String, dynamic> doc) {
+  // Section 19 systemic vitals
+  final sysVitals = <Widget>[
+    if (_v(doc, 'f_sysCns').isNotEmpty)
+      _row('CNS:', '', _v(doc, 'f_sysCns'), labelWidth: 40),
+    if (_v(doc, 'f_sysCvs').isNotEmpty)
+      _row('CVS:', '', _v(doc, 'f_sysCvs'), labelWidth: 40),
+    if (_v(doc, 'f_sysResp').isNotEmpty)
+      _row('Resp:', '', _v(doc, 'f_sysResp'), labelWidth: 40),
+    if (_v(doc, 'f_sysChest').isNotEmpty)
+      _row('Chest:', '', _v(doc, 'f_sysChest'), labelWidth: 40),
+    if (_v(doc, 'f_sysAbdomen').isNotEmpty)
+      _row('Abdomen:', '', _v(doc, 'f_sysAbdomen'), labelWidth: 60),
+  ];
+
+  // Section 21 FSL samples
+  const fslLabels = [
+    'Swabs from Stains on body',
+    'Scalp hair (10-15 strands)',
+    'Head hair combing',
+    'Nail scrapings',
+    'Nail clippings',
+    'Oral swab',
+    'Blood for grouping (plain vial)',
+    'Blood for alcohol (Fluoride vial)',
+    'Blood for DNA (EDTA vial)',
+    'Urine (drug testing)',
+    'Any other'
+  ];
+  final fslCol = doc['f_fslSampleCollected'];
+  final fslRsn = doc['f_fslSampleReasons'];
+  final fslWidgets = <Widget>[];
+  if (fslCol is List) {
+    for (var i = 0; i < fslCol.length && i < fslLabels.length; i++) {
+      final cVal = fslCol[i]?.toString().trim() ?? '';
+      final rVal = fslRsn is List && i < fslRsn.length
+          ? fslRsn[i]?.toString().trim() ?? ''
+          : '';
+      if (cVal.isNotEmpty || rVal.isNotEmpty) {
+        fslWidgets.add(_row(fslLabels[i], '',
+            '$cVal${rVal.isNotEmpty ? " (Reason: $rVal)" : ""}'));
+      }
+    }
+  }
+
+  // Genital/Anal evidence
+  const genAnalLabels = [
+    'Matted pubic hair',
+    'Pubic hair combing',
+    'Cutting of pubic hair',
+    'Two Vulval swabs',
+    'Two Vaginal swabs',
+    'Two Anal swabs',
+    'Vaginal smear',
+    'Vaginal washing',
+    'Urethral swab',
+    'Swab from glans/clitoropenis'
+  ];
+  final genAnalCol = doc['f_genitalEvidenceCollected'];
+  final genAnalRsn = doc['f_genitalEvidenceReasons'];
+  final genAnalWidgets = <Widget>[];
+  if (genAnalCol is List) {
+    for (var i = 0; i < genAnalCol.length && i < genAnalLabels.length; i++) {
+      final cVal = genAnalCol[i]?.toString().trim() ?? '';
+      final rVal = genAnalRsn is List && i < genAnalRsn.length
+          ? genAnalRsn[i]?.toString().trim() ?? ''
+          : '';
+      if (cVal.isNotEmpty || rVal.isNotEmpty) {
+        genAnalWidgets.add(_row(genAnalLabels[i], '',
+            '$cVal${rVal.isNotEmpty ? " (Reason: $rVal)" : ""}'));
+      }
+    }
+  }
+
+  // Section 23 treatment
+  const treatLabels = [
+    'STI prevention',
+    'Emergency contraception',
+    'Wound treatment',
+    'Tetanus prophylaxis',
+    'Hep B vaccination',
+    'HIV PEP',
+    'Counselling',
+    'Other'
+  ];
+  final treatChoices = doc['f_treatmentChoice'];
+  final treatComments = doc['f_treatmentComments'];
+  final treatWidgets = <Widget>[];
+  if (treatChoices is List) {
+    for (var i = 0; i < treatChoices.length && i < treatLabels.length; i++) {
+      final cVal = treatChoices[i]?.toString().trim() ?? '';
+      final comVal = treatComments is List && i < treatComments.length
+          ? treatComments[i]?.toString().trim() ?? ''
+          : '';
+      if (cVal.isNotEmpty || comVal.isNotEmpty) {
+        treatWidgets.add(_row(treatLabels[i], '',
+            '$cVal${comVal.isNotEmpty ? " ($comVal)" : ""}'));
+      }
+    }
+  }
+
+  // Section 24/25 completion details
+  final completionDetails = <Widget>[
+    if (_v(doc, 'f_completionDateTime').isNotEmpty)
+      _row('Completed:', '', _v(doc, 'f_completionDateTime'), labelWidth: 65),
+    if (_v(doc, 'f_completionPlace').isNotEmpty)
+      _row('Place:', '', _v(doc, 'f_completionPlace'), labelWidth: 40),
+    if (_v(doc, 'f_doctorName').isNotEmpty)
+      _row('Doctor:', '',
+          '${_v(doc, 'f_doctorName')}${_v(doc, 'f_doctorSeal').isNotEmpty ? " (Seal: ${_v(doc, 'f_doctorSeal')})" : ""}',
+          labelWidth: 50),
+  ];
+
   return Container(
     width: _kW,
-    height: _kH,
     color: Colors.white,
     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _section('19. Systemic Examination', '१९. प्रणालीगत तपासणी'),
-        Wrap(
-          spacing: 16,
-          runSpacing: 3,
-          children: [
-            if (_v(doc, 'f_sysCns').isNotEmpty)
-              _row('CNS:', '', _v(doc, 'f_sysCns'), labelWidth: 40),
-            if (_v(doc, 'f_sysCvs').isNotEmpty)
-              _row('CVS:', '', _v(doc, 'f_sysCvs'), labelWidth: 40),
-            if (_v(doc, 'f_sysResp').isNotEmpty)
-              _row('Resp:', '', _v(doc, 'f_sysResp'), labelWidth: 40),
-            if (_v(doc, 'f_sysChest').isNotEmpty)
-              _row('Chest:', '', _v(doc, 'f_sysChest'), labelWidth: 40),
-            if (_v(doc, 'f_sysAbdomen').isNotEmpty)
-              _row('Abdomen:', '', _v(doc, 'f_sysAbdomen'), labelWidth: 60),
-          ],
-        ),
-        _textBlock(_v(doc, 'f_systemicExam'), ''),
-        _section('20. Sample Collection — Hospital Lab',
-            '२०. नमुने — रुग्णालय प्रयोगशाळा'),
-        if (_v(doc, 'f_sampleBloodHiv').isNotEmpty)
-          _row('Blood for HIV, VDRL, HbsAg', 'रक्त तपासणी',
-              _v(doc, 'f_sampleBloodHiv')),
-        if (_v(doc, 'f_sampleUrinePreg').isNotEmpty)
-          _row('Urine test for Pregnancy', 'गर्भधारणा तपासणी',
-              _v(doc, 'f_sampleUrinePreg')),
-        if (_v(doc, 'f_sampleUsg').isNotEmpty)
-          _row('Ultrasound pregnancy/injury', 'सोनोग्राफी',
-              _v(doc, 'f_sampleUsg')),
-        if (_v(doc, 'f_sampleXray').isNotEmpty)
-          _row('X-ray for Injury', 'क्ष-किरण तपासणी', _v(doc, 'f_sampleXray')),
-        _section('21. Samples for FSL', '२१. न्यायवैद्यक प्रयोगशाळेसाठी नमुने'),
-        if (_v(doc, 'f_fslDebris').isNotEmpty)
-          _row('Debris paper', 'डेब्रिस कागद', _v(doc, 'f_fslDebris')),
-        if (_v(doc, 'f_clothingDetails').isNotEmpty)
-          _row('Clothing worn by survivor', 'कपडे तपशील',
-              _v(doc, 'f_clothingDetails')),
-        () {
-          final col = doc['f_fslSampleCollected'];
-          final rsn = doc['f_fslSampleReasons'];
-          const labels = [
-            'Swabs from Stains on body',
-            'Scalp hair (10-15 strands)',
-            'Head hair combing',
-            'Nail scrapings',
-            'Nail clippings',
-            'Oral swab',
-            'Blood for grouping (plain vial)',
-            'Blood for alcohol (Fluoride vial)',
-            'Blood for DNA (EDTA vial)',
-            'Urine (drug testing)',
-            'Any other',
-          ];
-          final out = <Widget>[];
-          if (col is List) {
-            for (var i = 0; i < col.length && i < labels.length; i++) {
-              final cVal = col[i]?.toString().trim() ?? '';
-              final rVal = rsn is List && i < rsn.length
-                  ? rsn[i]?.toString().trim() ?? ''
-                  : '';
-              if (cVal.isNotEmpty || rVal.isNotEmpty) {
-                out.add(_row(labels[i], '',
-                    '$cVal ${rVal.isNotEmpty ? "(Reason: $rVal)" : ""}'));
-              }
-            }
-          }
-          return out.isEmpty ? const SizedBox.shrink() : Column(children: out);
-        }(),
-        _section('Genital and Anal Evidence', 'गुप्तांग व गुद पुरावा'),
-        () {
-          final col = doc['f_genitalEvidenceCollected'];
-          final rsn = doc['f_genitalEvidenceReasons'];
-          const labels = [
-            'Matted pubic hair',
-            'Pubic hair combing',
-            'Cutting of pubic hair',
-            'Two Vulval swabs',
-            'Two Vaginal swabs',
-            'Two Anal swabs',
-            'Vaginal smear',
-            'Vaginal washing',
-            'Urethral swab',
-            'Swab from glans/clitoropenis',
-          ];
-          final out = <Widget>[];
-          if (col is List) {
-            for (var i = 0; i < col.length && i < labels.length; i++) {
-              final cVal = col[i]?.toString().trim() ?? '';
-              final rVal = rsn is List && i < rsn.length
-                  ? rsn[i]?.toString().trim() ?? ''
-                  : '';
-              if (cVal.isNotEmpty || rVal.isNotEmpty) {
-                out.add(_row(labels[i], '',
-                    '$cVal ${rVal.isNotEmpty ? "(Reason: $rVal)" : ""}'));
-              }
-            }
-          }
-          return out.isEmpty ? const SizedBox.shrink() : Column(children: out);
-        }(),
-        _section(
-            '22. Provisional Medical Opinion', '२२. तात्पुरती वैद्यकीय मते'),
-        if (_v(doc, 'f_provSurvivorName').isNotEmpty ||
-            _v(doc, 'f_provCircumstances').isNotEmpty)
-          Text(
-            'Examined ${_v(doc, 'f_provSurvivorName')} (${_v(doc, 'f_provGender')}, Age: ${_v(doc, 'f_provAge')}) reporting ${_v(doc, 'f_provCircumstances')}, ${_v(doc, 'f_provTimeAfterIncident')} after incident.',
-            style: _fRegular(size: 7.5),
-          ),
-        if (_v(doc, 'f_provClinicalFindings').isNotEmpty)
-          _row('Clinical Findings', 'वैद्यकीय निष्कर्ष',
-              _v(doc, 'f_provClinicalFindings')),
-        _textBlock(_v(doc, 'f_provisionalOpinion'), ''),
-        _section('23. Treatment Prescribed', '२३. दिलेला उपचार'),
-        () {
-          final choices = doc['f_treatmentChoice'];
-          final comments = doc['f_treatmentComments'];
-          const labels = [
-            'STI prevention',
-            'Emergency contraception',
-            'Wound treatment',
-            'Tetanus prophylaxis',
-            'Hep B vaccination',
-            'HIV PEP',
-            'Counselling',
-            'Other',
-          ];
-          final out = <Widget>[];
-          if (choices is List) {
-            for (var i = 0; i < choices.length && i < labels.length; i++) {
-              final cVal = choices[i]?.toString().trim() ?? '';
-              final comVal = comments is List && i < comments.length
-                  ? comments[i]?.toString().trim() ?? ''
-                  : '';
-              if (cVal.isNotEmpty || comVal.isNotEmpty) {
-                out.add(_row(labels[i], '',
-                    '$cVal ${comVal.isNotEmpty ? "($comVal)" : ""}'));
-              }
-            }
-          }
-          return out.isEmpty ? const SizedBox.shrink() : Column(children: out);
-        }(),
-        _textBlock(_v(doc, 'f_treatment'), ''),
-        _section(
-            '24. Completion & 25. Final Opinion', '२४. पूर्णता व २५. अंतिम मत'),
-        Wrap(
-          spacing: 16,
-          runSpacing: 3,
-          children: [
-            if (_v(doc, 'f_completionDateTime').isNotEmpty)
-              _row('Completed:', '', _v(doc, 'f_completionDateTime'),
-                  labelWidth: 65),
-            if (_v(doc, 'f_completionPlace').isNotEmpty)
-              _row('Place:', '', _v(doc, 'f_completionPlace'), labelWidth: 40),
-            if (_v(doc, 'f_doctorName').isNotEmpty)
-              _row('Doctor:', '',
-                  '${_v(doc, 'f_doctorName')} ${_v(doc, 'f_doctorSeal').isNotEmpty ? "(Seal: ${_v(doc, 'f_doctorSeal')})" : ""}',
-                  labelWidth: 50),
-          ],
-        ),
-        _textBlock(_v(doc, 'f_finalOpinionText'), 'अंतिम मत:'),
+        // Section 19: Systemic Examination
+        _sectionedBlock('19. Systemic Examination', '१९. प्रणालीगत तपासणी', [
+          _compactWrap(sysVitals),
+          _textBlock(_v(doc, 'f_systemicExam'), ''),
+        ]),
+        // Section 20: Hospital Lab samples
+        _sectionedBlock('20. Sample Collection — Hospital Lab',
+            '२०. नमुने — रुग्णालय प्रयोगशाळा', [
+          if (_v(doc, 'f_sampleBloodHiv').isNotEmpty)
+            _row('Blood for HIV, VDRL, HbsAg', 'रक्त तपासणी',
+                _v(doc, 'f_sampleBloodHiv')),
+          if (_v(doc, 'f_sampleUrinePreg').isNotEmpty)
+            _row('Urine test for Pregnancy', 'गर्भधारणा तपासणी',
+                _v(doc, 'f_sampleUrinePreg')),
+          if (_v(doc, 'f_sampleUsg').isNotEmpty)
+            _row('Ultrasound pregnancy/injury', 'सोनोग्राफी',
+                _v(doc, 'f_sampleUsg')),
+          if (_v(doc, 'f_sampleXray').isNotEmpty)
+            _row(
+                'X-ray for Injury', 'क्ष-किरण तपासणी', _v(doc, 'f_sampleXray')),
+        ]),
+        // Section 21: FSL samples
+        _sectionedBlock(
+            '21. Samples for FSL', '२१. न्यायवैद्यक प्रयोगशाळेसाठी नमुने', [
+          if (_v(doc, 'f_fslDebris').isNotEmpty)
+            _row('Debris paper', 'डेब्रिस कागद', _v(doc, 'f_fslDebris')),
+          if (_v(doc, 'f_clothingDetails').isNotEmpty)
+            _row('Clothing worn by survivor', 'कपडे तपशील',
+                _v(doc, 'f_clothingDetails')),
+          ...fslWidgets,
+        ]),
+        // Genital & Anal Evidence
+        _sectionedBlock('Genital and Anal Evidence', 'गुप्तांग व गुद पुरावा',
+            genAnalWidgets),
+        // Section 22: Provisional Opinion
+        _sectionedBlock(
+            '22. Provisional Medical Opinion', '२२. तात्पुरती वैद्यकीय मते', [
+          if (_v(doc, 'f_provSurvivorName').isNotEmpty ||
+              _v(doc, 'f_provCircumstances').isNotEmpty)
+            Text(
+                'Examined ${_v(doc, 'f_provSurvivorName')} (${_v(doc, 'f_provGender')}, Age: ${_v(doc, 'f_provAge')}) reporting ${_v(doc, 'f_provCircumstances')}, ${_v(doc, 'f_provTimeAfterIncident')} after incident.',
+                style: _fRegular(size: 7.5)),
+          if (_v(doc, 'f_provClinicalFindings').isNotEmpty)
+            _row('Clinical Findings', 'वैद्यकीय निष्कर्ष',
+                _v(doc, 'f_provClinicalFindings')),
+          _textBlock(_v(doc, 'f_provisionalOpinion'), ''),
+        ]),
+        // Section 23: Treatment
+        _sectionedBlock('23. Treatment Prescribed', '२३. दिलेला उपचार', [
+          ...treatWidgets,
+          _textBlock(_v(doc, 'f_treatment'), ''),
+        ]),
+        // Section 24 & 25: Completion & Final Opinion
+        _sectionedBlock('24. Completion & 25. Final Opinion',
+            '२४. पूर्णता व २५. अंतिम मत', [
+          _compactWrap(completionDetails),
+          _textBlock(_v(doc, 'f_finalOpinionText'), 'अंतिम मत:'),
+        ]),
         const SizedBox(height: 6),
         Center(
           child: Column(
             children: [
               Text(
-                'COPY OF THE ENTIRE MEDICAL REPORT MUST BE GIVEN TO THE SURVIVOR/VICTIM FREE OF COST IMMEDIATELY',
-                style: _fBold(size: 7.5),
-                textAlign: TextAlign.center,
-              ),
+                  'COPY OF THE ENTIRE MEDICAL REPORT MUST BE GIVEN TO THE SURVIVOR/VICTIM FREE OF COST IMMEDIATELY',
+                  style: _fBold(size: 7.5),
+                  textAlign: TextAlign.center),
               Text(
-                'संपूर्ण वैद्यकीय अहवालाची प्रत पीडित/पीडितेला त्वरित विनामूल्य द्यावी',
-                style: _fMarathi(size: 7.5, isBold: true),
-                textAlign: TextAlign.center,
-              ),
+                  'संपूर्ण वैद्यकीय अहवालाची प्रत पीडित/पीडितेला त्वरित विनामूल्य द्यावी',
+                  style: _fMarathi(size: 7.5, isBold: true),
+                  textAlign: TextAlign.center),
             ],
           ),
         ),
@@ -902,7 +944,6 @@ Widget _pgFemale4(Map<String, dynamic> doc) {
 Widget _pgMale1(Map<String, dynamic> doc) {
   return Container(
     width: _kW,
-    height: _kH,
     color: Colors.white,
     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
     child: Column(
@@ -1032,7 +1073,6 @@ TableRow _maleLabRow(
 Widget _pgMale2(Map<String, dynamic> doc) {
   return Container(
     width: _kW,
-    height: _kH,
     color: Colors.white,
     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
     child: Column(

@@ -513,30 +513,35 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 22,
-                    child: ResponsiveFieldRow(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: BilingualField(
-                            label: 'FIR No: ',
-                            marathiLabel: 'पहिली खबर क्र.',
-                            controller: _firNoCtrl,
-                            serifStyle: serifStyle,
-                            marathiLabelStyle: marathiLabelStyle,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              top: 2.0, left: 2, right: 2),
-                          child: Text('/20', style: serifStyle),
-                        ),
-                        SizedBox(
-                          width: 35,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _firYearSuffixCtrl,
-                            serifStyle: serifStyle,
-                            hintText: 'YY',
-                          ),
+                        Text('FIR No: ', style: serifStyle),
+                        const SizedBox(height: 2),
+                        Text('पहिली खबर क्र.', style: marathiLabelStyle),
+                        const SizedBox(height: 4),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _firNoCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 2, right: 2),
+                              child: Text('/20', style: serifStyle),
+                            ),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _firYearSuffixCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'YY',
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -544,47 +549,42 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 28,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text('Date : ', style: serifStyle),
-                        const SizedBox(width: 4),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                        const SizedBox(height: 2),
+                        Text('तारीख', style: marathiLabelStyle),
+                        const SizedBox(height: 4),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 35,
-                                  child: BilingualSimpleUnderlineInput(
-                                    controller: _dateDayCtrl,
-                                    serifStyle: serifStyle,
-                                    hintText: 'DD',
-                                  ),
-                                ),
-                                Text('/', style: serifStyle),
-                                SizedBox(
-                                  width: 35,
-                                  child: BilingualSimpleUnderlineInput(
-                                    controller: _dateMonthCtrl,
-                                    serifStyle: serifStyle,
-                                    hintText: 'MM',
-                                  ),
-                                ),
-                                Text('/20', style: serifStyle),
-                                SizedBox(
-                                  width: 35,
-                                  child: BilingualSimpleUnderlineInput(
-                                    controller: _dateYearCtrl,
-                                    serifStyle: serifStyle,
-                                    hintText: 'YY',
-                                  ),
-                                ),
-                              ],
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _dateDayCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'DD',
+                              ),
                             ),
-                            const SizedBox(height: 2),
-                            Text('तारीख', style: marathiLabelStyle),
+                            Text('/', style: serifStyle),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _dateMonthCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'MM',
+                              ),
+                            ),
+                            Text('/20', style: serifStyle),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _dateYearCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'YY',
+                              ),
+                            ),
                           ],
                         ),
                       ],

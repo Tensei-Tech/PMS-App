@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'bilingual_field.dart';
+import 'form_date_pickers.dart';
 import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
 import 'form_typography.dart';
@@ -253,13 +254,18 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
                       serifStyle: serif,
                       marathiLabelStyle: serif,
                     ),
-                    BilingualField(
-                      label: 'Date.',
-                      marathiLabel: '',
-                      hintText: '....../........ /20.....',
-                      controller: _mlcDateCtrl,
-                      serifStyle: serif,
-                      marathiLabelStyle: serif,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text('Date.', style: serif),
+                        const SizedBox(height: 4),
+                        formDatePickerField(
+                          context,
+                          controller: _mlcDateCtrl,
+                          width: double.infinity,
+                          readOnly: widget.readOnly,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -358,37 +364,57 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
 
             BilingualFieldRow(
               fields: [
-                BilingualField(
-                  label: 'at',
-                  marathiLabel: '',
-                  hintText: '.......',
-                  controller: _broughtTimeCtrl,
-                  serifStyle: serif,
-                  marathiLabelStyle: serif,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('at', style: serif),
+                    const SizedBox(height: 4),
+                    formTimePickerField(
+                      context,
+                      controller: _broughtTimeCtrl,
+                      width: double.infinity,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
                 ),
-                BilingualField(
-                  label: 'AM/PM on',
-                  marathiLabel: '',
-                  hintText: '....../....../20......',
-                  controller: _broughtDateCtrl,
-                  serifStyle: serif,
-                  marathiLabelStyle: serif,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('AM/PM on', style: serif),
+                    const SizedBox(height: 4),
+                    formDatePickerField(
+                      context,
+                      controller: _broughtDateCtrl,
+                      width: double.infinity,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
                 ),
-                BilingualField(
-                  label: '& examination by me on',
-                  marathiLabel: '',
-                  hintText: '....../....... /20.....',
-                  controller: _examDateCtrl,
-                  serifStyle: serif,
-                  marathiLabelStyle: serif,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('& examination by me on', style: serif),
+                    const SizedBox(height: 4),
+                    formDatePickerField(
+                      context,
+                      controller: _examDateCtrl,
+                      width: double.infinity,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
                 ),
-                BilingualField(
-                  label: 'at',
-                  marathiLabel: '',
-                  hintText: '....../.......',
-                  controller: _examTimeCtrl,
-                  serifStyle: serif,
-                  marathiLabelStyle: serif,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('at', style: serif),
+                    const SizedBox(height: 4),
+                    formTimePickerField(
+                      context,
+                      controller: _examTimeCtrl,
+                      width: double.infinity,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -474,13 +500,18 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: BilingualField(
-                    label: 'Date:-',
-                    marathiLabel: '',
-                    hintText: '......./..../20.....',
-                    controller: _footerDateCtrl,
-                    serifStyle: serif,
-                    marathiLabelStyle: serif,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Date:-', style: serif),
+                      const SizedBox(height: 4),
+                      formDatePickerField(
+                        context,
+                        controller: _footerDateCtrl,
+                        width: double.infinity,
+                        readOnly: widget.readOnly,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 20),

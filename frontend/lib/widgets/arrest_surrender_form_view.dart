@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'form_date_pickers.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../utils/form_io_terminology.dart';
@@ -927,45 +928,14 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Date',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(width: 4),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _dateDayCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'DD',
-                            ),
-                          ),
-                          Text('/',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _dateMonthCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Text('/20',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _dateYearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
-                          ),
-                        ],
+                      formDatePickerField(
+                        context,
+                        controller: _dateCtrl,
+                        dayCtrl: _dateDayCtrl,
+                        monthCtrl: _dateMonthCtrl,
+                        yearCtrl: _dateYearCtrl,
+                        readOnly: widget.readOnly,
+                        width: 140,
                       ),
                       const SizedBox(height: 2),
                       Text('दिनांक', style: marathiLabelStyle),
@@ -1012,44 +982,14 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Date ',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestDateDayCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'DD',
-                            ),
-                          ),
-                          Text('/',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestDateMonthCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Text('/20',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestDateYearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
-                          ),
-                        ],
+                      formDatePickerField(
+                        context,
+                        controller: _arrestDateCtrl,
+                        dayCtrl: _arrestDateDayCtrl,
+                        monthCtrl: _arrestDateMonthCtrl,
+                        yearCtrl: _arrestDateYearCtrl,
+                        readOnly: widget.readOnly,
+                        width: 140,
                       ),
                       const SizedBox(height: 2),
                       Text('दिनांक', style: marathiLabelStyle),
@@ -1059,33 +999,11 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Time ',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestTimeHoursCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'HH',
-                            ),
-                          ),
-                          Text('/',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestTimeMinutesCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                        ],
+                      formTimePickerField(
+                        context,
+                        controller: _arrestTimeCtrl,
+                        readOnly: widget.readOnly,
+                        width: 120,
                       ),
                       const SizedBox(height: 2),
                       Text('वेळ', style: marathiLabelStyle),

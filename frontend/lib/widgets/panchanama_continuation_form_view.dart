@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'bilingual_field.dart';
 import 'form_controller_utils.dart';
+import 'form_date_pickers.dart';
 import 'form_io_signature_block.dart';
 import 'form_paper_page.dart';
 import 'form_signature_helpers.dart';
@@ -38,9 +39,7 @@ class PanchanamaContinuationFormViewState
       'dist': TextEditingController(),
       'ps': TextEditingController(),
       'firNo': TextEditingController(),
-      'firYearSuffix': TextEditingController(
-        text: DateTime.now().year.toString().substring(2),
-      ),
+      'firYearSuffix': TextEditingController(),
       'headerDate': TextEditingController(),
       'furtherPanchanama': TextEditingController(),
       'furtherDate': TextEditingController(),
@@ -133,12 +132,20 @@ class PanchanamaContinuationFormViewState
                   serifStyle: serif,
                   marathiLabelStyle: marathi,
                 ),
-                BilingualField(
-                  label: 'Date',
-                  marathiLabel: 'दिनांक',
-                  controller: _fields['headerDate']!,
-                  serifStyle: serif,
-                  marathiLabelStyle: marathi,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Date', style: serif),
+                    const SizedBox(height: 2),
+                    Text('दिनांक', style: marathi),
+                    const SizedBox(height: 4),
+                    formDatePickerField(
+                      context,
+                      controller: _fields['headerDate']!,
+                      width: double.infinity,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -153,26 +160,50 @@ class PanchanamaContinuationFormViewState
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(
-                  label: 'Date',
-                  marathiLabel: 'तारीख',
-                  controller: _fields['furtherDate']!,
-                  serifStyle: serif,
-                  marathiLabelStyle: marathi,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Date', style: serif),
+                    const SizedBox(height: 2),
+                    Text('तारीख', style: marathi),
+                    const SizedBox(height: 4),
+                    formDatePickerField(
+                      context,
+                      controller: _fields['furtherDate']!,
+                      width: double.infinity,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
                 ),
-                BilingualField(
-                  label: 'Time from',
-                  marathiLabel: 'वेळ',
-                  controller: _fields['furtherTimeFrom']!,
-                  serifStyle: serif,
-                  marathiLabelStyle: marathi,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Time from', style: serif),
+                    const SizedBox(height: 2),
+                    Text('वेळ', style: marathi),
+                    const SizedBox(height: 4),
+                    formTimePickerField(
+                      context,
+                      controller: _fields['furtherTimeFrom']!,
+                      width: double.infinity,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
                 ),
-                BilingualField(
-                  label: 'To',
-                  marathiLabel: 'ते',
-                  controller: _fields['furtherTimeTo']!,
-                  serifStyle: serif,
-                  marathiLabelStyle: marathi,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Time to', style: serif),
+                    const SizedBox(height: 2),
+                    Text('ते वेळ', style: marathi),
+                    const SizedBox(height: 4),
+                    formTimePickerField(
+                      context,
+                      controller: _fields['furtherTimeTo']!,
+                      width: double.infinity,
+                      readOnly: widget.readOnly,
+                    ),
+                  ],
                 ),
               ],
             ),

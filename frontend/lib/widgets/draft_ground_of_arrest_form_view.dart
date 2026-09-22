@@ -4,6 +4,7 @@ import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// Draft Ground of Arrest:
 /// Page 9: अटकेचा आधार (कलम ४७ BNSS) — Notice to Accused
@@ -445,20 +446,18 @@ class DraftGroundOfArrestFormViewState
               'अन्वये नोंदवलेल्या गुन्ह्यात आज दिनांक',
               style: marathiBody,
             ),
-            SizedBox(
-              width: 110,
-              child: BilingualSimpleUnderlineInput(
-                controller: _arrestDateCtrl,
-                serifStyle: serif,
-              ),
+            formDatePickerField(
+              context,
+              controller: _arrestDateCtrl,
+              width: 140,
+              readOnly: widget.readOnly,
             ),
             Text('रोजी वेळ', style: marathiBody),
-            SizedBox(
-              width: 90,
-              child: BilingualSimpleUnderlineInput(
-                controller: _arrestTimeCtrl,
-                serifStyle: serif,
-              ),
+            formTimePickerField(
+              context,
+              controller: _arrestTimeCtrl,
+              width: 110,
+              readOnly: widget.readOnly,
             ),
             Text('वाजता अटक करण्यात आली आहे.', style: marathiBody),
           ],
@@ -747,12 +746,11 @@ class DraftGroundOfArrestFormViewState
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('दिनांक :- ', style: marathiBold),
-                SizedBox(
-                  width: 100,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _noticeDateCtrl,
-                    serifStyle: serif,
-                  ),
+                formDatePickerField(
+                  context,
+                  controller: _noticeDateCtrl,
+                  width: 130,
+                  readOnly: widget.readOnly,
                 ),
               ],
             ),
@@ -949,20 +947,18 @@ class DraftGroundOfArrestFormViewState
               'अन्वये नोंदवलेल्या गुन्ह्याच्या तपासाच्या अनुषंगाने आज दिनांक ',
               style: marathiBody,
             ),
-            SizedBox(
-              width: 110,
-              child: BilingualSimpleUnderlineInput(
-                controller: _arrestDateCtrl,
-                serifStyle: serif,
-              ),
+            formDatePickerField(
+              context,
+              controller: _arrestDateCtrl,
+              width: 140,
+              readOnly: widget.readOnly,
             ),
             Text('रोजी वेळ ', style: marathiBody),
-            SizedBox(
-              width: 90,
-              child: BilingualSimpleUnderlineInput(
-                controller: _arrestTimeCtrl,
-                serifStyle: serif,
-              ),
+            formTimePickerField(
+              context,
+              controller: _arrestTimeCtrl,
+              width: 110,
+              readOnly: widget.readOnly,
             ),
             Text('वाजता कायदेशीररीत्या अटक करण्यात आली आहे.',
                 style: marathiBody),
@@ -1257,12 +1253,11 @@ class DraftGroundOfArrestFormViewState
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('दिनांक :- ', style: marathiBold),
-                    SizedBox(
-                      width: 90,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _noticeDateCtrl,
-                        serifStyle: serif,
-                      ),
+                    formDatePickerField(
+                      context,
+                      controller: _noticeDateCtrl,
+                      width: 130,
+                      readOnly: widget.readOnly,
                     ),
                   ],
                 ),
@@ -1436,20 +1431,18 @@ class DraftGroundOfArrestFormViewState
               'अन्वये नोंदवलेल्या गुन्ह्यात तपासाच्या अनुषंगाने आज दिनांक',
               style: marathiBody,
             ),
-            SizedBox(
-              width: 110,
-              child: BilingualSimpleUnderlineInput(
-                controller: _arrestDateCtrl,
-                serifStyle: serif,
-              ),
+            formDatePickerField(
+              context,
+              controller: _arrestDateCtrl,
+              width: 140,
+              readOnly: widget.readOnly,
             ),
             Text('रोजी वेळ', style: marathiBody),
-            SizedBox(
-              width: 90,
-              child: BilingualSimpleUnderlineInput(
-                controller: _arrestTimeCtrl,
-                serifStyle: serif,
-              ),
+            formTimePickerField(
+              context,
+              controller: _arrestTimeCtrl,
+              width: 110,
+              readOnly: widget.readOnly,
             ),
             Text('वाजता अटक करण्यात आली आहे.', style: marathiBody),
           ],
@@ -1605,12 +1598,11 @@ class DraftGroundOfArrestFormViewState
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('दिनांक :- ', style: marathiBold),
-                    SizedBox(
-                      width: 90,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _noticeDateCtrl,
-                        serifStyle: serif,
-                      ),
+                    formDatePickerField(
+                      context,
+                      controller: _noticeDateCtrl,
+                      width: 130,
+                      readOnly: widget.readOnly,
                     ),
                   ],
                 ),

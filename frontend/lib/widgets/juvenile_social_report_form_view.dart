@@ -4,6 +4,7 @@ import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// Juvenile Social Background Report (विधीसंघर्षग्रस्त बालक याचा सामाजीक पार्श्वभुमी अहवाल).
 class JuvenileSocialReportFormView extends StatefulWidget {
@@ -625,97 +626,6 @@ class JuvenileSocialReportFormViewState
     );
   }
 
-  Future<void> _pickDateForController(
-    BuildContext context,
-    TextEditingController targetCtrl,
-  ) async {
-    if (widget.readOnly) return;
-    DateTime initial = DateTime.now();
-    final raw = targetCtrl.text.trim();
-    if (raw.isNotEmpty) {
-      final parts = raw.split(RegExp(r'[-/.]'));
-      if (parts.length >= 3) {
-        final d = int.tryParse(parts[0]);
-        final m = int.tryParse(parts[1]);
-        int? y = int.tryParse(parts[2]);
-        if (y != null && y < 100) y += 2000;
-        if (d != null && m != null && y != null) {
-          try {
-            initial = DateTime(y, m, d);
-          } catch (_) {}
-        }
-      }
-    }
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-      locale: const Locale('en', 'IN'),
-    );
-    if (picked != null) {
-      final dStr = picked.day.toString().padLeft(2, '0');
-      final mStr = picked.month.toString().padLeft(2, '0');
-      final yStr = picked.year.toString();
-      targetCtrl.text = '$dStr/$mStr/$yStr';
-      setState(() {});
-    }
-  }
-
-  Widget _datePickerField({
-    required TextEditingController controller,
-    required TextStyle style,
-    double? width,
-    String hintText = 'DD/MM/YYYY',
-  }) {
-    return SizedBox(
-      width: width,
-      child: InkWell(
-        onTap: widget.readOnly
-            ? null
-            : () => _pickDateForController(context, controller),
-        child: IgnorePointer(
-          ignoring: true,
-          child: TextFormField(
-            controller: controller,
-            readOnly: true,
-            style: style.copyWith(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              hintText: hintText,
-              hintStyle: style.copyWith(
-                color: Colors.grey.shade400,
-                fontSize: 11,
-              ),
-              suffixIcon: const Icon(
-                Icons.calendar_today_outlined,
-                size: 15,
-                color: Colors.black54,
-              ),
-              suffixIconConstraints:
-                  const BoxConstraints(minWidth: 20, maxHeight: 20),
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-              border: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black54, width: 0.8),
-              ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black54, width: 0.8),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.black87, width: 1.5),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _multilineUnderlineInput({
     required TextEditingController controller,
     required TextStyle serifStyle,
@@ -1018,17 +928,11 @@ class JuvenileSocialReportFormViewState
                         child: Text('गुन्हा घडला ता व वेळ',
                             style: marathiLabelStyle),
                       ),
-                      _tableCellInput(
-                        _crimeDateTimeCtrl,
-                        serifStyle,
-                        suffixIcon: InkWell(
-                          onTap: widget.readOnly
-                              ? null
-                              : () => _pickDateForController(
-                                  context, _crimeDateTimeCtrl),
-                          child: const Icon(Icons.calendar_today_outlined,
-                              size: 15, color: Colors.black54),
-                        ),
+                      formDatePickerField(
+                        context,
+                        controller: _crimeDateTimeCtrl,
+                        readOnly: widget.readOnly,
+                        width: 150,
                       ),
                     ],
                   ),
@@ -1040,17 +944,11 @@ class JuvenileSocialReportFormViewState
                         child: Text('गुन्हा दाखल ता व वेळ',
                             style: marathiLabelStyle),
                       ),
-                      _tableCellInput(
-                        _firDateTimeCtrl,
-                        serifStyle,
-                        suffixIcon: InkWell(
-                          onTap: widget.readOnly
-                              ? null
-                              : () => _pickDateForController(
-                                  context, _firDateTimeCtrl),
-                          child: const Icon(Icons.calendar_today_outlined,
-                              size: 15, color: Colors.black54),
-                        ),
+                      formDatePickerField(
+                        context,
+                        controller: _firDateTimeCtrl,
+                        readOnly: widget.readOnly,
+                        width: 150,
                       ),
                     ],
                   ),
@@ -1106,9 +1004,10 @@ class JuvenileSocialReportFormViewState
                       Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 4, vertical: 2),
-                        child: _datePickerField(
+                        child: formDatePickerField(
+                          context,
                           controller: _dobCtrl,
-                          style: serifStyle,
+                          readOnly: widget.readOnly,
                         ),
                       ),
                     ],

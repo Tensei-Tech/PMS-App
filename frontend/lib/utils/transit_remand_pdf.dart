@@ -35,9 +35,9 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
   final outwardNo = v('outwardNo');
-  final outwardYear = v('outwardYear').isNotEmpty ? v('outwardYear') : '2021';
-  final psName = v('psName').isNotEmpty ? v('psName') : 'Wakad Police Station,';
-  final psCity = v('psCity').isNotEmpty ? v('psCity') : 'Pimpri Chichwad.';
+  final outwardYear = v('outwardYear');
+  final psName = v('psName');
+  final psCity = v('psCity');
   final date = v('date').isNotEmpty
       ? v('date')
       : '${v('dateDay')} ${v('dateMonthYear')}'.trim();
@@ -45,20 +45,12 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
   final courtLine1 = v('courtLine1');
   final courtLine2 = v('courtLine2');
 
-  final officerName =
-      v('officerName').isNotEmpty ? v('officerName') : 'Jitendra S. Girnar';
-  final officerRank =
-      v('officerRank').isNotEmpty ? v('officerRank') : 'Police Sub Inpector';
-  final officerPs = v('officerPs').isNotEmpty
-      ? v('officerPs')
-      : 'Wakad Police Station, Pimpri Chichwad.';
-  final subjectHours = v('subjectHours').isNotEmpty ? v('subjectHours') : '72';
+  final officerName = v('officerName');
+  final officerRank = v('officerRank');
+  final officerPs = v('officerPs');
+  final subjectHours = v('subjectHours');
 
-  final bodyText = v('body').isNotEmpty
-      ? v('body')
-      : '    Regarding the above mentioned subject, most humbly request that a complaint has been registered at Wakad Police Station, Pimpri Chinchwad with FIR No. 912/2021 u/s 377,498(A), 347,504,34 of IPC by complainant Mrs. Sushama Chalamalasetti, Age 31 years, Profession house wife, residing at B901, Titanium Park, Park Street, Wakad Pune. The name of the accused being 1) Mahesh Babu Gunukula, Age 36 ears profession Service, residing at D No. 4, 153, Gudlavaleru, Gudlavaleru MDL 521356, Crishna District Andhra Pradesh and 2) Shiva Prasad Gunukula, Age 63 years (relation father in law). Against he complainant the accused conspired to get the property of complainant at Mumbai which is joint name with her mother and the property in USA. On decline to transfer the property in accused husbands name they harassed her confired her in a room further mentally and physically harassed her. The accused no. 1 also had unnatural sexual offence against the wish of the complainant. The same has been registered under the above mention complainant and I am Investigating the same.\n\n'
-          '    During Investigation I had arrest accuse no. 1) Mahesh Babu Gunukula, Age 36 ears profession Service, residing at D No. 4, 153, Gudlavaleru, Gudlavaleru MDL 521356, Crishna District Andhra Pradesh in --------- Police station at --------am/pm on dt.   /11/2021 wide station diary no. ----/21.\n\n'
-          '    To produce accused before Hon. JMFC., No.09, Shivajinagar, Pune I want transit remand of accused for 2 hrs. so please give me transit remand of accused.';
+  final bodyText = v('body');
 
   final signOffName = v('signOffName');
 

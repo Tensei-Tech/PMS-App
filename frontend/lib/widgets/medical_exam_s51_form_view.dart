@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// वैद्यकीय तपासणी (भारतीय नागरीक सुरक्षा संहिता २०२३ कलम ५१)
 /// Medical Examination Request under Section 51 BNSS
@@ -43,104 +44,6 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
     }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
-  }
-
-  Future<void> _pickDateForController({
-    required TextEditingController controller,
-    TextEditingController? dayCtrl,
-    TextEditingController? monthCtrl,
-    TextEditingController? yearCtrl,
-  }) async {
-    final now = DateTime.now();
-    DateTime initial = now;
-    final currentText = controller.text.trim();
-    if (currentText.isNotEmpty) {
-      final parts = currentText.split(RegExp(r'[/.-]'));
-      if (parts.length >= 3) {
-        final d = int.tryParse(parts[0]);
-        final m = int.tryParse(parts[1]);
-        int? y = int.tryParse(parts[2]);
-        if (y != null && y < 100) y += 2000;
-        if (d != null && m != null && y != null) {
-          try {
-            initial = DateTime(y, m, d);
-          } catch (_) {}
-        }
-      }
-    }
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: DateTime(1990),
-      lastDate: DateTime(2040),
-    );
-    if (picked != null) {
-      final dStr = picked.day.toString().padLeft(2, '0');
-      final mStr = picked.month.toString().padLeft(2, '0');
-      final yFullStr = picked.year.toString();
-      final yShortStr = (picked.year % 100).toString().padLeft(2, '0');
-      controller.text = '$dStr/$mStr/$yFullStr';
-      if (dayCtrl != null) dayCtrl.text = dStr;
-      if (monthCtrl != null) monthCtrl.text = mStr;
-      if (yearCtrl != null) yearCtrl.text = yShortStr;
-      if (mounted) setState(() {});
-    }
-  }
-
-  Widget _datePickerField({
-    required TextEditingController controller,
-    TextEditingController? dayCtrl,
-    TextEditingController? monthCtrl,
-    TextEditingController? yearCtrl,
-    double width = 140,
-    String hint = 'DD/MM/YYYY',
-  }) {
-    return SizedBox(
-      width: width,
-      child: TextFormField(
-        controller: controller,
-        readOnly: true,
-        onTap: widget.readOnly
-            ? null
-            : () => _pickDateForController(
-                  controller: controller,
-                  dayCtrl: dayCtrl,
-                  monthCtrl: monthCtrl,
-                  yearCtrl: yearCtrl,
-                ),
-        style: FormTypography.serifStyle().copyWith(fontSize: 13),
-        decoration: InputDecoration(
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 4),
-          hintText: hint,
-          hintStyle: FormTypography.serifStyle().copyWith(
-            fontSize: 12,
-            color: Colors.black38,
-          ),
-          enabledBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.black87, width: 1.0),
-          ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.blue, width: 1.5),
-          ),
-          suffixIcon: widget.readOnly
-              ? null
-              : InkWell(
-                  onTap: () => _pickDateForController(
-                    controller: controller,
-                    dayCtrl: dayCtrl,
-                    monthCtrl: monthCtrl,
-                    yearCtrl: yearCtrl,
-                  ),
-                  child: const Icon(Icons.calendar_today, size: 16),
-                ),
-          suffixIconConstraints: const BoxConstraints(
-            minWidth: 24,
-            minHeight: 24,
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _wrappingUnderlineInput({
@@ -508,12 +411,14 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                     Row(
                       children: [
                         Text('दिनांक : ', style: headerLabelStyle),
-                        _datePickerField(
+                        formDatePickerField(
+                          context,
                           controller: _dateCtrl,
                           dayCtrl: _dateDayCtrl,
                           monthCtrl: _dateMonthCtrl,
                           yearCtrl: _dateYearCtrl,
                           width: 140,
+                          readOnly: widget.readOnly,
                         ),
                       ],
                     ),
