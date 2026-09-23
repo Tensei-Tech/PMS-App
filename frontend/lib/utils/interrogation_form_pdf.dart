@@ -57,17 +57,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
 
   // Load / retrieve cached fonts with fallback
-  pw.Font devanagari;
   pw.Font devanagariBold;
-
-  try {
-    _cachedDevanagariRegular ??=
-        await PdfGoogleFonts.notoSansDevanagariRegular()
-            .timeout(const Duration(seconds: 4));
-    devanagari = _cachedDevanagariRegular!;
-  } catch (_) {
-    devanagari = pw.Font.helvetica();
-  }
 
   try {
     _cachedDevanagariBold ??=
