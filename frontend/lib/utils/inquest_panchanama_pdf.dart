@@ -2551,6 +2551,115 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
   }
 
   if (showsSection('Duty Pass')) {
+    final dpDate = () {
+      final d = v('dpDate');
+      if (d.isNotEmpty) return d;
+      final day = v('dpDateDay');
+      final month = v('dpDateMonth');
+      final year = v('dpDateYear');
+      if (day.isNotEmpty && month.isNotEmpty) {
+        final fullY =
+            year.isNotEmpty ? (year.length == 2 ? '20$year' : year) : '';
+        return '${day.padLeft(2, '0')}/${month.padLeft(2, '0')}/$fullY'
+            .replaceAll(RegExp(r'/+$'), '');
+      }
+      return '';
+    }();
+
+    final dpDutyDate = () {
+      final explicit = v('dpDutyDate');
+      if (explicit.isNotEmpty) return explicit;
+      final d = v('dpDutyDateDay');
+      final m = v('dpDutyDateMonth');
+      final y = v('dpDutyDateYear');
+      if (d.isNotEmpty && m.isNotEmpty) {
+        final fullY = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+        return '${d.padLeft(2, '0')}/${m.padLeft(2, '0')}/$fullY'
+            .replaceAll(RegExp(r'/+$'), '');
+      }
+      final combined = v('dpDutyDateTime');
+      if (combined.isNotEmpty) {
+        final dateMatch =
+            RegExp(r'(\d{1,2}/\d{1,2}/\d{2,4})').firstMatch(combined);
+        if (dateMatch != null) return dateMatch.group(1)!;
+        if (combined.contains('रोजी')) {
+          return combined.split('रोजी').first.trim();
+        }
+        return combined;
+      }
+      return '';
+    }();
+
+    final dpDutyTime = () {
+      final explicit = v('dpDutyTime');
+      if (explicit.isNotEmpty) return explicit;
+      final h = v('dpDutyTimeHours');
+      final min = v('dpDutyTimeMinutes');
+      if (h.isNotEmpty || min.isNotEmpty) {
+        return '${h.padLeft(2, '0')}:${min.padLeft(2, '0')}';
+      }
+      final combined = v('dpDutyDateTime');
+      if (combined.isNotEmpty) {
+        final timeMatch = RegExp(r'(\d{1,2}:\d{2})').firstMatch(combined);
+        if (timeMatch != null) return timeMatch.group(1)!;
+        if (combined.contains('रोजी चे') && combined.contains('वा')) {
+          final part = combined.split('रोजी चे').last.split('वा').first.trim();
+          if (part.isNotEmpty) return part;
+        }
+      }
+      return '';
+    }();
+
+    pw.Widget pwDatePickerBox(String dateVal, double width) {
+      final text = dateVal.isNotEmpty ? dateVal : 'DD/MM/YYYY';
+      return pw.Container(
+        width: width,
+        decoration: const pw.BoxDecoration(
+          border: pw.Border(
+            bottom: pw.BorderSide(width: 0.8, color: PdfColors.black),
+          ),
+        ),
+        padding: const pw.EdgeInsets.only(bottom: 2, left: 2, right: 2),
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text(
+              text,
+              style: dateVal.isNotEmpty
+                  ? mrBold.copyWith(fontSize: 9.5)
+                  : mrStyle.copyWith(fontSize: 8.5, color: PdfColors.grey600),
+            ),
+            pw.Text('📅', style: const pw.TextStyle(fontSize: 8)),
+          ],
+        ),
+      );
+    }
+
+    pw.Widget pwTimePickerBox(String timeVal, double width) {
+      final text = timeVal.isNotEmpty ? timeVal : 'HH:MM';
+      return pw.Container(
+        width: width,
+        decoration: const pw.BoxDecoration(
+          border: pw.Border(
+            bottom: pw.BorderSide(width: 0.8, color: PdfColors.black),
+          ),
+        ),
+        padding: const pw.EdgeInsets.only(bottom: 2, left: 2, right: 2),
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text(
+              text,
+              style: timeVal.isNotEmpty
+                  ? mrBold.copyWith(fontSize: 9.5)
+                  : mrStyle.copyWith(fontSize: 8.5, color: PdfColors.grey600),
+            ),
+            pw.Text('🕒', style: const pw.TextStyle(fontSize: 8)),
+          ],
+        ),
+      );
+    }
+
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
@@ -2567,11 +2676,11 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 ),
               ),
             ),
-            pw.SizedBox(height: 14),
+            pw.SizedBox(height: 16),
             pw.Align(
               alignment: pw.Alignment.topRight,
               child: pw.SizedBox(
-                width: 240,
+                width: 270,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
@@ -2580,46 +2689,57 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                           style: mrBold.copyWith(fontSize: 10)),
                       pw.Expanded(child: underlineField(v('dpPs'))),
                     ]),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 6),
                     pw.Row(children: [
                       pw.Text('कॅम्प            : ',
                           style: mrBold.copyWith(fontSize: 10)),
-                      pw.Expanded(child: underlineField(v('dpCamp'))),
+                      underlineField(v('dpCamp'), width: 140),
                     ]),
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 6),
                     pw.Row(children: [
                       pw.Text('दिनांक          : ',
                           style: mrBold.copyWith(fontSize: 10)),
-                      pw.Expanded(child: underlineField(v('dpDate'))),
+                      pwDatePickerBox(dpDate, 120),
                     ]),
                   ],
                 ),
               ),
             ),
-            pw.SizedBox(height: 14),
+            pw.SizedBox(height: 18),
             pw.Row(children: [
               pw.Text('पो अंमलदाराचे नांव  : ',
                   style: mrBold.copyWith(fontSize: 10)),
               pw.Expanded(child: underlineField(v('dpAmaldaarName'))),
             ]),
-            pw.SizedBox(height: 8),
-            pw.Row(children: [
-              pw.SizedBox(width: 80),
-              pw.Text('पोलीस स्टेशन ', style: mrBold.copyWith(fontSize: 10)),
-              underlineField(v('dpDutyPs'), width: 140),
-              pw.SizedBox(width: 14),
-              pw.Text('जिल्हा ', style: mrBold.copyWith(fontSize: 10)),
-              underlineField(
-                  v('dpDutyDist').isEmpty ? 'यवतमाळ' : v('dpDutyDist'),
-                  width: 110),
-            ]),
-            pw.SizedBox(height: 8),
+            pw.SizedBox(height: 10),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 40),
+              child: pw.Row(children: [
+                pw.Text('पोलीस स्टेशन ',
+                    style: mrBold.copyWith(fontSize: 10)),
+                underlineField(v('dpDutyPs'), width: 140),
+                pw.SizedBox(width: 16),
+                pw.Text('जिल्हा ', style: mrBold.copyWith(fontSize: 10)),
+                underlineField(
+                  v('dpDutyDist').isNotEmpty
+                      ? v('dpDutyDist')
+                      : v('district'),
+                  width: 120,
+                ),
+              ]),
+            ),
+            pw.SizedBox(height: 10),
             pw.Row(children: [
               pw.Text('नोकरीचा दिनांक व वेळ    :- ',
                   style: mrBold.copyWith(fontSize: 10)),
-              underlineField(v('dpDutyDateTime'), width: 220),
+              pwDatePickerBox(dpDutyDate, 110),
+              pw.SizedBox(width: 12),
+              pw.Text('रोजी चे ', style: mrBold.copyWith(fontSize: 10)),
+              pwTimePickerBox(dpDutyTime, 70),
+              pw.SizedBox(width: 6),
+              pw.Text('वा', style: mrBold.copyWith(fontSize: 10)),
             ]),
-            pw.SizedBox(height: 18),
+            pw.SizedBox(height: 20),
             pw.RichText(
               text: pw.TextSpan(
                 style: mrStyle.copyWith(fontSize: 10, lineSpacing: 4),
@@ -2628,11 +2748,13 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                       text:
                           '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक '),
                   pw.TextSpan(
-                      text: v('dpMargNo').isEmpty ? '.......' : v('dpMargNo'),
+                      text:
+                          v('dpMargNo').isEmpty ? '.......' : v('dpMargNo'),
                       style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' / २०'),
                   pw.TextSpan(
-                      text: v('dpMargYear').isEmpty ? '....' : v('dpMargYear'),
+                      text:
+                          v('dpMargYear').isEmpty ? '....' : v('dpMargYear'),
                       style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' कलम '),
                   pw.TextSpan(
@@ -2654,12 +2776,16 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                       style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' ता आणि जिल्हा '),
                   pw.TextSpan(
-                      text: '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'
-                              .trim()
-                              .isEmpty
+                      text: (v('dpDeceasedTa').isNotEmpty
+                              ? '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'
+                                  .trim()
+                              : v('dpDeceasedDist'))
+                          .isEmpty
                           ? '-------------------'
-                          : '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'
-                              .trim(),
+                          : (v('dpDeceasedTa').isNotEmpty
+                              ? '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'
+                                  .trim()
+                              : v('dpDeceasedDist')),
                       style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(
                       text:
@@ -2686,10 +2812,11 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                       pw.Text('ड्युटी पास घेणाऱ्याची सही',
                           style: mrBold.copyWith(fontSize: 10)),
                       pw.SizedBox(height: 36),
-                      underlineField(v('dpAmaldaarSig'), width: 140),
+                      underlineField(v('dpAmaldaarSig'), width: 180),
                     ],
                   ),
                 ),
+                pw.SizedBox(width: 40),
                 pw.Expanded(
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -2722,7 +2849,8 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 16),
             pw.Align(
               alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: engStyle.copyWith(fontSize: 8)),
+              child: pw.Text('M.R.W',
+                  style: engStyle.copyWith(fontSize: 8)),
             ),
           ],
         ),
@@ -3949,105 +4077,399 @@ Widget _buildDeadBodyHandoverWidget(Map<String, dynamic> doc) {
 
 Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
-  final mrB = FormImagePdfHelper.mBld(10, 1.45);
-  final mrR = FormImagePdfHelper.mReg(10, 1.45);
+
+  final headerLabelStyle = FormImagePdfHelper.mBld(11.5, 1.4);
+  final bodyTextStyle = FormImagePdfHelper.mReg(11.5, 1.85);
+  final valStyle = FormImagePdfHelper.valStyle(11.5).copyWith(
+    color: Colors.black,
+    fontWeight: FontWeight.w600,
+  );
+  final titleStyle = GoogleFonts.poppins(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    decoration: TextDecoration.underline,
+    color: Colors.black87,
+  );
+
+  String resolveDate(String mainDate, String day, String month, String year) {
+    if (mainDate.trim().isNotEmpty) return mainDate.trim();
+    if (day.trim().isNotEmpty && month.trim().isNotEmpty) {
+      final y = year.trim();
+      final fullY = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+      return '${day.trim().padLeft(2, '0')}/${month.trim().padLeft(2, '0')}/$fullY'
+          .replaceAll(RegExp(r'/+$'), '');
+    }
+    return '';
+  }
+
+  final dpDate = resolveDate(
+    v('dpDate'),
+    v('dpDateDay'),
+    v('dpDateMonth'),
+    v('dpDateYear'),
+  );
+
+  final dpDutyDate = () {
+    final explicit = v('dpDutyDate');
+    if (explicit.isNotEmpty) return explicit;
+    final fromParts = resolveDate(
+        '', v('dpDutyDateDay'), v('dpDutyDateMonth'), v('dpDutyDateYear'));
+    if (fromParts.isNotEmpty) return fromParts;
+    final combined = v('dpDutyDateTime');
+    if (combined.isNotEmpty) {
+      final dateMatch =
+          RegExp(r'(\d{1,2}/\d{1,2}/\d{2,4})').firstMatch(combined);
+      if (dateMatch != null) return dateMatch.group(1)!;
+      if (combined.contains('रोजी')) {
+        return combined.split('रोजी').first.trim();
+      }
+      return combined;
+    }
+    return '';
+  }();
+
+  final dpDutyTime = () {
+    final explicit = v('dpDutyTime');
+    if (explicit.isNotEmpty) return explicit;
+    final h = v('dpDutyTimeHours');
+    final min = v('dpDutyTimeMinutes');
+    if (h.isNotEmpty || min.isNotEmpty) {
+      return '${h.padLeft(2, '0')}:${min.padLeft(2, '0')}';
+    }
+    final combined = v('dpDutyDateTime');
+    if (combined.isNotEmpty) {
+      final timeMatch = RegExp(r'(\d{1,2}:\d{2})').firstMatch(combined);
+      if (timeMatch != null) return timeMatch.group(1)!;
+      if (combined.contains('रोजी चे') && combined.contains('वा')) {
+        final part = combined.split('रोजी चे').last.split('वा').first.trim();
+        if (part.isNotEmpty) return part;
+      }
+    }
+    return '';
+  }();
+
+  Widget pdfDatePickerField({
+    required String value,
+    required double width,
+  }) {
+    final hasValue = value.trim().isNotEmpty;
+    final display = hasValue ? value.trim() : 'DD/MM/YYYY';
+    final textStyle = hasValue
+        ? valStyle
+        : bodyTextStyle.copyWith(color: Colors.grey.shade400, fontSize: 11);
+
+    return Container(
+      width: width,
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Color(0xFF333333), width: 1.0),
+        ),
+      ),
+      padding: const EdgeInsets.only(bottom: 2, top: 2, left: 2, right: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              display,
+              style: textStyle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(
+            Icons.calendar_today_outlined,
+            size: 15,
+            color: Colors.black87,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget pdfTimePickerField({
+    required String value,
+    required double width,
+  }) {
+    final hasValue = value.trim().isNotEmpty;
+    final display = hasValue ? value.trim() : 'HH:MM';
+    final textStyle = hasValue
+        ? valStyle
+        : bodyTextStyle.copyWith(color: Colors.grey.shade400, fontSize: 11);
+
+    return Container(
+      width: width,
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Color(0xFF333333), width: 1.0),
+        ),
+      ),
+      padding: const EdgeInsets.only(bottom: 2, top: 2, left: 2, right: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              display,
+              style: textStyle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(
+            Icons.access_time,
+            size: 15,
+            color: Colors.black87,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget pdfInlineBlank({
+    required String value,
+    required double width,
+    String? hintText,
+  }) {
+    final valText = value.trim();
+    final probeTp = TextPainter(
+      text: TextSpan(
+        text: valText.isEmpty ? (hintText ?? ' ') : valText,
+        style: valStyle,
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final measured = probeTp.width + 12.0;
+    final calcWidth = measured > width ? measured : width;
+
+    return Container(
+      width: calcWidth,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Color(0xFF333333), width: 1.0),
+        ),
+      ),
+      padding: const EdgeInsets.only(bottom: 2, top: 1),
+      child: Text(
+        valText.isEmpty ? (hintText ?? ' ') : valText,
+        style: valText.isEmpty
+            ? bodyTextStyle.copyWith(color: Colors.grey.shade400, fontSize: 11)
+            : valStyle,
+      ),
+    );
+  }
+
+  Widget pdfWrappingInput({
+    required String value,
+    double minWidth = 100,
+    double? maxWidth,
+  }) {
+    return _uField(
+      value,
+      minWidth: minWidth,
+      maxWidth: maxWidth,
+      fontSize: 11.5,
+      textStyle: valStyle,
+    );
+  }
 
   return FormImagePdfHelper.buildA4Page(
-    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 26),
+    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 36),
     children: [
+      const SizedBox(height: 12),
+      // Title centered
       Center(
         child: Text(
           'ड्युटी पास',
-          style: FormImagePdfHelper.mBld(16).copyWith(
-            decoration: TextDecoration.underline,
-          ),
+          style: titleStyle,
         ),
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 16),
+
+      // Top-right aligned Police Station / Camp / Date
       Align(
-        alignment: Alignment.topRight,
+        alignment: Alignment.centerRight,
         child: SizedBox(
-          width: 280,
+          width: 380,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('पोलीस स्टेशन  : ', style: mrB),
-                  Expanded(child: _uPoliceStationPdfField(v('dpPs'))),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _uPoliceStationPdfField(
+                      v('dpPs'),
+                      textStyle: valStyle,
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 4),
-              Row(children: [
-                Text('कॅम्प            : ', style: mrB),
-                Expanded(child: _uField(v('dpCamp'))),
-              ]),
-              const SizedBox(height: 4),
-              Row(children: [
-                Text('दिनांक          : ', style: mrB),
-                Expanded(child: _uField(v('dpDate'))),
-              ]),
+              const SizedBox(height: 6),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text('कॅम्प            :', style: headerLabelStyle),
+                  const SizedBox(width: 8),
+                  pdfWrappingInput(
+                    value: v('dpCamp'),
+                    minWidth: 140,
+                    maxWidth: 220,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text('दिनांक          :', style: headerLabelStyle),
+                  const SizedBox(width: 8),
+                  pdfDatePickerField(
+                    value: dpDate,
+                    width: 140,
+                  ),
+                ],
+              ),
             ],
           ),
         ),
       ),
-      const SizedBox(height: 14),
-      Row(children: [
-        Text('पो अंमलदाराचे नांव  : ', style: mrB),
-        Expanded(child: _uField(v('dpAmaldaarName'))),
-      ]),
-      const SizedBox(height: 8),
-      Row(children: [
-        const SizedBox(width: 80),
-        Text('पोलीस स्टेशन ', style: mrB),
-        _uPoliceStationPdfField(v('dpDutyPs'), width: 140),
-        const SizedBox(width: 14),
-        Text('जिल्हा ', style: mrB),
-        _uField(v('dpDutyDist').isEmpty ? 'यवतमाळ' : v('dpDutyDist'),
-            width: 110),
-      ]),
-      const SizedBox(height: 8),
-      Row(children: [
-        Text('नोकरीचा दिनांक व वेळ    :- ', style: mrB),
-        Expanded(child: _uField(v('dpDutyDateTime'))),
-      ]),
-      const SizedBox(height: 18),
-      Text.rich(
-        TextSpan(
-          style: mrR.copyWith(height: 1.8),
-          children: [
-            const TextSpan(
-                text:
-                    '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक '),
-            FormImagePdfHelper.inlineFieldSpan(v('dpMargNo'), emptyWidth: 50),
-            const TextSpan(text: ' / २०'),
-            FormImagePdfHelper.inlineFieldSpan(v('dpMargYear'), emptyWidth: 40),
-            const TextSpan(text: ' कलम '),
-            FormImagePdfHelper.inlineFieldSpan(v('dpKalam'), emptyWidth: 120),
-            const TextSpan(text: ' मधील मृतक नामे '),
-            FormImagePdfHelper.inlineFieldSpan(v('dpDeceasedName'),
-                emptyWidth: 180),
-            const TextSpan(text: ' रा. '),
-            FormImagePdfHelper.inlineFieldSpan(v('dpDeceasedRa'),
-                emptyWidth: 120),
-            const TextSpan(text: ' ता आणि जिल्हा '),
-            FormImagePdfHelper.inlineFieldSpan(
-              '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'.trim(),
-              emptyWidth: 110,
+      const SizedBox(height: 20),
+
+      // Upper info lines
+      Row(
+        children: [
+          Text('पो अंमलदाराचे नांव  :', style: headerLabelStyle),
+          const SizedBox(width: 8),
+          Expanded(
+            child: pdfWrappingInput(
+              value: v('dpAmaldaarName'),
+              minWidth: 160,
+              maxWidth: 350,
             ),
-            const TextSpan(
-                text: ' हयाचे / हिचे प्रेत सोबत घेउन मा.वैद्यकीय अधिकारी '),
-            FormImagePdfHelper.inlineFieldSpan(v('dpMedOfficerName'),
-                emptyWidth: 160),
-            const TextSpan(
-              text:
-                  ' यांचेकडे शवविच्छेदनाकरीता दाखल करावे. व शवविच्छेदनानंतर प्रेत मृतकाचे वारसदारास ताब्यात देउन मा. वैद्यकीय अधिकारी यांनी पि. एम दरम्यान व्हिसेरा कपडा बंडल दिल्यास ताब्यात घेउन तपासी अंमलदार यांचेकडे दाखल करावे.',
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      Padding(
+        padding: const EdgeInsets.only(left: 60.0),
+        child: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            Text('पोलीस स्टेशन ', style: headerLabelStyle),
+            pdfWrappingInput(
+              value: v('dpDutyPs'),
+              minWidth: 140,
+              maxWidth: 280,
+            ),
+            const SizedBox(width: 16),
+            Text('जिल्हा ', style: headerLabelStyle),
+            pdfWrappingInput(
+              value:
+                  v('dpDutyDist').isNotEmpty ? v('dpDutyDist') : v('district'),
+              minWidth: 100,
+              maxWidth: 200,
             ),
           ],
         ),
       ),
+      const SizedBox(height: 10),
+      Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          Text('नोकरीचा दिनांक व वेळ    :- ', style: headerLabelStyle),
+          pdfDatePickerField(
+            value: dpDutyDate,
+            width: 140,
+          ),
+          const SizedBox(width: 12),
+          Text('रोजी चे ', style: headerLabelStyle),
+          pdfTimePickerField(
+            value: dpDutyTime,
+            width: 90,
+          ),
+          const SizedBox(width: 6),
+          Text('वा', style: headerLabelStyle),
+        ],
+      ),
+      const SizedBox(height: 24),
+
+      // Main context paragraph
+      Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 6,
+        runSpacing: 10,
+        children: [
+          Text(
+            '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक ',
+            style: bodyTextStyle,
+          ),
+          pdfInlineBlank(
+            value: v('dpMargNo'),
+            width: 100,
+          ),
+          Text('/ २०', style: bodyTextStyle),
+          pdfInlineBlank(
+            value: v('dpMargYear'),
+            width: 44,
+            hintText: 'YY',
+          ),
+          Text('कलम', style: bodyTextStyle),
+          pdfWrappingInput(
+            value: v('dpKalam'),
+            minWidth: 140,
+            maxWidth: 240,
+          ),
+          Text('मधील मृतक नामे ', style: bodyTextStyle),
+          pdfWrappingInput(
+            value: v('dpDeceasedName'),
+            minWidth: 200,
+            maxWidth: 350,
+          ),
+          Text('रा.', style: bodyTextStyle),
+          pdfWrappingInput(
+            value: v('dpDeceasedRa'),
+            minWidth: 220,
+            maxWidth: 450,
+          ),
+          Text('ता आणि जिल्हा', style: bodyTextStyle),
+          pdfWrappingInput(
+            value: v('dpDeceasedTa').isNotEmpty
+                ? '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'.trim()
+                : v('dpDeceasedDist'),
+            minWidth: 140,
+            maxWidth: 260,
+          ),
+          Text('हयाचे / हिचे प्रेत सोबत घेउन मा.वैद्यकीय अधिकारी',
+              style: bodyTextStyle),
+          pdfWrappingInput(
+            value: v('dpMedOfficerName'),
+            minWidth: 180,
+            maxWidth: 320,
+          ),
+          Text(
+            'यांचेकडे शवविच्छेदनाकरीता दाखल करावे. व शवविच्छेदनानंतर प्रेत मृतकाचे वारसदारास ताब्यात देउन मा. वैद्यकीय अधिकारी यांनी पि. एम दरम्यान व्हिसेरा कपडा बंडल दिल्यास ताब्यात घेउन तपासी अंमलदार यांचेकडे दाखल करावे.',
+            style: bodyTextStyle,
+          ),
+        ],
+      ),
       const Spacer(),
+
+      // Footer signatures
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4055,33 +4477,71 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('ड्युटी पास घेणाऱ्याची सही', style: mrB),
+                Text(
+                  'ड्युटी पास घेणाऱ्याची सही',
+                  style: headerLabelStyle.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
                 const SizedBox(height: 36),
-                _uField(v('dpAmaldaarSig'), width: 140),
+                _uField(
+                  v('dpAmaldaarSig'),
+                  width: 220,
+                  textStyle: valStyle,
+                  fontSize: 11.5,
+                ),
               ],
             ),
           ),
+          const SizedBox(width: 40),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('तपासी अधिकारी नांव व सही शिक्का', style: mrB),
-                const SizedBox(height: 8),
-                Row(children: [
-                  Text('नांव :- ', style: mrB),
-                  Expanded(child: _uField(v('dpIoName')))
-                ]),
-                const SizedBox(height: 4),
-                Row(children: [
-                  Text('हुद्दा :- ', style: mrB),
-                  Expanded(child: _uField(v('dpIoRank')))
-                ]),
-                const SizedBox(height: 4),
+                Text(
+                  'तपासी अधिकारी नांव व सही शिक्का',
+                  style: headerLabelStyle.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text('पोलीस स्टेशन :- ', style: mrB),
-                    Expanded(child: _uPoliceStationPdfField(v('dpIoPs'))),
+                    Text('नांव :- ', style: bodyTextStyle),
+                    Expanded(
+                      child: _uField(
+                        v('dpIoName'),
+                        textStyle: valStyle,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('हुद्दा :- ', style: bodyTextStyle),
+                    Expanded(
+                      child: _uField(
+                        v('dpIoRank'),
+                        textStyle: valStyle,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('पोलीस स्टेशन :- ', style: bodyTextStyle),
+                    Expanded(
+                      child: _uPoliceStationPdfField(
+                        v('dpIoPs'),
+                        textStyle: valStyle,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -4089,10 +4549,19 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 36),
+
+      // Bottom Right tag
       Align(
         alignment: Alignment.bottomRight,
-        child: Text('M.R.W', style: FormImagePdfHelper.mReg(8)),
+        child: Text(
+          'M.R.W',
+          style: GoogleFonts.poppins(
+            fontSize: 11,
+            color: Colors.black54,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     ],
   );
