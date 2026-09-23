@@ -390,7 +390,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                   style: style.copyWith(
                     fontSize: effectiveFontSize,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: const Color(0xFF0D47A1),
                   ),
                   decoration: InputDecoration(
                     isDense: true,
@@ -400,6 +400,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     hintStyle: style.copyWith(
                       color: Colors.grey.shade400,
                       fontSize: effectiveFontSize,
+                      fontStyle: FontStyle.italic,
                     ),
                     border: const UnderlineInputBorder(
                       borderSide:
@@ -466,7 +467,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                   minWidth: 150,
                   maxWidth: 350,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Text(
                   'जिल्हा :- ',
                   style: marathi.copyWith(
@@ -555,7 +556,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                   minWidth: 130,
                   maxWidth: 300,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Text(
                   'जिल्हा :- ',
                   style: marathi.copyWith(

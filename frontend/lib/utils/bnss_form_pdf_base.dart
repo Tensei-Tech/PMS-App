@@ -342,7 +342,7 @@ Future<Uint8List> generateMinimalMarathiFormPdf(
   final value = pw.TextStyle(
     font: devanagari,
     fontSize: 10,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   String v(String key) => doc[key]?.toString().trim() ?? '';

@@ -380,7 +380,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                   style: style.copyWith(
                     fontSize: effectiveFontSize,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: const Color(0xFF0D47A1),
                   ),
                   decoration: InputDecoration(
                     isDense: true,
@@ -390,6 +390,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                     hintStyle: style.copyWith(
                       color: Colors.grey.shade400,
                       fontSize: effectiveFontSize,
+                      fontStyle: FontStyle.italic,
                     ),
                     border: const UnderlineInputBorder(
                       borderSide:
@@ -429,12 +430,16 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'पोलीस स्टेशन ',
-                      style: marathi.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Text(
+                        'पोलीस स्टेशन ',
+                        style: marathi.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -770,12 +775,16 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'पोलीस स्टेशन ',
-                      style: marathi.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Text(
+                        'पोलीस स्टेशन ',
+                        style: marathi.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -885,6 +894,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
               minWidth: 130,
               maxWidth: 300,
             ),
+            const SizedBox(width: 8),
             Text(
               ' जिल्हा ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),

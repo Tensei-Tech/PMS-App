@@ -426,12 +426,13 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                 width: computedWidth,
                 child: TextFormField(
                   controller: controller,
+                  readOnly: widget.readOnly,
                   maxLines: 1,
                   scrollPhysics: const ClampingScrollPhysics(),
                   style: style.copyWith(
                     fontSize: effectiveFontSize,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: const Color(0xFF0D47A1),
                   ),
                   decoration: InputDecoration(
                     isDense: true,
@@ -441,6 +442,7 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                     hintStyle: style.copyWith(
                       color: Colors.grey.shade400,
                       fontSize: effectiveFontSize,
+                      fontStyle: FontStyle.italic,
                     ),
                     border: const UnderlineInputBorder(
                       borderSide:
@@ -498,8 +500,12 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस स्टेशन', style: headerLabelStyle),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस स्टेशन', style: headerLabelStyle),
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: _policeStationField(
@@ -656,6 +662,7 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                   minWidth: 140,
                   maxWidth: 280,
                 ),
+                const SizedBox(width: 8),
                 Text('जिल्हा', style: bodyTextStyle),
                 _wrappingUnderlineInput(
                   controller: _firDistCtrl,

@@ -69,11 +69,52 @@ TextStyle _mReg([double sz = 9.5]) => GoogleFonts.notoSansDevanagari(
 TextStyle _valStyle([double sz = 9.5]) => GoogleFonts.notoSansDevanagari(
       fontSize: sz,
       fontWeight: FontWeight.w600,
-      color: const Color(0xFF0D47A1),
+      color: Colors.black,
     );
+
+class _FullWidthUnderlinePainter extends CustomPainter {
+  final List<ui.LineMetrics> metrics;
+  final Color color;
+  final double thickness;
+
+  _FullWidthUnderlinePainter({
+    required this.metrics,
+    this.color = Colors.black87,
+    this.thickness = 0.8,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke;
+
+    if (metrics.isNotEmpty) {
+      for (final m in metrics) {
+        final lineBottom = m.baseline + m.descent;
+        final y = (lineBottom - 0.5).clamp(1.0, size.height - 0.5);
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+      }
+    } else {
+      canvas.drawLine(
+        Offset(0, size.height - 0.5),
+        Offset(size.width, size.height - 0.5),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FullWidthUnderlinePainter oldDelegate) => true;
+}
 
 Widget _bilingualField(String eng, String mr, String val,
     {double? width, bool expand = false}) {
+  final baseStyle = val.isNotEmpty ? _valStyle(9.5) : _mReg(9.5);
+  final style = baseStyle.copyWith(height: baseStyle.height ?? 1.75);
+  final text = val.isNotEmpty ? val : ' ';
+
   final content = Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
@@ -87,16 +128,41 @@ Widget _bilingualField(String eng, String mr, String val,
         ],
       ),
       const SizedBox(height: 2),
-      Container(
-        width: width,
-        padding: const EdgeInsets.only(bottom: 2),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.black87, width: 0.8)),
-        ),
-        child: Text(
-          val.isNotEmpty ? val : ' ',
-          style: val.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
-        ),
+      LayoutBuilder(
+        builder: (context, constraints) {
+          final w = width ??
+              (constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                  ? constraints.maxWidth
+                  : 100.0);
+          final textMaxWidth = (w - 2.0).clamp(10.0, w);
+          final tp = TextPainter(
+            text: TextSpan(text: text, style: style),
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: textMaxWidth);
+          final metrics = tp.computeLineMetrics();
+
+          return SizedBox(
+            width: w,
+            child: CustomPaint(
+              painter: _FullWidthUnderlinePainter(
+                metrics: metrics,
+                color: Colors.black87,
+                thickness: 0.8,
+              ),
+              child: SizedBox(
+                width: w,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 2, left: 1, right: 1),
+                  child: Text(
+                    text,
+                    softWrap: true,
+                    style: style,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     ],
   );

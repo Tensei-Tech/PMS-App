@@ -1047,7 +1047,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           style: boldLabelStyle,
         ),
         const SizedBox(height: 8),
-
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 4,
@@ -1432,7 +1431,6 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           style: boldLabelStyle,
         ),
         const SizedBox(height: 8),
-
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 4,

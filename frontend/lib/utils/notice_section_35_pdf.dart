@@ -81,7 +81,7 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
   // PAGE 1 (Main: तपास व ९ अटी सूचनापत्र)
   // ═══════════════════════════════════════════════════════════════════════════
   if (showP1) {
-    final p1Ps = v('p1PoliceStation', v('policeStation', '_______________'));
+    final p1Ps = v('p1PoliceStation', v('policeStation'));
     final p1Date = v('p1NoticeDate', v('noticeDate', '......./ ......./२०...'));
     final p1Recipient1 = v(
         'p1RecipientLine1',
@@ -101,7 +101,7 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
 
     final p1IncDate =
         v('p1IncidentDate', v('incidentDate', '....../ ....../२०.....'));
-    final p1IncPs = v('p1IncidentPs', v('incidentPs', '------------------'));
+    final p1IncPs = v('p1IncidentPs', v('incidentPs'));
     final p1CrimeNo = v('p1CrimeNo', v('crimeNo', '........./२०....'));
     final p1ActSec = v('p1ActSec',
         v('actSec', '............. ...................................'));
@@ -124,25 +124,36 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
               // ── TOP RIGHT ──
               pw.Align(
                 alignment: pw.Alignment.topRight,
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Text('पोलीस स्टेशन ', style: bold),
-                        pw.Text(p1Ps, style: regular),
-                      ],
-                    ),
-                    pw.SizedBox(height: 3),
-                    pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Text('दिनांक : ', style: bold),
-                        pw.Text(p1Date, style: regular),
-                      ],
-                    ),
-                  ],
+                child: pw.SizedBox(
+                  width: 250,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(top: 1.0),
+                            child: pw.Text('पोलीस स्टेशन ', style: bold),
+                          ),
+                          pw.Expanded(
+                            child: pw.Text(p1Ps,
+                                style: regular.copyWith(
+                                    decoration: pw.TextDecoration.underline),
+                                softWrap: true),
+                          ),
+                        ],
+                      ),
+                      pw.SizedBox(height: 3),
+                      pw.Row(
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          pw.Text('दिनांक : ', style: bold),
+                          pw.Text(p1Date, style: regular),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               pw.SizedBox(height: 12),
@@ -305,7 +316,7 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
   // PAGE 2 (Rights & Signatures: दोषारोपपत्र न्यायप्रविष्ठ नोटीस)
   // ═══════════════════════════════════════════════════════════════════════════
   if (showP2) {
-    final p2Ps = v('p2PoliceStation', v('policeStation', '_______________'));
+    final p2Ps = v('p2PoliceStation', v('policeStation'));
     final p2Date = v('p2NoticeDate', v('noticeDate', '......./ ......./२०...'));
     final p2Recipient1 = v(
         'p2RecipientLine1',
@@ -320,8 +331,8 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
         v('recipientLine3',
             '____________________________________________________________________'));
 
-    final p2IncPs = v('p2IncidentPs', v('incidentPs', '------------------'));
-    final p2Dist = v('p2District', v('district', 'यवतमाळ'));
+    final p2IncPs = v('p2IncidentPs', v('incidentPs'));
+    final p2Dist = v('p2District', v('district'));
     final p2CrimeNo = v('p2CrimeNo', v('crimeNo', '........./२०........'));
     final p2ActSec = v(
         'p2ActSec',
@@ -331,7 +342,7 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
     final p2CourtDate =
         v('p2CourtDate', v('courtDate', '......./ ......./२०.....'));
     final p2CourtTime = v('p2CourtTime', '१०:३०');
-    final p2CourtPs = v('p2CourtPs', v('courtPs', '------------------'));
+    final p2CourtPs = v('p2CourtPs', v('courtPs'));
     final p2CourtName = v('p2CourtName', v('courtName', '------------------'));
 
     final p2IoSig = v('p2IoSig', v('investigatingOfficerSig'));
@@ -348,25 +359,36 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
               // ── TOP RIGHT ──
               pw.Align(
                 alignment: pw.Alignment.topRight,
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Text('पोलीस स्टेशन ', style: bold),
-                        pw.Text(p2Ps, style: regular),
-                      ],
-                    ),
-                    pw.SizedBox(height: 4),
-                    pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Text('दिनांक : ', style: bold),
-                        pw.Text(p2Date, style: regular),
-                      ],
-                    ),
-                  ],
+                child: pw.SizedBox(
+                  width: 250,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.only(top: 1.0),
+                            child: pw.Text('पोलीस स्टेशन ', style: bold),
+                          ),
+                          pw.Expanded(
+                            child: pw.Text(p2Ps,
+                                style: regular.copyWith(
+                                    decoration: pw.TextDecoration.underline),
+                                softWrap: true),
+                          ),
+                        ],
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Row(
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          pw.Text('दिनांक : ', style: bold),
+                          pw.Text(p2Date, style: regular),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               pw.SizedBox(height: 18),
@@ -399,7 +421,7 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
               // ── PARAGRAPH 1 ──
               pw.Paragraph(
                 text:
-                    '        आपणास या नोटीस व्दारे कळविण्यात येते की, आपना विरूध्द पोलीस स्टेशन $p2IncPs जिल्हा $p2Dist येथे अपराध क्रमांक $p2CrimeNo कलम $p2ActSec अन्वये गुन्हा नोंद करण्यात आलेला आहे. सदर अपराधा मध्ये शिक्षा ७ वर्षा पेक्षा कमी आहे किंवा ७ वर्षा पर्यंत द्रव्यदंडा सह किंवा त्या व्यतिरीक्त होवू शकते त्यामुळे सध्या आपनास अटक करणे गरजेचे वाटत नाही.',
+                    '        आपणास या नोटीस व्दारे कळविण्यात येते की, आपना विरूध्द पोलीस स्टेशन ${p2IncPs.isNotEmpty ? '$p2IncPs  ' : ''}जिल्हा $p2Dist येथे अपराध क्रमांक $p2CrimeNo कलम $p2ActSec अन्वये गुन्हा नोंद करण्यात आलेला आहे. सदर अपराधा मध्ये शिक्षा ७ वर्षा पेक्षा कमी आहे किंवा ७ वर्षा पर्यंत द्रव्यदंडा सह किंवा त्या व्यतिरीक्त होवू शकते त्यामुळे सध्या आपनास अटक करणे गरजेचे वाटत नाही.',
                 style: regular,
                 textAlign: pw.TextAlign.justify,
               ),
@@ -505,40 +527,45 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
       // Top Right
       Align(
         alignment: Alignment.topRight,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('पोलीस स्टेशन ', style: FormImagePdfHelper.mBld(11)),
-                Container(
-                  constraints: const BoxConstraints(maxWidth: 220),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
+        child: SizedBox(
+          width: 250,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन ',
+                        style: FormImagePdfHelper.mBld(11)),
+                  ),
+                  Expanded(
                     child: Text(
                       p1Ps.isEmpty ? ' ' : p1Ps,
-                      maxLines: 1,
-                      softWrap: false,
-                      style: FormImagePdfHelper.valStyle(11),
+                      softWrap: true,
+                      style: FormImagePdfHelper.valStyle(11).copyWith(
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.black87,
+                        decorationThickness: 0.8,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 3),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
-                Text(
-                  p1Date.isEmpty ? ' ' : p1Date,
-                  style: FormImagePdfHelper.valStyle(11),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 3),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
+                  Text(
+                    p1Date.isEmpty ? ' ' : p1Date,
+                    style: FormImagePdfHelper.valStyle(11),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
       const SizedBox(height: 12),
@@ -705,7 +732,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   final p2Recipient3 = v('p2RecipientLine3', v('recipientLine3'));
 
   final p2IncPs = v('p2IncidentPs', v('incidentPs'));
-  final p2Dist = v('p2District', v('district', 'यवतमाळ'));
+  final p2Dist = v('p2District', v('district'));
   final p2CrimeNo = v('p2CrimeNo', v('crimeNo'));
   final p2ActSec = v('p2ActSec', v('actSec'));
 
@@ -723,40 +750,45 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
       // Top Right
       Align(
         alignment: Alignment.topRight,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('पोलीस स्टेशन ', style: FormImagePdfHelper.mBld(11)),
-                Container(
-                  constraints: const BoxConstraints(maxWidth: 220),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
+        child: SizedBox(
+          width: 250,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन ',
+                        style: FormImagePdfHelper.mBld(11)),
+                  ),
+                  Expanded(
                     child: Text(
                       p2Ps.isEmpty ? ' ' : p2Ps,
-                      maxLines: 1,
-                      softWrap: false,
-                      style: FormImagePdfHelper.valStyle(11),
+                      softWrap: true,
+                      style: FormImagePdfHelper.valStyle(11).copyWith(
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.black87,
+                        decorationThickness: 0.8,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
-                Text(
-                  p2Date.isEmpty ? ' ' : p2Date,
-                  style: FormImagePdfHelper.valStyle(11),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
+                  Text(
+                    p2Date.isEmpty ? ' ' : p2Date,
+                    style: FormImagePdfHelper.valStyle(11),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
       const SizedBox(height: 18),
@@ -793,7 +825,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
 
       // Paragraph 1
       Text(
-        '        आपणास या नोटीस व्दारे कळविण्यात येते की, आपना विरूध्द पोलीस स्टेशन $p2IncPs जिल्हा $p2Dist येथे अपराध क्रमांक $p2CrimeNo कलम $p2ActSec अन्वये गुन्हा नोंद करण्यात आलेला आहे. सदर अपराधा मध्ये शिक्षा ७ वर्षा पेक्षा कमी आहे किंवा ७ वर्षा पर्यंत द्रव्यदंडा सह किंवा त्या व्यतिरीक्त होवू शकते त्यामुळे सध्या आपनास अटक करणे गरजेचे वाटत नाही.',
+        '        आपणास या नोटीस व्दारे कळविण्यात येते की, आपना विरूध्द पोलीस स्टेशन ${p2IncPs.isNotEmpty ? '$p2IncPs  ' : ''}जिल्हा $p2Dist येथे अपराध क्रमांक $p2CrimeNo कलम $p2ActSec अन्वये गुन्हा नोंद करण्यात आलेला आहे. सदर अपराधा मध्ये शिक्षा ७ वर्षा पेक्षा कमी आहे किंवा ७ वर्षा पर्यंत द्रव्यदंडा सह किंवा त्या व्यतिरीक्त होवू शकते त्यामुळे सध्या आपनास अटक करणे गरजेचे वाटत नाही.',
         style: FormImagePdfHelper.mReg(11, 1.5),
         textAlign: TextAlign.justify,
       ),

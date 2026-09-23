@@ -189,7 +189,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
 
   final valueStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 10,
-    color: Colors.blue.shade900,
+    color: Colors.black,
   );
 
   await GoogleFonts.pendingFonts();

@@ -293,7 +293,7 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   style: style.copyWith(
                     fontSize: effectiveFontSize,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: const Color(0xFF0D47A1),
                   ),
                   decoration: InputDecoration(
                     isDense: true,
@@ -303,6 +303,7 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                     hintStyle: style.copyWith(
                       color: Colors.grey.shade400,
                       fontSize: effectiveFontSize,
+                      fontStyle: FontStyle.italic,
                     ),
                     border: const UnderlineInputBorder(
                       borderSide:
@@ -346,12 +347,14 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस स्टेशन',
-                            style:
-                                marathi.copyWith(fontWeight: FontWeight.bold)),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस स्टेशन',
+                              style: marathi.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: _policeStationField(
@@ -485,7 +488,7 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   maxWidth: 300,
                   hintText: _policeStationCtrl.text.isNotEmpty
                       ? _policeStationCtrl.text
-                      : 'पोलीस स्टेशन',
+                      : null,
                 ),
                 Text(
                   ' येथे अपराध क्रमांक ',

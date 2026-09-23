@@ -175,7 +175,7 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                   style: style.copyWith(
                     fontSize: effectiveFontSize,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: const Color(0xFF0D47A1),
                   ),
                   decoration: InputDecoration(
                     isDense: true,
@@ -184,6 +184,7 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                     hintStyle: style.copyWith(
                       color: Colors.grey.shade400,
                       fontSize: effectiveFontSize,
+                      fontStyle: FontStyle.italic,
                     ),
                     border: const UnderlineInputBorder(
                       borderSide:
@@ -397,8 +398,13 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस दुरक्षेत्र ', style: headerLabelStyle),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस दुरक्षेत्र ',
+                              style: headerLabelStyle),
+                        ),
                         Expanded(
                           child: _policeStationField(
                             controller: _outpostCtrl,
@@ -409,8 +415,12 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                     ),
                     const SizedBox(height: 6),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस स्टेशन ', style: headerLabelStyle),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस स्टेशन ', style: headerLabelStyle),
+                        ),
                         Expanded(
                           child: _policeStationField(
                             controller: _psCtrl,
@@ -480,7 +490,10 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('पासुन  :-    ', style: headerLabelStyle),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: Text('पासुन  :-    ', style: headerLabelStyle),
+                ),
                 Expanded(
                   child: _policeStationField(
                     controller: _fromLocationCtrl,

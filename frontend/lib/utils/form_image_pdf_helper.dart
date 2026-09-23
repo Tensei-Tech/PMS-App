@@ -351,8 +351,45 @@ class FormImagePdfHelper {
       GoogleFonts.notoSansDevanagari(
         fontSize: sz,
         fontWeight: FontWeight.w600,
-        color: const Color(0xFF0D47A1),
+        color: Colors.black,
       );
+
+  static TextStyle valUnderlineStyle([double sz = 10.5, double ht = 1.8]) =>
+      GoogleFonts.notoSansDevanagari(
+        fontSize: sz,
+        fontWeight: FontWeight.w600,
+        height: ht,
+        color: Colors.transparent,
+        shadows: const [
+          Shadow(
+            offset: Offset(0, -3.0),
+            color: Colors.black,
+          ),
+        ],
+        decoration: TextDecoration.underline,
+        decorationColor: Colors.black,
+        decorationThickness: 0.8,
+      );
+
+  static TextSpan inlineFieldSpan(
+    String val, {
+    double emptyWidth = 100,
+    double fontSize = 10.5,
+    double height = 1.8,
+    TextStyle? textStyle,
+  }) {
+    final content = val.trim();
+    if (content.isNotEmpty) {
+      final style = textStyle ?? valUnderlineStyle(fontSize, height);
+      return TextSpan(text: content, style: style);
+    } else {
+      final charCount = (emptyWidth / (fontSize * 0.58)).round().clamp(3, 80);
+      return TextSpan(
+        text: '_' * charCount,
+        style: mBld(fontSize, height).copyWith(color: Colors.black54),
+      );
+    }
+  }
 
   /// Helper to wrap children in a standard A4 page container
   static Widget buildA4Page({
