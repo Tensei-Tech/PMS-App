@@ -29,7 +29,7 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
   final pw.TextStyle valueStyle = pw.TextStyle(
     font: loraBold,
     fontSize: 8.5,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   pw.Widget renderText(String key, String? val, pw.TextStyle engStyle) {
@@ -138,6 +138,7 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                       padding: const pw.EdgeInsets.symmetric(
                           horizontal: 4, vertical: 3),
                       child: pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           mLbl('lbl_ps_label'),
                           pw.SizedBox(width: 4),
@@ -145,7 +146,7 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                             child:
                                 renderText('val_policeStation', ps, valueStyle),
                           ),
-                          pw.SizedBox(width: 20),
+                          pw.SizedBox(width: 24),
                           mLbl('lbl_district_label'),
                           pw.SizedBox(width: 4),
                           renderText('val_district', dist, valueStyle),
@@ -443,8 +444,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
         : (entry.key == 'hdr_subtitle'
             ? 11.0
             : (entry.key == 'hdr_notice' ? 8.0 : 8.5));
-    final color =
-        entry.key.startsWith('val_') ? const Color(0xFF0D47A1) : Colors.black87;
+    const color = Colors.black;
 
     await cache.add(
       entry.key,
@@ -489,11 +489,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     return TableRow(
       children: [
         cell(Text(label, style: bld)),
-        cell(FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(value.isEmpty ? ' ' : value, style: valStyle),
-        )),
+        cell(
+            Text(value.isEmpty ? ' ' : value, style: valStyle, softWrap: true)),
       ],
     );
   }
@@ -503,12 +500,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       children: [
         cell(Text(label, style: bld),
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
-        cell(
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(value.isEmpty ? ' ' : value, style: valStyle),
-            ),
+        cell(Text(value.isEmpty ? ' ' : value, style: valStyle, softWrap: true),
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
       ],
     );
@@ -576,12 +568,13 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             children: [
               cell(Text('पोलीस स्टेशन जिल्हा', style: bld)),
               cell(Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('पोस्टे : ', style: bld),
                   Expanded(
-                    child: Text(psVal, style: valStyle),
+                    child: Text(psVal, style: valStyle, softWrap: true),
                   ),
-                  const SizedBox(width: 20),
+                  const SizedBox(width: 24),
                   Text('जिल्हा : ', style: bld),
                   Text(distVal, style: valStyle),
                 ],

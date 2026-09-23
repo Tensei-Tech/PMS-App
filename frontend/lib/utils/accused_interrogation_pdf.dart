@@ -57,7 +57,7 @@ Future<Uint8List> generateAccusedInterrogationPdf(
   final pw.TextStyle valueStyle = pw.TextStyle(
     font: loraBold,
     fontSize: 8.5,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   pw.Widget renderText(String key, String? val, pw.TextStyle engStyle) {
@@ -1726,8 +1726,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
         entry.key == 'hdr_title' || entry.key == 'lbl_past_crimes_title'
             ? 12.0
             : (entry.key == 'hdr_subtitle' ? 10.5 : 8.0);
-    final color =
-        entry.key.startsWith('val_') ? const Color(0xFF0D47A1) : Colors.black87;
+    const color = Colors.black;
 
     await cache.add(
       entry.key,

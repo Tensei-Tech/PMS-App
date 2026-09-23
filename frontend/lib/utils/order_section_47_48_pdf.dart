@@ -75,9 +75,9 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
     return val.isEmpty ? fallback : val;
   }
 
-  final policeStation = v('');
+  final policeStation = v('policeStation');
   final crNo = v('crNo');
-  final crYear = v('');
+  final crYear = v('crYear');
   final bnsSection = v('bnsSection', v('section'));
   final arrestDate = v('arrestDate');
   final arrestTime = v('arrestTime');
@@ -192,9 +192,7 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
                   const pw.TextSpan(
                       text: '        आपणास याद्वारे कळविण्यात येते की, '),
                   pw.TextSpan(
-                    text: policeStation.isNotEmpty
-                        ? policeStation
-                        : 'म्हाळुंगे एम.आय.डी.सी.',
+                    text: policeStation,
                     style: bold,
                   ),
                   const pw.TextSpan(text: ' पोलीस स्टेशन गुन्हा रजि.नंबर '),
@@ -415,9 +413,7 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
                   const pw.TextSpan(
                       text: '        आपणास याद्वारे कळविण्यात येते की, '),
                   pw.TextSpan(
-                    text: policeStation.isNotEmpty
-                        ? policeStation
-                        : 'म्हाळुंगे एम.आय.डी.सी.',
+                    text: policeStation,
                     style: bold,
                   ),
                   const pw.TextSpan(text: ' पोलीस स्टेशन,गुन्हा रजि.नंबर '),
@@ -611,9 +607,9 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
-  final policeStation = v('');
+  final policeStation = v('policeStation');
   final crNo = v('crNo');
-  final crYear = v('');
+  final crYear = v('crYear');
   final bnsSection = v('bnsSection', v('section'));
   final arrestDate = v('arrestDate');
   final arrestTime = v('arrestTime');
@@ -686,9 +682,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
               const TextSpan(
                   text: '        आपणास याद्वारे कळविण्यात येते की, '),
               TextSpan(
-                text: policeStation.isNotEmpty
-                    ? policeStation
-                    : 'म्हाळुंगे एम.आय.डी.सी.',
+                text: policeStation,
                 style: bld,
               ),
               const TextSpan(text: ' पोलीस स्टेशन, गुन्हा रजि.नंबर '),
@@ -820,9 +814,9 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
-  final policeStation = v('');
+  final policeStation = v('policeStation');
   final crNo = v('crNo');
-  final crYear = v('');
+  final crYear = v('crYear');
   final bnsSection = v('bnsSection', v('section'));
   final arrestDate = v('arrestDate');
   final arrestTime = v('arrestTime');
@@ -912,9 +906,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
               const TextSpan(
                   text: '        आपणास याद्वारे कळविण्यात येते की, '),
               TextSpan(
-                text: policeStation.isNotEmpty
-                    ? policeStation
-                    : 'म्हाळुंगे एम.आय.डी.सी.',
+                text: policeStation,
                 style: bld,
               ),
               const TextSpan(text: ' पोलीस स्टेशन,गुन्हा रजि.नंबर '),

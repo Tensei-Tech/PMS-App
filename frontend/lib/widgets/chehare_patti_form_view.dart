@@ -376,42 +376,56 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
             // ── SUBHEADER: POLICE STATION & DISTRICT ──
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.start,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      'पोलीस स्टेशन :- ',
-                      style: marathi.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'पोलीस स्टेशन :- ',
+                          style: marathi.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    child: _underlineField(
-                      controller: _psCtrl,
-                      style: serif,
-                    ),
-                  ),
-                  const SizedBox(width: 32),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      'जिल्हा :- ',
-                      style: marathi.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                      ConstrainedBox(
+                        constraints:
+                            const BoxConstraints(minWidth: 150, maxWidth: 350),
+                        child: _underlineField(
+                          controller: _psCtrl,
+                          style: serif,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  SizedBox(
-                    width: 150,
-                    child: _underlineField(
-                      controller: _distCtrl,
-                      style: serif,
-                    ),
+                  const SizedBox(width: 24),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'जिल्हा :- ',
+                          style: marathi.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 150,
+                        child: _underlineField(
+                          controller: _distCtrl,
+                          style: serif,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -69,7 +69,7 @@ Future<Uint8List> generateJuvenileSocialReportPdf(
   final valueStyle = pw.TextStyle(
     font: loraRegular,
     fontSize: 8.5,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   pw.Widget val(String key, String? text) {
@@ -163,12 +163,13 @@ Future<Uint8List> generateJuvenileSocialReportPdf(
                 '१.',
                 'पोलीस स्टेशन व जिल्हा',
                 pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text('पोस्टे : ', style: englishBold),
                     pw.Expanded(
                       child: val('val_policeStation', ps),
                     ),
-                    pw.SizedBox(width: 20),
+                    pw.SizedBox(width: 24),
                     pw.Text('जिल्हा : ', style: englishBold),
                     val('val_district', dist),
                   ],
@@ -835,7 +836,7 @@ Future<MarathiImageCache> _preRenderJuvenileMarathi(
   final valueStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 9,
     fontWeight: FontWeight.bold,
-    color: Colors.blue.shade900,
+    color: Colors.black,
   );
   await GoogleFonts.pendingFonts();
   await cache.add(
@@ -1064,12 +1065,13 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
               Padding(
                 padding: const EdgeInsets.all(3),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('पोस्टे : ', style: bld),
                     Expanded(
-                      child: Text(psVal, style: valStyle),
+                      child: Text(psVal, style: valStyle, softWrap: true),
                     ),
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 24),
                     Text('जिल्हा : ', style: bld),
                     Text(distVal, style: valStyle),
                   ],

@@ -63,7 +63,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
   final pw.TextStyle valueStyle = pw.TextStyle(
     font: devanagariRegular,
     fontSize: 10,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   pdf.addPage(
@@ -1017,7 +1017,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final valueStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 10,
     fontWeight: FontWeight.bold,
-    color: Colors.blue.shade900,
+    color: Colors.black,
   );
 
   final tableHeaderStyle = GoogleFonts.notoSansDevanagari(

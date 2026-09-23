@@ -140,7 +140,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
   final pw.TextStyle valueStyle = pw.TextStyle(
     font: devanagariRegular,
     fontSize: 10,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   // Load Map Image if available
@@ -1425,7 +1425,7 @@ pw.Widget _buildPdfValueCell(
             style: pw.TextStyle(
               font: font,
               fontSize: 8,
-              color: PdfColors.blue900,
+              color: PdfColors.black,
             ),
           ),
   );
@@ -1697,7 +1697,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final valueStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 10,
     fontWeight: FontWeight.bold,
-    color: Colors.blue.shade900,
+    color: Colors.black,
   );
 
   final tableHeaderStyle = GoogleFonts.notoSansDevanagari(
@@ -1709,7 +1709,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final victimValueStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 8,
     fontWeight: FontWeight.bold,
-    color: Colors.blue.shade900,
+    color: Colors.black,
   );
 
   // Ensure fonts are ready

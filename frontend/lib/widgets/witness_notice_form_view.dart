@@ -252,35 +252,23 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
               maxLines: 1,
             )..layout();
 
-            double effectiveFontSize = baseFontSize;
             final double textW = tp.width + 12.0;
-
-            if (hasFiniteWidth &&
-                textW > availableWidth &&
-                availableWidth > 30) {
-              final scale =
-                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
-              effectiveFontSize =
-                  (baseFontSize * scale).clamp(8.5, baseFontSize);
-            }
-
-            final double computedWidth = hasFiniteWidth
-                ? availableWidth
-                : (textW < baseMin
-                    ? baseMin
-                    : (textW > baseMax ? baseMax : textW));
+            final widthToUse =
+                hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
 
             return SizedBox(
-              width: computedWidth,
+              width: widthToUse,
               child: TextFormField(
                 controller: controller,
                 readOnly: widget.readOnly,
-                maxLines: 1,
-                scrollPhysics: const ClampingScrollPhysics(),
+                minLines: 1,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
                 style: style.copyWith(
-                  fontSize: effectiveFontSize,
+                  fontSize: baseFontSize,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: const Color(0xFF0D47A1),
+                  height: 1.35,
                 ),
                 decoration: InputDecoration(
                   isDense: true,
@@ -289,7 +277,8 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   hintText: hintText,
                   hintStyle: style.copyWith(
                     color: Colors.grey.shade400,
-                    fontSize: effectiveFontSize,
+                    fontSize: 11,
+                    fontStyle: FontStyle.italic,
                   ),
                   border: const UnderlineInputBorder(
                     borderSide:
@@ -332,12 +321,14 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस स्टेशन',
-                            style:
-                                marathi.copyWith(fontWeight: FontWeight.bold)),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस स्टेशन',
+                              style: marathi.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: _policeStationField(
@@ -471,7 +462,7 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   maxWidth: 300,
                   hintText: _policeStationCtrl.text.isNotEmpty
                       ? _policeStationCtrl.text
-                      : 'पोलीस स्टेशन',
+                      : null,
                 ),
                 Text(
                   ' येथे अपराध क्रमांक ',

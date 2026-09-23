@@ -205,7 +205,7 @@ TextStyle _fMarathi({double size = 7.5, bool isBold = false}) =>
 TextStyle _fValue({double size = 8.0}) => GoogleFonts.notoSansDevanagari(
       fontSize: size,
       fontWeight: FontWeight.bold,
-      color: const Color(0xFF0D47A1),
+      color: Colors.black,
     );
 
 String _v(Map<String, dynamic> doc, String key) =>

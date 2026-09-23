@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -2732,29 +2733,110 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
   return pdf.save();
 }
 
+class _FullWidthUnderlinePainter extends CustomPainter {
+  final List<ui.LineMetrics> metrics;
+  final Color color;
+  final double thickness;
+
+  _FullWidthUnderlinePainter({
+    required this.metrics,
+    this.color = Colors.black,
+    this.thickness = 0.8,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke;
+
+    if (metrics.isNotEmpty) {
+      for (final m in metrics) {
+        final lineBottom = m.baseline + m.descent;
+        final y = (lineBottom + 1.0).clamp(1.0, size.height - 0.5);
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+      }
+    } else {
+      canvas.drawLine(
+        Offset(0, size.height - 0.5),
+        Offset(size.width, size.height - 0.5),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FullWidthUnderlinePainter oldDelegate) => true;
+}
+
 Widget _uField(String val,
-    {double? width, double? minWidth, double? maxWidth, double fontSize = 9}) {
+    {double? width,
+    double? minWidth,
+    double? maxWidth,
+    double fontSize = 10.5,
+    TextStyle? textStyle}) {
   final content = val.trim();
-  return Container(
-    width: width,
-    constraints: BoxConstraints(
-      minWidth: minWidth ?? width ?? 0,
-      maxWidth: maxWidth ?? width ?? double.infinity,
-    ),
-    padding: const EdgeInsets.only(bottom: 1, left: 3, right: 3),
-    decoration: const BoxDecoration(
-      border: Border(bottom: BorderSide(width: 0.8, color: Colors.black)),
-    ),
-    child: FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.centerLeft,
-      child: Text(
-        content.isEmpty ? ' ' : content,
-        maxLines: 1,
-        softWrap: false,
-        style: FormImagePdfHelper.valStyle(fontSize),
-      ),
-    ),
+  final baseStyle = textStyle ?? FormImagePdfHelper.valStyle(fontSize);
+  final style = baseStyle.copyWith(
+    height: baseStyle.height ?? 1.75,
+  );
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      double fieldWidth;
+      if (width != null) {
+        fieldWidth = width;
+      } else if (maxWidth == null &&
+          minWidth == null &&
+          constraints.maxWidth.isFinite &&
+          constraints.maxWidth > 0) {
+        fieldWidth = constraints.maxWidth;
+      } else {
+        final effMinWidth = minWidth ?? 40.0;
+        final effMaxWidth = maxWidth ?? effMinWidth;
+        final probeTp = TextPainter(
+          text: TextSpan(text: content.isEmpty ? ' ' : content, style: style),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        final textNeededWidth = probeTp.width + 4.0;
+        fieldWidth = textNeededWidth.clamp(effMinWidth, effMaxWidth);
+      }
+
+      if (constraints.maxWidth.isFinite && constraints.maxWidth > 0) {
+        fieldWidth = fieldWidth.clamp(0.0, constraints.maxWidth);
+      }
+
+      final textMaxWidth = (fieldWidth - 4.0).clamp(10.0, fieldWidth);
+      final tp = TextPainter(
+        text: TextSpan(text: content.isEmpty ? ' ' : content, style: style),
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: textMaxWidth);
+
+      final metrics = tp.computeLineMetrics();
+
+      return SizedBox(
+        width: fieldWidth,
+        child: CustomPaint(
+          painter: _FullWidthUnderlinePainter(
+            metrics: metrics,
+            color: Colors.black,
+            thickness: 0.8,
+          ),
+          child: SizedBox(
+            width: fieldWidth,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 2, left: 2, right: 2),
+              child: Text(
+                content.isEmpty ? ' ' : content,
+                softWrap: true,
+                style: style,
+              ),
+            ),
+          ),
+        ),
+      );
+    },
   );
 }
 
@@ -2765,28 +2847,12 @@ Widget _uPoliceStationPdfField(
   double? maxWidth,
   TextStyle? textStyle,
 }) {
-  final content = val.trim();
-  final style = textStyle ?? FormImagePdfHelper.valStyle(9);
-  return Container(
+  return _uField(
+    val,
     width: width,
-    constraints: BoxConstraints(
-      minWidth: minWidth,
-      maxWidth: maxWidth ?? double.infinity,
-    ),
-    padding: const EdgeInsets.only(bottom: 1, left: 2, right: 2),
-    decoration: const BoxDecoration(
-      border: Border(bottom: BorderSide(width: 0.8, color: Colors.black)),
-    ),
-    child: FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.centerLeft,
-      child: Text(
-        content.isEmpty ? ' ' : content,
-        maxLines: 1,
-        softWrap: false,
-        style: style,
-      ),
-    ),
+    minWidth: minWidth,
+    maxWidth: maxWidth,
+    textStyle: textStyle,
   );
 }
 
@@ -2799,25 +2865,80 @@ Widget _subLabel(String text) {
 
 Widget _multilineBox(String text, {int lines = 3}) {
   final content = text.trim();
-  final list = content.isEmpty ? [''] : content.split('\n');
-  final totalLines = lines > list.length ? lines : list.length;
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      for (var i = 0; i < totalLines; i++)
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(bottom: 2),
-          padding: const EdgeInsets.only(bottom: 1, left: 3),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(width: 0.8, color: Colors.black)),
+  if (content.isEmpty) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < lines; i++)
+          Container(
+            width: double.infinity,
+            height: 18,
+            margin: const EdgeInsets.only(bottom: 2),
+            decoration: const BoxDecoration(
+              border:
+                  Border(bottom: BorderSide(width: 0.8, color: Colors.black)),
+            ),
           ),
-          child: Text(
-            i < list.length ? list[i] : ' ',
-            style: FormImagePdfHelper.valStyle(10.5),
+      ],
+    );
+  }
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final w = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+          ? constraints.maxWidth
+          : 714.0;
+      final baseStyle = FormImagePdfHelper.valStyle(10.5);
+      final style = baseStyle.copyWith(
+        height: baseStyle.height ?? 1.75,
+      );
+      final textMaxWidth = (w - 4.0).clamp(10.0, w);
+      final tp = TextPainter(
+        text: TextSpan(text: content, style: style),
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: textMaxWidth);
+
+      final metrics = tp.computeLineMetrics();
+      final contentLines = metrics.length;
+      final remainingLines = lines > contentLines ? lines - contentLines : 0;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: w,
+            child: CustomPaint(
+              painter: _FullWidthUnderlinePainter(
+                metrics: metrics,
+                color: Colors.black,
+                thickness: 0.8,
+              ),
+              child: SizedBox(
+                width: w,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 2, left: 2, right: 2),
+                  child: Text(
+                    content,
+                    softWrap: true,
+                    style: style,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-    ],
+          for (var i = 0; i < remainingLines; i++)
+            Container(
+              width: double.infinity,
+              height: 18,
+              margin: const EdgeInsets.only(bottom: 2),
+              decoration: const BoxDecoration(
+                border:
+                    Border(bottom: BorderSide(width: 0.8, color: Colors.black)),
+              ),
+            ),
+        ],
+      );
+    },
   );
 }
 
@@ -2932,47 +3053,59 @@ Widget _buildVinantiArjWidget(Map<String, dynamic> doc) {
       const SizedBox(height: 4),
       Padding(
         padding: const EdgeInsets.only(left: 12.0),
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          runSpacing: 4,
-          spacing: 2,
-          children: [
-            Text('सविनय सेवेशी सादर आहे की, आज दिनांक ', style: mrR),
-            _uField(v('reqMargDate'), minWidth: 75, maxWidth: 150),
-            Text(' रोजी ', style: mrR),
-            _uField(v('reqMargTime'), minWidth: 50, maxWidth: 150),
-            Text(' वाजता पोलीस स्टेशन ', style: mrR),
-            _uPoliceStationPdfField(v('reqMargPs'),
-                minWidth: 100, maxWidth: 450),
-            Text(' मर्ग/ स्टेशन डायरी क्र.', style: mrR),
-            _uField(v('reqMargDiaryNo'), minWidth: 60, maxWidth: 200),
-            Text('/२०', style: mrR),
-            _uField(v('reqMargYear'), minWidth: 40, maxWidth: 100),
-            Text(
-                ' कलम १९४ बी.एन.एस.एस २०२३ चा मर्ग दाखल झाला असुन यातील मृतक नामे ',
-                style: mrR),
-            _uField(v('reqMargName'), minWidth: 200, maxWidth: 450),
-            Text(' पो.स्टे.', style: mrR),
-            _uPoliceStationPdfField(v('reqSubjectPs'),
-                minWidth: 95, maxWidth: 450),
-            Text(' ता-', style: mrR),
-            _uField(v('reqMargTa'), minWidth: 75, maxWidth: 450),
-            Text(' जिल्हा ......... ही/ह्या ', style: mrR),
-            _uField(v('reqHospitalName'), minWidth: 150, maxWidth: 450),
-            Text(' येथे दिनांक ', style: mrR),
-            _uField(v('reqAdmitDate'), minWidth: 75, maxWidth: 150),
-            Text(' रोजी ', style: mrR),
-            _uField(v('reqAdmitTime'), minWidth: 50, maxWidth: 150),
-            Text(
-                ' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ ',
-                style: mrR),
-            _uField(v('reqReasonDetails'), minWidth: 170, maxWidth: 650),
-            Text(' दिनांक ', style: mrR),
-            _uField(v('reqDeathDate'), minWidth: 75, maxWidth: 150),
-            Text(' रोजी ', style: mrR),
-            _uField(v('reqDeathTime'), minWidth: 50, maxWidth: 150),
-            Text(' वाजता मरण पावला आहे.', style: mrR),
-          ],
+        child: Text.rich(
+          TextSpan(
+            style: mrR.copyWith(height: 1.8),
+            children: [
+              const TextSpan(text: 'सविनय सेवेशी सादर आहे की, आज दिनांक '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqMargDate'),
+                  emptyWidth: 75),
+              const TextSpan(text: ' रोजी '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqMargTime'),
+                  emptyWidth: 50),
+              const TextSpan(text: ' वाजता पोलीस स्टेशन '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqMargPs'),
+                  emptyWidth: 100),
+              const TextSpan(text: ' मर्ग/ स्टेशन डायरी क्र. '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqMargDiaryNo'),
+                  emptyWidth: 60),
+              const TextSpan(text: '/२०'),
+              FormImagePdfHelper.inlineFieldSpan(v('reqMargYear'),
+                  emptyWidth: 40),
+              const TextSpan(
+                  text:
+                      ' कलम १९४ बी.एन.एस.एस २०२३ चा मर्ग दाखल झाला असुन यातील मृतक नामे '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqMargName'),
+                  emptyWidth: 200),
+              const TextSpan(text: ' पो.स्टे. '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqSubjectPs'),
+                  emptyWidth: 95),
+              const TextSpan(text: ' ता- '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqMargTa'),
+                  emptyWidth: 75),
+              const TextSpan(text: ' जिल्हा ......... ही/ह्या '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqHospitalName'),
+                  emptyWidth: 150),
+              const TextSpan(text: ' येथे दिनांक '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqAdmitDate'),
+                  emptyWidth: 75),
+              const TextSpan(text: ' रोजी '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqAdmitTime'),
+                  emptyWidth: 50),
+              const TextSpan(
+                  text:
+                      ' वाजता भरती झाला असुन औषधोपचारा दरम्यान/ गळफास लावुन/ विष प्राशन करून/अपघात/ '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqReasonDetails'),
+                  emptyWidth: 170),
+              const TextSpan(text: ' दिनांक '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqDeathDate'),
+                  emptyWidth: 75),
+              const TextSpan(text: ' रोजी '),
+              FormImagePdfHelper.inlineFieldSpan(v('reqDeathTime'),
+                  emptyWidth: 50),
+              const TextSpan(text: ' वाजता मरण पावला आहे.'),
+            ],
+          ),
         ),
       ),
       const SizedBox(height: 8),
@@ -3134,32 +3267,39 @@ Widget _buildRelativeSummonsWidget(Map<String, dynamic> doc) {
       const SizedBox(height: 8),
       Padding(
         padding: const EdgeInsets.only(left: 8.0),
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          runSpacing: 4,
-          spacing: 2,
-          children: [
-            Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ', style: mrR),
-            _uField(v('relWeName'), width: 160),
-            Text(' पोलीस स्टेशन ', style: mrR),
-            _uPoliceStationPdfField(v('relPsName'), minWidth: 110),
-            Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ', style: mrR),
-            _uField(v('relCrDiaryNo'), width: 60),
-            Text('/२०', style: mrR),
-            _uField(v('relCrYear'), width: 40),
-            Text(' कलम ', style: mrR),
-            _uField(v('relActSec'), width: 130),
-            Text(' मधील मृतक नामे ', style: mrR),
-            _uField(v('relDeceasedName'), width: 190),
-            Text(' ता-', style: mrR),
-            _uField(v('relTa'), width: 80),
-            Text(' जिल्हा ', style: mrR),
-            _uField(v('relDist'), width: 80),
-            Text(
-              ' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण प्रेत ओळखुन देवून मृतकाचे नातेवाईक या नात्याने पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत आमचे सोबत हजर राहावे.',
-              style: mrR,
-            ),
-          ],
+        child: Text.rich(
+          TextSpan(
+            style: mrR.copyWith(height: 1.8),
+            children: [
+              const TextSpan(
+                  text: 'आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही '),
+              FormImagePdfHelper.inlineFieldSpan(v('relWeName'),
+                  emptyWidth: 160),
+              const TextSpan(text: ' पोलीस स्टेशन '),
+              FormImagePdfHelper.inlineFieldSpan(v('relPsName'),
+                  emptyWidth: 110),
+              const TextSpan(text: ' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक '),
+              FormImagePdfHelper.inlineFieldSpan(v('relCrDiaryNo'),
+                  emptyWidth: 60),
+              const TextSpan(text: '/२०'),
+              FormImagePdfHelper.inlineFieldSpan(v('relCrYear'),
+                  emptyWidth: 40),
+              const TextSpan(text: ' कलम '),
+              FormImagePdfHelper.inlineFieldSpan(v('relActSec'),
+                  emptyWidth: 130),
+              const TextSpan(text: ' मधील मृतक नामे '),
+              FormImagePdfHelper.inlineFieldSpan(v('relDeceasedName'),
+                  emptyWidth: 190),
+              const TextSpan(text: ' ता-'),
+              FormImagePdfHelper.inlineFieldSpan(v('relTa'), emptyWidth: 80),
+              const TextSpan(text: ' जिल्हा '),
+              FormImagePdfHelper.inlineFieldSpan(v('relDist'), emptyWidth: 80),
+              const TextSpan(
+                text:
+                    ' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण प्रेत ओळखुन देवून मृतकाचे नातेवाईक या नात्याने पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत आमचे सोबत हजर राहावे.',
+              ),
+            ],
+          ),
         ),
       ),
       const SizedBox(height: 20),
@@ -3306,32 +3446,39 @@ Widget _buildPanchaSummonsWidget(Map<String, dynamic> doc) {
       const SizedBox(height: 8),
       Padding(
         padding: const EdgeInsets.only(left: 8.0),
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          runSpacing: 4,
-          spacing: 2,
-          children: [
-            Text('आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही ', style: mrR),
-            _uField(v('panWeName'), width: 160),
-            Text(' पोलीस स्टेशन ', style: mrR),
-            _uPoliceStationPdfField(v('panPsName'), minWidth: 110),
-            Text(' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक ', style: mrR),
-            _uField(v('panCrDiaryNo'), width: 60),
-            Text('/२०', style: mrR),
-            _uField(v('panCrYear'), width: 40),
-            Text(' कलम ', style: mrR),
-            _uField(v('panActSec'), width: 130),
-            Text(' मधील मृतक नामे ', style: mrR),
-            _uField(v('panDeceasedName'), width: 190),
-            Text(' ता-', style: mrR),
-            _uField(v('panTa'), width: 80),
-            Text(' जिल्हा ', style: mrR),
-            _uField(v('panDist'), width: 80),
-            Text(
-              ' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत पंच म्हणुन आमचे सोबत हजर राहावे.',
-              style: mrR,
-            ),
-          ],
+        child: Text.rich(
+          TextSpan(
+            style: mrR.copyWith(height: 1.8),
+            children: [
+              const TextSpan(
+                  text: 'आपणास या समन्सव्दारे कळविण्यात येते की, आम्ही '),
+              FormImagePdfHelper.inlineFieldSpan(v('panWeName'),
+                  emptyWidth: 160),
+              const TextSpan(text: ' पोलीस स्टेशन '),
+              FormImagePdfHelper.inlineFieldSpan(v('panPsName'),
+                  emptyWidth: 110),
+              const TextSpan(text: ' येथील अप/ मर्ग/ ठाणे दैनंदिनी क्रमांक '),
+              FormImagePdfHelper.inlineFieldSpan(v('panCrDiaryNo'),
+                  emptyWidth: 60),
+              const TextSpan(text: '/२०'),
+              FormImagePdfHelper.inlineFieldSpan(v('panCrYear'),
+                  emptyWidth: 40),
+              const TextSpan(text: ' कलम '),
+              FormImagePdfHelper.inlineFieldSpan(v('panActSec'),
+                  emptyWidth: 130),
+              const TextSpan(text: ' मधील मृतक नामे '),
+              FormImagePdfHelper.inlineFieldSpan(v('panDeceasedName'),
+                  emptyWidth: 190),
+              const TextSpan(text: ' ता-'),
+              FormImagePdfHelper.inlineFieldSpan(v('panTa'), emptyWidth: 80),
+              const TextSpan(text: ' जिल्हा '),
+              FormImagePdfHelper.inlineFieldSpan(v('panDist'), emptyWidth: 80),
+              const TextSpan(
+                text:
+                    ' यांचे प्रेताचा इंन्क्वेस्ट पंचनामा करणार आहो. करीता आपण पंचनाम्याची कार्यवाही पूर्ण होईपर्यंत पंच म्हणुन आमचे सोबत हजर राहावे.',
+              ),
+            ],
+          ),
         ),
       ),
       const SizedBox(height: 20),
@@ -3708,71 +3855,34 @@ Widget _buildDeadBodyHandoverWidget(Map<String, dynamic> doc) {
       const SizedBox(height: 18),
       Text.rich(
         TextSpan(
-          style: mrR,
+          style: mrR.copyWith(height: 1.8),
           children: [
             const TextSpan(text: '       मी '),
-            TextSpan(
-              text: v('ptpReceiverName').isEmpty
-                  ? '---------------------------------------------------------'
-                  : v('ptpReceiverName'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('ptpReceiverName'),
+                emptyWidth: 180),
             const TextSpan(text: ' रा. '),
-            TextSpan(
-              text: v('ptpReceiverRa').isEmpty
-                  ? '------------------------------------------'
-                  : v('ptpReceiverRa'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('ptpReceiverRa'),
+                emptyWidth: 140),
             const TextSpan(text: ' ता '),
-            TextSpan(
-              text: v('ptpReceiverTa').isEmpty
-                  ? '---------------'
-                  : v('ptpReceiverTa'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('ptpReceiverTa'),
+                emptyWidth: 80),
             const TextSpan(text: ' जिल्हा '),
-            TextSpan(
-              text: v('ptpReceiverDist').isEmpty
-                  ? '---------------------'
-                  : v('ptpReceiverDist'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('ptpReceiverDist'),
+                emptyWidth: 100),
             const TextSpan(text: ' मो नं '),
-            TextSpan(
-              text: v('ptpMoNo').isEmpty
-                  ? '......................................'
-                  : v('ptpMoNo'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('ptpMoNo'), emptyWidth: 110),
             const TextSpan(text: ' प्रेत ताबा पावती लिहुन देतो की, आज दिनांक '),
-            TextSpan(
-              text: v('ptpReceiptDate').isEmpty
-                  ? '....../ ......../ २०.....'
-                  : v('ptpReceiptDate'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('ptpReceiptDate'),
+                emptyWidth: 110),
             const TextSpan(text: ' रोजी मृतक नामे '),
-            TextSpan(
-              text: v('ptpDeceasedName').isEmpty
-                  ? '-------------------------------------------------'
-                  : v('ptpDeceasedName'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('ptpDeceasedName'),
+                emptyWidth: 180),
             const TextSpan(text: ' रा. '),
-            TextSpan(
-              text: v('ptpDeceasedRa').isEmpty
-                  ? '------------------------------'
-                  : v('ptpDeceasedRa'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('ptpDeceasedRa'),
+                emptyWidth: 120),
             const TextSpan(text: ' ता आणि जिल्हा '),
-            TextSpan(
-              text: v('ptpDeceasedDist').isEmpty
-                  ? '-------------------'
-                  : v('ptpDeceasedDist'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('ptpDeceasedDist'),
+                emptyWidth: 100),
             const TextSpan(
               text:
                   ' हयाचे / हिचे प्रेत पोस्टमार्टम होवुन अंतिम संस्काराकरीता माझे ताब्यात मिळाले आहे. सदर प्रेत हे नमुद मृतकाचेच आहे. मी मृतकाचा वारसा या नात्याने ताब्यात घेतले आहे. माझी कोणत्याच प्रकारची तक्रार नाही.',
@@ -3905,55 +4015,31 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
       const SizedBox(height: 18),
       Text.rich(
         TextSpan(
-          style: mrR,
+          style: mrR.copyWith(height: 1.8),
           children: [
             const TextSpan(
                 text:
                     '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक '),
-            TextSpan(
-              text: v('dpMargNo').isEmpty ? '.......' : v('dpMargNo'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('dpMargNo'), emptyWidth: 50),
             const TextSpan(text: ' / २०'),
-            TextSpan(
-              text: v('dpMargYear').isEmpty ? '....' : v('dpMargYear'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('dpMargYear'), emptyWidth: 40),
             const TextSpan(text: ' कलम '),
-            TextSpan(
-              text:
-                  v('dpKalam').isEmpty ? '--------------------' : v('dpKalam'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('dpKalam'), emptyWidth: 120),
             const TextSpan(text: ' मधील मृतक नामे '),
-            TextSpan(
-              text: v('dpDeceasedName').isEmpty
-                  ? '------------------------------'
-                  : v('dpDeceasedName'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('dpDeceasedName'),
+                emptyWidth: 180),
             const TextSpan(text: ' रा. '),
-            TextSpan(
-              text: v('dpDeceasedRa').isEmpty
-                  ? '-------------------'
-                  : v('dpDeceasedRa'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('dpDeceasedRa'),
+                emptyWidth: 120),
             const TextSpan(text: ' ता आणि जिल्हा '),
-            TextSpan(
-              text: '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'.trim().isEmpty
-                  ? '-------------------'
-                  : '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'.trim(),
-              style: mrB,
+            FormImagePdfHelper.inlineFieldSpan(
+              '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'.trim(),
+              emptyWidth: 110,
             ),
             const TextSpan(
                 text: ' हयाचे / हिचे प्रेत सोबत घेउन मा.वैद्यकीय अधिकारी '),
-            TextSpan(
-              text: v('dpMedOfficerName').isEmpty
-                  ? '----------------------------'
-                  : v('dpMedOfficerName'),
-              style: mrB,
-            ),
+            FormImagePdfHelper.inlineFieldSpan(v('dpMedOfficerName'),
+                emptyWidth: 160),
             const TextSpan(
               text:
                   ' यांचेकडे शवविच्छेदनाकरीता दाखल करावे. व शवविच्छेदनानंतर प्रेत मृतकाचे वारसदारास ताब्यात देउन मा. वैद्यकीय अधिकारी यांनी पि. एम दरम्यान व्हिसेरा कपडा बंडल दिल्यास ताब्यात घेउन तपासी अंमलदार यांचेकडे दाखल करावे.',
@@ -4049,20 +4135,37 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
       const SizedBox(height: 4),
       const Divider(color: Colors.black, thickness: 0.8),
       const SizedBox(height: 4),
-      Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 2,
-        runSpacing: 2,
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('1) Dist. (YAVATMAL)', style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('1) Dist.:- ', style: engBold),
+          ),
+          _uField(v('dist'), width: 90),
+          const SizedBox(width: 12),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('P.S.:- ', style: engBold),
+          ),
+          Expanded(child: _uField(v('ps'))),
+        ],
+      ),
+      const SizedBox(height: 4),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('   Year:-20', style: engBold),
+          ),
+          _uField(v('year'), width: 45),
           const SizedBox(width: 16),
-          Text('P.S.:-', style: engBold),
-          _uField(v('ps'), width: 100),
-          Text('Year:-20', style: engBold),
-          _uField(v('year'), width: 35),
-          const SizedBox(width: 8),
-          Text('FIR/AD/U.D.No:-', style: engBold),
-          _uField(v('firNo'), width: 90),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('FIR/AD/U.D.No:- ', style: engBold),
+          ),
+          Expanded(child: _uField(v('firNo'))),
         ],
       ),
       Text(
@@ -4070,48 +4173,73 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
           style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('2) Act and Section: - ', style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('2) Act and Section: - ', style: engBold),
+          ),
           Expanded(child: _uField(v('actSections'))),
         ],
       ),
       Text('   अधिनियम व कलमे :-', style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('3) Place From where Dead Body Found/Traced : ', style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('3) Place From where Dead Body Found/Traced : ',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('deadBodyFoundPlace'))),
         ],
       ),
-      Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 2,
-        runSpacing: 2,
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('   प्रेत सापडल्याचे /मिळाल्याचे ठिकाण / जागा     ',
-              style: mrStyle),
-          Text('Place:-', style: engStyle),
-          _uField(v('foundPlace'), width: 100),
-          Text('Date:', style: engStyle),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('   Place:- ', style: engStyle),
+          ),
+          Expanded(child: _uField(v('foundPlace'))),
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('Date: ', style: engStyle),
+          ),
           _uField(v('foundDate'), width: 75),
-          Text(' time:', style: engStyle),
-          _uField(v('foundTime'), width: 50),
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('time: ', style: engStyle),
+          ),
+          _uField(v('foundTime'), width: 55),
         ],
       ),
+      Text('   प्रेत सापडल्याचे /मिळाल्याचे ठिकाण / जागा', style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('4) By whom Dead Body Shown                   :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('4) By whom Dead Body Shown                   :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('shownBy'))),
         ],
       ),
       Text('   प्रेत कोणी दाखविले :-', style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('5) By whom Dead Body Identified              :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('5) By whom Dead Body Identified              :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('identifiedBy'))),
         ],
       ),
@@ -4119,27 +4247,39 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
       _multilineBox(v('identifiedBy2'), lines: 2),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('a) Dead Body Male/Female                     :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('a) Dead Body Male/Female                     :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('gender'))),
         ],
       ),
       Text('   अ) प्रेत स्त्री / पुरुष जातीचे :-', style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('6) b) Dead Body Married/Unmarried            :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('6) b) Dead Body Married/Unmarried            :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('married'))),
         ],
       ),
       Text('   ब) प्रेत विवाहीत /अविवाहीत आहे :-', style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('c) Age of Dead Body                          :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('c) Age of Dead Body                          :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('age'))),
         ],
       ),
@@ -4164,9 +4304,13 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
           style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('7) Position of Dead Body                     :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('7) Position of Dead Body                     :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('positionOfBody'))),
         ],
       ),
@@ -4195,8 +4339,13 @@ Widget _buildInquestMainPg2Widget(Map<String, dynamic> doc) {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(width: 90, child: Text(labelEn, style: engBold)),
+              Padding(
+                padding: const EdgeInsets.only(top: 1.0),
+                child:
+                    SizedBox(width: 90, child: Text(labelEn, style: engBold)),
+              ),
               Expanded(child: _uField(val)),
             ],
           ),
@@ -4210,9 +4359,13 @@ Widget _buildInquestMainPg2Widget(Map<String, dynamic> doc) {
     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
     children: [
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('8) Name and Address of Dead Body             :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('8) Name and Address of Dead Body             :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('nameAddressDeceased'))),
         ],
       ),
@@ -4220,9 +4373,14 @@ Widget _buildInquestMainPg2Widget(Map<String, dynamic> doc) {
       _multilineBox(v('nameAddressDeceased2'), lines: 3),
       const SizedBox(height: 6),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('9) Description Of injuries Found on Dead Body if any :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text(
+                '9) Description Of injuries Found on Dead Body if any :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('injDescription'))),
         ],
       ),
@@ -4263,9 +4421,13 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
       Text('10)   Injuries of Dead Body Caused By Accidental/Violence :',
           style: engBold),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Homicide / Other Burn / (Fair / Tejab) ',
-              style: engBold.copyWith(fontSize: 8)),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('Homicide / Other Burn / (Fair / Tejab) ',
+                style: engBold.copyWith(fontSize: 8)),
+          ),
           Expanded(child: _uField(v('injAccidentalViolence'))),
         ],
       ),
@@ -4274,27 +4436,39 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
       Text('होण्यामुळे झाल्या', style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('11) Weapon / Means (if any)                  :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('11) Weapon / Means (if any)                  :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('weaponMeans'))),
         ],
       ),
       Text('जखमा केलेल्या हत्यार/ साधन असल्यास           :', style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('12) Dead Body Cool / Warm                    :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('12) Dead Body Cool / Warm                    :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('bodyCoolWarm'))),
         ],
       ),
       Text('प्रेत थंड आहे/ गरम आहे.                       :', style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('13) Position Dead Body by Poisoning          :',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('13) Position Dead Body by Poisoning          :',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('poisoningPosition'))),
         ],
       ),
@@ -4303,9 +4477,13 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
       Text('14) (a) Finger Print has taken by Doctor Not taken Reason',
           style: engBold),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('(In case of unidentified Dead Body)          :',
-              style: engStyle),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('(In case of unidentified Dead Body)          :',
+                style: engStyle),
+          ),
           Expanded(child: _uField(v('fingerprintReason'))),
         ],
       ),
@@ -4315,17 +4493,26 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
       Text('(b) Photo has taken/not taken reason (In case of an',
           style: engBold),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Identified Dead Body)                        :',
-              style: engStyle),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('Identified Dead Body)                        :',
+                style: engStyle),
+          ),
           Expanded(child: _uField(v('photoReason'))),
         ],
       ),
       Text('अनोळखी प्रेताचे फोटो घेतले आहेत काय/नाही कारण :', style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('15) Dead Body sent to P.M. / not reason: ', style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('15) Dead Body sent to P.M. / not reason: ',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('sentToPMReason'))),
         ],
       ),
@@ -4333,8 +4520,13 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
           style: mrStyle),
       const SizedBox(height: 3),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('(a) At which Hospital Dead Body sent to P.M.:', style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('(a) At which Hospital Dead Body sent to P.M.:',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('hospitalName'))),
         ],
       ),
@@ -4343,17 +4535,26 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
       const SizedBox(height: 3),
       Text('(b) With whom (Name No. and P.sm)            :', style: engBold),
       Text('कोणा बरोबर पाठविले (नांव व पो.स्टे.)', style: mrStyle),
-      Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 2,
-        runSpacing: 2,
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Name : ', style: engStyle),
-          _uField(v('sentOfficerName'), width: 160),
-          Text('B/No:-', style: engStyle),
-          _uField(v('sentOfficerBNo'), width: 70),
-          Text('P.S. : ', style: engStyle),
-          _uField(v('sentOfficerPs'), width: 100),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('Name : ', style: engStyle),
+          ),
+          _uField(v('sentOfficerName'), width: 150),
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('B/No:- ', style: engStyle),
+          ),
+          _uField(v('sentOfficerBNo'), width: 65),
+          const SizedBox(width: 8),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('P.S. : ', style: engStyle),
+          ),
+          Expanded(child: _uField(v('sentOfficerPs'))),
         ],
       ),
       Text(
@@ -4361,9 +4562,13 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
           style: mrStyle),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('16) Opinion of Panchas and Police about Death: ',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('16) Opinion of Panchas and Police about Death: ',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('opinionPanchas'))),
         ],
       ),
@@ -4371,9 +4576,13 @@ Widget _buildInquestMainPg3Widget(Map<String, dynamic> doc) {
       _multilineBox(v('opinionPanchas2'), lines: 3),
       const SizedBox(height: 5),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('17) More information if any                 : ',
-              style: engBold),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('17) More information if any                 : ',
+                style: engBold),
+          ),
           Expanded(child: _uField(v('moreInfo'))),
         ],
       ),
@@ -4638,11 +4847,18 @@ Widget _buildMarananveshanPg1Widget(Map<String, dynamic> doc) {
 
       // २) पोलीस स्टेशन ________ जिल्हा : ________
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('२) पोलीस स्टेशन ', style: mrB),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('२) पोलीस स्टेशन ', style: mrB),
+          ),
           Expanded(child: _uField(v('marPs'))),
           const SizedBox(width: 16),
-          Text('जिल्हा : ', style: mrB),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('जिल्हा : ', style: mrB),
+          ),
           Expanded(child: _uField(v('marDist'))),
         ],
       ),
@@ -4650,8 +4866,13 @@ Widget _buildMarananveshanPg1Widget(Map<String, dynamic> doc) {
 
       // ३) अकस्मात मृत्यु/गुन्हा/ठाणे दैनंदिनी क्र:-
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('३) अकस्मात मृत्यु/गुन्हा/ठाणे दैनंदिनी क्र:-', style: mrB),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('३) अकस्मात मृत्यु/गुन्हा/ठाणे दैनंदिनी क्र:-',
+                style: mrB),
+          ),
           Expanded(child: _uField(v('marDiaryNo'))),
         ],
       ),
@@ -4659,8 +4880,12 @@ Widget _buildMarananveshanPg1Widget(Map<String, dynamic> doc) {
 
       // ४) अधिनियम व कलम :-
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('४) अधिनियम व कलम :-', style: mrB),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('४) अधिनियम व कलम :-', style: mrB),
+          ),
           Expanded(child: _uField(v('marActSec'))),
         ],
       ),
@@ -4969,12 +5194,16 @@ class _Kal14LinedText extends StatelessWidget {
               lineHeight: lineHeight,
               lineColor: Colors.black54,
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                val.isEmpty ? ' ' : val,
-                style: textStyle.copyWith(
-                  height: lineHeight / (textStyle.fontSize ?? 11.5),
+            child: SizedBox(
+              width: width,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  val.isEmpty ? ' ' : val,
+                  softWrap: true,
+                  style: textStyle.copyWith(
+                    height: lineHeight / (textStyle.fontSize ?? 11.5),
+                  ),
                 ),
               ),
             ),
@@ -5004,7 +5233,7 @@ class _Kal14LinePainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     for (int i = 1; i <= lines; i++) {
-      final y = (i * lineHeight) - 1.0;
+      final y = ((i * lineHeight) - 1.0).clamp(1.0, size.height - 0.5);
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
@@ -5167,7 +5396,7 @@ Widget _buildKalmi14Pg1Widget(Map<String, dynamic> doc) {
   final valStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 11.0,
     fontWeight: FontWeight.w600,
-    color: const Color(0xFF0D47A1),
+    color: Colors.black,
   );
 
   return FormImagePdfHelper.buildA4Page(
@@ -5423,7 +5652,7 @@ Widget _buildKalmi14Pg2Widget(Map<String, dynamic> doc) {
   final valStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 11.0,
     fontWeight: FontWeight.w600,
-    color: const Color(0xFF0D47A1),
+    color: Colors.black,
   );
 
   return FormImagePdfHelper.buildA4Page(

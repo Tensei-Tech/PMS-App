@@ -2296,18 +2296,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               maxLines: 1,
             )..layout();
 
-            double effectiveFontSize = baseFontSize;
             final double textW = tp.width + 12.0;
-
-            if (hasFiniteWidth &&
-                textW > availableWidth &&
-                availableWidth > 30) {
-              final scale =
-                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
-              effectiveFontSize =
-                  (baseFontSize * scale).clamp(8.5, baseFontSize);
-            }
-
             final widthToUse =
                 hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
 
@@ -2316,13 +2305,14 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               child: TextFormField(
                 controller: controller,
                 readOnly: widget.readOnly,
-                maxLines: 1,
-                keyboardType: TextInputType.text,
+                minLines: 1,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
                 style: style.copyWith(
                   fontWeight: FontWeight.w600,
-                  fontSize: effectiveFontSize,
+                  fontSize: baseFontSize,
                   color: const Color(0xFF0D47A1),
-                  height: 1.25,
+                  height: 1.35,
                 ),
                 decoration: InputDecoration(
                   isDense: true,
@@ -2848,10 +2838,14 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('पोलीस स्टेशन :- ',
-                          style: marathiStyle.copyWith(
-                              fontWeight: FontWeight.bold)),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Text('पोलीस स्टेशन :- ',
+                            style: marathiStyle.copyWith(
+                                fontWeight: FontWeight.bold)),
+                      ),
                       Expanded(
                         child: _policeStationField(
                           controller: _reqPsCtrl,
@@ -2910,14 +2904,18 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         // From (पासुन)
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 4,
-          runSpacing: 6,
+          spacing: 6,
+          runSpacing: 8,
           children: [
-            Text('पासुन  :-    पोलीस स्टेशन',
+            Text('पासुन  :-    पोलीस स्टेशन ',
                 style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
             _policeStationField(
-                controller: _reqFromPsCtrl, style: style, minWidth: 160),
-            Text('   जिल्हा ',
+                controller: _reqFromPsCtrl,
+                style: style,
+                minWidth: 160,
+                maxWidth: 300),
+            const SizedBox(width: 8),
+            Text('जिल्हा ',
                 style: marathiStyle.copyWith(fontWeight: FontWeight.bold)),
             _wrappingUnderlineInput(
                 controller: _reqDistCtrl,
@@ -3249,10 +3247,14 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('पोलीस स्टेशन :- ',
-                          style: marathiStyle.copyWith(
-                              fontWeight: FontWeight.bold)),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Text('पोलीस स्टेशन :- ',
+                            style: marathiStyle.copyWith(
+                                fontWeight: FontWeight.bold)),
+                      ),
                       Expanded(
                         child: _policeStationField(
                           controller: _relPsCtrl,
@@ -3531,10 +3533,14 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('पोलीस स्टेशन :- ',
-                          style: marathiStyle.copyWith(
-                              fontWeight: FontWeight.bold)),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Text('पोलीस स्टेशन :- ',
+                            style: marathiStyle.copyWith(
+                                fontWeight: FontWeight.bold)),
+                      ),
                       Expanded(
                         child: _policeStationField(
                           controller: _panPsCtrl,
@@ -5761,8 +5767,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _policeStationField(
@@ -6040,8 +6050,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _policeStationField(

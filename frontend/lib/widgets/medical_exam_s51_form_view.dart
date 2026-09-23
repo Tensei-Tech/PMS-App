@@ -136,35 +136,23 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
               maxLines: 1,
             )..layout();
 
-            double effectiveFontSize = baseFontSize;
             final double textW = tp.width + 12.0;
-
-            if (hasFiniteWidth &&
-                textW > availableWidth &&
-                availableWidth > 30) {
-              final scale =
-                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
-              effectiveFontSize =
-                  (baseFontSize * scale).clamp(8.5, baseFontSize);
-            }
-
-            final double computedWidth = hasFiniteWidth
-                ? availableWidth
-                : (textW < baseMin
-                    ? baseMin
-                    : (textW > baseMax ? baseMax : textW));
+            final widthToUse =
+                hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
 
             return SizedBox(
-              width: computedWidth,
+              width: widthToUse,
               child: TextFormField(
                 controller: controller,
                 readOnly: widget.readOnly,
-                maxLines: 1,
-                scrollPhysics: const ClampingScrollPhysics(),
+                minLines: 1,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
                 style: style.copyWith(
-                  fontSize: effectiveFontSize,
+                  fontSize: baseFontSize,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: const Color(0xFF0D47A1),
+                  height: 1.35,
                 ),
                 decoration: InputDecoration(
                   isDense: true,
@@ -172,7 +160,8 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                   hintText: hintText,
                   hintStyle: style.copyWith(
                     color: Colors.grey.shade400,
-                    fontSize: effectiveFontSize,
+                    fontSize: 11,
+                    fontStyle: FontStyle.italic,
                   ),
                   border: const UnderlineInputBorder(
                     borderSide:
@@ -385,8 +374,13 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस दुरक्षेत्र ', style: headerLabelStyle),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस दुरक्षेत्र ',
+                              style: headerLabelStyle),
+                        ),
                         Expanded(
                           child: _policeStationField(
                             controller: _outpostCtrl,
@@ -397,8 +391,12 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                     ),
                     const SizedBox(height: 6),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस स्टेशन ', style: headerLabelStyle),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस स्टेशन ', style: headerLabelStyle),
+                        ),
                         Expanded(
                           child: _policeStationField(
                             controller: _psCtrl,
@@ -468,7 +466,10 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('पासुन  :-    ', style: headerLabelStyle),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: Text('पासुन  :-    ', style: headerLabelStyle),
+                ),
                 Expanded(
                   child: _policeStationField(
                     controller: _fromLocationCtrl,

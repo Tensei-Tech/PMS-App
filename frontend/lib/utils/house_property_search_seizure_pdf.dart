@@ -66,7 +66,7 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
   final valueStyle = pw.TextStyle(
     font: loraRegular,
     fontSize: 8,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   pw.Widget renderText(String key, String? val, pw.TextStyle engStyle) {
@@ -821,7 +821,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final valueStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 8,
     fontWeight: FontWeight.bold,
-    color: Colors.blue.shade900,
+    color: Colors.black,
   );
   await GoogleFonts.pendingFonts();
 
