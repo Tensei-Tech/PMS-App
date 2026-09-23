@@ -59,7 +59,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
       build: (pw.Context context) {
-        final ps = v('p1_policeStation', v('policeStation', '--------'));
+        final ps = v('p1_policeStation', v('policeStation'));
         final dateStr = v('p1_date', v('date', '......./ ......./२०...'));
 
         final panch1 = v('p1_panch1', v('panch1'));
@@ -67,7 +67,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
         final panch2 = v('p1_panch2', v('panch2'));
         final panch2Line2 = v('p1_panch2Line2');
 
-        final firPs = v('p1_firPs', v('firPs', '-----------'));
+        final firPs = v('p1_firPs', v('firPs'));
         final crimeNo = v('p1_crimeNo', v('crimeNo', '........'));
         final crimeYear = v('p1_crimeYear', '.....');
         final actSec = v(
@@ -83,7 +83,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
         final complainantTah =
             v('p1_complainantTah', v('complainantTah', '-----------'));
         final complainantDist =
-            v('p1_complainantDist', v('complainantDist', 'यवतमाळ'));
+            v('p1_complainantDist', v('complainantDist'));
 
         final ioNameSig = v('p1_ioNameSig', v('ioNameSig'));
         final panch1Receipt = v(
@@ -308,7 +308,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
       build: (pw.Context context) {
-        final ps = v('p2_policeStation', v('policeStation', '--------'));
+        final ps = v('p2_policeStation', v('policeStation'));
         final dateStr = v('p2_date', v('date', '......./ ......./२०...'));
 
         final panch1 = v('p2_panch1', v('panch1'));
@@ -325,7 +325,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
         final suspectResidence =
             v('p2_suspectResidence', v('suspectResidence', '--------------'));
         final suspectTah = v('p2_suspectTah', v('suspectTah', '-----------'));
-        final suspectDist = v('p2_suspectDist', v('suspectDist', 'यवतमाळ'));
+        final suspectDist = v('p2_suspectDist', v('suspectDist'));
 
         final ioNameSig = v('p2_ioNameSig', v('ioNameSig'));
         final panch1Receipt = v(
@@ -554,7 +554,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
   }
 
   final rawPs = v('p1_policeStation', v('policeStation'));
-  final ps = rawPs.isNotEmpty ? rawPs : '--------';
+  final ps = rawPs;
   final rawDate = v('p1_date', v('date'));
   final dateStr = rawDate.isNotEmpty ? rawDate : '......./ ......./२०...';
 
@@ -584,8 +584,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
   final complainantTah =
       rawComplainantTah.isNotEmpty ? rawComplainantTah : '-----------';
   final rawComplainantDist = v('p1_complainantDist', v('complainantDist'));
-  final complainantDist =
-      rawComplainantDist.isNotEmpty ? rawComplainantDist : 'यवतमाळ';
+  final complainantDist = rawComplainantDist;
 
   final ioNameSig = v('p1_ioNameSig', v('ioNameSig'));
   final rawPanch1Receipt = v('p1_panch1Receipt', v('panch1Receipt'));
@@ -619,9 +618,12 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('पोलीस स्टेशन : ', style: reg),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन : ', style: reg),
+                  ),
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -630,15 +632,10 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                         ),
                       ),
                       padding: const EdgeInsets.only(bottom: 1),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          ps,
-                          maxLines: 1,
-                          softWrap: false,
-                          style: bld,
-                        ),
+                      child: Text(
+                        ps.isEmpty ? ' ' : ps,
+                        softWrap: true,
+                        style: bld,
                       ),
                     ),
                   ),
@@ -851,7 +848,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   }
 
   final rawPs = v('p2_policeStation', v('policeStation'));
-  final ps = rawPs.isNotEmpty ? rawPs : '--------';
+  final ps = rawPs;
   final rawDate = v('p2_date', v('date'));
   final dateStr = rawDate.isNotEmpty ? rawDate : '......./ ......./२०...';
 
@@ -877,7 +874,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   final rawSuspectTah = v('p2_suspectTah', v('suspectTah'));
   final suspectTah = rawSuspectTah.isNotEmpty ? rawSuspectTah : '-----------';
   final rawSuspectDist = v('p2_suspectDist', v('suspectDist'));
-  final suspectDist = rawSuspectDist.isNotEmpty ? rawSuspectDist : 'यवतमाळ';
+  final suspectDist = rawSuspectDist;
 
   final ioNameSig = v('p2_ioNameSig', v('ioNameSig'));
   final rawPanch1Receipt = v('p2_panch1Receipt', v('panch1Receipt'));
@@ -911,9 +908,12 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('पोलीस स्टेशन : ', style: reg),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन : ', style: reg),
+                  ),
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -922,15 +922,10 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                         ),
                       ),
                       padding: const EdgeInsets.only(bottom: 1),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          ps,
-                          maxLines: 1,
-                          softWrap: false,
-                          style: bld,
-                        ),
+                      child: Text(
+                        ps.isEmpty ? ' ' : ps,
+                        softWrap: true,
+                        style: bld,
                       ),
                     ),
                   ),

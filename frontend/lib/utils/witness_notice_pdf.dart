@@ -30,7 +30,7 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
   final pw.TextStyle englishValueStyle = pw.TextStyle(
     font: loraBold,
     fontSize: 9.5,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   pw.Widget renderField(String key, String? val) {
@@ -71,9 +71,12 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Row(
-                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        mLbl('lbl_top_ps'),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.only(top: 1.0),
+                          child: mLbl('lbl_top_ps'),
+                        ),
                         pw.SizedBox(width: 4),
                         pw.Expanded(
                           child: pw.Container(
@@ -216,9 +219,12 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
             // Notice Body Lines
             // Line 1: आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन [PS] येथे अपराध
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                mLbl('body_p1_1'),
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: 1.0),
+                  child: mLbl('body_p1_1'),
+                ),
                 pw.SizedBox(width: 4),
                 pw.Expanded(
                   child: pw.Container(
@@ -233,7 +239,10 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                   ),
                 ),
                 pw.SizedBox(width: 4),
-                mLbl('body_p1_2'),
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: 1.0),
+                  child: mLbl('body_p1_2'),
+                ),
               ],
             ),
             pw.SizedBox(height: 8),
@@ -495,8 +504,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
                 ? 10.5
                 : 9.5));
 
-    final color =
-        entry.key.startsWith('val_') ? const Color(0xFF0D47A1) : Colors.black87;
+    const color = Colors.black;
 
     final double maxW = entry.key == 'title' || entry.key == 'body_p3'
         ? 500
@@ -523,7 +531,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
-  Widget underlineField(String text, {double? width, double minWidth = 40}) {
+  Widget underlineField(String text,
+      {double? width, double minWidth = 40, bool multiline = false}) {
+    final t = text.trim();
     return Container(
       width: width,
       constraints: BoxConstraints(minWidth: minWidth),
@@ -531,14 +541,13 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.black, width: 0.8)),
       ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: Text(
-          text.isEmpty ? ' ' : text,
-          maxLines: 1,
-          softWrap: false,
-          style: FormImagePdfHelper.valStyle(10),
+      child: Text(
+        t.isEmpty ? ' ' : t,
+        softWrap: true,
+        style: FormImagePdfHelper.valStyle(10.5).copyWith(
+          decoration: TextDecoration.underline,
+          decorationColor: Colors.black,
+          decorationThickness: 0.8,
         ),
       ),
     );
@@ -576,11 +585,14 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('पोलीस स्टेशन', style: bld),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन', style: bld),
+                  ),
                   const SizedBox(width: 4),
-                  Expanded(child: underlineField(psName)),
+                  Expanded(child: underlineField(psName, multiline: true)),
                 ],
               ),
               const SizedBox(height: 6),
@@ -628,13 +640,19 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       ),
       const SizedBox(height: 16),
       Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन', style: reg),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन', style: reg),
+          ),
           const SizedBox(width: 4),
-          Expanded(child: underlineField(bodyPs)),
+          Expanded(child: underlineField(bodyPs, multiline: true)),
           const SizedBox(width: 4),
-          Text('येथे अपराध', style: reg),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('येथे अपराध', style: reg),
+          ),
         ],
       ),
       const SizedBox(height: 8),
@@ -682,10 +700,11 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             SizedBox(
               width: 180,
               child: Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(ioSign.isEmpty ? ' ' : ioSign,
-                      style: FormImagePdfHelper.valStyle(10.5)),
+                child: Text(
+                  ioSign.isEmpty ? ' ' : ioSign,
+                  softWrap: true,
+                  textAlign: TextAlign.center,
+                  style: FormImagePdfHelper.valStyle(10.5),
                 ),
               ),
             ),

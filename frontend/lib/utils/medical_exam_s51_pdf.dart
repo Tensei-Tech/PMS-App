@@ -56,8 +56,8 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 48),
       build: (pw.Context context) {
-        final outpost = v('outpost', '____________');
-        final ps = v('policeStation', '____________');
+        final outpost = v('outpost');
+        final ps = v('policeStation');
         final dateStr = v('date', '......./ ......../२०...');
 
         final toOfficer = v('toOfficer', '________________________');
@@ -108,9 +108,9 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('पोलीस दुरक्षेत्र $outpost', style: regular),
+                    pw.Text(outpost.isNotEmpty ? 'पोलीस दुरक्षेत्र $outpost' : 'पोलीस दुरक्षेत्र ', style: regular),
                     pw.SizedBox(height: 2),
-                    pw.Text('पोलीस स्टेशन $ps', style: regular),
+                    pw.Text(ps.isNotEmpty ? 'पोलीस स्टेशन $ps' : 'पोलीस स्टेशन ', style: regular),
                     pw.SizedBox(height: 2),
                     pw.Text('दिनांक : $dateStr', style: regular),
                   ],
@@ -257,9 +257,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   }
 
   final rawOutpost = v('outpost');
-  final outpost = rawOutpost.isNotEmpty ? rawOutpost : '____________';
+  final outpost = rawOutpost;
   final rawPs = v('policeStation');
-  final ps = rawPs.isNotEmpty ? rawPs : '____________';
+  final ps = rawPs;
   final rawDate = v('date');
   final dateStr = rawDate.isNotEmpty ? rawDate : '......./ ......../२०...';
 
@@ -328,10 +328,13 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('पोलीस दुरक्षेत्र ',
-                      style: FormImagePdfHelper.mReg(11.5)),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस दुरक्षेत्र ',
+                        style: FormImagePdfHelper.mReg(11.5)),
+                  ),
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -340,15 +343,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                         ),
                       ),
                       padding: const EdgeInsets.only(bottom: 1),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          outpost,
-                          maxLines: 1,
-                          softWrap: false,
-                          style: FormImagePdfHelper.mBld(11.5),
-                        ),
+                      child: Text(
+                        outpost.isEmpty ? ' ' : outpost,
+                        softWrap: true,
+                        style: FormImagePdfHelper.mBld(11.5),
                       ),
                     ),
                   ),
@@ -356,9 +354,13 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               ),
               const SizedBox(height: 3),
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('पोलीस स्टेशन : ', style: FormImagePdfHelper.mReg(11.5)),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन : ',
+                        style: FormImagePdfHelper.mReg(11.5)),
+                  ),
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -367,14 +369,13 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                         ),
                       ),
                       padding: const EdgeInsets.only(bottom: 1),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          ps,
-                          maxLines: 1,
-                          softWrap: false,
-                          style: FormImagePdfHelper.mBld(11.5),
+                      child: Text(
+                        ps.isEmpty ? ' ' : ps,
+                        softWrap: true,
+                        style: FormImagePdfHelper.mBld(11.5).copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.black87,
+                          decorationThickness: 0.8,
                         ),
                       ),
                     ),
@@ -456,11 +457,14 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
 
       // Sender
       Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 65,
-            child: Text('पासुन :-', style: FormImagePdfHelper.mReg(11.5)),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: SizedBox(
+              width: 65,
+              child: Text('पासुन :-', style: FormImagePdfHelper.mReg(11.5)),
+            ),
           ),
           Expanded(
             child: Container(
@@ -470,14 +474,13 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                 ),
               ),
               padding: const EdgeInsets.only(bottom: 1),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  fromLocation,
-                  maxLines: 1,
-                  softWrap: false,
-                  style: FormImagePdfHelper.mReg(11.5),
+              child: Text(
+                fromLocation.isEmpty ? ' ' : fromLocation,
+                softWrap: true,
+                style: FormImagePdfHelper.mReg(11.5).copyWith(
+                  decoration: TextDecoration.underline,
+                  decorationColor: Colors.black87,
+                  decorationThickness: 0.8,
                 ),
               ),
             ),

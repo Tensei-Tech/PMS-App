@@ -53,7 +53,7 @@ Future<Uint8List> generateCrimespotSeizurePdf(Map<String, dynamic> doc) async {
   final pw.TextStyle valueStyle = pw.TextStyle(
     font: devanagariRegular,
     fontSize: 10,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   // --- PAGE 1: Title Page ---
@@ -418,7 +418,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final valueStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 10,
     fontWeight: FontWeight.bold,
-    color: Colors.blue.shade900,
+    color: Colors.black,
   );
 
   // Ensure fonts are ready

@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
@@ -48,13 +49,13 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   }
 
   final ps = v('policeStation');
-  final dist = v('district', 'यवतमाळ');
+  final dist = v('district');
   final crimeNo = v('crimeNo', v('crNoYear', v('crNo', '........../२०......')));
   final actSec = v('actSec',
       v('section', '________________________________________________'));
   final ioName = v('ioName', v('investigatingOfficer'));
   final ioPs = v('ioPs', v('ioPoliceStation', ps));
-  final ioDist = v('ioDist', v('ioDistrict', 'यवतमाळ'));
+  final ioDist = v('ioDist', v('ioDistrict'));
   final accusedName = v('accusedName',
       '____________________________________________________________________');
   final seizureDate = v('seizureDate', v('seizedDate', v('date')));
@@ -108,15 +109,24 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
 
             // ── ROW 1: पोलीस स्टेशन ──
             pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('१) पोलीस स्टेशन   :-  ', style: bold),
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: 1.0),
+                  child: pw.Text('१) पोलीस स्टेशन   :-  ', style: bold),
+                ),
                 pw.Expanded(
                   child: pw.Text(
-                    ps.isNotEmpty ? ps : '______________________',
+                    ps.isEmpty ? ' ' : ps,
                     style: regular,
+                    softWrap: true,
                   ),
                 ),
-                pw.Text('जिल्हा $dist', style: bold),
+                pw.SizedBox(width: 12),
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: 1.0),
+                  child: pw.Text('जिल्हा $dist', style: bold),
+                ),
               ],
             ),
             pw.SizedBox(height: 12),
@@ -136,24 +146,139 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 12),
 
             // ── ROW 3: अन्वेषन अधिकारी ──
-            pw.Row(
-              children: [
-                pw.Text('३) अन्वेषन अधिकारी:- ', style: bold),
-                pw.Expanded(
-                  child: pw.Text(
-                    ioName.isNotEmpty ? ioName : '______________________',
-                    style: regular,
+            if (ioName.trim().length > 20 || (ioName.trim().length + ioPs.trim().length > 35)) ...[
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('३) अन्वेषन अधिकारी:- ', style: bold),
                   ),
-                ),
-                pw.Text('पोलीस स्टेशन ', style: bold),
-                pw.Text(
-                  ioPs.isNotEmpty ? ioPs : '________',
-                  style: regular,
-                ),
-                pw.SizedBox(width: 8),
-                pw.Text('जिल्हा $ioDist', style: bold),
-              ],
-            ),
+                  pw.Expanded(
+                    child: pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.only(bottom: 2),
+                      child: pw.Text(
+                        ioName.isNotEmpty ? ioName : ' ',
+                        style: regular,
+                        softWrap: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 8),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('पोलीस स्टेशन :- ', style: bold),
+                  ),
+                  pw.Expanded(
+                    child: pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.only(bottom: 2),
+                      child: pw.Text(
+                        ioPs.isEmpty ? ' ' : ioPs,
+                        style: regular,
+                        softWrap: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 8),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('जिल्हा :- ', style: bold),
+                  ),
+                  pw.Expanded(
+                    child: pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.only(bottom: 2),
+                      child: pw.Text(
+                        ioDist.isEmpty ? ' ' : ioDist,
+                        style: regular,
+                        softWrap: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('३) अन्वेषन अधिकारी:- ', style: bold),
+                  ),
+                  pw.Expanded(
+                    flex: 4,
+                    child: pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.only(bottom: 2),
+                      child: pw.Text(
+                        ioName.isNotEmpty ? ioName : ' ',
+                        style: regular,
+                        softWrap: true,
+                      ),
+                    ),
+                  ),
+                  pw.SizedBox(width: 8),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('पोलीस स्टेशन ', style: bold),
+                  ),
+                  pw.Expanded(
+                    flex: 3,
+                    child: pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.only(bottom: 2),
+                      child: pw.Text(
+                        ioPs.isEmpty ? ' ' : ioPs,
+                        style: regular,
+                        softWrap: true,
+                      ),
+                    ),
+                  ),
+                  pw.SizedBox(width: 12),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('जिल्हा $ioDist', style: bold),
+                  ),
+                ],
+              ),
+            ],
             pw.SizedBox(height: 12),
 
             // ── ROW 4: आरोपी नांव ──
@@ -343,6 +468,43 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   return pdf.save();
 }
 
+class _MuddemalUnderlinePainter extends CustomPainter {
+  final List<ui.LineMetrics> metrics;
+  final Color color;
+  final double thickness;
+
+  _MuddemalUnderlinePainter({
+    required this.metrics,
+    this.color = Colors.black87,
+    this.thickness = 0.8,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke;
+
+    if (metrics.isNotEmpty) {
+      for (final m in metrics) {
+        final lineBottom = m.baseline + m.descent;
+        final y = (lineBottom + 1.0).clamp(1.0, size.height - 0.5);
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+      }
+    } else {
+      canvas.drawLine(
+        Offset(0, size.height - 0.5),
+        Offset(size.width, size.height - 0.5),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MuddemalUnderlinePainter oldDelegate) => true;
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
 // ══════════════════════════════════════════════════════════════════════════════
@@ -354,13 +516,13 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   }
 
   final ps = v('policeStation');
-  final dist = v('district', 'यवतमाळ');
+  final dist = v('district');
   final crimeNo = v('crimeNo', v('crNoYear', v('crNo', '........../२०......')));
   final actSec = v('actSec',
       v('section', '________________________________________________'));
   final ioName = v('ioName', v('investigatingOfficer'));
   final ioPs = v('ioPs', v('ioPoliceStation', ps));
-  final ioDist = v('ioDist', v('ioDistrict', 'यवतमाळ'));
+  final ioDist = v('ioDist', v('ioDistrict'));
   final accusedName = v('accusedName',
       '____________________________________________________________________');
   final seizureDate = v('seizureDate', v('seizedDate', v('date')));
@@ -402,6 +564,60 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final bld = FormImagePdfHelper.mBld(10.5, 1.45);
   final headerTitle = FormImagePdfHelper.mBld(15, 1.3);
 
+  Widget uUnderlineField(String value, TextStyle style, {double minWidth = 40}) {
+    final valText = value.trim();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : minWidth;
+        final textMaxWidth = (w - 4.0).clamp(10.0, w);
+        final tp = TextPainter(
+          text: TextSpan(
+            text: valText.isEmpty ? ' ' : valText,
+            style: style,
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: textMaxWidth);
+        final metrics = tp.computeLineMetrics();
+        return SizedBox(
+          width: w,
+          child: CustomPaint(
+            painter: _MuddemalUnderlinePainter(
+              metrics: metrics,
+              color: Colors.black87,
+              thickness: 0.8,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 2, left: 2, right: 2),
+              child: Text(
+                valText.isEmpty ? ' ' : valText,
+                softWrap: true,
+                style: style,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  final isIoNameLong = () {
+    final name = ioName.trim();
+    if (name.length > 20) return true;
+    final tp = TextPainter(
+      text: TextSpan(text: name, style: reg),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    if (tp.width > 180) return true;
+    final tpPs = TextPainter(
+      text: TextSpan(text: ioPs.trim(), style: reg),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    if (tp.width + tpPs.width > 320) return true;
+    return false;
+  }();
+
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
     children: [
@@ -413,115 +629,164 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       ),
       const SizedBox(height: 24),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('१) पोलीस स्टेशन   :-  ', style: bld),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('१) पोलीस स्टेशन   :-  ', style: bld),
+          ),
           Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                ps.isNotEmpty ? ps : '______________________',
-                style: reg,
-              ),
+            child: Text(
+              ps.isEmpty ? ' ' : ps,
+              softWrap: true,
+              style: reg,
             ),
           ),
-          const SizedBox(width: 8),
-          Text('जिल्हा $dist', style: bld),
+          const SizedBox(width: 12),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('जिल्हा $dist', style: bld),
+          ),
         ],
       ),
       const SizedBox(height: 12),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('२) अप क्रमांक :- ', style: bld),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              crimeNo.isNotEmpty ? crimeNo : '________/२०____',
-              style: reg,
-            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('२) अप क्रमांक :- ', style: bld),
+          ),
+          Text(
+            crimeNo.isNotEmpty ? crimeNo : '________/२०____',
+            style: reg,
           ),
           const SizedBox(width: 16),
-          Text('कलम ', style: bld),
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                actSec.isNotEmpty
-                    ? actSec
-                    : '____________________________________',
-                style: reg,
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('कलम ', style: bld),
           ),
-        ],
-      ),
-      const SizedBox(height: 12),
-      Row(
-        children: [
-          Text('३) अन्वेषन अधिकारी:- ', style: bld),
           Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                ioName.isNotEmpty ? ioName : '______________________',
-                style: reg,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text('पोलीस स्टेशन ', style: bld),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
             child: Text(
-              ioPs.isNotEmpty ? ioPs : '________',
+              actSec.isNotEmpty
+                  ? actSec
+                  : '____________________________________',
+              softWrap: true,
               style: reg,
             ),
           ),
-          const SizedBox(width: 8),
-          Text('जिल्हा $ioDist', style: bld),
         ],
       ),
       const SizedBox(height: 12),
+      // ── ROW 3: अन्वेषन अधिकारी ──
+      if (isIoNameLong) ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('३) अन्वेषन अधिकारी:- ', style: bld),
+            ),
+            Expanded(
+              child: uUnderlineField(ioName, reg),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('पोलीस स्टेशन :- ', style: bld),
+            ),
+            Expanded(
+              child: uUnderlineField(ioPs, reg),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('जिल्हा :- ', style: bld),
+            ),
+            Expanded(
+              child: uUnderlineField(ioDist, reg),
+            ),
+          ],
+        ),
+      ] else ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('३) अन्वेषन अधिकारी:- ', style: bld),
+            ),
+            Expanded(
+              flex: 4,
+              child: uUnderlineField(ioName, reg),
+            ),
+            const SizedBox(width: 8),
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('पोलीस स्टेशन ', style: bld),
+            ),
+            Expanded(
+              flex: 3,
+              child: uUnderlineField(ioPs, reg),
+            ),
+            const SizedBox(width: 12),
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('जिल्हा $ioDist', style: bld),
+            ),
+          ],
+        ),
+      ],
+      const SizedBox(height: 12),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('४) आरोपी नांव :- ', style: bld),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('४) आरोपी नांव :- ', style: bld),
+          ),
           Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                accusedName.isNotEmpty
-                    ? accusedName
-                    : '________________________________________________',
-                style: reg,
-              ),
+            child: Text(
+              accusedName.isNotEmpty
+                  ? accusedName
+                  : '________________________________________________',
+              softWrap: true,
+              style: reg,
             ),
           ),
         ],
       ),
       const SizedBox(height: 12),
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('५) जप्त माल दिनांक :- ', style: bld),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              seizureDate.isNotEmpty ? seizureDate : '________________',
-              style: reg,
-            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('५) जप्त माल दिनांक :- ', style: bld),
+          ),
+          Text(
+            seizureDate.isNotEmpty ? seizureDate : '________________',
+            style: reg,
           ),
           const SizedBox(width: 32),
-          Text('माल नंबर :- ', style: bld),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text('माल नंबर :- ', style: bld),
+          ),
+          Expanded(
             child: Text(
               propertyNo.isNotEmpty ? propertyNo : '________________',
+              softWrap: true,
               style: reg,
             ),
           ),

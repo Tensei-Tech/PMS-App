@@ -349,35 +349,23 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
               maxLines: 1,
             )..layout();
 
-            double effectiveFontSize = baseFontSize;
             final double textW = tp.width + 12.0;
-
-            if (hasFiniteWidth &&
-                textW > availableWidth &&
-                availableWidth > 30) {
-              final scale =
-                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
-              effectiveFontSize =
-                  (baseFontSize * scale).clamp(8.5, baseFontSize);
-            }
-
-            final double computedWidth = hasFiniteWidth
-                ? availableWidth
-                : (textW < baseMin
-                    ? baseMin
-                    : (textW > baseMax ? baseMax : textW));
+            final widthToUse =
+                hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
 
             return SizedBox(
-              width: computedWidth,
+              width: widthToUse,
               child: TextFormField(
                 controller: controller,
                 readOnly: widget.readOnly,
-                maxLines: 1,
-                scrollPhysics: const ClampingScrollPhysics(),
+                minLines: 1,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
                 style: style.copyWith(
-                  fontSize: effectiveFontSize,
+                  fontSize: baseFontSize,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: const Color(0xFF0D47A1),
+                  height: 1.35,
                 ),
                 decoration: InputDecoration(
                   isDense: true,
@@ -386,7 +374,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                   hintText: hintText,
                   hintStyle: style.copyWith(
                     color: Colors.grey.shade400,
-                    fontSize: effectiveFontSize,
+                    fontSize: 11,
+                    fontStyle: FontStyle.italic,
                   ),
                   border: const UnderlineInputBorder(
                     borderSide:
@@ -452,7 +441,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                   minWidth: 150,
                   maxWidth: 350,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Text(
                   'जिल्हा :- ',
                   style: marathi.copyWith(
@@ -541,7 +530,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                   minWidth: 130,
                   maxWidth: 300,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Text(
                   'जिल्हा :- ',
                   style: marathi.copyWith(

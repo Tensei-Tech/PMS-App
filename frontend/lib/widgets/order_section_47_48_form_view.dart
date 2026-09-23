@@ -224,7 +224,7 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
       }
     }
 
-    set(_policeStationCtrl, ['policeStation'], 'म्हाळुंगे एम.आय.डी.सी.');
+    set(_policeStationCtrl, ['policeStation']);
     set(_crNoCtrl, ['crNo']);
     set(_crYearCtrl, ['crYear', 'outwardYear'], '२५');
     set(_bnsSectionCtrl, ['bnsSection', 'section']);
@@ -340,11 +340,12 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
           children: [
             const SizedBox(width: 32), // Indent
             Text('आपणास याद्वारे कळविण्यात येते की,', style: marathiBody),
-            _UnderlineInput(
+            _policeStationField(
               controller: _policeStationCtrl,
-              width: 170,
+              style: marathiBody,
+              minWidth: 150,
+              maxWidth: 450,
               hintText: 'पोलीस स्टेशन नाव',
-              readOnly: widget.readOnly,
             ),
             Text('पोलीस स्टेशन गुन्हा रजि.नंबर', style: marathiBody),
             _UnderlineInput(
@@ -601,11 +602,12 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
           children: [
             const SizedBox(width: 32), // Indent
             Text('आपणास याद्वारे कळविण्यात येते की,', style: marathiBody),
-            _UnderlineInput(
+            _policeStationField(
               controller: _policeStationCtrl,
-              width: 170,
+              style: marathiBody,
+              minWidth: 150,
+              maxWidth: 450,
               hintText: 'पोलीस स्टेशन नाव',
-              readOnly: widget.readOnly,
             ),
             Text('पोलीस स्टेशन,गुन्हा रजि.नंबर', style: marathiBody),
             _UnderlineInput(
@@ -833,6 +835,82 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
     }
 
     return FormViewScaffold(readOnly: widget.readOnly, children: pages);
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 150,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    final baseMin = minWidth;
+    final baseMax = maxWidth ?? 500.0;
+    const double baseFontSize = 13.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final availableWidth = hasFiniteWidth ? constraints.maxWidth : baseMax;
+
+        return ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
+            final tp = TextPainter(
+              text: TextSpan(
+                text: text,
+                style: GoogleFonts.notoSansDevanagari(
+                  fontWeight: FontWeight.w600,
+                  fontSize: baseFontSize,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+            )..layout();
+
+            final double textW = tp.width + 12.0;
+            final widthToUse =
+                hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
+
+            return SizedBox(
+              width: widthToUse,
+              child: TextFormField(
+                controller: controller,
+                readOnly: widget.readOnly,
+                minLines: 1,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                style: GoogleFonts.notoSansDevanagari(
+                  fontSize: baseFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue.shade900,
+                  height: 1.35,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: const EdgeInsets.only(bottom: 2, top: 2),
+                  hintText: hintText,
+                  hintStyle: GoogleFonts.notoSansDevanagari(
+                    fontSize: 12,
+                    color: Colors.black38,
+                  ),
+                  border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black54, width: 1),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black54, width: 1),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }
 

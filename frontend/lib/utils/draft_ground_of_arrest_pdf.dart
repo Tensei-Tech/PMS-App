@@ -177,7 +177,7 @@ TextStyle _mBld([double sz = 10.5, double ht = 1.45]) =>
 TextStyle _valStyle([double sz = 10.5]) => GoogleFonts.notoSansDevanagari(
       fontSize: sz,
       fontWeight: FontWeight.w600,
-      color: const Color(0xFF0D47A1),
+      color: Colors.black,
     );
 
 Widget _prosecutorBox(String pageLabel) {

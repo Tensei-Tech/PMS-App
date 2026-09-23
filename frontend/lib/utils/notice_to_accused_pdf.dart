@@ -58,7 +58,7 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 44),
       build: (pw.Context context) {
-        final ps = v('policeStation', '--------');
+        final ps = v('policeStation');
         final dateStr = v('date', '......./ ......../२०....');
 
         final accusedLine1 = v('accusedName', v('accusedNameAddress'));
@@ -69,8 +69,8 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
         final email = v('email',
             '.........................................................................');
 
-        final firPs = v('firPs', '...................');
-        final firDist = v('firDist', 'यवतमाळ');
+        final firPs = v('firPs');
+        final firDist = v('firDist');
         final crimeNo = v('crimeNumberOnly', v('crimeNo', '............'));
         final crimeYear = v('crimeYear', '२५');
         final actSec = v('actSec', '...................................');
@@ -96,15 +96,22 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('पोलीस स्टेशन ', style: bold),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.only(top: 1.0),
+                          child: pw.Text('पोलीस स्टेशन ', style: bold),
+                        ),
                         pw.Expanded(
                           child: pw.Container(
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(bottom: borderLine),
                             ),
                             alignment: pw.Alignment.centerLeft,
-                            child: pw.Text(ps, style: regular),
+                            child: pw.Text(ps.isEmpty ? ' ' : ps,
+                                style: regular.copyWith(
+                                    decoration: pw.TextDecoration.underline),
+                                softWrap: true),
                           ),
                         ),
                       ],
@@ -240,7 +247,9 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                     text:
                         '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन ',
                   ),
-                  pw.TextSpan(text: '$firPs ', style: bold),
+                  pw.TextSpan(
+                      text: firPs.isNotEmpty ? '$firPs  ' : ' ',
+                      style: bold),
                   pw.TextSpan(text: 'जिल्हा $firDist येथे अपराध क्रमांक'),
                   pw.TextSpan(text: ' $crimeNo / २०$crimeYear ', style: bold),
                   const pw.TextSpan(text: 'कलम '),
@@ -379,7 +388,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final email = v('email');
 
   final firPs = v('firPs');
-  final firDist = v('firDist', 'यवतमाळ');
+  final firDist = v('firDist');
   final crimeNo = v('crimeNumberOnly', v('crimeNo'));
   final crimeYear = v('crimeYear', '२५');
   final actSec = v('actSec');
@@ -408,22 +417,25 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('पोलीस स्टेशन ', style: bld),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन ', style: bld),
+                  ),
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
                         border: Border(bottom: borderLine),
                       ),
                       alignment: Alignment.centerLeft,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          ps.isEmpty ? ' ' : ps,
-                          maxLines: 1,
-                          softWrap: false,
-                          style: reg,
+                      child: Text(
+                        ps.isEmpty ? ' ' : ps,
+                        softWrap: true,
+                        style: reg.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.black87,
+                          decorationThickness: 0.8,
                         ),
                       ),
                     ),
@@ -549,7 +561,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text:
                   '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन ',
             ),
-            TextSpan(text: '$firPs ', style: bld),
+            TextSpan(
+                text: firPs.isNotEmpty ? '$firPs  ' : ' ',
+                style: bld),
             TextSpan(text: 'जिल्हा $firDist येथे अपराध क्रमांक'),
             TextSpan(text: ' $crimeNo / २०$crimeYear ', style: bld),
             const TextSpan(text: 'कलम '),

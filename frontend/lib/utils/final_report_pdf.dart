@@ -81,7 +81,7 @@ Future<Uint8List> generateFinalReportPdf(Map<String, dynamic> doc) async {
   final valueStyle = pw.TextStyle(
     font: loraRegular,
     fontSize: 8,
-    color: PdfColors.blue900,
+    color: PdfColors.black,
   );
 
   pw.Widget val(String key, String? text) {
@@ -952,7 +952,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final valueStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 9,
     fontWeight: FontWeight.bold,
-    color: Colors.blue.shade900,
+    color: Colors.black,
   );
   await GoogleFonts.pendingFonts();
   await cache.add('title_mr', 'अंतिम अहवाल नमुना', labelStyle);

@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
@@ -58,7 +59,9 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
                 border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
               ),
               padding: const pw.EdgeInsets.only(bottom: 2),
-              child: pw.Text(value.isEmpty ? ' ' : value, style: regular),
+              child: pw.Text(value.isEmpty ? ' ' : value,
+                  style: regular.copyWith(
+                      decoration: pw.TextDecoration.underline)),
             ),
           ),
         ],
@@ -198,7 +201,7 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
               ),
               const pw.TextSpan(text: '  जि '),
               pw.TextSpan(
-                text: v('accusedDist').isEmpty ? 'यवतमाळ' : v('accusedDist'),
+                text: v('accusedDist'),
                 style: bold,
               ),
               const pw.TextSpan(
@@ -342,6 +345,43 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
   return pdf.save();
 }
 
+class _FullWidthUnderlinePainter extends CustomPainter {
+  final List<ui.LineMetrics> metrics;
+  final Color color;
+  final double thickness;
+
+  _FullWidthUnderlinePainter({
+    required this.metrics,
+    this.color = Colors.black87,
+    this.thickness = 0.8,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke;
+
+    if (metrics.isNotEmpty) {
+      for (final m in metrics) {
+        final lineBottom = m.baseline + m.descent;
+        final y = (lineBottom - 0.5).clamp(1.0, size.height - 0.5);
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+      }
+    } else {
+      canvas.drawLine(
+        Offset(0, size.height - 0.5),
+        Offset(size.width, size.height - 0.5),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FullWidthUnderlinePainter oldDelegate) => true;
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
 // ══════════════════════════════════════════════════════════════════════════════
@@ -352,25 +392,57 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       .copyWith(decoration: TextDecoration.underline);
 
   Widget underlineField(String label, String value, {double minWidth = 100}) {
+    final baseStyle = FormImagePdfHelper.valStyle(11);
+    final style = baseStyle.copyWith(height: baseStyle.height ?? 1.75);
+    final valText = value.trim();
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: FormImagePdfHelper.mBld(11)),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text(label, style: FormImagePdfHelper.mBld(11)),
+          ),
           const SizedBox(width: 4),
           Expanded(
-            child: Container(
-              constraints: BoxConstraints(minWidth: minWidth),
-              decoration: const BoxDecoration(
-                border: Border(
-                    bottom: BorderSide(width: 0.8, color: Colors.black87)),
-              ),
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Text(
-                value.isEmpty ? ' ' : value,
-                style: FormImagePdfHelper.valStyle(11),
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final w = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                    ? constraints.maxWidth
+                    : minWidth;
+                final textMaxWidth = (w - 4.0).clamp(10.0, w);
+                final tp = TextPainter(
+                  text: TextSpan(
+                    text: valText.isEmpty ? ' ' : valText,
+                    style: style,
+                  ),
+                  textDirection: TextDirection.ltr,
+                )..layout(maxWidth: textMaxWidth);
+                final metrics = tp.computeLineMetrics();
+                return SizedBox(
+                  width: w,
+                  child: CustomPaint(
+                    painter: _FullWidthUnderlinePainter(
+                      metrics: metrics,
+                      color: Colors.black87,
+                      thickness: 0.8,
+                    ),
+                    child: SizedBox(
+                      width: w,
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: 2, left: 2, right: 2),
+                        child: Text(
+                          valText.isEmpty ? ' ' : valText,
+                          softWrap: true,
+                          style: style,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -380,31 +452,57 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
 
   Widget policeStationUnderlineField(String label, String value,
       {double minWidth = 100}) {
+    final baseStyle = FormImagePdfHelper.valStyle(11);
+    final style = baseStyle.copyWith(height: baseStyle.height ?? 1.75);
+    final valText = value.trim();
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: FormImagePdfHelper.mBld(11)),
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: Text(label, style: FormImagePdfHelper.mBld(11)),
+          ),
           const SizedBox(width: 4),
           Expanded(
-            child: Container(
-              constraints: BoxConstraints(minWidth: minWidth),
-              decoration: const BoxDecoration(
-                border: Border(
-                    bottom: BorderSide(width: 0.8, color: Colors.black87)),
-              ),
-              padding: const EdgeInsets.only(bottom: 2),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  value.isEmpty ? ' ' : value,
-                  maxLines: 1,
-                  softWrap: false,
-                  style: FormImagePdfHelper.valStyle(11),
-                ),
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final w = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                    ? constraints.maxWidth
+                    : minWidth;
+                final textMaxWidth = (w - 4.0).clamp(10.0, w);
+                final tp = TextPainter(
+                  text: TextSpan(
+                    text: valText.isEmpty ? ' ' : valText,
+                    style: style,
+                  ),
+                  textDirection: TextDirection.ltr,
+                )..layout(maxWidth: textMaxWidth);
+                final metrics = tp.computeLineMetrics();
+                return SizedBox(
+                  width: w,
+                  child: CustomPaint(
+                    painter: _FullWidthUnderlinePainter(
+                      metrics: metrics,
+                      color: Colors.black87,
+                      thickness: 0.8,
+                    ),
+                    child: SizedBox(
+                      width: w,
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: 2, left: 2, right: 2),
+                        child: Text(
+                          valText.isEmpty ? ' ' : valText,
+                          softWrap: true,
+                          style: style,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -419,7 +517,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       Align(
         alignment: Alignment.topRight,
         child: SizedBox(
-          width: 280,
+          width: 320,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -546,7 +644,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ),
             const TextSpan(text: '  जि '),
             TextSpan(
-              text: v('accusedDist').isEmpty ? 'यवतमाळ' : v('accusedDist'),
+              text: v('accusedDist'),
               style: v('accusedDist').isEmpty
                   ? FormImagePdfHelper.mBld(11)
                   : valBld,

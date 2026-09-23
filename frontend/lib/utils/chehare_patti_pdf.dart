@@ -117,13 +117,18 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
 
           // ── SUBHEADER ──
           pw.Center(
-            child: pw.Row(
-              mainAxisSize: pw.MainAxisSize.min,
+            child: pw.Wrap(
+              alignment: pw.WrapAlignment.center,
+              crossAxisAlignment: pw.WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 4,
               children: [
                 pw.Text('पोलीस स्टेशन :- ',
                     style: bold.copyWith(fontSize: 9.5)),
-                pw.Text(ps, style: bold.copyWith(fontSize: 9.5)),
-                pw.SizedBox(width: 32),
+                pw.Text(ps,
+                    style: bold.copyWith(fontSize: 9.5),
+                    softWrap: true),
+                pw.SizedBox(width: 24),
                 pw.Text('जिल्हा :- ', style: bold.copyWith(fontSize: 9.5)),
                 pw.Text(district, style: bold.copyWith(fontSize: 9.5)),
               ],
@@ -362,12 +367,15 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
 
       // Subheader
       Center(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 4,
           children: [
             Text('पोलीस स्टेशन :- ', style: FormImagePdfHelper.mBld(10)),
-            Text(ps, style: FormImagePdfHelper.mBld(10)),
-            const SizedBox(width: 32),
+            Text(ps, style: FormImagePdfHelper.mBld(10), softWrap: true),
+            const SizedBox(width: 24),
             Text('जिल्हा :- ', style: FormImagePdfHelper.mBld(10)),
             Text(district, style: FormImagePdfHelper.mBld(10)),
           ],
