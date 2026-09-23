@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../utils/reason_of_arrest_pdf.dart';
 import 'form_date_pickers.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
@@ -24,6 +25,12 @@ class ReasonOfArrestFormView extends StatefulWidget {
 }
 
 class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
+  @override
+  void initState() {
+    super.initState();
+    preloadReasonOfArrestPdfFonts();
+  }
+
   bool get _showMain {
     final s = widget.formSection?.toLowerCase() ?? '';
     if (s.isEmpty) return true;
@@ -408,18 +415,54 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
           ('५.', _reason5Ctrl),
         ]) ...[
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 14),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Text('${item.$1} ', style: marathiBold),
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text('${item.$1} ',
+                      style: marathiBold.copyWith(fontSize: 15)),
                 ),
                 Expanded(
-                  child: _UnderlineInput(
+                  child: TextField(
                     controller: item.$2,
                     readOnly: widget.readOnly,
+                    minLines: 2,
+                    maxLines: 4,
+                    style: GoogleFonts.notoSansDevanagari(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue.shade900,
+                      height: 1.5,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                      hintText: 'अटकेचे कारण प्रविष्ट करा...',
+                      hintStyle: GoogleFonts.notoSansDevanagari(
+                        fontSize: 13,
+                        color: Colors.black38,
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF9FAFB),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide:
+                            const BorderSide(color: Colors.black38, width: 0.8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide:
+                            const BorderSide(color: Colors.black38, width: 0.8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide:
+                            const BorderSide(color: Colors.blue, width: 1.5),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -516,140 +559,178 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
             ),
           ],
         ),
+        const SizedBox(height: 28),
+
+        // Official Note Banner
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Colors.black26, width: 0.8),
+          ),
+          child: Text(
+            'टीप :- सदर सुचनापत्राची मूळ प्रत आरोपीस प्रत्यक्ष समजवून देऊन बजावण्यात आली असून, त्याची स्वाक्षरी / अंगठ्याचा ठसा घेऊन रीतसर पोच घेण्यात आली आहे. सदर दस्तऐवज तपास अभिलेखात समाविष्ट करण्यात आला आहे.',
+            style: marathiBody.copyWith(
+                fontSize: 13, height: 1.6, color: Colors.black87),
+            textAlign: TextAlign.justify,
+          ),
+        ),
         const SizedBox(height: 36),
 
-        // Signatures (Two Columns)
+        // Signatures (Two Columns with Official Signature & Stamp Boxes)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Left Column (Accused)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('मला सुचनापत्र प्राप्त झाले', style: marathiBold),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('(आरोपीची सही', style: marathiBold),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('मला सुचनापत्र प्राप्त झाले (आरोपीची पोच)',
+                      style: marathiBold),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 85,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black38, width: 0.8),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    _UnderlineInput(
-                      controller: _accusedSigCtrl,
-                      width: 130,
-                      readOnly: widget.readOnly,
+                    alignment: Alignment.center,
+                    child: Text(
+                      _accusedSigCtrl.text.isNotEmpty
+                          ? _accusedSigCtrl.text
+                          : '(येथे आरोपीची सही किंवा डाव्या हाताच्या अंगठ्याचा ठसा)',
+                      style: _accusedSigCtrl.text.isNotEmpty
+                          ? marathiBold.copyWith(color: Colors.blue.shade900)
+                          : marathiBody.copyWith(
+                              color: Colors.black38, fontSize: 12),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text(')', style: marathiBold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('आरोपीचे नांव ', style: marathiBold),
-                    ),
-                    _UnderlineInput(
-                      controller: _accusedNameSigCtrl,
-                      width: 150,
-                      readOnly: widget.readOnly,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('दिनांक व वेळ ', style: marathiBold),
-                    formDatePickerField(
-                      context,
-                      controller: _accusedDateTimeCtrl,
-                      width: 140,
-                      readOnly: widget.readOnly,
-                    ),
-                    formTimePickerField(
-                      context,
-                      controller: _accusedTimeCtrl,
-                      width: 110,
-                      readOnly: widget.readOnly,
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text('आरोपीचे नांव :- ', style: marathiBold),
+                      ),
+                      Expanded(
+                        child: _UnderlineInput(
+                          controller: _accusedNameSigCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Text('दिनांक व वेळ :- ', style: marathiBold),
+                      formDatePickerField(
+                        context,
+                        controller: _accusedDateTimeCtrl,
+                        width: 130,
+                        readOnly: widget.readOnly,
+                      ),
+                      const SizedBox(width: 6),
+                      formTimePickerField(
+                        context,
+                        controller: _accusedTimeCtrl,
+                        width: 100,
+                        readOnly: widget.readOnly,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 32),
 
             // Right Column (IO)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('तपास अधि सही/-', style: marathiBold),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('नाव/हुद्दा', style: marathiBold),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('तपास अधिकारी स्वाक्षरी व शिक्का', style: marathiBold),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 85,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black38, width: 0.8),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    _UnderlineInput(
-                      controller: _ioNameRankCtrl,
-                      width: 140,
-                      readOnly: widget.readOnly,
+                    alignment: Alignment.center,
+                    child: Text(
+                      '(तपास अधिकारी स्वाक्षरी व पोलीस स्टेशनचा शिक्का)',
+                      style: marathiBody.copyWith(
+                          color: Colors.black38, fontSize: 12),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('पोलीस स्टेशन', style: marathiBold),
-                    ),
-                    _UnderlineInput(
-                      controller: _ioPsCtrl,
-                      width: 140,
-                      readOnly: widget.readOnly,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('ता.', style: marathiBold),
-                    ),
-                    _UnderlineInput(
-                      controller: _ioTalukaCtrl,
-                      width: 75,
-                      readOnly: widget.readOnly,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text(' जिल्हा', style: marathiBold),
-                    ),
-                    _UnderlineInput(
-                      controller: _ioDistrictCtrl,
-                      width: 75,
-                      readOnly: widget.readOnly,
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text('नाव/हुद्दा :- ', style: marathiBold),
+                      ),
+                      Expanded(
+                        child: _UnderlineInput(
+                          controller: _ioNameRankCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text('पोलीस स्टेशन :- ', style: marathiBold),
+                      ),
+                      Expanded(
+                        child: _UnderlineInput(
+                          controller: _ioPsCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text('ता. ', style: marathiBold),
+                      ),
+                      Expanded(
+                        flex: 5,
+                        child: _UnderlineInput(
+                          controller: _ioTalukaCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(' -जिल्हा ', style: marathiBold),
+                      ),
+                      Expanded(
+                        flex: 5,
+                        child: _UnderlineInput(
+                          controller: _ioDistrictCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),

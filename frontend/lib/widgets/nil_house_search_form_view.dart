@@ -318,54 +318,60 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
       builder: (context, _) {
         final text =
             controller.text.isEmpty ? (hintText ?? '') : controller.text;
-        final tp = TextPainter(
-          text: TextSpan(
-            text: text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
+
+        double calcWidth = effectiveMin;
+        if (text.isNotEmpty && (text.length * 12.0 + 20.0 > effectiveMin)) {
+          final tp = TextPainter(
+            text: TextSpan(
+              text: text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+              ),
             ),
-          ),
-          textDirection: TextDirection.ltr,
-          maxLines: 1,
-        )..layout();
-
-        final measured = tp.width + 20.0;
-        final calcWidth = measured < effectiveMin
-            ? effectiveMin
-            : (measured > 800.0 ? 800.0 : measured);
-
-        return SizedBox(
-          width: calcWidth,
-          child: TextFormField(
-            controller: controller,
-            readOnly: widget.readOnly,
+            textDirection: TextDirection.ltr,
             maxLines: 1,
-            keyboardType: TextInputType.text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
-              color: const Color(0xFF0D47A1),
-              height: 1.35,
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: false,
-              fillColor: Colors.transparent,
-              contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
-              hintText: hintText,
-              hintStyle: style.copyWith(
-                color: Colors.grey.shade400,
-                fontSize: 12,
+          )..layout();
+
+          final measured = tp.width + 20.0;
+          calcWidth = measured < effectiveMin
+              ? effectiveMin
+              : (measured > 800.0 ? 800.0 : measured);
+        }
+
+        return RepaintBoundary(
+          child: SizedBox(
+            width: calcWidth,
+            child: TextFormField(
+              controller: controller,
+              readOnly: widget.readOnly,
+              maxLines: 1,
+              keyboardType: TextInputType.text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+                color: const Color(0xFF0D47A1),
+                height: 1.35,
               ),
-              border: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
-              ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                fillColor: Colors.transparent,
+                contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
+                hintText: hintText,
+                hintStyle: style.copyWith(
+                  color: Colors.grey.shade400,
+                  fontSize: 12,
+                ),
+                border: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+                ),
+                enabledBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+                ),
+                focusedBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+                ),
               ),
             ),
           ),
@@ -396,57 +402,77 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
             final text =
                 controller.text.isEmpty ? (hintText ?? '') : controller.text;
 
-            final tp = TextPainter(
-              text: TextSpan(
-                text: text,
-                style: style.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: baseFontSize,
-                ),
-              ),
-              textDirection: TextDirection.ltr,
-              maxLines: 1,
-            )..layout();
+            double effectiveFontSize = baseFontSize;
+            double computedWidth = hasFiniteWidth ? availableWidth : baseMin;
 
-            final double textW = tp.width + 12.0;
-            final widthToUse =
-                hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
-
-            return SizedBox(
-              width: widthToUse,
-              child: TextFormField(
-                controller: controller,
-                readOnly: widget.readOnly,
-                minLines: 1,
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                style: style.copyWith(
-                  fontSize: baseFontSize,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF0D47A1),
-                  height: 1.35,
+            if (text.isNotEmpty &&
+                (!hasFiniteWidth ||
+                    (text.length * 12.0 + 12.0 > availableWidth))) {
+              final tp = TextPainter(
+                text: TextSpan(
+                  text: text,
+                  style: style.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: baseFontSize,
+                  ),
                 ),
-                decoration: InputDecoration(
-                  isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-                  hintText: hintText,
-                  hintStyle: style.copyWith(
-                    color: Colors.grey.shade400,
-                    fontSize: 11,
-                    fontStyle: FontStyle.italic,
+                textDirection: TextDirection.ltr,
+                maxLines: 1,
+              )..layout();
+
+              final double textW = tp.width + 12.0;
+
+              if (hasFiniteWidth &&
+                  textW > availableWidth &&
+                  availableWidth > 30) {
+                final scale =
+                    ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+                effectiveFontSize =
+                    (baseFontSize * scale).clamp(8.5, baseFontSize);
+              }
+
+              computedWidth = hasFiniteWidth
+                  ? availableWidth
+                  : (textW < baseMin
+                      ? baseMin
+                      : (textW > baseMax ? baseMax : textW));
+            }
+
+            return RepaintBoundary(
+              child: SizedBox(
+                width: computedWidth,
+                child: TextFormField(
+                  controller: controller,
+                  readOnly: widget.readOnly,
+                  maxLines: 1,
+                  scrollPhysics: const ClampingScrollPhysics(),
+                  style: style.copyWith(
+                    fontSize: effectiveFontSize,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF0D47A1),
                   ),
-                  border: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF333333), width: 1.0),
-                  ),
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF555555), width: 1.0),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    hintText: hintText,
+                    hintStyle: style.copyWith(
+                      color: Colors.grey.shade400,
+                      fontSize: effectiveFontSize,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    border: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF333333), width: 1.0),
+                    ),
+                    enabledBorder: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF555555), width: 1.0),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                    ),
                   ),
                 ),
               ),

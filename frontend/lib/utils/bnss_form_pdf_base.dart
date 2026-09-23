@@ -20,14 +20,17 @@ Future<void> previewBnssFormPdf(
     final pages = _buildBnssWidgetPages(doc,
         titleEn: titleEn, titleMr: titleMr, sections: sections);
     if (pages.isNotEmpty) {
-      final bytes =
-          await FormImagePdfHelper.buildPdfFromWidgets(context, pages);
-      if (!context.mounted) return;
-      if (kIsWeb) {
-        await Printing.sharePdf(bytes: bytes, filename: fileName);
-      } else {
-        await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-      }
+      await FormImagePdfHelper.previewImageBasedPdf(
+        context,
+        fileName: fileName,
+        pages: pages,
+        fallbackPdfGenerator: () => generateBnssFormPdf(
+          doc,
+          titleEn: titleEn,
+          titleMr: titleMr,
+          sections: sections,
+        ),
+      );
       return;
     }
   } catch (e) {

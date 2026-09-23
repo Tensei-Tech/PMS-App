@@ -10,24 +10,23 @@
 // This guarantees 100% pixel-perfect Devanagari/Marathi font shaping (HarfBuzz).
 
 import 'dart:async';
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'form_image_pdf_helper.dart';
+
 // ── A4 layout constants at 96 DPI ──────────────────────────────────────────
 const double _kW = 794.0;
 const double _kH = 1123.0;
-const double _kPx = 2.0;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public Entrypoints
-// ─────────────────────────────────────────────────────────────────────────────
+//─────────────────────────────────────────────────────────────────────────────
 
 Future<void> previewDraftGroundOfArrestPdf(
   BuildContext context,
@@ -35,32 +34,6 @@ Future<void> previewDraftGroundOfArrestPdf(
 ) async {
   final fileName =
       'Draft_Ground_of_Arrest_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    final bytes = await _buildImagePdf(context, doc);
-    if (!context.mounted) return;
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (e) {
-    debugPrint('Error generating image-based PDF: $e');
-    if (!context.mounted) return;
-    try {
-      final bytes = await generateDraftGroundOfArrestPdf(doc);
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } catch (_) {}
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PDF Builder: Capture Flutter Widgets -> PNG -> PDF
-// ─────────────────────────────────────────────────────────────────────────────
-
-Future<Uint8List> _buildImagePdf(
-  BuildContext context,
-  Map<String, dynamic> doc,
-) async {
   final s = (doc['formSection'] ?? '').toString().toLowerCase();
   final p9Match = s.contains('9') || s.contains('47') || s.contains('आधार');
   final p10Match =
@@ -79,69 +52,12 @@ Future<Uint8List> _buildImagePdf(
   if (showP10) pages.add(_pg10(doc));
   if (showP11) pages.add(_pg11(doc));
 
-  final pngs = <Uint8List>[];
-  for (final p in pages) {
-    pngs.add(await _capture(context, p));
-  }
-
-  final pdfDoc = pw.Document();
-  for (final png in pngs) {
-    pdfDoc.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.zero,
-        build: (_) => pw.Image(
-          pw.MemoryImage(png),
-          fit: pw.BoxFit.contain,
-        ),
-      ),
-    );
-  }
-  return pdfDoc.save();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Offscreen Capture Engine
-// ─────────────────────────────────────────────────────────────────────────────
-
-Future<Uint8List> _capture(BuildContext ctx, Widget widget) async {
-  final key = GlobalKey();
-  final comp = Completer<Uint8List>();
-  OverlayEntry? ent;
-
-  ent = OverlayEntry(
-    builder: (_) => Positioned(
-      left: -(_kW + 80),
-      top: 0,
-      width: _kW,
-      height: _kH,
-      child: RepaintBoundary(
-        key: key,
-        child: Material(
-          color: Colors.white,
-          child: widget,
-        ),
-      ),
-    ),
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: pages,
+    fallbackPdfGenerator: () => generateDraftGroundOfArrestPdf(doc),
   );
-
-  Overlay.of(ctx).insert(ent);
-
-  await WidgetsBinding.instance.endOfFrame;
-  await Future.delayed(const Duration(milliseconds: 700));
-
-  try {
-    final rb = key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-    final img = await rb.toImage(pixelRatio: _kPx);
-    final bd = await img.toByteData(format: ui.ImageByteFormat.png);
-    comp.complete(bd!.buffer.asUint8List());
-  } catch (e) {
-    comp.completeError(e);
-  } finally {
-    ent.remove();
-  }
-
-  return comp.future;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
