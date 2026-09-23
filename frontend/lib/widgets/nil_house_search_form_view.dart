@@ -510,7 +510,8 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(top: 2.0),
-                          child: Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                          child:
+                              Text('पोलीस स्टेशन  :', style: headerLabelStyle),
                         ),
                         const SizedBox(width: 8),
                         Expanded(

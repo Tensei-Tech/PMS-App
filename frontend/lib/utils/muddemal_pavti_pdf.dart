@@ -146,7 +146,8 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 12),
 
             // ── ROW 3: अन्वेषन अधिकारी ──
-            if (ioName.trim().length > 20 || (ioName.trim().length + ioPs.trim().length > 35)) ...[
+            if (ioName.trim().length > 20 ||
+                (ioName.trim().length + ioPs.trim().length > 35)) ...[
               pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
@@ -564,7 +565,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final bld = FormImagePdfHelper.mBld(10.5, 1.45);
   final headerTitle = FormImagePdfHelper.mBld(15, 1.3);
 
-  Widget uUnderlineField(String value, TextStyle style, {double minWidth = 40}) {
+  Widget uUnderlineField(String value, TextStyle style,
+      {double minWidth = 40}) {
     final valText = value.trim();
     return LayoutBuilder(
       builder: (context, constraints) {

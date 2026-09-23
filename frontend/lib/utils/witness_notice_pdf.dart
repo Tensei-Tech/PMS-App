@@ -644,7 +644,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 1.0),
-            child: Text('आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन', style: reg),
+            child: Text('आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन',
+                style: reg),
           ),
           const SizedBox(width: 4),
           Expanded(child: underlineField(bodyPs, multiline: true)),

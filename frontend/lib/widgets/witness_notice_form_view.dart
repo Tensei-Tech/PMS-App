@@ -326,8 +326,8 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                         Padding(
                           padding: const EdgeInsets.only(top: 2.0),
                           child: Text('पोलीस स्टेशन',
-                              style:
-                                  marathi.copyWith(fontWeight: FontWeight.bold)),
+                              style: marathi.copyWith(
+                                  fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(width: 6),
                         Expanded(

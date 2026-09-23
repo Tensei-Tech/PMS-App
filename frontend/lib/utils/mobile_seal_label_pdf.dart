@@ -489,7 +489,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     return TableRow(
       children: [
         cell(Text(label, style: bld)),
-        cell(Text(value.isEmpty ? ' ' : value, style: valStyle, softWrap: true)),
+        cell(
+            Text(value.isEmpty ? ' ' : value, style: valStyle, softWrap: true)),
       ],
     );
   }
@@ -499,8 +500,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       children: [
         cell(Text(label, style: bld),
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
-        cell(
-            Text(value.isEmpty ? ' ' : value, style: valStyle, softWrap: true),
+        cell(Text(value.isEmpty ? ' ' : value, style: valStyle, softWrap: true),
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
       ],
     );

@@ -82,8 +82,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
             v('complainantResidence', '-----------'));
         final complainantTah =
             v('p1_complainantTah', v('complainantTah', '-----------'));
-        final complainantDist =
-            v('p1_complainantDist', v('complainantDist'));
+        final complainantDist = v('p1_complainantDist', v('complainantDist'));
 
         final ioNameSig = v('p1_ioNameSig', v('ioNameSig'));
         final panch1Receipt = v(

@@ -408,9 +408,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final w = constraints.maxWidth.isFinite && constraints.maxWidth > 0
-                    ? constraints.maxWidth
-                    : minWidth;
+                final w =
+                    constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                        ? constraints.maxWidth
+                        : minWidth;
                 final textMaxWidth = (w - 4.0).clamp(10.0, w);
                 final tp = TextPainter(
                   text: TextSpan(
@@ -468,9 +469,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final w = constraints.maxWidth.isFinite && constraints.maxWidth > 0
-                    ? constraints.maxWidth
-                    : minWidth;
+                final w =
+                    constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                        ? constraints.maxWidth
+                        : minWidth;
                 final textMaxWidth = (w - 4.0).clamp(10.0, w);
                 final tp = TextPainter(
                   text: TextSpan(

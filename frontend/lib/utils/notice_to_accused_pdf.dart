@@ -248,8 +248,7 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                         '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन ',
                   ),
                   pw.TextSpan(
-                      text: firPs.isNotEmpty ? '$firPs  ' : ' ',
-                      style: bold),
+                      text: firPs.isNotEmpty ? '$firPs  ' : ' ', style: bold),
                   pw.TextSpan(text: 'जिल्हा $firDist येथे अपराध क्रमांक'),
                   pw.TextSpan(text: ' $crimeNo / २०$crimeYear ', style: bold),
                   const pw.TextSpan(text: 'कलम '),
@@ -561,9 +560,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text:
                   '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन ',
             ),
-            TextSpan(
-                text: firPs.isNotEmpty ? '$firPs  ' : ' ',
-                style: bld),
+            TextSpan(text: firPs.isNotEmpty ? '$firPs  ' : ' ', style: bld),
             TextSpan(text: 'जिल्हा $firDist येथे अपराध क्रमांक'),
             TextSpan(text: ' $crimeNo / २०$crimeYear ', style: bld),
             const TextSpan(text: 'कलम '),

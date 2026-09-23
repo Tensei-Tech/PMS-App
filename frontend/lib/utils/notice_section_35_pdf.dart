@@ -144,18 +144,18 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
                           ),
                         ],
                       ),
-                    pw.SizedBox(height: 3),
-                    pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Text('दिनांक : ', style: bold),
-                        pw.Text(p1Date, style: regular),
-                      ],
-                    ),
-                  ],
+                      pw.SizedBox(height: 3),
+                      pw.Row(
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          pw.Text('दिनांक : ', style: bold),
+                          pw.Text(p1Date, style: regular),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
               pw.SizedBox(height: 12),
 
               // ── TITLE ──
@@ -379,14 +379,14 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
                           ),
                         ],
                       ),
-                    pw.SizedBox(height: 4),
-                    pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Text('दिनांक : ', style: bold),
-                        pw.Text(p2Date, style: regular),
-                      ],
-                    ),
+                      pw.SizedBox(height: 4),
+                      pw.Row(
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          pw.Text('दिनांक : ', style: bold),
+                          pw.Text(p2Date, style: regular),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -537,7 +537,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 1.0),
-                    child: Text('पोलीस स्टेशन ', style: FormImagePdfHelper.mBld(11)),
+                    child: Text('पोलीस स्टेशन ',
+                        style: FormImagePdfHelper.mBld(11)),
                   ),
                   Expanded(
                     child: Text(
@@ -552,17 +553,17 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                   ),
                 ],
               ),
-            const SizedBox(height: 3),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
-                Text(
-                  p1Date.isEmpty ? ' ' : p1Date,
-                  style: FormImagePdfHelper.valStyle(11),
-                ),
-              ],
-            ),
+              const SizedBox(height: 3),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
+                  Text(
+                    p1Date.isEmpty ? ' ' : p1Date,
+                    style: FormImagePdfHelper.valStyle(11),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -759,7 +760,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 1.0),
-                    child: Text('पोलीस स्टेशन ', style: FormImagePdfHelper.mBld(11)),
+                    child: Text('पोलीस स्टेशन ',
+                        style: FormImagePdfHelper.mBld(11)),
                   ),
                   Expanded(
                     child: Text(
@@ -774,17 +776,17 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                   ),
                 ],
               ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
-                Text(
-                  p2Date.isEmpty ? ' ' : p2Date,
-                  style: FormImagePdfHelper.valStyle(11),
-                ),
-              ],
-            ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('दिनांक : ', style: FormImagePdfHelper.mBld(11)),
+                  Text(
+                    p2Date.isEmpty ? ' ' : p2Date,
+                    style: FormImagePdfHelper.valStyle(11),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

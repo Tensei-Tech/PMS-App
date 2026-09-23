@@ -108,9 +108,15 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text(outpost.isNotEmpty ? 'पोलीस दुरक्षेत्र $outpost' : 'पोलीस दुरक्षेत्र ', style: regular),
+                    pw.Text(
+                        outpost.isNotEmpty
+                            ? 'पोलीस दुरक्षेत्र $outpost'
+                            : 'पोलीस दुरक्षेत्र ',
+                        style: regular),
                     pw.SizedBox(height: 2),
-                    pw.Text(ps.isNotEmpty ? 'पोलीस स्टेशन $ps' : 'पोलीस स्टेशन ', style: regular),
+                    pw.Text(
+                        ps.isNotEmpty ? 'पोलीस स्टेशन $ps' : 'पोलीस स्टेशन ',
+                        style: regular),
                     pw.SizedBox(height: 2),
                     pw.Text('दिनांक : $dateStr', style: regular),
                   ],

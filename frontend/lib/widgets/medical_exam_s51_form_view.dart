@@ -378,7 +378,8 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(top: 2.0),
-                          child: Text('पोलीस दुरक्षेत्र ', style: headerLabelStyle),
+                          child: Text('पोलीस दुरक्षेत्र ',
+                              style: headerLabelStyle),
                         ),
                         Expanded(
                           child: _policeStationField(
