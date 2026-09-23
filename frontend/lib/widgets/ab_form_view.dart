@@ -762,12 +762,10 @@ class AbFormViewState extends State<AbFormView> {
               readOnly: widget.readOnly,
             ),
             Text('of', style: bodyStyle),
-            Expanded(
-              child: _UnderlineInput(
-                controller: _policeStationCtrl,
-                width: double.infinity,
-                readOnly: widget.readOnly,
-              ),
+            _UnderlineInput(
+              controller: _policeStationCtrl,
+              width: 170,
+              readOnly: widget.readOnly,
             ),
             Text('Police station a phial bearing serial No.', style: bodyStyle),
             _UnderlineInput(

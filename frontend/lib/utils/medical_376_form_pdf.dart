@@ -9,20 +9,16 @@
 // ignore_for_file: unused_element
 
 import 'dart:async';
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+
+import 'form_image_pdf_helper.dart';
 
 // ── Dimensions ─────────────────────────────────────────────────────────────────
 const double _kW = 794.0; // A4 portrait width at 96 DPI
 const double _kH = 1123.0; // A4 portrait height at 96 DPI
-const double _kPx = 2.0; // 2x capture pixel ratio
 
 // ── Public API ─────────────────────────────────────────────────────────────────
 
@@ -32,33 +28,6 @@ Future<void> previewMedical376FormPdf(
 ) async {
   final fileName =
       '376_Medical_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    final bytes = await _buildImagePdf(context, doc);
-    if (!context.mounted) return;
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    if (!context.mounted) return;
-    try {
-      final bytes = await _buildImagePdf(context, doc);
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } catch (_) {}
-  }
-}
-
-Future<Uint8List> generateMedical376FormPdf(Map<String, dynamic> doc) async {
-  return Uint8List(0);
-}
-
-// ── Image-based PDF Builder ───────────────────────────────────────────────────
-
-Future<Uint8List> _buildImagePdf(
-  BuildContext context,
-  Map<String, dynamic> doc,
-) async {
   final sectionKey = _v(doc, 'formSection').toLowerCase();
   final isFemaleSection = sectionKey.contains('female');
   final isMaleSection = sectionKey.contains('male') && !isFemaleSection;
@@ -84,90 +53,16 @@ Future<Uint8List> _buildImagePdf(
     pages.add(_pgFemale4(doc));
   }
 
-  final results = <({Uint8List bytes, double width, double height})>[];
-  for (final page in pages) {
-    results.add(await _capture(context, page));
-  }
-
-  // A4 width in PDF points at 72dpi: 595.28pt
-  final double a4PtWidth = PdfPageFormat.a4.width;
-
-  final pdfDoc = pw.Document();
-  for (final r in results) {
-    // Scale the page format height proportionally to the captured image
-    final capturedAspect = r.height / r.width;
-    final pageHeightPt = a4PtWidth * capturedAspect;
-    final pageFormat = PdfPageFormat(a4PtWidth, pageHeightPt);
-    pdfDoc.addPage(
-      pw.Page(
-        pageFormat: pageFormat,
-        margin: pw.EdgeInsets.zero,
-        build: (_) => pw.Image(
-          pw.MemoryImage(r.bytes),
-          fit: pw.BoxFit.fill,
-          width: pageFormat.width,
-          height: pageFormat.height,
-        ),
-      ),
-    );
-  }
-
-  return pdfDoc.save();
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: pages,
+    height: null,
+  );
 }
 
-/// Captures [widget] as a PNG.
-/// The widget is laid out at [_kW] width but with **unconstrained** height so
-/// that short pages don't produce a large blank white gap in the PDF.
-/// Returns the bytes together with the actual rendered width/height in logical pixels.
-Future<({Uint8List bytes, double width, double height})> _capture(
-  BuildContext ctx,
-  Widget widget,
-) async {
-  final key = GlobalKey();
-  final comp = Completer<({Uint8List bytes, double width, double height})>();
-  OverlayEntry? ent;
-
-  // IntrinsicHeight forces the Column inside each page to measure its real content
-  // height rather than expanding to fill the loose Overlay/Stack constraint.
-  ent = OverlayEntry(
-    builder: (_) => Positioned(
-      left: -(_kW + 80),
-      top: 0,
-      width: _kW,
-      child: RepaintBoundary(
-        key: key,
-        child: Material(
-          color: Colors.white,
-          child: IntrinsicHeight(child: widget),
-        ),
-      ),
-    ),
-  );
-
-  try {
-    Overlay.of(ctx).insert(ent);
-    await WidgetsBinding.instance.endOfFrame;
-    await Future.delayed(const Duration(milliseconds: 700));
-
-    final ro = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (ro == null) throw Exception('RenderRepaintBoundary not found');
-
-    // Record actual rendered size before capturing
-    final renderSize = ro.size;
-    final img = await ro.toImage(pixelRatio: _kPx);
-    final bd = await img.toByteData(format: ui.ImageByteFormat.png);
-    if (bd == null) throw Exception('toByteData returned null');
-    comp.complete((
-      bytes: bd.buffer.asUint8List(),
-      width: renderSize.width,
-      height: renderSize.height,
-    ));
-  } catch (e, st) {
-    comp.completeError(e, st);
-  } finally {
-    ent.remove();
-  }
-  return comp.future;
+Future<Uint8List> generateMedical376FormPdf(Map<String, dynamic> doc) async {
+  return Uint8List(0);
 }
 
 // ── Typography & Helper Styles ─────────────────────────────────────────────────

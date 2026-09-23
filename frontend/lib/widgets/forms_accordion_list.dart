@@ -458,36 +458,37 @@ class _FormsAccordionListState extends State<FormsAccordionList> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: widget.entries.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 6),
-      itemBuilder: (context, index) {
-        final entry = widget.entries[index];
-        if (entry.opensSingleSubSectionDirectly) {
-          final sub = entry.subSections.first;
-          return _StandaloneFormRow(
-            title: entry.title,
-            onTap: () => widget.onSelect(entry, subSection: sub),
-          );
-        }
-        if (entry.hasSubSections) {
-          return _ParentFormRow(
-            entry: entry,
-            expanded: _expandedIndices.contains(index),
-            onHeaderTap: () => _toggleExpanded(index),
-            onOpenFullForm:
-                entry.allowCompleteForm ? () => widget.onSelect(entry) : null,
-            onChildTap: (section) =>
-                widget.onSelect(entry, subSection: section),
-          );
-        }
-        return _StandaloneFormRow(
+    final children = <Widget>[];
+    for (int index = 0; index < widget.entries.length; index++) {
+      if (index > 0) children.add(const SizedBox(height: 6));
+      final entry = widget.entries[index];
+      if (entry.opensSingleSubSectionDirectly) {
+        final sub = entry.subSections.first;
+        children.add(_StandaloneFormRow(
+          title: entry.title,
+          onTap: () => widget.onSelect(entry, subSection: sub),
+        ));
+      } else if (entry.hasSubSections) {
+        children.add(_ParentFormRow(
+          entry: entry,
+          expanded: _expandedIndices.contains(index),
+          onHeaderTap: () => _toggleExpanded(index),
+          onOpenFullForm:
+              entry.allowCompleteForm ? () => widget.onSelect(entry) : null,
+          onChildTap: (section) =>
+              widget.onSelect(entry, subSection: section),
+        ));
+      } else {
+        children.add(_StandaloneFormRow(
           title: entry.title,
           onTap: () => widget.onSelect(entry),
-        );
-      },
+        ));
+      }
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
     );
   }
 }
@@ -503,32 +504,34 @@ class _StandaloneFormRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(AppRadius.md),
-      child: InkWell(
-        onTap: onTap,
+    return RepaintBoundary(
+      child: Material(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          child: Row(
-            children: [
-              const Icon(Icons.description_outlined,
-                  size: 20, color: AppColors.navyMid),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  TranslationHelper.translate(context, title),
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.navyDark,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            child: Row(
+              children: [
+                const Icon(Icons.description_outlined,
+                    size: 20, color: AppColors.navyMid),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    TranslationHelper.translate(context, title),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark,
+                    ),
                   ),
                 ),
-              ),
-              Icon(Icons.chevron_right_rounded,
-                  color: AppColors.navyMid.withValues(alpha: 0.5)),
-            ],
+                Icon(Icons.chevron_right_rounded,
+                    color: AppColors.navyMid.withValues(alpha: 0.5)),
+              ],
+            ),
           ),
         ),
       ),
@@ -555,9 +558,10 @@ class _ParentFormRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final sectionCount = entry.subSections.length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return RepaintBoundary(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         Material(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(
@@ -639,6 +643,7 @@ class _ParentFormRow extends StatelessWidget {
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeInOut,
           alignment: Alignment.topCenter,
+          clipBehavior: Clip.none,
           child: expanded
               ? Container(
                   decoration: BoxDecoration(
@@ -755,6 +760,7 @@ class _ParentFormRow extends StatelessWidget {
               : const SizedBox(width: double.infinity),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 }

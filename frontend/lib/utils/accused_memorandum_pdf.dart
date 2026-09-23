@@ -8,19 +8,17 @@
 // for 100% Devanagari/Marathi accuracy with zero edge cropping.
 
 import 'dart:async';
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
-const double _kW = 794.0;
-const double _kH = 1123.0;
-const double _kPx = 2.0;
+import 'form_image_pdf_helper.dart';
+
+const double _kW = FormImagePdfHelper.a4Width;
+const double _kH = FormImagePdfHelper.a4Height;
 
 Future<void> previewAccusedMemorandumPdf(
   BuildContext context,
@@ -28,28 +26,6 @@ Future<void> previewAccusedMemorandumPdf(
 ) async {
   final fileName =
       'Accused_Memorandum_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    final bytes = await _buildImagePdf(context, doc);
-    if (!context.mounted) return;
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (e) {
-    debugPrint('Error generating image-based Accused Memorandum PDF: $e');
-    if (!context.mounted) return;
-    try {
-      final bytes = await generateAccusedMemorandumPdf(doc);
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } catch (_) {}
-  }
-}
-
-Future<Uint8List> _buildImagePdf(
-  BuildContext context,
-  Map<String, dynamic> doc,
-) async {
   final sectionStr = (doc['formSection'] ?? '').toString().toLowerCase().trim();
   final isPartIOnly = sectionStr == 'accused part i' ||
       (sectionStr.contains('part i') && !sectionStr.contains('part ii'));
@@ -60,65 +36,12 @@ Future<Uint8List> _buildImagePdf(
   if (!isPartIIOnly) pages.add(_pg1(doc));
   if (!isPartIOnly) pages.add(_pg2(doc));
 
-  final pngs = <Uint8List>[];
-  for (final p in pages) {
-    pngs.add(await _capture(context, p));
-  }
-
-  final pdfDoc = pw.Document();
-  for (final png in pngs) {
-    pdfDoc.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.zero,
-        build: (_) => pw.Image(
-          pw.MemoryImage(png),
-          fit: pw.BoxFit.contain,
-        ),
-      ),
-    );
-  }
-  return pdfDoc.save();
-}
-
-Future<Uint8List> _capture(BuildContext ctx, Widget widget) async {
-  final key = GlobalKey();
-  final comp = Completer<Uint8List>();
-  OverlayEntry? ent;
-
-  ent = OverlayEntry(
-    builder: (_) => Positioned(
-      left: -(_kW + 80),
-      top: 0,
-      width: _kW,
-      height: _kH,
-      child: RepaintBoundary(
-        key: key,
-        child: Material(
-          color: Colors.white,
-          child: widget,
-        ),
-      ),
-    ),
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: pages,
+    fallbackPdfGenerator: () => generateAccusedMemorandumPdf(doc),
   );
-
-  Overlay.of(ctx).insert(ent);
-
-  await WidgetsBinding.instance.endOfFrame;
-  await Future.delayed(const Duration(milliseconds: 700));
-
-  try {
-    final rb = key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-    final img = await rb.toImage(pixelRatio: _kPx);
-    final bd = await img.toByteData(format: ui.ImageByteFormat.png);
-    comp.complete(bd!.buffer.asUint8List());
-  } catch (e) {
-    comp.completeError(e);
-  } finally {
-    ent.remove();
-  }
-
-  return comp.future;
 }
 
 String _v(Map<String, dynamic> doc, String key, [String fallback = '']) {
@@ -181,6 +104,33 @@ Widget _bilingualField(String eng, String mr, String val,
   if (expand) return Expanded(child: content);
   if (width != null) return SizedBox(width: width, child: content);
   return content;
+}
+
+class _PdfRuledLinesPainter extends CustomPainter {
+  final double lineHeight;
+  final Color lineColor;
+
+  const _PdfRuledLinesPainter({
+    this.lineHeight = 22.0,
+    this.lineColor = const Color(0xFFCCCCCC),
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 0.6
+      ..style = PaintingStyle.stroke;
+
+    final count = (size.height / lineHeight).floor();
+    for (int i = 1; i <= count; i++) {
+      final y = i * lineHeight;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PdfRuledLinesPainter oldDelegate) => false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -312,7 +262,7 @@ Widget _pg1(Map<String, dynamic> doc) {
         ),
         const SizedBox(height: 8),
 
-        // Section 4: Memorandum Text
+        // Section 4: Memorandum Text (Expanded with authentic ruled lines)
         Row(
           children: [
             Text('4) Memorandum made by Accused: - ', style: _eBld(9.5)),
@@ -320,17 +270,45 @@ Widget _pg1(Map<String, dynamic> doc) {
           ],
         ),
         const SizedBox(height: 3),
-        Container(
-          width: double.infinity,
-          height: 120,
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black87, width: 0.8),
-            borderRadius: BorderRadius.circular(2),
-          ),
-          child: Text(
-            memo.isNotEmpty ? memo : ' ',
-            style: memo.isNotEmpty ? _valStyle(9.5) : _mReg(9.5),
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black87, width: 0.8),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: Stack(
+                children: [
+                  const Positioned.fill(
+                    child: CustomPaint(
+                      painter: _PdfRuledLinesPainter(
+                        lineHeight: 22.0,
+                        lineColor: Color(0xFFCCCCCC),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 0),
+                      child: Text(
+                        memo.isNotEmpty ? memo : ' ',
+                        style: (memo.isNotEmpty ? _valStyle(9.5) : _mReg(9.5))
+                            .copyWith(height: 22.0 / 9.5),
+                        strutStyle: const StrutStyle(
+                          fontSize: 9.5,
+                          height: 22.0 / 9.5,
+                          forceStrutHeight: true,
+                        ),
+                        overflow: TextOverflow.clip,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -427,7 +405,7 @@ Widget _pg1(Map<String, dynamic> doc) {
             ),
           ],
         ),
-        const Spacer(),
+        const SizedBox(height: 14),
 
         // Section 7: Signatures (Part I)
         Row(
@@ -439,7 +417,7 @@ Widget _pg1(Map<String, dynamic> doc) {
               children: [
                 Text('7) Accused Signature and Thumb', style: _eBld(9.5)),
                 Text('   आरोपीची सही व अंगठा', style: _mBld(9)),
-                const SizedBox(height: 18),
+                const SizedBox(height: 14),
                 Text(
                   part1AccusedSig.isNotEmpty
                       ? part1AccusedSig
@@ -468,7 +446,7 @@ Widget _pg1(Map<String, dynamic> doc) {
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
       ],
     ),
   );
@@ -540,7 +518,7 @@ Widget _pg2(Map<String, dynamic> doc) {
         const Divider(color: Colors.black87, thickness: 1),
         const SizedBox(height: 8),
 
-        // Section 8: Details of Further Panchanama
+        // Section 8: Details of Further Panchanama (Expanded with authentic ruled lines)
         Row(
           children: [
             Text('8) Details of Further Panchanama: ', style: _eBld(10)),
@@ -548,20 +526,48 @@ Widget _pg2(Map<String, dynamic> doc) {
           ],
         ),
         const SizedBox(height: 4),
-        Container(
-          width: double.infinity,
-          height: 320,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black87, width: 0.8),
-            borderRadius: BorderRadius.circular(2),
-          ),
-          child: Text(
-            further.isNotEmpty ? further : ' ',
-            style: further.isNotEmpty ? _valStyle(9.8) : _mReg(9.8),
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black87, width: 0.8),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: Stack(
+                children: [
+                  const Positioned.fill(
+                    child: CustomPaint(
+                      painter: _PdfRuledLinesPainter(
+                        lineHeight: 22.0,
+                        lineColor: Color(0xFFCCCCCC),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 0),
+                      child: Text(
+                        further.isNotEmpty ? further : ' ',
+                        style: (further.isNotEmpty ? _valStyle(9.8) : _mReg(9.8))
+                            .copyWith(height: 22.0 / 9.8),
+                        strutStyle: const StrutStyle(
+                          fontSize: 9.8,
+                          height: 22.0 / 9.8,
+                          forceStrutHeight: true,
+                        ),
+                        overflow: TextOverflow.clip,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
 
         // Date & Time
         Row(
@@ -571,7 +577,7 @@ Widget _pg2(Map<String, dynamic> doc) {
             _bilingualField('Time:', 'वेळ', furtherTime, width: 140),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
 
         // Section 9: Panchas (Part II)
         Row(
@@ -649,7 +655,7 @@ Widget _pg2(Map<String, dynamic> doc) {
             ),
           ],
         ),
-        const Spacer(),
+        const SizedBox(height: 14),
 
         // Section 10: Signatures (Part II)
         Row(

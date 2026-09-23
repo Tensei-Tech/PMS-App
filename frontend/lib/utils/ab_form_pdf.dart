@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -40,6 +41,7 @@ Future<void> previewAbFormPdf(
     context,
     fileName: fileName,
     pages: pages,
+    height: null,
     fallbackPdfGenerator: () => generateAbFormPdf(doc),
   );
 }
@@ -730,8 +732,66 @@ pw.Widget _pdfExamRow(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari Font Shaping) ──
+// ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari & Latin Layout Match) ──
 // ══════════════════════════════════════════════════════════════════════════════
+
+Widget _underlineField(
+  String value, {
+  double? width,
+  double minWidth = 40,
+  String? hintText,
+  TextAlign textAlign = TextAlign.start,
+  double fontSize = 12.5,
+  FontWeight fontWeight = FontWeight.w600,
+  bool fullWidth = false,
+}) {
+  final hasVal = value.trim().isNotEmpty;
+  return Container(
+    width: fullWidth ? double.infinity : width,
+    constraints: BoxConstraints(minWidth: minWidth),
+    padding: const EdgeInsets.only(bottom: 2, left: 3, right: 3),
+    decoration: const BoxDecoration(
+      border: Border(
+        bottom: BorderSide(color: Colors.black54, width: 1.0),
+      ),
+    ),
+    child: Text(
+      hasVal ? value : (hintText ?? ' '),
+      textAlign: textAlign,
+      style: GoogleFonts.lora(
+        fontSize: fontSize,
+        fontWeight: hasVal ? fontWeight : FontWeight.normal,
+        color: hasVal ? const Color(0xFF0D47A1) : Colors.black38,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    ),
+  );
+}
+
+Widget _buildExamRow(
+  String label,
+  String value, {
+  double width = 140,
+  String? suffix,
+  required TextStyle boldStyle,
+  TextStyle? bodyStyle,
+}) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.end,
+    children: [
+      SizedBox(
+        width: 75,
+        child: Text(label, style: boldStyle),
+      ),
+      _underlineField(value, width: width),
+      if (suffix != null) ...[
+        const SizedBox(width: 8),
+        Expanded(child: Text(suffix, style: bodyStyle ?? boldStyle)),
+      ],
+    ],
+  );
+}
 
 Widget _buildPg1Widget(Map<String, dynamic> doc) {
   String v(String key, [String fallback = '']) {
@@ -765,327 +825,304 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
   final examinedSignature = v('examinedSignature');
   final identificationMarks = v('identificationMarks');
 
-  const line =
-      '------------------------------------------------------------------------------------------------------------------';
+  final bodyStyle = GoogleFonts.lora(
+    fontSize: 12.5,
+    fontWeight: FontWeight.normal,
+    color: Colors.black87,
+    height: 1.45,
+  );
+  final boldStyle = GoogleFonts.lora(
+    fontSize: 12.5,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    height: 1.4,
+  );
 
-  Widget examRow(String label, String value, {String? suffix}) {
-    return Row(
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    constraints: const BoxConstraints(minHeight: FormImagePdfHelper.a4Height),
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 34),
+    child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 70,
-          child: Text(label, style: FormImagePdfHelper.mBld(10)),
+        // Top Right Page Label
+        Align(
+          alignment: Alignment.topRight,
+          child: Text(
+            'Page 1 — Form A (See Rule No 3)',
+            style: boldStyle.copyWith(
+              fontSize: 13,
+              decoration: TextDecoration.underline,
+            ),
+          ),
         ),
-        Text(
-          value.isNotEmpty
-              ? '  $value  '
-              : '................................... ',
-          style: value.isNotEmpty
-              ? FormImagePdfHelper.valStyle(10)
-              : FormImagePdfHelper.mReg(10),
-        ),
-        if (suffix != null) ...[
-          Expanded(child: Text(suffix, style: FormImagePdfHelper.mBld(10))),
-        ],
-      ],
-    );
-  }
+        const SizedBox(height: 6),
 
-  return FormImagePdfHelper.buildA4Page(
-    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 26),
-    children: [
-      Center(
-        child: Text(
-          'Form A',
-          style: FormImagePdfHelper.mBld(15).copyWith(
-            decoration: TextDecoration.underline,
-          ),
-        ),
-      ),
-      const SizedBox(height: 2),
-      Center(
-        child: Text('(See Rule No 3)', style: FormImagePdfHelper.mBld(11)),
-      ),
-      const SizedBox(height: 6),
-      Center(
-        child: Text(
-          'Certificate by registered medical practioner aboving where person examined by him has or has not consumed an intoxicant.',
-          style: FormImagePdfHelper.mBld(10),
-          textAlign: TextAlign.center,
-        ),
-      ),
-      const SizedBox(height: 6),
-      Align(
-        alignment: Alignment.centerRight,
-        child: Text.rich(
-          TextSpan(
-            style: FormImagePdfHelper.mBld(10.5),
+        // Top Center Title
+        Center(
+          child: Column(
             children: [
-              const TextSpan(text: 'Serial No : '),
-              TextSpan(
-                text: serialNo.isNotEmpty ? serialNo : '....................',
-                style: serialNo.isNotEmpty
-                    ? FormImagePdfHelper.valStyle(10.5)
-                    : FormImagePdfHelper.mReg(10.5),
+              Text(
+                'Form A',
+                style: boldStyle.copyWith(
+                  fontSize: 16,
+                  decoration: TextDecoration.underline,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '(See Rule No 3)',
+                style: boldStyle.copyWith(fontSize: 12.5),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-      ),
-      const SizedBox(height: 6),
-      Text('(Name and location of the Dispensary of Hospital)',
-          style: FormImagePdfHelper.mBld(10)),
-      const SizedBox(height: 1),
-      Text(
-        dispensary.isNotEmpty ? dispensary : line,
-        style: dispensary.isNotEmpty
-            ? FormImagePdfHelper.valStyle(10)
-            : FormImagePdfHelper.mReg(10),
-      ),
-      const SizedBox(height: 6),
-      Text.rich(
-        TextSpan(
-          style: FormImagePdfHelper.mReg(10, 1.4),
-          children: [
-            const TextSpan(text: '•   Certified that Shri/Smt/Kumari '),
-            TextSpan(
-              text: personName.isNotEmpty
-                  ? personName
-                  : '...........................................................................................',
-              style: personName.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            if (personNameCont.isNotEmpty) ...[
-              TextSpan(text: ' $personNameCont'),
+        const SizedBox(height: 6),
+
+        // Subtitle
+        Center(
+          child: Text(
+            'Certificate by registered medical practioner aboving where person examined by him has or has not consumed an intoxicant.',
+            style: boldStyle.copyWith(fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Serial No (Right Aligned)
+        Align(
+          alignment: Alignment.centerRight,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Serial No : ', style: boldStyle),
+              _underlineField(serialNo, width: 140),
             ],
-            const TextSpan(
-                text: ' was brought to this hospital /dispensary by '),
-            TextSpan(
-              text: broughtBy.isNotEmpty
-                  ? broughtBy
-                  : '.................................',
-              style: broughtBy.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            TextSpan(
-              text: broughtOfficerTitle.isNotEmpty
-                  ? ' ($broughtOfficerTitle) '
-                  : ' (here state name and designation of the officer) ',
-              style: broughtOfficerTitle.isNotEmpty
-                  ? FormImagePdfHelper.mBld(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            const TextSpan(text: 'on '),
-            TextSpan(
-              text: broughtDate.isNotEmpty
-                  ? broughtDate
-                  : '............................................................',
-              style: broughtDate.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            const TextSpan(text: ' at '),
-            TextSpan(
-              text: broughtTime.isNotEmpty
-                  ? broughtTime
-                  : '..............................',
-              style: broughtTime.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            const TextSpan(text: ' (a.m./p.m. and was examined by MO ) on '),
-            TextSpan(
-              text: examinedDate.isNotEmpty
-                  ? examinedDate
-                  : '.........................',
-              style: examinedDate.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            const TextSpan(text: ' at '),
-            TextSpan(
-              text: examinedTime.isNotEmpty ? examinedTime : '................',
-              style: examinedTime.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            const TextSpan(text: ' a.m./p.m.'),
-          ],
+          ),
         ),
-        textAlign: TextAlign.justify,
-      ),
-      const SizedBox(height: 8),
-      Text(
-        'A clinical examination of the above named person disclosed the following :-',
-        style: FormImagePdfHelper.mBld(10.5),
-      ),
-      const SizedBox(height: 4),
-      examRow('Age :', age),
-      const SizedBox(height: 3),
-      examRow('Weight:', weight),
-      const SizedBox(height: 3),
-      examRow('Breath :', breath,
-          suffix: 'smelling/Not smelling of Alcohol/Opium/Charas/Ganja/Bhang'),
-      const SizedBox(height: 3),
-      examRow('Speech :', speech, suffix: 'Incoherent/Normal'),
-      const SizedBox(height: 3),
-      examRow('Gait  :', gait, suffix: 'unstead/Steady.'),
-      const SizedBox(height: 3),
-      examRow('Pupiles.', pupils, suffix: 'Dilated/Normal'),
-      const SizedBox(height: 3),
-      Text.rich(
-        TextSpan(
-          style: FormImagePdfHelper.mBld(10),
-          children: [
-            const TextSpan(text: 'Additional remarks any '),
-            TextSpan(
-              text: additionalRemarks.isNotEmpty
-                  ? additionalRemarks
-                  : '.........................................................................',
-              style: additionalRemarks.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-          ],
-        ),
-      ),
-      const SizedBox(height: 8),
-      Text(
-        '        I find that the above named person has consumed/has not consumed Alcohol/Opium/\nCharas/Ganja/Bhang/any toxicant I also find that he is/is not under the Influence of alcohol',
-        style: FormImagePdfHelper.mBld(10),
-      ),
-      if (consumed.isNotEmpty) ...[
+        const SizedBox(height: 10),
+
+        // Hospital / Dispensary
+        Text('(Name and location of the Dispensary of Hospital)', style: boldStyle),
         const SizedBox(height: 2),
-        Text('Remarks: $consumed', style: FormImagePdfHelper.valStyle(10)),
-      ],
-      const SizedBox(height: 6),
-      Text.rich(
-        TextSpan(
-          style: FormImagePdfHelper.mBld(10),
+        _underlineField(dispensary, fullWidth: true),
+        const SizedBox(height: 10),
+
+        // Certified that Shri/Smt/Kumari Paragraph
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 6,
           children: [
-            const TextSpan(text: '(N.B. '),
-            TextSpan(
-              text:
-                  bloodCollected.isNotEmpty ? bloodCollected : '.............',
-              style: bloodCollected.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            const TextSpan(
-              text:
-                  ' Blood from the body of the above named was/was not collected by MO for Chemical examination )',
+            Text('•   Certified that Shri/Smt/Kumari', style: boldStyle),
+            _underlineField(personName, width: 320),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _underlineField(personNameCont, fullWidth: true),
+        const SizedBox(height: 4),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 6,
+          children: [
+            Text('was brought to this hospital /dispensary by', style: bodyStyle),
+            _underlineField(broughtBy, width: 250),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _underlineField(
+          broughtOfficerTitle,
+          fullWidth: true,
+          hintText: '(here state name and designation of the officer)',
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 6,
+          children: [
+            Text('on', style: bodyStyle),
+            _underlineField(broughtDate, width: 140),
+            Text('at', style: bodyStyle),
+            _underlineField(broughtTime, width: 110),
+            Text('(and was examined by MO )', style: bodyStyle),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 6,
+          children: [
+            Text('on', style: bodyStyle),
+            _underlineField(examinedDate, width: 140),
+            Text('at', style: bodyStyle),
+            _underlineField(examinedTime, width: 110),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Clinical Examination Heading
+        Text(
+          'A clinical examination of the above named person disclosed the following :-',
+          style: boldStyle,
+        ),
+        const SizedBox(height: 6),
+
+        // Examination Items
+        _buildExamRow('Age :', age, width: 140, boldStyle: boldStyle),
+        const SizedBox(height: 5),
+        _buildExamRow('Weight:', weight, width: 140, boldStyle: boldStyle),
+        const SizedBox(height: 5),
+        _buildExamRow(
+          'Breath :',
+          breath,
+          width: 140,
+          suffix: 'smelling/Not smelling of Alcohol/Opium/Charas/Ganja/Bhang',
+          boldStyle: boldStyle,
+          bodyStyle: bodyStyle,
+        ),
+        const SizedBox(height: 5),
+        _buildExamRow(
+          'Speech :',
+          speech,
+          width: 140,
+          suffix: 'Incoherent/Normal',
+          boldStyle: boldStyle,
+          bodyStyle: bodyStyle,
+        ),
+        const SizedBox(height: 5),
+        _buildExamRow(
+          'Gait  :',
+          gait,
+          width: 140,
+          suffix: 'unstead/Steady.',
+          boldStyle: boldStyle,
+          bodyStyle: bodyStyle,
+        ),
+        const SizedBox(height: 5),
+        _buildExamRow(
+          'Pupiles.',
+          pupils,
+          width: 140,
+          suffix: 'Dilated/Normal',
+          boldStyle: boldStyle,
+          bodyStyle: bodyStyle,
+        ),
+        const SizedBox(height: 5),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('Additional remarks any ', style: boldStyle),
+            Expanded(child: _underlineField(additionalRemarks, fullWidth: true)),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Finding Paragraph
+        Text(
+          '        I find that the above named person has consumed/has not consumed Alcohol/Opium/\nCharas/Ganja/Bhang/any toxicant I also find that he is/is not under the influence of alcohol',
+          style: boldStyle.copyWith(height: 1.35),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Text('Finding / Remarks: ', style: boldStyle),
+            Expanded(
+              child: _underlineField(
+                consumed,
+                fullWidth: true,
+                hintText: '[consumed / has not consumed / under influence]',
+              ),
             ),
           ],
         ),
-      ),
-      const SizedBox(height: 10),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text.rich(
-                TextSpan(
-                  style: FormImagePdfHelper.mBld(10),
+        const SizedBox(height: 8),
+
+        // N.B. Blood collection
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 4,
+          children: [
+            Text('(N.B.', style: boldStyle),
+            _underlineField(bloodCollected, width: 100, hintText: 'was / was not'),
+            Text(
+              'Blood from the body of the above named was/was not collected by MO for Chemical examination )',
+              style: boldStyle,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // Dated / Time & Signature / Designation
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const TextSpan(text: 'Dated '),
-                    TextSpan(
-                      text: formADated.isNotEmpty
-                          ? formADated
-                          : '.................................................',
-                      style: formADated.isNotEmpty
-                          ? FormImagePdfHelper.valStyle(10)
-                          : FormImagePdfHelper.mReg(10),
-                    ),
+                    Text('Dated  ', style: boldStyle),
+                    _underlineField(formADated, width: 160),
                   ],
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text.rich(
-                TextSpan(
-                  style: FormImagePdfHelper.mBld(10),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const TextSpan(text: 'Time  '),
-                    TextSpan(
-                      text: formATime.isNotEmpty
-                          ? formATime
-                          : '.................................................',
-                      style: formATime.isNotEmpty
-                          ? FormImagePdfHelper.valStyle(10)
-                          : FormImagePdfHelper.mReg(10),
-                    ),
+                    Text('Time   ', style: boldStyle),
+                    _underlineField(formATime, width: 160),
                   ],
                 ),
-              ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text.rich(
-                TextSpan(
-                  style: FormImagePdfHelper.mBld(10),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const TextSpan(text: 'Signature '),
-                    TextSpan(
-                      text: moSignature.isNotEmpty
-                          ? moSignature
-                          : '.................................................',
-                      style: moSignature.isNotEmpty
-                          ? FormImagePdfHelper.valStyle(10)
-                          : FormImagePdfHelper.mReg(10),
-                    ),
+                    Text('Signature ', style: boldStyle),
+                    _underlineField(moSignature, width: 160),
                   ],
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text.rich(
-                TextSpan(
-                  style: FormImagePdfHelper.mBld(10),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const TextSpan(text: 'Designation '),
-                    TextSpan(
-                      text: moDesignation.isNotEmpty
-                          ? moDesignation
-                          : '.................................................',
-                      style: moDesignation.isNotEmpty
-                          ? FormImagePdfHelper.valStyle(10)
-                          : FormImagePdfHelper.mReg(10),
-                    ),
+                    Text('Designation ', style: boldStyle),
+                    _underlineField(moDesignation, width: 160),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      const SizedBox(height: 10),
-      Text('Signature/Thumb impression of the person examined',
-          style: FormImagePdfHelper.mBld(10)),
-      const SizedBox(height: 1),
-      Text(
-        examinedSignature.isNotEmpty ? examinedSignature : line,
-        style: examinedSignature.isNotEmpty
-            ? FormImagePdfHelper.valStyle(10)
-            : FormImagePdfHelper.mReg(10),
-      ),
-      const SizedBox(height: 6),
-      Text(
-        'Marks of Identification of the person examined in case he refuses to given his signature\n/Thumb impression',
-        style: FormImagePdfHelper.mBld(10),
-      ),
-      const SizedBox(height: 1),
-      Text(
-        identificationMarks.isNotEmpty ? identificationMarks : line,
-        style: identificationMarks.isNotEmpty
-            ? FormImagePdfHelper.valStyle(10)
-            : FormImagePdfHelper.mReg(10),
-      ),
-    ],
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Signature/Thumb impression of person examined
+        Text('Signature/Thumb impression of the person examined', style: boldStyle),
+        const SizedBox(height: 2),
+        _underlineField(examinedSignature, fullWidth: true),
+        const SizedBox(height: 8),
+
+        // Marks of identification
+        Text(
+          'Marks of Identification of the person examined in case he refuses to given his signature /Thumb impression',
+          style: boldStyle.copyWith(height: 1.25),
+        ),
+        const SizedBox(height: 2),
+        _underlineField(identificationMarks, fullWidth: true),
+      ],
+    ),
   );
 }
 
@@ -1126,250 +1163,239 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   final producedByCont = v('producedByCont');
   final formBSignature = v('formBSignature', moSignature);
 
-  const midLine =
-      '--------------------------------------------------------------------';
+  final bodyStyle = GoogleFonts.lora(
+    fontSize: 12.5,
+    fontWeight: FontWeight.normal,
+    color: Colors.black87,
+    height: 1.45,
+  );
+  final boldStyle = GoogleFonts.lora(
+    fontSize: 12.5,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    height: 1.4,
+  );
 
-  return FormImagePdfHelper.buildA4Page(
-    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 26),
-    children: [
-      Center(
-        child: Text(
-          'FORM "B"',
-          style: FormImagePdfHelper.mBld(15).copyWith(
-            decoration: TextDecoration.underline,
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    constraints: const BoxConstraints(minHeight: FormImagePdfHelper.a4Height),
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 34),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Top Right Page Label
+        Align(
+          alignment: Alignment.topRight,
+          child: Text(
+            'Page 2 — FORM "B" (See rule 4 (2))',
+            style: boldStyle.copyWith(
+              fontSize: 13,
+              decoration: TextDecoration.underline,
+            ),
           ),
         ),
-      ),
-      const SizedBox(height: 2),
-      Center(
-        child: Text('(See rule 4 (2))', style: FormImagePdfHelper.mBld(11)),
-      ),
-      const SizedBox(height: 6),
-      Align(
-        alignment: Alignment.centerRight,
-        child: Text.rich(
-          TextSpan(
-            style: FormImagePdfHelper.mBld(10),
+        const SizedBox(height: 6),
+
+        // Top Center Title
+        Center(
+          child: Column(
             children: [
-              const TextSpan(text: 'No. '),
-              TextSpan(
-                text: formBNo.isNotEmpty
-                    ? formBNo
-                    : '........................................',
-                style: formBNo.isNotEmpty
-                    ? FormImagePdfHelper.valStyle(10)
-                    : FormImagePdfHelper.mReg(10),
+              Text(
+                'FORM "B"',
+                style: boldStyle.copyWith(
+                  fontSize: 16,
+                  decoration: TextDecoration.underline,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '(See rule 4 (2))',
+                style: boldStyle.copyWith(fontSize: 12.5),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-      ),
-      const SizedBox(height: 4),
-      Text('From,', style: FormImagePdfHelper.mBld(10.5)),
-      const SizedBox(height: 1),
-      Text(
+        const SizedBox(height: 8),
+
+        // No. (Top Right)
+        Align(
+          alignment: Alignment.centerRight,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('No. ', style: boldStyle),
+              _underlineField(formBNo, width: 180),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // From
+        Text('From,', style: boldStyle),
+        const SizedBox(height: 2),
+        Text(
           '(Name, Designation and address of the registred medical practioner)',
-          style: FormImagePdfHelper.mBld(10)),
-      const SizedBox(height: 1),
-      Text(
-        fromPractitionerLine1.isNotEmpty ? fromPractitionerLine1 : midLine,
-        style: fromPractitionerLine1.isNotEmpty
-            ? FormImagePdfHelper.valStyle(10)
-            : FormImagePdfHelper.mReg(10),
-      ),
-      const SizedBox(height: 1),
-      Text(
-        fromPractitionerLine2.isNotEmpty ? fromPractitionerLine2 : midLine,
-        style: fromPractitionerLine2.isNotEmpty
-            ? FormImagePdfHelper.valStyle(10)
-            : FormImagePdfHelper.mReg(10),
-      ),
-      const SizedBox(height: 6),
-      Text('To,', style: FormImagePdfHelper.mBld(10.5)),
-      const SizedBox(height: 1),
-      Text('(Name and address of the Testing Officer)',
-          style: FormImagePdfHelper.mBld(10)),
-      const SizedBox(height: 1),
-      Text(
-        toTestingOfficerLine1.isNotEmpty ? toTestingOfficerLine1 : midLine,
-        style: toTestingOfficerLine1.isNotEmpty
-            ? FormImagePdfHelper.valStyle(10)
-            : FormImagePdfHelper.mReg(10),
-      ),
-      const SizedBox(height: 1),
-      Text(
-        toTestingOfficerLine2.isNotEmpty ? toTestingOfficerLine2 : midLine,
-        style: toTestingOfficerLine2.isNotEmpty
-            ? FormImagePdfHelper.valStyle(10)
-            : FormImagePdfHelper.mReg(10),
-      ),
-      const SizedBox(height: 6),
-      Align(
-        alignment: Alignment.centerRight,
-        child: Text.rich(
-          TextSpan(
-            style: FormImagePdfHelper.mBld(10),
+          style: boldStyle,
+        ),
+        const SizedBox(height: 2),
+        _underlineField(fromPractitionerLine1, fullWidth: true),
+        const SizedBox(height: 4),
+        _underlineField(fromPractitionerLine2, fullWidth: true),
+        const SizedBox(height: 8),
+
+        // To
+        Text('To,', style: boldStyle),
+        const SizedBox(height: 2),
+        Text(
+          '(Name and address of the Testing Officer)',
+          style: boldStyle,
+        ),
+        const SizedBox(height: 2),
+        _underlineField(toTestingOfficerLine1, fullWidth: true),
+        const SizedBox(height: 4),
+        _underlineField(toTestingOfficerLine2, fullWidth: true),
+        const SizedBox(height: 8),
+
+        // Date (Right Aligned)
+        Align(
+          alignment: Alignment.centerRight,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const TextSpan(text: 'Date :- '),
-              TextSpan(
-                text: formBDate.isNotEmpty ? formBDate : '....................',
-                style: formBDate.isNotEmpty
-                    ? FormImagePdfHelper.valStyle(10)
-                    : FormImagePdfHelper.mReg(10),
+              Text('Date :- ', style: boldStyle),
+              _underlineField(formBDate, width: 140),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        // Salutation
+        Text('Sir,', style: boldStyle),
+        const SizedBox(height: 6),
+
+        // Flowing Main Body Paragraph
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 6,
+          children: [
+            const SizedBox(width: 32), // Indent
+            Text('I forward here with by post / with Shri.', style: bodyStyle),
+            _underlineField(messengerName, width: 180),
+            Text('of', style: bodyStyle),
+            _underlineField(policeStation, width: 170),
+            Text('Police station a phial bearing serial No.', style: bodyStyle),
+            _underlineField(phialSerial, width: 130),
+            Text('containing', style: bodyStyle),
+            _underlineField(bloodAmountCc.isNotEmpty ? bloodAmountCc : '5', width: 60),
+            Text('c.c. of venues blood collected by me on', style: bodyStyle),
+            _underlineField(collectionDate, width: 130),
+            Text('at', style: bodyStyle),
+            _underlineField(collectionTime, width: 110, hintText: 'Time'),
+            Text('from the body of Shri/smt/Kumari', style: bodyStyle),
+            _underlineField(subjectName, width: 200),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _underlineField(subjectNameCont, fullWidth: true),
+        const SizedBox(height: 4),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 6,
+          children: [
+            Text('of', style: bodyStyle),
+            _underlineField(subjectAddress, width: 260),
+            Text(
+              'who was produced before me for medical examination and / or collection of blood from his / her body by',
+              style: bodyStyle,
+            ),
+            _underlineField(producedBy, width: 180),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _underlineField(producedByCont, fullWidth: true),
+        const SizedBox(height: 6),
+        Text(
+          'and request you to test the blood and issue a certificate ( in duplicates ) regarding the result of the test.',
+          style: bodyStyle,
+        ),
+        const SizedBox(height: 14),
+
+        // Yours Faithfully & Signature
+        Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 32),
+            child: Text('Yours Faithfully,', style: boldStyle),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _underlineField(
+                formBSignature,
+                width: 250,
+                hintText: '[Signature & Designation]',
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Signature and designation of the registered medical\npractioner.',
+                style: boldStyle,
+                textAlign: TextAlign.right,
               ),
             ],
           ),
         ),
-      ),
-      const SizedBox(height: 4),
-      Text('Sir,', style: FormImagePdfHelper.mBld(10.5)),
-      const SizedBox(height: 6),
-      Text.rich(
-        TextSpan(
-          style: FormImagePdfHelper.mReg(10, 1.4),
-          children: [
-            const TextSpan(
-                text: '        I forward here with by post / with Shri. '),
-            TextSpan(
-              text: messengerName.isNotEmpty
-                  ? messengerName
-                  : '..............................................',
-              style: messengerName.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            TextSpan(
-                text:
-                    ' of ${policeStation.isNotEmpty ? policeStation : '....................................'} Police station a phial bearing serial No. '),
-            TextSpan(
-              text: phialSerial.isNotEmpty
-                  ? phialSerial
-                  : '........................................',
-              style: phialSerial.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            TextSpan(
-                text:
-                    ' containing ${bloodAmountCc.isNotEmpty ? bloodAmountCc : '.....'} c.c. of venues blood collected by me on '),
-            TextSpan(
-              text: collectionDate.isNotEmpty
-                  ? collectionDate
-                  : '.......................................',
-              style: collectionDate.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            const TextSpan(text: ' at '),
-            TextSpan(
-              text: collectionTime.isNotEmpty
-                  ? collectionTime
-                  : '.....................',
-              style: collectionTime.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            const TextSpan(
-                text: ' a.m./p.m. from the body of Shri/smt/Kumari '),
-            TextSpan(
-              text: subjectName.isNotEmpty
-                  ? subjectName
-                  : '.......................................',
-              style: subjectName.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            if (subjectNameCont.isNotEmpty) ...[
-              TextSpan(text: ' $subjectNameCont'),
-            ],
-            const TextSpan(text: ' of '),
-            TextSpan(
-              text: subjectAddress.isNotEmpty
-                  ? subjectAddress
-                  : '...........................................................',
-              style: subjectAddress.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            const TextSpan(
-                text:
-                    ' who was produced before me for medical examination and / or collection of blood from his / her body by '),
-            TextSpan(
-              text: producedBy.isNotEmpty ? producedBy : '...................',
-              style: producedBy.isNotEmpty
-                  ? FormImagePdfHelper.valStyle(10)
-                  : FormImagePdfHelper.mReg(10),
-            ),
-            if (producedByCont.isNotEmpty) ...[
-              TextSpan(text: ' $producedByCont'),
-            ],
-            const TextSpan(
-                text:
-                    ' and request you to test the blood and issue a certificate ( in duplicates ) regarding the result of the test.'),
-          ],
+        const SizedBox(height: 12),
+
+        // Facsimile Seal Box
+        Text(
+          'Fascimile of the seal or Monogram\nused for sealing the phial containing the blood.',
+          style: boldStyle,
         ),
-        textAlign: TextAlign.justify,
-      ),
-      const SizedBox(height: 16),
-      Align(
-        alignment: Alignment.centerRight,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 24),
-          child: Text('Yours Faithfully,', style: FormImagePdfHelper.mBld(10)),
-        ),
-      ),
-      const SizedBox(height: 16),
-      Align(
-        alignment: Alignment.centerRight,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (formBSignature.isNotEmpty)
-              Text(formBSignature, style: FormImagePdfHelper.valStyle(10))
-            else
-              const SizedBox(height: 12),
-            Text(
-              'Signature and designation of the registered medical\npractioner.',
-              style: FormImagePdfHelper.mBld(10),
-              textAlign: TextAlign.right,
+        const SizedBox(height: 6),
+        Container(
+          width: 140,
+          height: 65,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black54, width: 1),
+          ),
+          child: const Center(
+            child: Text(
+              '[ SEAL / STAMP ]',
+              style: TextStyle(color: Colors.black38, fontSize: 11),
             ),
-          ],
+          ),
         ),
-      ),
-      const SizedBox(height: 10),
-      Text(
-        'Fascimile of the seal or Monogram\nused for sealing the phial containing the blood.',
-        style: FormImagePdfHelper.mBld(10),
-      ),
-      const SizedBox(height: 4),
-      Container(
-        width: 120,
-        height: 50,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade600, width: 0.8),
+        const SizedBox(height: 14),
+
+        // Horizontal Divider Line
+        const Divider(color: Colors.black87, thickness: 1),
+        const SizedBox(height: 6),
+
+        // Footnotes
+        Text(
+          'Here specify the name, designation and address of the messenger with whom the phial containing the blood is forwarded for delivery to the Testing.',
+          style: bodyStyle.copyWith(fontSize: 10.5),
         ),
-        child: const Center(
-          child: Text('[ SEAL ]',
-              style: TextStyle(color: Colors.grey, fontSize: 9)),
+        const SizedBox(height: 4),
+        Text(
+          'Strike off, if these words are not required.',
+          style: bodyStyle.copyWith(fontSize: 10.5),
         ),
-      ),
-      const SizedBox(height: 10),
-      const Divider(color: Colors.black, thickness: 0.8),
-      const SizedBox(height: 4),
-      Text(
-        'Here specify the name, designation and address of the messenger with whom the phial containing the blood is forwarded for delivery to the Testing.',
-        style: FormImagePdfHelper.mReg(8),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        'Strike off, if these words are not required.',
-        style: FormImagePdfHelper.mReg(8),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        'Here state the name and designation of the officer by whom the said person was produced for collection of blood.',
-        style: FormImagePdfHelper.mReg(8),
-      ),
-    ],
+        const SizedBox(height: 4),
+        Text(
+          'Here state the name and designation of the officer by whom the said person was produced for collection of blood.',
+          style: bodyStyle.copyWith(fontSize: 10.5),
+        ),
+      ],
+    ),
   );
 }

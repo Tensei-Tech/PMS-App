@@ -1848,52 +1848,58 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       builder: (context, _) {
         final text =
             controller.text.isEmpty ? (hintText ?? '') : controller.text;
-        final tp = TextPainter(
-          text: TextSpan(
-            text: text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
+
+        double calcWidth = baseWidth;
+        if (text.isNotEmpty && (text.length * 12.0 + 16.0 > baseWidth)) {
+          final tp = TextPainter(
+            text: TextSpan(
+              text: text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+              ),
             ),
-          ),
-          textDirection: TextDirection.ltr,
-          maxLines: 1,
-        )..layout();
-
-        final measured = tp.width + 16.0;
-        final calcWidth = measured > baseWidth
-            ? (measured > 800.0 ? 800.0 : measured)
-            : baseWidth;
-
-        return SizedBox(
-          width: calcWidth,
-          child: TextFormField(
-            controller: controller,
-            readOnly: widget.readOnly,
+            textDirection: TextDirection.ltr,
             maxLines: 1,
-            keyboardType: TextInputType.text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
-              color: const Color(0xFF0D47A1),
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: false,
-              fillColor: Colors.transparent,
-              hintText: hintText,
-              hintStyle: style.copyWith(
-                  fontSize: 11,
-                  color: Colors.grey.shade400,
-                  fontStyle: FontStyle.italic),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              border: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF333333), width: 1.0)),
-              enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
-              focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+          )..layout();
+
+          final measured = tp.width + 16.0;
+          calcWidth = measured > baseWidth
+              ? (measured > 800.0 ? 800.0 : measured)
+              : baseWidth;
+        }
+
+        return RepaintBoundary(
+          child: SizedBox(
+            width: calcWidth,
+            child: TextFormField(
+              controller: controller,
+              readOnly: widget.readOnly,
+              maxLines: 1,
+              keyboardType: TextInputType.text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+                color: const Color(0xFF0D47A1),
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                fillColor: Colors.transparent,
+                hintText: hintText,
+                hintStyle: style.copyWith(
+                    fontSize: 11,
+                    color: Colors.grey.shade400,
+                    fontStyle: FontStyle.italic),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF333333), width: 1.0)),
+                enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+                focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+              ),
             ),
           ),
         );
@@ -1906,29 +1912,31 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     required TextStyle style,
     int minLines = 1,
   }) {
-    return TextFormField(
-      controller: controller,
-      readOnly: widget.readOnly,
-      minLines: minLines,
-      maxLines: null,
-      keyboardType: TextInputType.multiline,
-      style: style.copyWith(
-        fontWeight: FontWeight.w500,
-        fontSize: 13.5,
-        height: 1.4,
-        color: const Color(0xFF0D47A1),
-      ),
-      decoration: const InputDecoration(
-        isDense: true,
-        filled: false,
-        fillColor: Colors.transparent,
-        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        border: UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
-        enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
-        focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+    return RepaintBoundary(
+      child: TextFormField(
+        controller: controller,
+        readOnly: widget.readOnly,
+        minLines: minLines,
+        maxLines: null,
+        keyboardType: TextInputType.multiline,
+        style: style.copyWith(
+          fontWeight: FontWeight.w500,
+          fontSize: 13.5,
+          height: 1.4,
+          color: const Color(0xFF0D47A1),
+        ),
+        decoration: const InputDecoration(
+          isDense: true,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          border: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+          enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+          focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+        ),
       ),
     );
   }
@@ -2204,56 +2212,62 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       builder: (context, _) {
         final text =
             controller.text.isEmpty ? (hintText ?? '') : controller.text;
-        final tp = TextPainter(
-          text: TextSpan(
-            text: text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
+
+        double calcWidth = effectiveMin;
+        if (text.isNotEmpty && (text.length * 12.0 + 20.0 > effectiveMin)) {
+          final tp = TextPainter(
+            text: TextSpan(
+              text: text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+              ),
             ),
-          ),
-          textDirection: TextDirection.ltr,
-          maxLines: 1,
-        )..layout();
-
-        final measured = tp.width + 20.0;
-        final calcWidth = measured < effectiveMin
-            ? effectiveMin
-            : (measured > 800.0 ? 800.0 : measured);
-
-        return SizedBox(
-          width: calcWidth,
-          child: TextFormField(
-            controller: controller,
-            readOnly: widget.readOnly,
+            textDirection: TextDirection.ltr,
             maxLines: 1,
-            keyboardType: TextInputType.text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
-              color: const Color(0xFF0D47A1),
-              height: 1.35,
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: false,
-              fillColor: Colors.transparent,
-              hintText: hintText,
-              hintStyle: style.copyWith(
-                fontSize: 11,
-                color: Colors.grey.shade400,
-                fontStyle: FontStyle.italic,
+          )..layout();
+
+          final measured = tp.width + 20.0;
+          calcWidth = measured < effectiveMin
+              ? effectiveMin
+              : (measured > 800.0 ? 800.0 : measured);
+        }
+
+        return RepaintBoundary(
+          child: SizedBox(
+            width: calcWidth,
+            child: TextFormField(
+              controller: controller,
+              readOnly: widget.readOnly,
+              maxLines: 1,
+              keyboardType: TextInputType.text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+                color: const Color(0xFF0D47A1),
+                height: 1.35,
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-              border: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
-              ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0),
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                fillColor: Colors.transparent,
+                hintText: hintText,
+                hintStyle: style.copyWith(
+                  fontSize: 11,
+                  color: Colors.grey.shade400,
+                  fontStyle: FontStyle.italic,
+                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                border: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+                ),
+                enabledBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+                ),
+                focusedBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                ),
               ),
             ),
           ),
@@ -2284,69 +2298,76 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             final text =
                 controller.text.isEmpty ? (hintText ?? '') : controller.text;
 
-            final tp = TextPainter(
-              text: TextSpan(
-                text: text,
-                style: style.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: baseFontSize,
-                ),
-              ),
-              textDirection: TextDirection.ltr,
-              maxLines: 1,
-            )..layout();
-
             double effectiveFontSize = baseFontSize;
-            final double textW = tp.width + 12.0;
+            double widthToUse = hasFiniteWidth ? availableWidth : baseMin;
 
-            if (hasFiniteWidth &&
-                textW > availableWidth &&
-                availableWidth > 30) {
-              final scale =
-                  ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
-              effectiveFontSize =
-                  (baseFontSize * scale).clamp(8.5, baseFontSize);
+            if (text.isNotEmpty &&
+                (!hasFiniteWidth || (text.length * 12.0 + 12.0 > availableWidth))) {
+              final tp = TextPainter(
+                text: TextSpan(
+                  text: text,
+                  style: style.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: baseFontSize,
+                  ),
+                ),
+                textDirection: TextDirection.ltr,
+                maxLines: 1,
+              )..layout();
+
+              final double textW = tp.width + 12.0;
+
+              if (hasFiniteWidth &&
+                  textW > availableWidth &&
+                  availableWidth > 30) {
+                final scale =
+                    ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+                effectiveFontSize =
+                    (baseFontSize * scale).clamp(8.5, baseFontSize);
+              }
+
+              widthToUse =
+                  hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
             }
 
-            final widthToUse =
-                hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
-
-            return SizedBox(
-              width: widthToUse,
-              child: TextFormField(
-                controller: controller,
-                readOnly: widget.readOnly,
-                maxLines: 1,
-                keyboardType: TextInputType.text,
-                style: style.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: effectiveFontSize,
-                  color: const Color(0xFF0D47A1),
-                  height: 1.25,
-                ),
-                decoration: InputDecoration(
-                  isDense: true,
-                  filled: false,
-                  fillColor: Colors.transparent,
-                  hintText: hintText,
-                  hintStyle: style.copyWith(
-                    fontSize: 11,
-                    color: Colors.grey.shade400,
-                    fontStyle: FontStyle.italic,
+            return RepaintBoundary(
+              child: SizedBox(
+                width: widthToUse,
+                child: TextFormField(
+                  controller: controller,
+                  readOnly: widget.readOnly,
+                  maxLines: 1,
+                  keyboardType: TextInputType.text,
+                  style: style.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: effectiveFontSize,
+                    color: const Color(0xFF0D47A1),
+                    height: 1.25,
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-                  border: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF333333), width: 1.0),
-                  ),
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF555555), width: 1.0),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: false,
+                    fillColor: Colors.transparent,
+                    hintText: hintText,
+                    hintStyle: style.copyWith(
+                      fontSize: 11,
+                      color: Colors.grey.shade400,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    border: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF333333), width: 1.0),
+                    ),
+                    enabledBorder: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF555555), width: 1.0),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                    ),
                   ),
                 ),
               ),

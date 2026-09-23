@@ -165,68 +165,76 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
 
             int lines = minLines;
             if (value.text.isNotEmpty) {
-              final textPainter = TextPainter(
-                text: TextSpan(text: value.text, style: textStyle),
-                textDirection: TextDirection.ltr,
-                strutStyle: const StrutStyle(
-                  fontSize: 14,
-                  height: _lineHeight / 14.0,
-                  forceStrutHeight: true,
-                ),
-              );
-              textPainter.layout(maxWidth: textWidth > 0 ? textWidth : 100);
-              final count = textPainter.computeLineMetrics().length;
-              final newlineCount = '\n'.allMatches(value.text).length + 1;
-              final detected = count > newlineCount ? count : newlineCount;
-              if (detected > minLines) {
-                lines = detected;
+              final hasNewlines = value.text.contains('\n');
+              // Fast path: if text is short and has no newlines, it trivially fits in minLines
+              if (!hasNewlines && value.text.length < (textWidth > 0 ? (textWidth / 10) : 40)) {
+                lines = minLines;
+              } else {
+                final textPainter = TextPainter(
+                  text: TextSpan(text: value.text, style: textStyle),
+                  textDirection: TextDirection.ltr,
+                  strutStyle: const StrutStyle(
+                    fontSize: 14,
+                    height: _lineHeight / 14.0,
+                    forceStrutHeight: true,
+                  ),
+                );
+                textPainter.layout(maxWidth: textWidth > 0 ? textWidth : 100);
+                final count = textPainter.computeLineMetrics().length;
+                final newlineCount = '\n'.allMatches(value.text).length + 1;
+                final detected = count > newlineCount ? count : newlineCount;
+                if (detected > minLines) {
+                  lines = detected;
+                }
               }
             }
 
             final totalHeight = lines * _lineHeight;
 
-            return SizedBox(
-              height: totalHeight,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CustomPaint(
-                    size: Size(constraints.maxWidth, totalHeight),
-                    painter: _LinedBackgroundPainter(
-                      lines: lines,
-                      lineHeight: _lineHeight,
+            return RepaintBoundary(
+              child: SizedBox(
+                height: totalHeight,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CustomPaint(
+                      size: Size(constraints.maxWidth, totalHeight),
+                      painter: _LinedBackgroundPainter(
+                        lines: lines,
+                        lineHeight: _lineHeight,
+                      ),
                     ),
-                  ),
-                  TextField(
-                    controller: effectiveController,
-                    textAlign: TextAlign.start,
-                    textAlignVertical: TextAlignVertical.top,
-                    minLines: lines,
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline,
-                    strutStyle: const StrutStyle(
-                      fontSize: 14,
-                      height: _lineHeight / 14.0,
-                      forceStrutHeight: true,
+                    TextField(
+                      controller: effectiveController,
+                      textAlign: TextAlign.start,
+                      textAlignVertical: TextAlignVertical.top,
+                      minLines: lines,
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                      strutStyle: const StrutStyle(
+                        fontSize: 14,
+                        height: _lineHeight / 14.0,
+                        forceStrutHeight: true,
+                      ),
+                      style: textStyle,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        isCollapsed: true,
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                        fillColor: Colors.transparent,
+                        filled: true,
+                        hoverColor: Colors.transparent,
+                        focusColor: Colors.transparent,
+                      ),
                     ),
-                    style: textStyle,
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      isCollapsed: true,
-                      border: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                      fillColor: Colors.transparent,
-                      filled: true,
-                      hoverColor: Colors.transparent,
-                      focusColor: Colors.transparent,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },
