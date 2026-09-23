@@ -147,8 +147,8 @@ class FormImagePdfHelper {
         await Future.delayed(Duration.zero);
         onProgress?.call(i + 1, pages.length);
 
-        final rb =
-            keys[i].currentContext?.findRenderObject() as RenderRepaintBoundary?;
+        final rb = keys[i].currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
         if (rb == null) {
           throw StateError('RenderRepaintBoundary missing for page ${i + 1}');
         }
@@ -170,8 +170,8 @@ class FormImagePdfHelper {
       if (height != null) {
         format = PdfPageFormat.a4;
       } else {
-        final aspect =
-            page.size.height / (page.size.width > 0 ? page.size.width : a4Width);
+        final aspect = page.size.height /
+            (page.size.width > 0 ? page.size.width : a4Width);
         format = PdfPageFormat(a4PtWidth, a4PtWidth * aspect);
       }
       pdfDoc.addPage(

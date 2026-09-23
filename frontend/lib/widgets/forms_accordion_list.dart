@@ -475,8 +475,7 @@ class _FormsAccordionListState extends State<FormsAccordionList> {
           onHeaderTap: () => _toggleExpanded(index),
           onOpenFullForm:
               entry.allowCompleteForm ? () => widget.onSelect(entry) : null,
-          onChildTap: (section) =>
-              widget.onSelect(entry, subSection: section),
+          onChildTap: (section) => widget.onSelect(entry, subSection: section),
         ));
       } else {
         children.add(_StandaloneFormRow(
@@ -562,205 +561,207 @@ class _ParentFormRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-        Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(
-            top: const Radius.circular(AppRadius.md),
-            bottom:
-                expanded ? Radius.zero : const Radius.circular(AppRadius.md),
-          ),
-          child: InkWell(
-            onTap: onHeaderTap,
+          Material(
+            color: Colors.white,
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.md),
               bottom:
                   expanded ? Radius.zero : const Radius.circular(AppRadius.md),
             ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
-              child: Row(
-                children: [
-                  const Icon(Icons.folder_outlined,
-                      size: 20, color: AppColors.navyMid),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          TranslationHelper.translate(context, entry.title),
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark,
-                          ),
-                        ),
-                        if (!expanded && sectionCount > 0)
+            child: InkWell(
+              onTap: onHeaderTap,
+              borderRadius: BorderRadius.vertical(
+                top: const Radius.circular(AppRadius.md),
+                bottom: expanded
+                    ? Radius.zero
+                    : const Radius.circular(AppRadius.md),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
+                child: Row(
+                  children: [
+                    const Icon(Icons.folder_outlined,
+                        size: 20, color: AppColors.navyMid),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            '$sectionCount ${TranslationHelper.translate(context, 'sub-sections — tap to expand')}',
+                            TranslationHelper.translate(context, entry.title),
                             style: GoogleFonts.poppins(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.navyMid.withValues(alpha: 0.75),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark,
                             ),
                           ),
-                      ],
+                          if (!expanded && sectionCount > 0)
+                            Text(
+                              '$sectionCount ${TranslationHelper.translate(context, 'sub-sections — tap to expand')}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color:
+                                    AppColors.navyMid.withValues(alpha: 0.75),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyMid.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$sectionCount',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '$sectionCount',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                    const SizedBox(width: 4),
+                    AnimatedRotation(
+                      turns: expanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
                         color: AppColors.navyMid,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  AnimatedRotation(
-                    turns: expanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.navyMid,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeInOut,
-          alignment: Alignment.topCenter,
-          clipBehavior: Clip.none,
-          child: expanded
-              ? Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.navyMid.withValues(alpha: 0.04),
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(AppRadius.md),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeInOut,
+            alignment: Alignment.topCenter,
+            clipBehavior: Clip.none,
+            child: expanded
+                ? Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.navyMid.withValues(alpha: 0.04),
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(AppRadius.md),
+                      ),
+                      border: const Border(
+                        top: BorderSide(color: AppColors.lightBorder),
+                      ),
                     ),
-                    border: const Border(
-                      top: BorderSide(color: AppColors.lightBorder),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (onOpenFullForm != null) ...[
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: onOpenFullForm,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(44, 12, 14, 12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 1),
-                                    child: Icon(
-                                      Icons.layers_outlined,
-                                      size: 18,
-                                      color: AppColors.goldPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      TranslationHelper.translate(context,
-                                          'Complete form (all sections)'),
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.navyDark,
-                                        height: 1.35,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (onOpenFullForm != null) ...[
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: onOpenFullForm,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(44, 12, 14, 12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 1),
+                                      child: Icon(
+                                        Icons.layers_outlined,
+                                        size: 18,
+                                        color: AppColors.goldPrimary,
                                       ),
                                     ),
-                                  ),
-                                  Icon(Icons.chevron_right_rounded,
-                                      size: 18,
-                                      color: AppColors.navyMid
-                                          .withValues(alpha: 0.4)),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        TranslationHelper.translate(context,
+                                            'Complete form (all sections)'),
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.navyDark,
+                                          height: 1.35,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(Icons.chevron_right_rounded,
+                                        size: 18,
+                                        color: AppColors.navyMid
+                                            .withValues(alpha: 0.4)),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const Divider(
-                          height: 1,
-                          indent: 44,
-                          color: AppColors.lightBorder,
-                        ),
-                      ],
-                      for (var i = 0; i < entry.subSections.length; i++) ...[
-                        if (i > 0)
                           const Divider(
                             height: 1,
                             indent: 44,
                             color: AppColors.lightBorder,
                           ),
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => onChildTap(entry.subSections[i]),
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(44, 12, 14, 12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 1),
-                                    child: Icon(
-                                      Icons.subdirectory_arrow_right_rounded,
-                                      size: 18,
-                                      color: AppColors.navyMid
-                                          .withValues(alpha: 0.7),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      entry.subSections[i]
-                                          .getTranslatedDisplayLabel(context),
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: AppColors.navyDark,
-                                        height: 1.35,
+                        ],
+                        for (var i = 0; i < entry.subSections.length; i++) ...[
+                          if (i > 0)
+                            const Divider(
+                              height: 1,
+                              indent: 44,
+                              color: AppColors.lightBorder,
+                            ),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => onChildTap(entry.subSections[i]),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(44, 12, 14, 12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 1),
+                                      child: Icon(
+                                        Icons.subdirectory_arrow_right_rounded,
+                                        size: 18,
+                                        color: AppColors.navyMid
+                                            .withValues(alpha: 0.7),
                                       ),
                                     ),
-                                  ),
-                                  Icon(Icons.chevron_right_rounded,
-                                      size: 18,
-                                      color: AppColors.navyMid
-                                          .withValues(alpha: 0.4)),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        entry.subSections[i]
+                                            .getTranslatedDisplayLabel(context),
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.navyDark,
+                                          height: 1.35,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(Icons.chevron_right_rounded,
+                                        size: 18,
+                                        color: AppColors.navyMid
+                                            .withValues(alpha: 0.4)),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
-                  ),
-                )
-              : const SizedBox(width: double.infinity),
-        ),
-      ],
-    ),
-  );
-}
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+        ],
+      ),
+    );
+  }
 }

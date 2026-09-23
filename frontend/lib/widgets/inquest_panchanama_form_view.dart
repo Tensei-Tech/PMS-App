@@ -1894,11 +1894,14 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 border: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF333333), width: 1.0)),
+                    borderSide:
+                        BorderSide(color: Color(0xFF333333), width: 1.0)),
                 enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+                    borderSide:
+                        BorderSide(color: Color(0xFF555555), width: 1.0)),
                 focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+                    borderSide:
+                        BorderSide(color: Color(0xFF1976D2), width: 2.0)),
               ),
             ),
           ),
@@ -2302,7 +2305,8 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             double widthToUse = hasFiniteWidth ? availableWidth : baseMin;
 
             if (text.isNotEmpty &&
-                (!hasFiniteWidth || (text.length * 12.0 + 12.0 > availableWidth))) {
+                (!hasFiniteWidth ||
+                    (text.length * 12.0 + 12.0 > availableWidth))) {
               final tp = TextPainter(
                 text: TextSpan(
                   text: text,
@@ -2326,8 +2330,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     (baseFontSize * scale).clamp(8.5, baseFontSize);
               }
 
-              widthToUse =
-                  hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
+              widthToUse = hasFiniteWidth
+                  ? availableWidth
+                  : textW.clamp(baseMin, baseMax);
             }
 
             return RepaintBoundary(

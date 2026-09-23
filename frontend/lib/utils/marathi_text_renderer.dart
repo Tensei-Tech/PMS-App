@@ -217,10 +217,12 @@ class MarathiImageCache {
 
     if (height != null && width == null) {
       targetH = height;
-      targetW = data.height > 0 ? (data.width * (targetH / data.height)) : data.width;
+      targetW =
+          data.height > 0 ? (data.width * (targetH / data.height)) : data.width;
     } else if (width != null && height == null) {
       targetW = width;
-      targetH = data.width > 0 ? (data.height * (targetW / data.width)) : data.height;
+      targetH =
+          data.width > 0 ? (data.height * (targetW / data.width)) : data.height;
     } else if (width != null && height != null) {
       targetW = width;
       targetH = height;

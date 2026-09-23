@@ -21,8 +21,7 @@ Future<void> preloadOrderSection4748PdfFonts() async {
   try {
     _cachedDevanagariRegular ??=
         await PdfGoogleFonts.notoSansDevanagariRegular();
-    _cachedDevanagariBold ??=
-        await PdfGoogleFonts.notoSansDevanagariBold();
+    _cachedDevanagariBold ??= await PdfGoogleFonts.notoSansDevanagariBold();
   } catch (_) {}
 }
 
@@ -143,8 +142,10 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
 
   // Pre-render static labels
   await cache.add('p1_title', 'नोटीस', titleStyle, textAlign: TextAlign.center);
-  await cache.add('p1_sub', 'बी.एन.एस.एस.कलम ४७(१)', subTitleStyle, textAlign: TextAlign.center);
-  await cache.add('p2_sub', 'बी.एन.एस.एस.कलम ४८', subTitleStyle, textAlign: TextAlign.center);
+  await cache.add('p1_sub', 'बी.एन.एस.एस.कलम ४७(१)', subTitleStyle,
+      textAlign: TextAlign.center);
+  await cache.add('p2_sub', 'बी.एन.एस.एस.कलम ४८', subTitleStyle,
+      textAlign: TextAlign.center);
   await cache.add(
     'badge_p1',
     pageRange.isNotEmpty ? pageRange : 'Page 1 — नोटीस बी.एन.एस.एस.कलम ४७(१)',
@@ -156,8 +157,14 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
     watermarkStyle,
   );
   await cache.add('lbl_to', 'प्रति,', boldLabelStyle);
-  await cache.add('p1_sub_line', 'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...', boldLabelStyle);
-  await cache.add('p2_sub_line', 'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...', boldLabelStyle);
+  await cache.add(
+      'p1_sub_line',
+      'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...',
+      boldLabelStyle);
+  await cache.add(
+      'p2_sub_line',
+      'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...',
+      boldLabelStyle);
   await cache.add('lbl_a', 'अ) गुन्ह्याची थोडक्यात हकीगत :-', boldLabelStyle);
   await cache.add('lbl_b', 'ब) अटक करण्यासंबंधाने आधार :-', boldLabelStyle);
   await cache.add('lbl_c', 'क) अटकेची कारणे :-', boldLabelStyle);
@@ -189,9 +196,13 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
     regularTextStyle.copyWith(fontSize: 10, color: Colors.black54),
     textAlign: TextAlign.center,
   );
-  await cache.add('p1_sig_accused', 'आरोपीची स्वाक्षरी / अंगठा', boldLabelStyle, textAlign: TextAlign.center);
-  await cache.add('p2_sig_relative', 'नातेवाईकाची स्वाक्षरी / अंगठा', boldLabelStyle, textAlign: TextAlign.center);
-  await cache.add('lbl_sig_io', 'तपासणी अधिकारी / अंमलदार', boldLabelStyle, textAlign: TextAlign.center);
+  await cache.add('p1_sig_accused', 'आरोपीची स्वाक्षरी / अंगठा', boldLabelStyle,
+      textAlign: TextAlign.center);
+  await cache.add(
+      'p2_sig_relative', 'नातेवाईकाची स्वाक्षरी / अंगठा', boldLabelStyle,
+      textAlign: TextAlign.center);
+  await cache.add('lbl_sig_io', 'तपासणी अधिकारी / अंमलदार', boldLabelStyle,
+      textAlign: TextAlign.center);
 
   final policeStation = fld(['policeStation', 'ps', 'n47PoliceStation']);
   final crNo = fld(['crNo', 'firNo', 'n47CrNo']);
@@ -204,13 +215,15 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
   // Page 1 fields
   final p1To1 = fld(['p1To1', 'accusedName', 'n47To']);
   final p1RemandDate = fld(['p1RemandDate', 'arrestDate'], arrestDate);
-  final p1AccusedSig = fld(['p1AccusedSig', 'n47AccusedSig', 'n47AccusedName'], p1To1);
+  final p1AccusedSig =
+      fld(['p1AccusedSig', 'n47AccusedSig', 'n47AccusedName'], p1To1);
   final p1IoSig = fld(['p1IoSig', 'n47IoName', 'ioName'], ioName);
 
   // Page 2 fields
   final p2To1 = fld(['p2To1', 'n48To']);
   final p2AccusedName = fld(['p2AccusedName', 'accusedName', 'p1To1'], p1To1);
-  final p2RemandDate = fld(['p2RemandDate', 'p1RemandDate', 'arrestDate'], p1RemandDate);
+  final p2RemandDate =
+      fld(['p2RemandDate', 'p1RemandDate', 'arrestDate'], p1RemandDate);
   final p2RelativeSig = fld(['p2RelativeSig', 'n48RelativeSig'], p2To1);
   final p2IoSig = fld(['p2IoSig', 'n48IoName', 'ioName'], ioName);
 
@@ -234,7 +247,9 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
       ),
       const TextSpan(text: ' भा.न्या.सं.कलम '),
       TextSpan(
-        text: bnsSection.isNotEmpty ? '  $bnsSection  ' : '                        ',
+        text: bnsSection.isNotEmpty
+            ? '  $bnsSection  '
+            : '                        ',
         style: valueUnderlineStyle,
       ),
       const TextSpan(
@@ -253,7 +268,8 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
           text: ' वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे :-'),
     ],
   );
-  await cache.addSpan('p1_notice_para', p1NoticeSpan, maxWidth: 515, textAlign: TextAlign.justify);
+  await cache.addSpan('p1_notice_para', p1NoticeSpan,
+      maxWidth: 515, textAlign: TextAlign.justify);
 
   final p1RemandSpan = TextSpan(
     style: regularTextStyle,
@@ -268,7 +284,8 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
               ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.'),
     ],
   );
-  await cache.addSpan('p1_remand_clause', p1RemandSpan, maxWidth: 515, textAlign: TextAlign.left);
+  await cache.addSpan('p1_remand_clause', p1RemandSpan,
+      maxWidth: 515, textAlign: TextAlign.left);
 
   final p2NoticeSpan = TextSpan(
     style: regularTextStyle,
@@ -289,7 +306,9 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
       ),
       const TextSpan(text: ' भा.न्या.सं.कलम '),
       TextSpan(
-        text: bnsSection.isNotEmpty ? '  $bnsSection  ' : '                        ',
+        text: bnsSection.isNotEmpty
+            ? '  $bnsSection  '
+            : '                        ',
         style: valueUnderlineStyle,
       ),
       const TextSpan(
@@ -313,7 +332,8 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
       const TextSpan(text: ' वा. अटक करण्यात आली आहे.'),
     ],
   );
-  await cache.addSpan('p2_notice_para', p2NoticeSpan, maxWidth: 515, textAlign: TextAlign.justify);
+  await cache.addSpan('p2_notice_para', p2NoticeSpan,
+      maxWidth: 515, textAlign: TextAlign.justify);
 
   final p2RemandSpan = TextSpan(
     style: regularTextStyle,
@@ -328,7 +348,8 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
               ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.'),
     ],
   );
-  await cache.addSpan('p2_remand_clause', p2RemandSpan, maxWidth: 515, textAlign: TextAlign.left);
+  await cache.addSpan('p2_remand_clause', p2RemandSpan,
+      maxWidth: 515, textAlign: TextAlign.left);
 
   // Dynamic user-filled values
   Future<void> addVal(String key, String val, {double maxWidth = 480}) async {
@@ -390,8 +411,8 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
   final loraBold = await PdfGoogleFonts.loraBold();
   pw.Font? devanagariFont;
   try {
-    devanagariFont = _cachedDevanagariBold ??
-        await PdfGoogleFonts.notoSansDevanagariBold();
+    devanagariFont =
+        _cachedDevanagariBold ?? await PdfGoogleFonts.notoSansDevanagariBold();
   } catch (_) {}
   final cache = await _preRenderAllSection4748Marathi(doc);
 
@@ -485,7 +506,8 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
   final p1Reason3 = fld(['p1Reason3']);
   final p1Reason4 = fld(['p1Reason4']);
   final p1Reason5 = fld(['p1Reason5']);
-  final p1AccusedSig = fld(['p1AccusedSig', 'n47AccusedSig', 'n47AccusedName'], p1To1);
+  final p1AccusedSig =
+      fld(['p1AccusedSig', 'n47AccusedSig', 'n47AccusedName'], p1To1);
   final p1IoSig = fld(['p1IoSig', 'n47IoName', 'ioName'], ioName);
 
   // Page 2 fields
@@ -897,7 +919,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
   final p1Reason4 = fld(['p1Reason4']);
   final p1Reason5 = fld(['p1Reason5']);
   final p1RemandDate = fld(['p1RemandDate', 'arrestDate'], arrestDate);
-  final p1AccusedSig = fld(['p1AccusedSig', 'n47AccusedSig', 'n47AccusedName'], p1To1);
+  final p1AccusedSig =
+      fld(['p1AccusedSig', 'n47AccusedSig', 'n47AccusedName'], p1To1);
   final p1IoSig = fld(['p1IoSig', 'n47IoName', 'ioName'], ioName);
 
   final titleStyle = GoogleFonts.notoSansDevanagari(
@@ -1034,14 +1057,12 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         const SizedBox(height: 2),
         Center(child: Text('बी.एन.एस.एस.कलम ४७(१)', style: subTitleStyle)),
         const SizedBox(height: 10),
-
         Text('प्रति,', style: boldLabelStyle),
         const SizedBox(height: 4),
         buildRuledLine('', p1To1),
         buildRuledLine('', p1To2),
         buildRuledLine('', p1To3),
         const SizedBox(height: 8),
-
         Text(
           'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...',
           style: boldLabelStyle,
@@ -1054,29 +1075,35 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           children: [
             const SizedBox(width: 24),
             Text('आपणास याद्वारे कळविण्यात येते की,', style: bodyStyle),
-            buildUnderlineField(policeStation, width: 175, hint: 'पोलीस स्टेशन नाव'),
+            buildUnderlineField(policeStation,
+                width: 175, hint: 'पोलीस स्टेशन नाव'),
             Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: bodyStyle),
-            buildUnderlineField(crNo, width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
+            buildUnderlineField(crNo,
+                width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
             Text('/', style: bodyStyle),
-            buildUnderlineField(crYear, width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
+            buildUnderlineField(crYear,
+                width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
             Text('भा.न्या.सं.कलम', style: bodyStyle),
             buildUnderlineField(bnsSection, width: 190, hint: 'उदा. १०३, ३(५)'),
-            Text('या गुन्ह्याचे तपासात निष्पन्न झालेल्या पुराव्यावरून आपणास दिनांक', style: bodyStyle),
-            buildUnderlineField(arrestDate, width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+            Text(
+                'या गुन्ह्याचे तपासात निष्पन्न झालेल्या पुराव्यावरून आपणास दिनांक',
+                style: bodyStyle),
+            buildUnderlineField(arrestDate,
+                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
             Text('रोजी', style: bodyStyle),
-            buildUnderlineField(arrestTime, width: 100, hint: 'वेळ', icon: Icons.access_time),
-            Text('वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे :-', style: bodyStyle),
+            buildUnderlineField(arrestTime,
+                width: 100, hint: 'वेळ', icon: Icons.access_time),
+            Text('वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे :-',
+                style: bodyStyle),
           ],
         ),
         const SizedBox(height: 8),
-
         Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: boldLabelStyle),
         const SizedBox(height: 4),
         buildRuledLine('', p1Fact1),
         buildRuledLine('', p1Fact2),
         buildRuledLine('', p1Fact3),
         const SizedBox(height: 8),
-
         Text('ब) अटक करण्यासंबंधाने आधार :-', style: boldLabelStyle),
         const SizedBox(height: 4),
         buildRuledLine('१)', p1Ground1),
@@ -1085,7 +1112,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         buildRuledLine('४)', p1Ground4),
         buildRuledLine('५)', p1Ground5),
         const SizedBox(height: 8),
-
         Text('क) अटकेची कारणे :-', style: boldLabelStyle),
         const SizedBox(height: 4),
         buildRuledLine('१)', p1Reason1),
@@ -1094,30 +1120,27 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         buildRuledLine('४)', p1Reason4),
         buildRuledLine('५)', p1Reason5),
         const SizedBox(height: 8),
-
         Text(
           'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने आपण योग्य तो जामीन दिल्यास आपणास जामीनावर मुक्त करण्यात येईल.',
           style: bodyStyle,
           textAlign: TextAlign.justify,
         ),
         const SizedBox(height: 6),
-
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 4,
           runSpacing: 6,
           children: [
             Text('इ) आपणास दिनांक', style: bodyStyle),
-            buildUnderlineField(p1RemandDate, width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+            buildUnderlineField(p1RemandDate,
+                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
             Text(
               'रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
               style: bodyStyle,
             ),
           ],
         ),
-
         const Spacer(),
-
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
@@ -1126,7 +1149,6 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           ),
         ),
         const SizedBox(height: 8),
-
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -1160,11 +1182,14 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     alignment: Alignment.bottomCenter,
                     decoration: const BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: Color(0xFF616161), width: 0.85),
+                        bottom:
+                            BorderSide(color: Color(0xFF616161), width: 0.85),
                       ),
                     ),
                     child: Text(
-                      p1AccusedSig.isNotEmpty ? p1AccusedSig : (p1To1.isNotEmpty ? p1To1 : ''),
+                      p1AccusedSig.isNotEmpty
+                          ? p1AccusedSig
+                          : (p1To1.isNotEmpty ? p1To1 : ''),
                       style: valStyle.copyWith(fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1172,7 +1197,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('आरोपीची स्वाक्षरी / अंगठा', style: boldLabelStyle.copyWith(fontSize: 12)),
+                  Text('आरोपीची स्वाक्षरी / अंगठा',
+                      style: boldLabelStyle.copyWith(fontSize: 12)),
                 ],
               ),
             ),
@@ -1205,11 +1231,14 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     alignment: Alignment.bottomCenter,
                     decoration: const BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: Color(0xFF616161), width: 0.85),
+                        bottom:
+                            BorderSide(color: Color(0xFF616161), width: 0.85),
                       ),
                     ),
                     child: Text(
-                      p1IoSig.isNotEmpty ? p1IoSig : (ioName.isNotEmpty ? ioName : ''),
+                      p1IoSig.isNotEmpty
+                          ? p1IoSig
+                          : (ioName.isNotEmpty ? ioName : ''),
                       style: valStyle.copyWith(fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1217,7 +1246,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('तपासणी अधिकारी / अंमलदार', style: boldLabelStyle.copyWith(fontSize: 12)),
+                  Text('तपासणी अधिकारी / अंमलदार',
+                      style: boldLabelStyle.copyWith(fontSize: 12)),
                 ],
               ),
             ),
@@ -1280,7 +1310,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   final p2Reason3 = fld(['p2Reason3', 'p1Reason3'], p1Reason3);
   final p2Reason4 = fld(['p2Reason4', 'p1Reason4'], p1Reason4);
   final p2Reason5 = fld(['p2Reason5', 'p1Reason5'], p1Reason5);
-  final p2RemandDate = fld(['p2RemandDate', 'p1RemandDate', 'arrestDate'], p1RemandDate);
+  final p2RemandDate =
+      fld(['p2RemandDate', 'p1RemandDate', 'arrestDate'], p1RemandDate);
   final p2RelativeSig = fld(['p2RelativeSig', 'n48RelativeSig'], p2To1);
   final p2IoSig = fld(['p2IoSig', 'n48IoName', 'ioName'], ioName);
 
@@ -1418,14 +1449,12 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         const SizedBox(height: 2),
         Center(child: Text('बी.एन.एस.एस.कलम ४८', style: subTitleStyle)),
         const SizedBox(height: 10),
-
         Text('प्रति,', style: boldLabelStyle),
         const SizedBox(height: 4),
         buildRuledLine('', p2To1),
         buildRuledLine('', p2To2),
         buildRuledLine('', p2To3),
         const SizedBox(height: 8),
-
         Text(
           'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...',
           style: boldLabelStyle,
@@ -1438,31 +1467,36 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           children: [
             const SizedBox(width: 24),
             Text('आपणास याद्वारे कळविण्यात येते की,', style: bodyStyle),
-            buildUnderlineField(policeStation, width: 175, hint: 'पोलीस स्टेशन नाव'),
+            buildUnderlineField(policeStation,
+                width: 175, hint: 'पोलीस स्टेशन नाव'),
             Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: bodyStyle),
-            buildUnderlineField(crNo, width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
+            buildUnderlineField(crNo,
+                width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
             Text('/', style: bodyStyle),
-            buildUnderlineField(crYear, width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
+            buildUnderlineField(crYear,
+                width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
             Text('भा.न्या.सं.कलम', style: bodyStyle),
             buildUnderlineField(bnsSection, width: 190, hint: 'उदा. १०३, ३(५)'),
-            Text('या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे', style: bodyStyle),
-            buildUnderlineField(p2AccusedName, width: 230, hint: 'अटक व्यक्तीचे नाव'),
+            Text('या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे',
+                style: bodyStyle),
+            buildUnderlineField(p2AccusedName,
+                width: 230, hint: 'अटक व्यक्तीचे नाव'),
             Text('यांना दिनांक', style: bodyStyle),
-            buildUnderlineField(arrestDate, width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+            buildUnderlineField(arrestDate,
+                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
             Text('रोजी', style: bodyStyle),
-            buildUnderlineField(arrestTime, width: 100, hint: 'वेळ', icon: Icons.access_time),
+            buildUnderlineField(arrestTime,
+                width: 100, hint: 'वेळ', icon: Icons.access_time),
             Text('वा. अटक करण्यात आली आहे.', style: bodyStyle),
           ],
         ),
         const SizedBox(height: 8),
-
         Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: boldLabelStyle),
         const SizedBox(height: 4),
         buildRuledLine('', p2Fact1),
         buildRuledLine('', p2Fact2),
         buildRuledLine('', p2Fact3),
         const SizedBox(height: 8),
-
         Text('ब) अटक करण्यासंबंधाने आधार :-', style: boldLabelStyle),
         const SizedBox(height: 4),
         buildRuledLine('१)', p2Ground1),
@@ -1471,7 +1505,6 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         buildRuledLine('४)', p2Ground4),
         buildRuledLine('५)', p2Ground5),
         const SizedBox(height: 8),
-
         Text('क) अटकेची कारणे :-', style: boldLabelStyle),
         const SizedBox(height: 4),
         buildRuledLine('१)', p2Reason1),
@@ -1480,30 +1513,27 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         buildRuledLine('४)', p2Reason4),
         buildRuledLine('५)', p2Reason5),
         const SizedBox(height: 8),
-
         Text(
           'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने योग्य तो जामीन दिल्यास अटक व्यक्तीस जामीनावर मुक्त करण्यात येईल.',
           style: bodyStyle,
           textAlign: TextAlign.justify,
         ),
         const SizedBox(height: 6),
-
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 4,
           runSpacing: 6,
           children: [
             Text('इ) अटक व्यक्तीला दिनांक', style: bodyStyle),
-            buildUnderlineField(p2RemandDate, width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+            buildUnderlineField(p2RemandDate,
+                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
             Text(
               'रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
               style: bodyStyle,
             ),
           ],
         ),
-
         const Spacer(),
-
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
@@ -1512,7 +1542,6 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           ),
         ),
         const SizedBox(height: 8),
-
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -1546,11 +1575,14 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                     alignment: Alignment.bottomCenter,
                     decoration: const BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: Color(0xFF616161), width: 0.85),
+                        bottom:
+                            BorderSide(color: Color(0xFF616161), width: 0.85),
                       ),
                     ),
                     child: Text(
-                      p2RelativeSig.isNotEmpty ? p2RelativeSig : (p2To1.isNotEmpty ? p2To1 : ''),
+                      p2RelativeSig.isNotEmpty
+                          ? p2RelativeSig
+                          : (p2To1.isNotEmpty ? p2To1 : ''),
                       style: valStyle.copyWith(fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1558,7 +1590,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('नातेवाईकाची स्वाक्षरी / अंगठा', style: boldLabelStyle.copyWith(fontSize: 12)),
+                  Text('नातेवाईकाची स्वाक्षरी / अंगठा',
+                      style: boldLabelStyle.copyWith(fontSize: 12)),
                 ],
               ),
             ),
@@ -1591,11 +1624,14 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                     alignment: Alignment.bottomCenter,
                     decoration: const BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: Color(0xFF616161), width: 0.85),
+                        bottom:
+                            BorderSide(color: Color(0xFF616161), width: 0.85),
                       ),
                     ),
                     child: Text(
-                      p2IoSig.isNotEmpty ? p2IoSig : (ioName.isNotEmpty ? ioName : ''),
+                      p2IoSig.isNotEmpty
+                          ? p2IoSig
+                          : (ioName.isNotEmpty ? ioName : ''),
                       style: valStyle.copyWith(fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1603,7 +1639,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('तपासणी अधिकारी / अंमलदार', style: boldLabelStyle.copyWith(fontSize: 12)),
+                  Text('तपासणी अधिकारी / अंमलदार',
+                      style: boldLabelStyle.copyWith(fontSize: 12)),
                 ],
               ),
             ),

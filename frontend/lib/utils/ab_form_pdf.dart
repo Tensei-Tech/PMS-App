@@ -906,7 +906,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         const SizedBox(height: 10),
 
         // Hospital / Dispensary
-        Text('(Name and location of the Dispensary of Hospital)', style: boldStyle),
+        Text('(Name and location of the Dispensary of Hospital)',
+            style: boldStyle),
         const SizedBox(height: 2),
         _underlineField(dispensary, fullWidth: true),
         const SizedBox(height: 10),
@@ -929,7 +930,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           spacing: 4,
           runSpacing: 6,
           children: [
-            Text('was brought to this hospital /dispensary by', style: bodyStyle),
+            Text('was brought to this hospital /dispensary by',
+                style: bodyStyle),
             _underlineField(broughtBy, width: 250),
           ],
         ),
@@ -1018,7 +1020,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text('Additional remarks any ', style: boldStyle),
-            Expanded(child: _underlineField(additionalRemarks, fullWidth: true)),
+            Expanded(
+                child: _underlineField(additionalRemarks, fullWidth: true)),
           ],
         ),
         const SizedBox(height: 10),
@@ -1050,7 +1053,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           runSpacing: 4,
           children: [
             Text('(N.B.', style: boldStyle),
-            _underlineField(bloodCollected, width: 100, hintText: 'was / was not'),
+            _underlineField(bloodCollected,
+                width: 100, hintText: 'was / was not'),
             Text(
               'Blood from the body of the above named was/was not collected by MO for Chemical examination )',
               style: boldStyle,
@@ -1109,7 +1113,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         const SizedBox(height: 12),
 
         // Signature/Thumb impression of person examined
-        Text('Signature/Thumb impression of the person examined', style: boldStyle),
+        Text('Signature/Thumb impression of the person examined',
+            style: boldStyle),
         const SizedBox(height: 2),
         _underlineField(examinedSignature, fullWidth: true),
         const SizedBox(height: 8),
@@ -1290,7 +1295,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             Text('Police station a phial bearing serial No.', style: bodyStyle),
             _underlineField(phialSerial, width: 130),
             Text('containing', style: bodyStyle),
-            _underlineField(bloodAmountCc.isNotEmpty ? bloodAmountCc : '5', width: 60),
+            _underlineField(bloodAmountCc.isNotEmpty ? bloodAmountCc : '5',
+                width: 60),
             Text('c.c. of venues blood collected by me on', style: bodyStyle),
             _underlineField(collectionDate, width: 130),
             Text('at', style: bodyStyle),

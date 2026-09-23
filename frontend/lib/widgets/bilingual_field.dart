@@ -167,7 +167,8 @@ class BilingualDynamicLinedTextField extends StatelessWidget {
             if (value.text.isNotEmpty) {
               final hasNewlines = value.text.contains('\n');
               // Fast path: if text is short and has no newlines, it trivially fits in minLines
-              if (!hasNewlines && value.text.length < (textWidth > 0 ? (textWidth / 10) : 40)) {
+              if (!hasNewlines &&
+                  value.text.length < (textWidth > 0 ? (textWidth / 10) : 40)) {
                 lines = minLines;
               } else {
                 final textPainter = TextPainter(

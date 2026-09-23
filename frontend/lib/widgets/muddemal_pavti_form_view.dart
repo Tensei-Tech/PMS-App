@@ -348,7 +348,8 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
             double computedWidth = hasFiniteWidth ? availableWidth : baseMin;
 
             if (text.isNotEmpty &&
-                (!hasFiniteWidth || (text.length * 12.0 + 12.0 > availableWidth))) {
+                (!hasFiniteWidth ||
+                    (text.length * 12.0 + 12.0 > availableWidth))) {
               final tp = TextPainter(
                 text: TextSpan(
                   text: text,

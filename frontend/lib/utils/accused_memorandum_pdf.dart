@@ -618,8 +618,9 @@ Widget _pg2(Map<String, dynamic> doc) {
                           horizontal: 6, vertical: 0),
                       child: Text(
                         further.isNotEmpty ? further : ' ',
-                        style: (further.isNotEmpty ? _valStyle(9.8) : _mReg(9.8))
-                            .copyWith(height: 22.0 / 9.8),
+                        style:
+                            (further.isNotEmpty ? _valStyle(9.8) : _mReg(9.8))
+                                .copyWith(height: 22.0 / 9.8),
                         strutStyle: const StrutStyle(
                           fontSize: 9.8,
                           height: 22.0 / 9.8,

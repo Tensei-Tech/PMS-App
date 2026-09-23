@@ -25,8 +25,7 @@ Future<void> preloadInterrogationPdfFonts() async {
   try {
     _cachedDevanagariRegular ??=
         await PdfGoogleFonts.notoSansDevanagariRegular();
-    _cachedDevanagariBold ??=
-        await PdfGoogleFonts.notoSansDevanagariBold();
+    _cachedDevanagariBold ??= await PdfGoogleFonts.notoSansDevanagariBold();
   } catch (_) {}
 }
 
@@ -60,9 +59,8 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   pw.Font devanagariBold;
 
   try {
-    _cachedDevanagariBold ??=
-        await PdfGoogleFonts.notoSansDevanagariBold()
-            .timeout(const Duration(seconds: 4));
+    _cachedDevanagariBold ??= await PdfGoogleFonts.notoSansDevanagariBold()
+        .timeout(const Duration(seconds: 4));
     devanagariBold = _cachedDevanagariBold!;
   } catch (_) {
     devanagariBold = pw.Font.helveticaBold();
@@ -178,7 +176,8 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   final phys = doc['physicalTable'] is Map
       ? Map<String, dynamic>.from(doc['physicalTable'] as Map)
       : <String, dynamic>{};
-  String pVal(String key) => phys[key]?.toString().trim() ??
+  String pVal(String key) =>
+      phys[key]?.toString().trim() ??
       (key == 'ओंट' ? (phys['ओठ']?.toString().trim() ?? '') : '');
 
   pw.TableRow chehareTableRow(List<(String, String)> cols,
@@ -637,8 +636,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
         children: [
           buildTableDataRow(
               srNo: '२२',
-              label:
-                  'शिक्षण/शाळा/ कॉलेज (पत्ता) तसेच संगणकाचे ज्ञान आहे काय?',
+              label: 'शिक्षण/शाळा/ कॉलेज (पत्ता) तसेच संगणकाचे ज्ञान आहे काय?',
               value: p4Val(0),
               height: 85),
           buildTableDataRow(
@@ -657,15 +655,9 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
               value: p4Val(3),
               height: 42),
           buildTableDataRow(
-              srNo: '२६',
-              label: 'वाहन परवाना',
-              value: p4Val(4),
-              height: 42),
+              srNo: '२६', label: 'वाहन परवाना', value: p4Val(4), height: 42),
           buildTableDataRow(
-              srNo: '२७',
-              label: 'रेशन कार्ड',
-              value: p4Val(5),
-              height: 42),
+              srNo: '२७', label: 'रेशन कार्ड', value: p4Val(5), height: 42),
           buildTableDataRow(
               srNo: '२८',
               label: 'मालमत्ता (अंदाजे)',
@@ -774,8 +766,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
         crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: [
           pw.Table(
-            border:
-                pw.TableBorder.all(color: borderCol, width: border.width),
+            border: pw.TableBorder.all(color: borderCol, width: border.width),
             columnWidths: const {
               0: pw.FixedColumnWidth(32),
               1: pw.FixedColumnWidth(170),
@@ -869,8 +860,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
     build: (pw.Context context) {
       return pw.Container(
         decoration: pw.BoxDecoration(
-          border:
-              pw.Border.all(color: borderCol, width: border.width),
+          border: pw.Border.all(color: borderCol, width: border.width),
         ),
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
