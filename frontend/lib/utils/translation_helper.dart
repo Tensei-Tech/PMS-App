@@ -8,8 +8,8 @@ import '../providers/settings_provider.dart';
 
 class TranslationHelper {
   /// Translates the input string based on the active locale.
-  static String translate(BuildContext context, String text) {
-    if (text.isEmpty) return text;
+  static String translate(BuildContext context, String? text) {
+    if (text == null || text.isEmpty) return text ?? '';
 
     String locale = 'en';
     try {
@@ -137,6 +137,7 @@ class TranslationHelper {
       'acts & sections filed': 'अधिनियम और धाराएं',
       'crime spot': 'घटनास्थल',
       'complainant kyc': 'शिकायतकर्ता केवाईसी',
+      'complainant': 'शिकायतकर्ता',
       'you cannot enter victim name': 'आप पीड़िता का नाम दर्ज नहीं कर सकते',
       'you cannot enter victim details':
           'आप पीड़िता का विवरण दर्ज नहीं कर सकते',
@@ -152,6 +153,9 @@ class TranslationHelper {
       'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.':
           'धारा 228A IPC / 72 BNS के तहत पीड़िता की पहचान सुरक्षित है। आप पीड़िता का विवरण दर्ज नहीं कर सकते।',
       'accused details': 'आरोपी का विवरण',
+      'accused': 'आरोपी',
+      '+ add accused': '+ आरोपी जोड़ें',
+      '+ add another accused': '+ अन्य आरोपी जोड़ें',
       'suspected accused': 'संदिग्ध आरोपी',
       'unidentified criminal description': 'अज्ञात अपराधी का विवरण',
       'case responsibility': 'मामले की जिम्मेदारी',
@@ -517,6 +521,7 @@ class TranslationHelper {
       'acts & sections filed': 'दाखल केलेले कायदे व कलमे',
       'crime spot': 'घटनास्थळ',
       'complainant kyc': 'तक्रारदार केवायसी',
+      'complainant': 'तक्रारदार',
       'you cannot enter victim name':
           'तुम्ही पीडितेचे नाव प्रविष्ट करू शकत नाही',
       'you cannot enter victim details':
@@ -533,6 +538,9 @@ class TranslationHelper {
       'victim identity protected under sec 228a ipc / sec 72 bns. you cannot enter victim details.':
           'कलम 228A IPC / 72 BNS अंतर्गत पीडितेची ओळख संरक्षित आहे. तुम्ही पीडितेचे तपशील प्रविष्ट करू शकत नाही.',
       'accused details': 'आरोपी तपशील',
+      'accused': 'आरोपी',
+      '+ add accused': '+ आरोपी जोडा',
+      '+ add another accused': '+ आणखी आरोपी जोडा',
       'suspected accused': 'संशयित आरोपी',
       'unidentified criminal description': 'अनोळखी गुन्हेगाराचे वर्णन',
       'case responsibility': 'तपासाची जबाबदारी',

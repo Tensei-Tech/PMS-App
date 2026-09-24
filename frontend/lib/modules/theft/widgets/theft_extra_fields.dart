@@ -36,16 +36,63 @@ class _StolenPropertyEntry {
   final TextEditingController description = TextEditingController();
   final TextEditingController value = TextEditingController();
 
+  // ── 2-4 Wheeler conditional fields ──
+  bool isTwoFourWheeler = false;
+  final TextEditingController vehicleNumber = TextEditingController();
+  final TextEditingController vehicleName = TextEditingController();
+  final TextEditingController vehicleMake = TextEditingController();
+  final TextEditingController vehicleType = TextEditingController();
+  final TextEditingController vehicleOwnerName = TextEditingController();
+  final TextEditingController vehicleOwnerAddress = TextEditingController();
+  final TextEditingController vehicleDriverName = TextEditingController();
+  final TextEditingController vehicleDriverAddress = TextEditingController();
+  final TextEditingController engineNumber = TextEditingController();
+  final TextEditingController chassisNumber = TextEditingController();
+  final TextEditingController regNumber = TextEditingController();
+  final TextEditingController uniqueIdMark = TextEditingController();
+  final TextEditingController purchaseDate = TextEditingController();
+  bool photo = false;
+  bool ownershipDoc = false;
+
   void dispose() {
     name.dispose();
     description.dispose();
     value.dispose();
+    vehicleNumber.dispose();
+    vehicleName.dispose();
+    vehicleMake.dispose();
+    vehicleType.dispose();
+    vehicleOwnerName.dispose();
+    vehicleOwnerAddress.dispose();
+    vehicleDriverName.dispose();
+    vehicleDriverAddress.dispose();
+    engineNumber.dispose();
+    chassisNumber.dispose();
+    regNumber.dispose();
+    uniqueIdMark.dispose();
+    purchaseDate.dispose();
   }
 
   Map<String, dynamic> toMap() => {
         'name': name.text.trim(),
         'description': description.text.trim(),
         'value': value.text.trim(),
+        'isTwoFourWheeler': isTwoFourWheeler,
+        'vehicleNumber': vehicleNumber.text.trim(),
+        'vehicleName': vehicleName.text.trim(),
+        'vehicleMake': vehicleMake.text.trim(),
+        'vehicleType': vehicleType.text.trim(),
+        'vehicleOwnerName': vehicleOwnerName.text.trim(),
+        'vehicleOwnerAddress': vehicleOwnerAddress.text.trim(),
+        'vehicleDriverName': vehicleDriverName.text.trim(),
+        'vehicleDriverAddress': vehicleDriverAddress.text.trim(),
+        'engineNumber': engineNumber.text.trim(),
+        'chassisNumber': chassisNumber.text.trim(),
+        'regNumber': regNumber.text.trim(),
+        'uniqueIdMark': uniqueIdMark.text.trim(),
+        'purchaseDate': purchaseDate.text.trim(),
+        'photo': photo,
+        'ownershipDoc': ownershipDoc,
       };
 
   static _StolenPropertyEntry fromMap(Map<String, dynamic> m) {
@@ -53,6 +100,51 @@ class _StolenPropertyEntry {
     e.name.text = m['name']?.toString() ?? '';
     e.description.text = m['description']?.toString() ?? '';
     e.value.text = m['value']?.toString() ?? '';
+    e.isTwoFourWheeler = m['isTwoFourWheeler'] == true ||
+        m['isTwoFourWheeler'] == 'true' ||
+        (m['engineNumber']?.toString().isNotEmpty == true) ||
+        (m['chassisNumber']?.toString().isNotEmpty == true) ||
+        (m['regNumber']?.toString().isNotEmpty == true) ||
+        (m['vehicleNumber']?.toString().isNotEmpty == true);
+    e.vehicleNumber.text =
+        m['vehicleNumber']?.toString() ?? m['number']?.toString() ?? '';
+    e.vehicleName.text =
+        m['vehicleName']?.toString() ?? m['name']?.toString() ?? '';
+    e.vehicleMake.text = m['vehicleMake']?.toString() ??
+        m['make']?.toString() ??
+        m['companyName']?.toString() ??
+        '';
+    e.vehicleType.text =
+        m['vehicleType']?.toString() ?? m['type']?.toString() ?? '';
+    e.vehicleOwnerName.text =
+        m['vehicleOwnerName']?.toString() ?? m['ownerName']?.toString() ?? '';
+    e.vehicleOwnerAddress.text = m['vehicleOwnerAddress']?.toString() ??
+        m['ownerAddress']?.toString() ??
+        '';
+    e.vehicleDriverName.text =
+        m['vehicleDriverName']?.toString() ?? m['driverName']?.toString() ?? '';
+    e.vehicleDriverAddress.text = m['vehicleDriverAddress']?.toString() ??
+        m['driverAddress']?.toString() ??
+        '';
+    e.engineNumber.text = m['engineNumber']?.toString() ??
+        m['vehicleEngineNumber']?.toString() ??
+        '';
+    e.chassisNumber.text = m['chassisNumber']?.toString() ??
+        m['vehicleChassisNumber']?.toString() ??
+        '';
+    e.regNumber.text =
+        m['regNumber']?.toString() ?? m['vehicleRegNumber']?.toString() ?? '';
+    e.uniqueIdMark.text = m['uniqueIdMark']?.toString() ??
+        m['vehicleUniqueIdMark']?.toString() ??
+        '';
+    e.purchaseDate.text = m['purchaseDate']?.toString() ??
+        m['vehiclePurchaseDate']?.toString() ??
+        '';
+    e.photo =
+        m['photo'] == true || m['photo'] == 'true' || m['vehiclePhoto'] == true;
+    e.ownershipDoc = m['ownershipDoc'] == true ||
+        m['ownershipDoc'] == 'true' ||
+        m['vehicleOwnershipDoc'] == true;
     return e;
   }
 }
@@ -833,6 +925,158 @@ class TheftExtraFieldsState extends State<TheftExtraFields> {
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
                     ],
                     onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
+                  // ── SEIZED VEHICLE CARD (Matching exact image design) ──
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: const Color(0xFFE2E8F0), width: 1.2),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0A000000),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        Row(
+                          children: [
+                            Container(
+                              width: 4,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0EA5E9),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.directions_car_rounded,
+                              size: 20,
+                              color: Color(0xFFF59E0B),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'SEIZED VEHICLE',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF0F172A),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Row 1
+                        _rowTwo(
+                          _tf(
+                            label:
+                                '1. Number of Vehicle (e.g. 1 or MH12AB1234)',
+                            controller: e.vehicleNumber,
+                          ),
+                          _tf(
+                            label: '2. Name of Vehicle (e.g. Tipper Truck)',
+                            controller: e.vehicleName,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Row 2
+                        _rowTwo(
+                          _tf(
+                            label: 'Company Name (Make)',
+                            controller: e.vehicleMake,
+                          ),
+                          _tf(
+                            label: 'Type of Vehicle',
+                            controller: e.vehicleType,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Row 3
+                        _rowTwo(
+                          _tf(
+                            label: '4. Owner Name',
+                            controller: e.vehicleOwnerName,
+                          ),
+                          _tf(
+                            label: 'Owner Address',
+                            controller: e.vehicleOwnerAddress,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Row 4
+                        _rowTwo(
+                          _tf(
+                            label: '5. Driver Name',
+                            controller: e.vehicleDriverName,
+                          ),
+                          _tf(
+                            label: 'Driver Address',
+                            controller: e.vehicleDriverAddress,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Row 5
+                        _rowTwo(
+                          _tf(
+                            label: 'Engine Num',
+                            controller: e.engineNumber,
+                          ),
+                          _tf(
+                            label: 'Chechis Number',
+                            controller: e.chassisNumber,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Row 6
+                        _rowTwo(
+                          _tf(
+                            label: 'Reg Number',
+                            controller: e.regNumber,
+                          ),
+                          _tf(
+                            label: 'Unique Identification Mark',
+                            controller: e.uniqueIdMark,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Row 7: Purchase Date
+                        _dateField('Purchase Date', e.purchaseDate),
+                        const SizedBox(height: 12),
+
+                        // Row 8: 6. Photo Copy & 7. Ownership Doc (Y/N)
+                        _rowTwo(
+                          _yesNo(
+                            label: '6. Photo Copy',
+                            value: e.photo,
+                            onChanged: (v) => setState(() => e.photo = v),
+                          ),
+                          _yesNo(
+                            label: '7. Ownership Doc (Y/N)',
+                            value: e.ownershipDoc,
+                            onChanged: (v) =>
+                                setState(() => e.ownershipDoc = v),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
