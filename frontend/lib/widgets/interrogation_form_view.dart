@@ -331,7 +331,7 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
     return TextField(
       controller: controller,
       minLines: minLines,
-      maxLines: maxLines ?? (minLines > 1 ? null : 1),
+      maxLines: maxLines,
       textAlign: textAlign,
       style: GoogleFonts.poppins(
         fontSize: 13,

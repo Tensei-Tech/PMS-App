@@ -483,69 +483,45 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 runSpacing: 8,
                 children: [
                   Text('१) *जिल्हा:', style: marathiStyle),
-                  SizedBox(
-                    width: 80,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 80), child: BilingualSimpleUnderlineInput(
                       controller: _districtCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('*पोलीस ठाणे:', style: marathiStyle),
-                  SizedBox(
-                    width: 120,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
                       controller: _psCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('वर्षे:', style: marathiStyle),
-                  SizedBox(
-                    width: 60,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
                       controller: _yearCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('*पहिली खबर क/कार्यवाही', style: marathiStyle),
-                  SizedBox(
-                    width: 50,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 50), child: BilingualSimpleUnderlineInput(
                       controller: _firNoCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('/', style: marathiStyle),
-                  SizedBox(
-                    width: 50,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 50), child: BilingualSimpleUnderlineInput(
                       controller: _firYearSuffixCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('*दि', style: marathiStyle),
-                  SizedBox(
-                    width: 35,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                       controller: _dateDayCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('/', style: marathiStyle),
-                  SizedBox(
-                    width: 35,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                       controller: _dateMonthCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('/२०', style: marathiStyle),
-                  SizedBox(
-                    width: 35,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                       controller: _dateYearCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 20),
@@ -580,37 +556,25 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 children: [
                   Text('४) जप्त केलेली मालमत्ता : (अ) तारीख :',
                       style: marathiStyle),
-                  SizedBox(
-                    width: 35,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                       controller: _seizureDateDayCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('/', style: marathiStyle),
-                  SizedBox(
-                    width: 35,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                       controller: _seizureDateMonthCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('/२०', style: marathiStyle),
-                  SizedBox(
-                    width: 35,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                       controller: _seizureDateYearCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('(ब) वेळ :', style: marathiStyle),
-                  SizedBox(
-                    width: 60,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
                       controller: _seizureTimeCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 12),
@@ -680,29 +644,20 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 runSpacing: 8,
                 children: [
                   Text('नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
                       controller: _personNameCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('पित्याचे/पतीचे नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
                       controller: _personFatherCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('लिंग :', style: marathiStyle),
-                  SizedBox(
-                    width: 80,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 80), child: BilingualSimpleUnderlineInput(
                       controller: _personSexCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 12),
@@ -712,29 +667,20 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 runSpacing: 8,
                 children: [
                   Text('वय :', style: marathiStyle),
-                  SizedBox(
-                    width: 60,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
                       controller: _personAgeCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('व्यवसाय :', style: marathiStyle),
-                  SizedBox(
-                    width: 120,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
                       controller: _personOccupationCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('पत्ता :', style: marathiStyle),
-                  SizedBox(
-                    width: 200,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 200), child: BilingualSimpleUnderlineInput(
                       controller: _personAddressCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 20),
@@ -748,29 +694,20 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 runSpacing: 8,
                 children: [
                   Text('(i) नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
                       controller: _w1NameCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('पित्याचे/पतीचे नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
                       controller: _w1FatherCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('लिंग :', style: marathiStyle),
-                  SizedBox(
-                    width: 80,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 80), child: BilingualSimpleUnderlineInput(
                       controller: _w1SexCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 12),
@@ -780,29 +717,20 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 runSpacing: 8,
                 children: [
                   Text('वय :', style: marathiStyle),
-                  SizedBox(
-                    width: 60,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
                       controller: _w1AgeCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('व्यवसाय :', style: marathiStyle),
-                  SizedBox(
-                    width: 120,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
                       controller: _w1OccupationCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('पत्ता :', style: marathiStyle),
-                  SizedBox(
-                    width: 200,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 200), child: BilingualSimpleUnderlineInput(
                       controller: _w1AddressCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 20),
@@ -814,29 +742,20 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 runSpacing: 8,
                 children: [
                   Text('(ii) नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
                       controller: _w2NameCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('पित्याचे/पतीचे नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
                       controller: _w2FatherCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('लिंग :', style: marathiStyle),
-                  SizedBox(
-                    width: 80,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 80), child: BilingualSimpleUnderlineInput(
                       controller: _w2SexCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 12),
@@ -846,29 +765,20 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 runSpacing: 8,
                 children: [
                   Text('वय :', style: marathiStyle),
-                  SizedBox(
-                    width: 60,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
                       controller: _w2AgeCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('व्यवसाय :', style: marathiStyle),
-                  SizedBox(
-                    width: 120,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
                       controller: _w2OccupationCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                   Text('पत्ता :', style: marathiStyle),
-                  SizedBox(
-                    width: 200,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 200), child: BilingualSimpleUnderlineInput(
                       controller: _w2AddressCtrl,
                       serifStyle: marathiStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 8),
@@ -1191,29 +1101,20 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text('Date: ', style: serifStyle),
-                            SizedBox(
-                              width: 50,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 50), child: BilingualSimpleUnderlineInput(
                                 controller: _panchaDateDayCtrl,
                                 serifStyle: serifStyle,
-                              ),
-                            ),
+                              ),),),
                             Text(' / ', style: serifStyle),
-                            SizedBox(
-                              width: 50,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 50), child: BilingualSimpleUnderlineInput(
                                 controller: _panchaDateMonthCtrl,
                                 serifStyle: serifStyle,
-                              ),
-                            ),
+                              ),),),
                             Text(' / ', style: serifStyle),
-                            SizedBox(
-                              width: 60,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
                                 controller: _panchaDateYearCtrl,
                                 serifStyle: serifStyle,
-                              ),
-                            ),
+                              ),),),
                           ],
                         ),
                         Text('दिनांक', style: marathiStyle),
@@ -1284,13 +1185,10 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text('Rank: ', style: serifStyle),
-                            SizedBox(
-                              width: 80,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 80), child: BilingualSimpleUnderlineInput(
                                 controller: _ioRankCtrl,
                                 serifStyle: serifStyle,
-                              ),
-                            ),
+                              ),),),
                             Text(' B.No.if any: ', style: serifStyle),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
@@ -1455,3 +1353,5 @@ class PropertyRow {
     estimatedValueCtrl.text = map['value']?.toString() ?? '';
   }
 }
+
+

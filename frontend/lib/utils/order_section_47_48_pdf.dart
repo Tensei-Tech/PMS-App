@@ -997,9 +997,11 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
     IconData? icon,
   }) {
     return Container(
-      width: width,
+      constraints: BoxConstraints(minWidth: width ?? 0),
       height: 22,
-      alignment: Alignment.bottomCenter,
+      alignment: textAlign == TextAlign.center
+          ? Alignment.bottomCenter
+          : Alignment.bottomLeft,
       padding: const EdgeInsets.only(bottom: 2, left: 3, right: 3),
       decoration: const BoxDecoration(
         border: Border(
@@ -1007,7 +1009,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         ),
       ),
       child: Row(
-        mainAxisSize: width != null ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: textAlign == TextAlign.center
             ? MainAxisAlignment.center
             : MainAxisAlignment.start,
@@ -1389,9 +1391,11 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
     IconData? icon,
   }) {
     return Container(
-      width: width,
+      constraints: BoxConstraints(minWidth: width ?? 0),
       height: 22,
-      alignment: Alignment.bottomCenter,
+      alignment: textAlign == TextAlign.center
+          ? Alignment.bottomCenter
+          : Alignment.bottomLeft,
       padding: const EdgeInsets.only(bottom: 2, left: 3, right: 3),
       decoration: const BoxDecoration(
         border: Border(
@@ -1399,7 +1403,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         ),
       ),
       child: Row(
-        mainAxisSize: width != null ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: textAlign == TextAlign.center
             ? MainAxisAlignment.center
             : MainAxisAlignment.start,

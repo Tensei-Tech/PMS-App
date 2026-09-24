@@ -363,13 +363,10 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                           ),
                         ),
                         Text(' /२०', style: headerLabelStyle),
-                        SizedBox(
-                          width: 36,
-                          child: BilingualSimpleUnderlineInput(
+                        IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 36), child: BilingualSimpleUnderlineInput(
                             controller: _outwardYearCtrl,
                             serifStyle: serif,
-                          ),
-                        ),
+                          ),),),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -452,29 +449,20 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
               runSpacing: 10,
               children: [
                 Text('विषय:- पोलीस स्टेशन', style: boldLabelStyle),
-                SizedBox(
-                  width: 140,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
                     controller: _subjectPsCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text('गुन्हा रजि.क्र.', style: boldLabelStyle),
-                SizedBox(
-                  width: 90,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 90), child: BilingualSimpleUnderlineInput(
                     controller: _subjectCrNoCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text('कलम', style: boldLabelStyle),
-                SizedBox(
-                  width: 110,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 110), child: BilingualSimpleUnderlineInput(
                     controller: _subjectSectionCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text('भा.न्या.स.', style: boldLabelStyle),
                 Text(
                   'नुसार दाखल असलेल्या गुन्ह्यांचे अनुषंगाने आरोपीस अटक करतांना अटक करण्यासाठी आधारभूत मुद्दे आणि अटकेची कारणे कळविणे बाबत.',
@@ -494,48 +482,33 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                   '        आपणास या सुचनापत्राद्वारे कळविण्यात येते की,आपल्या विरुद्ध पोलीस ठाणे',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 150,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 150), child: BilingualSimpleUnderlineInput(
                     controller: _firPsCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text('येथे गुन्हा रजि.क्र.', style: bodyTextStyle),
-                SizedBox(
-                  width: 80,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 80), child: BilingualSimpleUnderlineInput(
                     controller: _firCrNoCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text('/', style: serifBold),
-                SizedBox(
-                  width: 36,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 36), child: BilingualSimpleUnderlineInput(
                     controller: _firCrYearCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text('कलम', style: bodyTextStyle),
-                SizedBox(
-                  width: 130,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 130), child: BilingualSimpleUnderlineInput(
                     controller: _firActSecCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text(
                   'भारतीय न्याय संहिता २०२३ अन्वये गुन्हा नोंद करण्यात आला असुन, आम्ही',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 200,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 200), child: BilingualSimpleUnderlineInput(
                     controller: _ioNameCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text(
                   'तपासी अधिकारी म्हणून सदर गुन्ह्यांचा तपास करीत आहोत.सदर गुन्ह्यांचे तपासकामी आपणास अटक करणे गरजेचे असून भारतीय नागरीक सुरक्षा संहिता २०२३ चे कलम ४७ (१)(२) नुसार आपणास अटक करण्यासाठी आधारभूत मुद्दे (भारतीय नागरीक सुरक्षा संहिता २०२३ चे कलम ४७ (१)(२) नुसार ) खालील प्रमाणे आहेत.',
                   style: bodyTextStyle,
@@ -765,30 +738,21 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                   '        आपल्या अटकेची माहीती आपले नातेवाईक/ मित्र',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 180,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 180), child: BilingualSimpleUnderlineInput(
                     controller: _relativeNameCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text('रा.', style: bodyTextStyle),
-                SizedBox(
-                  width: 150,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 150), child: BilingualSimpleUnderlineInput(
                     controller: _relativeAddressCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text('यांना लेखी सुचनेद्वारे/फोन क्रमांक',
                     style: bodyTextStyle),
-                SizedBox(
-                  width: 140,
-                  child: BilingualSimpleUnderlineInput(
+                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
                     controller: _relativePhoneCtrl,
                     serifStyle: serif,
-                  ),
-                ),
+                  ),),),
                 Text(
                   'यावर संपर्क करुन देण्यांत आली आहे.',
                   style: bodyTextStyle,
@@ -924,3 +888,5 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
     );
   }
 }
+
+

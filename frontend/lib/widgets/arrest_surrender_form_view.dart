@@ -837,13 +837,10 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           Text('1.Dist.',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 90,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 90), child: BilingualSimpleUnderlineInput(
                               controller: _distCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -861,13 +858,10 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           Text('P.S.:-',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 100,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 100), child: BilingualSimpleUnderlineInput(
                               controller: _psCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -885,13 +879,10 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           Text('FIR/Proceeding/G.D.No:-',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 100,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 100), child: BilingualSimpleUnderlineInput(
                               controller: _firNoCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -910,14 +901,11 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           Text('Year:-20',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _yearCtrl,
                               serifStyle: serifStyle,
                               hintText: 'YY',
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -1020,13 +1008,10 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           Text('G.D.No.',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 90,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 90), child: BilingualSimpleUnderlineInput(
                               controller: _arrestGdNoCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -1054,13 +1039,10 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           Text('Place of Arrest: - P.S.',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 120,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
                               controller: _arrestPlaceCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -1079,13 +1061,10 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           Text('Dist.',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 120,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
                               controller: _arrestDistCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -1103,13 +1082,10 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           Text('State.',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 120,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
                               controller: _arrestStateCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -2045,3 +2021,5 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
     );
   }
 }
+
+

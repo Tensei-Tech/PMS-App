@@ -613,13 +613,10 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 90,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 90), child: BilingualSimpleUnderlineInput(
                               controller: _distCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       Text('जिल्हा',
@@ -639,13 +636,10 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 110,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 110), child: BilingualSimpleUnderlineInput(
                               controller: _psCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       Text('पोलीस स्टेशन',
@@ -665,14 +659,11 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 55,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 55), child: BilingualSimpleUnderlineInput(
                               controller: _yearCtrl,
                               serifStyle: serifStyle,
                               hintText: 'YYYY',
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       Text('वर्ष',
@@ -692,27 +683,21 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 55,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 55), child: BilingualSimpleUnderlineInput(
                               controller: _firNoCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text('/20',
                                 style: serifStyle.copyWith(
                                     fontWeight: FontWeight.bold)),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _firYearSuffixCtrl,
                               serifStyle: serifStyle,
                               hintText: 'YY',
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       Text('पहिली खबर क्र.',
@@ -732,40 +717,31 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 6),
-                          SizedBox(
-                            width: 34,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
                               controller: _headerDateDayCtrl,
                               serifStyle: serifStyle,
                               hintText: 'DD',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text('/', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 34,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
                               controller: _headerDateMonthCtrl,
                               serifStyle: serifStyle,
                               hintText: 'MM',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text('/20',
                                 style: serifStyle.copyWith(
                                     fontWeight: FontWeight.bold)),
                           ),
-                          SizedBox(
-                            width: 34,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
                               controller: _headerDateYearCtrl,
                               serifStyle: serifStyle,
                               hintText: 'YY',
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       Text('तारीख',
@@ -944,14 +920,11 @@ class HousePropertySearchSeizureFormViewState
                                 fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(width: 8),
-                          SizedBox(
-                            width: 100,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 100), child: BilingualSimpleUnderlineInput(
                               controller: _profReceiverCtrl,
                               serifStyle: serifStyle,
                               hintText: 'होय / नाही',
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       Text(
@@ -1154,14 +1127,11 @@ class HousePropertySearchSeizureFormViewState
                         style: serifStyle.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 12),
-                      SizedBox(
-                        width: 100,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 100), child: BilingualSimpleUnderlineInput(
                           controller: _identificationRequiredCtrl,
                           serifStyle: serifStyle,
                           hintText: 'होय / नाही',
-                        ),
-                      ),
+                        ),),),
                     ],
                   ),
                   Text(
@@ -1407,38 +1377,29 @@ class HousePropertySearchSeizureFormViewState
                         ],
                       ),
                       const SizedBox(width: 6),
-                      SizedBox(
-                        width: 34,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
                           controller: _seizeDateDayCtrl,
                           serifStyle: serifStyle,
                           hintText: 'DD',
-                        ),
-                      ),
+                        ),),),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: Text('/', style: serifStyle)),
-                      SizedBox(
-                        width: 34,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
                           controller: _seizeDateMonthCtrl,
                           serifStyle: serifStyle,
                           hintText: 'MM',
-                        ),
-                      ),
+                        ),),),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: Text('/20',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold))),
-                      SizedBox(
-                        width: 34,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
                           controller: _seizeDateYearCtrl,
                           serifStyle: serifStyle,
                           hintText: 'YY',
-                        ),
-                      ),
+                        ),),),
                     ],
                   ),
                   Row(
@@ -1457,25 +1418,19 @@ class HousePropertySearchSeizureFormViewState
                         ],
                       ),
                       const SizedBox(width: 4),
-                      SizedBox(
-                        width: 32,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 32), child: BilingualSimpleUnderlineInput(
                           controller: _seizeTimeHoursCtrl,
                           serifStyle: serifStyle,
                           hintText: 'HH',
-                        ),
-                      ),
+                        ),),),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 1),
                           child: Text(':', style: serifStyle)),
-                      SizedBox(
-                        width: 32,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 32), child: BilingualSimpleUnderlineInput(
                           controller: _seizeTimeMinutesCtrl,
                           serifStyle: serifStyle,
                           hintText: 'MM',
-                        ),
-                      ),
+                        ),),),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         child: Column(
@@ -1489,25 +1444,19 @@ class HousePropertySearchSeizureFormViewState
                           ],
                         ),
                       ),
-                      SizedBox(
-                        width: 32,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 32), child: BilingualSimpleUnderlineInput(
                           controller: _seizeTimeToHoursCtrl,
                           serifStyle: serifStyle,
                           hintText: 'HH',
-                        ),
-                      ),
+                        ),),),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 1),
                           child: Text(':', style: serifStyle)),
-                      SizedBox(
-                        width: 32,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 32), child: BilingualSimpleUnderlineInput(
                           controller: _seizeTimeToMinutesCtrl,
                           serifStyle: serifStyle,
                           hintText: 'MM',
-                        ),
-                      ),
+                        ),),),
                     ],
                   ),
                 ],
@@ -1693,26 +1642,20 @@ class HousePropertySearchSeizureFormViewState
                             Text('दिनांक :- ',
                                 style: marathiLabelStyle.copyWith(
                                     fontSize: 10, fontWeight: FontWeight.bold)),
-                            SizedBox(
-                              width: 32,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 32), child: BilingualSimpleUnderlineInput(
                                 controller: _sealSampleDateDayCtrl,
                                 serifStyle: serifStyle,
                                 hintText: 'DD',
-                              ),
-                            ),
+                              ),),),
                             Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 1),
                                 child: Text('/', style: serifStyle)),
-                            SizedBox(
-                              width: 32,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 32), child: BilingualSimpleUnderlineInput(
                                 controller: _sealSampleDateMonthCtrl,
                                 serifStyle: serifStyle,
                                 hintText: 'MM',
-                              ),
-                            ),
+                              ),),),
                             Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 1),
@@ -1720,14 +1663,11 @@ class HousePropertySearchSeizureFormViewState
                                     style: marathiLabelStyle.copyWith(
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold))),
-                            SizedBox(
-                              width: 32,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 32), child: BilingualSimpleUnderlineInput(
                                 controller: _sealSampleDateYearCtrl,
                                 serifStyle: serifStyle,
                                 hintText: 'YY',
-                              ),
-                            ),
+                              ),),),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -1910,3 +1850,5 @@ class HousePropertySearchSeizureFormViewState
     );
   }
 }
+
+

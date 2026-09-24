@@ -135,32 +135,23 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                             style: marathiLabelStyle.copyWith(fontSize: 12),
                           ),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _dateDayCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                           Text(' / ', style: serifStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _dateMonthCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                           Text(
                             ' / २०',
                             style: marathiLabelStyle.copyWith(fontSize: 12),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _dateYearCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                     ],
@@ -249,13 +240,10 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                         style: marathiLabelStyle.copyWith(fontSize: 12),
                       ),
                       const SizedBox(height: 8),
-                      SizedBox(
-                        width: 200,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 200), child: BilingualSimpleUnderlineInput(
                           controller: _ioNameCtrl,
                           serifStyle: serifStyle,
-                        ),
-                      ),
+                        ),),),
                     ],
                   ),
                 ),
@@ -312,3 +300,5 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
     );
   }
 }
+
+

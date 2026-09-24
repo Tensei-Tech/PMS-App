@@ -1800,13 +1800,10 @@ class JuvenileSocialReportFormViewState
                           Text('-ब.नं. ',
                               style: marathiLabelStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 60,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
                               controller: _signOfficerBadgeCtrl,
                               serifStyle: serifStyle,
-                            ),
-                          ),
+                            ),),),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -2068,3 +2065,5 @@ class JuvenileSocialReportFormViewState
     );
   }
 }
+
+

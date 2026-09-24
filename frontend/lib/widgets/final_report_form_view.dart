@@ -635,13 +635,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     style:
                         marathiLabelStyle.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(
-                    width: 100,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 100), child: BilingualSimpleUnderlineInput(
                       controller: _courtDistCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 12),
@@ -652,13 +649,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                 children: [
                   Text('1.Dist : ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                  SizedBox(
-                    width: 90,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 90), child: BilingualSimpleUnderlineInput(
                       controller: _distCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                   const SizedBox(width: 12),
                   Text('P.S: ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
@@ -673,13 +667,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   Text('Year : ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
                   Text('20', style: serifStyle),
-                  SizedBox(
-                    width: 35,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                       controller: _yearCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                   const SizedBox(width: 12),
                   Text('FIRNo : ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
@@ -691,13 +682,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     ),
                   ),
                   Text('/', style: serifStyle),
-                  SizedBox(
-                    width: 50,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 50), child: BilingualSimpleUnderlineInput(
                       controller: _firYearSuffixCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                   const SizedBox(width: 12),
                   Text('Date : ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
@@ -742,13 +730,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                               ),
                             ),
                             Text('/20', style: serifStyle),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                                 controller: _reportYearSuffixCtrl,
                                 serifStyle: serifStyle,
-                              ),
-                            ),
+                              ),),),
                           ],
                         ),
                         Text(
@@ -878,13 +863,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           style: serifStyle.copyWith(fontSize: 10.5),
                         ),
                       ),
-                      SizedBox(
-                        width: 120,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
                           controller: _reportTypeCtrl,
                           serifStyle: serifStyle,
-                        ),
-                      ),
+                        ),),),
                     ],
                   ),
                   const SizedBox(height: 2),
@@ -897,13 +879,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           style: marathiLabelStyle.copyWith(fontSize: 9.5),
                         ),
                       ),
-                      SizedBox(
-                        width: 160,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 160), child: BilingualSimpleUnderlineInput(
                           controller: _reportTypeCustomCtrl,
                           serifStyle: serifStyle,
-                        ),
-                      ),
+                        ),),),
                     ],
                   ),
                 ],
@@ -924,13 +903,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                               fontWeight: FontWeight.bold, fontSize: 11),
                         ),
                       ),
-                      SizedBox(
-                        width: 120,
-                        child: BilingualSimpleUnderlineInput(
+                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
                           controller: _frUnoccurredCtrl,
                           serifStyle: serifStyle,
-                        ),
-                      ),
+                        ),),),
                     ],
                   ),
                   const SizedBox(height: 2),
@@ -950,25 +926,19 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     '7. If Charge Sheeted : ( जर आरोपपत्र ठेवले ) ',
                     style: serifStyle.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(
-                    width: 70,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 70), child: BilingualSimpleUnderlineInput(
                       controller: _chargeSheetedCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                   const SizedBox(width: 24),
                   Text(
                     'Original Supplementary ( मुळ/पुरवणी ) : ',
                     style: serifStyle.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(
-                    width: 80,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 80), child: BilingualSimpleUnderlineInput(
                       controller: _originalSupplementaryCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 12),
@@ -999,13 +969,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   const SizedBox(width: 12),
                   Text('No. : ',
                       style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                  SizedBox(
-                    width: 60,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
                       controller: _ioNoCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               Row(
@@ -1025,13 +992,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     'पोलीस स्टेशन: ',
                     style: marathiLabelStyle.copyWith(fontSize: 10),
                   ),
-                  SizedBox(
-                    width: 130,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 130), child: BilingualSimpleUnderlineInput(
                       controller: _ioPsCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 12),
@@ -1309,13 +1273,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                   Text('वय ',
                       style: marathiLabelStyle.copyWith(
                           fontWeight: FontWeight.bold)),
-                  SizedBox(
-                    width: 50,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 50), child: BilingualSimpleUnderlineInput(
                       controller: _accAgeCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                   Text(' वर्ष',
                       style: marathiLabelStyle.copyWith(
                           fontWeight: FontWeight.bold)),
@@ -1475,13 +1436,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                 children: [
                   Text('     Whether verified (पडताळला किंवा काय) : ',
                       style: marathiLabelStyle.copyWith(fontSize: 10)),
-                  SizedBox(
-                    width: 70,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 70), child: BilingualSimpleUnderlineInput(
                       controller: _accAddressVerifiedCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                 ],
               ),
               const SizedBox(height: 8),
@@ -1948,13 +1906,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                     '17. Refer Notice Served : ',
                     style: serifStyle.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(
-                    width: 90,
-                    child: BilingualSimpleUnderlineInput(
+                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 90), child: BilingualSimpleUnderlineInput(
                       controller: _referNoticeServedCtrl,
                       serifStyle: serifStyle,
-                    ),
-                  ),
+                    ),),),
                   const SizedBox(width: 24),
                   Text(
                     'Date : ',
@@ -2039,13 +1994,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                             Text('No : ',
                                 style: serifStyle.copyWith(
                                     fontWeight: FontWeight.bold)),
-                            SizedBox(
-                              width: 45,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 45), child: BilingualSimpleUnderlineInput(
                                 controller: _shoNoCtrl,
                                 serifStyle: serifStyle,
-                              ),
-                            ),
+                              ),),),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -2100,13 +2052,10 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                             Text('No. : ',
                                 style: serifStyle.copyWith(
                                     fontWeight: FontWeight.bold)),
-                            SizedBox(
-                              width: 45,
-                              child: BilingualSimpleUnderlineInput(
+                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 45), child: BilingualSimpleUnderlineInput(
                                 controller: _submitIoNoCtrl,
                                 serifStyle: serifStyle,
-                              ),
-                            ),
+                              ),),),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -2126,3 +2075,5 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
     );
   }
 }
+
+

@@ -164,8 +164,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
 
   pw.Widget underlineField(String text, {double? width, double minWidth = 20}) {
     return pw.Container(
-      width: width,
-      constraints: pw.BoxConstraints(minWidth: minWidth),
+      constraints: pw.BoxConstraints(minWidth: width ?? minWidth),
       padding: const pw.EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
       decoration: const pw.BoxDecoration(
         border: pw.Border(
@@ -173,9 +172,6 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
       ),
       child: pw.Text(
         text.isEmpty ? ' ' : text,
-        maxLines: 1,
-        softWrap: false,
-        overflow: pw.TextOverflow.clip,
         style: pw.TextStyle(
             font: devanagariBold, fontSize: 8, fontWeight: pw.FontWeight.bold),
       ),

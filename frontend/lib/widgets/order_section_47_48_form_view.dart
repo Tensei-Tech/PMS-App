@@ -1047,7 +1047,7 @@ class _UnderlineInput extends StatelessWidget {
       controller: controller,
       readOnly: readOnly,
       textAlign: textAlign,
-      maxLines: 1,
+      maxLines: null,
       scrollPhysics: const NeverScrollableScrollPhysics(),
       scrollPadding: EdgeInsets.zero,
       style: GoogleFonts.notoSansDevanagari(

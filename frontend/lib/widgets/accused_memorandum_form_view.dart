@@ -860,14 +860,11 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 24.0),
-                child: SizedBox(
-                  width: 35,
-                  child: BilingualSimpleUnderlineInput(
+                child: IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                     controller: _firYearSuffixCtrl,
                     serifStyle: serifStyle,
                     hintText: 'YY',
-                  ),
-                ),
+                  ),),),
               ),
             ],
           ),
@@ -1045,26 +1042,20 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _arrestTimeHoursCtrl,
                               serifStyle: serifStyle,
                               hintText: 'HH',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(':', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _arrestTimeMinutesCtrl,
                               serifStyle: serifStyle,
                               hintText: 'MM',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.only(left: 4),
                             child: Text('Hrs',
@@ -1159,50 +1150,38 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _memTimeFromHoursCtrl,
                               serifStyle: serifStyle,
                               hintText: 'HH',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(':', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _memTimeFromMinutesCtrl,
                               serifStyle: serifStyle,
                               hintText: 'MM',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: Text('ते :', style: marathiLabelStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _memTimeToHoursCtrl,
                               serifStyle: serifStyle,
                               hintText: 'HH',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(':', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _memTimeToMinutesCtrl,
                               serifStyle: serifStyle,
                               hintText: 'MM',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.only(left: 4),
                             child: Text('पर्यंत', style: marathiLabelStyle),
@@ -1285,50 +1264,38 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _furtherTimeFromHoursCtrl,
                               serifStyle: serifStyle,
                               hintText: 'HH',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(':', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _furtherTimeFromMinutesCtrl,
                               serifStyle: serifStyle,
                               hintText: 'MM',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: Text('ते :', style: marathiLabelStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _furtherTimeToHoursCtrl,
                               serifStyle: serifStyle,
                               hintText: 'HH',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(':', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
+                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
                               controller: _furtherTimeToMinutesCtrl,
                               serifStyle: serifStyle,
                               hintText: 'MM',
-                            ),
-                          ),
+                            ),),),
                           Padding(
                             padding: const EdgeInsets.only(left: 4),
                             child: Text('पर्यंत', style: marathiLabelStyle),
@@ -1544,3 +1511,5 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
     );
   }
 }
+
+
