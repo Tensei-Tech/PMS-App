@@ -167,7 +167,14 @@ class _PocsoVoiceBannerState extends State<PocsoVoiceBanner>
     _userWantsListening = false;
     _trackedController?.removeListener(_onControllerChanged);
     _animController.dispose();
-    _stopListening();
+    if (kIsWeb) {
+      WebSpeechHelper.stop(_webRecognition);
+      _webRecognition = null;
+    } else {
+      try {
+        _speech?.stop();
+      } catch (_) {}
+    }
     super.dispose();
   }
 
