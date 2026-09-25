@@ -34,57 +34,107 @@ class Migration(migrations.Migration):
             name='crimecaseactssections',
             options={'verbose_name': 'Crime Case Act Section', 'verbose_name_plural': 'Crime Case Acts Sections'},
         ),
-        migrations.RemoveConstraint(
-            model_name='remandcustody',
-            name='chk_pr_bond_requires_mcr',
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                    ALTER TABLE acts DROP COLUMN IF EXISTS act_code;
+                    ALTER TABLE acts DROP COLUMN IF EXISTS is_active;
+                    ALTER TABLE act_sections DROP COLUMN IF EXISTS bailable_type;
+                    ALTER TABLE act_sections DROP COLUMN IF EXISTS description;
+                    ALTER TABLE act_sections DROP COLUMN IF EXISTS is_active;
+                    ALTER TABLE act_sections DROP COLUMN IF EXISTS title;
+                    ALTER TABLE act_subsections DROP COLUMN IF EXISTS description;
+                    ALTER TABLE act_subsections DROP COLUMN IF EXISTS is_active;
+                    ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS arrest_location;
+                    """,
+                    reverse_sql="""
+                    """
+                ),
+            ],
+            state_operations=[
+                migrations.RemoveField(
+                    model_name='act',
+                    name='act_code',
+                ),
+                migrations.RemoveField(
+                    model_name='act',
+                    name='is_active',
+                ),
+                migrations.RemoveField(
+                    model_name='actsection',
+                    name='bailable_type',
+                ),
+                migrations.RemoveField(
+                    model_name='actsection',
+                    name='description',
+                ),
+                migrations.RemoveField(
+                    model_name='actsection',
+                    name='is_active',
+                ),
+                migrations.RemoveField(
+                    model_name='actsection',
+                    name='title',
+                ),
+                migrations.RemoveField(
+                    model_name='actsubsection',
+                    name='description',
+                ),
+                migrations.RemoveField(
+                    model_name='actsubsection',
+                    name='is_active',
+                ),
+                migrations.RemoveField(
+                    model_name='arrestreleasestatus',
+                    name='arrest_location',
+                ),
+            ]
+        ),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                    ALTER TABLE procedural_checklist ALTER COLUMN item_name TYPE VARCHAR(40);
+                    """,
+                    reverse_sql="""
+                    """
+                ),
+            ],
+            state_operations=[
+                migrations.AlterField(
+                    model_name='proceduralchecklist',
+                    name='item_name',
+                    field=models.CharField(choices=[('Spot Panchanama', 'Spot Panchanama'), ('Seizure Panchanama', 'Seizure Panchanama'), ('Search Panchanama', 'Search Panchanama'), ('Personal Search Panchanama', 'Personal Search Panchanama'), ('Memorandum Panchanama', 'Memorandum Panchanama'), ('Identification Panchanama', 'Identification Panchanama'), ('Identification Parade Panchanama', 'Identification Parade Panchanama')], max_length=40),
+                ),
+            ]
+        ),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                    ALTER TABLE remand_custody DROP CONSTRAINT IF EXISTS chk_pr_bond_requires_mcr;
+                    ALTER TABLE remand_custody ADD CONSTRAINT chk_pr_bond_requires_mcr CHECK (pr_bond IS NULL OR pr_bond = FALSE OR mcr = TRUE);
+                    """,
+                    reverse_sql="""
+                    ALTER TABLE remand_custody DROP CONSTRAINT IF EXISTS chk_pr_bond_requires_mcr;
+                    """
+                ),
+            ],
+            state_operations=[
+                migrations.RemoveConstraint(
+                    model_name='remandcustody',
+                    name='chk_pr_bond_requires_mcr',
+                ),
+                migrations.AddConstraint(
+                    model_name='remandcustody',
+                    constraint=models.CheckConstraint(condition=models.Q(('pr_bond__isnull', True), ('pr_bond', False), ('mcr', True), _connector='OR'), name='chk_pr_bond_requires_mcr'),
+                ),
+            ]
         ),
         migrations.AlterUniqueTogether(
             name='sectionfieldtemplate',
             unique_together=set(),
         ),
-        migrations.RemoveField(
-            model_name='act',
-            name='act_code',
-        ),
-        migrations.RemoveField(
-            model_name='act',
-            name='is_active',
-        ),
-        migrations.RemoveField(
-            model_name='actsection',
-            name='bailable_type',
-        ),
-        migrations.RemoveField(
-            model_name='actsection',
-            name='description',
-        ),
-        migrations.RemoveField(
-            model_name='actsection',
-            name='is_active',
-        ),
-        migrations.RemoveField(
-            model_name='actsection',
-            name='title',
-        ),
-        migrations.RemoveField(
-            model_name='actsubsection',
-            name='description',
-        ),
-        migrations.RemoveField(
-            model_name='actsubsection',
-            name='is_active',
-        ),
-        migrations.RemoveField(
-            model_name='arrestreleasestatus',
-            name='arrest_location',
-        ),
-        migrations.AlterField(
-            model_name='proceduralchecklist',
-            name='item_name',
-            field=models.CharField(choices=[('Spot Panchanama', 'Spot Panchanama'), ('Seizure Panchanama', 'Seizure Panchanama'), ('Search Panchanama', 'Search Panchanama'), ('Personal Search Panchanama', 'Personal Search Panchanama'), ('Memorandum Panchanama', 'Memorandum Panchanama'), ('Identification Panchanama', 'Identification Panchanama'), ('Identification Parade Panchanama', 'Identification Parade Panchanama')], max_length=40),
-        ),
-        migrations.AddConstraint(
-            model_name='remandcustody',
-            constraint=models.CheckConstraint(condition=models.Q(('pr_bond__isnull', True), ('pr_bond', False), ('mcr', True), _connector='OR'), name='chk_pr_bond_requires_mcr'),
-        ),
     ]
+
