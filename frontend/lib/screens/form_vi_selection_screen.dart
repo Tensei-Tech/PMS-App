@@ -8,6 +8,7 @@ import '../modules/core/models/base_record.dart';
 import '../modules/form_vi/providers/form_vi_provider.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/category_navigation_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
 import '../utils/pdf_auth_gate.dart';
@@ -155,7 +156,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
       if (_categoryChildrenCache.containsKey(category)) {
         children = _categoryChildrenCache[category]!;
       } else {
-        children = await CaseService().fetchCategoryChildren(category);
+        children = await CategoryNavigationHelper.getChildren(category);
         _categoryChildrenCache[category] = children;
       }
 

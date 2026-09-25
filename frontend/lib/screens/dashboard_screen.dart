@@ -82,6 +82,7 @@ import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
 import '../widgets/send_broadcast_alert_dialog.dart';
+import '../utils/category_navigation_helper.dart';
 import '../widgets/send_reminder_dialog.dart';
 import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/voice_search_dialog.dart';
@@ -3466,13 +3467,11 @@ class _HomeTabState extends State<_HomeTab> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                          page: const FormIVSelectionScreen(
-                            mode: FormIVSelectionMode.browse,
-                          ),
-                        ),
+                      CategoryNavigationHelper.handleDashboardCategoryTap(
+                        context: context,
+                        categoryName: cat,
+                        moduleKey: 'form_1_5',
+                        readOnly: false,
                       );
                     },
                     child: Container(
@@ -3891,16 +3890,25 @@ class _HomeTabState extends State<_HomeTab> {
     } else {
       final isStatsItem =
           ['Monthly', 'Pending', 'Disposal'].contains(item.name);
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: ModuleHubScreen(
-            moduleLabel: item.name.replaceAll('\n', ' '),
-            moduleKey: item.moduleKey,
-            readOnly: isStatsItem,
+      if (isStatsItem) {
+        Navigator.push(
+          context,
+          AppTheme.fadeSlideRoute(
+            page: ModuleHubScreen(
+              moduleLabel: item.name.replaceAll('\n', ' '),
+              moduleKey: item.moduleKey,
+              readOnly: true,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        CategoryNavigationHelper.handleDashboardCategoryTap(
+          context: context,
+          categoryName: item.name,
+          moduleKey: item.moduleKey,
+          readOnly: false,
+        );
+      }
     }
   }
 

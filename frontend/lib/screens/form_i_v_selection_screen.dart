@@ -5,9 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../modules/core/models/base_record.dart';
+import '../modules/accident/providers/accident_provider.dart';
 import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/category_navigation_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/module_pdf_helper.dart';
@@ -43,8 +45,17 @@ class FormIVSelectionScreen extends StatefulWidget {
   static const allFilterLabel = 'All';
 
   final FormIVSelectionMode mode;
+  final String? initialCategory;
+  final String? customTitle;
+  final String? moduleKey;
 
-  const FormIVSelectionScreen({super.key, this.mode = FormIVSelectionMode.add});
+  const FormIVSelectionScreen({
+    super.key,
+    this.mode = FormIVSelectionMode.add,
+    this.initialCategory,
+    this.customTitle,
+    this.moduleKey,
+  });
 
   @override
   State<FormIVSelectionScreen> createState() => _FormIVSelectionScreenState();
@@ -76,7 +87,33 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   @override
   void initState() {
     super.initState();
-    _loadGroupCategories();
+    if (widget.initialCategory != null) {
+      final initCat = widget.initialCategory!.trim();
+      _categoryBreadcrumb.add(initCat);
+      final cached = CategoryNavigationHelper.getCachedChildren(initCat);
+      if (cached != null && cached.isNotEmpty) {
+        _categoryChildrenCache[initCat] = cached;
+      } else {
+        _loadCategoryChildren(initCat);
+      }
+    } else {
+      _loadGroupCategories();
+    }
+  }
+
+  Future<void> _loadCategoryChildren(String category) async {
+    setState(() => _isLoadingCategory = true);
+    try {
+      final children = await CategoryNavigationHelper.getChildren(category);
+      if (!mounted) return;
+      setState(() {
+        _categoryChildrenCache[category] = children;
+        _isLoadingCategory = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoadingCategory = false);
+    }
   }
 
   Future<void> _loadGroupCategories() async {
@@ -161,7 +198,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       if (_categoryChildrenCache.containsKey(category)) {
         children = _categoryChildrenCache[category]!;
       } else {
-        children = await CaseService().fetchCategoryChildren(category);
+        children = await CategoryNavigationHelper.getChildren(category);
         _categoryChildrenCache[category] = children;
       }
 
@@ -188,9 +225,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   }
 
   void _handleBackNavigation() {
+    final rootDepth = widget.initialCategory != null ? 1 : 0;
     if (_selectedCategory != null) {
       setState(() => _selectedCategory = null);
-    } else if (_categoryBreadcrumb.isNotEmpty) {
+    } else if (_categoryBreadcrumb.length > rootDepth) {
       setState(() => _categoryBreadcrumb.removeLast());
     } else {
       Navigator.pop(context);
@@ -891,7 +929,11 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   ) {
     final categoryRecords = category == FormIVSelectionScreen.allFilterLabel
         ? records.toList()
-        : records.where((r) => r.subCategory == category).toList();
+        : records
+            .where((r) =>
+                (r.subCategory ?? '').toLowerCase() == category.toLowerCase() ||
+                r.category.toLowerCase() == category.toLowerCase())
+            .toList();
 
     final filtered = categoryRecords.where(_recordMatchesDate).toList();
 
@@ -911,7 +953,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       AppTheme.fadeSlideRoute(
         page: CommonFormScreen(
           moduleLabel: category,
-          moduleKey: 'form_1_5',
+          moduleKey: widget.moduleKey ?? 'form_1_5',
           subCategory: category,
           existingRecord: existingRecord,
           readOnly: _readOnly && existingRecord != null,
@@ -1246,7 +1288,21 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<FormIVProvider>();
-    final allRecords = provider.records;
+    List<ModuleRecord> allRecords = provider.records;
+
+    if (widget.initialCategory?.toLowerCase() == 'accident' ||
+        widget.moduleKey == 'accident') {
+      final accidentRecords = context.watch<AccidentProvider>().records;
+      final set = <String>{...allRecords.map((r) => r.id)};
+      final combined = [...allRecords];
+      for (final r in accidentRecords) {
+        if (!set.contains(r.id)) {
+          combined.add(r);
+          set.add(r.id);
+        }
+      }
+      allRecords = combined;
+    }
 
     final totalCount = allRecords.length;
     final pendingCount = allRecords.where(_isPendingRecord).length;
@@ -1311,8 +1367,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
           )
         : null;
 
+    final rootDepth = widget.initialCategory != null ? 1 : 0;
+
     return PopScope(
-      canPop: _selectedCategory == null && _categoryBreadcrumb.isEmpty,
+      canPop: _selectedCategory == null && _categoryBreadcrumb.length <= rootDepth,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _handleBackNavigation();
@@ -1320,7 +1378,13 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
         appBar: ModuleHubScreenAppBar(
-          title: TranslationHelper.translate(context, 'Form I-V Cases'),
+          title: TranslationHelper.translate(
+            context,
+            widget.customTitle ??
+                (widget.initialCategory != null
+                    ? widget.initialCategory!
+                    : 'Form I-V Cases'),
+          ),
           subtitle: subtitle,
           actionWidget: actionWidget,
           onBackPressed: _handleBackNavigation,
@@ -1425,14 +1489,22 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                               InkWell(
                                 onTap: () {
                                   setState(() {
-                                    _categoryBreadcrumb.clear();
+                                    if (widget.initialCategory != null) {
+                                      _categoryBreadcrumb.clear();
+                                      _categoryBreadcrumb.add(widget.initialCategory!);
+                                    } else {
+                                      _categoryBreadcrumb.clear();
+                                    }
                                     _selectedCategory = null;
                                   });
                                 },
                                 child: Text(
                                   TranslationHelper.translate(
                                     context,
-                                    'Form I-V Cases',
+                                    widget.customTitle ??
+                                        (widget.initialCategory != null
+                                            ? widget.initialCategory!
+                                            : 'Form I-V Cases'),
                                   ),
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.5,
@@ -1441,7 +1513,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                   ),
                                 ),
                               ),
-                              for (int i = 0; i < _categoryBreadcrumb.length; i++) ...[
+                              for (int i = (widget.initialCategory != null ? 1 : 0);
+                                  i < _categoryBreadcrumb.length;
+                                  i++) ...[
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 6),
                                   child: Text(

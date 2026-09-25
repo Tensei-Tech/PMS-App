@@ -10,9 +10,11 @@ import 'package:intl/intl.dart';
 import '../modules/core/models/base_record.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/category_navigation_helper.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import 'common_form_screen.dart';
+import 'form_i_v_selection_screen.dart';
 import 'module_record_detail_screen.dart';
 
 /// Offline fallback list of all 26 standalone category names from database master
@@ -127,6 +129,25 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
   }
 
   void _onCategoryTap(String category) async {
+    final children = await CategoryNavigationHelper.getChildren(category);
+    if (!mounted) return;
+    if (children.isNotEmpty) {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: FormIVSelectionScreen(
+            initialCategory: category,
+            customTitle: category,
+            moduleKey: 'form_1_5',
+            mode: widget.readOnly
+                ? FormIVSelectionMode.readOnly
+                : FormIVSelectionMode.browse,
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _selectedCategory = category;
       _isLoadingCases = true;
