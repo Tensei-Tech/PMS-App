@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -5,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../modules/core/models/base_record.dart';
 import '../modules/form_vi/providers/form_vi_provider.dart';
+import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
@@ -50,6 +52,9 @@ class FormVISelectionScreen extends StatefulWidget {
 class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   FormVIStatusTab _selectedStatusTab = FormVIStatusTab.total;
   String? _selectedCategory;
+  final List<String> _categoryBreadcrumb = [];
+  final Map<String, List<Map<String, dynamic>>> _categoryChildrenCache = {};
+  bool _isLoadingCategory = false;
 
   // Date filtering & sorting state
   DateTimeRange? _selectedDateRange;
@@ -60,7 +65,131 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   bool get _readOnly => widget.mode == FormVISelectionMode.readOnly;
   bool get _showNewCaseFab => !_readOnly;
 
-  List<String> get _filterOptions => kFormVICaseCategories;
+  List<String> _apiCategories = [];
+  bool _isLoadingApiCategories = false;
+  bool _isUsingFallbackCategories = false;
+
+  List<String> get _filterOptions =>
+      _apiCategories.isNotEmpty ? _apiCategories : kFormVICaseCategories;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroupCategories();
+  }
+
+  Future<void> _loadGroupCategories() async {
+    setState(() => _isLoadingApiCategories = true);
+    try {
+      final cats = await CaseService().fetchGroupCategories(2);
+      if (mounted) {
+        if (cats.isNotEmpty) {
+          final topLevel = cats.where((c) => c['parent_category'] == null).toList();
+          final targetList = topLevel.isNotEmpty ? topLevel : cats;
+          final names = targetList
+              .map((c) => (c['category_name'] ?? c['name'] ?? '').toString().trim())
+              .where((n) => n.isNotEmpty)
+              .toSet()
+              .toList();
+          setState(() {
+            _apiCategories = names;
+            _isLoadingApiCategories = false;
+            _isUsingFallbackCategories = false;
+          });
+        } else {
+          setState(() {
+            _isLoadingApiCategories = false;
+            _isUsingFallbackCategories = true;
+          });
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoadingApiCategories = false;
+          _isUsingFallbackCategories = true;
+        });
+      }
+    }
+  }
+
+  List<String> get _currentDisplayCategories {
+    if (_categoryBreadcrumb.isEmpty) {
+      return _filterOptions;
+    }
+    final parent = _categoryBreadcrumb.last;
+    final children = _categoryChildrenCache[parent] ?? [];
+    return children
+        .map((c) => (c['category_name'] ?? c['name'] ?? '').toString())
+        .where((n) => n.isNotEmpty)
+        .toList();
+  }
+
+  Set<String> _getDescendantCategoryNames(String category) {
+    final result = <String>{category};
+    void collect(String cat) {
+      final children = _categoryChildrenCache[cat];
+      if (children != null) {
+        for (final child in children) {
+          final name = (child['category_name'] ?? child['name'] ?? '').toString();
+          if (name.isNotEmpty && !result.contains(name)) {
+            result.add(name);
+            collect(name);
+          }
+        }
+      }
+    }
+    collect(category);
+    return result;
+  }
+
+  Future<void> _handleCategoryTap(String category) async {
+    if (category == FormVISelectionScreen.allFilterLabel) {
+      setState(() => _selectedCategory = category);
+      return;
+    }
+
+    setState(() => _isLoadingCategory = true);
+    try {
+      List<Map<String, dynamic>> children;
+      if (_categoryChildrenCache.containsKey(category)) {
+        children = _categoryChildrenCache[category]!;
+      } else {
+        children = await CaseService().fetchCategoryChildren(category);
+        _categoryChildrenCache[category] = children;
+      }
+
+      if (!mounted) return;
+      if (children.isNotEmpty) {
+        setState(() {
+          _isLoadingCategory = false;
+          _categoryBreadcrumb.add(category);
+          _selectedCategory = null;
+        });
+      } else {
+        setState(() {
+          _isLoadingCategory = false;
+          _selectedCategory = category;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingCategory = false;
+        _selectedCategory = category;
+      });
+    }
+  }
+
+  void _handleBackNavigation() {
+    if (_selectedCategory != null) {
+      setState(() => _selectedCategory = null);
+    } else if (_categoryBreadcrumb.isNotEmpty) {
+      setState(() => _categoryBreadcrumb.removeLast());
+    } else {
+      Navigator.pop(context);
+    }
+  }
 
   bool _isDisposalRecord(ModuleRecord r) {
     final s = r.status.trim().toLowerCase();
@@ -802,7 +931,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     final category = (_selectedCategory != null &&
             _selectedCategory != FormVISelectionScreen.allFilterLabel)
         ? _selectedCategory!
-        : kFormVICaseCategories.first;
+        : (_categoryBreadcrumb.isNotEmpty
+            ? _categoryBreadcrumb.last
+            : _filterOptions.first);
     _openForm(category);
   }
 
@@ -1132,8 +1263,13 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     if (_selectedCategory == null) {
       final transCases = TranslationHelper.translate(context, 'cases');
       final transTypes = TranslationHelper.translate(context, 'types');
-      subtitle =
-          '${statusRecords.length} $transCases · ${kFormVICaseCategories.length} $transTypes';
+      if (_categoryBreadcrumb.isEmpty) {
+        subtitle =
+            '${statusRecords.length} $transCases · ${_filterOptions.length} $transTypes';
+      } else {
+        subtitle =
+            '${_categoryBreadcrumb.join(' / ')} · ${_currentDisplayCategories.length} $transTypes';
+      }
     } else if (_selectedCategory == FormVISelectionScreen.allFilterLabel) {
       final transCases = TranslationHelper.translate(context, 'cases');
       subtitle = 'All Cases · ${visibleRecords.length} $transCases$dateSuffix';
@@ -1143,8 +1279,11 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
         _selectedCategory!,
       );
       final transCases = TranslationHelper.translate(context, 'cases');
+      final prefix = _categoryBreadcrumb.isNotEmpty
+          ? '${_categoryBreadcrumb.join(' / ')} / '
+          : '';
       subtitle =
-          '$transCategory · ${visibleRecords.length} $transCases$dateSuffix';
+          '$prefix$transCategory · ${visibleRecords.length} $transCases$dateSuffix';
     }
 
     final Widget? actionWidget = _showNewCaseFab
@@ -1171,12 +1310,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
         : null;
 
     return PopScope(
-      canPop: _selectedCategory == null,
+      canPop: _selectedCategory == null && _categoryBreadcrumb.isEmpty,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (_selectedCategory != null) {
-          setState(() => _selectedCategory = null);
-        }
+        _handleBackNavigation();
       },
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
@@ -1184,13 +1321,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
           title: TranslationHelper.translate(context, 'Form VI Cases'),
           subtitle: subtitle,
           actionWidget: actionWidget,
-          onBackPressed: () {
-            if (_selectedCategory != null) {
-              setState(() => _selectedCategory = null);
-            } else {
-              Navigator.pop(context);
-            }
-          },
+          onBackPressed: _handleBackNavigation,
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1205,7 +1336,163 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               },
               trailingWidget: null,
             ),
+            if (kDebugMode && _isUsingFallbackCategories)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.amber.shade700),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, size: 16, color: Colors.amber.shade900),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'DEBUG NOTICE: Using offline fallback category list for Group 2.',
+                        style: TextStyle(fontSize: 11, color: Colors.amber.shade900, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (_isLoadingApiCategories && _apiCategories.isEmpty)
+              const LinearProgressIndicator(minHeight: 2),
             if (_selectedCategory == null) ...[
+              if (_categoryBreadcrumb.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                  ),
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      InkWell(
+                        onTap: _handleBackNavigation,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(8),
+                            border:
+                                Border.all(color: const Color(0xFFCBD5E1)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.arrow_back_rounded,
+                                size: 14,
+                                color: AppColors.navyDark,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                TranslationHelper.translate(
+                                  context,
+                                  _categoryBreadcrumb.length > 1
+                                      ? _categoryBreadcrumb[_categoryBreadcrumb.length - 2]
+                                      : 'All Categories',
+                                ),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.navyDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _categoryBreadcrumb.clear();
+                                    _selectedCategory = null;
+                                  });
+                                },
+                                child: Text(
+                                  TranslationHelper.translate(
+                                    context,
+                                    'Form VI Cases',
+                                  ),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12.5,
+                                    color: const Color(0xFF1976D2),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              for (int i = 0; i < _categoryBreadcrumb.length; i++) ...[
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                                  child: Text(
+                                    '/',
+                                    style: GoogleFonts.poppins(
+                                      color: AppColors.lightSubText,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                                if (i == _categoryBreadcrumb.length - 1)
+                                  Text(
+                                    TranslationHelper.translate(
+                                      context,
+                                      _categoryBreadcrumb[i],
+                                    ),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.navyDark,
+                                    ),
+                                  )
+                                else
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _categoryBreadcrumb.removeRange(
+                                          i + 1,
+                                          _categoryBreadcrumb.length,
+                                        );
+                                        _selectedCategory = null;
+                                      });
+                                    },
+                                    child: Text(
+                                      TranslationHelper.translate(
+                                        context,
+                                        _categoryBreadcrumb[i],
+                                      ),
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12.5,
+                                        color: const Color(0xFF1976D2),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1200),
@@ -1222,7 +1509,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                         Text(
                           TranslationHelper.translate(
                             context,
-                            'Filter by Case Type',
+                            _categoryBreadcrumb.isNotEmpty
+                                ? 'Filter by ${_categoryBreadcrumb.last}'
+                                : 'Filter by Case Type',
                           ),
                           style: GoogleFonts.poppins(
                             fontSize: 13,
@@ -1231,6 +1520,17 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                             letterSpacing: 0.2,
                           ),
                         ),
+                        if (_isLoadingCategory) ...[
+                          const SizedBox(width: 12),
+                          const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF1976D2),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -1241,11 +1541,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1200),
                     child: _CategoryGridView(
-                      categories: _filterOptions,
+                      categories: _currentDisplayCategories,
                       records: statusRecords,
-                      onCategorySelected: (cat) {
-                        setState(() => _selectedCategory = cat);
-                      },
+                      getDescendantNames: _getDescendantCategoryNames,
+                      onCategorySelected: _handleCategoryTap,
                     ),
                   ),
                 ),
@@ -1273,7 +1572,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         InkWell(
-                          onTap: () => setState(() => _selectedCategory = null),
+                          onTap: _handleBackNavigation,
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -1298,7 +1597,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                                 Text(
                                   TranslationHelper.translate(
                                     context,
-                                    'Back to Categories',
+                                    _categoryBreadcrumb.isNotEmpty
+                                        ? _categoryBreadcrumb.last
+                                        : 'Categories',
                                   ),
                                   style: GoogleFonts.poppins(
                                     fontSize: 12,
@@ -1310,50 +1611,108 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                             ),
                           ),
                         ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '/',
-                              style: GoogleFonts.poppins(
-                                color: AppColors.lightSubText,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              TranslationHelper.translate(
-                                context,
-                                _selectedCategory!,
-                              ),
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.navyDark,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE8F1FC),
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.full,
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _categoryBreadcrumb.clear();
+                                    _selectedCategory = null;
+                                  });
+                                },
+                                child: Text(
+                                  TranslationHelper.translate(
+                                    context,
+                                    'Form VI',
+                                  ),
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF1976D2),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                              child: Text(
-                                '${visibleRecords.length}',
+                              for (int i = 0; i < _categoryBreadcrumb.length; i++) ...[
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                                  child: Text(
+                                    '/',
+                                    style: GoogleFonts.poppins(
+                                      color: AppColors.lightSubText,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _categoryBreadcrumb.removeRange(
+                                        i + 1,
+                                        _categoryBreadcrumb.length,
+                                      );
+                                      _selectedCategory = null;
+                                    });
+                                  },
+                                  child: Text(
+                                    TranslationHelper.translate(
+                                      context,
+                                      _categoryBreadcrumb[i],
+                                    ),
+                                    style: GoogleFonts.poppins(
+                                      color: const Color(0xFF1976D2),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: Text(
+                                  '/',
+                                  style: GoogleFonts.poppins(
+                                    color: AppColors.lightSubText,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                TranslationHelper.translate(
+                                  context,
+                                  _selectedCategory!,
+                                ),
                                 style: GoogleFonts.poppins(
-                                  fontSize: 11,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF1976D2),
+                                  color: AppColors.navyDark,
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F1FC),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.full,
+                                  ),
+                                ),
+                                child: Text(
+                                  '${visibleRecords.length}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF1976D2),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -1565,17 +1924,27 @@ class _CategoryGridView extends StatelessWidget {
     required this.categories,
     required this.records,
     required this.onCategorySelected,
+    this.getDescendantNames,
   });
 
   final List<String> categories;
   final List<ModuleRecord> records;
   final ValueChanged<String> onCategorySelected;
+  final Set<String> Function(String category)? getDescendantNames;
 
   int _countFor(String category) {
     if (category == FormVISelectionScreen.allFilterLabel) {
       return records.length;
     }
-    return records.where((r) => r.subCategory == category).length;
+    final descendants = getDescendantNames != null
+        ? getDescendantNames!(category)
+        : {category};
+    return records
+        .where((r) =>
+            descendants.any((d) =>
+                d.toLowerCase() == (r.subCategory ?? '').toLowerCase()) ||
+            (r.subCategory ?? '').toLowerCase() == category.toLowerCase())
+        .length;
   }
 
   IconData _iconForCategory(String category) {

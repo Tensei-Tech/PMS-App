@@ -19,8 +19,8 @@ class ApiConfig {
   static const String renderBackendUrl =
       'https://pms-app-backend.onrender.com/api';
 
-  /// Default local development port
-  static const int defaultPort = 8000;
+  /// Default local development port (8001 matches runserver 0.0.0.0:8001)
+  static int defaultPort = 8001;
 
   /// Custom host override if specified at runtime
   static String? _customBaseUrl;

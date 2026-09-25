@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../../services/case_service.dart';
 import '../providers/pocso_provider.dart';
 
 /// One POCSO victim entry (supports multiple victims)
@@ -32,12 +33,14 @@ class PocsoVictimData {
 /// 6. DNA/FSL Victim: 3 Y/N fields
 /// 7. DNA/FSL Accused: 3 Y/N fields (separate from victim block)
 class PocsoExtraFields extends StatefulWidget {
+  final dynamic categoryId;
   final ValueChanged<String>? onVictimNameChanged;
   final void Function(String label, TextEditingController ctrl,
       [String section])? onActiveFieldTap;
 
   const PocsoExtraFields({
     super.key,
+    this.categoryId,
     this.onVictimNameChanged,
     this.onActiveFieldTap,
   });
@@ -62,6 +65,19 @@ class PocsoExtraFieldsState extends State<PocsoExtraFields> {
   // 1. Legal Sections (BNS & POCSO separate)
   final Set<String> _bnsSections = <String>{};
   final Set<String> _pocsoSections = <String>{};
+  Map<String, Map<String, dynamic>> _actsData = {};
+
+  Future<void> _loadFormDefinition() async {
+    final catId = widget.categoryId ?? 45;
+    final def = await CaseService().fetchFormDefinition(catId);
+    if (def != null && mounted && def['acts_sections'] is Map) {
+      setState(() {
+        final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
+        _actsData = acts.map(
+            (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+      });
+    }
+  }
 
   // 2. Victims List (supports multiple victims, with null-safe getter)
   List<PocsoVictimData>? _victims;
@@ -102,6 +118,7 @@ class PocsoExtraFieldsState extends State<PocsoExtraFields> {
   @override
   void initState() {
     super.initState();
+    _loadFormDefinition();
     if (_effectiveVictims.isEmpty) {
       _effectiveVictims.add(PocsoVictimData());
     }
@@ -448,10 +465,11 @@ class PocsoExtraFieldsState extends State<PocsoExtraFields> {
 
   // ── 1. Legal Sections: BNS & POCSO ─────────────────────────────────────────
   Widget _buildLegalSections() {
-    final bnsItems = (ACT_DATA['BNS']?['sections'] as List<dynamic>? ?? [])
+    final activeActs = _actsData.isNotEmpty ? _actsData : ACT_DATA;
+    final bnsItems = (activeActs['BNS']?['sections'] as List<dynamic>? ?? [])
         .map((s) => s as Map<String, dynamic>)
         .toList();
-    final pocsoItems = (ACT_DATA['POCSO']?['sections'] as List<dynamic>? ?? [])
+    final pocsoItems = (activeActs['POCSO']?['sections'] as List<dynamic>? ?? [])
         .map((s) => s as Map<String, dynamic>)
         .toList();
 

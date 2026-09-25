@@ -21,6 +21,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../modules/core/models/base_record.dart';
 import '../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../services/case_service.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/common_form_pdf.dart';
 import '../../utils/crime_detail_pdf.dart';
@@ -159,6 +160,7 @@ const _kPreventiveItems = [
 class CommonForm extends StatefulWidget {
   const CommonForm({
     super.key,
+    this.categoryId,
     this.moduleKey,
     this.moduleLabel,
     this.subCategory,
@@ -171,6 +173,7 @@ class CommonForm extends StatefulWidget {
     this.isMurder,
   });
 
+  final dynamic categoryId;
   final String? moduleKey;
   final String? moduleLabel;
   final String? subCategory;
@@ -639,12 +642,112 @@ class CommonFormState extends State<CommonForm> {
   Set<String> get _initializedSectionKeys =>
       _initializedSectionKeysSet ??= <String>{};
 
+  // ── Dynamic Field Engine Data (Backend API) ──────────────────────────────
+  Map<String, Map<String, dynamic>> _actsData = {};
+  Map<String, String> _proceduralKeys = Map.from(_kProceduralKeys);
+  List<String> _preventiveItems = List.from(_kPreventiveItems);
+  List<Map<String, dynamic>> _extraFields = [];
+  final Map<String, TextEditingController> _dynamicControllers = {};
+  final Map<String, dynamic> _dynamicValues = {};
+  bool _isUsingFallback = false;
+
+  Map<String, Map<String, dynamic>> get _activeActsData =>
+      _actsData.isNotEmpty ? _actsData : ACT_DATA;
+  Map<String, String> get _activeProceduralKeys =>
+      _proceduralKeys.isNotEmpty ? _proceduralKeys : _kProceduralKeys;
+  List<String> get _activePreventiveItems =>
+      _preventiveItems.isNotEmpty ? _preventiveItems : _kPreventiveItems;
+
+  Future<void> _loadFormDefinition({List<dynamic>? chargedSections}) async {
+    final catId = widget.categoryId ??
+        widget.subCategory ??
+        widget.moduleLabel ??
+        widget.moduleKey;
+    if (catId == null ||
+        catId == 'form_1_5' ||
+        catId == 'form_iv' ||
+        catId == 'form_vi' ||
+        catId == 'standalone') {
+      return;
+    }
+    final def = await CaseService().fetchFormDefinition(
+      catId,
+      sections: chargedSections,
+    );
+    if (!mounted) return;
+    if (def != null) {
+      setState(() {
+        _isUsingFallback = false;
+        if (def['acts_sections'] is Map) {
+          final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
+          _actsData = acts.map(
+              (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+        }
+        if (def['procedural_items'] is Map) {
+          _proceduralKeys = (def['procedural_items'] as Map)
+              .map((k, v) => MapEntry(k.toString(), v.toString()));
+          for (final k in _proceduralKeys.keys) {
+            _procChecks.putIfAbsent(k, () => false);
+            _procDates.putIfAbsent(k, () => TextEditingController());
+          }
+        }
+        if (def['preventive_items'] is List) {
+          _preventiveItems =
+              (def['preventive_items'] as List).map((e) => e.toString()).toList();
+        }
+        if (def['fields'] is List) {
+          final rawFields = (def['fields'] as List)
+              .whereType<Map>()
+              .map((m) => Map<String, dynamic>.from(m))
+              .toList();
+          _extraFields = rawFields
+              .where((f) => f['field_source'] != 'common')
+              .toList();
+
+          for (final f in _extraFields) {
+            final key = f['field_key']?.toString() ?? '';
+            if (key.isEmpty) continue;
+            final type = f['field_type']?.toString().toLowerCase() ?? 'text';
+            if (type == 'checkbox') {
+              _dynamicValues.putIfAbsent(key, () => false);
+            } else if (type == 'dropdown') {
+              _dynamicValues.putIfAbsent(key, () => null);
+            } else {
+              _dynamicControllers.putIfAbsent(
+                key,
+                () => TextEditingController()..addListener(_debouncedSync),
+              );
+            }
+          }
+        }
+      });
+    } else {
+      if (mounted) {
+        setState(() {
+          _isUsingFallback = true;
+        });
+      }
+    }
+  }
+
+  void _syncDynamicFieldsForCharges() {
+    final allSecs = _chargeData.values
+        .expand((r) => (r['sections'] as Set<String>? ?? <String>{}))
+        .toList();
+    _loadFormDefinition(chargedSections: allSecs);
+  }
+
+  @visibleForTesting
+  Future<void> loadFormDefinitionForTest(List<dynamic> sections) =>
+      _loadFormDefinition(chargedSections: sections);
+
   // ─── lifecycle ─────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
     _ownsScroll = widget.scrollController == null;
     _isTwoFourWheelerTheft = _isTwoFourWheeler;
+    _loadFormDefinition();
   }
 
   @override
@@ -758,6 +861,9 @@ class CommonFormState extends State<CommonForm> {
       c.dispose();
     }
     for (final c in _dischargeReasons.values) {
+      c.dispose();
+    }
+    for (final c in _dynamicControllers.values) {
       c.dispose();
     }
   }
@@ -931,26 +1037,30 @@ class CommonFormState extends State<CommonForm> {
   void _removeCharge(String id) {
     _chargeData.remove(id);
     setState(() {});
+    _syncDynamicFieldsForCharges();
   }
 
   void _onActChange(String id, String act) {
     _chargeData[id]!['act'] = act;
     _chargeData[id]!['sections'] = <String>{};
     setState(() {});
+    _syncDynamicFieldsForCharges();
   }
 
   void _addSection(String id, String val) {
     (_chargeData[id]!['sections'] as Set<String>).add(val);
     setState(() {});
+    _syncDynamicFieldsForCharges();
   }
 
   void _removeSection(String id, String val) {
     (_chargeData[id]!['sections'] as Set<String>).remove(val);
     setState(() {});
+    _syncDynamicFieldsForCharges();
   }
 
   String _secLabel(String actKey, String val) {
-    final secs = ACT_DATA[actKey]?['sections'] as List<dynamic>? ?? [];
+    final secs = _activeActsData[actKey]?['sections'] as List<dynamic>? ?? [];
     for (final raw in secs) {
       if (raw is Map && raw['val'] == val) {
         return raw['label'] as String? ?? val;
@@ -1667,6 +1777,12 @@ class CommonFormState extends State<CommonForm> {
         'appGrant': _appGrant.text,
         'stepAppActive': _stepApp,
         'stepDcpActive': _stepDcp,
+      },
+      'dynamic_extra_fields': {
+        for (final entry in _dynamicControllers.entries)
+          entry.key: entry.value.text,
+        for (final entry in _dynamicValues.entries)
+          entry.key: entry.value,
       },
     };
   }
@@ -2922,6 +3038,34 @@ class CommonFormState extends State<CommonForm> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (kDebugMode && _isUsingFallback)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.shade100,
+                                border: Border.all(color: Colors.amber.shade700),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.warning_amber_rounded,
+                                      color: Colors.amber.shade900, size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '[DEV ONLY] Offline fallback data in use (form-definition endpoint unavailable).',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.amber.shade900,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           _card(
                             1,
                             'Crime Registration Info',
@@ -2940,6 +3084,13 @@ class CommonFormState extends State<CommonForm> {
                           ),
                           _card(3, 'Crime Spot', _s3()),
                           if (widget.middleSlot != null) widget.middleSlot!,
+                          if (_extraFields.isNotEmpty)
+                            _card(
+                              'extra_fields',
+                              'Special Section / Template Details (${_extraFields.length})',
+                              _sExtraFields(),
+                              startOpen: true,
+                            ),
                           _card(
                             4,
                             'Complainant',
@@ -3210,7 +3361,7 @@ class CommonFormState extends State<CommonForm> {
               final act = data['act']?.toString() ?? '';
               final secs = (data['sections'] as Set<String>?) ?? {};
               final actLabel = act.isNotEmpty
-                  ? (ACT_DATA[act]?['label'] as String? ?? act)
+                  ? (_activeActsData[act]?['label'] as String? ?? act)
                   : '—';
               return Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -3269,7 +3420,7 @@ class CommonFormState extends State<CommonForm> {
 
   Widget _chargeCard(String id, int num, Map<String, dynamic> data) {
     final actKey = data['act']?.toString() ?? '';
-    final hasAct = actKey.isNotEmpty && ACT_DATA.containsKey(actKey);
+    final hasAct = actKey.isNotEmpty && _activeActsData.containsKey(actKey);
     final secs = (data['sections'] as Set<String>?) ?? {};
 
     return Container(
@@ -3309,7 +3460,7 @@ class CommonFormState extends State<CommonForm> {
               TranslationHelper.translate(context, 'Select Act / Law'),
               style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
             ),
-            items: ACT_DATA.entries.map((e) {
+            items: _activeActsData.entries.map((e) {
               return DropdownMenuItem<String>(
                 value: e.key,
                 child: Text(
@@ -3328,7 +3479,7 @@ class CommonFormState extends State<CommonForm> {
           if (hasAct) ...[
             const SizedBox(height: 4),
             Text(
-              ACT_DATA[actKey]?['hint'] as String? ?? '',
+              _activeActsData[actKey]?['hint'] as String? ?? '',
               style: const TextStyle(
                   fontSize: 10, color: _kAmber, fontStyle: FontStyle.italic),
             ),
@@ -3338,6 +3489,7 @@ class CommonFormState extends State<CommonForm> {
             _SectionSearchPicker(
               actKey: actKey,
               selected: secs,
+              actsData: _activeActsData,
               onAdd: (v) => _addSection(id, v),
               onRemove: (v) => _removeSection(id, v),
             ),
@@ -3364,6 +3516,120 @@ class CommonFormState extends State<CommonForm> {
           ),
         ],
       );
+
+  // ── Dynamic Extra Template Fields (Backend Form-Definition Engine) ──────────
+  Widget _buildDynamicField(Map<String, dynamic> f) {
+    final key = f['field_key']?.toString() ?? '';
+    final label = f['field_label']?.toString() ?? key;
+    final type = f['field_type']?.toString().toLowerCase() ?? 'text';
+    final isReq = f['is_required'] == true;
+    final displayLabel = isReq ? '$label *' : label;
+
+    if (type == 'textarea') {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _tf(displayLabel, ctrl, maxLines: 3);
+    } else if (type == 'number') {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _tf(displayLabel, ctrl, keyboardType: TextInputType.number);
+    } else if (type == 'date') {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _dateField(displayLabel, ctrl);
+    } else if (type == 'datetime') {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _dateTimeField(displayLabel, ctrl);
+    } else if (type == 'checkbox') {
+      final isChecked = _dynamicValues[key] == true;
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isChecked ? _kTeal.withValues(alpha: 0.06) : _kInputBg,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: isChecked ? _kTeal : _kBorder),
+        ),
+        child: Row(
+          children: [
+            Checkbox(
+              value: isChecked,
+              activeColor: _kTeal,
+              onChanged: (v) => setState(() => _dynamicValues[key] = v ?? false),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                TranslationHelper.translate(context, displayLabel),
+                style: _tsBody.copyWith(
+                  fontWeight: isChecked ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (type == 'dropdown') {
+      final currentVal = _dynamicValues[key]?.toString();
+      final isGender = key.toLowerCase().contains('gender');
+      final options = isGender ? ['Male', 'Female', 'Other'] : ['Yes', 'No', 'Other'];
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: DropdownButtonFormField<String>(
+          initialValue: options.contains(currentVal) ? currentVal : null,
+          decoration: _d(displayLabel),
+          items: options
+              .map((o) => DropdownMenuItem(
+                    value: o,
+                    child: Text(TranslationHelper.translate(context, o), style: _tsBody),
+                  ))
+              .toList(),
+          onChanged: (v) => setState(() => _dynamicValues[key] = v),
+        ),
+      );
+    } else {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _tf(displayLabel, ctrl);
+    }
+  }
+
+  Widget _sExtraFields() {
+    if (_extraFields.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: _emptyBox('No additional fields required for this category.'),
+      );
+    }
+
+    final List<Widget> children = [];
+    int i = 0;
+    while (i < _extraFields.length) {
+      final f1 = _extraFields[i];
+      final type1 = f1['field_type']?.toString().toLowerCase() ?? 'text';
+      if (type1 == 'textarea' || type1 == 'checkbox' || i == _extraFields.length - 1) {
+        children.add(_buildDynamicField(f1));
+        i++;
+      } else {
+        final f2 = _extraFields[i + 1];
+        final type2 = f2['field_type']?.toString().toLowerCase() ?? 'text';
+        if (type2 == 'textarea' || type2 == 'checkbox') {
+          children.add(_buildDynamicField(f1));
+          i++;
+        } else {
+          children.add(_row([
+            _buildDynamicField(f1),
+            _buildDynamicField(f2),
+          ]));
+          i += 2;
+        }
+      }
+      if (i < _extraFields.length) {
+        children.add(const SizedBox(height: 8));
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: children,
+    );
+  }
 
   Widget _victimIdentityProtectionWarning(BuildContext context) {
     return Container(
@@ -4426,7 +4692,7 @@ class CommonFormState extends State<CommonForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _subHeader('ALL PANCHANAMA (SELECT TO ADD DATE & TIME)'),
-          ..._kProceduralKeys.entries.map((e) {
+          ..._activeProceduralKeys.entries.map((e) {
             final on = _procChecks[e.key] ?? false;
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -4648,13 +4914,13 @@ class CommonFormState extends State<CommonForm> {
             padding: const EdgeInsets.only(bottom: 12),
             child: DropdownButtonFormField<String>(
               initialValue:
-                  _kPreventiveItems.contains(_prevAction) ? _prevAction : null,
+                  _activePreventiveItems.contains(_prevAction) ? _prevAction : null,
               dropdownColor: Colors.white,
               isExpanded: true,
               decoration: _d('Preventive Action'),
               style: _tsBody,
               icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
-              items: _kPreventiveItems.map((item) {
+              items: _activePreventiveItems.map((item) {
                 return DropdownMenuItem<String>(
                   value: item,
                   child: Text(
@@ -5259,11 +5525,13 @@ class _SectionSearchPicker extends StatefulWidget {
     required this.selected,
     required this.onAdd,
     required this.onRemove,
+    this.actsData,
   });
   final String actKey;
   final Set<String> selected;
   final ValueChanged<String> onAdd;
   final ValueChanged<String> onRemove;
+  final Map<String, Map<String, dynamic>>? actsData;
 
   @override
   State<_SectionSearchPicker> createState() => _SectionSearchPickerState();
@@ -5282,8 +5550,9 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final acts = widget.actsData ?? ACT_DATA;
     final sections =
-        (ACT_DATA[widget.actKey]?['sections'] as List<dynamic>? ?? [])
+        (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
             .map((r) => r as Map<String, dynamic>)
             .toList();
 

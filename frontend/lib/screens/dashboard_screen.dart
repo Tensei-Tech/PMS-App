@@ -3703,6 +3703,8 @@ class _HomeTabState extends State<_HomeTab> {
         return Icons.inventory_2_rounded;
       case 'two_wheeler':
         return Icons.two_wheeler_rounded;
+      case 'folder_special':
+        return Icons.folder_special_rounded;
       default:
         return Icons.folder_rounded;
     }

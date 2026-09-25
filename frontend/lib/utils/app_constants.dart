@@ -19,6 +19,7 @@ class AppRoutes {
   static const String pendingTransfers = '/transfer/pending';
   static const String transferStatus = '/transfer/status';
   static const String stationAccessGrants = '/station/access-grants';
+  static const String standaloneCategories = '/standalone-categories';
 }
 
 /// App-wide timeout and timing constants

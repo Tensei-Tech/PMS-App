@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.stations',
     'apps.cases',
+    'apps.crimetab',
 ]
 
 try:
@@ -131,6 +132,7 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
             'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_local else 'require'),
+            'options': '-c search_path=maharashtra,public',
         },
     }
 else:

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PMS - Sub-Tab & Case Lifecycle Workflow Specification</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 14mm;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      background-color: #ffffff;
+      line-height: 1.45;
+      font-size: 11.5px;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #0284c7;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+    .header h1 {
+      margin: 0 0 4px 0;
+      font-size: 19px;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+      font-weight: 800;
+    }
+    .header p {
+      margin: 0;
+      font-size: 11.5px;
+      color: #475569;
+    }
+    .badge-summary {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 10.5px;
+      margin-top: 6px;
+      border: 1px solid #bae6fd;
+    }
+    .section-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      padding: 10px 14px;
+      background-color: #ffffff;
+      page-break-inside: avoid;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #0369a1;
+      margin-bottom: 8px;
+      border-bottom: 1.5px solid #e2e8f0;
+      padding-bottom: 4px;
+    }
+    .badge {
+      background-color: #0284c7;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 2px 7px;
+      margin-right: 6px;
+    }
+    
+    /* FLOW DIAGRAM CONTAINER */
+    .flow-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .flow-box {
+      width: 95%;
+      border-radius: 8px;
+      padding: 8px 12px;
+      text-align: center;
+      position: relative;
+    }
+    .flow-arrow {
+      font-size: 14px;
+      color: #64748b;
+      font-weight: 900;
+      margin: -3px 0;
+    }
+    
+    .box-root {
+      background: #f1f5f9;
+      border: 1.5px solid #cbd5e1;
+      color: #334155;
+      font-weight: 700;
+    }
+    .box-group {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      color: #1e40af;
+    }
+    .box-grid {
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      color: #166534;
+    }
+    .box-subtab {
+      background: #fefce8;
+      border: 2px solid #eab308;
+      color: #854d0e;
+      box-shadow: 0 2px 6px rgba(234, 179, 8, 0.15);
+    }
+    .box-case {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      color: #334155;
+    }
+    .box-form {
+      background: #fff7ed;
+      border: 1.5px solid #fed7aa;
+      color: #9a3412;
+    }
+    .box-bottom {
+      background: #faf5ff;
+      border: 1.5px solid #e9d5ff;
+      color: #6b21a8;
+    }
+    
+    .counter-preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .counter-pill {
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+    .counter-pill.total {
+      background: #e0f2fe;
+      border: 1px solid #7dd3fc;
+      color: #0369a1;
+    }
+    .counter-pill.pending {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      color: #b45309;
+    }
+    .counter-pill.disposal {
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      color: #15803d;
+    }
+    .counter-title {
+      font-size: 9.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .counter-value {
+      font-size: 15px;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+    .counter-desc {
+      font-size: 8.5px;
+      opacity: 0.85;
+      margin-top: 1px;
+    }
+
+    table.spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      font-size: 10.5px;
+    }
+    table.spec-table th {
+      background-color: #f1f5f9;
+      color: #334155;
+      text-align: left;
+      padding: 5px 8px;
+      font-weight: 700;
+      border: 1px solid #e2e8f0;
+    }
+    table.spec-table td {
+      padding: 5px 8px;
+      border: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    table.spec-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    .tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 9.5px;
+      font-weight: 600;
+    }
+    .tag-blue { background: #e0f2fe; color: #0284c7; }
+    .tag-amber { background: #fef3c7; color: #d97706; }
+    .tag-green { background: #dcfce7; color: #16a34a; }
+    .tag-purple { background: #f3e8ff; color: #7e22ce; }
+
+    .page-break {
+      page-break-after: always;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+      }
+      .section-card {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Khakhi Diary / PMS — Sub-Tab & Case Lifecycle Workflow</h1>
+    <p>Complete Operational Flowchart with Group & Sub-Tab Metric Counters (Total, Pending, Disposal)</p>
+    <div class="badge-summary">Official Police Management System Architecture Specification</div>
+  </div>
+
+  <!-- SECTION 1: VISUAL FLOWCHART -->
+  <div class="section-card">
+    <div class="section-title">
+      <span><span class="badge">1</span> Complete End-to-End Operational Flow</span>
+      <span class="tag tag-blue">Navigation Hierarchy</span>
+    </div>
+
+    <div class="flow-container">
+      
+      <!-- LEVEL 1 -->
+      <div class="flow-box box-root">
+        <strong>1. Tap Group Tile (e.g., "Form 1 to 5", "Form 6", "Minor Acts")</strong>
+        <div style="font-size: 9.5px; color: #64748b; margin-top: 2px;">Main Navigation Tile on Dashboard</div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <!-- LEVEL 2 -->
+      <div class="flow-box box-group">
+        <strong>2. Group Page: Form I-V Cases</strong>
+        <div style="font-size: 9.5px; margin-top: 2px;">
+          Displays aggregate statistics across all sub-tabs: 
+          <strong>Group Total</strong> | <strong>Group Pending</strong> | <strong>Group Disposal</strong>
+        </div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <!-- LEVEL 3 -->
+      <div class="flow-box box-grid">
+        <strong>3. Sub-Tab Grid / Crime Categories</strong>
+        <div style="font-size: 9.5px; margin-top: 2px;">
+          Murder • Attempt to Murder • Dacoity • Robbery • Theft • House Breaking • Extortion • Rioting ...
+        </div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <!-- LEVEL 4: FOCUSED SUB-TAB PAGE -->
+      <div class="flow-box box-subtab">
+        <strong style="font-size: 12px;">4. Sub-Tab Page (e.g., Murder Sub-Tab)</strong>
+        <div style="font-size: 10px; margin-top: 2px; font-weight: 600;">
+          Contains Sub-Tab Specific Counters, Filter Bar & Categorized Case List:
+        </div>
+
+        <div class="counter-preview-grid">
+          <div class="counter-pill total">
+            <div class="counter-title">TOTAL CASES</div>
+            <div class="counter-value">42</div>
+            <div class="counter-desc">All Registered in Sub-Tab</div>
+          </div>
+          <div class="counter-pill pending">
+            <div class="counter-title">PENDING CASES</div>
+            <div class="counter-value">18</div>
+            <div class="counter-desc">Active Investigation / Trial</div>
+          </div>
+          <div class="counter-pill disposal">
+            <div class="counter-title">DISPOSAL CASES</div>
+            <div class="counter-value">24</div>
+            <div class="counter-desc">Charge Sheeted / Disposed</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 6px; font-size: 9.5px; color: #713f12;">
+          ⚙️ <em>Features: Tapping counter filters list • Date Range Filter • Search by CR / Accused • Sort by Date / IO</em>
+        </div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <!-- LEVEL 5 -->
+      <div class="flow-box box-case">
+        <strong>Case list row</strong>
+        <div style="font-size: 9.5px; color: #475569; margin-top: 2px;">
+          Edit, view, PDF, delete actions
+        </div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <!-- LEVEL 6 -->
+      <div class="flow-box box-form">
+        <strong>6. + New Case / Edit Case: Common Form Engine</strong>
+        <div style="font-size: 9.5px; margin-top: 2px;">
+          Category Section pre-loaded (e.g., Murder - BNS 103(1)) • Dynamic Accused/Victim KYC • Property • Investigation Timeline
+        </div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <!-- LEVEL 7 -->
+      <div class="flow-box box-bottom">
+        <strong>7. Bottom Actions & Lifecycle Transitions</strong>
+        <div style="font-size: 9.5px; margin-top: 2px;">
+          <strong>Done / Save</strong> (Updates database & refreshes counters) • <strong>Generate PDF</strong> (Crime register sheet) • <strong>Transfer Case</strong> (Inter-station handoff)
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION 2: SUB-TAB METRICS & DISPOSAL LOGIC SPECIFICATION -->
+  <div class="section-card">
+    <div class="section-title">
+      <span><span class="badge">2</span> Disposal vs. Pending Fetch Logic (Forms 1 to 5 & Form 6)</span>
+      <span class="tag tag-green">Data Automation Logic</span>
+    </div>
+
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th style="width: 18%;">Counter</th>
+          <th style="width: 42%;">Field Trigger & Fetch Condition</th>
+          <th style="width: 25%;">Qualified Disposal Fields (No & Date)</th>
+          <th style="width: 15%;">Default Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color: #15803d;">DISPOSAL</strong><br><span class="tag tag-green" style="margin-top:2px;">Disposed</span></td>
+          <td>
+            A case in <strong>Form 1 to 5</strong> and <strong>Form 6</strong> is fetched into <strong>DISPOSAL</strong> when <u>any one</u> of the 7 official finalization Number & Date pairs is filled:
+          </td>
+          <td>
+            <ul style="margin: 0; padding-left: 14px; font-weight: 600; line-height: 1.5;">
+              <li>CC. No & Date</li>
+              <li>ST. No & Date</li>
+              <li>A Final No & Date</li>
+              <li>B Final No & Date</li>
+              <li>C Final No & Date</li>
+              <li>NC Final No & Date</li>
+              <li>Abated Summary No & Date</li>
+            </ul>
+          </td>
+          <td>Moved to <strong>Disposal</strong> tab & counted in sub-tab disposal metric.</td>
+        </tr>
+        <tr>
+          <td><strong style="color: #b45309;">PENDING</strong><br><span class="tag tag-amber" style="margin-top:2px;">Pending</span></td>
+          <td>
+            When <strong>none</strong> of the 7 disposal numbers & dates are filled (all remain blank/empty), the case automatically stays/fetches into <strong>PENDING</strong>.
+          </td>
+          <td>
+            <em>All 7 disposal fields are empty/null (Active IO investigation, awaiting charge sheet, or trial pending).</em>
+          </td>
+          <td>Remains in <strong>Pending</strong> tab requiring police investigation attention.</td>
+        </tr>
+        <tr>
+          <td><strong style="color: #0369a1;">TOTAL</strong><br><span class="tag tag-blue" style="margin-top:2px;">All Cases</span></td>
+          <td colspan="2">
+            <strong>TOTAL = PENDING + DISPOSAL</strong> (Sum of all registered cases in the sub-tab).
+          </td>
+          <td>Resets table filter to show all records.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 3: KEY SUB-TAB OPERATIONS -->
+  <div class="section-card">
+    <div class="section-title">
+      <span><span class="badge">3</span> Sub-Tab Page Feature Matrix</span>
+      <span class="tag tag-purple">Operational Capabilities</span>
+    </div>
+
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th style="width: 25%;">Feature Component</th>
+          <th style="width: 45%;">Description</th>
+          <th style="width: 30%;">User Benefit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Header Summary Cards</strong></td>
+          <td>Three live metric cards: <strong>Total</strong>, <strong>Pending</strong>, and <strong>Disposal</strong> with sub-text indicators.</td>
+          <td>Gives instant supervisory overview of crime status in that category.</td>
+        </tr>
+        <tr>
+          <td><strong>One-Click Metric Filtering</strong></td>
+          <td>Clicking any counter card instantly filters the case data table below without reloading the page.</td>
+          <td>Enables fast triage of pending workload for officers and reviewers.</td>
+        </tr>
+        <tr>
+          <td><strong>Search & Date Range Filter</strong></td>
+          <td>Search by CR No, Accused Name, Complainant Name, IO Name, and filter by Registration Date range.</td>
+          <td>Quickly locates specific cases during scrutiny or inspection.</td>
+        </tr>
+        <tr>
+          <td><strong>Category-Aware `+ New Case`</strong></td>
+          <td>Opens the Common Form with the sub-tab's crime category and core IPC/BNS Section pre-selected.</td>
+          <td>Eliminates repetitive data entry and minimizes misclassification errors.</td>
+        </tr>
+        <tr>
+          <td><strong>Row Action Suite</strong></td>
+          <td>Direct buttons for <strong>View Detail</strong>, <strong>Edit Form</strong>, <strong>Generate Case PDF</strong>, and <strong>Transfer</strong>.</td>
+          <td>Streamlined access to complete case actions directly from the sub-tab table.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>
