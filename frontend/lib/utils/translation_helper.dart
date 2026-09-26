@@ -2,27 +2,16 @@
 // Centralized translation dictionary for classifications and inner options.
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../providers/settings_provider.dart';
 
 class TranslationHelper {
+  /// Cached active language code to avoid walking the Provider widget tree on every string.
+  static String activeLanguageCode = 'en';
+
   /// Translates the input string based on the active locale.
   static String translate(BuildContext context, String text) {
     if (text.isEmpty) return text;
 
-    String locale = 'en';
-    try {
-      locale = Provider.of<SettingsProvider>(
-        context,
-        listen: false,
-      ).locale.languageCode;
-    } catch (_) {
-      try {
-        locale = Localizations.localeOf(context).languageCode;
-      } catch (_) {}
-    }
-
+    final locale = activeLanguageCode;
     if (locale == 'en') {
       if (text.trim().toLowerCase() == 'open') return 'Pending';
       return text;

@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'marathi_text_renderer.dart';
 import 'form_io_terminology.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewCrimespotSeizurePdf(
   BuildContext context,
@@ -30,9 +31,9 @@ Future<Uint8List> generateCrimespotSeizurePdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
 
   // Load fonts
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagariRegular = await PdfGoogleFonts.notoSansDevanagariRegular();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
+  final devanagariRegular = await PdfFontCache.devanagariRegular();
 
   // Pre-render Marathi text blocks
   final cache = await _preRenderAllMarathi(doc);

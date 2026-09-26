@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../utils/order_section_47_48_pdf.dart';
+import 'form_date_pickers.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
-import 'form_date_pickers.dart';
 
 /// Order / Notice u/s 47 & 48 BNSS
 /// Page 1: नोटीस बी.एन.एस.एस.कलम ४७(१) (Notice to Accused)
@@ -27,6 +28,12 @@ class OrderSection4748FormView extends StatefulWidget {
 }
 
 class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
+  @override
+  void initState() {
+    super.initState();
+    preloadOrderSection4748PdfFonts();
+  }
+
   bool get _showPage1 {
     final s = (widget.formSection ?? '').toLowerCase();
     if (s.isEmpty || s.contains('complete')) return true;
@@ -278,9 +285,46 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
     if (mounted) setState(() {});
   }
 
+  Widget _buildRuledLine({
+    String? prefix,
+    required TextEditingController controller,
+    String? hintText,
+    bool readOnly = false,
+    double bottomPadding = 8,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (prefix != null && prefix.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2, right: 6),
+              child: Text(
+                prefix,
+                style: GoogleFonts.notoSansDevanagari(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          Expanded(
+            child: _UnderlineInput(
+              controller: controller,
+              hintText: hintText,
+              readOnly: readOnly,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPage1(
       TextStyle serif, TextStyle marathiBody, TextStyle marathiBold) {
     return FormPaperPage(
+      minHeight: 0,
       formLabel: widget.pageRange ?? 'Page 1 — नोटीस बी.एन.एस.एस.कलम ४७(१)',
       children: [
         // Top Center Headers
@@ -289,56 +333,57 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
             children: [
               Text(
                 'नोटीस',
-                style: marathiBold.copyWith(fontSize: 16),
+                style: marathiBold.copyWith(fontSize: 18),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 3),
               Text(
                 'बी.एन.एस.एस.कलम ४७(१)',
-                style: marathiBold.copyWith(fontSize: 14),
+                style: marathiBold.copyWith(fontSize: 15),
                 textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 18),
 
         // Recipient (प्रति,)
-        Text('प्रति,', style: marathiBold),
-        const SizedBox(height: 4),
-        _UnderlineInput(
+        Text('प्रति,', style: marathiBold.copyWith(fontSize: 14)),
+        const SizedBox(height: 6),
+        _buildRuledLine(
           controller: _p1ToLine1Ctrl,
-          hintText: '[आरोपीचे नाव/पत्ता ओळ १]',
+          hintText: '[आरोपीचे पूर्ण नाव / पत्ता - ओळ १]',
           readOnly: widget.readOnly,
+          bottomPadding: 8,
         ),
-        const SizedBox(height: 6),
-        _UnderlineInput(
+        _buildRuledLine(
           controller: _p1ToLine2Ctrl,
-          hintText: '[पत्ता ओळ २]',
+          hintText: '[पत्ता - ओळ २]',
           readOnly: widget.readOnly,
+          bottomPadding: 8,
         ),
-        const SizedBox(height: 6),
-        _UnderlineInput(
+        _buildRuledLine(
           controller: _p1ToLine3Ctrl,
-          hintText: '[पत्ता ओळ ३]',
+          hintText: '[पत्ता - ओळ ३]',
           readOnly: widget.readOnly,
+          bottomPadding: 0,
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
 
         // Subject
         Text(
           'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...',
-          style: marathiBold,
+          style: marathiBold.copyWith(fontSize: 14),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
 
         // Flowing Notice Paragraph
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 4,
-          runSpacing: 8,
+          runSpacing: 10,
           children: [
-            const SizedBox(width: 32), // Indent
+            const SizedBox(width: 28), // Indent
             Text('आपणास याद्वारे कळविण्यात येते की,', style: marathiBody),
             _policeStationField(
               controller: _policeStationCtrl,
@@ -347,21 +392,32 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
               maxWidth: 450,
               hintText: 'पोलीस स्टेशन नाव',
             ),
-            Text('पोलीस स्टेशन गुन्हा रजि.नंबर', style: marathiBody),
+            Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: marathiBody),
             _UnderlineInput(
               controller: _crNoCtrl,
-              width: 80,
-              hintText: '......',
+              width: 85,
+              hintText: 'गु.र.नं.',
               readOnly: widget.readOnly,
             ),
-            Text('/२० भा.न्या.सं.कलम', style: marathiBody),
+            Text('/', style: marathiBody),
+            _UnderlineInput(
+              controller: _crYearCtrl,
+              width: 50,
+              hintText: 'वर्ष',
+              textAlign: TextAlign.center,
+              readOnly: widget.readOnly,
+            ),
+            Text('भा.न्या.सं.कलम', style: marathiBody),
             _UnderlineInput(
               controller: _bnsSectionCtrl,
-              width: 220,
-              hintText: '....................',
+              width: 210,
+              hintText: 'कलम उदा. १०३, ३(५)',
               readOnly: widget.readOnly,
             ),
-            Text('या गुन्ह्यात तपास कामी दि.', style: marathiBody),
+            Text(
+              'या गुन्ह्याचे तपासात निष्पन्न झालेल्या पुराव्यावरून आपणास दिनांक',
+              style: marathiBody,
+            ),
             formDatePickerField(
               context,
               controller: _arrestDateCtrl,
@@ -376,93 +432,75 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
               readOnly: widget.readOnly,
             ),
             Text(
-              'वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे.',
+              'वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे :-',
               style: marathiBody,
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
         // Section अ: गुन्ह्याची थोडक्यात हकीगत :-
-        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: marathiBold),
-        const SizedBox(height: 4),
-        _UnderlineInput(
+        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-',
+            style: marathiBold.copyWith(fontSize: 14)),
+        const SizedBox(height: 8),
+        _buildRuledLine(
           controller: _p1Fact1Ctrl,
+          hintText: '[हकीगत ओळ १]',
           readOnly: widget.readOnly,
+          bottomPadding: 8,
         ),
-        const SizedBox(height: 6),
-        _UnderlineInput(
+        _buildRuledLine(
           controller: _p1Fact2Ctrl,
+          hintText: '[हकीगत ओळ २]',
           readOnly: widget.readOnly,
+          bottomPadding: 8,
         ),
-        const SizedBox(height: 6),
-        _UnderlineInput(
+        _buildRuledLine(
           controller: _p1Fact3Ctrl,
+          hintText: '[हकीगत ओळ ३]',
           readOnly: widget.readOnly,
+          bottomPadding: 0,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
         // Section ब: अटक करण्यासंबंधाने आधार :-
-        Text('ब) अटक करण्यासंबंधाने आधार :-', style: marathiBold),
-        const SizedBox(height: 6),
+        Text('ब) अटक करण्यासंबंधाने आधार :-',
+            style: marathiBold.copyWith(fontSize: 14)),
+        const SizedBox(height: 8),
         for (final item in [
           ('१)', _p1Ground1Ctrl),
           ('२)', _p1Ground2Ctrl),
           ('३)', _p1Ground3Ctrl),
           ('४)', _p1Ground4Ctrl),
           ('५)', _p1Ground5Ctrl),
-        ]) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Text('${item.$1} ', style: marathiBold),
-                ),
-                Expanded(
-                  child: _UnderlineInput(
-                    controller: item.$2,
-                    readOnly: widget.readOnly,
-                  ),
-                ),
-              ],
-            ),
+        ])
+          _buildRuledLine(
+            prefix: item.$1,
+            controller: item.$2,
+            hintText: '[आधार ${item.$1}]',
+            readOnly: widget.readOnly,
+            bottomPadding: item.$1 == '५)' ? 0 : 8,
           ),
-        ],
-        const SizedBox(height: 14),
+        const SizedBox(height: 18),
 
         // Section क: अटकेची कारणे :-
-        Text('क) अटकेची कारणे :-', style: marathiBold),
-        const SizedBox(height: 6),
+        Text('क) अटकेची कारणे :-', style: marathiBold.copyWith(fontSize: 14)),
+        const SizedBox(height: 8),
         for (final item in [
           ('१)', _p1Reason1Ctrl),
           ('२)', _p1Reason2Ctrl),
           ('३)', _p1Reason3Ctrl),
           ('४)', _p1Reason4Ctrl),
           ('५)', _p1Reason5Ctrl),
-        ]) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Text('${item.$1} ', style: marathiBold),
-                ),
-                Expanded(
-                  child: _UnderlineInput(
-                    controller: item.$2,
-                    readOnly: widget.readOnly,
-                  ),
-                ),
-              ],
-            ),
+        ])
+          _buildRuledLine(
+            prefix: item.$1,
+            controller: item.$2,
+            hintText: '[कारण ${item.$1}]',
+            readOnly: widget.readOnly,
+            bottomPadding: item.$1 == '५)' ? 0 : 8,
           ),
-        ],
-        const SizedBox(height: 14),
+        const SizedBox(height: 18),
 
         // Section ड
         Text(
@@ -470,13 +508,13 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
           style: marathiBody,
           textAlign: TextAlign.justify,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
 
         // Section इ
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 4,
-          runSpacing: 6,
+          runSpacing: 8,
           children: [
             Text('इ) आपणास दिनांक', style: marathiBody),
             formDatePickerField(
@@ -491,32 +529,52 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 22),
 
         // Footer Signatures
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
-            padding: const EdgeInsets.only(right: 32),
-            child: Text('कळावे,', style: marathiBold),
+            padding: const EdgeInsets.only(right: 36),
+            child: Text('कळावे,', style: marathiBold.copyWith(fontSize: 14)),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 14),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Left: Accused signature
             Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Container(
+                  height: 62,
+                  width: 225,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black45, width: 0.9),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '(सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
+                    style: GoogleFonts.notoSansDevanagari(
+                      fontSize: 10.5,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 _UnderlineInput(
                   controller: _p1AccusedSigCtrl,
-                  width: 170,
+                  width: 220,
+                  hintText: '[आरोपीचे नाव/स्वाक्षरी]',
+                  textAlign: TextAlign.center,
                   readOnly: widget.readOnly,
                 ),
                 const SizedBox(height: 4),
-                Text('आरोपीची दिनांकीत सही', style: marathiBold),
+                Text('आरोपीची स्वाक्षरी / अंगठा', style: marathiBold),
               ],
             ),
 
@@ -524,18 +582,38 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Container(
+                  height: 62,
+                  width: 225,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black45, width: 0.9),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '(स्वाक्षरी व पोलीस स्टेशन शिक्का)',
+                    style: GoogleFonts.notoSansDevanagari(
+                      fontSize: 10.5,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 _UnderlineInput(
                   controller: _p1IoSigCtrl,
-                  width: 180,
+                  width: 220,
                   hintText: '[अधिकारी नाव/हुद्दा]',
+                  textAlign: TextAlign.center,
                   readOnly: widget.readOnly,
                 ),
                 const SizedBox(height: 4),
-                Text('तपासी अधिकारी/अंमलदार', style: marathiBold),
+                Text('तपासणी अधिकारी / अंमलदार', style: marathiBold),
               ],
             ),
           ],
         ),
+        const SizedBox(height: 12),
       ],
     );
   }
@@ -543,6 +621,7 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
   Widget _buildPage2(
       TextStyle serif, TextStyle marathiBody, TextStyle marathiBold) {
     return FormPaperPage(
+      minHeight: 0,
       formLabel: widget.pageRange ?? 'Page 2 — नोटीस बी.एन.एस.एस.कलम ४८',
       children: [
         // Top Center Headers
@@ -551,56 +630,57 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
             children: [
               Text(
                 'नोटीस',
-                style: marathiBold.copyWith(fontSize: 16),
+                style: marathiBold.copyWith(fontSize: 18),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 3),
               Text(
                 'बी.एन.एस.एस.कलम ४८',
-                style: marathiBold.copyWith(fontSize: 14),
+                style: marathiBold.copyWith(fontSize: 15),
                 textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 18),
 
         // Recipient (प्रति,)
-        Text('प्रति,', style: marathiBold),
-        const SizedBox(height: 4),
-        _UnderlineInput(
+        Text('प्रति,', style: marathiBold.copyWith(fontSize: 14)),
+        const SizedBox(height: 6),
+        _buildRuledLine(
           controller: _p2ToLine1Ctrl,
-          hintText: '[नातेवाईक/मित्राचे नाव/पत्ता ओळ १]',
+          hintText: '[नातेवाईक/मित्राचे पूर्ण नाव / पत्ता - ओळ १]',
           readOnly: widget.readOnly,
+          bottomPadding: 8,
         ),
-        const SizedBox(height: 6),
-        _UnderlineInput(
+        _buildRuledLine(
           controller: _p2ToLine2Ctrl,
-          hintText: '[पत्ता ओळ २]',
+          hintText: '[पत्ता - ओळ २]',
           readOnly: widget.readOnly,
+          bottomPadding: 8,
         ),
-        const SizedBox(height: 6),
-        _UnderlineInput(
+        _buildRuledLine(
           controller: _p2ToLine3Ctrl,
-          hintText: '[पत्ता ओळ ३]',
+          hintText: '[पत्ता - ओळ ३]',
           readOnly: widget.readOnly,
+          bottomPadding: 0,
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
 
         // Subject
         Text(
           'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...',
-          style: marathiBold,
+          style: marathiBold.copyWith(fontSize: 14),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
 
         // Flowing Notice Paragraph
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 4,
-          runSpacing: 8,
+          runSpacing: 10,
           children: [
-            const SizedBox(width: 32), // Indent
+            const SizedBox(width: 28), // Indent
             Text('आपणास याद्वारे कळविण्यात येते की,', style: marathiBody),
             _policeStationField(
               controller: _policeStationCtrl,
@@ -609,22 +689,32 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
               maxWidth: 450,
               hintText: 'पोलीस स्टेशन नाव',
             ),
-            Text('पोलीस स्टेशन,गुन्हा रजि.नंबर', style: marathiBody),
+            Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: marathiBody),
             _UnderlineInput(
               controller: _crNoCtrl,
-              width: 80,
-              hintText: '.....',
+              width: 85,
+              hintText: 'गु.र.नं.',
               readOnly: widget.readOnly,
             ),
-            Text('/२० भा.न्या.सं.कलम', style: marathiBody),
+            Text('/', style: marathiBody),
+            _UnderlineInput(
+              controller: _crYearCtrl,
+              width: 50,
+              hintText: 'वर्ष',
+              textAlign: TextAlign.center,
+              readOnly: widget.readOnly,
+            ),
+            Text('भा.न्या.सं.कलम', style: marathiBody),
             _UnderlineInput(
               controller: _bnsSectionCtrl,
-              width: 220,
-              hintText: '....................',
+              width: 210,
+              hintText: 'कलम उदा. १०३, ३(५)',
               readOnly: widget.readOnly,
             ),
-            Text('या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे',
-                style: marathiBody),
+            Text(
+              'या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे',
+              style: marathiBody,
+            ),
             _UnderlineInput(
               controller: _p2AccusedNameCtrl,
               width: 260,
@@ -648,88 +738,70 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
             Text('वा. अटक करण्यात आली आहे.', style: marathiBody),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
         // Section अ: गुन्ह्याची थोडक्यात हकीगत :-
-        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: marathiBold),
-        const SizedBox(height: 4),
-        _UnderlineInput(
+        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-',
+            style: marathiBold.copyWith(fontSize: 14)),
+        const SizedBox(height: 8),
+        _buildRuledLine(
           controller: _p2Fact1Ctrl,
+          hintText: '[हकीगत ओळ १]',
           readOnly: widget.readOnly,
+          bottomPadding: 8,
         ),
-        const SizedBox(height: 6),
-        _UnderlineInput(
+        _buildRuledLine(
           controller: _p2Fact2Ctrl,
+          hintText: '[हकीगत ओळ २]',
           readOnly: widget.readOnly,
+          bottomPadding: 8,
         ),
-        const SizedBox(height: 6),
-        _UnderlineInput(
+        _buildRuledLine(
           controller: _p2Fact3Ctrl,
+          hintText: '[हकीगत ओळ ३]',
           readOnly: widget.readOnly,
+          bottomPadding: 0,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
 
         // Section ब: अटक करण्यासंबंधाने आधार :-
-        Text('ब) अटक करण्यासंबंधाने आधार :-', style: marathiBold),
-        const SizedBox(height: 6),
+        Text('ब) अटक करण्यासंबंधाने आधार :-',
+            style: marathiBold.copyWith(fontSize: 14)),
+        const SizedBox(height: 8),
         for (final item in [
           ('१)', _p2Ground1Ctrl),
           ('२)', _p2Ground2Ctrl),
           ('३)', _p2Ground3Ctrl),
           ('४)', _p2Ground4Ctrl),
           ('५)', _p2Ground5Ctrl),
-        ]) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Text('${item.$1} ', style: marathiBold),
-                ),
-                Expanded(
-                  child: _UnderlineInput(
-                    controller: item.$2,
-                    readOnly: widget.readOnly,
-                  ),
-                ),
-              ],
-            ),
+        ])
+          _buildRuledLine(
+            prefix: item.$1,
+            controller: item.$2,
+            hintText: '[आधार ${item.$1}]',
+            readOnly: widget.readOnly,
+            bottomPadding: item.$1 == '५)' ? 0 : 8,
           ),
-        ],
-        const SizedBox(height: 14),
+        const SizedBox(height: 18),
 
         // Section क: अटकेची कारणे :-
-        Text('क) अटकेची कारणे :-', style: marathiBold),
-        const SizedBox(height: 6),
+        Text('क) अटकेची कारणे :-', style: marathiBold.copyWith(fontSize: 14)),
+        const SizedBox(height: 8),
         for (final item in [
           ('१)', _p2Reason1Ctrl),
           ('२)', _p2Reason2Ctrl),
           ('३)', _p2Reason3Ctrl),
           ('४)', _p2Reason4Ctrl),
           ('५)', _p2Reason5Ctrl),
-        ]) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Text('${item.$1} ', style: marathiBold),
-                ),
-                Expanded(
-                  child: _UnderlineInput(
-                    controller: item.$2,
-                    readOnly: widget.readOnly,
-                  ),
-                ),
-              ],
-            ),
+        ])
+          _buildRuledLine(
+            prefix: item.$1,
+            controller: item.$2,
+            hintText: '[कारण ${item.$1}]',
+            readOnly: widget.readOnly,
+            bottomPadding: item.$1 == '५)' ? 0 : 8,
           ),
-        ],
-        const SizedBox(height: 14),
+        const SizedBox(height: 18),
 
         // Section ड
         Text(
@@ -737,13 +809,13 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
           style: marathiBody,
           textAlign: TextAlign.justify,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
 
         // Section इ
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 4,
-          runSpacing: 6,
+          runSpacing: 8,
           children: [
             Text('इ) अटक व्यक्तीला दिनांक', style: marathiBody),
             formDatePickerField(
@@ -758,32 +830,52 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 22),
 
         // Footer Signatures
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
-            padding: const EdgeInsets.only(right: 32),
-            child: Text('कळावे,', style: marathiBold),
+            padding: const EdgeInsets.only(right: 36),
+            child: Text('कळावे,', style: marathiBold.copyWith(fontSize: 14)),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 14),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Left: Relative signature
             Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Container(
+                  height: 62,
+                  width: 225,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black45, width: 0.9),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '(सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
+                    style: GoogleFonts.notoSansDevanagari(
+                      fontSize: 10.5,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 _UnderlineInput(
                   controller: _p2RelativeSigCtrl,
-                  width: 170,
+                  width: 220,
+                  hintText: '[नातेवाईकाचे नाव/स्वाक्षरी]',
+                  textAlign: TextAlign.center,
                   readOnly: widget.readOnly,
                 ),
                 const SizedBox(height: 4),
-                Text('नातेवाईकाची दिनांकीत सही', style: marathiBold),
+                Text('नातेवाईकाची स्वाक्षरी / अंगठा', style: marathiBold),
               ],
             ),
 
@@ -791,18 +883,38 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Container(
+                  height: 62,
+                  width: 225,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.black45, width: 0.9),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '(स्वाक्षरी व पोलीस स्टेशन शिक्का)',
+                    style: GoogleFonts.notoSansDevanagari(
+                      fontSize: 10.5,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 _UnderlineInput(
                   controller: _p2IoSigCtrl,
-                  width: 180,
+                  width: 220,
                   hintText: '[अधिकारी नाव/हुद्दा]',
+                  textAlign: TextAlign.center,
                   readOnly: widget.readOnly,
                 ),
                 const SizedBox(height: 4),
-                Text('तपासी अधिकारी/अंमलदार', style: marathiBold),
+                Text('तपासणी अधिकारी / अंमलदार', style: marathiBold),
               ],
             ),
           ],
         ),
+        const SizedBox(height: 12),
       ],
     );
   }
@@ -811,15 +923,15 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
   Widget build(BuildContext context) {
     final serif = FormTypography.serifStyle();
     final marathiBold = GoogleFonts.notoSansDevanagari(
-      fontSize: 13,
+      fontSize: 13.5,
       fontWeight: FontWeight.bold,
       color: Colors.black87,
     );
     final marathiBody = GoogleFonts.notoSansDevanagari(
-      fontSize: 13,
+      fontSize: 13.5,
       fontWeight: FontWeight.normal,
       color: Colors.black87,
-      height: 1.6,
+      height: 1.65,
     );
 
     final show1 = _showPage1 || _showAll;
@@ -830,7 +942,7 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
       pages.add(_buildPage1(serif, marathiBody, marathiBold));
     }
     if (show2) {
-      if (pages.isNotEmpty) pages.add(const SizedBox(height: 28));
+      if (pages.isNotEmpty) pages.add(const SizedBox(height: 32));
       pages.add(_buildPage2(serif, marathiBody, marathiBold));
     }
 
@@ -919,12 +1031,14 @@ class _UnderlineInput extends StatelessWidget {
   final double? width;
   final String? hintText;
   final bool readOnly;
+  final TextAlign textAlign;
 
   const _UnderlineInput({
     required this.controller,
     this.width,
     this.hintText,
     this.readOnly = false,
+    this.textAlign = TextAlign.start,
   });
 
   @override
@@ -932,27 +1046,29 @@ class _UnderlineInput extends StatelessWidget {
     final field = TextField(
       controller: controller,
       readOnly: readOnly,
+      textAlign: textAlign,
       maxLines: 1,
       scrollPhysics: const NeverScrollableScrollPhysics(),
       scrollPadding: EdgeInsets.zero,
       style: GoogleFonts.notoSansDevanagari(
         fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: Colors.blue.shade900,
+        fontWeight: FontWeight.bold,
+        color: const Color(0xFF0D47A1),
       ),
       decoration: InputDecoration(
         isDense: true,
-        contentPadding: const EdgeInsets.only(bottom: 0, top: 2),
+        contentPadding: const EdgeInsets.only(bottom: 2, top: 2),
         hintText: hintText,
         hintStyle: GoogleFonts.notoSansDevanagari(
           fontSize: 12,
+          fontWeight: FontWeight.normal,
           color: Colors.black38,
         ),
         border: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black54, width: 1),
+          borderSide: BorderSide(color: Colors.black54, width: 0.8),
         ),
         enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black54, width: 1),
+          borderSide: BorderSide(color: Colors.black45, width: 0.8),
         ),
         focusedBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: Colors.blue, width: 1.5),

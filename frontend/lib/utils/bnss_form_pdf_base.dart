@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewBnssFormPdf(
   BuildContext context,
@@ -20,14 +21,17 @@ Future<void> previewBnssFormPdf(
     final pages = _buildBnssWidgetPages(doc,
         titleEn: titleEn, titleMr: titleMr, sections: sections);
     if (pages.isNotEmpty) {
-      final bytes =
-          await FormImagePdfHelper.buildPdfFromWidgets(context, pages);
-      if (!context.mounted) return;
-      if (kIsWeb) {
-        await Printing.sharePdf(bytes: bytes, filename: fileName);
-      } else {
-        await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-      }
+      await FormImagePdfHelper.previewImageBasedPdf(
+        context,
+        fileName: fileName,
+        pages: pages,
+        fallbackPdfGenerator: () => generateBnssFormPdf(
+          doc,
+          titleEn: titleEn,
+          titleMr: titleMr,
+          sections: sections,
+        ),
+      );
       return;
     }
   } catch (e) {
@@ -164,10 +168,10 @@ Future<Uint8List> generateBnssFormPdf(
   required List<BnssPdfSection> sections,
 }) async {
   final pdf = pw.Document();
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
+  final devanagari = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final body = pw.TextStyle(font: loraRegular, fontSize: 10);
   final bold = pw.TextStyle(
@@ -328,8 +332,8 @@ Future<Uint8List> generateMinimalMarathiFormPdf(
   Map<String, String> labels = const {},
 }) async {
   final pdf = pw.Document();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
+  final loraBold = await PdfFontCache.loraBold();
+  final devanagari = await PdfFontCache.devanagariRegular();
 
   final bold = pw.TextStyle(
     font: loraBold,

@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'form_image_pdf_helper.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewJuvenileSocialReportPdf(
   BuildContext context,
@@ -45,8 +45,8 @@ Future<void> previewJuvenileSocialReportPdf(
 Future<Uint8List> generateJuvenileSocialReportPdf(
     Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
   final cache = await _preRenderJuvenileMarathi(doc);
 
   final englishStyle = pw.TextStyle(

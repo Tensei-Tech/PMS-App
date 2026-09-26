@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
 import 'form_io_terminology.dart';
 import '../widgets/form_section_utils.dart';
 
@@ -30,14 +31,6 @@ Future<void> previewPropertySeizurePdf(
 Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
 
-  // Load fonts
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagariRegular = await PdfGoogleFonts.notoSansDevanagariRegular();
-
-  // Pre-render Marathi text blocks to cache as images to resolve Indic shaping issues
-  final cache = await _preRenderAllMarathi(doc);
-
   const knownSectionIds = {'Seizure Memo Body', 'Seizure Memo Signatures'};
   final activeSection = doc['formSection']?.toString();
 
@@ -46,6 +39,14 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
         sectionId: sectionId,
         knownSectionIds: knownSectionIds,
       );
+
+  // Load fonts
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
+  final devanagariRegular = await PdfFontCache.devanagariRegular();
+
+  // Pre-render Marathi text blocks to cache as images to resolve Indic shaping issues
+  final cache = await _preRenderAllMarathi(doc, showsSection: showsSection);
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -993,8 +994,14 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
   return result;
 }
 
-Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
+Future<MarathiImageCache> _preRenderAllMarathi(
+  Map<String, dynamic> doc, {
+  bool Function(String sectionId)? showsSection,
+}) async {
   final cache = MarathiImageCache();
+  final showBody = showsSection == null || showsSection('Seizure Memo Body');
+  final showSig =
+      showsSection == null || showsSection('Seizure Memo Signatures');
 
   final headerStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 11,
@@ -1026,9 +1033,6 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     color: Colors.black,
   );
 
-  // Ensure fonts are ready
-  await GoogleFonts.pendingFonts();
-
   Future<void> addLbl(
     String key,
     String text,
@@ -1055,7 +1059,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     }
   }
 
-  // Pre-render static labels (all Marathi text as images for accurate shaping)
+  if (showBody) {
+    // Pre-render static labels (all Marathi text as images for accurate shaping)
   await addLbl('header_title', 'मालमत्ता शोध व जप्तीचा नमुना', headerStyle);
   await addLbl(
     'header_subtitle',
@@ -1176,8 +1181,10 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     tableHeaderStyle,
     maxWidth: 100,
   );
+  }
 
-  // Pancha & IO signature labels (bilingual images like crime detail form)
+  if (showSig) {
+    // Pancha & IO signature labels (bilingual images like crime detail form)
   await addLbl(
     'lbl_panchas_name',
     "Name of panchas:\nपंचाची नांवे :",
@@ -1212,8 +1219,10 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     boldLabelStyle,
   );
   await addLbl('lbl_io_buckle', "B.No.if any:\nबक्कल नंबर :", boldLabelStyle);
+  }
 
-  // Pre-render dynamic values
+  if (showBody) {
+    // Pre-render dynamic values
   await addVal('val_district', doc['district']?.toString() ?? '');
   await addVal('val_ps', doc['ps']);
   await addVal('val_year', doc['year']);
@@ -1263,7 +1272,10 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addVal('val_circumstances', doc['circumstances']);
   await addVal('val_circumstancesLine2', doc['circumstancesLine2']);
   await addVal('val_circumstancesLine3', doc['circumstancesLine3']);
-  await addVal('val_pancha1Name', doc['pancha1Name']?.toString());
+  }
+
+  if (showSig) {
+    await addVal('val_pancha1Name', doc['pancha1Name']?.toString());
   await addLinedBlock(
     'val_pancha1Address',
     _joinNonEmpty([
@@ -1297,8 +1309,10 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addVal('val_ioRank', doc['ioRank']?.toString());
   await addVal('val_ioBuckleNo', doc['ioBuckleNo']?.toString());
   await addVal('val_ioPosting', doc['ioPosting']?.toString());
+  }
 
-  // Table rows
+  if (showBody) {
+    // Table rows
   final props = doc['properties'];
   if (props is List) {
     for (int i = 0; i < props.length; i++) {
@@ -1341,6 +1355,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
         );
       }
     }
+  }
   }
 
   return cache;

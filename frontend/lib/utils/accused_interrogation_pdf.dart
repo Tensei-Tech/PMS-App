@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'marathi_text_renderer.dart';
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewAccusedInterrogationPdf(
   BuildContext context,
@@ -44,7 +44,7 @@ Future<void> previewAccusedInterrogationPdf(
 Future<Uint8List> generateAccusedInterrogationPdf(
     Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final loraBold = await PdfGoogleFonts.loraBold();
+  final loraBold = await PdfFontCache.loraBold();
   final cache = await _preRenderAllMarathi(doc);
 
   final pw.TextStyle englishBold = pw.TextStyle(

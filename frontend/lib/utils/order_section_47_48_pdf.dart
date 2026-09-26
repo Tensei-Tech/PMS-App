@@ -1,10 +1,35 @@
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Font Caching & Preloading
+// ──────────────────────────────────────────────────────────────────────────────
+
+pw.Font? _cachedDevanagariRegular;
+pw.Font? _cachedDevanagariBold;
+
+Future<void> preloadOrderSection4748PdfFonts() async {
+  try {
+    _cachedDevanagariRegular ??= await PdfFontCache.devanagariRegular();
+    _cachedDevanagariBold ??= await PdfFontCache.devanagariBold();
+  } catch (_) {}
+}
+
+const _kInkColor = Color(0xFF0D47A1);
+final _kPdfInkColor = PdfColor.fromHex('#0D47A1');
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Public API: Image-Based A4 PDF Export (Matches On-Screen Layout 1:1)
+// ──────────────────────────────────────────────────────────────────────────────
 
 Future<void> previewOrderSection4748Pdf(
   BuildContext context,
@@ -12,8 +37,19 @@ Future<void> previewOrderSection4748Pdf(
 ) async {
   final fileName =
       'Order_Section_47_48_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  String v(String key) => doc[key]?.toString().trim() ?? '';
-  final section = v('formSection').toLowerCase();
+  try {
+    await GoogleFonts.pendingFonts();
+  } catch (_) {}
+
+  String fld(List<String> keys, [String fallback = '']) {
+    for (final k in keys) {
+      final val = doc[k]?.toString().trim() ?? '';
+      if (val.isNotEmpty) return val;
+    }
+    return fallback;
+  }
+
+  final section = fld(['formSection']).toLowerCase();
   final isP1Explicit = section.contains('47') ||
       section.contains('main') ||
       section.contains('1');
@@ -31,6 +67,7 @@ Future<void> previewOrderSection4748Pdf(
   if (showP1) pages.add(_buildPg1Widget(doc));
   if (showP2) pages.add(_buildPg2Widget(doc));
 
+  if (!context.mounted) return;
   await FormImagePdfHelper.previewImageBasedPdf(
     context,
     fileName: fileName,
@@ -39,94 +76,460 @@ Future<void> previewOrderSection4748Pdf(
   );
 }
 
-Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
-  final pdf = pw.Document();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+// ──────────────────────────────────────────────────────────────────────────────
+// Pre-Render All Devanagari & Dynamic Fields via Skia / HarfBuzz
+// ──────────────────────────────────────────────────────────────────────────────
 
-  final regular = pw.TextStyle(
-    font: devanagari,
-    fontSize: 9,
-    lineSpacing: 1.4,
-  );
-  final bold = pw.TextStyle(
-    font: devanagariBold,
-    fontSize: 9,
-    fontWeight: pw.FontWeight.bold,
-  );
-  final headerStyle = pw.TextStyle(
-    font: devanagariBold,
-    fontSize: 13,
-    fontWeight: pw.FontWeight.bold,
-  );
-  final subHeaderStyle = pw.TextStyle(
-    font: devanagariBold,
-    fontSize: 11,
-    fontWeight: pw.FontWeight.bold,
-  );
-  final sectionHeader = pw.TextStyle(
-    font: devanagariBold,
-    fontSize: 9.5,
-    fontWeight: pw.FontWeight.bold,
+Future<MarathiImageCache> _preRenderAllSection4748Marathi(
+    Map<String, dynamic> doc) async {
+  final cache = MarathiImageCache(pixelRatio: 2.5);
+  await GoogleFonts.pendingFonts();
+
+  final titleStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  ).copyWith(fontFamilyFallback: kMarathiFallbackFonts);
+
+  final subTitleStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 14.5,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  ).copyWith(fontFamilyFallback: kMarathiFallbackFonts);
+
+  final boldLabelStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 12.5,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+  ).copyWith(fontFamilyFallback: kMarathiFallbackFonts);
+
+  final regularTextStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 11.5,
+    height: 1.45,
+    color: Colors.black87,
+  ).copyWith(fontFamilyFallback: kMarathiFallbackFonts);
+
+  final valueStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 11.5,
+    fontWeight: FontWeight.bold,
+    color: _kInkColor,
+  ).copyWith(fontFamilyFallback: kMarathiFallbackFonts);
+
+  final valueUnderlineStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 11.5,
+    fontWeight: FontWeight.bold,
+    color: _kInkColor,
+    decoration: TextDecoration.underline,
+  ).copyWith(fontFamilyFallback: kMarathiFallbackFonts);
+
+  final watermarkStyle = GoogleFonts.lora(
+    fontSize: 12.5,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    decoration: TextDecoration.underline,
   );
 
-  String v(String key, [String fallback = '']) {
-    final val = doc[key]?.toString().trim() ?? '';
-    return val.isEmpty ? fallback : val;
+  String fld(List<String> keys, [String fallback = '']) {
+    for (final k in keys) {
+      final val = doc[k]?.toString().trim() ?? '';
+      if (val.isNotEmpty) return val;
+    }
+    return fallback;
   }
 
-  final policeStation = v('policeStation');
-  final crNo = v('crNo');
-  final crYear = v('crYear');
-  final bnsSection = v('bnsSection', v('section'));
-  final arrestDate = v('arrestDate');
-  final arrestTime = v('arrestTime');
-  final ioName = v('ioName', v('shoName'));
+  final pageRange = fld(['pageRange', 'formLabel']);
+
+  // Pre-render static labels
+  await cache.add('p1_title', 'नोटीस', titleStyle, textAlign: TextAlign.center);
+  await cache.add('p1_sub', 'बी.एन.एस.एस.कलम ४७(१)', subTitleStyle,
+      textAlign: TextAlign.center);
+  await cache.add('p2_sub', 'बी.एन.एस.एस.कलम ४८', subTitleStyle,
+      textAlign: TextAlign.center);
+  await cache.add(
+    'badge_p1',
+    pageRange.isNotEmpty ? pageRange : 'Page 1 — नोटीस बी.एन.एस.एस.कलम ४७(१)',
+    watermarkStyle,
+  );
+  await cache.add(
+    'badge_p2',
+    pageRange.isNotEmpty ? pageRange : 'Page 2 — नोटीस बी.एन.एस.एस.कलम ४८',
+    watermarkStyle,
+  );
+  await cache.add('lbl_to', 'प्रति,', boldLabelStyle);
+  await cache.add(
+      'p1_sub_line',
+      'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...',
+      boldLabelStyle);
+  await cache.add(
+      'p2_sub_line',
+      'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...',
+      boldLabelStyle);
+  await cache.add('lbl_a', 'अ) गुन्ह्याची थोडक्यात हकीगत :-', boldLabelStyle);
+  await cache.add('lbl_b', 'ब) अटक करण्यासंबंधाने आधार :-', boldLabelStyle);
+  await cache.add('lbl_c', 'क) अटकेची कारणे :-', boldLabelStyle);
+  for (final n in ['१)', '२)', '३)', '४)', '५)']) {
+    await cache.add('num_$n', n, boldLabelStyle);
+  }
+  await cache.add(
+    'p1_clause_d',
+    'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने आपण योग्य तो जामीन दिल्यास आपणास जामीनावर मुक्त करण्यात येईल.',
+    regularTextStyle,
+    maxWidth: 515,
+  );
+  await cache.add(
+    'p2_clause_d',
+    'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने योग्य तो जामीन दिल्यास अटक व्यक्तीस जामीनावर मुक्त करण्यात येईल.',
+    regularTextStyle,
+    maxWidth: 515,
+  );
+  await cache.add('lbl_closing', 'कळावे,', boldLabelStyle);
+  await cache.add(
+    'lbl_thumb_box',
+    '(सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
+    regularTextStyle.copyWith(fontSize: 10, color: Colors.black54),
+    textAlign: TextAlign.center,
+  );
+  await cache.add(
+    'lbl_stamp_box',
+    '(स्वाक्षरी व पोलीस स्टेशन शिक्का)',
+    regularTextStyle.copyWith(fontSize: 10, color: Colors.black54),
+    textAlign: TextAlign.center,
+  );
+  await cache.add('p1_sig_accused', 'आरोपीची स्वाक्षरी / अंगठा', boldLabelStyle,
+      textAlign: TextAlign.center);
+  await cache.add(
+      'p2_sig_relative', 'नातेवाईकाची स्वाक्षरी / अंगठा', boldLabelStyle,
+      textAlign: TextAlign.center);
+  await cache.add('lbl_sig_io', 'तपासणी अधिकारी / अंमलदार', boldLabelStyle,
+      textAlign: TextAlign.center);
+
+  final policeStation = fld(['policeStation', 'ps', 'n47PoliceStation']);
+  final crNo = fld(['crNo', 'firNo', 'n47CrNo']);
+  final crYear = fld(['crYear', 'firYear', 'n47CrYear']);
+  final bnsSection = fld(['bnsSection', 'section', 'actSection', 'n47Section']);
+  final arrestDate = fld(['arrestDate', 'date', 'n47Date']);
+  final arrestTime = fld(['arrestTime', 'time', 'n47Time']);
+  final ioName = fld(['ioName', 'shoName', 'n47IoName']);
 
   // Page 1 fields
-  final p1To1 = v('p1To1', v('accusedName'));
-  final p1To2 = v('p1To2');
-  final p1To3 = v('p1To3');
-  final p1Fact1 = v('p1Fact1', v('orderBody'));
-  final p1Fact2 = v('p1Fact2');
-  final p1Fact3 = v('p1Fact3');
-  final p1Ground1 = v('p1Ground1');
-  final p1Ground2 = v('p1Ground2');
-  final p1Ground3 = v('p1Ground3');
-  final p1Ground4 = v('p1Ground4');
-  final p1Ground5 = v('p1Ground5');
-  final p1Reason1 = v('p1Reason1');
-  final p1Reason2 = v('p1Reason2');
-  final p1Reason3 = v('p1Reason3');
-  final p1Reason4 = v('p1Reason4');
-  final p1Reason5 = v('p1Reason5');
-  final p1RemandDate = v('p1RemandDate', arrestDate);
-  final p1AccusedSig = v('p1AccusedSig');
-  final p1IoSig = v('p1IoSig', ioName);
+  final p1To1 = fld(['p1To1', 'accusedName', 'n47To']);
+  final p1RemandDate = fld(['p1RemandDate', 'arrestDate'], arrestDate);
+  final p1AccusedSig =
+      fld(['p1AccusedSig', 'n47AccusedSig', 'n47AccusedName'], p1To1);
+  final p1IoSig = fld(['p1IoSig', 'n47IoName', 'ioName'], ioName);
 
   // Page 2 fields
-  final p2To1 = v('p2To1');
-  final p2To2 = v('p2To2');
-  final p2To3 = v('p2To3');
-  final p2AccusedName = v('p2AccusedName', p1To1);
-  final p2Fact1 = v('p2Fact1', p1Fact1);
-  final p2Fact2 = v('p2Fact2', p1Fact2);
-  final p2Fact3 = v('p2Fact3', p1Fact3);
-  final p2Ground1 = v('p2Ground1', p1Ground1);
-  final p2Ground2 = v('p2Ground2', p1Ground2);
-  final p2Ground3 = v('p2Ground3', p1Ground3);
-  final p2Ground4 = v('p2Ground4', p1Ground4);
-  final p2Ground5 = v('p2Ground5', p1Ground5);
-  final p2Reason1 = v('p2Reason1', p1Reason1);
-  final p2Reason2 = v('p2Reason2', p1Reason2);
-  final p2Reason3 = v('p2Reason3', p1Reason3);
-  final p2Reason4 = v('p2Reason4', p1Reason4);
-  final p2Reason5 = v('p2Reason5', p1Reason5);
-  final p2RemandDate = v('p2RemandDate', p1RemandDate);
-  final p2RelativeSig = v('p2RelativeSig');
-  final p2IoSig = v('p2IoSig', ioName);
+  final p2To1 = fld(['p2To1', 'n48To']);
+  final p2AccusedName = fld(['p2AccusedName', 'accusedName', 'p1To1'], p1To1);
+  final p2RemandDate =
+      fld(['p2RemandDate', 'p1RemandDate', 'arrestDate'], p1RemandDate);
+  final p2RelativeSig = fld(['p2RelativeSig', 'n48RelativeSig'], p2To1);
+  final p2IoSig = fld(['p2IoSig', 'n48IoName', 'ioName'], ioName);
 
-  final section = v('formSection').toLowerCase();
+  // Flowing Notice Paragraph Spans with underlined values
+  final p1NoticeSpan = TextSpan(
+    style: regularTextStyle,
+    children: [
+      const TextSpan(text: '        आपणास याद्वारे कळविण्यात येते की, '),
+      TextSpan(
+        text: policeStation.isNotEmpty
+            ? '  $policeStation  '
+            : '                                          ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(text: ' पोलीस स्टेशन, गुन्हा रजि.नंबर '),
+      TextSpan(
+        text: crNo.isNotEmpty
+            ? (crYear.isNotEmpty ? '  $crNo / $crYear  ' : '  $crNo  ')
+            : '        / २०  ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(text: ' भा.न्या.सं.कलम '),
+      TextSpan(
+        text: bnsSection.isNotEmpty
+            ? '  $bnsSection  '
+            : '                        ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(
+          text:
+              ' या गुन्ह्याचे तपासात निष्पन्न झालेल्या पुराव्यावरून आपणास दिनांक '),
+      TextSpan(
+        text: arrestDate.isNotEmpty ? '  $arrestDate  ' : '    /    /२०  ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(text: ' रोजी '),
+      TextSpan(
+        text: arrestTime.isNotEmpty ? '  $arrestTime  ' : '      :      ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(
+          text: ' वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे :-'),
+    ],
+  );
+  await cache.addSpan('p1_notice_para', p1NoticeSpan,
+      maxWidth: 515, textAlign: TextAlign.justify);
+
+  final p1RemandSpan = TextSpan(
+    style: regularTextStyle,
+    children: [
+      const TextSpan(text: 'इ) आपणास दिनांक '),
+      TextSpan(
+        text: p1RemandDate.isNotEmpty ? '  $p1RemandDate  ' : '    /    /२०  ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(
+          text:
+              ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.'),
+    ],
+  );
+  await cache.addSpan('p1_remand_clause', p1RemandSpan,
+      maxWidth: 515, textAlign: TextAlign.left);
+
+  final p2NoticeSpan = TextSpan(
+    style: regularTextStyle,
+    children: [
+      const TextSpan(text: '        आपणास याद्वारे कळविण्यात येते की, '),
+      TextSpan(
+        text: policeStation.isNotEmpty
+            ? '  $policeStation  '
+            : '                                          ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(text: ' पोलीस स्टेशन, गुन्हा रजि.नंबर '),
+      TextSpan(
+        text: crNo.isNotEmpty
+            ? (crYear.isNotEmpty ? '  $crNo / $crYear  ' : '  $crNo  ')
+            : '        / २०  ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(text: ' भा.न्या.सं.कलम '),
+      TextSpan(
+        text: bnsSection.isNotEmpty
+            ? '  $bnsSection  '
+            : '                        ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(
+          text: ' या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे '),
+      TextSpan(
+        text: p2AccusedName.isNotEmpty
+            ? '  $p2AccusedName  '
+            : '                                    ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(text: ' यांना दिनांक '),
+      TextSpan(
+        text: arrestDate.isNotEmpty ? '  $arrestDate  ' : '    /    /२०  ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(text: ' रोजी '),
+      TextSpan(
+        text: arrestTime.isNotEmpty ? '  $arrestTime  ' : '      :      ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(text: ' वा. अटक करण्यात आली आहे.'),
+    ],
+  );
+  await cache.addSpan('p2_notice_para', p2NoticeSpan,
+      maxWidth: 515, textAlign: TextAlign.justify);
+
+  final p2RemandSpan = TextSpan(
+    style: regularTextStyle,
+    children: [
+      const TextSpan(text: 'इ) अटक व्यक्तीला दिनांक '),
+      TextSpan(
+        text: p2RemandDate.isNotEmpty ? '  $p2RemandDate  ' : '    /    /२०  ',
+        style: valueUnderlineStyle,
+      ),
+      const TextSpan(
+          text:
+              ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.'),
+    ],
+  );
+  await cache.addSpan('p2_remand_clause', p2RemandSpan,
+      maxWidth: 515, textAlign: TextAlign.left);
+
+  // Dynamic user-filled values
+  Future<void> addVal(String key, String val, {double maxWidth = 480}) async {
+    final text = val.trim();
+    if (text.isEmpty) return;
+    await cache.add(key, text, valueStyle, maxWidth: maxWidth);
+  }
+
+  // Page 1 fields
+  await addVal('val_p1To1', p1To1);
+  await addVal('val_p1To2', fld(['p1To2']));
+  await addVal('val_p1To3', fld(['p1To3']));
+  await addVal('val_p1Fact1', fld(['p1Fact1', 'orderBody', 'n47Body']));
+  await addVal('val_p1Fact2', fld(['p1Fact2']));
+  await addVal('val_p1Fact3', fld(['p1Fact3']));
+  await addVal('val_p1Ground1', fld(['p1Ground1']));
+  await addVal('val_p1Ground2', fld(['p1Ground2']));
+  await addVal('val_p1Ground3', fld(['p1Ground3']));
+  await addVal('val_p1Ground4', fld(['p1Ground4']));
+  await addVal('val_p1Ground5', fld(['p1Ground5']));
+  await addVal('val_p1Reason1', fld(['p1Reason1']));
+  await addVal('val_p1Reason2', fld(['p1Reason2']));
+  await addVal('val_p1Reason3', fld(['p1Reason3']));
+  await addVal('val_p1Reason4', fld(['p1Reason4']));
+  await addVal('val_p1Reason5', fld(['p1Reason5']));
+  await addVal('val_p1AccusedSig', p1AccusedSig, maxWidth: 210);
+  await addVal('val_p1IoSig', p1IoSig, maxWidth: 210);
+
+  // Page 2 fields
+  await addVal('val_p2To1', p2To1);
+  await addVal('val_p2To2', fld(['p2To2']));
+  await addVal('val_p2To3', fld(['p2To3']));
+  await addVal('val_p2Fact1', fld(['p2Fact1', 'p1Fact1', 'orderBody']));
+  await addVal('val_p2Fact2', fld(['p2Fact2', 'p1Fact2']));
+  await addVal('val_p2Fact3', fld(['p2Fact3', 'p1Fact3']));
+  await addVal('val_p2Ground1', fld(['p2Ground1', 'p1Ground1']));
+  await addVal('val_p2Ground2', fld(['p2Ground2', 'p1Ground2']));
+  await addVal('val_p2Ground3', fld(['p2Ground3', 'p1Ground3']));
+  await addVal('val_p2Ground4', fld(['p2Ground4', 'p1Ground4']));
+  await addVal('val_p2Ground5', fld(['p2Ground5', 'p1Ground5']));
+  await addVal('val_p2Reason1', fld(['p2Reason1', 'p1Reason1']));
+  await addVal('val_p2Reason2', fld(['p2Reason2', 'p1Reason2']));
+  await addVal('val_p2Reason3', fld(['p2Reason3', 'p1Reason3']));
+  await addVal('val_p2Reason4', fld(['p2Reason4', 'p1Reason4']));
+  await addVal('val_p2Reason5', fld(['p2Reason5', 'p1Reason5']));
+  await addVal('val_p2RelativeSig', p2RelativeSig, maxWidth: 210);
+  await addVal('val_p2IoSig', p2IoSig, maxWidth: 210);
+
+  return cache;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Vector PDF Generator with HarfBuzz Image Cache & Safe Boundaries
+// ──────────────────────────────────────────────────────────────────────────────
+
+Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
+  final pdf = pw.Document();
+
+  final loraBold = await PdfFontCache.loraBold();
+  pw.Font? devanagariFont;
+  try {
+    devanagariFont =
+        _cachedDevanagariBold ?? await PdfFontCache.devanagariBold();
+  } catch (_) {}
+  final cache = await _preRenderAllSection4748Marathi(doc);
+
+  final englishValStyle = pw.TextStyle(
+    font: loraBold,
+    fontFallback: devanagariFont != null ? [devanagariFont] : const [],
+    fontSize: 11.0,
+    fontWeight: pw.FontWeight.bold,
+    color: _kPdfInkColor,
+  );
+
+  pw.Widget mLbl(String key) {
+    if (cache.has(key)) return cache.img(key);
+    return pw.SizedBox();
+  }
+
+  pw.Widget renderVal(String key, String val,
+      {double height = 13.5, double? maxWidth}) {
+    final text = val.trim();
+    if (text.isEmpty) return pw.SizedBox();
+    pw.Widget content;
+    if (cache.has(key)) {
+      content =
+          cache.img(key, height: height, alignment: pw.Alignment.bottomLeft);
+    } else {
+      content = pw.Text(text, style: englishValStyle);
+    }
+    if (maxWidth != null) {
+      return pw.ConstrainedBox(
+        constraints: pw.BoxConstraints(maxWidth: maxWidth),
+        child: pw.ClipRect(child: content),
+      );
+    }
+    return content;
+  }
+
+  pw.Widget buildRuledLine(String prefixKey, String valKey, String val) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 3.5),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        children: [
+          if (prefixKey.isNotEmpty && cache.has(prefixKey))
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(right: 5),
+              child: cache.img(prefixKey,
+                  height: 12.0, alignment: pw.Alignment.bottomLeft),
+            ),
+          pw.Expanded(
+            child: pw.Container(
+              height: 18.0,
+              alignment: pw.Alignment.bottomLeft,
+              padding: const pw.EdgeInsets.only(bottom: 1.5, left: 2),
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(
+                  bottom: pw.BorderSide(color: PdfColors.grey700, width: 0.7),
+                ),
+              ),
+              child: renderVal(valKey, val, height: 13.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String fld(List<String> keys, [String fallback = '']) {
+    for (final k in keys) {
+      final val = doc[k]?.toString().trim() ?? '';
+      if (val.isNotEmpty) return val;
+    }
+    return fallback;
+  }
+
+  final ioName = fld(['ioName', 'shoName', 'n47IoName']);
+
+  // Page 1 fields
+  final p1To1 = fld(['p1To1', 'accusedName', 'n47To']);
+  final p1To2 = fld(['p1To2']);
+  final p1To3 = fld(['p1To3']);
+  final p1Fact1 = fld(['p1Fact1', 'orderBody', 'n47Body']);
+  final p1Fact2 = fld(['p1Fact2']);
+  final p1Fact3 = fld(['p1Fact3']);
+  final p1Ground1 = fld(['p1Ground1']);
+  final p1Ground2 = fld(['p1Ground2']);
+  final p1Ground3 = fld(['p1Ground3']);
+  final p1Ground4 = fld(['p1Ground4']);
+  final p1Ground5 = fld(['p1Ground5']);
+  final p1Reason1 = fld(['p1Reason1']);
+  final p1Reason2 = fld(['p1Reason2']);
+  final p1Reason3 = fld(['p1Reason3']);
+  final p1Reason4 = fld(['p1Reason4']);
+  final p1Reason5 = fld(['p1Reason5']);
+  final p1AccusedSig =
+      fld(['p1AccusedSig', 'n47AccusedSig', 'n47AccusedName'], p1To1);
+  final p1IoSig = fld(['p1IoSig', 'n47IoName', 'ioName'], ioName);
+
+  // Page 2 fields
+  final p2To1 = fld(['p2To1', 'n48To']);
+  final p2To2 = fld(['p2To2']);
+  final p2To3 = fld(['p2To3']);
+  final p2Fact1 = fld(['p2Fact1', 'p1Fact1', 'orderBody']);
+  final p2Fact2 = fld(['p2Fact2', 'p1Fact2']);
+  final p2Fact3 = fld(['p2Fact3', 'p1Fact3']);
+  final p2Ground1 = fld(['p2Ground1', 'p1Ground1']);
+  final p2Ground2 = fld(['p2Ground2', 'p1Ground2']);
+  final p2Ground3 = fld(['p2Ground3', 'p1Ground3']);
+  final p2Ground4 = fld(['p2Ground4', 'p1Ground4']);
+  final p2Ground5 = fld(['p2Ground5', 'p1Ground5']);
+  final p2Reason1 = fld(['p2Reason1', 'p1Reason1']);
+  final p2Reason2 = fld(['p2Reason2', 'p1Reason2']);
+  final p2Reason3 = fld(['p2Reason3', 'p1Reason3']);
+  final p2Reason4 = fld(['p2Reason4', 'p1Reason4']);
+  final p2Reason5 = fld(['p2Reason5', 'p1Reason5']);
+  final p2RelativeSig = fld(['p2RelativeSig', 'n48RelativeSig'], p2To1);
+  final p2IoSig = fld(['p2IoSig', 'n48IoName', 'ioName'], ioName);
+
+  final section = fld(['formSection']).toLowerCase();
   final isP1Explicit = section.contains('47') ||
       section.contains('main') ||
       section.contains('1');
@@ -140,11 +543,6 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
       isP2Explicit ||
       !isP1Explicit;
 
-  const longLine =
-      '-----------------------------------------------------------------------------------------------------------------';
-  const mediumLine =
-      '---------------------------------------------------------------------------';
-
   // ══════════════════════════════════════════════════════════════════════════
   // PAGE 1: नोटीस बी.एन.एस.एस.कलम ४७(१)
   // ══════════════════════════════════════════════════════════════════════════
@@ -152,211 +550,156 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 26),
         build: (_) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
-            // Top Center Header
-            pw.Center(child: pw.Text('नोटीस', style: headerStyle)),
+            // Top Right Badge
+            pw.Align(
+              alignment: pw.Alignment.topRight,
+              child: mLbl('badge_p1'),
+            ),
             pw.SizedBox(height: 2),
-            pw.Center(
-                child: pw.Text('बी.एन.एस.एस.कलम ४७(१)', style: subHeaderStyle)),
-            pw.SizedBox(height: 10),
+
+            // Top Center Header
+            pw.Center(child: mLbl('p1_title')),
+            pw.SizedBox(height: 2),
+            pw.Center(child: mLbl('p1_sub')),
+            pw.SizedBox(height: 8),
 
             // Recipient block
-            pw.Text('प्रति,', style: bold),
-            pw.SizedBox(height: 1),
-            pw.Text(p1To1.isNotEmpty ? p1To1 : mediumLine,
-                style: p1To1.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 1),
-            pw.Text(p1To2.isNotEmpty ? p1To2 : mediumLine,
-                style: p1To2.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 1),
-            pw.Text(p1To3.isNotEmpty ? p1To3 : mediumLine,
-                style: p1To3.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 8),
+            mLbl('lbl_to'),
+            pw.SizedBox(height: 3),
+            buildRuledLine('', 'val_p1To1', p1To1),
+            buildRuledLine('', 'val_p1To2', p1To2),
+            buildRuledLine('', 'val_p1To3', p1To3),
+            pw.SizedBox(height: 6),
 
             // Subject
-            pw.Text(
-              'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...',
-              style: bold,
-            ),
-            pw.SizedBox(height: 8),
+            mLbl('p1_sub_line'),
+            pw.SizedBox(height: 6),
 
             // Notice Paragraph
-            pw.RichText(
-              textAlign: pw.TextAlign.justify,
-              text: pw.TextSpan(
-                style: regular,
-                children: [
-                  const pw.TextSpan(
-                      text: '        आपणास याद्वारे कळविण्यात येते की, '),
-                  pw.TextSpan(
-                    text: policeStation,
-                    style: bold,
-                  ),
-                  const pw.TextSpan(text: ' पोलीस स्टेशन गुन्हा रजि.नंबर '),
-                  pw.TextSpan(
-                    text: crNo.isNotEmpty ? crNo : '......',
-                    style: bold,
-                  ),
-                  pw.TextSpan(text: '/$crYear भा.न्या.सं.कलम '),
-                  pw.TextSpan(
-                    text: bnsSection.isNotEmpty
-                        ? bnsSection
-                        : '....................................................................................',
-                    style: bold,
-                  ),
-                  const pw.TextSpan(text: ' या गुन्ह्यात तपास कामी दि. '),
-                  pw.TextSpan(
-                    text: arrestDate.isNotEmpty ? arrestDate : '   /   /२०  ',
-                    style: bold,
-                  ),
-                  const pw.TextSpan(text: ' रोजी '),
-                  pw.TextSpan(
-                    text: arrestTime.isNotEmpty ? arrestTime : '..........',
-                    style: bold,
-                  ),
-                  const pw.TextSpan(
-                      text:
-                          ' वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे.'),
-                ],
-              ),
-            ),
+            mLbl('p1_notice_para'),
             pw.SizedBox(height: 8),
 
             // अ) गुन्ह्याची थोडक्यात हकीगत :-
-            pw.Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: sectionHeader),
-            pw.SizedBox(height: 2),
-            pw.Text(p1Fact1.isNotEmpty ? p1Fact1 : longLine,
-                style: p1Fact1.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 2),
-            pw.Text(p1Fact2.isNotEmpty ? p1Fact2 : longLine,
-                style: p1Fact2.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 2),
-            pw.Text(p1Fact3.isNotEmpty ? p1Fact3 : longLine,
-                style: p1Fact3.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 8),
-
-            // ब) अटक करण्यासंबंधाने आधार :-
-            pw.Text('ब) अटक करण्यासंबंधाने आधार :-', style: sectionHeader),
-            pw.SizedBox(height: 2),
-            for (final item in [
-              ('१)', p1Ground1),
-              ('२)', p1Ground2),
-              ('३)', p1Ground3),
-              ('४)', p1Ground4),
-              ('५)', p1Ground5),
-            ]) ...[
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 2),
-                child: pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('${item.$1} ', style: bold),
-                    pw.Expanded(
-                      child: pw.Text(
-                        item.$2.isNotEmpty ? item.$2 : longLine,
-                        style: item.$2.isNotEmpty ? bold : regular,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            pw.SizedBox(height: 8),
-
-            // क) अटकेची कारणे :-
-            pw.Text('क) अटकेची कारणे :-', style: sectionHeader),
-            pw.SizedBox(height: 2),
-            for (final item in [
-              ('१)', p1Reason1),
-              ('२)', p1Reason2),
-              ('३)', p1Reason3),
-              ('४)', p1Reason4),
-              ('५)', p1Reason5),
-            ]) ...[
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 2),
-                child: pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('${item.$1} ', style: bold),
-                    pw.Expanded(
-                      child: pw.Text(
-                        item.$2.isNotEmpty ? item.$2 : longLine,
-                        style: item.$2.isNotEmpty ? bold : regular,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            pw.SizedBox(height: 8),
-
-            // ड)
-            pw.Text(
-              'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने आपण योग्य तो जामीन दिल्यास आपणास जामीनावर मुक्त करण्यात येईल.',
-              style: regular,
-              textAlign: pw.TextAlign.justify,
-            ),
+            mLbl('lbl_a'),
+            pw.SizedBox(height: 3),
+            buildRuledLine('', 'val_p1Fact1', p1Fact1),
+            buildRuledLine('', 'val_p1Fact2', p1Fact2),
+            buildRuledLine('', 'val_p1Fact3', p1Fact3),
             pw.SizedBox(height: 6),
 
+            // ब) अटक करण्यासंबंधाने आधार :-
+            mLbl('lbl_b'),
+            pw.SizedBox(height: 3),
+            buildRuledLine('num_१)', 'val_p1Ground1', p1Ground1),
+            buildRuledLine('num_२)', 'val_p1Ground2', p1Ground2),
+            buildRuledLine('num_३)', 'val_p1Ground3', p1Ground3),
+            buildRuledLine('num_४)', 'val_p1Ground4', p1Ground4),
+            buildRuledLine('num_५)', 'val_p1Ground5', p1Ground5),
+            pw.SizedBox(height: 6),
+
+            // क) अटकेची कारणे :-
+            mLbl('lbl_c'),
+            pw.SizedBox(height: 3),
+            buildRuledLine('num_१)', 'val_p1Reason1', p1Reason1),
+            buildRuledLine('num_२)', 'val_p1Reason2', p1Reason2),
+            buildRuledLine('num_३)', 'val_p1Reason3', p1Reason3),
+            buildRuledLine('num_४)', 'val_p1Reason4', p1Reason4),
+            buildRuledLine('num_५)', 'val_p1Reason5', p1Reason5),
+            pw.SizedBox(height: 6),
+
+            // ड)
+            mLbl('p1_clause_d'),
+            pw.SizedBox(height: 5),
+
             // इ)
-            pw.RichText(
-              text: pw.TextSpan(
-                style: regular,
-                children: [
-                  const pw.TextSpan(text: 'इ) आपणास दिनांक '),
-                  pw.TextSpan(
-                    text:
-                        p1RemandDate.isNotEmpty ? p1RemandDate : '   /   /२०  ',
-                    style: bold,
-                  ),
-                  const pw.TextSpan(
-                    text:
-                        ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
-                  ),
-                ],
-              ),
-            ),
+            mLbl('p1_remand_clause'),
+
+            // Breathing room pushing footer gracefully down
             pw.Spacer(),
 
             // Footer
             pw.Align(
               alignment: pw.Alignment.centerRight,
               child: pw.Padding(
-                padding: const pw.EdgeInsets.only(right: 24),
-                child: pw.Text('कळावे,', style: bold),
+                padding: const pw.EdgeInsets.only(right: 36),
+                child: mLbl('lbl_closing'),
               ),
             ),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 6),
+
+            // Dual Signature & Seal Block
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                // Left: Accused signature
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    if (p1AccusedSig.isNotEmpty)
-                      pw.Text(p1AccusedSig, style: bold)
-                    else
-                      pw.SizedBox(height: 12),
-                    pw.Text('आरोपीची दिनांकीत सही', style: bold),
-                  ],
+                // Left: Accused
+                pw.Container(
+                  width: 220,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Container(
+                        height: 54,
+                        width: 205,
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(
+                              color: PdfColors.grey600, width: 0.8),
+                          borderRadius:
+                              const pw.BorderRadius.all(pw.Radius.circular(3)),
+                        ),
+                        alignment: pw.Alignment.center,
+                        child: mLbl('lbl_thumb_box'),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Center(
+                        child: renderVal(
+                          'val_p1AccusedSig',
+                          p1AccusedSig.isNotEmpty ? p1AccusedSig : p1To1,
+                          height: 13.0,
+                          maxWidth: 205,
+                        ),
+                      ),
+                      pw.SizedBox(height: 2),
+                      mLbl('p1_sig_accused'),
+                    ],
+                  ),
                 ),
 
-                // Right: IO signature
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    if (p1IoSig.isNotEmpty)
-                      pw.Text(p1IoSig, style: bold)
-                    else
-                      pw.SizedBox(height: 12),
-                    pw.Text('तपासी अधिकारी/अंमलदार', style: bold),
-                  ],
+                // Right: IO
+                pw.Container(
+                  width: 220,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Container(
+                        height: 54,
+                        width: 205,
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(
+                              color: PdfColors.grey600, width: 0.8),
+                          borderRadius:
+                              const pw.BorderRadius.all(pw.Radius.circular(3)),
+                        ),
+                        alignment: pw.Alignment.center,
+                        child: mLbl('lbl_stamp_box'),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Center(
+                        child: renderVal(
+                          'val_p1IoSig',
+                          p1IoSig.isNotEmpty ? p1IoSig : ioName,
+                          height: 13.0,
+                          maxWidth: 205,
+                        ),
+                      ),
+                      pw.SizedBox(height: 2),
+                      mLbl('lbl_sig_io'),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -373,218 +716,156 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 26),
         build: (_) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
-            // Top Center Header
-            pw.Center(child: pw.Text('नोटीस', style: headerStyle)),
+            // Top Right Badge
+            pw.Align(
+              alignment: pw.Alignment.topRight,
+              child: mLbl('badge_p2'),
+            ),
             pw.SizedBox(height: 2),
-            pw.Center(
-                child: pw.Text('बी.एन.एस.एस.कलम ४८', style: subHeaderStyle)),
-            pw.SizedBox(height: 10),
+
+            // Top Center Header
+            pw.Center(child: mLbl('p1_title')),
+            pw.SizedBox(height: 2),
+            pw.Center(child: mLbl('p2_sub')),
+            pw.SizedBox(height: 8),
 
             // Recipient block
-            pw.Text('प्रति,', style: bold),
-            pw.SizedBox(height: 1),
-            pw.Text(p2To1.isNotEmpty ? p2To1 : mediumLine,
-                style: p2To1.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 1),
-            pw.Text(p2To2.isNotEmpty ? p2To2 : mediumLine,
-                style: p2To2.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 1),
-            pw.Text(p2To3.isNotEmpty ? p2To3 : mediumLine,
-                style: p2To3.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 8),
+            mLbl('lbl_to'),
+            pw.SizedBox(height: 3),
+            buildRuledLine('', 'val_p2To1', p2To1),
+            buildRuledLine('', 'val_p2To2', p2To2),
+            buildRuledLine('', 'val_p2To3', p2To3),
+            pw.SizedBox(height: 6),
 
             // Subject
-            pw.Text(
-              'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...',
-              style: bold,
-            ),
-            pw.SizedBox(height: 8),
+            mLbl('p2_sub_line'),
+            pw.SizedBox(height: 6),
 
             // Notice Paragraph
-            pw.RichText(
-              textAlign: pw.TextAlign.justify,
-              text: pw.TextSpan(
-                style: regular,
-                children: [
-                  const pw.TextSpan(
-                      text: '        आपणास याद्वारे कळविण्यात येते की, '),
-                  pw.TextSpan(
-                    text: policeStation,
-                    style: bold,
-                  ),
-                  const pw.TextSpan(text: ' पोलीस स्टेशन,गुन्हा रजि.नंबर '),
-                  pw.TextSpan(
-                    text: crNo.isNotEmpty ? crNo : '.....',
-                    style: bold,
-                  ),
-                  pw.TextSpan(text: '/$crYear भा.न्या.सं.कलम '),
-                  pw.TextSpan(
-                    text: bnsSection.isNotEmpty
-                        ? bnsSection
-                        : '....................................................................................',
-                    style: bold,
-                  ),
-                  const pw.TextSpan(
-                      text:
-                          ' या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे '),
-                  pw.TextSpan(
-                    text: p2AccusedName.isNotEmpty
-                        ? p2AccusedName
-                        : '........................................................................................',
-                    style: bold,
-                  ),
-                  const pw.TextSpan(text: ' यांना दिनांक '),
-                  pw.TextSpan(
-                    text: arrestDate.isNotEmpty ? arrestDate : '   /   /२०  ',
-                    style: bold,
-                  ),
-                  const pw.TextSpan(text: ' रोजी '),
-                  pw.TextSpan(
-                    text: arrestTime.isNotEmpty ? arrestTime : '.......',
-                    style: bold,
-                  ),
-                  const pw.TextSpan(text: ' वा. अटक करण्यात आली आहे.'),
-                ],
-              ),
-            ),
+            mLbl('p2_notice_para'),
             pw.SizedBox(height: 8),
 
             // अ) गुन्ह्याची थोडक्यात हकीगत :-
-            pw.Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: sectionHeader),
-            pw.SizedBox(height: 2),
-            pw.Text(p2Fact1.isNotEmpty ? p2Fact1 : longLine,
-                style: p2Fact1.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 2),
-            pw.Text(p2Fact2.isNotEmpty ? p2Fact2 : longLine,
-                style: p2Fact2.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 2),
-            pw.Text(p2Fact3.isNotEmpty ? p2Fact3 : longLine,
-                style: p2Fact3.isNotEmpty ? bold : regular),
-            pw.SizedBox(height: 8),
-
-            // ब) अटक करण्यासंबंधाने आधार :-
-            pw.Text('ब) अटक करण्यासंबंधाने आधार :-', style: sectionHeader),
-            pw.SizedBox(height: 2),
-            for (final item in [
-              ('१)', p2Ground1),
-              ('२)', p2Ground2),
-              ('३)', p2Ground3),
-              ('४)', p2Ground4),
-              ('५)', p2Ground5),
-            ]) ...[
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 2),
-                child: pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('${item.$1} ', style: bold),
-                    pw.Expanded(
-                      child: pw.Text(
-                        item.$2.isNotEmpty ? item.$2 : longLine,
-                        style: item.$2.isNotEmpty ? bold : regular,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            pw.SizedBox(height: 8),
-
-            // क) अटकेची कारणे :-
-            pw.Text('क) अटकेची कारणे :-', style: sectionHeader),
-            pw.SizedBox(height: 2),
-            for (final item in [
-              ('१)', p2Reason1),
-              ('२)', p2Reason2),
-              ('३)', p2Reason3),
-              ('४)', p2Reason4),
-              ('५)', p2Reason5),
-            ]) ...[
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 2),
-                child: pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('${item.$1} ', style: bold),
-                    pw.Expanded(
-                      child: pw.Text(
-                        item.$2.isNotEmpty ? item.$2 : longLine,
-                        style: item.$2.isNotEmpty ? bold : regular,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            pw.SizedBox(height: 8),
-
-            // ड)
-            pw.Text(
-              'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने योग्य तो जामीन दिल्यास अटक व्यक्तीस जामीनावर मुक्त करण्यात येईल.',
-              style: regular,
-              textAlign: pw.TextAlign.justify,
-            ),
+            mLbl('lbl_a'),
+            pw.SizedBox(height: 3),
+            buildRuledLine('', 'val_p2Fact1', p2Fact1),
+            buildRuledLine('', 'val_p2Fact2', p2Fact2),
+            buildRuledLine('', 'val_p2Fact3', p2Fact3),
             pw.SizedBox(height: 6),
 
+            // ब) अटक करण्यासंबंधाने आधार :-
+            mLbl('lbl_b'),
+            pw.SizedBox(height: 3),
+            buildRuledLine('num_१)', 'val_p2Ground1', p2Ground1),
+            buildRuledLine('num_२)', 'val_p2Ground2', p2Ground2),
+            buildRuledLine('num_३)', 'val_p2Ground3', p2Ground3),
+            buildRuledLine('num_४)', 'val_p2Ground4', p2Ground4),
+            buildRuledLine('num_५)', 'val_p2Ground5', p2Ground5),
+            pw.SizedBox(height: 6),
+
+            // क) अटकेची कारणे :-
+            mLbl('lbl_c'),
+            pw.SizedBox(height: 3),
+            buildRuledLine('num_१)', 'val_p2Reason1', p2Reason1),
+            buildRuledLine('num_२)', 'val_p2Reason2', p2Reason2),
+            buildRuledLine('num_३)', 'val_p2Reason3', p2Reason3),
+            buildRuledLine('num_४)', 'val_p2Reason4', p2Reason4),
+            buildRuledLine('num_५)', 'val_p2Reason5', p2Reason5),
+            pw.SizedBox(height: 6),
+
+            // ड)
+            mLbl('p2_clause_d'),
+            pw.SizedBox(height: 5),
+
             // इ)
-            pw.RichText(
-              text: pw.TextSpan(
-                style: regular,
-                children: [
-                  const pw.TextSpan(text: 'इ) अटक व्यक्तीला दिनांक '),
-                  pw.TextSpan(
-                    text:
-                        p2RemandDate.isNotEmpty ? p2RemandDate : '   /   /२०  ',
-                    style: bold,
-                  ),
-                  const pw.TextSpan(
-                    text:
-                        ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
-                  ),
-                ],
-              ),
-            ),
+            mLbl('p2_remand_clause'),
+
+            // Breathing room pushing footer gracefully down
             pw.Spacer(),
 
             // Footer
             pw.Align(
               alignment: pw.Alignment.centerRight,
               child: pw.Padding(
-                padding: const pw.EdgeInsets.only(right: 24),
-                child: pw.Text('कळावे,', style: bold),
+                padding: const pw.EdgeInsets.only(right: 36),
+                child: mLbl('lbl_closing'),
               ),
             ),
-            pw.SizedBox(height: 16),
+            pw.SizedBox(height: 6),
+
+            // Dual Signature & Seal Block
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                // Left: Relative signature
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    if (p2RelativeSig.isNotEmpty)
-                      pw.Text(p2RelativeSig, style: bold)
-                    else
-                      pw.SizedBox(height: 12),
-                    pw.Text('नातेवाईकाची दिनांकीत सही', style: bold),
-                  ],
+                // Left: Relative
+                pw.Container(
+                  width: 220,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Container(
+                        height: 54,
+                        width: 205,
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(
+                              color: PdfColors.grey600, width: 0.8),
+                          borderRadius:
+                              const pw.BorderRadius.all(pw.Radius.circular(3)),
+                        ),
+                        alignment: pw.Alignment.center,
+                        child: mLbl('lbl_thumb_box'),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Center(
+                        child: renderVal(
+                          'val_p2RelativeSig',
+                          p2RelativeSig.isNotEmpty ? p2RelativeSig : p2To1,
+                          height: 13.0,
+                          maxWidth: 205,
+                        ),
+                      ),
+                      pw.SizedBox(height: 2),
+                      mLbl('p2_sig_relative'),
+                    ],
+                  ),
                 ),
 
-                // Right: IO signature
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    if (p2IoSig.isNotEmpty)
-                      pw.Text(p2IoSig, style: bold)
-                    else
-                      pw.SizedBox(height: 12),
-                    pw.Text('तपासी अधिकारी/अंमलदार', style: bold),
-                  ],
+                // Right: IO
+                pw.Container(
+                  width: 220,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Container(
+                        height: 54,
+                        width: 205,
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(
+                              color: PdfColors.grey600, width: 0.8),
+                          borderRadius:
+                              const pw.BorderRadius.all(pw.Radius.circular(3)),
+                        ),
+                        alignment: pw.Alignment.center,
+                        child: mLbl('lbl_stamp_box'),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Center(
+                        child: renderVal(
+                          'val_p2IoSig',
+                          p2IoSig.isNotEmpty ? p2IoSig : ioName,
+                          height: 13.0,
+                          maxWidth: 205,
+                        ),
+                      ),
+                      pw.SizedBox(height: 2),
+                      mLbl('lbl_sig_io'),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -598,208 +879,376 @@ Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari Font Shaping) ──
+// ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari Font Shaping & Form Match)
 // ══════════════════════════════════════════════════════════════════════════════
 
 Widget _buildPg1Widget(Map<String, dynamic> doc) {
-  String v(String key, [String fallback = '']) {
-    final val = doc[key]?.toString().trim() ?? '';
-    return val.isEmpty ? fallback : val;
+  String fld(List<String> keys, [String fallback = '']) {
+    for (final k in keys) {
+      final val = doc[k]?.toString().trim() ?? '';
+      if (val.isNotEmpty) return val;
+    }
+    return fallback;
   }
 
-  final policeStation = v('policeStation');
-  final crNo = v('crNo');
-  final crYear = v('crYear');
-  final bnsSection = v('bnsSection', v('section'));
-  final arrestDate = v('arrestDate');
-  final arrestTime = v('arrestTime');
-  final ioName = v('ioName', v('shoName'));
+  final policeStation = fld(['policeStation', 'ps', 'n47PoliceStation']);
+  final crNo = fld(['crNo', 'firNo', 'n47CrNo']);
+  final crYear = fld(['crYear', 'firYear', 'n47CrYear']);
+  final bnsSection = fld(['bnsSection', 'section', 'actSection', 'n47Section']);
+  final arrestDate = fld(['arrestDate', 'date', 'n47Date']);
+  final arrestTime = fld(['arrestTime', 'time', 'n47Time']);
+  final ioName = fld(['ioName', 'shoName', 'n47IoName']);
 
-  final p1To1 = v('p1To1', v('accusedName'));
-  final p1To2 = v('p1To2');
-  final p1To3 = v('p1To3');
-  final p1Fact1 = v('p1Fact1', v('orderBody'));
-  final p1Fact2 = v('p1Fact2');
-  final p1Fact3 = v('p1Fact3');
-  final p1Ground1 = v('p1Ground1');
-  final p1Ground2 = v('p1Ground2');
-  final p1Ground3 = v('p1Ground3');
-  final p1Ground4 = v('p1Ground4');
-  final p1Ground5 = v('p1Ground5');
-  final p1Reason1 = v('p1Reason1');
-  final p1Reason2 = v('p1Reason2');
-  final p1Reason3 = v('p1Reason3');
-  final p1Reason4 = v('p1Reason4');
-  final p1Reason5 = v('p1Reason5');
-  final p1RemandDate = v('p1RemandDate', arrestDate);
-  final p1AccusedSig = v('p1AccusedSig');
-  final p1IoSig = v('p1IoSig', ioName);
+  final pageRange = fld(['pageRange', 'formLabel']);
 
-  const longLine =
-      '-----------------------------------------------------------------------------------------------------------------';
-  const mediumLine =
-      '---------------------------------------------------------------------------';
+  final p1To1 = fld(['p1To1', 'accusedName', 'n47To']);
+  final p1To2 = fld(['p1To2']);
+  final p1To3 = fld(['p1To3']);
+  final p1Fact1 = fld(['p1Fact1', 'orderBody', 'n47Body']);
+  final p1Fact2 = fld(['p1Fact2']);
+  final p1Fact3 = fld(['p1Fact3']);
+  final p1Ground1 = fld(['p1Ground1']);
+  final p1Ground2 = fld(['p1Ground2']);
+  final p1Ground3 = fld(['p1Ground3']);
+  final p1Ground4 = fld(['p1Ground4']);
+  final p1Ground5 = fld(['p1Ground5']);
+  final p1Reason1 = fld(['p1Reason1']);
+  final p1Reason2 = fld(['p1Reason2']);
+  final p1Reason3 = fld(['p1Reason3']);
+  final p1Reason4 = fld(['p1Reason4']);
+  final p1Reason5 = fld(['p1Reason5']);
+  final p1RemandDate = fld(['p1RemandDate', 'arrestDate'], arrestDate);
+  final p1AccusedSig =
+      fld(['p1AccusedSig', 'n47AccusedSig', 'n47AccusedName'], p1To1);
+  final p1IoSig = fld(['p1IoSig', 'n47IoName', 'ioName'], ioName);
 
-  final reg = FormImagePdfHelper.mReg(9.5, 1.4);
-  final bld = FormImagePdfHelper.mBld(9.5, 1.4);
-  final headerStyle = FormImagePdfHelper.mBld(13, 1.3);
-  final subHeaderStyle = FormImagePdfHelper.mBld(11, 1.3);
-  final sectionHeader = FormImagePdfHelper.mBld(10, 1.3);
+  final titleStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  );
+  final subTitleStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 14.5,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  );
+  final boldLabelStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+  );
+  final bodyStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 12.5,
+    height: 1.45,
+    color: Colors.black87,
+  );
+  final valStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    color: _kInkColor,
+  );
+  final badgeStyle = GoogleFonts.lora(
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    decoration: TextDecoration.underline,
+  );
+
+  Widget buildRuledLine(String prefix, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (prefix.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2, right: 6),
+              child: Text(prefix, style: boldLabelStyle),
+            ),
+          Expanded(
+            child: Container(
+              height: 22,
+              alignment: Alignment.bottomLeft,
+              padding: const EdgeInsets.only(bottom: 2, left: 3),
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFF757575), width: 0.85),
+                ),
+              ),
+              child: Text(
+                value,
+                style: valStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildUnderlineField(
+    String value, {
+    double? width,
+    String? hint,
+    TextAlign textAlign = TextAlign.start,
+    IconData? icon,
+  }) {
+    return Container(
+      width: width,
+      height: 22,
+      alignment: Alignment.bottomCenter,
+      padding: const EdgeInsets.only(bottom: 2, left: 3, right: 3),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Color(0xFF616161), width: 0.85),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: width != null ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisAlignment: textAlign == TextAlign.center
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.start,
+        children: [
+          Flexible(
+            child: Text(
+              value.isNotEmpty ? value : (hint ?? ''),
+              style: value.isNotEmpty
+                  ? valStyle
+                  : GoogleFonts.notoSansDevanagari(
+                      fontSize: 11,
+                      color: Colors.black38,
+                    ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: textAlign,
+            ),
+          ),
+          if (icon != null) ...[
+            const SizedBox(width: 4),
+            Icon(icon, size: 13, color: const Color(0xFF1976D2)),
+          ],
+        ],
+      ),
+    );
+  }
 
   return Container(
     width: FormImagePdfHelper.a4Width,
     height: FormImagePdfHelper.a4Height,
     color: Colors.white,
-    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+    padding: const EdgeInsets.fromLTRB(42, 28, 42, 26),
     child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: Text('नोटीस', style: headerStyle)),
+        Align(
+          alignment: Alignment.topRight,
+          child: Text(
+            pageRange.isNotEmpty
+                ? pageRange
+                : 'Page 1 — नोटीस बी.एन.एस.एस.कलम ४७(१)',
+            style: badgeStyle,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Center(child: Text('नोटीस', style: titleStyle)),
         const SizedBox(height: 2),
-        Center(child: Text('बी.एन.एस.एस.कलम ४७(१)', style: subHeaderStyle)),
+        Center(child: Text('बी.एन.एस.एस.कलम ४७(१)', style: subTitleStyle)),
         const SizedBox(height: 10),
-        Text('प्रति,', style: bld),
-        const SizedBox(height: 1),
-        Text(p1To1.isNotEmpty ? p1To1 : mediumLine,
-            style: p1To1.isNotEmpty ? bld : reg),
-        const SizedBox(height: 1),
-        Text(p1To2.isNotEmpty ? p1To2 : mediumLine,
-            style: p1To2.isNotEmpty ? bld : reg),
-        const SizedBox(height: 1),
-        Text(p1To3.isNotEmpty ? p1To3 : mediumLine,
-            style: p1To3.isNotEmpty ? bld : reg),
+        Text('प्रति,', style: boldLabelStyle),
+        const SizedBox(height: 4),
+        buildRuledLine('', p1To1),
+        buildRuledLine('', p1To2),
+        buildRuledLine('', p1To3),
         const SizedBox(height: 8),
         Text(
           'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...',
-          style: bld,
+          style: boldLabelStyle,
         ),
         const SizedBox(height: 8),
-        RichText(
-          textAlign: TextAlign.justify,
-          text: TextSpan(
-            style: reg,
-            children: [
-              const TextSpan(
-                  text: '        आपणास याद्वारे कळविण्यात येते की, '),
-              TextSpan(
-                text: policeStation,
-                style: bld,
-              ),
-              const TextSpan(text: ' पोलीस स्टेशन, गुन्हा रजि.नंबर '),
-              TextSpan(
-                text: crNo.isNotEmpty ? crNo : '.....',
-                style: bld,
-              ),
-              TextSpan(text: '/$crYear भा.न्या.सं.कलम '),
-              TextSpan(
-                text: bnsSection.isNotEmpty
-                    ? bnsSection
-                    : '....................................................................................',
-                style: bld,
-              ),
-              const TextSpan(text: ' या गुन्ह्याचे तपासात निष्पन्न झालेल्या '),
-              const TextSpan(text: 'पुराव्यावरून आपणास दिनांक '),
-              TextSpan(
-                text: arrestDate.isNotEmpty ? arrestDate : '   /   /२०  ',
-                style: bld,
-              ),
-              const TextSpan(text: ' रोजी '),
-              TextSpan(
-                text: arrestTime.isNotEmpty ? arrestTime : '.......',
-                style: bld,
-              ),
-              const TextSpan(
-                  text:
-                      ' वा. अटक करण्यात आलेली आहे.अटकेचा आधार व कारणे खालीलप्रमाणे :-'),
-            ],
-          ),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 7,
+          children: [
+            const SizedBox(width: 24),
+            Text('आपणास याद्वारे कळविण्यात येते की,', style: bodyStyle),
+            buildUnderlineField(policeStation,
+                width: 175, hint: 'पोलीस स्टेशन नाव'),
+            Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: bodyStyle),
+            buildUnderlineField(crNo,
+                width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
+            Text('/', style: bodyStyle),
+            buildUnderlineField(crYear,
+                width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
+            Text('भा.न्या.सं.कलम', style: bodyStyle),
+            buildUnderlineField(bnsSection, width: 190, hint: 'उदा. १०३, ३(५)'),
+            Text(
+                'या गुन्ह्याचे तपासात निष्पन्न झालेल्या पुराव्यावरून आपणास दिनांक',
+                style: bodyStyle),
+            buildUnderlineField(arrestDate,
+                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+            Text('रोजी', style: bodyStyle),
+            buildUnderlineField(arrestTime,
+                width: 100, hint: 'वेळ', icon: Icons.access_time),
+            Text('वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे :-',
+                style: bodyStyle),
+          ],
         ),
         const SizedBox(height: 8),
-        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: sectionHeader),
-        const SizedBox(height: 2),
-        Text(p1Fact1.isNotEmpty ? p1Fact1 : longLine,
-            style: p1Fact1.isNotEmpty ? bld : reg),
-        const SizedBox(height: 2),
-        Text(p1Fact2.isNotEmpty ? p1Fact2 : longLine,
-            style: p1Fact2.isNotEmpty ? bld : reg),
-        const SizedBox(height: 2),
-        Text(p1Fact3.isNotEmpty ? p1Fact3 : longLine,
-            style: p1Fact3.isNotEmpty ? bld : reg),
-        const SizedBox(height: 6),
-        Text('ब) अटकेचा आधार :-', style: sectionHeader),
-        const SizedBox(height: 2),
-        for (final g in [
-          p1Ground1,
-          p1Ground2,
-          p1Ground3,
-          p1Ground4,
-          p1Ground5
-        ]) ...[
-          Text(g.isNotEmpty ? g : longLine, style: g.isNotEmpty ? bld : reg),
-          const SizedBox(height: 2),
-        ],
+        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: boldLabelStyle),
         const SizedBox(height: 4),
-        Text('क) अटकेचे कारणे :-', style: sectionHeader),
-        const SizedBox(height: 2),
-        for (final r in [
-          p1Reason1,
-          p1Reason2,
-          p1Reason3,
-          p1Reason4,
-          p1Reason5
-        ]) ...[
-          Text(r.isNotEmpty ? r : longLine, style: r.isNotEmpty ? bld : reg),
-          const SizedBox(height: 2),
-        ],
+        buildRuledLine('', p1Fact1),
+        buildRuledLine('', p1Fact2),
+        buildRuledLine('', p1Fact3),
+        const SizedBox(height: 8),
+        Text('ब) अटक करण्यासंबंधाने आधार :-', style: boldLabelStyle),
+        const SizedBox(height: 4),
+        buildRuledLine('१)', p1Ground1),
+        buildRuledLine('२)', p1Ground2),
+        buildRuledLine('३)', p1Ground3),
+        buildRuledLine('४)', p1Ground4),
+        buildRuledLine('५)', p1Ground5),
+        const SizedBox(height: 8),
+        Text('क) अटकेची कारणे :-', style: boldLabelStyle),
+        const SizedBox(height: 4),
+        buildRuledLine('१)', p1Reason1),
+        buildRuledLine('२)', p1Reason2),
+        buildRuledLine('३)', p1Reason3),
+        buildRuledLine('४)', p1Reason4),
+        buildRuledLine('५)', p1Reason5),
+        const SizedBox(height: 8),
+        Text(
+          'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने आपण योग्य तो जामीन दिल्यास आपणास जामीनावर मुक्त करण्यात येईल.',
+          style: bodyStyle,
+          textAlign: TextAlign.justify,
+        ),
         const SizedBox(height: 6),
-        RichText(
-          text: TextSpan(
-            style: reg,
-            children: [
-              const TextSpan(text: 'ड) अटक व्यक्तीला दिनांक '),
-              TextSpan(
-                text: p1RemandDate.isNotEmpty ? p1RemandDate : '   /   /२०  ',
-                style: bld,
-              ),
-              const TextSpan(
-                text:
-                    ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
-              ),
-            ],
-          ),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 6,
+          children: [
+            Text('इ) आपणास दिनांक', style: bodyStyle),
+            buildUnderlineField(p1RemandDate,
+                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+            Text(
+              'रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+              style: bodyStyle,
+            ),
+          ],
         ),
         const Spacer(),
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
-            padding: const EdgeInsets.only(right: 24),
-            child: Text('कळावे,', style: bld),
+            padding: const EdgeInsets.only(right: 36),
+            child: Text('कळावे,', style: boldLabelStyle),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (p1AccusedSig.isNotEmpty)
-                  Text(p1AccusedSig, style: bld)
-                else
-                  const SizedBox(height: 12),
-                Text('आरोपीची दिनांकीत सही', style: bld),
-              ],
+            SizedBox(
+              width: 225,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 56,
+                    width: 220,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black54, width: 0.85),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '(सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
+                      style: GoogleFonts.notoSansDevanagari(
+                        fontSize: 10,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 220,
+                    height: 20,
+                    alignment: Alignment.bottomCenter,
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom:
+                            BorderSide(color: Color(0xFF616161), width: 0.85),
+                      ),
+                    ),
+                    child: Text(
+                      p1AccusedSig.isNotEmpty
+                          ? p1AccusedSig
+                          : (p1To1.isNotEmpty ? p1To1 : ''),
+                      style: valStyle.copyWith(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('आरोपीची स्वाक्षरी / अंगठा',
+                      style: boldLabelStyle.copyWith(fontSize: 12)),
+                ],
+              ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (p1IoSig.isNotEmpty)
-                  Text(p1IoSig, style: bld)
-                else
-                  const SizedBox(height: 12),
-                Text('तपासी अधिकारी/अंमलदार', style: bld),
-              ],
+            SizedBox(
+              width: 225,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 56,
+                    width: 220,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black54, width: 0.85),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '(स्वाक्षरी व पोलीस स्टेशन शिक्का)',
+                      style: GoogleFonts.notoSansDevanagari(
+                        fontSize: 10,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 220,
+                    height: 20,
+                    alignment: Alignment.bottomCenter,
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom:
+                            BorderSide(color: Color(0xFF616161), width: 0.85),
+                      ),
+                    ),
+                    child: Text(
+                      p1IoSig.isNotEmpty
+                          ? p1IoSig
+                          : (ioName.isNotEmpty ? ioName : ''),
+                      style: valStyle.copyWith(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('तपासणी अधिकारी / अंमलदार',
+                      style: boldLabelStyle.copyWith(fontSize: 12)),
+                ],
+              ),
             ),
           ],
         ),
@@ -809,226 +1258,390 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
 }
 
 Widget _buildPg2Widget(Map<String, dynamic> doc) {
-  String v(String key, [String fallback = '']) {
-    final val = doc[key]?.toString().trim() ?? '';
-    return val.isEmpty ? fallback : val;
+  String fld(List<String> keys, [String fallback = '']) {
+    for (final k in keys) {
+      final val = doc[k]?.toString().trim() ?? '';
+      if (val.isNotEmpty) return val;
+    }
+    return fallback;
   }
 
-  final policeStation = v('policeStation');
-  final crNo = v('crNo');
-  final crYear = v('crYear');
-  final bnsSection = v('bnsSection', v('section'));
-  final arrestDate = v('arrestDate');
-  final arrestTime = v('arrestTime');
-  final ioName = v('ioName', v('shoName'));
+  final policeStation = fld(['policeStation', 'ps', 'n47PoliceStation']);
+  final crNo = fld(['crNo', 'firNo', 'n47CrNo']);
+  final crYear = fld(['crYear', 'firYear', 'n47CrYear']);
+  final bnsSection = fld(['bnsSection', 'section', 'actSection', 'n47Section']);
+  final arrestDate = fld(['arrestDate', 'date', 'n47Date']);
+  final arrestTime = fld(['arrestTime', 'time', 'n47Time']);
+  final ioName = fld(['ioName', 'shoName', 'n47IoName']);
 
-  final p1To1 = v('p1To1', v('accusedName'));
-  final p1Fact1 = v('p1Fact1', v('orderBody'));
-  final p1Fact2 = v('p1Fact2');
-  final p1Fact3 = v('p1Fact3');
-  final p1Ground1 = v('p1Ground1');
-  final p1Ground2 = v('p1Ground2');
-  final p1Ground3 = v('p1Ground3');
-  final p1Ground4 = v('p1Ground4');
-  final p1Ground5 = v('p1Ground5');
-  final p1Reason1 = v('p1Reason1');
-  final p1Reason2 = v('p1Reason2');
-  final p1Reason3 = v('p1Reason3');
-  final p1Reason4 = v('p1Reason4');
-  final p1Reason5 = v('p1Reason5');
-  final p1RemandDate = v('p1RemandDate', arrestDate);
+  final pageRange = fld(['pageRange', 'formLabel']);
 
-  final p2To1 = v('p2To1');
-  final p2To2 = v('p2To2');
-  final p2To3 = v('p2To3');
-  final p2AccusedName = v('p2AccusedName', p1To1);
-  final p2Fact1 = v('p2Fact1', p1Fact1);
-  final p2Fact2 = v('p2Fact2', p1Fact2);
-  final p2Fact3 = v('p2Fact3', p1Fact3);
-  final p2Ground1 = v('p2Ground1', p1Ground1);
-  final p2Ground2 = v('p2Ground2', p1Ground2);
-  final p2Ground3 = v('p2Ground3', p1Ground3);
-  final p2Ground4 = v('p2Ground4', p1Ground4);
-  final p2Ground5 = v('p2Ground5', p1Ground5);
-  final p2Reason1 = v('p2Reason1', p1Reason1);
-  final p2Reason2 = v('p2Reason2', p1Reason2);
-  final p2Reason3 = v('p2Reason3', p1Reason3);
-  final p2Reason4 = v('p2Reason4', p1Reason4);
-  final p2Reason5 = v('p2Reason5', p1Reason5);
-  final p2RemandDate = v('p2RemandDate', p1RemandDate);
-  final p2RelativeSig = v('p2RelativeSig');
-  final p2IoSig = v('p2IoSig', ioName);
+  final p1To1 = fld(['p1To1', 'accusedName', 'n47To']);
+  final p1Fact1 = fld(['p1Fact1', 'orderBody', 'n47Body']);
+  final p1Fact2 = fld(['p1Fact2']);
+  final p1Fact3 = fld(['p1Fact3']);
+  final p1Ground1 = fld(['p1Ground1']);
+  final p1Ground2 = fld(['p1Ground2']);
+  final p1Ground3 = fld(['p1Ground3']);
+  final p1Ground4 = fld(['p1Ground4']);
+  final p1Ground5 = fld(['p1Ground5']);
+  final p1Reason1 = fld(['p1Reason1']);
+  final p1Reason2 = fld(['p1Reason2']);
+  final p1Reason3 = fld(['p1Reason3']);
+  final p1Reason4 = fld(['p1Reason4']);
+  final p1Reason5 = fld(['p1Reason5']);
+  final p1RemandDate = fld(['p1RemandDate', 'arrestDate'], arrestDate);
 
-  const longLine =
-      '-----------------------------------------------------------------------------------------------------------------';
-  const mediumLine =
-      '---------------------------------------------------------------------------';
+  final p2To1 = fld(['p2To1', 'n48To']);
+  final p2To2 = fld(['p2To2']);
+  final p2To3 = fld(['p2To3']);
+  final p2AccusedName = fld(['p2AccusedName', 'accusedName', 'p1To1'], p1To1);
+  final p2Fact1 = fld(['p2Fact1', 'p1Fact1', 'orderBody'], p1Fact1);
+  final p2Fact2 = fld(['p2Fact2', 'p1Fact2'], p1Fact2);
+  final p2Fact3 = fld(['p2Fact3', 'p1Fact3'], p1Fact3);
+  final p2Ground1 = fld(['p2Ground1', 'p1Ground1'], p1Ground1);
+  final p2Ground2 = fld(['p2Ground2', 'p1Ground2'], p1Ground2);
+  final p2Ground3 = fld(['p2Ground3', 'p1Ground3'], p1Ground3);
+  final p2Ground4 = fld(['p2Ground4', 'p1Ground4'], p1Ground4);
+  final p2Ground5 = fld(['p2Ground5', 'p1Ground5'], p1Ground5);
+  final p2Reason1 = fld(['p2Reason1', 'p1Reason1'], p1Reason1);
+  final p2Reason2 = fld(['p2Reason2', 'p1Reason2'], p1Reason2);
+  final p2Reason3 = fld(['p2Reason3', 'p1Reason3'], p1Reason3);
+  final p2Reason4 = fld(['p2Reason4', 'p1Reason4'], p1Reason4);
+  final p2Reason5 = fld(['p2Reason5', 'p1Reason5'], p1Reason5);
+  final p2RemandDate =
+      fld(['p2RemandDate', 'p1RemandDate', 'arrestDate'], p1RemandDate);
+  final p2RelativeSig = fld(['p2RelativeSig', 'n48RelativeSig'], p2To1);
+  final p2IoSig = fld(['p2IoSig', 'n48IoName', 'ioName'], ioName);
 
-  final reg = FormImagePdfHelper.mReg(9.5, 1.4);
-  final bld = FormImagePdfHelper.mBld(9.5, 1.4);
-  final headerStyle = FormImagePdfHelper.mBld(13, 1.3);
-  final subHeaderStyle = FormImagePdfHelper.mBld(11, 1.3);
-  final sectionHeader = FormImagePdfHelper.mBld(10, 1.3);
+  final titleStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  );
+  final subTitleStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 14.5,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  );
+  final boldLabelStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+  );
+  final bodyStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 12.5,
+    height: 1.45,
+    color: Colors.black87,
+  );
+  final valStyle = GoogleFonts.notoSansDevanagari(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    color: _kInkColor,
+  );
+  final badgeStyle = GoogleFonts.lora(
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+    decoration: TextDecoration.underline,
+  );
+
+  Widget buildRuledLine(String prefix, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (prefix.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2, right: 6),
+              child: Text(prefix, style: boldLabelStyle),
+            ),
+          Expanded(
+            child: Container(
+              height: 22,
+              alignment: Alignment.bottomLeft,
+              padding: const EdgeInsets.only(bottom: 2, left: 3),
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFF757575), width: 0.85),
+                ),
+              ),
+              child: Text(
+                value,
+                style: valStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildUnderlineField(
+    String value, {
+    double? width,
+    String? hint,
+    TextAlign textAlign = TextAlign.start,
+    IconData? icon,
+  }) {
+    return Container(
+      width: width,
+      height: 22,
+      alignment: Alignment.bottomCenter,
+      padding: const EdgeInsets.only(bottom: 2, left: 3, right: 3),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Color(0xFF616161), width: 0.85),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: width != null ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisAlignment: textAlign == TextAlign.center
+            ? MainAxisAlignment.center
+            : MainAxisAlignment.start,
+        children: [
+          Flexible(
+            child: Text(
+              value.isNotEmpty ? value : (hint ?? ''),
+              style: value.isNotEmpty
+                  ? valStyle
+                  : GoogleFonts.notoSansDevanagari(
+                      fontSize: 11,
+                      color: Colors.black38,
+                    ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: textAlign,
+            ),
+          ),
+          if (icon != null) ...[
+            const SizedBox(width: 4),
+            Icon(icon, size: 13, color: const Color(0xFF1976D2)),
+          ],
+        ],
+      ),
+    );
+  }
 
   return Container(
     width: FormImagePdfHelper.a4Width,
     height: FormImagePdfHelper.a4Height,
     color: Colors.white,
-    padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+    padding: const EdgeInsets.fromLTRB(42, 28, 42, 26),
     child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: Text('नोटीस', style: headerStyle)),
+        Align(
+          alignment: Alignment.topRight,
+          child: Text(
+            pageRange.isNotEmpty
+                ? pageRange
+                : 'Page 2 — नोटीस बी.एन.एस.एस.कलम ४८',
+            style: badgeStyle,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Center(child: Text('नोटीस', style: titleStyle)),
         const SizedBox(height: 2),
-        Center(child: Text('बी.एन.एस.एस.कलम ४८', style: subHeaderStyle)),
+        Center(child: Text('बी.एन.एस.एस.कलम ४८', style: subTitleStyle)),
         const SizedBox(height: 10),
-        Text('प्रति,', style: bld),
-        const SizedBox(height: 1),
-        Text(p2To1.isNotEmpty ? p2To1 : mediumLine,
-            style: p2To1.isNotEmpty ? bld : reg),
-        const SizedBox(height: 1),
-        Text(p2To2.isNotEmpty ? p2To2 : mediumLine,
-            style: p2To2.isNotEmpty ? bld : reg),
-        const SizedBox(height: 1),
-        Text(p2To3.isNotEmpty ? p2To3 : mediumLine,
-            style: p2To3.isNotEmpty ? bld : reg),
+        Text('प्रति,', style: boldLabelStyle),
+        const SizedBox(height: 4),
+        buildRuledLine('', p2To1),
+        buildRuledLine('', p2To2),
+        buildRuledLine('', p2To3),
         const SizedBox(height: 8),
         Text(
           'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...',
-          style: bld,
+          style: boldLabelStyle,
         ),
         const SizedBox(height: 8),
-        RichText(
-          textAlign: TextAlign.justify,
-          text: TextSpan(
-            style: reg,
-            children: [
-              const TextSpan(
-                  text: '        आपणास याद्वारे कळविण्यात येते की, '),
-              TextSpan(
-                text: policeStation,
-                style: bld,
-              ),
-              const TextSpan(text: ' पोलीस स्टेशन,गुन्हा रजि.नंबर '),
-              TextSpan(
-                text: crNo.isNotEmpty ? crNo : '.....',
-                style: bld,
-              ),
-              TextSpan(text: '/$crYear भा.न्या.सं.कलम '),
-              TextSpan(
-                text: bnsSection.isNotEmpty
-                    ? bnsSection
-                    : '....................................................................................',
-                style: bld,
-              ),
-              const TextSpan(
-                  text: ' या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे '),
-              TextSpan(
-                text: p2AccusedName.isNotEmpty
-                    ? p2AccusedName
-                    : '........................................................................................',
-                style: bld,
-              ),
-              const TextSpan(text: ' यांना दिनांक '),
-              TextSpan(
-                text: arrestDate.isNotEmpty ? arrestDate : '   /   /२०  ',
-                style: bld,
-              ),
-              const TextSpan(text: ' रोजी '),
-              TextSpan(
-                text: arrestTime.isNotEmpty ? arrestTime : '.......',
-                style: bld,
-              ),
-              const TextSpan(text: ' वा. अटक करण्यात आली आहे.'),
-            ],
-          ),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 7,
+          children: [
+            const SizedBox(width: 24),
+            Text('आपणास याद्वारे कळविण्यात येते की,', style: bodyStyle),
+            buildUnderlineField(policeStation,
+                width: 175, hint: 'पोलीस स्टेशन नाव'),
+            Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: bodyStyle),
+            buildUnderlineField(crNo,
+                width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
+            Text('/', style: bodyStyle),
+            buildUnderlineField(crYear,
+                width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
+            Text('भा.न्या.सं.कलम', style: bodyStyle),
+            buildUnderlineField(bnsSection, width: 190, hint: 'उदा. १०३, ३(५)'),
+            Text('या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे',
+                style: bodyStyle),
+            buildUnderlineField(p2AccusedName,
+                width: 230, hint: 'अटक व्यक्तीचे नाव'),
+            Text('यांना दिनांक', style: bodyStyle),
+            buildUnderlineField(arrestDate,
+                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+            Text('रोजी', style: bodyStyle),
+            buildUnderlineField(arrestTime,
+                width: 100, hint: 'वेळ', icon: Icons.access_time),
+            Text('वा. अटक करण्यात आली आहे.', style: bodyStyle),
+          ],
         ),
         const SizedBox(height: 8),
-        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: sectionHeader),
-        const SizedBox(height: 2),
-        Text(p2Fact1.isNotEmpty ? p2Fact1 : longLine,
-            style: p2Fact1.isNotEmpty ? bld : reg),
-        const SizedBox(height: 2),
-        Text(p2Fact2.isNotEmpty ? p2Fact2 : longLine,
-            style: p2Fact2.isNotEmpty ? bld : reg),
-        const SizedBox(height: 2),
-        Text(p2Fact3.isNotEmpty ? p2Fact3 : longLine,
-            style: p2Fact3.isNotEmpty ? bld : reg),
-        const SizedBox(height: 6),
-        Text('ब) अटकेचा आधार :-', style: sectionHeader),
-        const SizedBox(height: 2),
-        for (final g in [
-          p2Ground1,
-          p2Ground2,
-          p2Ground3,
-          p2Ground4,
-          p2Ground5
-        ]) ...[
-          Text(g.isNotEmpty ? g : longLine, style: g.isNotEmpty ? bld : reg),
-          const SizedBox(height: 2),
-        ],
+        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: boldLabelStyle),
         const SizedBox(height: 4),
-        Text('क) अटकेचे कारणे :-', style: sectionHeader),
-        const SizedBox(height: 2),
-        for (final r in [
-          p2Reason1,
-          p2Reason2,
-          p2Reason3,
-          p2Reason4,
-          p2Reason5
-        ]) ...[
-          Text(r.isNotEmpty ? r : longLine, style: r.isNotEmpty ? bld : reg),
-          const SizedBox(height: 2),
-        ],
+        buildRuledLine('', p2Fact1),
+        buildRuledLine('', p2Fact2),
+        buildRuledLine('', p2Fact3),
+        const SizedBox(height: 8),
+        Text('ब) अटक करण्यासंबंधाने आधार :-', style: boldLabelStyle),
+        const SizedBox(height: 4),
+        buildRuledLine('१)', p2Ground1),
+        buildRuledLine('२)', p2Ground2),
+        buildRuledLine('३)', p2Ground3),
+        buildRuledLine('४)', p2Ground4),
+        buildRuledLine('५)', p2Ground5),
+        const SizedBox(height: 8),
+        Text('क) अटकेची कारणे :-', style: boldLabelStyle),
+        const SizedBox(height: 4),
+        buildRuledLine('१)', p2Reason1),
+        buildRuledLine('२)', p2Reason2),
+        buildRuledLine('३)', p2Reason3),
+        buildRuledLine('४)', p2Reason4),
+        buildRuledLine('५)', p2Reason5),
+        const SizedBox(height: 8),
+        Text(
+          'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने योग्य तो जामीन दिल्यास अटक व्यक्तीस जामीनावर मुक्त करण्यात येईल.',
+          style: bodyStyle,
+          textAlign: TextAlign.justify,
+        ),
         const SizedBox(height: 6),
-        RichText(
-          text: TextSpan(
-            style: reg,
-            children: [
-              const TextSpan(text: 'इ) अटक व्यक्तीला दिनांक '),
-              TextSpan(
-                text: p2RemandDate.isNotEmpty ? p2RemandDate : '   /   /२०  ',
-                style: bld,
-              ),
-              const TextSpan(
-                text:
-                    ' रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
-              ),
-            ],
-          ),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          runSpacing: 6,
+          children: [
+            Text('इ) अटक व्यक्तीला दिनांक', style: bodyStyle),
+            buildUnderlineField(p2RemandDate,
+                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+            Text(
+              'रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+              style: bodyStyle,
+            ),
+          ],
         ),
         const Spacer(),
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
-            padding: const EdgeInsets.only(right: 24),
-            child: Text('कळावे,', style: bld),
+            padding: const EdgeInsets.only(right: 36),
+            child: Text('कळावे,', style: boldLabelStyle),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (p2RelativeSig.isNotEmpty)
-                  Text(p2RelativeSig, style: bld)
-                else
-                  const SizedBox(height: 12),
-                Text('नातेवाईकाची दिनांकीत सही', style: bld),
-              ],
+            SizedBox(
+              width: 225,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 56,
+                    width: 220,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black54, width: 0.85),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '(सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
+                      style: GoogleFonts.notoSansDevanagari(
+                        fontSize: 10,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 220,
+                    height: 20,
+                    alignment: Alignment.bottomCenter,
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom:
+                            BorderSide(color: Color(0xFF616161), width: 0.85),
+                      ),
+                    ),
+                    child: Text(
+                      p2RelativeSig.isNotEmpty
+                          ? p2RelativeSig
+                          : (p2To1.isNotEmpty ? p2To1 : ''),
+                      style: valStyle.copyWith(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('नातेवाईकाची स्वाक्षरी / अंगठा',
+                      style: boldLabelStyle.copyWith(fontSize: 12)),
+                ],
+              ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (p2IoSig.isNotEmpty)
-                  Text(p2IoSig, style: bld)
-                else
-                  const SizedBox(height: 12),
-                Text('तपासी अधिकारी/अंमलदार', style: bld),
-              ],
+            SizedBox(
+              width: 225,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 56,
+                    width: 220,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black54, width: 0.85),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '(स्वाक्षरी व पोलीस स्टेशन शिक्का)',
+                      style: GoogleFonts.notoSansDevanagari(
+                        fontSize: 10,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 220,
+                    height: 20,
+                    alignment: Alignment.bottomCenter,
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom:
+                            BorderSide(color: Color(0xFF616161), width: 0.85),
+                      ),
+                    ),
+                    child: Text(
+                      p2IoSig.isNotEmpty
+                          ? p2IoSig
+                          : (ioName.isNotEmpty ? ioName : ''),
+                      style: valStyle.copyWith(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('तपासणी अधिकारी / अंमलदार',
+                      style: boldLabelStyle.copyWith(fontSize: 12)),
+                ],
+              ),
             ),
           ],
         ),

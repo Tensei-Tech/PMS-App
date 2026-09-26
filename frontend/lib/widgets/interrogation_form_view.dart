@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../utils/interrogation_form_pdf.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
@@ -23,6 +24,12 @@ class InterrogationFormView extends StatefulWidget {
 }
 
 class InterrogationFormViewState extends State<InterrogationFormView> {
+  @override
+  void initState() {
+    super.initState();
+    preloadInterrogationPdfFonts();
+  }
+
   // ── PAGE 1 CONTROLLERS (Rows 1–10) ──
   final _psCtrl = TextEditingController();
   final _gurNoCtrl = TextEditingController();

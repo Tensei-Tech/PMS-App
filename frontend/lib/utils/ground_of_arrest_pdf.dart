@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewGroundOfArrestPdf(
   BuildContext context,
@@ -12,18 +12,31 @@ Future<void> previewGroundOfArrestPdf(
 ) async {
   final fileName =
       'Ground_of_Arrest_${DateTime.now().millisecondsSinceEpoch}.pdf';
+  final section = (doc['formSection']?.toString() ?? '').toLowerCase();
+  final showMain = section.isEmpty ||
+      (section.contains('main') && !section.contains('continuation'));
+  final showCont = section.isEmpty || section.contains('continuation');
+
+  final pages = <Widget>[];
+  if (showMain) pages.add(_buildPg1Widget(doc));
+  if (showCont) pages.add(_buildPg2Widget(doc));
+
   await FormImagePdfHelper.previewImageBasedPdf(
     context,
     fileName: fileName,
-    pages: [_buildPg1Widget(doc), _buildPg2Widget(doc)],
+    pages: pages,
     fallbackPdfGenerator: () => generateGroundOfArrestPdf(doc),
   );
 }
 
 Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final section = (doc['formSection']?.toString() ?? '').toLowerCase();
+  final showMain = section.isEmpty ||
+      (section.contains('main') && !section.contains('continuation'));
+  final showCont = section.isEmpty || section.contains('continuation');
+  final devanagari = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final regular = pw.TextStyle(
     font: devanagari,
@@ -49,8 +62,9 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
   // ══════════════════════════════════════════════════════════════════════
   // ── PAGE 1 (Image 1) ──
   // ══════════════════════════════════════════════════════════════════════
-  pdf.addPage(
-    pw.Page(
+  if (showMain) {
+    pdf.addPage(
+      pw.Page(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
       build: (pw.Context context) {
@@ -220,12 +234,14 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
       },
     ),
   );
+  }
 
   // ══════════════════════════════════════════════════════════════════════
   // ── PAGE 2 (Image 2) ──
   // ══════════════════════════════════════════════════════════════════════
-  pdf.addPage(
-    pw.Page(
+  if (showCont) {
+    pdf.addPage(
+      pw.Page(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
       build: (pw.Context context) {
@@ -400,6 +416,7 @@ Future<Uint8List> generateGroundOfArrestPdf(Map<String, dynamic> doc) async {
       },
     ),
   );
+  }
 
   return pdf.save();
 }

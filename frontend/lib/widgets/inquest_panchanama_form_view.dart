@@ -66,6 +66,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   final _psCtrl = TextEditingController();
   final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
+  final _firDateCtrl = TextEditingController();
   final _actSectionsCtrl = TextEditingController();
   final _deadBodyFoundPlaceCtrl = TextEditingController();
   final _foundPlaceCtrl = TextEditingController();
@@ -249,6 +250,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     if (d.isEmpty && m.isEmpty && y.isEmpty) {
       return _csDeathDateCtrl.text.trim();
     }
+    if (_csDeathDateCtrl.text.trim().isNotEmpty) {
+      return _csDeathDateCtrl.text.trim();
+    }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
   }
@@ -259,8 +263,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     if (h.isEmpty && m.isEmpty) {
       return _csDeathTimeCtrl.text.trim();
     }
+    if (_csDeathTimeCtrl.text.trim().isNotEmpty) {
+      return _csDeathTimeCtrl.text.trim();
+    }
     if (h.isNotEmpty && m.isNotEmpty) {
-      return '$h/$m';
+      return '$h:$m';
     }
     return h.isNotEmpty ? h : m;
   }
@@ -589,6 +596,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _psCtrl.text = doc['ps'] ?? '';
     _yearCtrl.text = doc['year'] ?? '';
     _firNoCtrl.text = doc['firNo'] ?? '';
+    _firDateCtrl.text = doc['firDate'] ?? doc['date'] ?? '';
     _actSectionsCtrl.text = doc['actSections'] ?? '';
     _deadBodyFoundPlaceCtrl.text = doc['deadBodyFoundPlace'] ?? '';
     _foundPlaceCtrl.text = doc['foundPlace'] ?? '';
@@ -1060,6 +1068,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       'ps': _psCtrl.text.trim(),
       'year': _yearCtrl.text.trim(),
       'firNo': _firNoCtrl.text.trim(),
+      'firDate': _firDateCtrl.text.trim(),
       'actSections': _actSectionsCtrl.text.trim(),
       'deadBodyFoundPlace': _deadBodyFoundPlaceCtrl.text.trim(),
       'foundPlace': _foundPlaceCtrl.text.trim(),
@@ -1380,6 +1389,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _psCtrl.dispose();
     _yearCtrl.dispose();
     _firNoCtrl.dispose();
+    _firDateCtrl.dispose();
     _actSectionsCtrl.dispose();
     _deadBodyFoundPlaceCtrl.dispose();
     _foundPlaceCtrl.dispose();
@@ -1848,52 +1858,61 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       builder: (context, _) {
         final text =
             controller.text.isEmpty ? (hintText ?? '') : controller.text;
-        final tp = TextPainter(
-          text: TextSpan(
-            text: text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
+
+        double calcWidth = baseWidth;
+        if (text.isNotEmpty && (text.length * 12.0 + 16.0 > baseWidth)) {
+          final tp = TextPainter(
+            text: TextSpan(
+              text: text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+              ),
             ),
-          ),
-          textDirection: TextDirection.ltr,
-          maxLines: 1,
-        )..layout();
-
-        final measured = tp.width + 16.0;
-        final calcWidth = measured > baseWidth
-            ? (measured > 800.0 ? 800.0 : measured)
-            : baseWidth;
-
-        return SizedBox(
-          width: calcWidth,
-          child: TextFormField(
-            controller: controller,
-            readOnly: widget.readOnly,
+            textDirection: TextDirection.ltr,
             maxLines: 1,
-            keyboardType: TextInputType.text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
-              color: const Color(0xFF0D47A1),
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: false,
-              fillColor: Colors.transparent,
-              hintText: hintText,
-              hintStyle: style.copyWith(
-                  fontSize: 11,
-                  color: Colors.grey.shade400,
-                  fontStyle: FontStyle.italic),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              border: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF333333), width: 1.0)),
-              enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
-              focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+          )..layout();
+
+          final measured = tp.width + 16.0;
+          calcWidth = measured > baseWidth
+              ? (measured > 800.0 ? 800.0 : measured)
+              : baseWidth;
+        }
+
+        return RepaintBoundary(
+          child: SizedBox(
+            width: calcWidth,
+            child: TextFormField(
+              controller: controller,
+              readOnly: widget.readOnly,
+              maxLines: 1,
+              keyboardType: TextInputType.text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+                color: const Color(0xFF0D47A1),
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                fillColor: Colors.transparent,
+                hintText: hintText,
+                hintStyle: style.copyWith(
+                    fontSize: 11,
+                    color: Colors.grey.shade400,
+                    fontStyle: FontStyle.italic),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                border: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF333333), width: 1.0)),
+                enabledBorder: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF555555), width: 1.0)),
+                focusedBorder: const UnderlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+              ),
             ),
           ),
         );
@@ -1906,29 +1925,31 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     required TextStyle style,
     int minLines = 1,
   }) {
-    return TextFormField(
-      controller: controller,
-      readOnly: widget.readOnly,
-      minLines: minLines,
-      maxLines: null,
-      keyboardType: TextInputType.multiline,
-      style: style.copyWith(
-        fontWeight: FontWeight.w500,
-        fontSize: 13.5,
-        height: 1.4,
-        color: const Color(0xFF0D47A1),
-      ),
-      decoration: const InputDecoration(
-        isDense: true,
-        filled: false,
-        fillColor: Colors.transparent,
-        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        border: UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
-        enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
-        focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+    return RepaintBoundary(
+      child: TextFormField(
+        controller: controller,
+        readOnly: widget.readOnly,
+        minLines: minLines,
+        maxLines: null,
+        keyboardType: TextInputType.multiline,
+        style: style.copyWith(
+          fontWeight: FontWeight.w500,
+          fontSize: 13.5,
+          height: 1.4,
+          color: const Color(0xFF0D47A1),
+        ),
+        decoration: const InputDecoration(
+          isDense: true,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          border: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+          enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF555555), width: 1.0)),
+          focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0)),
+        ),
       ),
     );
   }
@@ -2204,56 +2225,62 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       builder: (context, _) {
         final text =
             controller.text.isEmpty ? (hintText ?? '') : controller.text;
-        final tp = TextPainter(
-          text: TextSpan(
-            text: text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
+
+        double calcWidth = effectiveMin;
+        if (text.isNotEmpty && (text.length * 12.0 + 20.0 > effectiveMin)) {
+          final tp = TextPainter(
+            text: TextSpan(
+              text: text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+              ),
             ),
-          ),
-          textDirection: TextDirection.ltr,
-          maxLines: 1,
-        )..layout();
-
-        final measured = tp.width + 20.0;
-        final calcWidth = measured < effectiveMin
-            ? effectiveMin
-            : (measured > 800.0 ? 800.0 : measured);
-
-        return SizedBox(
-          width: calcWidth,
-          child: TextFormField(
-            controller: controller,
-            readOnly: widget.readOnly,
+            textDirection: TextDirection.ltr,
             maxLines: 1,
-            keyboardType: TextInputType.text,
-            style: style.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
-              color: const Color(0xFF0D47A1),
-              height: 1.35,
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              filled: false,
-              fillColor: Colors.transparent,
-              hintText: hintText,
-              hintStyle: style.copyWith(
-                fontSize: 11,
-                color: Colors.grey.shade400,
-                fontStyle: FontStyle.italic,
+          )..layout();
+
+          final measured = tp.width + 20.0;
+          calcWidth = measured < effectiveMin
+              ? effectiveMin
+              : (measured > 800.0 ? 800.0 : measured);
+        }
+
+        return RepaintBoundary(
+          child: SizedBox(
+            width: calcWidth,
+            child: TextFormField(
+              controller: controller,
+              readOnly: widget.readOnly,
+              maxLines: 1,
+              keyboardType: TextInputType.text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+                color: const Color(0xFF0D47A1),
+                height: 1.35,
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-              border: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
-              ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0),
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                fillColor: Colors.transparent,
+                hintText: hintText,
+                hintStyle: style.copyWith(
+                  fontSize: 11,
+                  color: Colors.grey.shade400,
+                  fontStyle: FontStyle.italic,
+                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                border: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+                ),
+                enabledBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+                ),
+                focusedBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                ),
               ),
             ),
           ),
@@ -2284,59 +2311,78 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             final text =
                 controller.text.isEmpty ? (hintText ?? '') : controller.text;
 
-            final tp = TextPainter(
-              text: TextSpan(
-                text: text,
-                style: style.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: baseFontSize,
-                ),
-              ),
-              textDirection: TextDirection.ltr,
-              maxLines: 1,
-            )..layout();
+            double effectiveFontSize = baseFontSize;
+            double widthToUse = hasFiniteWidth ? availableWidth : baseMin;
 
-            final double textW = tp.width + 12.0;
-            final widthToUse =
-                hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
-
-            return SizedBox(
-              width: widthToUse,
-              child: TextFormField(
-                controller: controller,
-                readOnly: widget.readOnly,
-                minLines: 1,
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                style: style.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: baseFontSize,
-                  color: const Color(0xFF0D47A1),
-                  height: 1.35,
+            if (text.isNotEmpty &&
+                (!hasFiniteWidth ||
+                    (text.length * 12.0 + 12.0 > availableWidth))) {
+              final tp = TextPainter(
+                text: TextSpan(
+                  text: text,
+                  style: style.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: baseFontSize,
+                  ),
                 ),
-                decoration: InputDecoration(
-                  isDense: true,
-                  filled: false,
-                  fillColor: Colors.transparent,
-                  hintText: hintText,
-                  hintStyle: style.copyWith(
-                    fontSize: 11,
-                    color: Colors.grey.shade400,
-                    fontStyle: FontStyle.italic,
+                textDirection: TextDirection.ltr,
+                maxLines: 1,
+              )..layout();
+
+              final double textW = tp.width + 12.0;
+
+              if (hasFiniteWidth &&
+                  textW > availableWidth &&
+                  availableWidth > 30) {
+                final scale =
+                    ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+                effectiveFontSize =
+                    (baseFontSize * scale).clamp(8.5, baseFontSize);
+              }
+
+              widthToUse = hasFiniteWidth
+                  ? availableWidth
+                  : textW.clamp(baseMin, baseMax);
+            }
+
+            return RepaintBoundary(
+              child: SizedBox(
+                width: widthToUse,
+                child: TextFormField(
+                  controller: controller,
+                  readOnly: widget.readOnly,
+                  maxLines: 1,
+                  keyboardType: TextInputType.text,
+                  style: style.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: effectiveFontSize,
+                    color: const Color(0xFF0D47A1),
+                    height: 1.25,
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-                  border: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF333333), width: 1.0),
-                  ),
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF555555), width: 1.0),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: false,
+                    fillColor: Colors.transparent,
+                    hintText: hintText,
+                    hintStyle: style.copyWith(
+                      fontSize: 11,
+                      color: Colors.grey.shade400,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    border: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF333333), width: 1.0),
+                    ),
+                    enabledBorder: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF555555), width: 1.0),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                    ),
                   ),
                 ),
               ),
@@ -2394,25 +2440,38 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     required TextEditingController timeCtrl,
     required TextStyle style,
     required TextStyle marathiStyle,
+    TextEditingController? dayCtrl,
+    TextEditingController? monthCtrl,
+    TextEditingController? yearCtrl,
+    TextEditingController? hoursCtrl,
+    TextEditingController? minutesCtrl,
   }) {
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 2,
+      spacing: 4,
       runSpacing: 4,
       children: [
         Text(':- दिनांक ',
             style: marathiStyle.copyWith(
                 fontSize: 11.5, fontWeight: FontWeight.bold)),
-        _inlineBlank(
-            controller: dateCtrl,
-            style: style,
-            width: 85,
-            hintText: 'DD/MM/YY'),
+        _datePickerField(
+          controller: dateCtrl,
+          style: style,
+          width: 140,
+          dayCtrl: dayCtrl,
+          monthCtrl: monthCtrl,
+          yearCtrl: yearCtrl,
+        ),
         Text(' रोजी ',
             style: marathiStyle.copyWith(
                 fontSize: 11.5, fontWeight: FontWeight.bold)),
-        _inlineBlank(
-            controller: timeCtrl, style: style, width: 75, hintText: 'HH:MM'),
+        _timePickerField(
+          controller: timeCtrl,
+          style: style,
+          width: 95,
+          hoursCtrl: hoursCtrl,
+          minutesCtrl: minutesCtrl,
+        ),
         Text(' वाजता.',
             style: marathiStyle.copyWith(
                 fontSize: 11.5, fontWeight: FontWeight.bold)),
@@ -2522,6 +2581,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             timeCtrl: _csDeathTimeCtrl,
             style: style,
             marathiStyle: marathiStyle,
+            dayCtrl: _csDeathDateDayCtrl,
+            monthCtrl: _csDeathDateMonthCtrl,
+            yearCtrl: _csDeathDateYearCtrl,
+            hoursCtrl: _csDeathTimeHoursCtrl,
+            minutesCtrl: _csDeathTimeMinutesCtrl,
           ),
           style: style,
           marathiStyle: marathiStyle,
@@ -3841,39 +3905,237 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               ),
               const SizedBox(height: 32),
 
-              // 1) Dist, PS, Year, FIR No
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: '1) Dist. :-',
-                    marathiLabel: 'जिल्हा',
-                    controller: _distCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'P.S. :-',
-                    marathiLabel: 'पो.स्टे.',
-                    controller: _psCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Year :- 20',
-                    marathiLabel: 'वर्ष',
-                    controller: _yearCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'FIR/AD/U.D.No :-',
-                    marathiLabel: 'पहिली खबर क्र / अकस्मात मृत्यू क्र.',
-                    controller: _firNoCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+              // 1) Dist, PS, Year, FIR No, Date
+              if (!isExhumation)
+                BilingualFieldRow(
+                  fields: [
+                    BilingualField(
+                      label: '1) Dist. :-',
+                      marathiLabel: 'जिल्हा',
+                      controller: _distCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'P.S. :-',
+                      marathiLabel: 'पो.स्टे.',
+                      controller: _psCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'Year :- 20',
+                      marathiLabel: 'वर्ष',
+                      controller: _yearCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'FIR/AD/U.D.No :-',
+                      marathiLabel: 'पहिली खबर क्र / अकस्मात मृत्यू क्र.',
+                      controller: _firNoCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ],
+                )
+              else ...[
+                // Row 1: Dist.    P.S.    Year
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1) Dist.
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '1) Dist. :- ',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _distCtrl,
+                                    serifStyle: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'जिल्हा',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // P.S.
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'P.S. :- ',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _psCtrl,
+                                    serifStyle: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'पो.स्टे.',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Year
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Year :- 20',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _yearCtrl,
+                                    serifStyle: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'वर्ष',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Row 2: FIR/AD/U.D.No.    Date
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // FIR/AD/U.D.No
+                    Expanded(
+                      flex: 6,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'FIR/AD/U.D.No :- ',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _firNoCtrl,
+                                    serifStyle: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'पहिली खबर क्र./ अकस्मात मृत्यू क्र.',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+
+                    // Date
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Date :- ',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _datePickerField(
+                                    controller: _firDateCtrl,
+                                    style: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'दिनांक',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
 
               // 2) Act and Section
@@ -4692,30 +4954,13 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 Row(
                   children: [
                     Text('दिनांक   : ', style: metaLabelStyle),
-                    SizedBox(
-                      width: 34,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marDateDayCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'DD',
-                      ),
-                    ),
-                    Text(' / ', style: metaLabelStyle),
-                    SizedBox(
-                      width: 34,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marDateMonthCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'MM',
-                      ),
-                    ),
-                    Text(' / २०', style: metaLabelStyle),
-                    SizedBox(
-                      width: 38,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marDateYearCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'YY',
+                    Expanded(
+                      child: _datePickerField(
+                        controller: _marDateCtrl,
+                        style: valueStyle,
+                        dayCtrl: _marDateDayCtrl,
+                        monthCtrl: _marDateMonthCtrl,
+                        yearCtrl: _marDateYearCtrl,
                       ),
                     ),
                   ],
@@ -4724,21 +4969,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 Row(
                   children: [
                     Text('सुरू केल्याची वेळ: ', style: metaLabelStyle),
-                    SizedBox(
-                      width: 34,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marTimeHoursCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'HH',
-                      ),
-                    ),
-                    Text(' / ', style: metaLabelStyle),
-                    SizedBox(
-                      width: 34,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marTimeMinutesCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'MM',
+                    Expanded(
+                      child: _timePickerField(
+                        controller: _marTimeCtrl,
+                        style: valueStyle,
+                        hoursCtrl: _marTimeHoursCtrl,
+                        minutesCtrl: _marTimeMinutesCtrl,
                       ),
                     ),
                   ],

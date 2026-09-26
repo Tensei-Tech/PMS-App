@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import '../widgets/form_section_utils.dart';
 import 'form_image_pdf_helper.dart';
 import 'form_io_terminology.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewInquestPanchanamaPdf(
   BuildContext context,
@@ -42,7 +42,9 @@ Future<void> previewInquestPanchanamaPdf(
     );
     return;
   }
-  if (active == 'Civil Surgeon PM Report') {
+  if (active == 'Civil Surgeon PM Report' ||
+      active == 'Police Report to Civil Surgeon for PM' ||
+      (active != null && active.contains('Civil Surgeon'))) {
     await FormImagePdfHelper.previewImageBasedPdf(
       context,
       fileName:
@@ -51,6 +53,8 @@ Future<void> previewInquestPanchanamaPdf(
         _buildCivilSurgeonPg1Widget(doc),
         _buildCivilSurgeonPg2Widget(doc)
       ],
+      width: FormImagePdfHelper.a4Width,
+      height: FormImagePdfHelper.a4Height,
       fallbackPdfGenerator: () => generateInquestPanchanamaPdf(doc),
     );
     return;
@@ -129,10 +133,10 @@ Future<void> previewInquestPanchanamaPdf(
 Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
 
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagariRegular = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
+  final devanagariRegular = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final engStyle = pw.TextStyle(font: loraRegular, fontSize: 8.5);
   final engBold = pw.TextStyle(
@@ -146,6 +150,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
   const knownSectionIds = {
     'Inquest Main',
     'Civil Surgeon PM Report',
+    'Police Report to Civil Surgeon for PM',
     'Vinanti Arj',
     'Relative Summons 179',
     'Pancha Summons 195',
@@ -155,6 +160,9 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
     'Duty Pass',
   };
   final activeSection = doc['formSection']?.toString();
+  final isCivilSurgeon = activeSection == 'Civil Surgeon PM Report' ||
+      activeSection == 'Police Report to Civil Surgeon for PM' ||
+      (activeSection != null && activeSection.contains('Civil Surgeon'));
 
   bool showsSection(String sectionId) => showsFormSection(
         activeSection: activeSection,
@@ -228,7 +236,9 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
   // ══════════════════════════════════════════════════════════════════════════
   // PAGE 1 — INQUEST MAIN
   // ══════════════════════════════════════════════════════════════════════════
-  if (showsSection('Inquest Main')) {
+  final isExhumation =
+      activeSection == 'Exhumation Panchanama' || activeSection == 'Exhumation';
+  if ((showsSection('Inquest Main') && !isCivilSurgeon) || isExhumation) {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
@@ -239,9 +249,15 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             pw.Center(
               child: pw.Column(
                 children: [
-                  pw.Text('INQUEST PANCHANAMA',
+                  pw.Text(
+                      isExhumation
+                          ? 'EXHUMATION PANCHANAMA'
+                          : 'INQUEST PANCHANAMA',
                       style: engBold.copyWith(fontSize: 12)),
-                  pw.Text('मरणोत्तर पंचनामा',
+                  pw.Text(
+                      isExhumation
+                          ? 'कबर खोदून शव बाहेर काढण्याचा पंचनामा (Exhumation Panchanama)'
+                          : 'मरणोत्तर पंचनामा',
                       style: mrBold.copyWith(fontSize: 10)),
                   pw.SizedBox(height: 1),
                   pw.Text('(Under Section - 194 B.N.S.S.)',
@@ -257,24 +273,127 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 6),
 
             // 1) Dist, PS, Year, FIR
-            pw.Wrap(
-              crossAxisAlignment: pw.WrapCrossAlignment.center,
-              spacing: 2,
-              runSpacing: 2,
-              children: [
-                pw.Text('1) Dist. (YAVATMAL)', style: engBold),
-                pw.SizedBox(width: 20),
-                pw.Text('P.S.:-', style: engBold),
-                underlineField(v('ps'), width: 100),
-                pw.Text('Year:-20', style: engBold),
-                underlineField(v('year'), width: 35),
-                pw.SizedBox(width: 10),
-                pw.Text('FIR/AD/U.D.No:-', style: engBold),
-                underlineField(v('firNo'), width: 90),
-              ],
-            ),
-            subLabel(
-                '   जिल्हा - .........             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.'),
+            if (isExhumation) ...[
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Expanded(
+                    flex: 4,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Row(
+                          children: [
+                            pw.Text('1) Dist. :- ', style: engBold),
+                            pw.Expanded(child: underlineField(v('dist'))),
+                          ],
+                        ),
+                        pw.SizedBox(height: 2),
+                        subLabel('   जिल्हा'),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(width: 16),
+                  pw.Expanded(
+                    flex: 4,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Row(
+                          children: [
+                            pw.Text('P.S. :- ', style: engBold),
+                            pw.Expanded(child: underlineField(v('ps'))),
+                          ],
+                        ),
+                        pw.SizedBox(height: 2),
+                        subLabel('   पो.स्टे.'),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(width: 16),
+                  pw.Expanded(
+                    flex: 2,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Row(
+                          children: [
+                            pw.Text('Year :- 20', style: engBold),
+                            pw.Expanded(child: underlineField(v('year'))),
+                          ],
+                        ),
+                        pw.SizedBox(height: 2),
+                        subLabel('   वर्ष'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 6),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Expanded(
+                    flex: 6,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Row(
+                          children: [
+                            pw.Text('FIR/AD/U.D.No :- ', style: engBold),
+                            pw.Expanded(child: underlineField(v('firNo'))),
+                          ],
+                        ),
+                        pw.SizedBox(height: 2),
+                        subLabel('   पहिली खबर क्र./ अकस्मात मृत्यू क्र.'),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(width: 24),
+                  pw.Expanded(
+                    flex: 4,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Row(
+                          children: [
+                            pw.Text('Date :- ', style: engBold),
+                            pw.Expanded(
+                              child: underlineField(
+                                v('firDate').isNotEmpty
+                                    ? v('firDate')
+                                    : v('date'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        pw.SizedBox(height: 2),
+                        subLabel('   दिनांक'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              pw.Wrap(
+                crossAxisAlignment: pw.WrapCrossAlignment.center,
+                spacing: 2,
+                runSpacing: 2,
+                children: [
+                  pw.Text('1) Dist. (YAVATMAL)', style: engBold),
+                  pw.SizedBox(width: 20),
+                  pw.Text('P.S.:-', style: engBold),
+                  underlineField(v('ps'), width: 100),
+                  pw.Text('Year:-20', style: engBold),
+                  underlineField(v('year'), width: 35),
+                  pw.SizedBox(width: 10),
+                  pw.Text('FIR/AD/U.D.No:-', style: engBold),
+                  underlineField(v('firNo'), width: 90),
+                ],
+              ),
+              subLabel(
+                  '   जिल्हा - .........             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.'),
+            ],
             pw.SizedBox(height: 6),
 
             // 2) Act and Section
@@ -824,7 +943,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
   // ══════════════════════════════════════════════════════════════════════════
   // ADDITIONAL SECTIONS (Civil Surgeon, Vinanti Arj, Summons, 14-Kalmi, etc.)
   // ══════════════════════════════════════════════════════════════════════════
-  if (showsSection('Civil Surgeon PM Report')) {
+  if (showsSection('Civil Surgeon PM Report') || isCivilSurgeon) {
     pw.Widget csPdfRow(
         String qNum, String qTextEn, String qTextMr, pw.Widget answerWidget) {
       return pw.Padding(
@@ -2715,15 +2834,12 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             pw.Padding(
               padding: const pw.EdgeInsets.only(left: 40),
               child: pw.Row(children: [
-                pw.Text('पोलीस स्टेशन ',
-                    style: mrBold.copyWith(fontSize: 10)),
+                pw.Text('पोलीस स्टेशन ', style: mrBold.copyWith(fontSize: 10)),
                 underlineField(v('dpDutyPs'), width: 140),
                 pw.SizedBox(width: 16),
                 pw.Text('जिल्हा ', style: mrBold.copyWith(fontSize: 10)),
                 underlineField(
-                  v('dpDutyDist').isNotEmpty
-                      ? v('dpDutyDist')
-                      : v('district'),
+                  v('dpDutyDist').isNotEmpty ? v('dpDutyDist') : v('district'),
                   width: 120,
                 ),
               ]),
@@ -2748,13 +2864,11 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                       text:
                           '       आपणास आदेश देण्यात येतो की, आपण अप/ मर्ग/ स्टे.डायरी क्रमांक '),
                   pw.TextSpan(
-                      text:
-                          v('dpMargNo').isEmpty ? '.......' : v('dpMargNo'),
+                      text: v('dpMargNo').isEmpty ? '.......' : v('dpMargNo'),
                       style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' / २०'),
                   pw.TextSpan(
-                      text:
-                          v('dpMargYear').isEmpty ? '....' : v('dpMargYear'),
+                      text: v('dpMargYear').isEmpty ? '....' : v('dpMargYear'),
                       style: mrBold.copyWith(fontSize: 10)),
                   const pw.TextSpan(text: ' कलम '),
                   pw.TextSpan(
@@ -2777,10 +2891,10 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                   const pw.TextSpan(text: ' ता आणि जिल्हा '),
                   pw.TextSpan(
                       text: (v('dpDeceasedTa').isNotEmpty
-                              ? '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'
-                                  .trim()
-                              : v('dpDeceasedDist'))
-                          .isEmpty
+                                  ? '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'
+                                      .trim()
+                                  : v('dpDeceasedDist'))
+                              .isEmpty
                           ? '-------------------'
                           : (v('dpDeceasedTa').isNotEmpty
                               ? '${v('dpDeceasedTa')} ${v('dpDeceasedDist')}'
@@ -2801,7 +2915,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.Spacer(),
+            pw.SizedBox(height: 32),
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -2849,8 +2963,7 @@ Future<Uint8List> generateInquestPanchanamaPdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 16),
             pw.Align(
               alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W',
-                  style: engStyle.copyWith(fontSize: 8)),
+              child: pw.Text('M.R.W', style: engStyle.copyWith(fontSize: 8)),
             ),
           ],
         ),
@@ -4467,7 +4580,7 @@ Widget _buildDutyPassWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const Spacer(),
+      const SizedBox(height: 40),
 
       // Footer signatures
       Row(
@@ -4571,9 +4684,12 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
     {bool isExhumation = false}) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
   final engBold = GoogleFonts.lora(
-      fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.black);
-  final engStyle = GoogleFonts.lora(fontSize: 8.5, color: Colors.black87);
-  final mrStyle = FormImagePdfHelper.mReg(7.5, 1.2);
+      fontSize: isExhumation ? 9.5 : 8.5,
+      fontWeight: FontWeight.bold,
+      color: Colors.black);
+  final engStyle = GoogleFonts.lora(
+      fontSize: isExhumation ? 9.0 : 8.5, color: Colors.black87);
+  final mrStyle = FormImagePdfHelper.mReg(isExhumation ? 8.5 : 7.5, 1.2);
 
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
@@ -4583,64 +4699,200 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
           children: [
             Text(
               isExhumation ? 'EXHUMATION PANCHANAMA' : 'INQUEST PANCHANAMA',
-              style:
-                  GoogleFonts.lora(fontSize: 12, fontWeight: FontWeight.bold),
+              style: GoogleFonts.lora(
+                  fontSize: isExhumation ? 13 : 12,
+                  fontWeight: FontWeight.bold),
             ),
             Text(
               isExhumation
                   ? 'कबर खोदून शव बाहेर काढण्याचा पंचनामा (Exhumation Panchanama)'
                   : 'मरणोत्तर पंचनामा',
-              style: FormImagePdfHelper.mBld(10),
+              style: FormImagePdfHelper.mBld(isExhumation ? 10.5 : 10),
             ),
             const SizedBox(height: 1),
             Text('(Under Section - 194 B.N.S.S.)',
                 style: GoogleFonts.lora(
-                    fontSize: 8.5, fontWeight: FontWeight.bold)),
+                    fontSize: isExhumation ? 9.0 : 8.5,
+                    fontWeight: FontWeight.bold)),
             Text('( भारतीय नागरिक सुरक्षा संहिता २०२३ कलम १९४ अन्वये.)',
-                style: FormImagePdfHelper.mReg(8)),
+                style: FormImagePdfHelper.mReg(isExhumation ? 8.5 : 8)),
           ],
         ),
       ),
-      const SizedBox(height: 4),
+      SizedBox(height: isExhumation ? 6 : 4),
       const Divider(color: Colors.black, thickness: 0.8),
-      const SizedBox(height: 4),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 1.0),
-            child: Text('1) Dist.:- ', style: engBold),
-          ),
-          _uField(v('dist'), width: 90),
-          const SizedBox(width: 12),
-          Padding(
-            padding: const EdgeInsets.only(top: 1.0),
-            child: Text('P.S.:- ', style: engBold),
-          ),
-          Expanded(child: _uField(v('ps'))),
-        ],
-      ),
-      const SizedBox(height: 4),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 1.0),
-            child: Text('   Year:-20', style: engBold),
-          ),
-          _uField(v('year'), width: 45),
-          const SizedBox(width: 16),
-          Padding(
-            padding: const EdgeInsets.only(top: 1.0),
-            child: Text('FIR/AD/U.D.No:- ', style: engBold),
-          ),
-          Expanded(child: _uField(v('firNo'))),
-        ],
-      ),
-      Text(
-          '   जिल्हा - .........             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.',
-          style: mrStyle),
-      const SizedBox(height: 5),
+      SizedBox(height: isExhumation ? 6 : 4),
+      if (!isExhumation) ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('1) Dist.:- ', style: engBold),
+            ),
+            _uField(v('dist'), width: 90),
+            const SizedBox(width: 12),
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('P.S.:- ', style: engBold),
+            ),
+            Expanded(child: _uField(v('ps'))),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('   Year:-20', style: engBold),
+            ),
+            _uField(v('year'), width: 45),
+            const SizedBox(width: 16),
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('FIR/AD/U.D.No:- ', style: engBold),
+            ),
+            Expanded(child: _uField(v('firNo'))),
+          ],
+        ),
+        Text(
+            '   जिल्हा - .........             पो.स्टे.             वर्ष                     पहिली खबर क्र./ अकस्मात मृत्यू क्र.',
+            style: mrStyle),
+      ] else ...[
+        // EXHUMATION PANCHANAMA:
+        // Row 1: Dist.    P.S.    Year
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dist.
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1.0),
+                        child: Text('1) Dist. :- ', style: engBold),
+                      ),
+                      Expanded(child: _uField(v('dist'), fontSize: 10.0)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text('जिल्हा', style: mrStyle),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+
+            // P.S.
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1.0),
+                        child: Text('P.S. :- ', style: engBold),
+                      ),
+                      Expanded(child: _uField(v('ps'), fontSize: 10.0)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text('पो.स्टे.', style: mrStyle),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+
+            // Year
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1.0),
+                        child: Text('Year :- 20', style: engBold),
+                      ),
+                      Expanded(child: _uField(v('year'), fontSize: 10.0)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text('वर्ष', style: mrStyle),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+
+        // Row 2: FIR/AD/U.D.No.    Date
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // FIR/AD/U.D.No
+            Expanded(
+              flex: 6,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1.0),
+                        child: Text('FIR/AD/U.D.No :- ', style: engBold),
+                      ),
+                      Expanded(child: _uField(v('firNo'), fontSize: 10.0)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text('पहिली खबर क्र./ अकस्मात मृत्यू क्र.', style: mrStyle),
+                ],
+              ),
+            ),
+            const SizedBox(width: 24),
+
+            // Date
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1.0),
+                        child: Text('Date :- ', style: engBold),
+                      ),
+                      Expanded(
+                        child: _uField(
+                          v('firDate').isNotEmpty ? v('firDate') : v('date'),
+                          fontSize: 10.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text('दिनांक', style: mrStyle),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+      SizedBox(height: isExhumation ? 12 : 5),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4648,11 +4900,13 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
             padding: const EdgeInsets.only(top: 1.0),
             child: Text('2) Act and Section: - ', style: engBold),
           ),
-          Expanded(child: _uField(v('actSections'))),
+          Expanded(
+              child: _uField(v('actSections'),
+                  fontSize: isExhumation ? 10.0 : 10.5)),
         ],
       ),
       Text('   अधिनियम व कलमे :-', style: mrStyle),
-      const SizedBox(height: 5),
+      SizedBox(height: isExhumation ? 12 : 5),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4661,9 +4915,12 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
             child: Text('3) Place From where Dead Body Found/Traced : ',
                 style: engBold),
           ),
-          Expanded(child: _uField(v('deadBodyFoundPlace'))),
+          Expanded(
+              child: _uField(v('deadBodyFoundPlace'),
+                  fontSize: isExhumation ? 10.0 : 10.5)),
         ],
       ),
+      if (isExhumation) const SizedBox(height: 3),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4671,23 +4928,27 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
             padding: const EdgeInsets.only(top: 1.0),
             child: Text('   Place:- ', style: engStyle),
           ),
-          Expanded(child: _uField(v('foundPlace'))),
+          Expanded(
+              child: _uField(v('foundPlace'),
+                  fontSize: isExhumation ? 10.0 : 10.5)),
           const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.only(top: 1.0),
             child: Text('Date: ', style: engStyle),
           ),
-          _uField(v('foundDate'), width: 75),
+          _uField(v('foundDate'),
+              width: 75, fontSize: isExhumation ? 10.0 : 10.5),
           const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.only(top: 1.0),
             child: Text('time: ', style: engStyle),
           ),
-          _uField(v('foundTime'), width: 55),
+          _uField(v('foundTime'),
+              width: 55, fontSize: isExhumation ? 10.0 : 10.5),
         ],
       ),
       Text('   प्रेत सापडल्याचे /मिळाल्याचे ठिकाण / जागा', style: mrStyle),
-      const SizedBox(height: 5),
+      SizedBox(height: isExhumation ? 12 : 5),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4696,11 +4957,13 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
             child: Text('4) By whom Dead Body Shown                   :',
                 style: engBold),
           ),
-          Expanded(child: _uField(v('shownBy'))),
+          Expanded(
+              child:
+                  _uField(v('shownBy'), fontSize: isExhumation ? 10.0 : 10.5)),
         ],
       ),
       Text('   प्रेत कोणी दाखविले :-', style: mrStyle),
-      const SizedBox(height: 5),
+      SizedBox(height: isExhumation ? 12 : 5),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4709,12 +4972,14 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
             child: Text('5) By whom Dead Body Identified              :',
                 style: engBold),
           ),
-          Expanded(child: _uField(v('identifiedBy'))),
+          Expanded(
+              child: _uField(v('identifiedBy'),
+                  fontSize: isExhumation ? 10.0 : 10.5)),
         ],
       ),
       Text('   प्रेत कोणी ओळखले :-', style: mrStyle),
       _multilineBox(v('identifiedBy2'), lines: 2),
-      const SizedBox(height: 5),
+      SizedBox(height: isExhumation ? 12 : 5),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4723,11 +4988,13 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
             child: Text('a) Dead Body Male/Female                     :',
                 style: engBold),
           ),
-          Expanded(child: _uField(v('gender'))),
+          Expanded(
+              child:
+                  _uField(v('gender'), fontSize: isExhumation ? 10.0 : 10.5)),
         ],
       ),
       Text('   अ) प्रेत स्त्री / पुरुष जातीचे :-', style: mrStyle),
-      const SizedBox(height: 5),
+      SizedBox(height: isExhumation ? 8 : 5),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4736,11 +5003,13 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
             child: Text('6) b) Dead Body Married/Unmarried            :',
                 style: engBold),
           ),
-          Expanded(child: _uField(v('married'))),
+          Expanded(
+              child:
+                  _uField(v('married'), fontSize: isExhumation ? 10.0 : 10.5)),
         ],
       ),
       Text('   ब) प्रेत विवाहीत /अविवाहीत आहे :-', style: mrStyle),
-      const SizedBox(height: 5),
+      SizedBox(height: isExhumation ? 8 : 5),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4749,11 +5018,12 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
             child: Text('c) Age of Dead Body                          :',
                 style: engBold),
           ),
-          Expanded(child: _uField(v('age'))),
+          Expanded(
+              child: _uField(v('age'), fontSize: isExhumation ? 10.0 : 10.5)),
         ],
       ),
       Text('   क) प्रेताचे वय :-', style: mrStyle),
-      const SizedBox(height: 5),
+      SizedBox(height: isExhumation ? 8 : 5),
       Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 2,
@@ -4762,16 +5032,18 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
           Text('   ड) मृत्यूची तारीख वेळ :-                     ',
               style: mrStyle),
           Text('Date : ', style: engStyle),
-          _uField(v('deathDate'), width: 85),
+          _uField(v('deathDate'),
+              width: 85, fontSize: isExhumation ? 10.0 : 10.5),
           const SizedBox(width: 15),
           Text('Time : ', style: engStyle),
-          _uField(v('deathTime'), width: 55),
+          _uField(v('deathTime'),
+              width: 55, fontSize: isExhumation ? 10.0 : 10.5),
         ],
       ),
       Text(
           '                                                तारीख                                   वेळ',
           style: mrStyle),
-      const SizedBox(height: 5),
+      SizedBox(height: isExhumation ? 12 : 5),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4780,16 +5052,19 @@ Widget _buildInquestMainPg1Widget(Map<String, dynamic> doc,
             child: Text('7) Position of Dead Body                     :',
                 style: engBold),
           ),
-          Expanded(child: _uField(v('positionOfBody'))),
+          Expanded(
+              child: _uField(v('positionOfBody'),
+                  fontSize: isExhumation ? 10.0 : 10.5)),
         ],
       ),
       Text('   प्रेताची स्थिती / अवस्था (जागा)', style: mrStyle),
-      _multilineBox(v('positionOfBody2'), lines: 2),
-      const Spacer(),
+      _multilineBox(v('positionOfBody2'), lines: isExhumation ? 3 : 2),
+      if (!isExhumation) const Spacer() else const SizedBox(height: 24),
       Align(
         alignment: Alignment.centerRight,
         child: Text('M.R.W',
-            style: GoogleFonts.lora(fontSize: 8, fontStyle: FontStyle.italic)),
+            style: GoogleFonts.lora(
+                fontSize: isExhumation ? 8.5 : 8, fontStyle: FontStyle.italic)),
       ),
     ],
   );

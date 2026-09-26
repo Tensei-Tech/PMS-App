@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'form_date_pickers.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
-import 'form_date_pickers.dart';
 
 /// Helper class to hold all controllers for relative, friend, or accomplice entries.
 class RelativeEntryControllers {
