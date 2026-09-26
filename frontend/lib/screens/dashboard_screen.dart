@@ -136,6 +136,10 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.dice;
     case 'A.D':
       return FontAwesomeIcons.triangleExclamation;
+    case 'Suicide':
+      return FontAwesomeIcons.heartCrack;
+    case 'ST Drugs':
+      return FontAwesomeIcons.capsules;
     case 'Hurt':
       return FontAwesomeIcons.userInjured;
     case 'Theft':
@@ -3115,6 +3119,8 @@ class _HomeTabState extends State<_HomeTab> {
     Classification('Gambling', 'monetization_on', 'coin'),
     Classification('RTI', 'description', 'application'),
     Classification('M.V Act', 'traffic', 'traffic'),
+    Classification('Suicide', 'heart_broken', 'suicide'),
+    Classification('ST Drugs', 'medication', 'st_drugs'),
   ];
 
   List<({String title, String subtext, IconData icon, VoidCallback onTap})>
@@ -9213,6 +9219,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   page: CommonFormScreen(
                 moduleLabel: item.name,
                 moduleKey: item.moduleKey,
+                subCategory: item.name,
               )));
         } else {
           Navigator.push(
@@ -9221,6 +9228,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   page: ModuleFormScreen(
                 moduleLabel: item.name,
                 moduleKey: item.moduleKey,
+                subCategory: item.name,
               )));
         }
       },

@@ -15,6 +15,7 @@ import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/form_vi_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import 'common_form_screen.dart';
 import 'module_record_detail_screen.dart';
 
@@ -904,11 +905,12 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     return filtered;
   }
 
-  void _openForm(String category, {ModuleRecord? existingRecord}) async {
+  void _openForm(String category, {ModuleRecord? existingRecord, dynamic categoryId}) async {
     final result = await Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
-        page: CommonFormScreen(
+        page: DynamicFormScreen(
+          categoryId: categoryId,
           moduleLabel: category,
           moduleKey: 'form_1_5',
           subCategory: category,
@@ -929,12 +931,17 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   }
 
   void _onNewCase() {
-    final category = (_selectedCategory != null &&
-            _selectedCategory != FormVISelectionScreen.allFilterLabel)
-        ? _selectedCategory!
-        : (_categoryBreadcrumb.isNotEmpty
-            ? _categoryBreadcrumb.last
-            : _filterOptions.first);
+    String category;
+    if (_selectedCategory != null &&
+        _selectedCategory != FormVISelectionScreen.allFilterLabel) {
+      category = _selectedCategory!;
+    } else if (_currentDisplayCategories.isNotEmpty) {
+      category = _currentDisplayCategories.first;
+    } else if (_categoryBreadcrumb.isNotEmpty) {
+      category = _categoryBreadcrumb.last;
+    } else {
+      category = _filterOptions.first;
+    }
     _openForm(category);
   }
 

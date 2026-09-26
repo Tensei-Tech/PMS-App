@@ -429,6 +429,7 @@ class SeizureRecords(models.Model):
     )
     description = models.TextField(default='')
     name = models.CharField(max_length=150, null=True, blank=True)
+    object_name = models.CharField(max_length=255, null=True, blank=True)
     seized_from_person = models.ForeignKey(
         CasesPerson,
         on_delete=models.SET_NULL,
@@ -523,6 +524,8 @@ class DischargeStatus(models.Model):
         related_name='discharge_status'
     )
     is_discharged = models.BooleanField(default=True)
+    discharge_date = models.DateField(null=True, blank=True)
+    discharge_reason = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = 'discharge_status'

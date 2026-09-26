@@ -179,6 +179,7 @@ class Command(BaseCommand):
             ('NAFIS Fingerprint', 'nafis_fingerprint', 'common', 'checkbox', False, 670),
 
             # 13. Seizures
+            ('Object Name', 'object_name', 'common', 'text', False, 675),
             ('Seizure Description', 'seizure_description', 'common', 'textarea', False, 680),
             ('Seizure From Whom', 'seizure_person_name', 'common', 'text', False, 690),
 

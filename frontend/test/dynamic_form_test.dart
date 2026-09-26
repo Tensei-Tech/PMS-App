@@ -55,20 +55,41 @@ void main() {
     test('3a & 3b Backend API Reshaping: Murder vs Plain vs Murder+Hurt', () async {
       final service = CaseService();
 
-      // 1. Plain tab (Robbery / Category 4): exactly 91 baseline fields, 0 extra
+      // 1. Plain tab (Robbery / Category 4): exactly 105 baseline fields, 0 extra
       final plainDef = await service.fetchFormDefinition('Robbery', forceRefresh: true);
       expect(plainDef, isNotNull);
       final plainFields = (plainDef!['fields'] as List);
       final plainExtras = plainFields.where((f) => f['field_source'] != 'common').toList();
-      expect(plainFields.length, equals(91));
+      expect(plainFields.length, equals(105));
       expect(plainExtras.isEmpty, isTrue);
+      expect(plainFields.map((f) => f['field_label']), contains('Object Name'));
 
-      // 2. Murder (Category 1): 97 fields total (91 baseline + 6 extra Murder fields)
+      // Verify Unidentified Accused fields and order
+      final unidFields = plainFields.where((f) => f['section'] == 'Unidentified Accused').toList();
+      expect(unidFields.length, equals(8));
+      expect(unidFields.map((f) => f['field_label']).toList(), equals([
+        'Approximate Age',
+        'Gender',
+        'Skin Colour',
+        'Possible Occupation',
+        'Identification Mark',
+        'Height',
+        'Address',
+        'Description',
+      ]));
+
+      // Verify Arrest fields and order (Arrested Person Name first)
+      final arrestFields = plainFields.where((f) => f['section'] == 'Arrest').toList();
+      expect(arrestFields.length, equals(11));
+      expect(arrestFields.first['field_label'], equals('Arrested Person Name'));
+      expect(arrestFields.first['field_key'], equals('arrested_person_name'));
+
+      // 2. Murder (Category 1): 111 fields total (105 baseline + 6 extra Murder fields)
       final murderDef = await service.fetchFormDefinition('Murder', forceRefresh: true);
       expect(murderDef, isNotNull);
       final murderFields = (murderDef!['fields'] as List);
       final murderExtras = murderFields.where((f) => f['field_source'] != 'common').toList();
-      expect(murderFields.length, equals(97));
+      expect(murderFields.length, equals(111));
       expect(murderExtras.length, equals(6));
       final murderLabels = murderExtras.map((f) => f['field_label']).toList();
       expect(murderLabels, containsAll([
@@ -80,7 +101,7 @@ void main() {
         'Cause of Death',
       ]));
 
-      // 3. Murder with Hurt charge (BNS 115): 101 fields (6 Murder + 4 Hurt extra fields)
+      // 3. Murder with Hurt charge (BNS 115): 115 fields (105 baseline + 6 Murder + 4 Hurt extra fields)
       final murderHurtDef = await service.fetchFormDefinition(
         'Murder',
         sections: ['115'],
@@ -89,7 +110,7 @@ void main() {
       expect(murderHurtDef, isNotNull);
       final mhFields = (murderHurtDef!['fields'] as List);
       final mhExtras = mhFields.where((f) => f['field_source'] != 'common').toList();
-      expect(mhFields.length, equals(101));
+      expect(mhFields.length, equals(115));
       expect(mhExtras.length, equals(10));
       final mhLabels = mhExtras.map((f) => f['field_label']).toList();
       expect(mhLabels, containsAll([

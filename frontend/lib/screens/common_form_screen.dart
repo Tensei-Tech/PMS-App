@@ -9,10 +9,14 @@ import 'package:provider/provider.dart';
 
 import '../modules/absconded/providers/absconded_provider.dart';
 import '../modules/accident/providers/accident_provider.dart';
+import '../modules/ad/providers/ad_provider.dart';
 import '../modules/application/providers/application_provider.dart';
 import '../modules/arrested/providers/arrested_provider.dart';
 import '../modules/bnss/providers/bnss_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
+import '../modules/suicide/providers/suicide_provider.dart';
+import '../modules/st_drugs/providers/st_drugs_provider.dart';
+import '../services/case_service.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/core/providers/base_module_provider.dart';
 import '../modules/crime_women/providers/crime_women_provider.dart';
@@ -90,8 +94,10 @@ import '../widgets/reason_of_arrest_form_view.dart';
 import '../widgets/transit_remand_form_view.dart';
 import 'bnss_dedicated_forms.dart';
 import 'module_hub_screen.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
 
 class CommonFormScreen extends StatefulWidget {
+  final dynamic categoryId;
   final String moduleLabel;
   final String moduleKey;
   final String? subCategory;
@@ -106,6 +112,7 @@ class CommonFormScreen extends StatefulWidget {
 
   const CommonFormScreen({
     super.key,
+    this.categoryId,
     required this.moduleLabel,
     required this.moduleKey,
     this.subCategory,
@@ -517,8 +524,14 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         return context.read<MpdaProvider>();
       case 'coin':
         return context.read<CoinProvider>();
+      case 'ad':
+        return context.read<AdProvider>();
+      case 'suicide':
+        return context.read<SuicideProvider>();
+      case 'st_drugs':
+        return context.read<StDrugsProvider>();
       default:
-        return context.read<NcProvider>();
+        return context.read<FormIVProvider>();
     }
   }
 
@@ -1729,7 +1742,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       assignedOfficer:
           _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
       subCategory:
-          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
+          _isEdit ? widget.existingRecord!.subCategory : (widget.subCategory ?? widget.moduleLabel),
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: extra,
       stationName: stationName,
@@ -1739,10 +1752,23 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     );
 
     try {
-      if (_isEdit) {
-        await provider.updateRecord(record);
+      if (provider.moduleKey == record.moduleKey) {
+        if (_isEdit) {
+          await provider.updateRecord(record);
+        } else {
+          await provider.addRecord(record);
+        }
       } else {
-        await provider.addRecord(record);
+        final enriched = record.copyWith(
+          stationName: stationName,
+          createdBy: createdBy,
+          assignedOfficerUid:
+              _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
+        );
+        final success = await CaseService().saveCase(enriched, isCreate: !_isEdit);
+        if (!success) {
+          throw Exception('Backend failed to save case record.');
+        }
       }
 
       if (!mounted) return;
@@ -1777,6 +1803,35 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDedicatedSubCategoryForm = _isCrimeDetailForm ||
+        _isPropertySeizureForm ||
+        _isCrimespotSeizureForm ||
+        _isFormE ||
+        _isArrestSurrenderForm ||
+        _isInquestPanchanamaForm ||
+        _isAccusedMemorandumForm ||
+        _isAccusedInterrogationForm ||
+        _isFinalReportForm ||
+        _isAbForm ||
+        _is376MedicalForm ||
+        _isInterrogationForm ||
+        _isDraftGroundOfArrestForm ||
+        _isGroundOfArrestForm ||
+        _isReasonOfArrestForm ||
+        _isTransitRemandForm ||
+        _isBnssDedicatedForm;
+
+    if (!isDedicatedSubCategoryForm) {
+      return DynamicFormScreen(
+        categoryId: widget.categoryId,
+        moduleLabel: widget.moduleLabel,
+        moduleKey: widget.moduleKey,
+        subCategory: widget.subCategory,
+        existingRecord: widget.existingRecord,
+        readOnly: widget.readOnly == true,
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: AppBar(
@@ -1992,6 +2047,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                 )
                                                                               : CommonForm(
                                                                                   key: _formKey,
+                                                                                  categoryId: widget.categoryId,
                                                                                   moduleKey: widget.moduleKey,
                                                                                   moduleLabel: widget.moduleLabel,
                                                                                   subCategory: widget.subCategory,

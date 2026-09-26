@@ -42,6 +42,8 @@ import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/uapa/providers/uapa_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
+import '../modules/suicide/providers/suicide_provider.dart';
+import '../modules/st_drugs/providers/st_drugs_provider.dart';
 
 // ── Helper macro — wires AuthProvider → any BaseModuleProvider subclass ──────
 ChangeNotifierProxyProvider<AuthProvider, T>
@@ -104,6 +106,8 @@ List<SingleChildWidget> moduleProviders = [
   _wired<UapaProvider>(() => UapaProvider()),
   _wired<MpdaProvider>(() => MpdaProvider()),
   _wired<CoinProvider>(() => CoinProvider()),
+  _wired<SuicideProvider>(() => SuicideProvider()),
+  _wired<StDrugsProvider>(() => StDrugsProvider()),
 ];
 
 // ── rest unchanged ─────────────────────────────────────────────────────────
@@ -155,6 +159,8 @@ const Map<String, String> labelToModuleKey = {
   'UAPA': 'uapa',
   'MPDA': 'mpda',
   'COIN': 'coin',
+  'Suicide': 'suicide',
+  'ST Drugs': 'st_drugs',
 };
 
 final List<Type> allDataProviders = [
@@ -189,6 +195,8 @@ final List<Type> allDataProviders = [
   UapaProvider,
   MpdaProvider,
   CoinProvider,
+  SuicideProvider,
+  StDrugsProvider,
 ];
 
 BaseModuleProvider getProvider(BuildContext context, String label) {
@@ -267,6 +275,10 @@ BaseModuleProvider getProvider(BuildContext context, String label) {
       return context.read<MpdaProvider>();
     case 'coin':
       return context.read<CoinProvider>();
+    case 'suicide':
+      return context.read<SuicideProvider>();
+    case 'st_drugs':
+      return context.read<StDrugsProvider>();
     default:
       return context.read<NcProvider>();
   }
@@ -310,5 +322,7 @@ List<BaseModuleProvider> getModuleProviders(BuildContext context) {
     context.read<UapaProvider>(),
     context.read<MpdaProvider>(),
     context.read<CoinProvider>(),
+    context.read<SuicideProvider>(),
+    context.read<StDrugsProvider>(),
   ];
 }

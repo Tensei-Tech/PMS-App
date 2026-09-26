@@ -51,6 +51,7 @@ class FieldTemplateField(models.Model):
     field_source = models.CharField(max_length=10, choices=SOURCE_CHOICES, default='common')
     field_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='text')
     is_required = models.BooleanField(default=False)
+    section = models.CharField(max_length=100, null=True, blank=True)
     display_order = models.IntegerField(default=0)
 
     class Meta:

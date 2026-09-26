@@ -180,6 +180,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
         page: CommonFormScreen(
           moduleLabel: category,
           moduleKey: 'form_1_5',
+          subCategory: category,
         ),
       ),
     );

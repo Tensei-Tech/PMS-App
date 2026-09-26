@@ -257,7 +257,18 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                 Q(category_name__iexact=pk) | Q(category_code__iexact=pk)
             ).first()
             if not cat:
-                return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+                cleaned = str(pk).replace('.', '').replace('_', ' ').replace('-', ' ').strip().lower()
+                for c in CaseCategory.objects.filter(is_active=True):
+                    c_clean = c.category_name.replace('.', '').replace('_', ' ').replace('-', ' ').strip().lower()
+                    if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
+                        cat = c
+                        break
+            if not cat:
+                cat = CaseCategory.objects.filter(category_name__icontains=pk, is_active=True).first()
+            if not cat:
+                cat = CaseCategory.objects.filter(is_active=True).first()
+            if not cat:
+                return Response({'error': f'No active category found'}, status=status.HTTP_404_NOT_FOUND)
             category_id = cat.category_id
 
         case_id = request.query_params.get('case_id')
@@ -422,18 +433,44 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         )
 
     # 4. Charges (Acts & Sections)
-    charges_data = m.get('charges')
+    def _resolve_act(act_raw):
+        if not act_raw:
+            return None
+        s = str(act_raw).strip()
+        if s.isdigit():
+            act = Act.objects.filter(act_id=int(s)).first()
+            if act:
+                return act
+        act = Act.objects.filter(Q(act_name__iexact=s) | Q(act_name__icontains=s)).first()
+        if act:
+            return act
+        s_lower = s.lower()
+        if 'bns' in s_lower:
+            return Act.objects.filter(act_name__icontains='Bharatiya Nyaya').first() or Act.objects.first()
+        if 'ipc' in s_lower:
+            return Act.objects.filter(act_name__icontains='Indian Penal').first() or Act.objects.first()
+        if 'bnss' in s_lower or 'crpc' in s_lower:
+            return Act.objects.filter(act_name__icontains='Nagarik').first() or Act.objects.first()
+        return Act.objects.first()
+
+    charges_data = m.get('charges') or m.get('acts_sections') or data.get('acts_sections')
     if charges_data is not None:
         CrimeCaseActsSections.objects.filter(case=case).delete()
         if isinstance(charges_data, dict):
             for _, ch in charges_data.items():
                 if isinstance(ch, dict):
-                    act_name = ch.get('act')
+                    act_name = ch.get('act') or ch.get('act_name')
                     sections = ch.get('sections', [])
-                    act_obj = Act.objects.filter(act_name__iexact=act_name).first() if act_name else None
+                    if isinstance(sections, str):
+                        sections = [sections]
+                    act_obj = _resolve_act(act_name)
                     if act_obj:
                         for s_num in sections:
-                            sec_obj = ActSection.objects.filter(act=act_obj, section_number__iexact=str(s_num).strip()).first()
+                            s_str = str(s_num).strip()
+                            sec_q = Q(section_number__iexact=s_str)
+                            if s_str.isdigit():
+                                sec_q |= Q(section_id=int(s_str))
+                            sec_obj = ActSection.objects.filter(act=act_obj).filter(sec_q).first()
                             if sec_obj:
                                 CrimeCaseActsSections.objects.create(
                                     case=case,
@@ -443,15 +480,25 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         elif isinstance(charges_data, list):
             for ch in charges_data:
                 if isinstance(ch, dict):
-                    act_id = ch.get('act_id') or ch.get('act')
-                    section_id = ch.get('section_id') or ch.get('section')
+                    act_raw = ch.get('act') or ch.get('act_name') or ch.get('act_id')
+                    sec_raw = ch.get('section') or ch.get('section_number') or ch.get('section_id')
                     subsection_id = ch.get('subsection_id') or ch.get('subsection')
-                    if act_id and section_id:
+
+                    act_obj = _resolve_act(act_raw)
+                    sec_obj = None
+                    if act_obj and sec_raw:
+                        s_str = str(sec_raw).strip()
+                        sec_q = Q(section_number__iexact=s_str)
+                        if s_str.isdigit():
+                            sec_q |= Q(section_id=int(s_str))
+                        sec_obj = ActSection.objects.filter(act=act_obj).filter(sec_q).first()
+
+                    if act_obj and sec_obj:
                         CrimeCaseActsSections.objects.create(
                             case=case,
-                            act_id=int(act_id),
-                            section_id=int(section_id),
-                            subsection_id=int(subsection_id) if subsection_id else None,
+                            act=act_obj,
+                            section=sec_obj,
+                            subsection_id=int(subsection_id) if str(subsection_id).isdigit() else None,
                         )
 
     # 5. Persons
@@ -513,20 +560,45 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
             _add_person('accused', acc)
         for susp in (m.get('suspectedAccused') if isinstance(m.get('suspectedAccused'), list) else []):
             _add_person('suspect', susp)
-        for unid in (m.get('unidentifiedList') if isinstance(m.get('unidentifiedList'), list) else []):
-            if isinstance(unid, dict):
+        unid_list = m.get('unidentifiedList')
+        if unid_list is not None and isinstance(unid_list, list):
+            for unid in unid_list:
+                if isinstance(unid, dict):
+                    CasesPerson.objects.create(
+                        case=case,
+                        role='unidentified',
+                        name=unid.get('description') or 'Unidentified Person',
+                        approximate_age=unid.get('approxAge') or unid.get('approximate_age'),
+                        gender=unid.get('gender') or unid.get('unidentified_gender') or 'Male',
+                        skin_colour=unid.get('skinColor') or unid.get('skin_colour'),
+                        possible_occupation=unid.get('occupation') or unid.get('possible_occupation'),
+                        identification_mark=unid.get('otherPhysicalMarkers') or unid.get('identification_mark'),
+                        height=unid.get('approxHeight') or unid.get('height'),
+                        address=unid.get('lastKnownAddress') or unid.get('address') or unid.get('unidentified_address'),
+                        description=unid.get('description'),
+                    )
+        else:
+            u_age = m.get('approximate_age')
+            u_gen = m.get('unidentified_gender')
+            u_skin = m.get('skin_colour')
+            u_occ = m.get('possible_occupation')
+            u_mark = m.get('identification_mark')
+            u_hgt = m.get('height')
+            u_addr = m.get('unidentified_address')
+            u_desc = m.get('description')
+            if any([u_age, u_gen, u_skin, u_occ, u_mark, u_hgt, u_addr, u_desc]):
                 CasesPerson.objects.create(
                     case=case,
                     role='unidentified',
-                    name=unid.get('description') or 'Unidentified Person',
-                    approximate_age=unid.get('approxAge'),
-                    gender=unid.get('gender', 'Male'),
-                    skin_colour=unid.get('skinColor'),
-                    possible_occupation=unid.get('occupation'),
-                    identification_mark=unid.get('otherPhysicalMarkers'),
-                    height=unid.get('approxHeight'),
-                    address=unid.get('lastKnownAddress'),
-                    description=unid.get('description'),
+                    name=u_desc or 'Unidentified Person',
+                    approximate_age=u_age,
+                    gender=u_gen or 'Male',
+                    skin_colour=u_skin,
+                    possible_occupation=u_occ,
+                    identification_mark=u_mark,
+                    height=u_hgt,
+                    address=u_addr,
+                    description=u_desc,
                 )
 
     # 6. Arrests (Pick existing or type new)
@@ -535,8 +607,8 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         for arr in arrests_data:
             if not isinstance(arr, dict):
                 continue
-            target_pid = arr.get('existing_person_id') or arr.get('person_id') or arr.get('person')
-            typed_nm = arr.get('typed_name') or arr.get('name') or arr.get('accusedName')
+            target_pid = arr.get('existing_person_id') or arr.get('person_id') or arr.get('person') or arr.get('arrested_person_id')
+            typed_nm = arr.get('typed_name') or arr.get('name') or arr.get('accusedName') or arr.get('arrested_person_name') or arr.get('person_name')
             if not target_pid and not typed_nm:
                 continue
             p_id = get_or_create_person_for_case(
@@ -571,6 +643,42 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     'death_of_accused_datetime': death_dt,
                 }
             )
+    elif m.get('arrested_person_name') or m.get('arrest_datetime'):
+        typed_nm = m.get('arrested_person_name')
+        target_pid = m.get('arrested_person_id')
+        if target_pid or (typed_nm and str(typed_nm).strip()):
+            p_id = get_or_create_person_for_case(
+                case_id=case.id,
+                typed_name=str(typed_nm).strip() if typed_nm else None,
+                existing_person_id=target_pid,
+                role='accused'
+            )
+            arr_dt = _parse_dt(m.get('arrest_datetime'))
+            sec_47 = m.get('sec_47_48_bnss', False)
+            rel_nm = m.get('relative_friend_name')
+            rel_rel = m.get('relative_friend_relation')
+            rel_not = m.get('release_on_notice', False)
+            rel_not_dt = _parse_dt(m.get('release_on_notice_datetime'))
+            ant_bail = m.get('anticipatory_bail', False)
+            ant_bail_dt = _parse_dt(m.get('anticipatory_bail_datetime'))
+            death = m.get('death_of_accused', False)
+            death_dt = _parse_dt(m.get('death_of_accused_datetime'))
+
+            ArrestReleaseStatus.objects.update_or_create(
+                person_id=p_id,
+                defaults={
+                    'arrest_datetime': arr_dt,
+                    'sec_47_48_bnss': sec_47,
+                    'relative_friend_name': rel_nm,
+                    'relative_friend_relation': rel_rel,
+                    'release_on_notice': rel_not,
+                    'release_on_notice_datetime': rel_not_dt,
+                    'anticipatory_bail': ant_bail,
+                    'anticipatory_bail_datetime': ant_bail_dt,
+                    'death_of_accused': death,
+                    'death_of_accused_datetime': death_dt,
+                }
+            )
 
     # 7. Discharges (Pick existing or type new)
     discharges_data = m.get('discharges') or m.get('discharge_records')
@@ -586,15 +694,25 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                         existing_person_id=target_pid,
                         role='accused'
                     )
+                    d_dt = _parse_d(dis.get('discharge_date') or dis.get('date'))
+                    d_rsn = dis.get('discharge_reason') or dis.get('reason')
                     DischargeStatus.objects.update_or_create(
                         person_id=p_id,
-                        defaults={'is_discharged': dis.get('is_discharged', True)}
+                        defaults={
+                            'is_discharged': dis.get('is_discharged', True),
+                            'discharge_date': d_dt,
+                            'discharge_reason': d_rsn,
+                        }
                     )
 
     # Also handle dischargeByAccused / dischargeDetails from CommonForm
     discharge_by_acc = m.get('dischargeByAccused') or {}
+    discharge_details = m.get('dischargeDetails') or {}
     if isinstance(discharge_by_acc, dict):
         for acc_name, is_dis in discharge_by_acc.items():
+            dt_info = discharge_details.get(acc_name) if isinstance(discharge_details, dict) else {}
+            d_dt = _parse_d(dt_info.get('date')) if isinstance(dt_info, dict) else None
+            d_rsn = dt_info.get('reason') if isinstance(dt_info, dict) else None
             if is_dis:
                 p_id = get_or_create_person_for_case(
                     case_id=case.id,
@@ -603,8 +721,16 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                 )
                 DischargeStatus.objects.update_or_create(
                     person_id=p_id,
-                    defaults={'is_discharged': True}
+                    defaults={
+                        'is_discharged': True,
+                        'discharge_date': d_dt,
+                        'discharge_reason': d_rsn,
+                    }
                 )
+            else:
+                p_obj = CasesPerson.objects.filter(case=case, name__iexact=acc_name, role='accused').first()
+                if p_obj:
+                    DischargeStatus.objects.filter(person_id=p_obj.person_id).update(is_discharged=False)
 
     custom_dis = m.get('customDischargeList') or []
     if isinstance(custom_dis, list):
@@ -615,9 +741,15 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     typed_name=item['name'],
                     role='accused'
                 )
+                d_dt = _parse_d(item.get('date'))
+                d_rsn = item.get('reason')
                 DischargeStatus.objects.update_or_create(
                     person_id=p_id,
-                    defaults={'is_discharged': True}
+                    defaults={
+                        'is_discharged': True,
+                        'discharge_date': d_dt,
+                        'discharge_reason': d_rsn,
+                    }
                 )
 
     # 8. Seizures (Pick existing or type new person -> seized_from_person_id)
@@ -647,12 +779,33 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     if p_obj:
                         typed_nm = p_obj.name
 
+            obj_name = s.get('object_name') or s.get('objectName') or s.get('object')
             SeizureRecords.objects.create(
                 case=case,
                 description=str(desc).strip(),
                 name=typed_nm,
+                object_name=str(obj_name).strip() if obj_name else None,
                 seized_from_person_id=resolved_pid
             )
+    elif any(m.get(k) for k in ('object_name', 'seizure_object_name', 'seizure_description', 'seizure_person_name')):
+        s_obj = m.get('object_name') or m.get('seizure_object_name') or ''
+        s_desc = m.get('seizure_description') or ''
+        s_whom = m.get('seizure_person_name') or ''
+        resolved_pid = None
+        if s_whom and str(s_whom).strip():
+            resolved_pid = get_or_create_person_for_case(
+                case_id=case.id,
+                typed_name=str(s_whom).strip(),
+                role='accused'
+            )
+        SeizureRecords.objects.filter(case=case).delete()
+        SeizureRecords.objects.create(
+            case=case,
+            description=str(s_desc).strip(),
+            name=str(s_whom).strip() if s_whom else None,
+            object_name=str(s_obj).strip() if s_obj else None,
+            seized_from_person_id=resolved_pid
+        )
 
     # 9. CCTV & Technical
     cctv_data = m.get('cctv_technical') or {}
@@ -822,7 +975,12 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
             )
 
     # 16. Custom Dynamic Extra Fields
-    extra_field_vals = data.get('extra_field_values') or {}
+    extra_field_vals = (
+        data.get('extra_field_values') or
+        m.get('dynamic_extra_fields') or
+        m.get('extra_field_values') or
+        {}
+    )
     if isinstance(extra_field_vals, dict):
         for k, v in extra_field_vals.items():
             f_def = FieldTemplateField.objects.filter(field_key=k).first()
@@ -849,11 +1007,14 @@ class CrimeCaseManageView(APIView):
             return Response(serializer.data)
         else:
             station_name = request.query_params.get('station_name')
+            module_key = request.query_params.get('module_key')
             status_filter = request.query_params.get('status')
-            module_key = request.query_params.get('module_key', 'crime')
             search = request.query_params.get('search')
 
-            qs = CaseRecord.objects.filter(module_key=module_key)
+            if module_key and module_key.lower() not in ['all', '']:
+                qs = CaseRecord.objects.filter(module_key=module_key)
+            else:
+                qs = CaseRecord.objects.all()
             if station_name:
                 qs = qs.filter(station_name__iexact=station_name)
             if status_filter:
@@ -869,6 +1030,7 @@ class CrimeCaseManageView(APIView):
             serializer = FullCaseDetailSerializer(qs.order_by('-created_at')[:50], many=True)
             return Response({
                 'count': qs.count(),
+                'results': serializer.data,
                 'cases': serializer.data
             })
 

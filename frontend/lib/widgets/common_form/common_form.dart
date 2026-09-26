@@ -28,6 +28,7 @@ import '../../utils/crime_detail_pdf.dart';
 import '../../utils/translation_helper.dart';
 import '../../utils/validators.dart';
 import 'pocso_voice_banner.dart';
+import '../person_select_or_custom_field.dart';
 
 // ── Palette ──
 const Color _kDark = Color(0xFF0f172a);
@@ -4951,81 +4952,168 @@ class CommonFormState extends State<CommonForm> {
       );
 
   // ── §15 (Card 16) Discharge Accused ───────────────────────────────────────
-  Widget _s15() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _subHeader('DISCHARGE ACCUSED NAME'),
-          if (allAccusedNames.isEmpty)
-            Text(
-              TranslationHelper.translate(
-                context,
-                'No accused registered in Accused section.',
+  Widget _s15() {
+    final arrested = <String>[];
+    for (final r in _arrestRows) {
+      final name = (r['accusedName'] as String?)?.trim() ?? '';
+      final dt = (r['arrestDt'] as TextEditingController?)?.text.trim() ?? '';
+      final hasArrest = dt.isNotEmpty ||
+          r['sec47_48'] == true ||
+          r['relOnNotice'] == true ||
+          r['anticipatoryBail'] == true;
+      if (name.isNotEmpty && hasArrest) {
+        arrested.add(name);
+      }
+    }
+    final availableAccused = arrested.isNotEmpty ? arrested : allAccusedNames;
+    final dischargedAccused = allAccusedNames.where((n) => _discharge[n] == true).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _subHeader('DISCHARGE ACCUSED (FROM ARREST)'),
+        if (availableAccused.isEmpty)
+          Text(
+            TranslationHelper.translate(
+              context,
+              'No accused registered in Accused section.',
+            ),
+            style: _tsMuted,
+          )
+        else ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: DropdownButtonFormField<String>(
+              dropdownColor: Colors.white,
+              isExpanded: true,
+              decoration: _d('Select Arrested Accused to Discharge'),
+              style: _tsBody,
+              icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
+              hint: Text(
+                TranslationHelper.translate(
+                  context,
+                  'Select Arrested Accused to Discharge',
+                ),
+                style: _tsMuted,
               ),
-              style: _tsMuted,
+              items: availableAccused.map((name) {
+                final isAlreadyDischarged = _discharge[name] == true;
+                return DropdownMenuItem<String>(
+                  value: name,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(name, style: _tsBody),
+                      if (isAlreadyDischarged)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _kTeal.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            TranslationHelper.translate(context, 'Discharged'),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: _kTeal,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (selectedName) {
+                if (selectedName != null) {
+                  setState(() {
+                    _discharge[selectedName] = true;
+                  });
+                }
+              },
+            ),
+          ),
+          if (dischargedAccused.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                TranslationHelper.translate(
+                  context,
+                  'No accused currently marked as discharged. Select an accused from the dropdown above to discharge.',
+                ),
+                style: _tsMuted,
+              ),
             )
           else
-            ...allAccusedNames.map((name) {
-              final isDischarged = _discharge[name] ?? false;
+            ...dischargedAccused.map((name) {
               final dateCtrl = _getDischargeDateCtrl(name);
               final reasonCtrl = _getDischargeReasonCtrl(name);
 
               return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color:
-                      isDischarged ? _kTeal.withValues(alpha: 0.05) : _kInputBg,
+                  color: _kTeal.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isDischarged ? _kTeal : _kBorder,
-                  ),
+                  border: Border.all(color: _kTeal),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          _discharge[name] = !isDischarged;
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(6),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isDischarged
-                                ? Icons.check_box
-                                : Icons.check_box_outline_blank,
-                            size: 18,
-                            color: isDischarged ? _kTeal : _kSec,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.check_circle_rounded, size: 18, color: _kTeal),
+                            const SizedBox(width: 8),
+                            Text(
                               name,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isDischarged
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isDischarged ? _kDark : _kSec,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: _kDark,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: _kTeal.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                TranslationHelper.translate(context, 'Discharged'),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: _kTeal,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 18, color: _kRed),
+                          tooltip: TranslationHelper.translate(context, 'Remove Discharge'),
+                          onPressed: () {
+                            setState(() {
+                              _discharge[name] = false;
+                            });
+                          },
+                        ),
+                      ],
                     ),
-                    if (isDischarged) ...[
-                      const SizedBox(height: 8),
-                      _row([
-                        _dateField('Discharge Date', dateCtrl),
-                        _tf('Discharge Reason', reasonCtrl),
-                      ]),
-                    ],
+                    const SizedBox(height: 8),
+                    _row([
+                      _dateField('Discharge Date', dateCtrl),
+                      _tf('Discharge Reason', reasonCtrl),
+                    ]),
                   ],
                 ),
               );
             }),
+        ],
           _divider(),
           _subHeader('ADDITIONAL DISCHARGED PERSONS'),
           if (_customDischargeList.isEmpty)
@@ -5089,6 +5177,7 @@ class CommonFormState extends State<CommonForm> {
           }),
         ],
       );
+  }
 
   // ── §16 (Card 17) Scrutiny ────────────────────────────────────────────────
   Widget _s16() {
@@ -5268,139 +5357,7 @@ class CommonFormState extends State<CommonForm> {
 // ══════════════════════════════════════════════════════════════════════════════
 // _PersonSelectOrCustomField — dropdown of persons (accused) with custom option
 // ══════════════════════════════════════════════════════════════════════════════
-class _PersonSelectOrCustomField extends StatefulWidget {
-  const _PersonSelectOrCustomField({
-    required this.label,
-    required this.options,
-    required this.ctrl,
-    required this.decoration,
-    required this.style,
-    this.otherLabel = 'Type New Name',
-    this.onChanged,
-  });
-
-  final String label;
-  final List<String> options;
-  final TextEditingController ctrl;
-  final InputDecoration decoration;
-  final TextStyle style;
-  final String otherLabel;
-  final void Function(String)? onChanged;
-
-  @override
-  State<_PersonSelectOrCustomField> createState() =>
-      _PersonSelectOrCustomFieldState();
-}
-
-class _PersonSelectOrCustomFieldState
-    extends State<_PersonSelectOrCustomField> {
-  String? _selected;
-  final _customCtrl = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _initSelected();
-  }
-
-  @override
-  void didUpdateWidget(covariant _PersonSelectOrCustomField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.options != widget.options ||
-        oldWidget.ctrl.text != widget.ctrl.text) {
-      _initSelected();
-    }
-  }
-
-  void _initSelected() {
-    final t = widget.ctrl.text.trim();
-    if (t.isEmpty) {
-      _selected = null;
-      _customCtrl.clear();
-    } else if (widget.options.contains(t)) {
-      _selected = t;
-    } else {
-      _selected = 'Other (Type New Name)';
-      _customCtrl.text = t;
-    }
-  }
-
-  @override
-  void dispose() {
-    _customCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isOther = _selected == 'Other (Type New Name)';
-    final dropdownItems = [
-      ...widget.options,
-      'Other (Type New Name)',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: dropdownItems.contains(_selected) ? _selected : null,
-          dropdownColor: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          menuMaxHeight: 300,
-          isExpanded: true,
-          decoration: widget.decoration.copyWith(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          ),
-          style: widget.style,
-          icon: const Icon(Icons.arrow_drop_down,
-              size: 20, color: Color(0xFF64748B)),
-          hint: Text(
-            TranslationHelper.translate(context, widget.label),
-            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-          ),
-          items: dropdownItems
-              .map((e) => DropdownMenuItem(
-                  value: e,
-                  child: Text(
-                    TranslationHelper.translate(context, e),
-                    style:
-                        const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
-                  )))
-              .toList(),
-          onChanged: (v) {
-            setState(() {
-              _selected = v;
-              if (v != null && v != 'Other (Type New Name)') {
-                widget.ctrl.text = v;
-                widget.onChanged?.call(v);
-              } else if (v == 'Other (Type New Name)') {
-                widget.ctrl.text = _customCtrl.text;
-                widget.onChanged?.call(_customCtrl.text);
-              }
-            });
-          },
-        ),
-        if (isOther) ...[
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _customCtrl,
-            style: widget.style,
-            decoration: widget.decoration.copyWith(
-              hintText: TranslationHelper.translate(context, widget.otherLabel),
-              labelText:
-                  TranslationHelper.translate(context, widget.otherLabel),
-            ),
-            onChanged: (v) {
-              widget.ctrl.text = v;
-              widget.onChanged?.call(v);
-            },
-          ),
-        ],
-      ],
-    );
-  }
-}
+typedef _PersonSelectOrCustomField = PersonSelectOrCustomField;
 
 // ══════════════════════════════════════════════════════════════════════════════
 // _RelationField — relationship dropdown with 'Other' option

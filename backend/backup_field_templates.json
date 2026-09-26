@@ -1,0 +1,3343 @@
+{
+  "field_templates": [
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 16,
+      "fields": {
+        "template_name": "498 (A) IPC Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 39,
+      "fields": {
+        "template_name": "A.D. (Accidental Death) Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 26,
+      "fields": {
+        "template_name": "Accident Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 11,
+      "fields": {
+        "template_name": "Assault on Public Servant Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 2,
+      "fields": {
+        "template_name": "Attempt to Murder Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 8,
+      "fields": {
+        "template_name": "CBT (Criminal Breach of Trust) Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 18,
+      "fields": {
+        "template_name": "Chain Snatching Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 9,
+      "fields": {
+        "template_name": "Cheating Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 28,
+      "fields": {
+        "template_name": "COIN Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 25,
+      "fields": {
+        "template_name": "Crime Against Women Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 3,
+      "fields": {
+        "template_name": "Dacoity Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 47,
+      "fields": {
+        "template_name": "Death Due to Rash Driving Fields",
+        "created_at": "2026-09-17T09:07:43.696Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 14,
+      "fields": {
+        "template_name": "Extortion Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 31,
+      "fields": {
+        "template_name": "Gambling Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 41,
+      "fields": {
+        "template_name": "General Crime Baseline Template",
+        "created_at": "2026-09-17T08:42:03.507Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 34,
+      "fields": {
+        "template_name": "Gowans Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 5,
+      "fields": {
+        "template_name": "HBT (House Breaking Theft) Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 42,
+      "fields": {
+        "template_name": "Homicide / Murder Extra Template",
+        "created_at": "2026-09-17T08:42:03.594Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 21,
+      "fields": {
+        "template_name": "Hurt Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 15,
+      "fields": {
+        "template_name": "IPC (A) 304 Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 35,
+      "fields": {
+        "template_name": "IT Act Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 20,
+      "fields": {
+        "template_name": "Kidnapping Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 36,
+      "fields": {
+        "template_name": "M.V Act Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 10,
+      "fields": {
+        "template_name": "Mischief Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 24,
+      "fields": {
+        "template_name": "Missing Person Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 13,
+      "fields": {
+        "template_name": "Molestation Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 1,
+      "fields": {
+        "template_name": "Murder Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 40,
+      "fields": {
+        "template_name": "N.C (Non-Cognizable) Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 33,
+      "fields": {
+        "template_name": "NDPS Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 17,
+      "fields": {
+        "template_name": "Other IPC Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 32,
+      "fields": {
+        "template_name": "POCSO Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 30,
+      "fields": {
+        "template_name": "Prohibition Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 43,
+      "fields": {
+        "template_name": "Property / Theft Extra Template",
+        "created_at": "2026-09-17T08:42:03.688Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 12,
+      "fields": {
+        "template_name": "Rape Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 6,
+      "fields": {
+        "template_name": "Riot Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 4,
+      "fields": {
+        "template_name": "Robbery Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 22,
+      "fields": {
+        "template_name": "Sand Theft Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 27,
+      "fields": {
+        "template_name": "Sec 156(3)/175(3)(BNSS) Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 44,
+      "fields": {
+        "template_name": "Sexual Offence Extra Template",
+        "created_at": "2026-09-17T08:42:03.825Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 29,
+      "fields": {
+        "template_name": "ST Drugs Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 38,
+      "fields": {
+        "template_name": "Suicide Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 19,
+      "fields": {
+        "template_name": "Theft Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 23,
+      "fields": {
+        "template_name": "Two/Four Wheeler Theft Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 37,
+      "fields": {
+        "template_name": "UAPA Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplate",
+      "pk": 7,
+      "fields": {
+        "template_name": "Unlawful Assembly Form Template",
+        "created_at": "2026-09-15T10:51:06.097Z"
+      }
+    }
+  ],
+  "field_template_fields": [
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 1,
+      "fields": {
+        "template": 19,
+        "field_label": "Sub type of theft",
+        "field_key": "sub_type_of_theft",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 1
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 33,
+      "fields": {
+        "template": 25,
+        "field_label": "Victim Name (ABC 1 / ABC 2 / ABC 3)",
+        "field_key": "victim_masked_name",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 1
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 76,
+      "fields": {
+        "template": 32,
+        "field_label": "Victim Name (ABC 1 / ABC 2 / ABC 3)",
+        "field_key": "victim_masked_name",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 1
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 96,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased Name (dName)",
+        "field_key": "d_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 1
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 130,
+      "fields": {
+        "template": 39,
+        "field_label": "AD No.",
+        "field_key": "ad_no",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": true,
+        "display_order": 1
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 192,
+      "fields": {
+        "template": 23,
+        "field_label": "1. Number of Vehicle (e.g. 1 or MH12AB1234)",
+        "field_key": "number_of_vehicle",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 1
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 207,
+      "fields": {
+        "template": 22,
+        "field_label": "1. Number of Vehicle (e.g. 1 / MH12AB1234)",
+        "field_key": "number_of_vehicle",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 1
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 2,
+      "fields": {
+        "template": 19,
+        "field_label": "Spot type",
+        "field_key": "spot_type",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 2
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 34,
+      "fields": {
+        "template": 25,
+        "field_label": "Age of victim",
+        "field_key": "victim_age",
+        "field_source": "custom",
+        "field_type": "number",
+        "is_required": false,
+        "display_order": 2
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 77,
+      "fields": {
+        "template": 32,
+        "field_label": "Age of victim",
+        "field_key": "victim_age",
+        "field_source": "custom",
+        "field_type": "number",
+        "is_required": false,
+        "display_order": 2
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 97,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased Age (dAge)",
+        "field_key": "d_age",
+        "field_source": "custom",
+        "field_type": "number",
+        "is_required": false,
+        "display_order": 2
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 131,
+      "fields": {
+        "template": 39,
+        "field_label": "Cr. No. (If applicable)",
+        "field_key": "ad_cr_no",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 2
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 193,
+      "fields": {
+        "template": 23,
+        "field_label": "2. Name of Vehicle (e.g. Tipper Truck)",
+        "field_key": "name_of_vehicle",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 2
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 208,
+      "fields": {
+        "template": 22,
+        "field_label": "2. Name of Vehicle (e.g. Tipper Truck)",
+        "field_key": "name_of_vehicle",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 2
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 3,
+      "fields": {
+        "template": 19,
+        "field_label": "Exact Place of Theft",
+        "field_key": "exact_place_of_theft",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 3
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 35,
+      "fields": {
+        "template": 25,
+        "field_label": "Age proof",
+        "field_key": "victim_age_proof",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 3
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 78,
+      "fields": {
+        "template": 32,
+        "field_label": "Age proof",
+        "field_key": "victim_age_proof",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 3
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 98,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased Gender (dGender)",
+        "field_key": "d_gender",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 3
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 132,
+      "fields": {
+        "template": 39,
+        "field_label": "Registered Date",
+        "field_key": "ad_reg_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": true,
+        "display_order": 3
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 194,
+      "fields": {
+        "template": 23,
+        "field_label": "Company Name (Make)",
+        "field_key": "company_name_make",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 3
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 209,
+      "fields": {
+        "template": 22,
+        "field_label": "Company Name (Make)",
+        "field_key": "company_name_make",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 3
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 4,
+      "fields": {
+        "template": 19,
+        "field_label": "Type of Location",
+        "field_key": "type_of_location",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 4
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 36,
+      "fields": {
+        "template": 25,
+        "field_label": "Relation to accused",
+        "field_key": "relation_to_accused",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 4
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 79,
+      "fields": {
+        "template": 32,
+        "field_label": "Medical of victim y/n",
+        "field_key": "medical_victim_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 4
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 99,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased Occupation (dOcc)",
+        "field_key": "d_occ",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 4
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 133,
+      "fields": {
+        "template": 39,
+        "field_label": "Spot Village / Town",
+        "field_key": "ad_spot_village",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 4
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 195,
+      "fields": {
+        "template": 23,
+        "field_label": "Type of Vehicle",
+        "field_key": "type_of_vehicle",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 4
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 210,
+      "fields": {
+        "template": 22,
+        "field_label": "Type of Vehicle",
+        "field_key": "type_of_vehicle",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 4
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 5,
+      "fields": {
+        "template": 19,
+        "field_label": "Spot photo taken",
+        "field_key": "spot_photo_taken",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 5
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 37,
+      "fields": {
+        "template": 25,
+        "field_label": "Medical of victim y/n",
+        "field_key": "medical_victim_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 5
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 80,
+      "fields": {
+        "template": 32,
+        "field_label": "Medical of accused y/n",
+        "field_key": "medical_accused_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 5
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 100,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased Mobile (dMobile)",
+        "field_key": "d_mobile",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 5
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 134,
+      "fields": {
+        "template": 39,
+        "field_label": "Spot Area / Landmark",
+        "field_key": "ad_spot_area",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 5
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 196,
+      "fields": {
+        "template": 23,
+        "field_label": "4. Owner Name",
+        "field_key": "owner_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 5
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 211,
+      "fields": {
+        "template": 22,
+        "field_label": "4. Owner Name",
+        "field_key": "owner_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 5
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 6,
+      "fields": {
+        "template": 19,
+        "field_label": "Spot video taken",
+        "field_key": "spot_video_taken",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 6
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 38,
+      "fields": {
+        "template": 25,
+        "field_label": "Medical of accused y/n",
+        "field_key": "medical_accused_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 6
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 81,
+      "fields": {
+        "template": 32,
+        "field_label": "Victims statement Y/N",
+        "field_key": "victim_statement_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 6
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 101,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased Aadhaar (dAadhaar)",
+        "field_key": "d_aadhaar",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 6
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 135,
+      "fields": {
+        "template": 39,
+        "field_label": "Spot Full Address",
+        "field_key": "ad_spot_address",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 6
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 197,
+      "fields": {
+        "template": 23,
+        "field_label": "Owner Address",
+        "field_key": "owner_address",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 6
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 212,
+      "fields": {
+        "template": 22,
+        "field_label": "Owner Address",
+        "field_key": "owner_address",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 6
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 7,
+      "fields": {
+        "template": 19,
+        "field_label": "Footprint found",
+        "field_key": "footprint_found",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 7
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 39,
+      "fields": {
+        "template": 25,
+        "field_label": "Victims statement Y/N",
+        "field_key": "victim_statement_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 7
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 82,
+      "fields": {
+        "template": 32,
+        "field_label": "Statement taken by ladies officer Y/N",
+        "field_key": "statement_by_ladies_officer_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 7
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 102,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased PAN (dPan)",
+        "field_key": "d_pan",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 7
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 136,
+      "fields": {
+        "template": 39,
+        "field_label": "Informant Name",
+        "field_key": "ad_comp_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 7
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 198,
+      "fields": {
+        "template": 23,
+        "field_label": "5. Driver Name",
+        "field_key": "driver_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 7
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 213,
+      "fields": {
+        "template": 22,
+        "field_label": "5. Driver Name",
+        "field_key": "driver_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 7
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 8,
+      "fields": {
+        "template": 19,
+        "field_label": "Fingerprint found",
+        "field_key": "fingerprint_found",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 8
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 40,
+      "fields": {
+        "template": 25,
+        "field_label": "Statement taken by ladies officer Y/N",
+        "field_key": "statement_by_ladies_officer_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 8
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 83,
+      "fields": {
+        "template": 32,
+        "field_label": "CWC statement Y/N",
+        "field_key": "cwc_statement_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 8
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 103,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased Religion (dReligion)",
+        "field_key": "d_religion",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 8
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 137,
+      "fields": {
+        "template": 39,
+        "field_label": "Informant Age",
+        "field_key": "ad_comp_age",
+        "field_source": "custom",
+        "field_type": "number",
+        "is_required": false,
+        "display_order": 8
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 199,
+      "fields": {
+        "template": 23,
+        "field_label": "Driver Address",
+        "field_key": "driver_address",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 8
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 214,
+      "fields": {
+        "template": 22,
+        "field_label": "Driver Address",
+        "field_key": "driver_address",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 8
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 9,
+      "fields": {
+        "template": 19,
+        "field_label": "Engine number",
+        "field_key": "engine_number",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 9
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 41,
+      "fields": {
+        "template": 25,
+        "field_label": "CWC statement Y/N",
+        "field_key": "cwc_statement_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 9
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 84,
+      "fields": {
+        "template": 32,
+        "field_label": "164 CRPC / 183 BNSS statement Y/N",
+        "field_key": "statement_164_crpc_183_bnss_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 9
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 104,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased Caste (dCaste)",
+        "field_key": "d_caste",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 9
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 138,
+      "fields": {
+        "template": 39,
+        "field_label": "Informant Gender",
+        "field_key": "ad_comp_gender",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 9
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 200,
+      "fields": {
+        "template": 23,
+        "field_label": "Engine Num",
+        "field_key": "engine_number",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 9
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 215,
+      "fields": {
+        "template": 22,
+        "field_label": "Engine Num",
+        "field_key": "engine_number",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 9
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 10,
+      "fields": {
+        "template": 19,
+        "field_label": "Chechis number",
+        "field_key": "chechis_number",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 10
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 42,
+      "fields": {
+        "template": 25,
+        "field_label": "164 CRPC / 183 BNSS statement Y/N",
+        "field_key": "statement_164_crpc_183_bnss_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 10
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 85,
+      "fields": {
+        "template": 32,
+        "field_label": "Counselling Y/N",
+        "field_key": "counselling_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 10
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 105,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased Address (dAddress)",
+        "field_key": "d_address",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 10
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 139,
+      "fields": {
+        "template": 39,
+        "field_label": "Informant Occupation",
+        "field_key": "ad_comp_occ",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 10
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 201,
+      "fields": {
+        "template": 23,
+        "field_label": "Chechis Number",
+        "field_key": "chechis_number",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 10
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 216,
+      "fields": {
+        "template": 22,
+        "field_label": "Chechis Number",
+        "field_key": "chechis_number",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 10
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 11,
+      "fields": {
+        "template": 19,
+        "field_label": "Registration number",
+        "field_key": "registration_number",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 11
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 43,
+      "fields": {
+        "template": 25,
+        "field_label": "Counselling Y/N",
+        "field_key": "counselling_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 11
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 86,
+      "fields": {
+        "template": 32,
+        "field_label": "DNA sample of victim taken Y/N",
+        "field_key": "dna_sample_victim_taken_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 11
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 106,
+      "fields": {
+        "template": 1,
+        "field_label": "Inquest notes (dInquest)",
+        "field_key": "d_inquest",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 11
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 140,
+      "fields": {
+        "template": 39,
+        "field_label": "Informant Mobile Number",
+        "field_key": "ad_comp_mobile",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 11
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 202,
+      "fields": {
+        "template": 23,
+        "field_label": "Reg Number",
+        "field_key": "reg_number",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 11
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 217,
+      "fields": {
+        "template": 22,
+        "field_label": "Reg Number",
+        "field_key": "reg_number",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 11
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 12,
+      "fields": {
+        "template": 19,
+        "field_label": "Unique identification mark",
+        "field_key": "unique_identification_mark",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 12
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 44,
+      "fields": {
+        "template": 25,
+        "field_label": "DNA sample of victim taken (Y/N/NA)",
+        "field_key": "dna_victim_sample_taken",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 12
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 87,
+      "fields": {
+        "template": 32,
+        "field_label": "Send to FSL Y/N (Victim DNA)",
+        "field_key": "dna_victim_send_fsl_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 12
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 107,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased KYC Recorded by",
+        "field_key": "d_recorded_by",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 12
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 141,
+      "fields": {
+        "template": 39,
+        "field_label": "Informant Aadhaar Number",
+        "field_key": "ad_comp_aadhaar",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 12
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 203,
+      "fields": {
+        "template": 23,
+        "field_label": "Unique Identification Mark",
+        "field_key": "unique_identification_mark",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 12
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 218,
+      "fields": {
+        "template": 22,
+        "field_label": "Unique Identification Mark",
+        "field_key": "unique_identification_mark",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 12
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 13,
+      "fields": {
+        "template": 19,
+        "field_label": "Purchase date",
+        "field_key": "purchase_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 13
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 45,
+      "fields": {
+        "template": 25,
+        "field_label": "DNA victim - Send to FSL Y/N",
+        "field_key": "dna_victim_sent_fsl_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 13
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 88,
+      "fields": {
+        "template": 32,
+        "field_label": "FSL report received y/n (Victim DNA)",
+        "field_key": "dna_victim_fsl_report_received_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 13
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 108,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased KYC Rank/Badge no.",
+        "field_key": "d_badge_no",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 13
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 142,
+      "fields": {
+        "template": 39,
+        "field_label": "Informant PAN Number",
+        "field_key": "ad_comp_pan",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 13
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 204,
+      "fields": {
+        "template": 23,
+        "field_label": "Purchase Date",
+        "field_key": "purchase_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 13
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 219,
+      "fields": {
+        "template": 22,
+        "field_label": "Purchase Date",
+        "field_key": "purchase_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 13
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 14,
+      "fields": {
+        "template": 19,
+        "field_label": "Photo Y/N",
+        "field_key": "vehicle_photo_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 14
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 46,
+      "fields": {
+        "template": 25,
+        "field_label": "DNA victim - FSL report received y/n",
+        "field_key": "dna_victim_fsl_report_received_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 14
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 89,
+      "fields": {
+        "template": 32,
+        "field_label": "DNA sample of Accused taken y/n",
+        "field_key": "dna_sample_accused_taken_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 14
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 109,
+      "fields": {
+        "template": 1,
+        "field_label": "Deceased KYC Date",
+        "field_key": "d_record_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 14
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 143,
+      "fields": {
+        "template": 39,
+        "field_label": "Informant Religion",
+        "field_key": "ad_comp_religion",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 14
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 205,
+      "fields": {
+        "template": 23,
+        "field_label": "6. Photo Copy",
+        "field_key": "photo_copy_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 14
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 220,
+      "fields": {
+        "template": 22,
+        "field_label": "6. Photo Copy",
+        "field_key": "photo_copy_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 14
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 15,
+      "fields": {
+        "template": 19,
+        "field_label": "Ownership document Y/N",
+        "field_key": "ownership_document_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 15
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 47,
+      "fields": {
+        "template": 25,
+        "field_label": "DNA sample of Accused taken (Y/N/NA)",
+        "field_key": "dna_accused_sample_taken",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 15
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 90,
+      "fields": {
+        "template": 32,
+        "field_label": "Send to FSL y/n (Accused DNA)",
+        "field_key": "dna_accused_send_fsl_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 15
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 110,
+      "fields": {
+        "template": 1,
+        "field_label": "Post-mortem conducted (dPmDone)",
+        "field_key": "d_pm_done",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 15
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 144,
+      "fields": {
+        "template": 39,
+        "field_label": "Informant Caste",
+        "field_key": "ad_comp_caste",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 15
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 206,
+      "fields": {
+        "template": 23,
+        "field_label": "7. Ownership Doc (Y/N)",
+        "field_key": "ownership_doc_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 15
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 221,
+      "fields": {
+        "template": 22,
+        "field_label": "7. Ownership Doc (Y/N)",
+        "field_key": "ownership_doc_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 15
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 16,
+      "fields": {
+        "template": 19,
+        "field_label": "Total rupees or any currency",
+        "field_key": "total_rupees_or_currency",
+        "field_source": "custom",
+        "field_type": "number",
+        "is_required": false,
+        "display_order": 16
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 48,
+      "fields": {
+        "template": 25,
+        "field_label": "DNA accused - Send to FSL y/n",
+        "field_key": "dna_accused_sent_fsl_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 16
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 91,
+      "fields": {
+        "template": 32,
+        "field_label": "FSL report received y/n (Accused DNA)",
+        "field_key": "dna_accused_fsl_report_received_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 16
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 111,
+      "fields": {
+        "template": 1,
+        "field_label": "Post-mortem Date & Time (dPmDate)",
+        "field_key": "d_pm_date",
+        "field_source": "custom",
+        "field_type": "datetime",
+        "is_required": false,
+        "display_order": 16
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 145,
+      "fields": {
+        "template": 39,
+        "field_label": "Deceased Name",
+        "field_key": "ad_deceased_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 16
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 222,
+      "fields": {
+        "template": 22,
+        "field_label": "Exact Place of Sand Theft (River Bed / Ghat / Road)",
+        "field_key": "exact_place_of_sand_theft",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": true,
+        "display_order": 16
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 17,
+      "fields": {
+        "template": 19,
+        "field_label": "Count of notes",
+        "field_key": "count_of_notes",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 17
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 49,
+      "fields": {
+        "template": 25,
+        "field_label": "DNA accused - FSL report received y/n",
+        "field_key": "dna_accused_fsl_report_received_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 17
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 92,
+      "fields": {
+        "template": 32,
+        "field_label": "SD entry of vehicle number and time y/n",
+        "field_key": "vehicle_sd_entry_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 17
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 112,
+      "fields": {
+        "template": 1,
+        "field_label": "Post-mortem report received (dPmReport)",
+        "field_key": "d_pm_report",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 17
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 146,
+      "fields": {
+        "template": 39,
+        "field_label": "Deceased Age",
+        "field_key": "ad_deceased_age",
+        "field_source": "custom",
+        "field_type": "number",
+        "is_required": false,
+        "display_order": 17
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 223,
+      "fields": {
+        "template": 22,
+        "field_label": "Type of Location",
+        "field_key": "type_of_location",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": true,
+        "display_order": 17
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 18,
+      "fields": {
+        "template": 19,
+        "field_label": "Gold y/n",
+        "field_key": "jewellery_gold_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 18
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 50,
+      "fields": {
+        "template": 25,
+        "field_label": "Digital & electronic evidence (Y/N/NA)",
+        "field_key": "digital_electronic_evidence_status",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 18
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 93,
+      "fields": {
+        "template": 32,
+        "field_label": "Log book of vehicle entry y/n",
+        "field_key": "vehicle_log_book_entry_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 18
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 113,
+      "fields": {
+        "template": 1,
+        "field_label": "Post-mortem report Date & Time (dPmReportDate)",
+        "field_key": "d_pm_report_date",
+        "field_source": "custom",
+        "field_type": "datetime",
+        "is_required": false,
+        "display_order": 18
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 147,
+      "fields": {
+        "template": 39,
+        "field_label": "Deceased Gender",
+        "field_key": "ad_deceased_gender",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 18
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 224,
+      "fields": {
+        "template": 22,
+        "field_label": "Spot Photo Taken",
+        "field_key": "spot_photo_taken",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 18
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 19,
+      "fields": {
+        "template": 19,
+        "field_label": "Silver y/n",
+        "field_key": "jewellery_silver_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 19
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 51,
+      "fields": {
+        "template": 25,
+        "field_label": "Digital evidence platform",
+        "field_key": "digital_evidence_platform",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 19
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 94,
+      "fields": {
+        "template": 32,
+        "field_label": "Case diary vehicle entry y/n",
+        "field_key": "vehicle_case_diary_entry_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 19
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 114,
+      "fields": {
+        "template": 1,
+        "field_label": "Viscera sent to FSL (dVisceraSent)",
+        "field_key": "d_viscera_sent",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 19
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 148,
+      "fields": {
+        "template": 39,
+        "field_label": "Deceased Occupation",
+        "field_key": "ad_deceased_occ",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 19
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 225,
+      "fields": {
+        "template": 22,
+        "field_label": "Spot Video Taken",
+        "field_key": "spot_video_taken",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 19
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 20,
+      "fields": {
+        "template": 19,
+        "field_label": "Platinum y/n",
+        "field_key": "jewellery_platinum_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 20
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 52,
+      "fields": {
+        "template": 25,
+        "field_label": "Witness examined (Y/N/NA)",
+        "field_key": "witness_examined_status",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 20
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 95,
+      "fields": {
+        "template": 32,
+        "field_label": "If the accused is not traceable, has action under Section 82,83 been initiated? y/n",
+        "field_key": "action_under_sec_82_83_initiated_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 20
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 115,
+      "fields": {
+        "template": 1,
+        "field_label": "Viscera sent Date & Time (dVisceraDate)",
+        "field_key": "d_viscera_date",
+        "field_source": "custom",
+        "field_type": "datetime",
+        "is_required": false,
+        "display_order": 20
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 149,
+      "fields": {
+        "template": 39,
+        "field_label": "Deceased Mobile Number",
+        "field_key": "ad_deceased_mobile",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 20
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 226,
+      "fields": {
+        "template": 22,
+        "field_label": "Footprint Found",
+        "field_key": "footprint_found",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 20
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 21,
+      "fields": {
+        "template": 19,
+        "field_label": "Other metal name",
+        "field_key": "jewellery_other_metal_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 21
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 53,
+      "fields": {
+        "template": 25,
+        "field_label": "Statements of parents/relatives (Y/N/NA)",
+        "field_key": "parents_relatives_statement_status",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 21
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 116,
+      "fields": {
+        "template": 1,
+        "field_label": "FSL report received (dFslReport)",
+        "field_key": "d_fsl_report",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 21
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 150,
+      "fields": {
+        "template": 39,
+        "field_label": "Deceased Aadhaar Number",
+        "field_key": "ad_deceased_aadhaar",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 21
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 227,
+      "fields": {
+        "template": 22,
+        "field_label": "Fingerprint Found",
+        "field_key": "fingerprint_found",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 21
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 22,
+      "fields": {
+        "template": 19,
+        "field_label": "Name of ornament",
+        "field_key": "name_of_ornament",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 22
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 54,
+      "fields": {
+        "template": 25,
+        "field_label": "PM y/n",
+        "field_key": "pm_conducted_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 22
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 117,
+      "fields": {
+        "template": 1,
+        "field_label": "FSL report Date & Time (dFslReportDate)",
+        "field_key": "d_fsl_report_date",
+        "field_source": "custom",
+        "field_type": "datetime",
+        "is_required": false,
+        "display_order": 22
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 151,
+      "fields": {
+        "template": 39,
+        "field_label": "Deceased PAN Number",
+        "field_key": "ad_deceased_pan",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 22
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 228,
+      "fields": {
+        "template": 22,
+        "field_label": "Witness Examined",
+        "field_key": "witness_examined",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 22
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 23,
+      "fields": {
+        "template": 19,
+        "field_label": "Metal of ornament",
+        "field_key": "metal_of_ornament",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 23
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 55,
+      "fields": {
+        "template": 25,
+        "field_label": "Postmortem report received y/n",
+        "field_key": "pm_report_received_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 23
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 118,
+      "fields": {
+        "template": 1,
+        "field_label": "Reason post-mortem is pending",
+        "field_key": "reason_pm_pending",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 23
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 152,
+      "fields": {
+        "template": 39,
+        "field_label": "Deceased Religion",
+        "field_key": "ad_deceased_religion",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 23
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 229,
+      "fields": {
+        "template": 22,
+        "field_label": "Social Media Checked",
+        "field_key": "social_media_checked",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 23
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 24,
+      "fields": {
+        "template": 19,
+        "field_label": "Value of ornament",
+        "field_key": "value_of_ornament",
+        "field_source": "custom",
+        "field_type": "number",
+        "is_required": false,
+        "display_order": 24
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 56,
+      "fields": {
+        "template": 25,
+        "field_label": "Viscera sent to FSL y/n",
+        "field_key": "viscera_sent_fsl_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 24
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 119,
+      "fields": {
+        "template": 1,
+        "field_label": "Reason viscera not preserved",
+        "field_key": "reason_viscera_not_preserved",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 24
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 153,
+      "fields": {
+        "template": 39,
+        "field_label": "Deceased Caste",
+        "field_key": "ad_deceased_caste",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 24
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 230,
+      "fields": {
+        "template": 22,
+        "field_label": "Bank Account Checked",
+        "field_key": "bank_account_checked",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 24
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 25,
+      "fields": {
+        "template": 19,
+        "field_label": "Total value",
+        "field_key": "total_value",
+        "field_source": "custom",
+        "field_type": "number",
+        "is_required": false,
+        "display_order": 25
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 57,
+      "fields": {
+        "template": 25,
+        "field_label": "FSL report received y/n",
+        "field_key": "fsl_report_received_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 25
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 120,
+      "fields": {
+        "template": 1,
+        "field_label": "PM/FSL Recorded by",
+        "field_key": "pm_fsl_recorded_by",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 25
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 154,
+      "fields": {
+        "template": 39,
+        "field_label": "Cause of Death",
+        "field_key": "ad_cause_of_death",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": true,
+        "display_order": 25
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 231,
+      "fields": {
+        "template": 22,
+        "field_label": "Toll Plaza Data Checked",
+        "field_key": "toll_plaza_checked",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 25
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 26,
+      "fields": {
+        "template": 19,
+        "field_label": "Witness examined y/n",
+        "field_key": "witness_examined_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 26
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 58,
+      "fields": {
+        "template": 25,
+        "field_label": "Documentary evidence taken (Y/N/NA)",
+        "field_key": "documentary_evidence_status",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 26
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 121,
+      "fields": {
+        "template": 1,
+        "field_label": "PM/FSL Rank/Badge no.",
+        "field_key": "pm_fsl_badge_no",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 26
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 155,
+      "fields": {
+        "template": 39,
+        "field_label": "Other Cause Details",
+        "field_key": "ad_other_cause",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 26
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 232,
+      "fields": {
+        "template": 22,
+        "field_label": "FASTag Data Checked",
+        "field_key": "fastag_checked",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 26
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 27,
+      "fields": {
+        "template": 19,
+        "field_label": "Social media checked y/n",
+        "field_key": "social_media_checked_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 27
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 59,
+      "fields": {
+        "template": 25,
+        "field_label": "Dowry demand evidence collected y/n",
+        "field_key": "dowry_demand_evidence_collected_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 27
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 122,
+      "fields": {
+        "template": 1,
+        "field_label": "PM/FSL Date",
+        "field_key": "pm_fsl_record_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 27
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 156,
+      "fields": {
+        "template": 39,
+        "field_label": "Unidentified Body Toggle (Y/N)",
+        "field_key": "ad_is_unknown_death",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 27
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 233,
+      "fields": {
+        "template": 22,
+        "field_label": "ANPR Data Checked",
+        "field_key": "anpr_checked",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 27
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 28,
+      "fields": {
+        "template": 19,
+        "field_label": "Bank account checked",
+        "field_key": "bank_account_checked",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 28
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 60,
+      "fields": {
+        "template": 25,
+        "field_label": "URL/profile link preserved y/n",
+        "field_key": "cyber_url_profile_preserved_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 28
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 157,
+      "fields": {
+        "template": 39,
+        "field_label": "Shodh Patrika Issued (Y/N + Date)",
+        "field_key": "ad_shodh_patrika_issued",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 28
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 29,
+      "fields": {
+        "template": 19,
+        "field_label": "Toll plaza data checked y/n",
+        "field_key": "toll_plaza_data_checked_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 29
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 61,
+      "fields": {
+        "template": 25,
+        "field_label": "Username/user ID preserved",
+        "field_key": "cyber_username_preserved_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 29
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 158,
+      "fields": {
+        "template": 39,
+        "field_label": "Gazette Notification Published (Y/N + Date)",
+        "field_key": "ad_gazette_published",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 29
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 30,
+      "fields": {
+        "template": 19,
+        "field_label": "Fast and data checked y/n",
+        "field_key": "fast_and_data_checked_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 30
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 62,
+      "fields": {
+        "template": 25,
+        "field_label": "Screenshots taken y/n",
+        "field_key": "cyber_screenshots_taken_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 30
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 159,
+      "fields": {
+        "template": 39,
+        "field_label": "Media / Newspaper Publication (Y/N + Date)",
+        "field_key": "ad_media_published",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 30
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 31,
+      "fields": {
+        "template": 19,
+        "field_label": "ANPR data checked y/n",
+        "field_key": "anpr_data_checked_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 31
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 63,
+      "fields": {
+        "template": 25,
+        "field_label": "Screen recording y/n",
+        "field_key": "cyber_screen_recording_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 31
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 160,
+      "fields": {
+        "template": 39,
+        "field_label": "DNA Sample Sent to FSL (Y/N + Date)",
+        "field_key": "ad_dna_sample_sent",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 31
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 32,
+      "fields": {
+        "template": 19,
+        "field_label": "Make charge sheet",
+        "field_key": "make_charge_sheet",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 32
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 64,
+      "fields": {
+        "template": 25,
+        "field_label": "Platform preservation request initiated y/n",
+        "field_key": "cyber_platform_preservation_initiated_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 32
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 161,
+      "fields": {
+        "template": 39,
+        "field_label": "DNA Report Received (Y/N + Date)",
+        "field_key": "ad_dna_report_received",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 32
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 65,
+      "fields": {
+        "template": 25,
+        "field_label": "IP/log information taken y/n",
+        "field_key": "cyber_ip_log_info_taken_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 33
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 162,
+      "fields": {
+        "template": 39,
+        "field_label": "Funeral Conducted by Police (Y/N + Date)",
+        "field_key": "ad_funeral_by_police",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 33
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 66,
+      "fields": {
+        "template": 25,
+        "field_label": "Fake profile identity investigated y/n",
+        "field_key": "cyber_fake_profile_investigated_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 34
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 163,
+      "fields": {
+        "template": 39,
+        "field_label": "Body Handed Over to Relatives (Y/N + Date)",
+        "field_key": "ad_funeral_by_relatives",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 34
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 67,
+      "fields": {
+        "template": 25,
+        "field_label": "Morphed/deepfake content preserved y/n",
+        "field_key": "cyber_morphed_deepfake_preserved_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 35
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 164,
+      "fields": {
+        "template": 39,
+        "field_label": "Relative Name",
+        "field_key": "ad_rel_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 35
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 68,
+      "fields": {
+        "template": 25,
+        "field_label": "Chemical/container recovered y/n",
+        "field_key": "chemical_container_recovered_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 36
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 165,
+      "fields": {
+        "template": 39,
+        "field_label": "Relative Relation",
+        "field_key": "ad_rel_relation",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 36
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 69,
+      "fields": {
+        "template": 25,
+        "field_label": "Letter to FSL y/n",
+        "field_key": "letter_to_fsl_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 37
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 166,
+      "fields": {
+        "template": 39,
+        "field_label": "Relative Mobile",
+        "field_key": "ad_rel_mobile",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 37
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 70,
+      "fields": {
+        "template": 25,
+        "field_label": "Official report received y/n",
+        "field_key": "official_report_received_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 38
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 167,
+      "fields": {
+        "template": 39,
+        "field_label": "IO Name",
+        "field_key": "ad_io_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 38
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 71,
+      "fields": {
+        "template": 25,
+        "field_label": "Photographs documented as per procedure y/n",
+        "field_key": "photographs_documented_procedure_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 39
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 168,
+      "fields": {
+        "template": 39,
+        "field_label": "IO Designation",
+        "field_key": "ad_io_desig",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 39
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 72,
+      "fields": {
+        "template": 25,
+        "field_label": "SD entry of vehicle number and time y/n",
+        "field_key": "vehicle_sd_entry_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 40
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 169,
+      "fields": {
+        "template": 39,
+        "field_label": "Registered By Officer Name",
+        "field_key": "ad_reg_name",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 40
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 73,
+      "fields": {
+        "template": 25,
+        "field_label": "Log book of vehicle entry y/n",
+        "field_key": "vehicle_log_book_entry_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 41
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 170,
+      "fields": {
+        "template": 39,
+        "field_label": "Registered By Officer Designation",
+        "field_key": "ad_reg_desig",
+        "field_source": "custom",
+        "field_type": "dropdown",
+        "is_required": false,
+        "display_order": 41
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 74,
+      "fields": {
+        "template": 25,
+        "field_label": "Case diary vehicle entry y/n",
+        "field_key": "vehicle_case_diary_entry_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 42
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 171,
+      "fields": {
+        "template": 39,
+        "field_label": "CCTV Available (Y/N + Date-Time)",
+        "field_key": "ad_cctv_available",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 42
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 75,
+      "fields": {
+        "template": 25,
+        "field_label": "If the accused is not traceable, has action under Section 82,83 been initiated? y/n",
+        "field_key": "action_under_sec_82_83_initiated_yn",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 43
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 172,
+      "fields": {
+        "template": 39,
+        "field_label": "Inquest Panchanama (Y/N + Date)",
+        "field_key": "ad_inquest_panchanama",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 43
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 173,
+      "fields": {
+        "template": 39,
+        "field_label": "Spot Panchanama (Y/N + Date)",
+        "field_key": "ad_spot_panchanama",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 44
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 174,
+      "fields": {
+        "template": 39,
+        "field_label": "Seizure Memo (Y/N + Date)",
+        "field_key": "ad_seizure_memo",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 45
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 175,
+      "fields": {
+        "template": 39,
+        "field_label": "Identification Panchanama (Y/N + Date)",
+        "field_key": "ad_ident_panchanama",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 46
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 176,
+      "fields": {
+        "template": 39,
+        "field_label": "Search Panchanama (Y/N + Date)",
+        "field_key": "ad_search_panchanama",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 47
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 177,
+      "fields": {
+        "template": 39,
+        "field_label": "Personal Search (Y/N + Date)",
+        "field_key": "ad_pers_search",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 48
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 178,
+      "fields": {
+        "template": 39,
+        "field_label": "Exhumation Panchanama (Y/N + Date)",
+        "field_key": "ad_exhumation_panchanama",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 49
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 179,
+      "fields": {
+        "template": 39,
+        "field_label": "E-Shakshya Mobile App Recording (Y/N)",
+        "field_key": "ad_eshakshya_recording",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 50
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 180,
+      "fields": {
+        "template": 39,
+        "field_label": "Government Vehicle Usage (Y/N)",
+        "field_key": "ad_vehicle_usage",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 51
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 181,
+      "fields": {
+        "template": 39,
+        "field_label": "Property / Belongings Description",
+        "field_key": "ad_seizure_desc",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 52
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 182,
+      "fields": {
+        "template": 39,
+        "field_label": "Seized From Whom",
+        "field_key": "ad_seized_from_whom",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": false,
+        "display_order": 53
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 183,
+      "fields": {
+        "template": 39,
+        "field_label": "Other Seizure Details",
+        "field_key": "ad_seizure_other_details",
+        "field_source": "custom",
+        "field_type": "textarea",
+        "is_required": false,
+        "display_order": 54
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 184,
+      "fields": {
+        "template": 39,
+        "field_label": "CDR Request Sent Date",
+        "field_key": "ad_cdr_sent_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 55
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 185,
+      "fields": {
+        "template": 39,
+        "field_label": "CDR Report Received Date",
+        "field_key": "ad_cdr_recv_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 56
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 186,
+      "fields": {
+        "template": 39,
+        "field_label": "SDPO / ACP Send Date",
+        "field_key": "ad_sdpo_send_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 57
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 187,
+      "fields": {
+        "template": 39,
+        "field_label": "SDPO / ACP Grant Date",
+        "field_key": "ad_sdpo_grant_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 58
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 188,
+      "fields": {
+        "template": 39,
+        "field_label": "APP Send Date",
+        "field_key": "ad_app_send_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 59
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 189,
+      "fields": {
+        "template": 39,
+        "field_label": "APP Grant Date",
+        "field_key": "ad_app_grant_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 60
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 190,
+      "fields": {
+        "template": 39,
+        "field_label": "DCP / SP Send Date",
+        "field_key": "ad_dcp_send_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 61
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 191,
+      "fields": {
+        "template": 39,
+        "field_label": "DCP / SP Grant Date",
+        "field_key": "ad_dcp_grant_date",
+        "field_source": "custom",
+        "field_type": "date",
+        "is_required": false,
+        "display_order": 62
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 250,
+      "fields": {
+        "template": 47,
+        "field_label": "Cause of Death",
+        "field_key": "cause_of_death",
+        "field_source": "custom",
+        "field_type": "text",
+        "is_required": true,
+        "display_order": 90
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 251,
+      "fields": {
+        "template": 47,
+        "field_label": "Time of Death",
+        "field_key": "time_of_death",
+        "field_source": "custom",
+        "field_type": "datetime",
+        "is_required": true,
+        "display_order": 91
+      }
+    },
+    {
+      "model": "crimetab.fieldtemplatefield",
+      "pk": 252,
+      "fields": {
+        "template": 47,
+        "field_label": "Post-mortem Conducted",
+        "field_key": "pm_conducted",
+        "field_source": "custom",
+        "field_type": "checkbox",
+        "is_required": false,
+        "display_order": 92
+      }
+    }
+  ]
+}

@@ -48,8 +48,10 @@ class CaseService {
         List<dynamic> list = [];
         if (data is List) {
           list = data;
-        } else if (data is Map<String, dynamic> && data['results'] is List) {
-          list = data['results'] as List;
+        } else if (data is Map<String, dynamic>) {
+          list = (data['results'] as List?) ??
+              (data['cases'] as List?) ??
+              [];
         }
 
         final records = list
@@ -98,8 +100,10 @@ class CaseService {
         List<dynamic> list = [];
         if (data is List) {
           list = data;
-        } else if (data is Map<String, dynamic> && data['results'] is List) {
-          list = data['results'] as List;
+        } else if (data is Map<String, dynamic>) {
+          list = (data['results'] as List?) ??
+              (data['cases'] as List?) ??
+              [];
         }
 
         return list
@@ -139,8 +143,10 @@ class CaseService {
         List<dynamic> list = [];
         if (data is List) {
           list = data;
-        } else if (data is Map<String, dynamic> && data['results'] is List) {
-          list = data['results'] as List;
+        } else if (data is Map<String, dynamic>) {
+          list = (data['results'] as List?) ??
+              (data['cases'] as List?) ??
+              [];
         }
 
         return list

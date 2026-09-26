@@ -96,6 +96,7 @@ def get_form_definition(
                 'field_source': f.field_source,
                 'field_type': f.field_type,
                 'is_required': f.is_required,
+                'section': getattr(f, 'section', None),
                 'display_order': f.display_order,
             })
 
