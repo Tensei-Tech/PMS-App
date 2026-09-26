@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 import '../widgets/form_section_utils.dart';
 import 'form_io_terminology.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewHousePropertySearchSeizurePdf(
   BuildContext context,
@@ -32,8 +33,8 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
   Map<String, dynamic> doc,
 ) async {
   final pdf = pw.Document();
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
   final cache = await _preRenderAllMarathi(doc);
 
   const knownSectionIds = {'Search Seizure Form', 'Search Seizure Panchanama'};

@@ -16,9 +16,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 // ── A4 layout constants at 96 DPI ──────────────────────────────────────────
 const double _kW = 794.0;
@@ -1350,7 +1350,7 @@ Future<Uint8List> generateDraftGroundOfArrestPdf(
   Map<String, dynamic> doc,
 ) async {
   final pdf = pw.Document();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final bold = pw.TextStyle(
       font: devanagariBold, fontSize: 9, fontWeight: pw.FontWeight.bold);

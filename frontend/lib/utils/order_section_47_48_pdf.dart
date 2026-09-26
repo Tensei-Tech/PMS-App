@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Font Caching & Preloading
@@ -19,9 +19,8 @@ pw.Font? _cachedDevanagariBold;
 
 Future<void> preloadOrderSection4748PdfFonts() async {
   try {
-    _cachedDevanagariRegular ??=
-        await PdfGoogleFonts.notoSansDevanagariRegular();
-    _cachedDevanagariBold ??= await PdfGoogleFonts.notoSansDevanagariBold();
+    _cachedDevanagariRegular ??= await PdfFontCache.devanagariRegular();
+    _cachedDevanagariBold ??= await PdfFontCache.devanagariBold();
   } catch (_) {}
 }
 
@@ -408,11 +407,11 @@ Future<MarathiImageCache> _preRenderAllSection4748Marathi(
 Future<Uint8List> generateOrderSection4748Pdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
 
-  final loraBold = await PdfGoogleFonts.loraBold();
+  final loraBold = await PdfFontCache.loraBold();
   pw.Font? devanagariFont;
   try {
     devanagariFont =
-        _cachedDevanagariBold ?? await PdfGoogleFonts.notoSansDevanagariBold();
+        _cachedDevanagariBold ?? await PdfFontCache.devanagariBold();
   } catch (_) {}
   final cache = await _preRenderAllSection4748Marathi(doc);
 
