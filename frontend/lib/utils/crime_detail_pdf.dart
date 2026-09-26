@@ -817,7 +817,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                       cache,
                     ),
                     _buildPdfHeaderCell(
-                      "Ocupetion\n\nव्यवसाय\n\n(*8)",
+                      "Occupation\n\nव्यवसाय\n\n(*8)",
                       "th_8",
                       devanagariBold,
                       cache,
@@ -1851,7 +1851,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(
     );
     await addLbl(
       'th_8',
-      "Ocupetion\n\nव्यवसाय\n\n(*8)",
+      "Occupation\n\nव्यवसाय\n\n(*8)",
       tableHeaderStyle,
       maxWidth: 60,
     );

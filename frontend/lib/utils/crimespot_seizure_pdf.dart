@@ -357,13 +357,12 @@ pw.Widget _buildPdfUnderlineField({
 }) {
   final hasValImg = cache.has(valKey);
   final child = pw.Container(
-    width: expanded ? null : (width ?? 60),
+    constraints: pw.BoxConstraints(minWidth: width ?? 60),
     decoration: const pw.BoxDecoration(
       border: pw.Border(
         bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
       ),
     ),
-    alignment: pw.Alignment.bottomCenter,
     padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
     child: hasValImg
         ? cache.img(valKey)

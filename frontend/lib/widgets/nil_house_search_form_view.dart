@@ -344,7 +344,7 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
             child: TextFormField(
               controller: controller,
               readOnly: widget.readOnly,
-              maxLines: 1,
+              maxLines: null,
               keyboardType: TextInputType.text,
               style: style.copyWith(
                 fontWeight: FontWeight.w600,
@@ -443,7 +443,7 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                 child: TextFormField(
                   controller: controller,
                   readOnly: widget.readOnly,
-                  maxLines: 1,
+                  maxLines: null,
                   scrollPhysics: const ClampingScrollPhysics(),
                   style: style.copyWith(
                     fontSize: effectiveFontSize,
@@ -1091,13 +1091,11 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                         style: headerLabelStyle,
                       ),
                       const SizedBox(height: 36),
-                      SizedBox(
-                        width: 220,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _ownerSigCtrl,
-                          serifStyle: serif,
-                          hintText: 'सही / अंगठा',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 220,
+                        controller: _ownerSigCtrl,
+                        serifStyle: serif,
+                        hintText: 'सही / अंगठा',
                       ),
                       const SizedBox(height: 16),
                       Text(

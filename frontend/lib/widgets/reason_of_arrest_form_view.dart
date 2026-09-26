@@ -433,7 +433,7 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
                     style: GoogleFonts.notoSansDevanagari(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.blue.shade900,
+                      color: Colors.black87,
                       height: 1.5,
                     ),
                     decoration: InputDecoration(
@@ -460,7 +460,7 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide:
-                            const BorderSide(color: Colors.blue, width: 1.5),
+                            const BorderSide(color: Colors.black87, width: 1.5),
                       ),
                     ),
                   ),
@@ -606,7 +606,7 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
                           ? _accusedSigCtrl.text
                           : '(येथे आरोपीची सही किंवा डाव्या हाताच्या अंगठ्याचा ठसा)',
                       style: _accusedSigCtrl.text.isNotEmpty
-                          ? marathiBold.copyWith(color: Colors.blue.shade900)
+                          ? marathiBold.copyWith(color: Colors.black87)
                           : marathiBody.copyWith(
                               color: Colors.black38, fontSize: 12),
                     ),
@@ -784,14 +784,14 @@ class _UnderlineInput extends StatelessWidget {
     final field = TextField(
       controller: controller,
       readOnly: readOnly,
-      maxLines: 1,
+      maxLines: null,
       textAlign: TextAlign.start,
       scrollPhysics: const NeverScrollableScrollPhysics(),
       scrollPadding: EdgeInsets.zero,
       style: GoogleFonts.notoSansDevanagari(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: Colors.blue.shade900,
+        color: Colors.black87,
       ),
       decoration: InputDecoration(
         isDense: true,
@@ -808,7 +808,7 @@ class _UnderlineInput extends StatelessWidget {
           borderSide: BorderSide(color: Colors.black54, width: 1),
         ),
         focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          borderSide: BorderSide(color: Colors.black87, width: 1.5),
         ),
       ),
     );

@@ -5387,7 +5387,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 borderSide: BorderSide(color: Colors.black54, width: 1.0),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                borderSide: BorderSide(color: Colors.black87, width: 1.5),
               ),
             ),
           ),
@@ -6210,13 +6210,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  SizedBox(
-                    width: 220,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _ptpReceiverSigCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'सही',
-                    ),
+                  BilingualSimpleUnderlineInput(
+                    minWidth: 220,
+                    controller: _ptpReceiverSigCtrl,
+                    serifStyle: serifStyle,
+                    hintText: 'सही',
                   ),
                 ],
               ),
@@ -6488,13 +6486,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  SizedBox(
-                    width: 220,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _dpAmaldaarSigCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'सही',
-                    ),
+                  BilingualSimpleUnderlineInput(
+                    minWidth: 220,
+                    controller: _dpAmaldaarSigCtrl,
+                    serifStyle: serifStyle,
+                    hintText: 'सही',
                   ),
                 ],
               ),

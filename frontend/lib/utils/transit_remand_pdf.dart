@@ -364,8 +364,7 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
     pw.FontWeight fontWeight = pw.FontWeight.bold,
   }) {
     return pw.Container(
-      width: width,
-      constraints: pw.BoxConstraints(minWidth: minWidth),
+      constraints: pw.BoxConstraints(minWidth: width ?? minWidth),
       padding: const pw.EdgeInsets.only(bottom: 2, left: 3, right: 3),
       decoration: const pw.BoxDecoration(
         border: pw.Border(

@@ -428,7 +428,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
             child: TextFormField(
               controller: controller,
               readOnly: widget.readOnly,
-              maxLines: 1,
+              maxLines: null,
               keyboardType: keyboardType ?? TextInputType.text,
               style: style.copyWith(
                 fontWeight: FontWeight.w600,
@@ -526,7 +526,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                 child: TextFormField(
                   controller: controller,
                   readOnly: widget.readOnly,
-                  maxLines: 1,
+                  maxLines: null,
                   scrollPhysics: const ClampingScrollPhysics(),
                   style: style.copyWith(
                     fontSize: effectiveFontSize,

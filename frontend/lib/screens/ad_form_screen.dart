@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../modules/core/models/base_record.dart';
-import '../modules/ad/providers/ad_provider.dart';
+import '../modules/accidental_death/providers/accidental_death_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/case_service.dart';
 import '../services/firestore_service.dart';

@@ -177,7 +177,7 @@ class TransitRemandFormViewState extends State<TransitRemandFormView> {
           borderSide: BorderSide(color: Colors.black45, width: 0.8),
         ),
         focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          borderSide: BorderSide(color: Colors.black87, width: 1.5),
         ),
       ),
     );
@@ -381,7 +381,7 @@ class TransitRemandFormViewState extends State<TransitRemandFormView> {
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue.shade300, width: 1),
+                  borderSide: const BorderSide(color: Colors.black54, width: 1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 contentPadding: const EdgeInsets.symmetric(

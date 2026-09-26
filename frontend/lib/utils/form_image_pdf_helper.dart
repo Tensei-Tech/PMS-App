@@ -371,13 +371,7 @@ class FormImagePdfHelper {
         fontSize: sz,
         fontWeight: FontWeight.w600,
         height: ht,
-        color: Colors.transparent,
-        shadows: const [
-          Shadow(
-            offset: Offset(0, -3.0),
-            color: Colors.black,
-          ),
-        ],
+        color: Colors.black,
         decoration: TextDecoration.underline,
         decorationColor: Colors.black,
         decorationThickness: 0.8,

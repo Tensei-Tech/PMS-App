@@ -103,7 +103,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                   borderSide: BorderSide(color: Colors.black87, width: 1.0),
                 ),
                 focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                  borderSide: BorderSide(color: Colors.black87, width: 1.5),
                 ),
               ),
             ),

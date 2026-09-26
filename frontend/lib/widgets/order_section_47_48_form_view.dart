@@ -996,7 +996,7 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
                 style: GoogleFonts.notoSansDevanagari(
                   fontSize: baseFontSize,
                   fontWeight: FontWeight.w600,
-                  color: Colors.blue.shade900,
+                  color: Colors.black87,
                   height: 1.35,
                 ),
                 decoration: InputDecoration(
@@ -1014,7 +1014,7 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
                     borderSide: BorderSide(color: Colors.black54, width: 1),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                    borderSide: BorderSide(color: Colors.black87, width: 1.5),
                   ),
                 ),
               ),
@@ -1047,7 +1047,7 @@ class _UnderlineInput extends StatelessWidget {
       controller: controller,
       readOnly: readOnly,
       textAlign: textAlign,
-      maxLines: 1,
+      maxLines: null,
       scrollPhysics: const NeverScrollableScrollPhysics(),
       scrollPadding: EdgeInsets.zero,
       style: GoogleFonts.notoSansDevanagari(
@@ -1071,7 +1071,7 @@ class _UnderlineInput extends StatelessWidget {
           borderSide: BorderSide(color: Colors.black45, width: 0.8),
         ),
         focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          borderSide: BorderSide(color: Colors.black87, width: 1.5),
         ),
       ),
     );
