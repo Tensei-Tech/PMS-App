@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_config.dart';
+import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/police_hierarchy_helper.dart';
 
@@ -79,137 +81,75 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     super.dispose();
   }
 
-  List<String> _safeParseStringList(dynamic raw) {
-    if (raw == null) return [];
-    if (raw is List) {
-      return raw
-          .map((e) => e.toString())
-          .where((s) => s.trim().isNotEmpty)
-          .toList();
-    }
-    if (raw is Map && raw.containsKey('results') && raw['results'] is List) {
-      return (raw['results'] as List)
-          .map((e) => e.toString())
-          .where((s) => s.trim().isNotEmpty)
-          .toList();
-    }
-    return [];
-  }
-
-  List<String> _safeParseStationsList(dynamic raw) {
-    if (raw == null) return [];
-    List<dynamic> items = [];
-    if (raw is List) {
-      items = raw;
-    } else if (raw is Map &&
-        raw.containsKey('results') &&
-        raw['results'] is List) {
-      items = raw['results'] as List;
-    }
-    return items
-        .map((e) {
-          if (e is Map) {
-            return e['station_name']?.toString() ?? e['name']?.toString() ?? '';
-          }
-          return e.toString();
-        })
-        .where((s) => s.trim().isNotEmpty)
-        .toList();
-  }
-
-  /// Fetch dynamic Districts list from PostgreSQL DB
+  /// Fetch dynamic Districts list from PostgreSQL DB: GET /api/districts/
   Future<void> _fetchDistrictsFromDB() async {
+    setState(() => _isLoadingLocations = true);
     try {
-      final res =
-          await http.get(Uri.parse('${ApiConfig.baseUrl}/stations/districts/'));
-      if (res.statusCode == 200) {
-        final decoded = json.decode(res.body);
-        final list = _safeParseStringList(decoded);
-        if (!mounted) return;
+      final data = await CaseService().fetchDistricts();
+      final list = data
+          .map((e) => (e['name'] ?? '').toString().trim())
+          .where((s) => s.isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort();
+
+      if (!mounted) return;
+      if (list.isNotEmpty) {
         setState(() {
-          _dbDistricts = list.isNotEmpty
-              ? list
-              : [
-                  'Pune',
-                  'Mumbai',
-                  'Thane',
-                  'Nagpur',
-                  'Nashik',
-                  'Chhatrapati Sambhajinagar'
-                ];
+          _dbDistricts = list;
           _selectedDistrict = _dbDistricts.first;
           _isLoadingLocations = false;
         });
         _fetchDivisionsAndStations(_selectedDistrict!);
         return;
       }
-    } catch (_) {}
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CreateSubAdminDialog] Error fetching districts: $e');
+      }
+    }
     if (!mounted) return;
-    setState(() {
-      _dbDistricts = [
-        'Pune',
-        'Mumbai',
-        'Thane',
-        'Nagpur',
-        'Nashik',
-        'Chhatrapati Sambhajinagar'
-      ];
-      _selectedDistrict = 'Pune';
-      _isLoadingLocations = false;
-    });
-    _fetchDivisionsAndStations('Pune');
+    setState(() => _isLoadingLocations = false);
   }
 
-  /// Fetch dynamic Divisions and Stations for a given District from DB
+  /// Fetch dynamic Divisions and Stations for a given District from DB:
+  /// GET /api/divisions/ and GET /api/stations/?district_id=...
   Future<void> _fetchDivisionsAndStations(String district) async {
     try {
-      // Fetch Divisions
-      final divRes = await http.get(Uri.parse(
-          '${ApiConfig.baseUrl}/stations/divisions/?district=${Uri.encodeComponent(district)}'));
-      List<String> divs = [];
-      if (divRes.statusCode == 200) {
-        divs = _safeParseStringList(json.decode(divRes.body));
-      }
+      // 1. Fetch real Divisions from /api/divisions/
+      final divsData = await CaseService().fetchDivisions();
+      List<String> divs = divsData
+          .map((d) => (d['name'] ?? '').toString().trim())
+          .where((n) => n.isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort();
 
-      // Fetch Stations
-      final stRes = await http.get(Uri.parse(
-          '${ApiConfig.baseUrl}/stations/?district=${Uri.encodeComponent(district)}'));
-      List<String> stns = [];
-      if (stRes.statusCode == 200) {
-        stns = _safeParseStationsList(json.decode(stRes.body));
-      }
+      // 2. Fetch real Stations for this district from /api/stations/?district_id=...
+      final stnsData = await CaseService().fetchStations(districtId: district);
+      List<String> stns = stnsData
+          .map((s) => (s['name'] ?? '').toString().trim())
+          .where((n) => n.isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort();
 
       if (!mounted) return;
       setState(() {
-        _dbDivisions = divs.isNotEmpty
-            ? divs
-            : [
-                '$district Division 1',
-                '$district Division 2',
-                '$district Central Division'
-              ];
-        _selectedDivision = _dbDivisions.first;
+        _dbDivisions = divs;
+        if (_dbDivisions.isNotEmpty) {
+          _selectedDivision = _dbDivisions.first;
+        }
 
-        _dbStations = stns.isNotEmpty
-            ? stns
-            : [
-                '$district Police Station',
-                'Shivajinagar Police Station',
-                'Hadapsar Police Station'
-              ];
-        _selectedStation = _dbStations.first;
+        _dbStations = stns;
+        if (_dbStations.isNotEmpty) {
+          _selectedStation = _dbStations.first;
+        }
       });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _dbDivisions = ['$district Division 1', '$district Division 2'];
-        _selectedDivision = _dbDivisions.first;
-        _dbStations = [
-          'Shivajinagar Police Station',
-          'Hadapsar Police Station'
-        ];
-        _selectedStation = _dbStations.first;
-      });
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CreateSubAdminDialog] Error fetching divisions/stations: $e');
+      }
     }
   }
 

@@ -21,12 +21,14 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../modules/core/models/base_record.dart';
 import '../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../services/case_service.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/common_form_pdf.dart';
 import '../../utils/crime_detail_pdf.dart';
 import '../../utils/translation_helper.dart';
 import '../../utils/validators.dart';
 import 'pocso_voice_banner.dart';
+import '../person_select_or_custom_field.dart';
 
 // ── Palette ──
 const Color _kDark = Color(0xFF0f172a);
@@ -159,6 +161,7 @@ const _kPreventiveItems = [
 class CommonForm extends StatefulWidget {
   const CommonForm({
     super.key,
+    this.categoryId,
     this.moduleKey,
     this.moduleLabel,
     this.subCategory,
@@ -171,6 +174,7 @@ class CommonForm extends StatefulWidget {
     this.isMurder,
   });
 
+  final dynamic categoryId;
   final String? moduleKey;
   final String? moduleLabel;
   final String? subCategory;
@@ -639,12 +643,112 @@ class CommonFormState extends State<CommonForm> {
   Set<String> get _initializedSectionKeys =>
       _initializedSectionKeysSet ??= <String>{};
 
+  // ── Dynamic Field Engine Data (Backend API) ──────────────────────────────
+  Map<String, Map<String, dynamic>> _actsData = {};
+  Map<String, String> _proceduralKeys = Map.from(_kProceduralKeys);
+  List<String> _preventiveItems = List.from(_kPreventiveItems);
+  List<Map<String, dynamic>> _extraFields = [];
+  final Map<String, TextEditingController> _dynamicControllers = {};
+  final Map<String, dynamic> _dynamicValues = {};
+  bool _isUsingFallback = false;
+
+  Map<String, Map<String, dynamic>> get _activeActsData =>
+      _actsData.isNotEmpty ? _actsData : ACT_DATA;
+  Map<String, String> get _activeProceduralKeys =>
+      _proceduralKeys.isNotEmpty ? _proceduralKeys : _kProceduralKeys;
+  List<String> get _activePreventiveItems =>
+      _preventiveItems.isNotEmpty ? _preventiveItems : _kPreventiveItems;
+
+  Future<void> _loadFormDefinition({List<dynamic>? chargedSections}) async {
+    final catId = widget.categoryId ??
+        widget.subCategory ??
+        widget.moduleLabel ??
+        widget.moduleKey;
+    if (catId == null ||
+        catId == 'form_1_5' ||
+        catId == 'form_iv' ||
+        catId == 'form_vi' ||
+        catId == 'standalone') {
+      return;
+    }
+    final def = await CaseService().fetchFormDefinition(
+      catId,
+      sections: chargedSections,
+    );
+    if (!mounted) return;
+    if (def != null) {
+      setState(() {
+        _isUsingFallback = false;
+        if (def['acts_sections'] is Map) {
+          final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
+          _actsData = acts.map(
+              (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+        }
+        if (def['procedural_items'] is Map) {
+          _proceduralKeys = (def['procedural_items'] as Map)
+              .map((k, v) => MapEntry(k.toString(), v.toString()));
+          for (final k in _proceduralKeys.keys) {
+            _procChecks.putIfAbsent(k, () => false);
+            _procDates.putIfAbsent(k, () => TextEditingController());
+          }
+        }
+        if (def['preventive_items'] is List) {
+          _preventiveItems =
+              (def['preventive_items'] as List).map((e) => e.toString()).toList();
+        }
+        if (def['fields'] is List) {
+          final rawFields = (def['fields'] as List)
+              .whereType<Map>()
+              .map((m) => Map<String, dynamic>.from(m))
+              .toList();
+          _extraFields = rawFields
+              .where((f) => f['field_source'] != 'common')
+              .toList();
+
+          for (final f in _extraFields) {
+            final key = f['field_key']?.toString() ?? '';
+            if (key.isEmpty) continue;
+            final type = f['field_type']?.toString().toLowerCase() ?? 'text';
+            if (type == 'checkbox') {
+              _dynamicValues.putIfAbsent(key, () => false);
+            } else if (type == 'dropdown') {
+              _dynamicValues.putIfAbsent(key, () => null);
+            } else {
+              _dynamicControllers.putIfAbsent(
+                key,
+                () => TextEditingController()..addListener(_debouncedSync),
+              );
+            }
+          }
+        }
+      });
+    } else {
+      if (mounted) {
+        setState(() {
+          _isUsingFallback = true;
+        });
+      }
+    }
+  }
+
+  void _syncDynamicFieldsForCharges() {
+    final allSecs = _chargeData.values
+        .expand((r) => (r['sections'] as Set<String>? ?? <String>{}))
+        .toList();
+    _loadFormDefinition(chargedSections: allSecs);
+  }
+
+  @visibleForTesting
+  Future<void> loadFormDefinitionForTest(List<dynamic> sections) =>
+      _loadFormDefinition(chargedSections: sections);
+
   // ─── lifecycle ─────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
     _ownsScroll = widget.scrollController == null;
     _isTwoFourWheelerTheft = _isTwoFourWheeler;
+    _loadFormDefinition();
   }
 
   @override
@@ -758,6 +862,9 @@ class CommonFormState extends State<CommonForm> {
       c.dispose();
     }
     for (final c in _dischargeReasons.values) {
+      c.dispose();
+    }
+    for (final c in _dynamicControllers.values) {
       c.dispose();
     }
   }
@@ -931,26 +1038,30 @@ class CommonFormState extends State<CommonForm> {
   void _removeCharge(String id) {
     _chargeData.remove(id);
     setState(() {});
+    _syncDynamicFieldsForCharges();
   }
 
   void _onActChange(String id, String act) {
     _chargeData[id]!['act'] = act;
     _chargeData[id]!['sections'] = <String>{};
     setState(() {});
+    _syncDynamicFieldsForCharges();
   }
 
   void _addSection(String id, String val) {
     (_chargeData[id]!['sections'] as Set<String>).add(val);
     setState(() {});
+    _syncDynamicFieldsForCharges();
   }
 
   void _removeSection(String id, String val) {
     (_chargeData[id]!['sections'] as Set<String>).remove(val);
     setState(() {});
+    _syncDynamicFieldsForCharges();
   }
 
   String _secLabel(String actKey, String val) {
-    final secs = ACT_DATA[actKey]?['sections'] as List<dynamic>? ?? [];
+    final secs = _activeActsData[actKey]?['sections'] as List<dynamic>? ?? [];
     for (final raw in secs) {
       if (raw is Map && raw['val'] == val) {
         return raw['label'] as String? ?? val;
@@ -1667,6 +1778,12 @@ class CommonFormState extends State<CommonForm> {
         'appGrant': _appGrant.text,
         'stepAppActive': _stepApp,
         'stepDcpActive': _stepDcp,
+      },
+      'dynamic_extra_fields': {
+        for (final entry in _dynamicControllers.entries)
+          entry.key: entry.value.text,
+        for (final entry in _dynamicValues.entries)
+          entry.key: entry.value,
       },
     };
   }
@@ -2922,6 +3039,34 @@ class CommonFormState extends State<CommonForm> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (kDebugMode && _isUsingFallback)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.shade100,
+                                border: Border.all(color: Colors.amber.shade700),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.warning_amber_rounded,
+                                      color: Colors.amber.shade900, size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '[DEV ONLY] Offline fallback data in use (form-definition endpoint unavailable).',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.amber.shade900,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           _card(
                             1,
                             'Crime Registration Info',
@@ -2940,6 +3085,13 @@ class CommonFormState extends State<CommonForm> {
                           ),
                           _card(3, 'Crime Spot', _s3()),
                           if (widget.middleSlot != null) widget.middleSlot!,
+                          if (_extraFields.isNotEmpty)
+                            _card(
+                              'extra_fields',
+                              'Special Section / Template Details (${_extraFields.length})',
+                              _sExtraFields(),
+                              startOpen: true,
+                            ),
                           _card(
                             4,
                             'Complainant',
@@ -3210,7 +3362,7 @@ class CommonFormState extends State<CommonForm> {
               final act = data['act']?.toString() ?? '';
               final secs = (data['sections'] as Set<String>?) ?? {};
               final actLabel = act.isNotEmpty
-                  ? (ACT_DATA[act]?['label'] as String? ?? act)
+                  ? (_activeActsData[act]?['label'] as String? ?? act)
                   : '—';
               return Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -3269,7 +3421,7 @@ class CommonFormState extends State<CommonForm> {
 
   Widget _chargeCard(String id, int num, Map<String, dynamic> data) {
     final actKey = data['act']?.toString() ?? '';
-    final hasAct = actKey.isNotEmpty && ACT_DATA.containsKey(actKey);
+    final hasAct = actKey.isNotEmpty && _activeActsData.containsKey(actKey);
     final secs = (data['sections'] as Set<String>?) ?? {};
 
     return Container(
@@ -3309,7 +3461,7 @@ class CommonFormState extends State<CommonForm> {
               TranslationHelper.translate(context, 'Select Act / Law'),
               style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
             ),
-            items: ACT_DATA.entries.map((e) {
+            items: _activeActsData.entries.map((e) {
               return DropdownMenuItem<String>(
                 value: e.key,
                 child: Text(
@@ -3328,7 +3480,7 @@ class CommonFormState extends State<CommonForm> {
           if (hasAct) ...[
             const SizedBox(height: 4),
             Text(
-              ACT_DATA[actKey]?['hint'] as String? ?? '',
+              _activeActsData[actKey]?['hint'] as String? ?? '',
               style: const TextStyle(
                   fontSize: 10, color: _kAmber, fontStyle: FontStyle.italic),
             ),
@@ -3338,6 +3490,7 @@ class CommonFormState extends State<CommonForm> {
             _SectionSearchPicker(
               actKey: actKey,
               selected: secs,
+              actsData: _activeActsData,
               onAdd: (v) => _addSection(id, v),
               onRemove: (v) => _removeSection(id, v),
             ),
@@ -3364,6 +3517,120 @@ class CommonFormState extends State<CommonForm> {
           ),
         ],
       );
+
+  // ── Dynamic Extra Template Fields (Backend Form-Definition Engine) ──────────
+  Widget _buildDynamicField(Map<String, dynamic> f) {
+    final key = f['field_key']?.toString() ?? '';
+    final label = f['field_label']?.toString() ?? key;
+    final type = f['field_type']?.toString().toLowerCase() ?? 'text';
+    final isReq = f['is_required'] == true;
+    final displayLabel = isReq ? '$label *' : label;
+
+    if (type == 'textarea') {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _tf(displayLabel, ctrl, maxLines: 3);
+    } else if (type == 'number') {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _tf(displayLabel, ctrl, keyboardType: TextInputType.number);
+    } else if (type == 'date') {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _dateField(displayLabel, ctrl);
+    } else if (type == 'datetime') {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _dateTimeField(displayLabel, ctrl);
+    } else if (type == 'checkbox') {
+      final isChecked = _dynamicValues[key] == true;
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isChecked ? _kTeal.withValues(alpha: 0.06) : _kInputBg,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: isChecked ? _kTeal : _kBorder),
+        ),
+        child: Row(
+          children: [
+            Checkbox(
+              value: isChecked,
+              activeColor: _kTeal,
+              onChanged: (v) => setState(() => _dynamicValues[key] = v ?? false),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                TranslationHelper.translate(context, displayLabel),
+                style: _tsBody.copyWith(
+                  fontWeight: isChecked ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (type == 'dropdown') {
+      final currentVal = _dynamicValues[key]?.toString();
+      final isGender = key.toLowerCase().contains('gender');
+      final options = isGender ? ['Male', 'Female', 'Other'] : ['Yes', 'No', 'Other'];
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: DropdownButtonFormField<String>(
+          initialValue: options.contains(currentVal) ? currentVal : null,
+          decoration: _d(displayLabel),
+          items: options
+              .map((o) => DropdownMenuItem(
+                    value: o,
+                    child: Text(TranslationHelper.translate(context, o), style: _tsBody),
+                  ))
+              .toList(),
+          onChanged: (v) => setState(() => _dynamicValues[key] = v),
+        ),
+      );
+    } else {
+      final ctrl = _dynamicControllers[key] ??= TextEditingController();
+      return _tf(displayLabel, ctrl);
+    }
+  }
+
+  Widget _sExtraFields() {
+    if (_extraFields.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: _emptyBox('No additional fields required for this category.'),
+      );
+    }
+
+    final List<Widget> children = [];
+    int i = 0;
+    while (i < _extraFields.length) {
+      final f1 = _extraFields[i];
+      final type1 = f1['field_type']?.toString().toLowerCase() ?? 'text';
+      if (type1 == 'textarea' || type1 == 'checkbox' || i == _extraFields.length - 1) {
+        children.add(_buildDynamicField(f1));
+        i++;
+      } else {
+        final f2 = _extraFields[i + 1];
+        final type2 = f2['field_type']?.toString().toLowerCase() ?? 'text';
+        if (type2 == 'textarea' || type2 == 'checkbox') {
+          children.add(_buildDynamicField(f1));
+          i++;
+        } else {
+          children.add(_row([
+            _buildDynamicField(f1),
+            _buildDynamicField(f2),
+          ]));
+          i += 2;
+        }
+      }
+      if (i < _extraFields.length) {
+        children.add(const SizedBox(height: 8));
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: children,
+    );
+  }
 
   Widget _victimIdentityProtectionWarning(BuildContext context) {
     return Container(
@@ -4426,7 +4693,7 @@ class CommonFormState extends State<CommonForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _subHeader('ALL PANCHANAMA (SELECT TO ADD DATE & TIME)'),
-          ..._kProceduralKeys.entries.map((e) {
+          ..._activeProceduralKeys.entries.map((e) {
             final on = _procChecks[e.key] ?? false;
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -4648,13 +4915,13 @@ class CommonFormState extends State<CommonForm> {
             padding: const EdgeInsets.only(bottom: 12),
             child: DropdownButtonFormField<String>(
               initialValue:
-                  _kPreventiveItems.contains(_prevAction) ? _prevAction : null,
+                  _activePreventiveItems.contains(_prevAction) ? _prevAction : null,
               dropdownColor: Colors.white,
               isExpanded: true,
               decoration: _d('Preventive Action'),
               style: _tsBody,
               icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
-              items: _kPreventiveItems.map((item) {
+              items: _activePreventiveItems.map((item) {
                 return DropdownMenuItem<String>(
                   value: item,
                   child: Text(
@@ -4685,81 +4952,168 @@ class CommonFormState extends State<CommonForm> {
       );
 
   // ── §15 (Card 16) Discharge Accused ───────────────────────────────────────
-  Widget _s15() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _subHeader('DISCHARGE ACCUSED NAME'),
-          if (allAccusedNames.isEmpty)
-            Text(
-              TranslationHelper.translate(
-                context,
-                'No accused registered in Accused section.',
+  Widget _s15() {
+    final arrested = <String>[];
+    for (final r in _arrestRows) {
+      final name = (r['accusedName'] as String?)?.trim() ?? '';
+      final dt = (r['arrestDt'] as TextEditingController?)?.text.trim() ?? '';
+      final hasArrest = dt.isNotEmpty ||
+          r['sec47_48'] == true ||
+          r['relOnNotice'] == true ||
+          r['anticipatoryBail'] == true;
+      if (name.isNotEmpty && hasArrest) {
+        arrested.add(name);
+      }
+    }
+    final availableAccused = arrested.isNotEmpty ? arrested : allAccusedNames;
+    final dischargedAccused = allAccusedNames.where((n) => _discharge[n] == true).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _subHeader('DISCHARGE ACCUSED (FROM ARREST)'),
+        if (availableAccused.isEmpty)
+          Text(
+            TranslationHelper.translate(
+              context,
+              'No accused registered in Accused section.',
+            ),
+            style: _tsMuted,
+          )
+        else ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: DropdownButtonFormField<String>(
+              dropdownColor: Colors.white,
+              isExpanded: true,
+              decoration: _d('Select Arrested Accused to Discharge'),
+              style: _tsBody,
+              icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
+              hint: Text(
+                TranslationHelper.translate(
+                  context,
+                  'Select Arrested Accused to Discharge',
+                ),
+                style: _tsMuted,
               ),
-              style: _tsMuted,
+              items: availableAccused.map((name) {
+                final isAlreadyDischarged = _discharge[name] == true;
+                return DropdownMenuItem<String>(
+                  value: name,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(name, style: _tsBody),
+                      if (isAlreadyDischarged)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _kTeal.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            TranslationHelper.translate(context, 'Discharged'),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: _kTeal,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (selectedName) {
+                if (selectedName != null) {
+                  setState(() {
+                    _discharge[selectedName] = true;
+                  });
+                }
+              },
+            ),
+          ),
+          if (dischargedAccused.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                TranslationHelper.translate(
+                  context,
+                  'No accused currently marked as discharged. Select an accused from the dropdown above to discharge.',
+                ),
+                style: _tsMuted,
+              ),
             )
           else
-            ...allAccusedNames.map((name) {
-              final isDischarged = _discharge[name] ?? false;
+            ...dischargedAccused.map((name) {
               final dateCtrl = _getDischargeDateCtrl(name);
               final reasonCtrl = _getDischargeReasonCtrl(name);
 
               return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color:
-                      isDischarged ? _kTeal.withValues(alpha: 0.05) : _kInputBg,
+                  color: _kTeal.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isDischarged ? _kTeal : _kBorder,
-                  ),
+                  border: Border.all(color: _kTeal),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          _discharge[name] = !isDischarged;
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(6),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isDischarged
-                                ? Icons.check_box
-                                : Icons.check_box_outline_blank,
-                            size: 18,
-                            color: isDischarged ? _kTeal : _kSec,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.check_circle_rounded, size: 18, color: _kTeal),
+                            const SizedBox(width: 8),
+                            Text(
                               name,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isDischarged
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isDischarged ? _kDark : _kSec,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: _kDark,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: _kTeal.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                TranslationHelper.translate(context, 'Discharged'),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: _kTeal,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 18, color: _kRed),
+                          tooltip: TranslationHelper.translate(context, 'Remove Discharge'),
+                          onPressed: () {
+                            setState(() {
+                              _discharge[name] = false;
+                            });
+                          },
+                        ),
+                      ],
                     ),
-                    if (isDischarged) ...[
-                      const SizedBox(height: 8),
-                      _row([
-                        _dateField('Discharge Date', dateCtrl),
-                        _tf('Discharge Reason', reasonCtrl),
-                      ]),
-                    ],
+                    const SizedBox(height: 8),
+                    _row([
+                      _dateField('Discharge Date', dateCtrl),
+                      _tf('Discharge Reason', reasonCtrl),
+                    ]),
                   ],
                 ),
               );
             }),
+        ],
           _divider(),
           _subHeader('ADDITIONAL DISCHARGED PERSONS'),
           if (_customDischargeList.isEmpty)
@@ -4823,6 +5177,7 @@ class CommonFormState extends State<CommonForm> {
           }),
         ],
       );
+  }
 
   // ── §16 (Card 17) Scrutiny ────────────────────────────────────────────────
   Widget _s16() {
@@ -5002,139 +5357,7 @@ class CommonFormState extends State<CommonForm> {
 // ══════════════════════════════════════════════════════════════════════════════
 // _PersonSelectOrCustomField — dropdown of persons (accused) with custom option
 // ══════════════════════════════════════════════════════════════════════════════
-class _PersonSelectOrCustomField extends StatefulWidget {
-  const _PersonSelectOrCustomField({
-    required this.label,
-    required this.options,
-    required this.ctrl,
-    required this.decoration,
-    required this.style,
-    this.otherLabel = 'Type New Name',
-    this.onChanged,
-  });
-
-  final String label;
-  final List<String> options;
-  final TextEditingController ctrl;
-  final InputDecoration decoration;
-  final TextStyle style;
-  final String otherLabel;
-  final void Function(String)? onChanged;
-
-  @override
-  State<_PersonSelectOrCustomField> createState() =>
-      _PersonSelectOrCustomFieldState();
-}
-
-class _PersonSelectOrCustomFieldState
-    extends State<_PersonSelectOrCustomField> {
-  String? _selected;
-  final _customCtrl = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _initSelected();
-  }
-
-  @override
-  void didUpdateWidget(covariant _PersonSelectOrCustomField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.options != widget.options ||
-        oldWidget.ctrl.text != widget.ctrl.text) {
-      _initSelected();
-    }
-  }
-
-  void _initSelected() {
-    final t = widget.ctrl.text.trim();
-    if (t.isEmpty) {
-      _selected = null;
-      _customCtrl.clear();
-    } else if (widget.options.contains(t)) {
-      _selected = t;
-    } else {
-      _selected = 'Other (Type New Name)';
-      _customCtrl.text = t;
-    }
-  }
-
-  @override
-  void dispose() {
-    _customCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isOther = _selected == 'Other (Type New Name)';
-    final dropdownItems = [
-      ...widget.options,
-      'Other (Type New Name)',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DropdownButtonFormField<String>(
-          initialValue: dropdownItems.contains(_selected) ? _selected : null,
-          dropdownColor: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          menuMaxHeight: 300,
-          isExpanded: true,
-          decoration: widget.decoration.copyWith(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          ),
-          style: widget.style,
-          icon: const Icon(Icons.arrow_drop_down,
-              size: 20, color: Color(0xFF64748B)),
-          hint: Text(
-            TranslationHelper.translate(context, widget.label),
-            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-          ),
-          items: dropdownItems
-              .map((e) => DropdownMenuItem(
-                  value: e,
-                  child: Text(
-                    TranslationHelper.translate(context, e),
-                    style:
-                        const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
-                  )))
-              .toList(),
-          onChanged: (v) {
-            setState(() {
-              _selected = v;
-              if (v != null && v != 'Other (Type New Name)') {
-                widget.ctrl.text = v;
-                widget.onChanged?.call(v);
-              } else if (v == 'Other (Type New Name)') {
-                widget.ctrl.text = _customCtrl.text;
-                widget.onChanged?.call(_customCtrl.text);
-              }
-            });
-          },
-        ),
-        if (isOther) ...[
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _customCtrl,
-            style: widget.style,
-            decoration: widget.decoration.copyWith(
-              hintText: TranslationHelper.translate(context, widget.otherLabel),
-              labelText:
-                  TranslationHelper.translate(context, widget.otherLabel),
-            ),
-            onChanged: (v) {
-              widget.ctrl.text = v;
-              widget.onChanged?.call(v);
-            },
-          ),
-        ],
-      ],
-    );
-  }
-}
+typedef _PersonSelectOrCustomField = PersonSelectOrCustomField;
 
 // ══════════════════════════════════════════════════════════════════════════════
 // _RelationField — relationship dropdown with 'Other' option
@@ -5259,11 +5482,13 @@ class _SectionSearchPicker extends StatefulWidget {
     required this.selected,
     required this.onAdd,
     required this.onRemove,
+    this.actsData,
   });
   final String actKey;
   final Set<String> selected;
   final ValueChanged<String> onAdd;
   final ValueChanged<String> onRemove;
+  final Map<String, Map<String, dynamic>>? actsData;
 
   @override
   State<_SectionSearchPicker> createState() => _SectionSearchPickerState();
@@ -5282,8 +5507,9 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final acts = widget.actsData ?? ACT_DATA;
     final sections =
-        (ACT_DATA[widget.actKey]?['sections'] as List<dynamic>? ?? [])
+        (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
             .map((r) => r as Map<String, dynamic>)
             .toList();
 

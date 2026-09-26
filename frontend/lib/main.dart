@@ -37,6 +37,7 @@ import 'screens/station_access_grants_screen.dart';
 import 'screens/login_security_screen.dart';
 import 'screens/app_settings_screen.dart';
 import 'screens/classification_list_screen.dart';
+import 'screens/standalone_selection_screen.dart';
 import 'screens/pin_reauth_screen.dart';
 import 'services/api_config.dart';
 import 'services/biometric_service.dart';
@@ -331,6 +332,7 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
         AppRoutes.stationAccessGrants: (_) => const StationAccessGrantsScreen(),
         AppRoutes.loginSecurity: (_) => const LoginSecurityScreen(),
         AppRoutes.appSettings: (_) => const AppSettingsScreen(),
+        AppRoutes.standaloneCategories: (_) => const StandaloneSelectionScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.registerPinSetup) {

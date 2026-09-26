@@ -82,6 +82,7 @@ import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
 import '../widgets/send_broadcast_alert_dialog.dart';
+import '../utils/category_navigation_helper.dart';
 import '../widgets/send_reminder_dialog.dart';
 import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/voice_search_dialog.dart';
@@ -135,6 +136,10 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.dice;
     case 'A.D':
       return FontAwesomeIcons.triangleExclamation;
+    case 'Suicide':
+      return FontAwesomeIcons.heartCrack;
+    case 'ST Drugs':
+      return FontAwesomeIcons.capsules;
     case 'Hurt':
       return FontAwesomeIcons.userInjured;
     case 'Theft':
@@ -3114,6 +3119,8 @@ class _HomeTabState extends State<_HomeTab> {
     Classification('Gambling', 'monetization_on', 'coin'),
     Classification('RTI', 'description', 'application'),
     Classification('M.V Act', 'traffic', 'traffic'),
+    Classification('Suicide', 'heart_broken', 'suicide'),
+    Classification('ST Drugs', 'medication', 'st_drugs'),
   ];
 
   List<({String title, String subtext, IconData icon, VoidCallback onTap})>
@@ -3466,13 +3473,11 @@ class _HomeTabState extends State<_HomeTab> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                          page: const FormIVSelectionScreen(
-                            mode: FormIVSelectionMode.browse,
-                          ),
-                        ),
+                      CategoryNavigationHelper.handleDashboardCategoryTap(
+                        context: context,
+                        categoryName: cat,
+                        moduleKey: 'form_1_5',
+                        readOnly: false,
                       );
                     },
                     child: Container(
@@ -3703,6 +3708,8 @@ class _HomeTabState extends State<_HomeTab> {
         return Icons.inventory_2_rounded;
       case 'two_wheeler':
         return Icons.two_wheeler_rounded;
+      case 'folder_special':
+        return Icons.folder_special_rounded;
       default:
         return Icons.folder_rounded;
     }
@@ -3889,16 +3896,25 @@ class _HomeTabState extends State<_HomeTab> {
     } else {
       final isStatsItem =
           ['Monthly', 'Pending', 'Disposal'].contains(item.name);
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: ModuleHubScreen(
-            moduleLabel: item.name.replaceAll('\n', ' '),
-            moduleKey: item.moduleKey,
-            readOnly: isStatsItem,
+      if (isStatsItem) {
+        Navigator.push(
+          context,
+          AppTheme.fadeSlideRoute(
+            page: ModuleHubScreen(
+              moduleLabel: item.name.replaceAll('\n', ' '),
+              moduleKey: item.moduleKey,
+              readOnly: true,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        CategoryNavigationHelper.handleDashboardCategoryTap(
+          context: context,
+          categoryName: item.name,
+          moduleKey: item.moduleKey,
+          readOnly: false,
+        );
+      }
     }
   }
 
@@ -9203,6 +9219,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   page: CommonFormScreen(
                 moduleLabel: item.name,
                 moduleKey: item.moduleKey,
+                subCategory: item.name,
               )));
         } else {
           Navigator.push(
@@ -9211,6 +9228,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   page: ModuleFormScreen(
                 moduleLabel: item.name,
                 moduleKey: item.moduleKey,
+                subCategory: item.name,
               )));
         }
       },

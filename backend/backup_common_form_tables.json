@@ -1,0 +1,5248 @@
+{
+  "acts": [
+    {
+      "model": "crimetab.act",
+      "pk": 5,
+      "fields": {
+        "act_code": "BNS",
+        "act_name": "Bharatiya Nyaya Sanhita 2023",
+        "is_active": true,
+        "created_at": "2026-09-15T08:31:38.875Z"
+      }
+    },
+    {
+      "model": "crimetab.act",
+      "pk": 6,
+      "fields": {
+        "act_code": "IPC",
+        "act_name": "Indian Penal Code 1860",
+        "is_active": true,
+        "created_at": "2026-09-15T08:31:38.985Z"
+      }
+    }
+  ],
+  "act_sections": [
+    {
+      "model": "crimetab.actsection",
+      "pk": 12,
+      "fields": {
+        "act": 5,
+        "section_number": "100",
+        "title": "Culpable homicide",
+        "description": "IPC 299",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T07:57:22.905Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 205,
+      "fields": {
+        "act": 5,
+        "section_number": "101",
+        "title": "Murder",
+        "description": "IPC 300",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:23.515Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 14,
+      "fields": {
+        "act": 5,
+        "section_number": "102",
+        "title": "Culpable homicide by causing death of person other than person whose death was intended",
+        "description": "IPC 301",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T07:57:23.206Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 206,
+      "fields": {
+        "act": 5,
+        "section_number": "103",
+        "title": "Punishment for murder",
+        "description": "IPC 302",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:24.168Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 207,
+      "fields": {
+        "act": 5,
+        "section_number": "104",
+        "title": "Punishment for murder by life-convict",
+        "description": "IPC 303",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:24.486Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 208,
+      "fields": {
+        "act": 5,
+        "section_number": "105",
+        "title": "Punishment for culpable homicide not amounting to murder",
+        "description": "IPC 304",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:24.588Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 17,
+      "fields": {
+        "act": 5,
+        "section_number": "106",
+        "title": "Causing death by negligence",
+        "description": "IPC 304A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T07:57:23.555Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 18,
+      "fields": {
+        "act": 5,
+        "section_number": "107",
+        "title": "Abetment of suicide of child or person of unsound mind",
+        "description": "IPC 305",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T07:57:23.686Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 19,
+      "fields": {
+        "act": 5,
+        "section_number": "108",
+        "title": "Abetment of suicide",
+        "description": "IPC 306",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T07:57:23.778Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 209,
+      "fields": {
+        "act": 5,
+        "section_number": "109",
+        "title": "Attempt to murder",
+        "description": "IPC 307",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:24.866Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 21,
+      "fields": {
+        "act": 5,
+        "section_number": "110",
+        "title": "Attempt to commit culpable homicide",
+        "description": "IPC 308",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T07:57:24.061Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 22,
+      "fields": {
+        "act": 5,
+        "section_number": "111",
+        "title": "Organised crime",
+        "description": "New Section",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T07:57:24.170Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 23,
+      "fields": {
+        "act": 5,
+        "section_number": "112",
+        "title": "Petty organised crime",
+        "description": "New Section",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T07:57:24.533Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 24,
+      "fields": {
+        "act": 5,
+        "section_number": "113",
+        "title": "Terrorist act",
+        "description": "New Section",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T07:57:24.734Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 91,
+      "fields": {
+        "act": 5,
+        "section_number": "189",
+        "title": "Unlawful assembly",
+        "description": "IPC 141",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:14.161Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 92,
+      "fields": {
+        "act": 5,
+        "section_number": "190",
+        "title": "Every member of unlawful assembly guilty of offence committed in prosecution of common object",
+        "description": "IPC 149",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:14.578Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 93,
+      "fields": {
+        "act": 5,
+        "section_number": "191",
+        "title": "Rioting",
+        "description": "IPC 146",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:14.761Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 94,
+      "fields": {
+        "act": 5,
+        "section_number": "192",
+        "title": "Wantonly giving provocation with intent to cause riot",
+        "description": "IPC 153",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:15.229Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 95,
+      "fields": {
+        "act": 5,
+        "section_number": "193",
+        "title": "Liability of owner, occupier, etc., of land on which an unlawful assembly or riot takes place",
+        "description": "IPC 154",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:15.395Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 96,
+      "fields": {
+        "act": 5,
+        "section_number": "194",
+        "title": "Liability of person for whose benefit riot is committed",
+        "description": "IPC 155",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:15.868Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 97,
+      "fields": {
+        "act": 5,
+        "section_number": "195",
+        "title": "Promoting enmity between different groups on grounds of religion, race, place of birth, etc.",
+        "description": "IPC 153A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:16.060Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 98,
+      "fields": {
+        "act": 5,
+        "section_number": "196",
+        "title": "Imputations, assertions prejudicial to national-integration",
+        "description": "IPC 153B",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:16.668Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 99,
+      "fields": {
+        "act": 5,
+        "section_number": "197",
+        "title": "Offence committed in place of worship with deliberate intent to wound religious feelings",
+        "description": "IPC 295A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:17.280Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 100,
+      "fields": {
+        "act": 5,
+        "section_number": "198",
+        "title": "Public servant disobeying law with intent to cause injury to any person",
+        "description": "IPC 166",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:17.775Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 101,
+      "fields": {
+        "act": 5,
+        "section_number": "199",
+        "title": "Public servant framing an incorrect document with intent to cause injury",
+        "description": "IPC 167",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:17.937Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 102,
+      "fields": {
+        "act": 5,
+        "section_number": "200",
+        "title": "Public servant disobeying direction under law",
+        "description": "IPC 166A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:18.114Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 103,
+      "fields": {
+        "act": 5,
+        "section_number": "201",
+        "title": "Public servant unlawfully engaging in trade",
+        "description": "IPC 168",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:18.287Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 104,
+      "fields": {
+        "act": 5,
+        "section_number": "202",
+        "title": "Public servant unlawfully buying or bidding for property",
+        "description": "IPC 169",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:18.462Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 105,
+      "fields": {
+        "act": 5,
+        "section_number": "203",
+        "title": "Personating a public servant",
+        "description": "IPC 170",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:18.630Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 106,
+      "fields": {
+        "act": 5,
+        "section_number": "204",
+        "title": "Wearing garb or carrying token used by public servant with fraudulent intent",
+        "description": "IPC 171",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:18.799Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 107,
+      "fields": {
+        "act": 5,
+        "section_number": "205",
+        "title": "Absconding to avoid service of summons or other proceeding",
+        "description": "IPC 172",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:18.968Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 108,
+      "fields": {
+        "act": 5,
+        "section_number": "206",
+        "title": "Preventing service of summons or other proceeding",
+        "description": "IPC 173",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:19.142Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 109,
+      "fields": {
+        "act": 5,
+        "section_number": "207",
+        "title": "Non-attendance in obedience to an order from public servant",
+        "description": "IPC 174",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:19.508Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 110,
+      "fields": {
+        "act": 5,
+        "section_number": "208",
+        "title": "Omission to produce document to public servant by person legally bound",
+        "description": "IPC 175",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:19.686Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 111,
+      "fields": {
+        "act": 5,
+        "section_number": "209",
+        "title": "Omission to give notice or information to public servant by person legally bound",
+        "description": "IPC 176",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:20.052Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 112,
+      "fields": {
+        "act": 5,
+        "section_number": "210",
+        "title": "Furnishing false information",
+        "description": "IPC 177",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:20.412Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 113,
+      "fields": {
+        "act": 5,
+        "section_number": "211",
+        "title": "Refusing oath or affirmation when duly required by public servant",
+        "description": "IPC 178",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:20.777Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 114,
+      "fields": {
+        "act": 5,
+        "section_number": "212",
+        "title": "Refusing to sign statement",
+        "description": "IPC 180",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:20.943Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 115,
+      "fields": {
+        "act": 5,
+        "section_number": "213",
+        "title": "False statement on oath or affirmation to public servant",
+        "description": "IPC 181",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:21.123Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 116,
+      "fields": {
+        "act": 5,
+        "section_number": "214",
+        "title": "False information with intent to cause public servant to use lawful power to injury of another",
+        "description": "IPC 182",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:21.307Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 117,
+      "fields": {
+        "act": 5,
+        "section_number": "215",
+        "title": "Refusing to assist public servant when bound by law to give assistance",
+        "description": "IPC 187",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:21.682Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 118,
+      "fields": {
+        "act": 5,
+        "section_number": "216",
+        "title": "Obstructing public servant in discharge of public functions",
+        "description": "IPC 186",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:21.841Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 119,
+      "fields": {
+        "act": 5,
+        "section_number": "217",
+        "title": "Omission to assist public servant when bound by law to give assistance",
+        "description": "IPC 187",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:22.029Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 120,
+      "fields": {
+        "act": 5,
+        "section_number": "218",
+        "title": "Disobedience to order duly promulgated by public servant",
+        "description": "IPC 188",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:22.206Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 121,
+      "fields": {
+        "act": 5,
+        "section_number": "219",
+        "title": "Threat of injury to public servant",
+        "description": "IPC 189",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:22.576Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 122,
+      "fields": {
+        "act": 5,
+        "section_number": "220",
+        "title": "Threat of injury to induce person to refrain from applying for protection",
+        "description": "IPC 190",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:22.757Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 123,
+      "fields": {
+        "act": 5,
+        "section_number": "221",
+        "title": "Obstructing sale of property offered for sale by authority of public servant",
+        "description": "IPC 184",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:22.923Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 124,
+      "fields": {
+        "act": 5,
+        "section_number": "222",
+        "title": "Illegal purchase or bid for property offered for sale by authority of public servant",
+        "description": "IPC 185",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:23.106Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 125,
+      "fields": {
+        "act": 5,
+        "section_number": "223",
+        "title": "Disobedience to order duly promulgated by public servant",
+        "description": "IPC 188",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:23.290Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 126,
+      "fields": {
+        "act": 5,
+        "section_number": "224",
+        "title": "Threat of injury to public servant",
+        "description": "IPC 189",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:23.664Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 127,
+      "fields": {
+        "act": 5,
+        "section_number": "225",
+        "title": "Threat of injury to induce person to refrain from applying for protection",
+        "description": "IPC 190",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:23.831Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 128,
+      "fields": {
+        "act": 5,
+        "section_number": "226",
+        "title": "Attempt to commit suicide to compel or restrain exercise of lawful power",
+        "description": "New Section",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:24.007Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 129,
+      "fields": {
+        "act": 5,
+        "section_number": "227",
+        "title": "Giving false evidence",
+        "description": "IPC 191",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:24.188Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 130,
+      "fields": {
+        "act": 5,
+        "section_number": "228",
+        "title": "Fabricating false evidence",
+        "description": "IPC 192",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:24.365Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 131,
+      "fields": {
+        "act": 5,
+        "section_number": "229",
+        "title": "Punishment for false evidence in judicial proceeding",
+        "description": "IPC 193",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:24.539Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 132,
+      "fields": {
+        "act": 5,
+        "section_number": "230",
+        "title": "Giving or fabricating false evidence with intent to procure conviction of capital offence",
+        "description": "IPC 194",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:24.906Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 133,
+      "fields": {
+        "act": 5,
+        "section_number": "231",
+        "title": "Giving or fabricating false evidence with intent to procure conviction of offence punishable with imprisonment for life",
+        "description": "IPC 195",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:25.275Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 134,
+      "fields": {
+        "act": 5,
+        "section_number": "232",
+        "title": "Threatening any person to give false evidence",
+        "description": "IPC 195A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:25.450Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 135,
+      "fields": {
+        "act": 5,
+        "section_number": "233",
+        "title": "Using evidence known to be false",
+        "description": "IPC 196",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:25.616Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 136,
+      "fields": {
+        "act": 5,
+        "section_number": "234",
+        "title": "Issuing or signing false certificate",
+        "description": "IPC 197",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:25.785Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 137,
+      "fields": {
+        "act": 5,
+        "section_number": "235",
+        "title": "Using as true a certificate known to be false",
+        "description": "IPC 198",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:25.965Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 138,
+      "fields": {
+        "act": 5,
+        "section_number": "236",
+        "title": "False statement made in declaration which is by law receivable as evidence",
+        "description": "IPC 199",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:26.140Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 139,
+      "fields": {
+        "act": 5,
+        "section_number": "237",
+        "title": "Using as true any declaration containing false statement",
+        "description": "IPC 200",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:26.316Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 140,
+      "fields": {
+        "act": 5,
+        "section_number": "238",
+        "title": "Causing disappearance of evidence of offence",
+        "description": "IPC 201",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:26.502Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 141,
+      "fields": {
+        "act": 5,
+        "section_number": "239",
+        "title": "Intentional omission to give information of an offence by person bound to inform",
+        "description": "IPC 202",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:26.976Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 142,
+      "fields": {
+        "act": 5,
+        "section_number": "240",
+        "title": "Destruction of document or electronic record to prevent its production as evidence",
+        "description": "IPC 204",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:27.147Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 143,
+      "fields": {
+        "act": 5,
+        "section_number": "241",
+        "title": "False personation for purpose of act or proceeding in suit or prosecution",
+        "description": "IPC 205",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:27.324Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 144,
+      "fields": {
+        "act": 5,
+        "section_number": "242",
+        "title": "Fraudulent removal or concealment of property to prevent its seizure as forfeited",
+        "description": "IPC 206",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:27.488Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 145,
+      "fields": {
+        "act": 5,
+        "section_number": "243",
+        "title": "Fraudulent claim to property to prevent its seizure as forfeited",
+        "description": "IPC 207",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:27.675Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 146,
+      "fields": {
+        "act": 5,
+        "section_number": "244",
+        "title": "Fraudulently suffering decree for sum not due",
+        "description": "IPC 208",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:27.888Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 147,
+      "fields": {
+        "act": 5,
+        "section_number": "245",
+        "title": "Dishonestly making false claim in Court",
+        "description": "IPC 209",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:28.059Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 148,
+      "fields": {
+        "act": 5,
+        "section_number": "246",
+        "title": "Fraudulently obtaining decree for sum not due",
+        "description": "IPC 210",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:28.239Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 149,
+      "fields": {
+        "act": 5,
+        "section_number": "247",
+        "title": "False charge of offence made with intent to injure",
+        "description": "IPC 211",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:28.417Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 150,
+      "fields": {
+        "act": 5,
+        "section_number": "248",
+        "title": "Harbouring offender in capital case",
+        "description": "IPC 212",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:28.600Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 151,
+      "fields": {
+        "act": 5,
+        "section_number": "249",
+        "title": "Taking gift, etc., to screen an offender from punishment",
+        "description": "IPC 213",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:28.961Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 152,
+      "fields": {
+        "act": 5,
+        "section_number": "250",
+        "title": "Offering gift or restoration of property in consideration of screening offender",
+        "description": "IPC 214",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:29.343Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 153,
+      "fields": {
+        "act": 5,
+        "section_number": "251",
+        "title": "Harbouring offender who has escaped from custody or whose apprehension has been ordered",
+        "description": "IPC 216",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:29.518Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 154,
+      "fields": {
+        "act": 5,
+        "section_number": "252",
+        "title": "Penalty for harbouring robbers or dacoits",
+        "description": "IPC 216A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:29.686Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 155,
+      "fields": {
+        "act": 5,
+        "section_number": "253",
+        "title": "Public servant disobeying direction of law with intent to save person from punishment",
+        "description": "IPC 217",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:29.862Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 156,
+      "fields": {
+        "act": 5,
+        "section_number": "254",
+        "title": "Public servant framing incorrect record with intent to save person from punishment",
+        "description": "IPC 218",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:30.033Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 157,
+      "fields": {
+        "act": 5,
+        "section_number": "255",
+        "title": "Public servant in judicial proceeding corruptly making report contrary to law",
+        "description": "IPC 219",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:30.195Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 158,
+      "fields": {
+        "act": 5,
+        "section_number": "256",
+        "title": "Commitment for trial or confinement by person having authority who knows that he is acting contrary to law",
+        "description": "IPC 220",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:30.370Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 159,
+      "fields": {
+        "act": 5,
+        "section_number": "257",
+        "title": "Intentional omission to apprehend on part of public servant bound to apprehend",
+        "description": "IPC 221",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:30.546Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 160,
+      "fields": {
+        "act": 5,
+        "section_number": "258",
+        "title": "Intentional omission to apprehend person under sentence",
+        "description": "IPC 222",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:30.919Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 161,
+      "fields": {
+        "act": 5,
+        "section_number": "259",
+        "title": "Escape from confinement or custody negligently suffered by public servant",
+        "description": "IPC 223",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:31.286Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 162,
+      "fields": {
+        "act": 5,
+        "section_number": "260",
+        "title": "Resistance or obstruction by a person to his lawful apprehension",
+        "description": "IPC 224",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:31.460Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 163,
+      "fields": {
+        "act": 5,
+        "section_number": "261",
+        "title": "Resistance or obstruction to lawful apprehension of another person",
+        "description": "IPC 225",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:31.636Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 164,
+      "fields": {
+        "act": 5,
+        "section_number": "262",
+        "title": "Omission to apprehend, or sufferance of escape, in cases not otherwise provided for",
+        "description": "IPC 225A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:31.805Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 165,
+      "fields": {
+        "act": 5,
+        "section_number": "263",
+        "title": "Resistance or obstruction to lawful apprehension or escape in cases not otherwise provided for",
+        "description": "IPC 225B",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:31.977Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 166,
+      "fields": {
+        "act": 5,
+        "section_number": "264",
+        "title": "Violation of condition of remission of punishment",
+        "description": "IPC 227",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:32.153Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 167,
+      "fields": {
+        "act": 5,
+        "section_number": "265",
+        "title": "Influencing witness",
+        "description": "New Section",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:32.322Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 168,
+      "fields": {
+        "act": 5,
+        "section_number": "266",
+        "title": "Personation of an assessor",
+        "description": "IPC 229",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:32.492Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 169,
+      "fields": {
+        "act": 5,
+        "section_number": "267",
+        "title": "Failure by person released on bail or bond to appear in Court",
+        "description": "IPC 229A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:32.692Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 170,
+      "fields": {
+        "act": 5,
+        "section_number": "268",
+        "title": "Public nuisance",
+        "description": "IPC 268",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:33.057Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 171,
+      "fields": {
+        "act": 5,
+        "section_number": "269",
+        "title": "Negligent act likely to spread infection of disease dangerous to life",
+        "description": "IPC 269",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:33.235Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 172,
+      "fields": {
+        "act": 5,
+        "section_number": "270",
+        "title": "Malignant act likely to spread infection of disease dangerous to life",
+        "description": "IPC 270",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:33.408Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 173,
+      "fields": {
+        "act": 5,
+        "section_number": "271",
+        "title": "Disobedience to quarantine rule",
+        "description": "IPC 271",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:33.587Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 174,
+      "fields": {
+        "act": 5,
+        "section_number": "272",
+        "title": "Adulteration of food or drink intended for sale",
+        "description": "IPC 272",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:33.759Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 175,
+      "fields": {
+        "act": 5,
+        "section_number": "273",
+        "title": "Sale of noxious food or drink",
+        "description": "IPC 273",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:33.937Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 176,
+      "fields": {
+        "act": 5,
+        "section_number": "274",
+        "title": "Adulteration of drugs",
+        "description": "IPC 274",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:34.114Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 177,
+      "fields": {
+        "act": 5,
+        "section_number": "275",
+        "title": "Sale of adulterated drugs",
+        "description": "IPC 275",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:34.286Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 178,
+      "fields": {
+        "act": 5,
+        "section_number": "276",
+        "title": "Sale of drug as a different drug or preparation",
+        "description": "IPC 276",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:34.457Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 179,
+      "fields": {
+        "act": 5,
+        "section_number": "277",
+        "title": "Fouling water of public spring or reservoir",
+        "description": "IPC 277",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:34.630Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 180,
+      "fields": {
+        "act": 5,
+        "section_number": "278",
+        "title": "Making atmosphere noxious to health",
+        "description": "IPC 278",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:34.807Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 181,
+      "fields": {
+        "act": 5,
+        "section_number": "279",
+        "title": "Rash driving or riding on a public way",
+        "description": "IPC 279",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:34.981Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 182,
+      "fields": {
+        "act": 5,
+        "section_number": "280",
+        "title": "Rash navigation of vessel",
+        "description": "IPC 280",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:35.153Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 183,
+      "fields": {
+        "act": 5,
+        "section_number": "281",
+        "title": "Exhibition of false light, mark or buoy",
+        "description": "IPC 281",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:35.324Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 184,
+      "fields": {
+        "act": 5,
+        "section_number": "282",
+        "title": "Conveying person by water for hire in unsafe or overloaded vessel",
+        "description": "IPC 282",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:35.506Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 185,
+      "fields": {
+        "act": 5,
+        "section_number": "283",
+        "title": "Danger or obstruction in public way or line of navigation",
+        "description": "IPC 283",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:35.677Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 186,
+      "fields": {
+        "act": 5,
+        "section_number": "284",
+        "title": "Negligent conduct with respect to poisonous substance",
+        "description": "IPC 284",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:35.852Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 187,
+      "fields": {
+        "act": 5,
+        "section_number": "285",
+        "title": "Negligent conduct with respect to fire or combustible matter",
+        "description": "IPC 285",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:36.027Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 188,
+      "fields": {
+        "act": 5,
+        "section_number": "286",
+        "title": "Negligent conduct with respect to explosive substance",
+        "description": "IPC 286",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:36.202Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 189,
+      "fields": {
+        "act": 5,
+        "section_number": "287",
+        "title": "Negligent conduct with respect to machinery",
+        "description": "IPC 287",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:36.383Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 190,
+      "fields": {
+        "act": 5,
+        "section_number": "288",
+        "title": "Negligent conduct with respect to pulling down or repairing buildings",
+        "description": "IPC 288",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:36.561Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 191,
+      "fields": {
+        "act": 5,
+        "section_number": "289",
+        "title": "Negligent conduct with respect to animal",
+        "description": "IPC 289",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:36.725Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 192,
+      "fields": {
+        "act": 5,
+        "section_number": "290",
+        "title": "Punishment for public nuisance in cases not otherwise provided for",
+        "description": "IPC 290",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:36.886Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 193,
+      "fields": {
+        "act": 5,
+        "section_number": "291",
+        "title": "Continuance of nuisance after injunction to discontinue",
+        "description": "IPC 291",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:37.048Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 194,
+      "fields": {
+        "act": 5,
+        "section_number": "292",
+        "title": "Sale, etc., of obscene books, etc.",
+        "description": "IPC 292",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:37.211Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 195,
+      "fields": {
+        "act": 5,
+        "section_number": "293",
+        "title": "Sale, etc., of obscene objects to child / young person",
+        "description": "IPC 293",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:38.137Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 196,
+      "fields": {
+        "act": 5,
+        "section_number": "294",
+        "title": "Obscene acts in public place",
+        "description": "IPC 294",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:38.320Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 197,
+      "fields": {
+        "act": 5,
+        "section_number": "295",
+        "title": "Keeping lottery office",
+        "description": "IPC 294A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:38.693Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 198,
+      "fields": {
+        "act": 5,
+        "section_number": "296",
+        "title": "Injuring or defiling place of worship with intent to insult religion",
+        "description": "IPC 295",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:38.877Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 199,
+      "fields": {
+        "act": 5,
+        "section_number": "297",
+        "title": "Deliberate and malicious acts intended to outrage religious feelings",
+        "description": "IPC 295A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:39.052Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 200,
+      "fields": {
+        "act": 5,
+        "section_number": "298",
+        "title": "Disturbing religious assembly",
+        "description": "IPC 296",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:39.224Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 201,
+      "fields": {
+        "act": 5,
+        "section_number": "299",
+        "title": "Trespassing on burial places, etc.",
+        "description": "IPC 297",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:39.395Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 202,
+      "fields": {
+        "act": 5,
+        "section_number": "300",
+        "title": "Uttering words with deliberate intent to wound religious feelings",
+        "description": "IPC 298",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:39.565Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 203,
+      "fields": {
+        "act": 5,
+        "section_number": "301",
+        "title": "Uttering words with intent to wound religious feelings",
+        "description": "IPC 298",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:39.738Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 210,
+      "fields": {
+        "act": 5,
+        "section_number": "303",
+        "title": "Theft",
+        "description": "IPC 379",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:15:38.867Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 26,
+      "fields": {
+        "act": 5,
+        "section_number": "304",
+        "title": "Snatching",
+        "description": "New Section",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:16.099Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 211,
+      "fields": {
+        "act": 5,
+        "section_number": "305",
+        "title": "Theft in a dwelling house, or means of transportation or place of worship, etc.",
+        "description": "IPC 380",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:15:39.366Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 212,
+      "fields": {
+        "act": 5,
+        "section_number": "306",
+        "title": "Theft by clerk or servant of property in possession of master",
+        "description": "IPC 381",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:15:39.445Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 213,
+      "fields": {
+        "act": 5,
+        "section_number": "307",
+        "title": "Theft after preparation made for causing death, hurt or restraint in order to committing",
+        "description": "IPC 382",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:15:39.541Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 30,
+      "fields": {
+        "act": 5,
+        "section_number": "308",
+        "title": "Extortion",
+        "description": "IPC 389",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:17.108Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 31,
+      "fields": {
+        "act": 5,
+        "section_number": "309",
+        "title": "Robbery",
+        "description": "IPC 394",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:18.151Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 32,
+      "fields": {
+        "act": 5,
+        "section_number": "310",
+        "title": "Dacoity",
+        "description": "IPC 402",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:19.094Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 33,
+      "fields": {
+        "act": 5,
+        "section_number": "311",
+        "title": "Robbery, or dacoity, with attempt to cause death or grievous hurt",
+        "description": "IPC 397",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:19.978Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 34,
+      "fields": {
+        "act": 5,
+        "section_number": "312",
+        "title": "Attempt to commit robbery or dacoity when armed with deadly weapon",
+        "description": "IPC 398",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:20.164Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 35,
+      "fields": {
+        "act": 5,
+        "section_number": "313",
+        "title": "Punishment for belonging to gang of robbers, etc.",
+        "description": "IPC 401",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:20.363Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 36,
+      "fields": {
+        "act": 5,
+        "section_number": "314",
+        "title": "Dishonest misappropriation of property",
+        "description": "IPC 403",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:20.546Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 37,
+      "fields": {
+        "act": 5,
+        "section_number": "315",
+        "title": "Dishonest misappropriation of property possessed by deceased person at the time of his death",
+        "description": "IPC 404",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:20.741Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 38,
+      "fields": {
+        "act": 5,
+        "section_number": "316",
+        "title": "Criminal breach of trust",
+        "description": "IPC 409",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:20.928Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 39,
+      "fields": {
+        "act": 5,
+        "section_number": "317",
+        "title": "Stolen property",
+        "description": "IPC 414",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:21.704Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 40,
+      "fields": {
+        "act": 5,
+        "section_number": "318",
+        "title": "Cheating",
+        "description": "IPC 420",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:22.452Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 41,
+      "fields": {
+        "act": 5,
+        "section_number": "319",
+        "title": "Cheating by personation",
+        "description": "IPC 419",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:23.109Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 42,
+      "fields": {
+        "act": 5,
+        "section_number": "320",
+        "title": "Dishonest or fraudulent removal or concealment of property to prevent distribution among creditors",
+        "description": "IPC 421",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:23.501Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 43,
+      "fields": {
+        "act": 5,
+        "section_number": "321",
+        "title": "Dishonestly or fraudulently preventing debt being available for creditors",
+        "description": "IPC 422",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:23.695Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 44,
+      "fields": {
+        "act": 5,
+        "section_number": "322",
+        "title": "Dishonest or fraudulent execution of deed of transfer containing false statement of consideration",
+        "description": "IPC 423",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:23.886Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 45,
+      "fields": {
+        "act": 5,
+        "section_number": "323",
+        "title": "Dishonest or fraudulent removal or concealment of property",
+        "description": "IPC 424",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:24.080Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 46,
+      "fields": {
+        "act": 5,
+        "section_number": "324",
+        "title": "Mischief",
+        "description": "IPC 440",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:24.269Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 47,
+      "fields": {
+        "act": 5,
+        "section_number": "325",
+        "title": "Mischief by killing or maiming animal",
+        "description": "Mischief by killing or maiming animal",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:25.159Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 48,
+      "fields": {
+        "act": 5,
+        "section_number": "326",
+        "title": "Mischief by injury, inundation, fire or explosive substance, etc.",
+        "description": "IPC 436",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:25.345Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 49,
+      "fields": {
+        "act": 5,
+        "section_number": "327",
+        "title": "Mischief with intent to destroy or make unsafe a rail, aircraft, decked vessel or one of twenty tons burden",
+        "description": "IPC 438",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:26.461Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 214,
+      "fields": {
+        "act": 5,
+        "section_number": "328",
+        "title": "Punishment for intentionally running vessel aground or ashore with intent to commit theft, etc.",
+        "description": "IPC 439",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-17T07:15:44.782Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 51,
+      "fields": {
+        "act": 5,
+        "section_number": "329",
+        "title": "Criminal trespass and house-trespass",
+        "description": "IPC 448",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:27.076Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 52,
+      "fields": {
+        "act": 5,
+        "section_number": "330",
+        "title": "House-trespass and house-breaking",
+        "description": "IPC 445",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:27.729Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 53,
+      "fields": {
+        "act": 5,
+        "section_number": "331",
+        "title": "Punishment for house-trespass or house-breaking",
+        "description": "IPC 460",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:28.746Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 54,
+      "fields": {
+        "act": 5,
+        "section_number": "63",
+        "title": "Rape",
+        "description": "IPC 375",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:52.074Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 55,
+      "fields": {
+        "act": 5,
+        "section_number": "64",
+        "title": "Punishment for Rape",
+        "description": "IPC 376",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:53.452Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 56,
+      "fields": {
+        "act": 5,
+        "section_number": "65",
+        "title": "Punishment for Rape in certain cases",
+        "description": "IPC 376(3)",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:12.165Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 57,
+      "fields": {
+        "act": 5,
+        "section_number": "66",
+        "title": "Punishment for causing death or persistent vegetative state of victim",
+        "description": "IPC 376A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:12.740Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 58,
+      "fields": {
+        "act": 5,
+        "section_number": "67",
+        "title": "Sexual intercourse by husband upon his wife during separation",
+        "description": "IPC 376B",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:13.149Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 59,
+      "fields": {
+        "act": 5,
+        "section_number": "68",
+        "title": "Sexual intercourse by a person in authority",
+        "description": "IPC 376C",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:13.415Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 60,
+      "fields": {
+        "act": 5,
+        "section_number": "69",
+        "title": "Sexual intercourse by employing deceitful means,etc.",
+        "description": "New Section",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:14.093Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 61,
+      "fields": {
+        "act": 5,
+        "section_number": "70",
+        "title": "Gang rape",
+        "description": "IPC 376D",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:14.290Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 62,
+      "fields": {
+        "act": 5,
+        "section_number": "71",
+        "title": "Punishment for repeat offenders",
+        "description": "IPC 376E",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:14.714Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 63,
+      "fields": {
+        "act": 5,
+        "section_number": "72",
+        "title": "Disclosure of identity of victim of certain offences,etc.",
+        "description": "IPC 228A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:14.907Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 64,
+      "fields": {
+        "act": 5,
+        "section_number": "73",
+        "title": "Printing or publishing any matter relating to court proceedings without permission",
+        "description": "IPC 228A(3)",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:15.727Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 65,
+      "fields": {
+        "act": 5,
+        "section_number": "74",
+        "title": "Assault or use of criminal force to woman with intent to outrage her modesty",
+        "description": "IPC 354",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:15.912Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 66,
+      "fields": {
+        "act": 5,
+        "section_number": "75",
+        "title": "Sexual harassment",
+        "description": "IPC 354A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:16.122Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 67,
+      "fields": {
+        "act": 5,
+        "section_number": "76",
+        "title": "Assault or use of criminal force to woman with intent to disrobe",
+        "description": "IPC 354B",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:17.027Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 68,
+      "fields": {
+        "act": 5,
+        "section_number": "77",
+        "title": "Voyeurism",
+        "description": "IPC 354C",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:17.213Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 69,
+      "fields": {
+        "act": 5,
+        "section_number": "78",
+        "title": "Stalking",
+        "description": "IPC 354D",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:17.406Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 70,
+      "fields": {
+        "act": 5,
+        "section_number": "79",
+        "title": "Word, gesture or act intended to insult modesty of a woman",
+        "description": "IPC 509",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:18.166Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 71,
+      "fields": {
+        "act": 5,
+        "section_number": "80",
+        "title": "Dowry death",
+        "description": "IPC 304B",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:18.929Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 72,
+      "fields": {
+        "act": 5,
+        "section_number": "81",
+        "title": "Cohabitation caused by man deceitfully inducing belief of lawful marriage",
+        "description": "IPC 493",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:19.121Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 73,
+      "fields": {
+        "act": 5,
+        "section_number": "82",
+        "title": "Marrying again during lifetime of husband or wife",
+        "description": "IPC 494",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:19.316Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 74,
+      "fields": {
+        "act": 5,
+        "section_number": "83",
+        "title": "Marriage ceremony fraudulently gone through without lawful marriage",
+        "description": "IPC 496",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:19.773Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 75,
+      "fields": {
+        "act": 5,
+        "section_number": "84",
+        "title": "Enticing or taking away or detaining with criminal intent a married woman",
+        "description": "IPC 498",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:19.971Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 76,
+      "fields": {
+        "act": 5,
+        "section_number": "85",
+        "title": "Husband or relative of husband of a woman subjecting her to cruelty",
+        "description": "IPC 498A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:20.309Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 77,
+      "fields": {
+        "act": 5,
+        "section_number": "86",
+        "title": "Cruelty defined",
+        "description": "IPC 498A Explanation",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:20.491Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 78,
+      "fields": {
+        "act": 5,
+        "section_number": "87",
+        "title": "Kidnapping, abducting or inducing woman to compel her marriage,etc.",
+        "description": "IPC 366",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:20.898Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 79,
+      "fields": {
+        "act": 5,
+        "section_number": "88",
+        "title": "Causing miscarriage",
+        "description": "IPC 312",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:21.078Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 80,
+      "fields": {
+        "act": 5,
+        "section_number": "89",
+        "title": "Causing miscarriage without woman consent",
+        "description": "IPC 313",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:21.363Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 81,
+      "fields": {
+        "act": 5,
+        "section_number": "90",
+        "title": "Death caused by act done with intent to cause miscarriage",
+        "description": "IPC 314",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:21.546Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 82,
+      "fields": {
+        "act": 5,
+        "section_number": "91",
+        "title": "Act done with intent to prevent child being born alive or to cause to die after birth",
+        "description": "IPC 315",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:21.940Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 83,
+      "fields": {
+        "act": 5,
+        "section_number": "92",
+        "title": "Causing death of quick unborn child by act amounting to culpable homicide",
+        "description": "IPC 316",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:22.120Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 84,
+      "fields": {
+        "act": 5,
+        "section_number": "93",
+        "title": "Exposure and abandonment of child under twelve years of age, by parent",
+        "description": "IPC 317",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:22.312Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 85,
+      "fields": {
+        "act": 5,
+        "section_number": "94",
+        "title": "Concealment of birth by secret disposal of dead body",
+        "description": "IPC 318",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:22.508Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 86,
+      "fields": {
+        "act": 5,
+        "section_number": "95",
+        "title": "Hiring, employing or engaging a child to commit an offence",
+        "description": "New Section",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:22.696Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 87,
+      "fields": {
+        "act": 5,
+        "section_number": "96",
+        "title": "Procuration of child",
+        "description": "IPC 366A",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:23.221Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 88,
+      "fields": {
+        "act": 5,
+        "section_number": "97",
+        "title": "Kidnapping or abducting child under ten years with intent to steal from its person",
+        "description": "IPC 369",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:23.408Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 89,
+      "fields": {
+        "act": 5,
+        "section_number": "98",
+        "title": "Selling child for purposes of prostitution, etc.",
+        "description": "IPC 372",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:23.591Z"
+      }
+    },
+    {
+      "model": "crimetab.actsection",
+      "pk": 90,
+      "fields": {
+        "act": 5,
+        "section_number": "99",
+        "title": "Buying child for purposes of prostitution, etc.",
+        "description": "IPC 373",
+        "bailable_type": "Non-Bailable",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:23.780Z"
+      }
+    }
+  ],
+  "act_subsections": [
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 7,
+      "fields": {
+        "section": 17,
+        "subsection_code": "1",
+        "description": "Causing death by rash or negligent act (IPC 304A)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:45.393Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 8,
+      "fields": {
+        "section": 17,
+        "subsection_code": "2",
+        "description": "Causing death by rash and negligent driving (New Sub-Section)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:45.505Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 11,
+      "fields": {
+        "section": 22,
+        "subsection_code": "1(i)",
+        "description": "Organised crime - Kidnapping / Robbery / Cyber crime",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:45.855Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 12,
+      "fields": {
+        "section": 22,
+        "subsection_code": "1(ii)",
+        "description": "Organised crime - Trafficking / Extortion",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:45.972Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 13,
+      "fields": {
+        "section": 22,
+        "subsection_code": "1(iii)",
+        "description": "Organised crime - Contract killing / Land grabbing",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:46.091Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 14,
+      "fields": {
+        "section": 22,
+        "subsection_code": "2(a)",
+        "description": "Punishment if organised crime results in death",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:46.205Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 15,
+      "fields": {
+        "section": 22,
+        "subsection_code": "2(b)",
+        "description": "Punishment in other cases of organised crime",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:46.321Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 16,
+      "fields": {
+        "section": 22,
+        "subsection_code": "3",
+        "description": "Harbouring member of organised crime syndicate",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:46.500Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 17,
+      "fields": {
+        "section": 22,
+        "subsection_code": "4",
+        "description": "Being a member of an organised crime syndicate",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:46.609Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 18,
+      "fields": {
+        "section": 22,
+        "subsection_code": "5",
+        "description": "Holding property derived from organised crime",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:46.725Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 19,
+      "fields": {
+        "section": 22,
+        "subsection_code": "6",
+        "description": "Possession of property on behalf of syndicate",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:46.843Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 20,
+      "fields": {
+        "section": 22,
+        "subsection_code": "7",
+        "description": "Organised crime syndicate general",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:46.972Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 21,
+      "fields": {
+        "section": 23,
+        "subsection_code": "1",
+        "description": "Petty organised crime",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:47.088Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 22,
+      "fields": {
+        "section": 23,
+        "subsection_code": "2",
+        "description": "Punishment for petty organised crime",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:47.206Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 23,
+      "fields": {
+        "section": 24,
+        "subsection_code": "1",
+        "description": "Terrorist act definition & elements",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:47.341Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 24,
+      "fields": {
+        "section": 24,
+        "subsection_code": "1(a)",
+        "description": "Terrorist act - Causing death or bodily injury",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:47.533Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 25,
+      "fields": {
+        "section": 24,
+        "subsection_code": "1(b)",
+        "description": "Terrorist act - Damage/destruction of property",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:47.675Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 26,
+      "fields": {
+        "section": 24,
+        "subsection_code": "a(i)",
+        "description": "Terrorist act method - Explosives",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:47.790Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 27,
+      "fields": {
+        "section": 24,
+        "subsection_code": "a(ii)",
+        "description": "Terrorist act method - Firearms / Lethal weapons",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:47.904Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 28,
+      "fields": {
+        "section": 24,
+        "subsection_code": "a(iii)",
+        "description": "Terrorist act method - Poisonous gases / Chemicals",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:48.020Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 29,
+      "fields": {
+        "section": 24,
+        "subsection_code": "a(iv)",
+        "description": "Terrorist act method - Biological / Nuclear substances",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:48.129Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 30,
+      "fields": {
+        "section": 24,
+        "subsection_code": "a(v)",
+        "description": "Terrorist act method - Other hazardous means",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:48.257Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 31,
+      "fields": {
+        "section": 24,
+        "subsection_code": "b",
+        "description": "Terrorist act - Disrupting essential supplies",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:48.373Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 32,
+      "fields": {
+        "section": 24,
+        "subsection_code": "c",
+        "description": "Terrorist act - Monetary stability / Fake currency",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:48.489Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 33,
+      "fields": {
+        "section": 24,
+        "subsection_code": "2(a)",
+        "description": "Terrorist act punishment - If death results",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:48.608Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 34,
+      "fields": {
+        "section": 24,
+        "subsection_code": "2(b)",
+        "description": "Terrorist act punishment - In any other case",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:48.717Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 35,
+      "fields": {
+        "section": 24,
+        "subsection_code": "3",
+        "description": "Conspiring or facilitating terrorist act",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:48.829Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 36,
+      "fields": {
+        "section": 24,
+        "subsection_code": "4",
+        "description": "Organising camps or recruiting for terrorist act",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:48.943Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 37,
+      "fields": {
+        "section": 24,
+        "subsection_code": "5",
+        "description": "Harbouring person who committed terrorist act",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:49.053Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 38,
+      "fields": {
+        "section": 24,
+        "subsection_code": "6",
+        "description": "Being a member of terrorist association",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:49.173Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 39,
+      "fields": {
+        "section": 24,
+        "subsection_code": "7",
+        "description": "Holding property derived from terrorism",
+        "is_active": true,
+        "created_at": "2026-09-16T08:21:49.277Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 42,
+      "fields": {
+        "section": 26,
+        "subsection_code": "1",
+        "description": "Snatching (New Section)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:16.295Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 43,
+      "fields": {
+        "section": 26,
+        "subsection_code": "2",
+        "description": "Snatching (New Section)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:16.411Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 44,
+      "fields": {
+        "section": 30,
+        "subsection_code": "1",
+        "description": "Extortion (IPC 383)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:17.325Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 45,
+      "fields": {
+        "section": 30,
+        "subsection_code": "2",
+        "description": "Extortion (IPC 384)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:17.449Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 46,
+      "fields": {
+        "section": 30,
+        "subsection_code": "3",
+        "description": "Extortion (IPC 385)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:17.577Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 47,
+      "fields": {
+        "section": 30,
+        "subsection_code": "4",
+        "description": "Extortion (IPC 386)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:17.695Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 48,
+      "fields": {
+        "section": 30,
+        "subsection_code": "5",
+        "description": "Extortion (IPC 387)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:17.824Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 49,
+      "fields": {
+        "section": 30,
+        "subsection_code": "6",
+        "description": "Extortion (IPC 388)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:17.944Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 50,
+      "fields": {
+        "section": 30,
+        "subsection_code": "7",
+        "description": "Extortion (IPC 389)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:18.063Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 51,
+      "fields": {
+        "section": 31,
+        "subsection_code": "1",
+        "description": "Robbery (IPC 390)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:18.355Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 52,
+      "fields": {
+        "section": 31,
+        "subsection_code": "2",
+        "description": "Robbery (IPC 390)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:18.476Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 89,
+      "fields": {
+        "section": 48,
+        "subsection_code": "e",
+        "description": "Mischief by injury, inundation, fire or explosive substance, etc. (IPC 434)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:26.018Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 90,
+      "fields": {
+        "section": 48,
+        "subsection_code": "f",
+        "description": "Mischief by injury, inundation, fire or explosive substance, etc. (IPC 435)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:26.254Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 91,
+      "fields": {
+        "section": 48,
+        "subsection_code": "g",
+        "description": "Mischief by injury, inundation, fire or explosive substance, etc. (IPC 436)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:26.365Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 92,
+      "fields": {
+        "section": 49,
+        "subsection_code": "1",
+        "description": "Mischief with intent to destroy or make unsafe a rail, aircraft, decked vessel or one of twenty tons burden (IPC 437)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:26.662Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 93,
+      "fields": {
+        "section": 49,
+        "subsection_code": "2",
+        "description": "Mischief with intent to destroy or make unsafe a rail, aircraft, decked vessel or one of twenty tons burden (IPC 438)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:26.791Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 94,
+      "fields": {
+        "section": 51,
+        "subsection_code": "1",
+        "description": "Criminal trespass and house-trespass (IPC 441)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:27.264Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 95,
+      "fields": {
+        "section": 51,
+        "subsection_code": "2",
+        "description": "Criminal trespass and house-trespass (IPC 442)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:27.389Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 96,
+      "fields": {
+        "section": 51,
+        "subsection_code": "3",
+        "description": "Criminal trespass and house-trespass (IPC 447)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:27.509Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 97,
+      "fields": {
+        "section": 51,
+        "subsection_code": "4",
+        "description": "Criminal trespass and house-trespass (IPC 448)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:27.625Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 106,
+      "fields": {
+        "section": 53,
+        "subsection_code": "2",
+        "description": "Punishment for house-trespass or house-breaking (IPC 454)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:29.060Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 107,
+      "fields": {
+        "section": 53,
+        "subsection_code": "3",
+        "description": "Punishment for house-trespass or house-breaking (IPC 455)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:29.173Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 108,
+      "fields": {
+        "section": 53,
+        "subsection_code": "4",
+        "description": "Punishment for house-trespass or house-breaking (IPC 456)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:29.306Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 109,
+      "fields": {
+        "section": 53,
+        "subsection_code": "5",
+        "description": "Punishment for house-trespass or house-breaking (IPC 457)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:29.425Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 110,
+      "fields": {
+        "section": 53,
+        "subsection_code": "6",
+        "description": "Punishment for house-trespass or house-breaking (IPC 458)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:29.542Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 111,
+      "fields": {
+        "section": 53,
+        "subsection_code": "7",
+        "description": "Punishment for house-trespass or house-breaking (IPC 459)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:29.665Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 112,
+      "fields": {
+        "section": 53,
+        "subsection_code": "8",
+        "description": "Punishment for house-trespass or house-breaking (IPC 460)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:29.786Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 113,
+      "fields": {
+        "section": 54,
+        "subsection_code": "a",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:52.319Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 114,
+      "fields": {
+        "section": 54,
+        "subsection_code": "b",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:52.440Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 115,
+      "fields": {
+        "section": 54,
+        "subsection_code": "c",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:52.534Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 116,
+      "fields": {
+        "section": 54,
+        "subsection_code": "d(i)",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:52.651Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 117,
+      "fields": {
+        "section": 54,
+        "subsection_code": "d(ii)",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:52.753Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 118,
+      "fields": {
+        "section": 54,
+        "subsection_code": "d(iii)",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:52.855Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 119,
+      "fields": {
+        "section": 54,
+        "subsection_code": "d(iv)",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:52.961Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 120,
+      "fields": {
+        "section": 54,
+        "subsection_code": "d(v)",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:53.063Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 121,
+      "fields": {
+        "section": 54,
+        "subsection_code": "d(vi)",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:53.169Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 122,
+      "fields": {
+        "section": 54,
+        "subsection_code": "d(vii)",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:53.269Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 123,
+      "fields": {
+        "section": 54,
+        "subsection_code": "d(viii)",
+        "description": "Rape (IPC 375)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:08:53.368Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 124,
+      "fields": {
+        "section": 55,
+        "subsection_code": "1",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:10.313Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 125,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:10.436Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 126,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(a)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:10.567Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 127,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(b)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:10.687Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 128,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(c)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:10.809Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 129,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(d)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:10.935Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 130,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(e)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:11.052Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 131,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(f)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:11.166Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 132,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(g)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:11.295Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 133,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(h)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:11.409Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 134,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(i)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:11.526Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 135,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(j)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:11.646Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 136,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(k)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:11.769Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 137,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(l)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:11.884Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 138,
+      "fields": {
+        "section": 55,
+        "subsection_code": "2(m)",
+        "description": "Punishment for Rape (IPC 376)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:12.009Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 139,
+      "fields": {
+        "section": 56,
+        "subsection_code": "1",
+        "description": "Punishment for Rape in certain cases (IPC 376(3))",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:12.456Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 140,
+      "fields": {
+        "section": 56,
+        "subsection_code": "2",
+        "description": "Punishment for Rape in certain cases (IPC 376AB)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:12.640Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 141,
+      "fields": {
+        "section": 57,
+        "subsection_code": "1",
+        "description": "Punishment for causing death or persistent vegetative state of victim (IPC 376A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:12.935Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 142,
+      "fields": {
+        "section": 57,
+        "subsection_code": "2",
+        "description": "Punishment for causing death or persistent vegetative state of victim (IPC 376A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:13.058Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 143,
+      "fields": {
+        "section": 59,
+        "subsection_code": "a",
+        "description": "Sexual intercourse by a person in authority (IPC 376C)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:13.624Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 144,
+      "fields": {
+        "section": 59,
+        "subsection_code": "b",
+        "description": "Sexual intercourse by a person in authority (IPC 376C)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:13.745Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 145,
+      "fields": {
+        "section": 59,
+        "subsection_code": "c",
+        "description": "Sexual intercourse by a person in authority (IPC 376C)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:13.859Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 146,
+      "fields": {
+        "section": 59,
+        "subsection_code": "d",
+        "description": "Sexual intercourse by a person in authority (IPC 376C)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:14.000Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 147,
+      "fields": {
+        "section": 61,
+        "subsection_code": "1",
+        "description": "Gang rape (IPC 376D)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:14.474Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 148,
+      "fields": {
+        "section": 61,
+        "subsection_code": "2",
+        "description": "Gang rape (IPC 376DA / 376DB)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:14.593Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 149,
+      "fields": {
+        "section": 63,
+        "subsection_code": "1",
+        "description": "Disclosure of identity of victim of certain offences,etc. (IPC 228A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:15.095Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 150,
+      "fields": {
+        "section": 63,
+        "subsection_code": "2",
+        "description": "Disclosure of identity of victim of certain offences,etc. (IPC 228A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:15.216Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 151,
+      "fields": {
+        "section": 63,
+        "subsection_code": "2(a)",
+        "description": "Disclosure of identity of victim of certain offences,etc. (IPC 228A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:15.335Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 152,
+      "fields": {
+        "section": 63,
+        "subsection_code": "2(b)",
+        "description": "Disclosure of identity of victim of certain offences,etc. (IPC 228A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:15.451Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 153,
+      "fields": {
+        "section": 63,
+        "subsection_code": "2(c)",
+        "description": "Disclosure of identity of victim of certain offences,etc. (IPC 228A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:15.573Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 154,
+      "fields": {
+        "section": 66,
+        "subsection_code": "1(i)",
+        "description": "Sexual harassment (IPC 354A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:16.323Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 155,
+      "fields": {
+        "section": 66,
+        "subsection_code": "1(ii)",
+        "description": "Sexual harassment (IPC 354A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:16.445Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 156,
+      "fields": {
+        "section": 66,
+        "subsection_code": "1(iii)",
+        "description": "Sexual harassment (IPC 354A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:16.570Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 157,
+      "fields": {
+        "section": 66,
+        "subsection_code": "1(iv)",
+        "description": "Sexual harassment (IPC 354A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:16.697Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 158,
+      "fields": {
+        "section": 66,
+        "subsection_code": "2",
+        "description": "Sexual harassment (IPC 354A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:16.810Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 159,
+      "fields": {
+        "section": 66,
+        "subsection_code": "3",
+        "description": "Sexual harassment (IPC 354A)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:16.933Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 160,
+      "fields": {
+        "section": 69,
+        "subsection_code": "1",
+        "description": "Stalking (IPC 354D)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:17.600Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 161,
+      "fields": {
+        "section": 69,
+        "subsection_code": "1(i)",
+        "description": "Stalking (IPC 354D)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:17.715Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 162,
+      "fields": {
+        "section": 69,
+        "subsection_code": "1(ii)",
+        "description": "Stalking (IPC 354D)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:17.837Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 163,
+      "fields": {
+        "section": 69,
+        "subsection_code": "1(iii)",
+        "description": "Stalking (IPC 354D)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:17.955Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 164,
+      "fields": {
+        "section": 69,
+        "subsection_code": "2",
+        "description": "Stalking (IPC 354D)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:18.073Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 165,
+      "fields": {
+        "section": 70,
+        "subsection_code": "1",
+        "description": "Word, gesture or act intended to insult modesty of a woman (IPC 509)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:18.350Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 166,
+      "fields": {
+        "section": 70,
+        "subsection_code": "2",
+        "description": "Word, gesture or act intended to insult modesty of a woman (IPC 509)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:18.472Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 167,
+      "fields": {
+        "section": 73,
+        "subsection_code": "1",
+        "description": "Marrying again during lifetime of husband or wife (IPC 494)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:19.506Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 168,
+      "fields": {
+        "section": 73,
+        "subsection_code": "2",
+        "description": "Marrying again during lifetime of husband or wife (IPC 495)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:19.679Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 169,
+      "fields": {
+        "section": 77,
+        "subsection_code": "a",
+        "description": "Cruelty defined (IPC 498A Explanation)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:20.684Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 170,
+      "fields": {
+        "section": 77,
+        "subsection_code": "b",
+        "description": "Cruelty defined (IPC 498A Explanation)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:20.803Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 171,
+      "fields": {
+        "section": 81,
+        "subsection_code": "1",
+        "description": "Death caused by act done with intent to cause miscarriage (IPC 314)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:21.736Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 172,
+      "fields": {
+        "section": 81,
+        "subsection_code": "2",
+        "description": "Death caused by act done with intent to cause miscarriage (IPC 314)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:21.845Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 173,
+      "fields": {
+        "section": 86,
+        "subsection_code": "1",
+        "description": "Hiring, employing or engaging a child to commit an offence (New Section)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:22.880Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 174,
+      "fields": {
+        "section": 86,
+        "subsection_code": "2",
+        "description": "Hiring, employing or engaging a child to commit an offence (New Section)",
+        "is_active": true,
+        "created_at": "2026-09-16T09:11:22.996Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 175,
+      "fields": {
+        "section": 91,
+        "subsection_code": "1",
+        "description": "Unlawful assembly (IPC 141)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:14.376Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 176,
+      "fields": {
+        "section": 91,
+        "subsection_code": "2",
+        "description": "Unlawful assembly (IPC 141)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:14.492Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 183,
+      "fields": {
+        "section": 97,
+        "subsection_code": "1(a)",
+        "description": "Promoting enmity between different groups on grounds of religion, race, place of birth, etc. (IPC 153A)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:16.244Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 200,
+      "fields": {
+        "section": 112,
+        "subsection_code": "1",
+        "description": "Furnishing false information (IPC 177)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:20.581Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 177,
+      "fields": {
+        "section": 93,
+        "subsection_code": "1",
+        "description": "Rioting (IPC 146)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:14.927Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 178,
+      "fields": {
+        "section": 93,
+        "subsection_code": "2",
+        "description": "Rioting (IPC 147)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:15.029Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 179,
+      "fields": {
+        "section": 93,
+        "subsection_code": "3",
+        "description": "Rioting (IPC 148)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:15.144Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 180,
+      "fields": {
+        "section": 95,
+        "subsection_code": "1",
+        "description": "Liability of owner, occupier, etc., of land on which an unlawful assembly or riot takes place (IPC 154)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:15.559Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 181,
+      "fields": {
+        "section": 95,
+        "subsection_code": "2",
+        "description": "Liability of owner, occupier, etc., of land on which an unlawful assembly or riot takes place (IPC 155)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:15.664Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 182,
+      "fields": {
+        "section": 95,
+        "subsection_code": "3",
+        "description": "Liability of owner, occupier, etc., of land on which an unlawful assembly or riot takes place (IPC 156)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:15.779Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 184,
+      "fields": {
+        "section": 97,
+        "subsection_code": "1(b)",
+        "description": "Promoting enmity between different groups on grounds of religion, race, place of birth, etc. (IPC 153A)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:16.351Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 185,
+      "fields": {
+        "section": 97,
+        "subsection_code": "1(c)",
+        "description": "Promoting enmity between different groups on grounds of religion, race, place of birth, etc. (IPC 153A)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:16.462Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 186,
+      "fields": {
+        "section": 97,
+        "subsection_code": "2",
+        "description": "Promoting enmity in place of worship, etc. (IPC 153A(2))",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:16.581Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 187,
+      "fields": {
+        "section": 98,
+        "subsection_code": "1(a)",
+        "description": "Imputations, assertions prejudicial to national-integration (IPC 153B)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:16.849Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 188,
+      "fields": {
+        "section": 98,
+        "subsection_code": "1(b)",
+        "description": "Imputations, assertions prejudicial to national-integration (IPC 153B)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:16.960Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 189,
+      "fields": {
+        "section": 98,
+        "subsection_code": "1(c)",
+        "description": "Imputations, assertions prejudicial to national-integration (IPC 153B)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:17.078Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 190,
+      "fields": {
+        "section": 98,
+        "subsection_code": "2",
+        "description": "Imputations prejudicial to national-integration in place of worship (IPC 153B(2))",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:17.189Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 191,
+      "fields": {
+        "section": 99,
+        "subsection_code": "1(a)",
+        "description": "Offence committed in place of worship with deliberate intent to wound religious feelings (IPC 295A)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:17.467Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 192,
+      "fields": {
+        "section": 99,
+        "subsection_code": "1(b)",
+        "description": "Offence committed in place of worship with deliberate intent to wound religious feelings (IPC 295A)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:17.585Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 193,
+      "fields": {
+        "section": 99,
+        "subsection_code": "2",
+        "description": "Offence committed in place of worship with deliberate intent to wound religious feelings (IPC 295A)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:17.692Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 194,
+      "fields": {
+        "section": 108,
+        "subsection_code": "1",
+        "description": "Preventing service of summons or other proceeding (IPC 173)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:19.313Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 195,
+      "fields": {
+        "section": 108,
+        "subsection_code": "2",
+        "description": "Preventing publication of summons or order (IPC 173)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:19.421Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 196,
+      "fields": {
+        "section": 110,
+        "subsection_code": "1",
+        "description": "Omission to produce document to public servant by person legally bound (IPC 175)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:19.861Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 197,
+      "fields": {
+        "section": 110,
+        "subsection_code": "2",
+        "description": "Omission to produce electronic record to public servant (IPC 175)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:19.965Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 198,
+      "fields": {
+        "section": 111,
+        "subsection_code": "1",
+        "description": "Omission to give notice or information to public servant by person legally bound (IPC 176)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:20.220Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 199,
+      "fields": {
+        "section": 111,
+        "subsection_code": "2",
+        "description": "Omission to give notice or information with respect to commission of offence (IPC 176)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:20.324Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 208,
+      "fields": {
+        "section": 131,
+        "subsection_code": "1",
+        "description": "Punishment for false evidence in judicial proceeding (IPC 193)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:24.715Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 209,
+      "fields": {
+        "section": 131,
+        "subsection_code": "2",
+        "description": "Punishment for false evidence in any other case (IPC 193)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:24.825Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 210,
+      "fields": {
+        "section": 132,
+        "subsection_code": "1",
+        "description": "Giving or fabricating false evidence with intent to procure conviction of capital offence (IPC 194)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:25.083Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 211,
+      "fields": {
+        "section": 132,
+        "subsection_code": "2",
+        "description": "Giving false evidence if innocent person be thereby convicted and executed (IPC 194)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:25.190Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 212,
+      "fields": {
+        "section": 140,
+        "subsection_code": "a",
+        "description": "Causing disappearance of evidence of offence (IPC 201)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:26.667Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 213,
+      "fields": {
+        "section": 140,
+        "subsection_code": "b",
+        "description": "Giving false information to screen offender (IPC 201)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:26.784Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 214,
+      "fields": {
+        "section": 140,
+        "subsection_code": "c",
+        "description": "Giving false information in capital offence (IPC 201)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:26.893Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 215,
+      "fields": {
+        "section": 150,
+        "subsection_code": "a",
+        "description": "Harbouring offender in capital case (IPC 212)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:28.759Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 216,
+      "fields": {
+        "section": 150,
+        "subsection_code": "b",
+        "description": "Harbouring offender in other cases (IPC 212)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:28.879Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 217,
+      "fields": {
+        "section": 151,
+        "subsection_code": "a",
+        "description": "Taking gift, etc., to screen an offender from punishment (IPC 213)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:29.142Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 218,
+      "fields": {
+        "section": 151,
+        "subsection_code": "b",
+        "description": "Taking gift to screen offender in capital offence (IPC 213)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:29.255Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 219,
+      "fields": {
+        "section": 159,
+        "subsection_code": "1",
+        "description": "Intentional omission to apprehend on part of public servant bound to apprehend (IPC 221)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:30.720Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 220,
+      "fields": {
+        "section": 159,
+        "subsection_code": "2",
+        "description": "Intentional omission to apprehend in capital case (IPC 221)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:30.829Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 221,
+      "fields": {
+        "section": 160,
+        "subsection_code": "1",
+        "description": "Intentional omission to apprehend person under sentence (IPC 222)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:31.093Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 222,
+      "fields": {
+        "section": 160,
+        "subsection_code": "2",
+        "description": "Intentional omission to apprehend person under sentence of death (IPC 222)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:31.201Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 223,
+      "fields": {
+        "section": 169,
+        "subsection_code": "1",
+        "description": "Failure by person released on bail or bond to appear in Court (IPC 229A)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:32.858Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 224,
+      "fields": {
+        "section": 169,
+        "subsection_code": "2",
+        "description": "Failure by person released on bail to appear in Court (IPC 229A)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:32.976Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 225,
+      "fields": {
+        "section": 194,
+        "subsection_code": "1",
+        "description": "Sale, etc., of obscene books, etc. (IPC 292)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:37.392Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 226,
+      "fields": {
+        "section": 194,
+        "subsection_code": "2(a)",
+        "description": "Sale of obscene books, etc. (IPC 292)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:37.488Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 227,
+      "fields": {
+        "section": 194,
+        "subsection_code": "2(b)",
+        "description": "Import/Export of obscene books (IPC 292)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:37.610Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 228,
+      "fields": {
+        "section": 194,
+        "subsection_code": "2(c)",
+        "description": "Circulation of obscene books (IPC 292)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:37.721Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 229,
+      "fields": {
+        "section": 194,
+        "subsection_code": "2(d)",
+        "description": "Advertising obscene books (IPC 292)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:37.828Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 230,
+      "fields": {
+        "section": 194,
+        "subsection_code": "2(e)",
+        "description": "Offering obscene books for sale (IPC 292)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:37.937Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 231,
+      "fields": {
+        "section": 194,
+        "subsection_code": "3",
+        "description": "Exception for religious/artistic books (IPC 292)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:38.053Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 232,
+      "fields": {
+        "section": 196,
+        "subsection_code": "a",
+        "description": "Obscene acts in public place (IPC 294)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:38.485Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 233,
+      "fields": {
+        "section": 196,
+        "subsection_code": "b",
+        "description": "Obscene songs in public place (IPC 294)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:38.604Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 235,
+      "fields": {
+        "section": 91,
+        "subsection_code": "1(b)",
+        "description": "Unlawful assembly (IPC 141)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:48.789Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 236,
+      "fields": {
+        "section": 91,
+        "subsection_code": "1(c)",
+        "description": "Unlawful assembly (IPC 141)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:48.939Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 237,
+      "fields": {
+        "section": 91,
+        "subsection_code": "1(d)",
+        "description": "Unlawful assembly (IPC 141)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:49.081Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 238,
+      "fields": {
+        "section": 91,
+        "subsection_code": "1(e)",
+        "description": "Unlawful assembly (IPC 141)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:49.229Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 239,
+      "fields": {
+        "section": 91,
+        "subsection_code": "3",
+        "description": "Unlawful assembly - Joining or continuing after command to disperse (IPC 145)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:49.441Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 240,
+      "fields": {
+        "section": 91,
+        "subsection_code": "4",
+        "description": "Unlawful assembly - Armed with deadly weapon (IPC 144)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:49.582Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 241,
+      "fields": {
+        "section": 91,
+        "subsection_code": "5",
+        "description": "Unlawful assembly - Knowingly joining or continuing in assembly of 5+ likely to cause disturbance (IPC 151)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:49.727Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 242,
+      "fields": {
+        "section": 91,
+        "subsection_code": "6",
+        "description": "Unlawful assembly - Hiring or conniving at hiring of persons to join (IPC 150)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:49.878Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 243,
+      "fields": {
+        "section": 91,
+        "subsection_code": "7",
+        "description": "Unlawful assembly - Harbouring persons hired for an unlawful assembly (IPC 157)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:50.013Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 244,
+      "fields": {
+        "section": 91,
+        "subsection_code": "8",
+        "description": "Unlawful assembly - Being hired to take part in an unlawful assembly (IPC 158)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:50.163Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 245,
+      "fields": {
+        "section": 91,
+        "subsection_code": "9",
+        "description": "Unlawful assembly - Being hired to take part and going armed (IPC 158)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:50.301Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 201,
+      "fields": {
+        "section": 112,
+        "subsection_code": "2",
+        "description": "Furnishing false information respecting commission of offence (IPC 177)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:20.692Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 202,
+      "fields": {
+        "section": 116,
+        "subsection_code": "1",
+        "description": "False information with intent to cause public servant to use lawful power to injury of another (IPC 182)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:21.483Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 203,
+      "fields": {
+        "section": 116,
+        "subsection_code": "2",
+        "description": "False information to public servant (IPC 182)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:21.592Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 204,
+      "fields": {
+        "section": 120,
+        "subsection_code": "1",
+        "description": "Disobedience to order duly promulgated by public servant (IPC 188)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:22.378Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 205,
+      "fields": {
+        "section": 120,
+        "subsection_code": "2",
+        "description": "Disobedience causing danger to human life, health or safety (IPC 188)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:22.493Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 206,
+      "fields": {
+        "section": 125,
+        "subsection_code": "1",
+        "description": "Disobedience to order duly promulgated by public servant (IPC 188)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:23.457Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 207,
+      "fields": {
+        "section": 125,
+        "subsection_code": "2",
+        "description": "Disobedience causing riot or affray (IPC 188)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:30:23.574Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 234,
+      "fields": {
+        "section": 91,
+        "subsection_code": "1(a)",
+        "description": "Unlawful assembly (IPC 141)",
+        "is_active": true,
+        "created_at": "2026-09-16T11:35:48.649Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 246,
+      "fields": {
+        "section": 205,
+        "subsection_code": "a",
+        "description": "Murder (IPC 300)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:23.634Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 247,
+      "fields": {
+        "section": 205,
+        "subsection_code": "b",
+        "description": "Murder (IPC 300)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:23.752Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 248,
+      "fields": {
+        "section": 205,
+        "subsection_code": "c",
+        "description": "Murder (IPC 300)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:23.887Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 249,
+      "fields": {
+        "section": 205,
+        "subsection_code": "d",
+        "description": "Murder (IPC 300)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:24.017Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 250,
+      "fields": {
+        "section": 206,
+        "subsection_code": "1",
+        "description": "Punishment for murder (IPC 302)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:24.254Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 251,
+      "fields": {
+        "section": 206,
+        "subsection_code": "2",
+        "description": "Punishment for murder (New Sub-Section)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:24.385Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 252,
+      "fields": {
+        "section": 209,
+        "subsection_code": "1",
+        "description": "Attempt to murder (IPC 307)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:24.957Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 253,
+      "fields": {
+        "section": 209,
+        "subsection_code": "2",
+        "description": "Attempt to murder (IPC 307)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:07:25.085Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 254,
+      "fields": {
+        "section": 210,
+        "subsection_code": "1",
+        "description": "Theft (IPC 378)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:15:38.953Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 255,
+      "fields": {
+        "section": 210,
+        "subsection_code": "2",
+        "description": "Theft (IPC 379)",
+        "is_active": true,
+        "created_at": "2026-09-17T07:15:39.100Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 53,
+      "fields": {
+        "section": 31,
+        "subsection_code": "3",
+        "description": "Robbery (IPC 390)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:18.585Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 54,
+      "fields": {
+        "section": 31,
+        "subsection_code": "4",
+        "description": "Robbery (IPC 392)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:18.758Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 55,
+      "fields": {
+        "section": 31,
+        "subsection_code": "5",
+        "description": "Robbery (IPC 393)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:18.876Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 56,
+      "fields": {
+        "section": 31,
+        "subsection_code": "6",
+        "description": "Robbery (IPC 394)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:18.998Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 57,
+      "fields": {
+        "section": 32,
+        "subsection_code": "1",
+        "description": "Dacoity (IPC 391)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:19.287Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 58,
+      "fields": {
+        "section": 32,
+        "subsection_code": "2",
+        "description": "Dacoity (IPC 395)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:19.396Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 59,
+      "fields": {
+        "section": 32,
+        "subsection_code": "3",
+        "description": "Dacoity (IPC 396)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:19.519Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 60,
+      "fields": {
+        "section": 32,
+        "subsection_code": "4",
+        "description": "Dacoity (IPC 399)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:19.642Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 61,
+      "fields": {
+        "section": 32,
+        "subsection_code": "5",
+        "description": "Dacoity (IPC 400)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:19.761Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 62,
+      "fields": {
+        "section": 32,
+        "subsection_code": "6",
+        "description": "Dacoity (IPC 402)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:19.882Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 63,
+      "fields": {
+        "section": 38,
+        "subsection_code": "1",
+        "description": "Criminal breach of trust (IPC 405)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:21.127Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 64,
+      "fields": {
+        "section": 38,
+        "subsection_code": "2",
+        "description": "Criminal breach of trust (IPC 406)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:21.249Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 65,
+      "fields": {
+        "section": 38,
+        "subsection_code": "3",
+        "description": "Criminal breach of trust (IPC 407)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:21.363Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 66,
+      "fields": {
+        "section": 38,
+        "subsection_code": "4",
+        "description": "Criminal breach of trust (IPC 408)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:21.488Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 67,
+      "fields": {
+        "section": 38,
+        "subsection_code": "5",
+        "description": "Criminal breach of trust (IPC 409)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:21.599Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 68,
+      "fields": {
+        "section": 39,
+        "subsection_code": "1",
+        "description": "Stolen property (IPC 410)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:21.895Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 69,
+      "fields": {
+        "section": 39,
+        "subsection_code": "2",
+        "description": "Stolen property (IPC 411)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:22.002Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 70,
+      "fields": {
+        "section": 39,
+        "subsection_code": "3",
+        "description": "Stolen property (IPC 412)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:22.130Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 71,
+      "fields": {
+        "section": 39,
+        "subsection_code": "4",
+        "description": "Stolen property (IPC 413)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:22.250Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 72,
+      "fields": {
+        "section": 39,
+        "subsection_code": "5",
+        "description": "Stolen property (IPC 414)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:22.366Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 73,
+      "fields": {
+        "section": 40,
+        "subsection_code": "1",
+        "description": "Cheating (IPC 415)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:22.647Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 74,
+      "fields": {
+        "section": 40,
+        "subsection_code": "2",
+        "description": "Cheating (IPC 417)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:22.767Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 75,
+      "fields": {
+        "section": 40,
+        "subsection_code": "3",
+        "description": "Cheating (IPC 418)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:22.882Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 76,
+      "fields": {
+        "section": 40,
+        "subsection_code": "4",
+        "description": "Cheating (IPC 420)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:23.008Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 77,
+      "fields": {
+        "section": 41,
+        "subsection_code": "1",
+        "description": "Cheating by personation (IPC 416)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:23.296Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 78,
+      "fields": {
+        "section": 41,
+        "subsection_code": "2",
+        "description": "Cheating by personation (IPC 419)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:23.409Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 79,
+      "fields": {
+        "section": 46,
+        "subsection_code": "1",
+        "description": "Mischief (IPC 425)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:24.462Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 80,
+      "fields": {
+        "section": 46,
+        "subsection_code": "2",
+        "description": "Mischief (IPC 426)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:24.584Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 81,
+      "fields": {
+        "section": 46,
+        "subsection_code": "3",
+        "description": "Mischief (IPC 427)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:24.697Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 82,
+      "fields": {
+        "section": 46,
+        "subsection_code": "4",
+        "description": "Mischief (IPC 440)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:24.819Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 83,
+      "fields": {
+        "section": 46,
+        "subsection_code": "5",
+        "description": "Mischief",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:24.943Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 84,
+      "fields": {
+        "section": 46,
+        "subsection_code": "6",
+        "description": "Mischief",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:25.059Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 85,
+      "fields": {
+        "section": 48,
+        "subsection_code": "a",
+        "description": "Mischief by injury, inundation, fire or explosive substance, etc. (IPC 430)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:25.531Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 86,
+      "fields": {
+        "section": 48,
+        "subsection_code": "b",
+        "description": "Mischief by injury, inundation, fire or explosive substance, etc. (IPC 431)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:25.661Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 87,
+      "fields": {
+        "section": 48,
+        "subsection_code": "c",
+        "description": "Mischief by injury, inundation, fire or explosive substance, etc. (IPC 432)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:25.779Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 88,
+      "fields": {
+        "section": 48,
+        "subsection_code": "d",
+        "description": "Mischief by injury, inundation, fire or explosive substance, etc. (IPC 433)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:25.898Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 98,
+      "fields": {
+        "section": 52,
+        "subsection_code": "1",
+        "description": "House-trespass and house-breaking (IPC 445)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:27.915Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 99,
+      "fields": {
+        "section": 52,
+        "subsection_code": "2(a)",
+        "description": "House-trespass and house-breaking (IPC 445)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:28.042Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 100,
+      "fields": {
+        "section": 52,
+        "subsection_code": "2(b)",
+        "description": "House-trespass and house-breaking (IPC 445)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:28.159Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 101,
+      "fields": {
+        "section": 52,
+        "subsection_code": "2(c)",
+        "description": "House-trespass and house-breaking (IPC 445)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:28.291Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 102,
+      "fields": {
+        "section": 52,
+        "subsection_code": "2(d)",
+        "description": "House-trespass and house-breaking (IPC 445)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:28.405Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 103,
+      "fields": {
+        "section": 52,
+        "subsection_code": "2(e)",
+        "description": "House-trespass and house-breaking (IPC 445)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:28.528Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 104,
+      "fields": {
+        "section": 52,
+        "subsection_code": "2(f)",
+        "description": "House-trespass and house-breaking (IPC 445)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:28.645Z"
+      }
+    },
+    {
+      "model": "crimetab.actsubsection",
+      "pk": 105,
+      "fields": {
+        "section": 53,
+        "subsection_code": "1",
+        "description": "Punishment for house-trespass or house-breaking (IPC 453)",
+        "is_active": true,
+        "created_at": "2026-09-16T08:31:28.943Z"
+      }
+    }
+  ],
+  "crime_registration_info": [],
+  "crime_case_acts_sections": [],
+  "crime_spot": [],
+  "cases_person": [],
+  "crime_case_responsibility": [],
+  "arrest_release_status": [],
+  "procedural_details": [],
+  "seizure_records": [],
+  "preventive_actions": [],
+  "discharge_status": [],
+  "scrutiny_pipeline": [],
+  "final_verdict": [],
+  "stolen_property": [],
+  "recovered_property": [],
+  "technical_custody": [],
+  "court_filing": []
+}

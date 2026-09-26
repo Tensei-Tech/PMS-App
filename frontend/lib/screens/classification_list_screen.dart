@@ -1,9 +1,16 @@
 // lib/screens/classification_list_screen.dart
-// Issue 6: Generic screen for each classification type from the drawer.
+// Priority 4: Generic screen for each classification type from the drawer / dashboard,
+// dynamically wired to GET /api/categories/{id}/cases/.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+
+import '../modules/core/models/base_record.dart';
+import '../services/case_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
+import 'module_record_detail_screen.dart';
 
 class ClassificationListScreen extends StatefulWidget {
   final String classificationType;
@@ -19,49 +26,70 @@ class ClassificationListScreen extends StatefulWidget {
 }
 
 class _ClassificationListScreenState extends State<ClassificationListScreen> {
+  final CaseService _caseService = CaseService();
   String _filter = 'All';
-  static const _filters = ['All', 'Open', 'Active', 'Resolved'];
+  static const _filters = ['All', 'Pending', 'Active', 'Disposal'];
 
-  // Mock data — in production, this would be fetched from backend
-  // filtered by widget.classificationType
-  late List<Map<String, dynamic>> _cases;
+  List<ModuleRecord> _cases = [];
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _cases = _generateMockCases();
+    _loadCases();
   }
 
-  List<Map<String, dynamic>> _generateMockCases() {
-    // Generate relevant mock cases based on classification type
-    final type = widget.classificationType;
-    final statuses = ['Open', 'Active', 'Resolved', 'Open', 'Active'];
-    final statusColors = [
-      AppColors.warningOrange,
-      AppColors.infoBlue,
-      AppColors.successGreen,
-      AppColors.warningOrange,
-      AppColors.infoBlue,
-    ];
-
-    return List.generate(5, (i) {
-      return {
-        'title': '$type Case — Record #00${i + 1}',
-        'id': 'CLS/${DateTime.now().year}/0${i + 1}',
-        'type': type,
-        'date': '${(8 - i)} Apr ${DateTime.now().year}',
-        'status': statuses[i],
-        'statusColor': statusColors[i],
-        'officer': 'SI Officer ${i + 1}',
-      };
+  Future<void> _loadCases() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final records = await _caseService.fetchCategoryCases(
+        widget.classificationType,
+      );
+      if (!mounted) return;
+      setState(() {
+        _cases = records;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to load cases: $e';
+      });
+    }
+  }
+
+  List<ModuleRecord> get _filteredCases {
+    if (_filter == 'All') return _cases;
+    final f = _filter.toLowerCase();
+    return _cases.where((c) {
+      final s = c.status.toLowerCase();
+      if (f == 'disposal') {
+        return s == 'disposal' || s == 'disposed' || s == 'resolved';
+      }
+      return s == f;
+    }).toList();
+  }
+
+  Color _statusColor(String status) {
+    final s = status.toLowerCase();
+    if (s == 'disposal' || s == 'disposed' || s == 'resolved') {
+      return AppColors.successGreen;
+    }
+    if (s == 'pending' || s == 'active') {
+      return AppColors.infoBlue;
+    }
+    return AppColors.warningOrange;
   }
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filter == 'All'
-        ? _cases
-        : _cases.where((c) => c['status'] == _filter).toList();
+    final filtered = _filteredCases;
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -70,14 +98,23 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.classificationType,
-                style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyDark)),
-            Text('${filtered.length} records found',
-                style: GoogleFonts.poppins(
-                    fontSize: 11, color: AppColors.lightSubText)),
+            Text(
+              widget.classificationType,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
+              ),
+            ),
+            Text(
+              _isLoading
+                  ? 'Loading records...'
+                  : '${filtered.length} records found',
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                color: AppColors.lightSubText,
+              ),
+            ),
           ],
         ),
         leading: IconButton(
@@ -86,9 +123,8 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
         ),
         actions: [
           IconButton(
-            icon:
-                const Icon(Icons.filter_list_rounded, color: AppColors.navyMid),
-            onPressed: () {},
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
+            onPressed: _loadCases,
           ),
         ],
       ),
@@ -102,15 +138,16 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
               gradient: LinearGradient(
                 colors: [
                   AppColors.navyMid,
-                  AppColors.navyMid.withValues(alpha: 0.8)
+                  AppColors.navyMid.withValues(alpha: 0.8),
                 ],
               ),
               borderRadius: BorderRadius.circular(AppRadius.lg),
               boxShadow: [
                 BoxShadow(
-                    color: AppColors.navyMid.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4)),
+                  color: AppColors.navyMid.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
             child: Row(
@@ -122,22 +159,32 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
                     color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
-                  child: const Icon(Icons.folder_special_rounded,
-                      color: AppColors.goldPrimary, size: 26),
+                  child: const Icon(
+                    Icons.folder_special_rounded,
+                    color: AppColors.goldPrimary,
+                    size: 26,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(widget.classificationType,
-                          style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white)),
-                      Text('Classification Records',
-                          style: GoogleFonts.poppins(
-                              fontSize: 12, color: Colors.white70)),
+                      Text(
+                        widget.classificationType,
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        'Classification Records',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.white70,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -148,10 +195,13 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
                     color: AppColors.goldPrimary,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  child: Text('${_cases.length}',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.navyDark)),
+                  child: Text(
+                    '${_cases.length}',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -173,20 +223,22 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isActive ? (AppColors.navyMid) : (Colors.white),
+                      color: isActive ? AppColors.navyMid : Colors.white,
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       border: Border.all(
-                          color: isActive
-                              ? (AppColors.navyMid)
-                              : (AppColors.lightBorder)),
+                        color: isActive
+                            ? AppColors.navyMid
+                            : AppColors.lightBorder,
+                      ),
                     ),
-                    child: Text(f,
-                        style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: isActive
-                                ? (Colors.white)
-                                : (AppColors.lightText))),
+                    child: Text(
+                      f,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isActive ? Colors.white : AppColors.lightText,
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
@@ -194,123 +246,213 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
           ),
           const SizedBox(height: AppSpacing.sm),
 
-          // Case list
+          // Case list / Loading / Empty states
           Expanded(
-            child: filtered.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.folder_open_rounded,
-                            size: 64, color: AppColors.lightSubText),
-                        const SizedBox(height: AppSpacing.md),
-                        Text('No records found',
-                            style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.lightSubText)),
-                        Text('Try a different filter',
-                            style: GoogleFonts.poppins(
-                                fontSize: 13, color: AppColors.lightSubText)),
-                      ],
-                    ),
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(),
                   )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, i) {
-                      final c = filtered[i];
-                      final statusColor = c['statusColor'] as Color;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(AppRadius.lg),
-                          border: Border.all(color: AppColors.lightBorder),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3)),
+                : _errorMessage != null
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.error_outline_rounded,
+                              size: 48,
+                              color: Colors.redAccent,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            Text(
+                              _errorMessage!,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                color: AppColors.lightSubText,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            ElevatedButton(
+                              onPressed: _loadCases,
+                              child: const Text('Retry'),
+                            ),
                           ],
                         ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.md,
-                                vertical: AppSpacing.sm),
-                            leading: Container(
-                              width: 46,
-                              height: 46,
-                              decoration: BoxDecoration(
-                                color: AppColors.navyMid.withValues(alpha: 0.1),
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
-                              ),
-                              child: const Icon(Icons.folder_rounded,
-                                  color: AppColors.navyMid, size: 22),
-                            ),
-                            title: Text(
-                              c['title'] as String,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.lightText),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              '${c['id']} · ${c['date']} · ${c['officer']}',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 11, color: AppColors.lightSubText),
-                            ),
-                            trailing: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                  color: statusColor.withValues(alpha: 0.15),
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm)),
-                              child: Text(c['status'] as String,
+                      )
+                    : filtered.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.folder_open_rounded,
+                                  size: 64,
+                                  color: AppColors.lightSubText,
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                Text(
+                                  'No records found',
                                   style: GoogleFonts.poppins(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: statusColor)),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.lightSubText,
+                                  ),
+                                ),
+                                Text(
+                                  _cases.isEmpty
+                                      ? 'No cases registered for this classification yet'
+                                      : 'Try a different filter',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: AppColors.lightSubText,
+                                  ),
+                                ),
+                              ],
                             ),
-                            onTap: () {
-                              // Navigate to case detail in production
-                            },
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _loadCases,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.lg,
+                                vertical: AppSpacing.sm,
+                              ),
+                              itemCount: filtered.length,
+                              itemBuilder: (context, i) {
+                                final c = filtered[i];
+                                final statusColor = _statusColor(c.status);
+                                final title = c.title.trim().isNotEmpty
+                                    ? c.title
+                                    : '${widget.classificationType} Case';
+                                final idText = c.caseNumber.trim().isNotEmpty
+                                    ? c.caseNumber
+                                    : c.id;
+                                final dateText = DateFormat('dd MMM yyyy')
+                                    .format(c.incidentDate);
+                                final officer =
+                                    c.assignedOfficer.trim().isNotEmpty
+                                        ? c.assignedOfficer
+                                        : 'IO Assigned';
+
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.lg),
+                                    border: Border.all(
+                                      color: AppColors.lightBorder,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black
+                                            .withValues(alpha: 0.04),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: ListTile(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: AppSpacing.md,
+                                        vertical: AppSpacing.sm,
+                                      ),
+                                      leading: Container(
+                                        width: 46,
+                                        height: 46,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.navyMid
+                                              .withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(
+                                              AppRadius.md),
+                                        ),
+                                        child: const Icon(
+                                          Icons.folder_rounded,
+                                          color: AppColors.navyMid,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        title,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.lightText,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      subtitle: Text(
+                                        '$idText · $dateText · $officer',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11,
+                                          color: AppColors.lightSubText,
+                                        ),
+                                      ),
+                                      trailing: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: statusColor
+                                              .withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                              AppRadius.sm),
+                                        ),
+                                        child: Text(
+                                          c.status.toUpperCase(),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: statusColor,
+                                          ),
+                                        ),
+                                      ),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          AppTheme.fadeSlideRoute(
+                                            page: ModuleRecordDetailScreen(
+                                              record: c,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
           ),
         ],
       ),
 
       // FAB to add new record
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Open add record form in production
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Add ${widget.classificationType} record',
-                  style: GoogleFonts.poppins(color: Colors.white)),
-              backgroundColor: AppColors.navyMid,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md)),
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+              page: DynamicFormScreen(
+                moduleLabel: widget.classificationType,
+                moduleKey: 'form_1_5',
+                subCategory: widget.classificationType,
+              ),
             ),
           );
+          _loadCases();
         },
         backgroundColor: AppColors.navyMid,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
-        label: Text('Add Record',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        label: Text(
+          'Add Record',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }

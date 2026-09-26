@@ -19,6 +19,7 @@ class AppRoutes {
   static const String pendingTransfers = '/transfer/pending';
   static const String transferStatus = '/transfer/status';
   static const String stationAccessGrants = '/station/access-grants';
+  static const String standaloneCategories = '/standalone-categories';
 }
 
 /// App-wide timeout and timing constants
@@ -91,6 +92,7 @@ class Classification {
   // ── Part 2: Case Categories ───────────────────────────────────────────────
   static const List<Classification> casesGroup = [
     Classification('A.D', 'gavel', 'ad'),
+    Classification('Suicide', 'heart_broken', 'suicide'),
     Classification('Hurt', 'local_hospital', 'hurt'),
     Classification('Theft', 'no_encryption', 'theft'),
     Classification('Sand Theft', 'terrain', 'sand_theft'),
@@ -118,6 +120,7 @@ class Classification {
     Classification('CRPC 1563 /\nBNSS 1753', 'balance', 'bnss'),
     Classification('Passport/\nPVR/Lic', 'badge', 'passport'),
     Classification('NDPS', 'medication', 'ndps'),
+    Classification('ST Drugs', 'medication', 'st_drugs'),
     Classification('Gowansh', 'home_work', 'gowans'),
     Classification('IT Act', 'computer', 'it_act'),
     Classification('MCOCA', 'policy', 'mcoca'),
@@ -138,6 +141,7 @@ class Classification {
     Classification('I to V', 'description', 'form_1_5'),
     Classification('VI', 'article', 'form_6'),
     Classification('A.D', 'gavel', 'ad'),
+    Classification('Suicide', 'heart_broken', 'suicide'),
     Classification('Hurt', 'local_hospital', 'hurt'),
     Classification('Theft', 'no_encryption', 'theft'),
     Classification('Sand Theft', 'terrain', 'sand_theft'),
@@ -164,6 +168,7 @@ class Classification {
     Classification('CRPC 1563 / BNSS 1753', 'balance', 'bnss'),
     Classification('Passport /PVR / License', 'badge', 'passport'),
     Classification('NDPS', 'medication', 'ndps'),
+    Classification('ST Drugs', 'medication', 'st_drugs'),
     Classification('Gowansh', 'home_work', 'gowans'),
     Classification('IT Act', 'computer', 'it_act'),
     Classification('MCOCA', 'policy', 'mcoca'),

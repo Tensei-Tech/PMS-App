@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../../services/case_service.dart';
 import '../../../widgets/base_form/base_form.dart';
 import '../../../widgets/common_form/pocso_voice_banner.dart';
 import '../../../widgets/voice_dictation_button.dart';
@@ -101,7 +102,8 @@ class NcPersonKycEntry {
 }
 
 class NcForm extends StatefulWidget {
-  const NcForm({super.key});
+  final dynamic categoryId;
+  const NcForm({super.key, this.categoryId});
 
   @override
   State<NcForm> createState() => NcFormState();
@@ -118,6 +120,31 @@ class NcFormState extends State<NcForm> {
   final _spotVillage = TextEditingController();
   final _spotArea = TextEditingController();
   final _spotAddress = TextEditingController();
+
+  Map<String, Map<String, dynamic>> _actsData = {};
+  List<String> _genders = List.from(_kGenders);
+
+  Map<String, Map<String, dynamic>> get _activeActsData =>
+      _actsData.isNotEmpty ? _actsData : ACT_DATA;
+  List<String> get _activeGenders =>
+      _genders.isNotEmpty ? _genders : _kGenders;
+
+  Future<void> _loadFormDefinition() async {
+    final catId = widget.categoryId ?? 41;
+    final def = await CaseService().fetchFormDefinition(catId);
+    if (def != null && mounted) {
+      setState(() {
+        if (def['acts_sections'] is Map) {
+          final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
+          _actsData = acts.map(
+              (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+        }
+        if (def['genders'] is List) {
+          _genders = (def['genders'] as List).map((e) => e.toString()).toList();
+        }
+      });
+    }
+  }
 
   // Act & Section (Primary charges)
   int _chargeSeq = 0;
@@ -176,6 +203,7 @@ class NcFormState extends State<NcForm> {
   @override
   void initState() {
     super.initState();
+    _loadFormDefinition();
     _activeVoiceController = _ncNumber;
     _fic.addListener(() {
       if (mounted) {
@@ -465,7 +493,7 @@ class NcFormState extends State<NcForm> {
   String _s(dynamic v) => v == null ? '' : v.toString();
 
   String _secLabel(String actKey, String val) {
-    final secs = ACT_DATA[actKey]?['sections'] as List<dynamic>? ?? [];
+    final secs = _activeActsData[actKey]?['sections'] as List<dynamic>? ?? [];
     for (final raw in secs) {
       if (raw is Map) {
         if (raw['val'] == val) return raw['label'] as String? ?? val;
@@ -798,11 +826,11 @@ class NcFormState extends State<NcForm> {
     required ValueChanged<String> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      initialValue: _kGenders.contains(selected) ? selected : 'Male',
+      initialValue: _activeGenders.contains(selected) ? selected : _activeGenders.first,
       decoration: _d('Gender'),
       style: _tsBody,
       dropdownColor: Colors.white,
-      items: _kGenders
+      items: _activeGenders
           .map((g) => DropdownMenuItem(
                 value: g,
                 child: Text(g, style: _tsBody),
@@ -1058,7 +1086,7 @@ class NcFormState extends State<NcForm> {
               final act = data['act']?.toString() ?? '';
               final secs = (data['sections'] as Set<String>?) ?? {};
               final actLabel = act.isNotEmpty
-                  ? (ACT_DATA[act]?['label'] as String? ?? act)
+                  ? (_activeActsData[act]?['label'] as String? ?? act)
                   : '—';
               return Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -1122,7 +1150,7 @@ class NcFormState extends State<NcForm> {
     required ValueChanged<String> onRemoveSection,
   }) {
     final actKey = data['act']?.toString() ?? '';
-    final hasAct = actKey.isNotEmpty && ACT_DATA.containsKey(actKey);
+    final hasAct = actKey.isNotEmpty && _activeActsData.containsKey(actKey);
     final secs = (data['sections'] as Set<String>?) ?? {};
 
     return Container(
@@ -1151,12 +1179,12 @@ class NcFormState extends State<NcForm> {
           const SizedBox(height: 8),
           _chipSelector(
             label: 'Act / Law',
-            items: ACT_DATA.keys
-                .map((k) => ACT_DATA[k]!['label'] as String)
+            items: _activeActsData.keys
+                .map((k) => _activeActsData[k]!['label'] as String)
                 .toList(),
-            selected: hasAct ? (ACT_DATA[actKey]!['label'] as String) : null,
+            selected: hasAct ? (_activeActsData[actKey]!['label'] as String) : null,
             onSelect: (label) {
-              final key = ACT_DATA.entries
+              final key = _activeActsData.entries
                   .firstWhere((e) => e.value['label'] == label)
                   .key;
               onActChange(key);
@@ -1165,7 +1193,7 @@ class NcFormState extends State<NcForm> {
           if (hasAct) ...[
             const SizedBox(height: 4),
             Text(
-              ACT_DATA[actKey]?['hint'] as String? ?? '',
+              _activeActsData[actKey]?['hint'] as String? ?? '',
               style: const TextStyle(
                   fontSize: 10, color: _kAmber, fontStyle: FontStyle.italic),
             ),
@@ -1175,6 +1203,7 @@ class NcFormState extends State<NcForm> {
             _NcSectionSearchPicker(
               actKey: actKey,
               selected: secs,
+              actsData: _activeActsData,
               onAdd: onAddSection,
               onRemove: onRemoveSection,
             ),
@@ -1607,11 +1636,13 @@ class _NcSectionSearchPicker extends StatefulWidget {
     required this.selected,
     required this.onAdd,
     required this.onRemove,
+    this.actsData,
   });
   final String actKey;
   final Set<String> selected;
   final ValueChanged<String> onAdd;
   final ValueChanged<String> onRemove;
+  final Map<String, Map<String, dynamic>>? actsData;
 
   @override
   State<_NcSectionSearchPicker> createState() => _NcSectionSearchPickerState();
@@ -1640,8 +1671,9 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final acts = widget.actsData ?? ACT_DATA;
     final sections =
-        (ACT_DATA[widget.actKey]?['sections'] as List<dynamic>? ?? [])
+        (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
             .map((r) => r as Map<String, dynamic>)
             .toList();
 

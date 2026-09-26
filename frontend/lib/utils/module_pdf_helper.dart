@@ -10,6 +10,7 @@ import 'package:printing/printing.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/mpda/utils/mpda_form_pdf.dart';
 import '../modules/preventive/utils/preventive_form_pdf.dart';
+import '../services/case_service.dart';
 import 'ad_firestore_payload.dart';
 import 'app_constants.dart';
 import 'common_form_module.dart';
@@ -177,6 +178,33 @@ class ModulePdfHelper {
   /// Generates and previews a PDF for any ModuleRecord (titles use [ModuleRecord.firestoreCategoryDisplayName]).
   static Future<void> generatePdf(ModuleRecord record) async {
     try {
+      if (record.id.trim().isNotEmpty) {
+        final pdfBackendData =
+            await CaseService().fetchCasePdfData(record.id.trim());
+        if (pdfBackendData != null &&
+            pdfBackendData['case_summary'] is Map<String, dynamic>) {
+          final summary =
+              pdfBackendData['case_summary'] as Map<String, dynamic>;
+          record = record.copyWith(
+            caseNumber: summary['case_number']?.toString() ?? record.caseNumber,
+            title: summary['title']?.toString() ?? record.title,
+            description:
+                summary['description']?.toString() ?? record.description,
+            complainant:
+                summary['complainant']?.toString() ?? record.complainant,
+            accused: summary['accused']?.toString() ?? record.accused,
+            location: summary['location']?.toString() ?? record.location,
+            assignedOfficer: summary['assigned_officer']?.toString() ??
+                record.assignedOfficer,
+            status: summary['status']?.toString() ?? record.status,
+            priority: summary['priority']?.toString() ?? record.priority,
+            extraFields: summary['extra_fields'] is Map
+                ? Map<String, dynamic>.from(summary['extra_fields'])
+                : record.extraFields,
+          );
+        }
+      }
+
       final displayName = record.firestoreCategoryDisplayName;
       if (await printNcFormStoredPdf(record)) return;
       if (await printMissingFormStoredPdf(record)) return;

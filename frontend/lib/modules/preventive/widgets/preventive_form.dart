@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../../services/case_service.dart';
 import '../../../widgets/common_form/pocso_voice_banner.dart';
 import '../../../widgets/voice_dictation_button.dart';
 
@@ -68,12 +69,14 @@ class PreventiveAccusedEntry {
 }
 
 class PreventiveForm extends StatefulWidget {
+  final dynamic categoryId;
   final VoidCallback? onSave;
   final VoidCallback? onExportPdf;
   final bool readOnly;
 
   const PreventiveForm({
     super.key,
+    this.categoryId,
     this.onSave,
     this.onExportPdf,
     this.readOnly = false,
@@ -100,6 +103,34 @@ class PreventiveFormState extends State<PreventiveForm> {
   final List<String> _selectedSections = [];
   final _sectionSearchCtrl = TextEditingController();
   final _otherSectionsCtrl = TextEditingController();
+
+  Map<String, Map<String, dynamic>> _actsData = {};
+  List<String> _preventiveActsList = List.from(_kPreventiveSectionActs);
+
+  Map<String, Map<String, dynamic>> get _activeActsData =>
+      _actsData.isNotEmpty ? _actsData : ACT_DATA;
+  List<String> get _activePreventiveSectionActs =>
+      _preventiveActsList.isNotEmpty ? _preventiveActsList : _kPreventiveSectionActs;
+
+  Future<void> _loadFormDefinition() async {
+    final catId = widget.categoryId ?? 'Preventive';
+    final def = await CaseService().fetchFormDefinition(catId);
+    if (def != null && mounted) {
+      setState(() {
+        if (def['acts_sections'] is Map) {
+          final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
+          _actsData = acts.map(
+              (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+        }
+        if (def['preventive_items'] is List) {
+          final items =
+              (def['preventive_items'] as List).map((e) => e.toString()).toList();
+          if (!items.contains('Other')) items.add('Other');
+          _preventiveActsList = items;
+        }
+      });
+    }
+  }
 
   // 3. Accused list
   final List<PreventiveAccusedEntry> _accusedEntries = [
@@ -186,6 +217,7 @@ class PreventiveFormState extends State<PreventiveForm> {
   @override
   void initState() {
     super.initState();
+    _loadFormDefinition();
     _activeVoiceController = _crimeNoCtrl;
     _scroll.addListener(() {
       if (!_scroll.hasClients) return;
@@ -759,8 +791,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
-                                children: ACT_DATA.keys.map((actKey) {
-                                  final actInfo = ACT_DATA[actKey];
+                                children: _activeActsData.keys.map((actKey) {
+                                  final actInfo = _activeActsData[actKey];
                                   final label = actInfo?['label'] ?? actKey;
                                   final isSelected = _selectedAct == actKey;
                                   return Padding(
@@ -920,13 +952,15 @@ class PreventiveFormState extends State<PreventiveForm> {
                                   child: _buildDropdownField(
                                     label:
                                         'Preventive Section Act (प्रतिबंधक कलम / कायदा) *',
-                                    value: _preventiveSectionAct,
-                                    items: _kPreventiveSectionActs,
+                                    value: _activePreventiveSectionActs.contains(_preventiveSectionAct)
+                                        ? _preventiveSectionAct
+                                        : _activePreventiveSectionActs.first,
+                                    items: _activePreventiveSectionActs,
                                     required: true,
                                     onChanged: (val) {
                                       setState(() {
                                         _preventiveSectionAct = val ??
-                                            _kPreventiveSectionActs.first;
+                                            _activePreventiveSectionActs.first;
                                       });
                                     },
                                   ),
@@ -1361,7 +1395,7 @@ class PreventiveFormState extends State<PreventiveForm> {
 
   // ── Section Picker Chips ───────────────────────────────────────────────────
   Widget _buildSectionPickerChips() {
-    final actInfo = ACT_DATA[_selectedAct];
+    final actInfo = _activeActsData[_selectedAct];
     final sections = (actInfo?['sections'] as List<dynamic>?) ?? const [];
     final filterQuery = _sectionSearchCtrl.text.trim().toLowerCase();
 
