@@ -13,6 +13,7 @@ import 'package:flutter/material.dart' show BuildContext;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'pdf_font_cache.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Font Caching & Preloading
@@ -23,9 +24,8 @@ pw.Font? _cachedDevanagariBold;
 
 Future<void> preloadInterrogationPdfFonts() async {
   try {
-    _cachedDevanagariRegular ??=
-        await PdfGoogleFonts.notoSansDevanagariRegular();
-    _cachedDevanagariBold ??= await PdfGoogleFonts.notoSansDevanagariBold();
+    _cachedDevanagariRegular ??= await PdfFontCache.devanagariRegular();
+    _cachedDevanagariBold ??= await PdfFontCache.devanagariBold();
   } catch (_) {}
 }
 
@@ -59,8 +59,7 @@ Future<Uint8List> generateInterrogationFormPdf(Map<String, dynamic> doc) async {
   pw.Font devanagariBold;
 
   try {
-    _cachedDevanagariBold ??= await PdfGoogleFonts.notoSansDevanagariBold()
-        .timeout(const Duration(seconds: 4));
+    _cachedDevanagariBold ??= await PdfFontCache.devanagariBold();
     devanagariBold = _cachedDevanagariBold!;
   } catch (_) {
     devanagariBold = pw.Font.helveticaBold();

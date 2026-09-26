@@ -10,6 +10,7 @@ import 'package:printing/printing.dart';
 import '../widgets/form_section_utils.dart';
 import 'form_io_terminology.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
 
 Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final out = Map<String, dynamic>.from(source);
@@ -100,15 +101,6 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
   final doc = mapToCrimeDetailDoc(rawDoc);
   final pdf = pw.Document();
 
-  // Load fonts dynamically from Google Fonts via Printing package
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagariRegular = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
-
-  // Pre-render Marathi text blocks to cache as images to resolve Indic shaping issues
-  final cache = await _preRenderAllMarathi(doc);
-
   const knownSectionIds = {'Form 2-A', 'Form 2-B', 'Form 2-C'};
   final activeSection = doc['formSection']?.toString();
 
@@ -117,6 +109,15 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
         sectionId: sectionId,
         knownSectionIds: knownSectionIds,
       );
+
+  // Load fonts cached in memory (avoids repeated network fetches)
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
+  final devanagariRegular = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
+
+  // Pre-render Marathi text blocks only for active sub-sections
+  final cache = await _preRenderAllMarathi(doc, showsSection: showsSection);
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -1672,8 +1673,14 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
   return result;
 }
 
-Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
-  final cache = MarathiImageCache(pixelRatio: 3.0);
+Future<MarathiImageCache> _preRenderAllMarathi(
+  Map<String, dynamic> doc, {
+  bool Function(String sectionId)? showsSection,
+}) async {
+  final cache = MarathiImageCache(pixelRatio: 2.0);
+  final show2A = showsSection == null || showsSection('Form 2-A');
+  final show2B = showsSection == null || showsSection('Form 2-B');
+  final show2C = showsSection == null || showsSection('Form 2-C');
 
   // Setup styles using GoogleFonts for high-quality Devanagari text rendering
   final headerStyle = GoogleFonts.notoSansDevanagari(
@@ -1712,9 +1719,6 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     color: Colors.black,
   );
 
-  // Ensure fonts are ready
-  await GoogleFonts.pendingFonts();
-
   // Helper to add label
   Future<void> addLbl(
     String key,
@@ -1744,310 +1748,330 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     }
   }
 
-  // Pre-render static labels
-  await addLbl(
-    'header_title',
-    'गुन्ह्यांंच्या तपशीलाचा नमुना/ घटनास्थल पंचनामा',
-    headerStyle,
-  );
+  // Pre-render static labels only for required sections
+  if (show2A || show2C) {
+    await addLbl(
+      'header_title',
+      'गुन्ह्यांंच्या तपशीलाचा नमुना/ घटनास्थल पंचनामा',
+      headerStyle,
+    );
+  }
 
-  // Section 1
-  await addLbl('lbl_district', 'जिल्हा', marathiLabelStyle);
-  await addLbl('lbl_ps', 'पोलीस स्टेशन', marathiLabelStyle);
-  await addLbl('lbl_year', 'वर्ष', marathiLabelStyle);
-  await addLbl('lbl_fir_no', 'पहिली खबर क्र.', marathiLabelStyle);
-  await addLbl('lbl_date', 'तारीख', marathiLabelStyle);
+  if (show2A) {
+    // Section 1
+    await addLbl('lbl_district', 'जिल्हा', marathiLabelStyle);
+    await addLbl('lbl_ps', 'पोलीस स्टेशन', marathiLabelStyle);
+    await addLbl('lbl_year', 'वर्ष', marathiLabelStyle);
+    await addLbl('lbl_fir_no', 'पहिली खबर क्र.', marathiLabelStyle);
+    await addLbl('lbl_date', 'तारीख', marathiLabelStyle);
 
-  // Section 2
-  await addLbl('lbl_act_sec', 'अधिनियम व कलमे', marathiLabelStyle);
+    // Section 2
+    await addLbl('lbl_act_sec', 'अधिनियम व कलमे', marathiLabelStyle);
 
-  // Section 3
-  await addLbl('lbl_shown_by', 'घटनेचे ठिकाण दाखविणाऱ्याचे :', boldLabelStyle);
-  await addLbl('lbl_name', 'नांव', marathiLabelStyle);
-  await addLbl('lbl_father_husband', 'पित्याचे/ पतीचे नांव', marathiLabelStyle);
-  await addLbl('lbl_address', 'पत्ता :', marathiLabelStyle);
+    // Section 3
+    await addLbl(
+        'lbl_shown_by', 'घटनेचे ठिकाण दाखविणाऱ्याचे :', boldLabelStyle);
+    await addLbl('lbl_name', 'नांव', marathiLabelStyle);
+    await addLbl(
+        'lbl_father_husband', 'पित्याचे/ पतीचे नांव', marathiLabelStyle);
+    await addLbl('lbl_address', 'पत्ता :', marathiLabelStyle);
 
-  // Section 4
-  await addLbl(
-    'lbl_type_crime',
-    'गुन्ह्याचा प्रकार (गुन्ह्यांच्या सर्व पद्धतीसह)',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_major_head', 'प्रधान शीर्ष', marathiLabelStyle);
-  await addLbl('lbl_minor_head', 'गौण शीर्ष', marathiLabelStyle);
-  await addLbl('lbl_method', 'पद्धती', marathiLabelStyle);
-  await addLbl('lbl_m1', '(१)', boldLabelStyle);
-  await addLbl('lbl_m2', '(२)', boldLabelStyle);
-  await addLbl('lbl_m3', '(३)', boldLabelStyle);
-  await addLbl('lbl_conveyances', 'वापरलेली वाहने', marathiLabelStyle);
-  await addLbl(
-    'lbl_character',
-    'केलेले वेषांतर/ केलेली बतावणी',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_lang', 'वापरलेली भाषा/ बोली भाषा', marathiLabelStyle);
-  await addLbl('lbl_sf1', 'विशेष वैशिष्ट्ये - १', marathiLabelStyle);
-  await addLbl('lbl_sf2', 'विशेष वैशिष्ट्ये - २', marathiLabelStyle);
-  await addLbl('lbl_sf3', 'विशेष वैशिष्ट्ये - ३', marathiLabelStyle);
-  await addLbl('lbl_place_type', 'घटनेच्या जागेचा प्रकार', marathiLabelStyle);
-  await addLbl('lbl_prop_inv', 'अंतर्भूत मालमत्तेचे प्रकार', marathiLabelStyle);
+    // Section 4
+    await addLbl(
+      'lbl_type_crime',
+      'गुन्ह्याचा प्रकार (गुन्ह्यांच्या सर्व पद्धतीसह)',
+      marathiLabelStyle,
+    );
+    await addLbl('lbl_major_head', 'प्रधान शीर्ष', marathiLabelStyle);
+    await addLbl('lbl_minor_head', 'गौण शीर्ष', marathiLabelStyle);
+    await addLbl('lbl_method', 'पद्धती', marathiLabelStyle);
+    await addLbl('lbl_m1', '(१)', boldLabelStyle);
+    await addLbl('lbl_m2', '(२)', boldLabelStyle);
+    await addLbl('lbl_m3', '(३)', boldLabelStyle);
+    await addLbl('lbl_conveyances', 'वापरलेली वाहने', marathiLabelStyle);
+    await addLbl(
+      'lbl_character',
+      'केलेले वेषांतर/ केलेली बतावणी',
+      marathiLabelStyle,
+    );
+    await addLbl('lbl_lang', 'वापरलेली भाषा/ बोली भाषा', marathiLabelStyle);
+    await addLbl('lbl_sf1', 'विशेष वैशिष्ट्ये - १', marathiLabelStyle);
+    await addLbl('lbl_sf2', 'विशेष वैशिष्ट्ये - २', marathiLabelStyle);
+    await addLbl('lbl_sf3', 'विशेष वैशिष्ट्ये - ३', marathiLabelStyle);
+    await addLbl('lbl_place_type', 'घटनेच्या जागेचा प्रकार', marathiLabelStyle);
+    await addLbl(
+        'lbl_prop_inv', 'अंतर्भूत मालमत्तेचे प्रकार', marathiLabelStyle);
+  }
 
-  // Section 5
-  await addLbl(
-    'lbl_victim_title',
-    'बळीचा तपशील ( आवश्यक असल्यास स्वतंत्र कागद जोडावा. )',
-    boldLabelStyle,
-  );
+  if (show2B) {
+    // Section 5
+    await addLbl(
+      'lbl_victim_title',
+      'बळीचा तपशील ( आवश्यक असल्यास स्वतंत्र कागद जोडावा. )',
+      boldLabelStyle,
+    );
 
-  // Table headers
-  await addLbl(
-    'th_1',
-    "Sr.\nNo\n\nअ.\nक.\n\n(1)",
-    tableHeaderStyle,
-    maxWidth: 30,
-  );
-  await addLbl(
-    'th_2',
-    "Full Name\n\nसंपूर्ण नांव\n\n(2)",
-    tableHeaderStyle,
-    maxWidth: 100,
-  );
-  await addLbl(
-    'th_3',
-    "Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)",
-    tableHeaderStyle,
-    maxWidth: 80,
-  );
-  await addLbl('th_4', "Sex\n\nलिंग\n\n(*4)", tableHeaderStyle, maxWidth: 50);
-  await addLbl(
-    'th_5',
-    "Nationality\n\nराष्ट्रीयत्व\n\n(*5)",
-    tableHeaderStyle,
-    maxWidth: 60,
-  );
-  await addLbl(
-    'th_6',
-    "Religion\n\nधर्म\n\n(*6)",
-    tableHeaderStyle,
-    maxWidth: 60,
-  );
-  await addLbl(
-    'th_7',
-    "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)",
-    tableHeaderStyle,
-    maxWidth: 60,
-  );
-  await addLbl(
-    'th_8',
-    "Ocupetion\n\nव्यवसाय\n\n(*8)",
-    tableHeaderStyle,
-    maxWidth: 60,
-  );
-  await addLbl(
-    'th_9',
-    "Address\n\nपत्ता\n\n(*9)",
-    tableHeaderStyle,
-    maxWidth: 100,
-  );
-  await addLbl(
-    'th_10',
-    "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
-    tableHeaderStyle,
-    maxWidth: 80,
-  );
-  await addLbl(
-    'th_11',
-    "Means\n\nसाधने/\nहत्यारे\n\n(11)",
-    tableHeaderStyle,
-    maxWidth: 80,
-  );
+    // Table headers
+    await addLbl(
+      'th_1',
+      "Sr.\nNo\n\nअ.\nक.\n\n(1)",
+      tableHeaderStyle,
+      maxWidth: 30,
+    );
+    await addLbl(
+      'th_2',
+      "Full Name\n\nसंपूर्ण नांव\n\n(2)",
+      tableHeaderStyle,
+      maxWidth: 100,
+    );
+    await addLbl(
+      'th_3',
+      "Date/Year\nof Birth\n\nजन्म तारीख/\nवर्ष\n\n(3)",
+      tableHeaderStyle,
+      maxWidth: 80,
+    );
+    await addLbl('th_4', "Sex\n\nलिंग\n\n(*4)", tableHeaderStyle, maxWidth: 50);
+    await addLbl(
+      'th_5',
+      "Nationality\n\nराष्ट्रीयत्व\n\n(*5)",
+      tableHeaderStyle,
+      maxWidth: 60,
+    );
+    await addLbl(
+      'th_6',
+      "Religion\n\nधर्म\n\n(*6)",
+      tableHeaderStyle,
+      maxWidth: 60,
+    );
+    await addLbl(
+      'th_7',
+      "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)",
+      tableHeaderStyle,
+      maxWidth: 60,
+    );
+    await addLbl(
+      'th_8',
+      "Ocupetion\n\nव्यवसाय\n\n(*8)",
+      tableHeaderStyle,
+      maxWidth: 60,
+    );
+    await addLbl(
+      'th_9',
+      "Address\n\nपत्ता\n\n(*9)",
+      tableHeaderStyle,
+      maxWidth: 100,
+    );
+    await addLbl(
+      'th_10',
+      "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
+      tableHeaderStyle,
+      maxWidth: 80,
+    );
+    await addLbl(
+      'th_11',
+      "Means\n\nसाधने/\nहत्यारे\n\n(11)",
+      tableHeaderStyle,
+      maxWidth: 80,
+    );
+  }
 
-  // Section 6
-  await addLbl('lbl_motive', 'गुन्ह्याचा हेतू :', boldLabelStyle);
+  if (show2C) {
+    // Section 6
+    await addLbl('lbl_motive', 'गुन्ह्याचा हेतू :', boldLabelStyle);
 
-  // Section 7
-  await addLbl(
-    'lbl_prop_det',
-    'चोरीचा / अंतर्भूत मालमत्तेचा तपशील (योग्य नमुना वापरावा व सोबत जोडावा) :',
-    boldLabelStyle,
-  );
+    // Section 7
+    await addLbl(
+      'lbl_prop_det',
+      'चोरीचा / अंतर्भूत मालमत्तेचा तपशील (योग्य नमुना वापरावा व सोबत जोडावा) :',
+      boldLabelStyle,
+    );
 
-  // Section 8
-  await addLbl('lbl_place_desc', '(घटनेच्या जागेचे वर्णन) :', boldLabelStyle);
-  await addLbl(
-    'lbl_place_desc_cont',
-    '(घटनेच्या जागेचे वर्णन) :',
-    boldLabelStyle,
-  );
+    // Section 8
+    await addLbl('lbl_place_desc', '(घटनेच्या जागेचे वर्णन) :', boldLabelStyle);
+    await addLbl(
+      'lbl_place_desc_cont',
+      '(घटनेच्या जागेचे वर्णन) :',
+      boldLabelStyle,
+    );
 
-  // Section 9
-  await addLbl('lbl_map', 'Map: नकाशा', boldLabelStyle);
-  await addLbl(
-    'lbl_no_map',
-    'No Map Uploaded\n(नकाशा जोडला नाही)',
-    boldLabelStyle,
-  );
+    // Section 9
+    await addLbl('lbl_map', 'Map: नकाशा', boldLabelStyle);
+    await addLbl(
+      'lbl_no_map',
+      'No Map Uploaded\n(नकाशा जोडला नाही)',
+      boldLabelStyle,
+    );
 
-  // Section 10
-  await addLbl(
-    'lbl_phys_ev',
-    'तपासकामी प्रत्यक्ष पुरावा म्हणून गुन्ह्यांच्या जागेवरून मिळविलेल्या / जप्त केलेल्या मालमत्तेचे वर्णन :',
-    boldLabelStyle,
-  );
+    // Section 10
+    await addLbl(
+      'lbl_phys_ev',
+      'तपासकामी प्रत्यक्ष पुरावा म्हणून गुन्ह्यांच्या जागेवरून मिळविलेल्या / जप्त केलेल्या मालमत्तेचे वर्णन :',
+      boldLabelStyle,
+    );
 
-  // Page 4 Signatures labels
-  await addLbl(
-    'lbl_dt_panchnama',
-    "Date and Time of panchnama\nघटनास्थळ पंचनाम्याची दिनांक",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_panchas_name',
-    "Name of panchas: / पंचाची नांवे :",
-    boldLabelStyle,
-  );
-  await addLbl('lbl_p1_addr', "Full Address\nपत्ता", boldLabelStyle);
-  await addLbl('lbl_p2_addr', "Full Address\nपत्ता", boldLabelStyle);
-  await addLbl('lbl_date_form', "Date\nदिनांक", boldLabelStyle);
-  await addLbl('lbl_time_form', "Time\nवेळ", boldLabelStyle);
-  await addLbl(
-    'lbl_panchas_sig',
-    "Signature of Panchas: / पंचाच्या सह्या :",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_sig',
-    "Name and Signature of Investigation Officer",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_sig_mar',
-    FormIoTerminology.amaldarSignatureHeader,
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_name',
-    "Name\n${FormIoTerminology.name}",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_rank',
-    "Rank\n${FormIoTerminology.rank}",
-    boldLabelStyle,
-  );
-  await addLbl('lbl_io_buckle', "B.No. if any\nबक्कल नंबर", boldLabelStyle);
+    // Page 4 Signatures labels
+    await addLbl(
+      'lbl_dt_panchnama',
+      "Date and Time of panchnama\nघटनास्थळ पंचनाम्याची दिनांक",
+      boldLabelStyle,
+    );
+    await addLbl(
+      'lbl_panchas_name',
+      "Name of panchas: / पंचाची नांवे :",
+      boldLabelStyle,
+    );
+    await addLbl('lbl_p1_addr', "Full Address\nपत्ता", boldLabelStyle);
+    await addLbl('lbl_p2_addr', "Full Address\nपत्ता", boldLabelStyle);
+    await addLbl('lbl_date_form', "Date\nदिनांक", boldLabelStyle);
+    await addLbl('lbl_time_form', "Time\nवेळ", boldLabelStyle);
+    await addLbl(
+      'lbl_panchas_sig',
+      "Signature of Panchas: / पंचाच्या सह्या :",
+      boldLabelStyle,
+    );
+    await addLbl(
+      'lbl_io_sig',
+      "Name and Signature of Investigation Officer",
+      boldLabelStyle,
+    );
+    await addLbl(
+      'lbl_io_sig_mar',
+      FormIoTerminology.amaldarSignatureHeader,
+      marathiLabelStyle,
+    );
+    await addLbl(
+      'lbl_io_name',
+      "Name\n${FormIoTerminology.name}",
+      boldLabelStyle,
+    );
+    await addLbl(
+      'lbl_io_rank',
+      "Rank\n${FormIoTerminology.rank}",
+      boldLabelStyle,
+    );
+    await addLbl('lbl_io_buckle', "B.No. if any\nबक्कल नंबर", boldLabelStyle);
+  }
 
-  // Pre-render dynamic user values
-  await addVal('val_district', doc['district']?.toString());
-  await addVal('val_ps', doc['ps']?.toString());
-  await addVal('val_year', doc['year']?.toString());
-  await addVal('val_firNo', doc['firNo']?.toString());
-  await addVal('val_firYearSuffix', doc['firYearSuffix']?.toString());
-  await addVal('val_dateDay', doc['dateDay']?.toString());
-  await addVal('val_dateMonth', doc['dateMonth']?.toString());
-  await addVal('val_dateYear', doc['dateYear']?.toString());
-  await addVal('val_actSection', doc['actSection']?.toString());
+  // Pre-render dynamic user values for active sections
+  if (show2A) {
+    await addVal('val_district', doc['district']?.toString());
+    await addVal('val_ps', doc['ps']?.toString());
+    await addVal('val_year', doc['year']?.toString());
+    await addVal('val_firNo', doc['firNo']?.toString());
+    await addVal('val_firYearSuffix', doc['firYearSuffix']?.toString());
+    await addVal('val_dateDay', doc['dateDay']?.toString());
+    await addVal('val_dateMonth', doc['dateMonth']?.toString());
+    await addVal('val_dateYear', doc['dateYear']?.toString());
+    await addVal('val_actSection', doc['actSection']?.toString());
 
-  await addVal('val_shownByName', doc['shownByName']?.toString());
-  await addVal(
-    'val_shownByFatherHusband',
-    doc['shownByFatherHusband']?.toString(),
-  );
-  await addVal('val_shownByAddress', doc['shownByAddress']?.toString());
+    await addVal('val_shownByName', doc['shownByName']?.toString());
+    await addVal(
+      'val_shownByFatherHusband',
+      doc['shownByFatherHusband']?.toString(),
+    );
+    await addVal('val_shownByAddress', doc['shownByAddress']?.toString());
 
-  await addVal('val_typeOfCrime', doc['typeOfCrime']?.toString());
-  await addVal('val_majorHead', doc['majorHead']?.toString());
-  await addVal('val_minorHead', doc['minorHead']?.toString());
-  await addVal('val_method', doc['method']?.toString());
-  await addVal('val_method1', doc['method1']?.toString());
-  await addVal('val_method2', doc['method2']?.toString());
-  await addVal('val_method3', doc['method3']?.toString());
+    await addVal('val_typeOfCrime', doc['typeOfCrime']?.toString());
+    await addVal('val_majorHead', doc['majorHead']?.toString());
+    await addVal('val_minorHead', doc['minorHead']?.toString());
+    await addVal('val_method', doc['method']?.toString());
+    await addVal('val_method1', doc['method1']?.toString());
+    await addVal('val_method2', doc['method2']?.toString());
+    await addVal('val_method3', doc['method3']?.toString());
 
-  await addVal('val_conveyances', doc['conveyances']?.toString());
-  await addVal('val_characterAssumed', doc['characterAssumed']?.toString());
-  await addVal('val_languageSlang', doc['languageSlang']?.toString());
-  await addVal('val_specialFeature1', doc['specialFeature1']?.toString());
-  await addVal('val_specialFeature2', doc['specialFeature2']?.toString());
-  await addVal('val_specialFeature3', doc['specialFeature3']?.toString());
-  await addVal(
-    'val_placeOfOccurrenceType',
-    doc['placeOfOccurrenceType']?.toString(),
-  );
-  await addVal('val_propertyInvolved', doc['propertyInvolved']?.toString());
-  await addVal('val_propertyType1', doc['propertyType1']?.toString());
-  await addVal('val_propertyType2', doc['propertyType2']?.toString());
-  await addVal('val_propertyType3', doc['propertyType3']?.toString());
-  await addVal('val_propertyType4', doc['propertyType4']?.toString());
-  await addVal('val_motiveOfCrime', doc['motiveOfCrime']?.toString());
+    await addVal('val_conveyances', doc['conveyances']?.toString());
+    await addVal('val_characterAssumed', doc['characterAssumed']?.toString());
+    await addVal('val_languageSlang', doc['languageSlang']?.toString());
+    await addVal('val_specialFeature1', doc['specialFeature1']?.toString());
+    await addVal('val_specialFeature2', doc['specialFeature2']?.toString());
+    await addVal('val_specialFeature3', doc['specialFeature3']?.toString());
+    await addVal(
+      'val_placeOfOccurrenceType',
+      doc['placeOfOccurrenceType']?.toString(),
+    );
+    await addVal('val_propertyInvolved', doc['propertyInvolved']?.toString());
+    await addVal('val_propertyType1', doc['propertyType1']?.toString());
+    await addVal('val_propertyType2', doc['propertyType2']?.toString());
+    await addVal('val_propertyType3', doc['propertyType3']?.toString());
+    await addVal('val_propertyType4', doc['propertyType4']?.toString());
+  }
 
-  // Lined blocks
-  await addLinedBlock(
-    'val_propertyDetails',
-    doc['propertyDetails']?.toString(),
-    85,
-  );
-  await addLinedBlock(
-    'val_placeDescription',
-    doc['placeDescription']?.toString(),
-    85,
-  );
-  await addLinedBlock(
-    'val_placeDescriptionCont',
-    doc['placeDescriptionCont']?.toString(),
-    85,
-  );
-  await addLinedBlock(
-    'val_physicalEvidence',
-    doc['physicalEvidence']?.toString(),
-    85,
-  );
+  if (show2C) {
+    await addVal('val_motiveOfCrime', doc['motiveOfCrime']?.toString());
 
-  // Victims table rows
-  final victims = doc['victims'];
-  if (victims is List) {
-    for (int i = 0; i < victims.length; i++) {
-      final item = victims[i];
-      final Map<String, dynamic> row =
-          item is Map ? Map<String, dynamic>.from(item) : {};
-      final fields = [
-        'fullName',
-        'dob',
-        'sex',
-        'nationality',
-        'religion',
-        'scSt',
-        'occupation',
-        'address',
-        'injury',
-        'means',
-      ];
-      for (final field in fields) {
-        final val = row[field]?.toString() ?? '';
-        if (containsDevanagari(val)) {
-          await cache.add(
-            'victim_${i}_$field',
-            val,
-            victimValueStyle,
-            maxWidth: 100,
-          );
+    // Lined blocks
+    await addLinedBlock(
+      'val_propertyDetails',
+      doc['propertyDetails']?.toString(),
+      85,
+    );
+    await addLinedBlock(
+      'val_placeDescription',
+      doc['placeDescription']?.toString(),
+      85,
+    );
+    await addLinedBlock(
+      'val_placeDescriptionCont',
+      doc['placeDescriptionCont']?.toString(),
+      85,
+    );
+    await addLinedBlock(
+      'val_physicalEvidence',
+      doc['physicalEvidence']?.toString(),
+      85,
+    );
+  }
+
+  if (show2B) {
+    // Victims table rows
+    final victims = doc['victims'];
+    if (victims is List) {
+      for (int i = 0; i < victims.length; i++) {
+        final item = victims[i];
+        final Map<String, dynamic> row =
+            item is Map ? Map<String, dynamic>.from(item) : {};
+        final fields = [
+          'fullName',
+          'dob',
+          'sex',
+          'nationality',
+          'religion',
+          'scSt',
+          'occupation',
+          'address',
+          'injury',
+          'means',
+        ];
+        for (final field in fields) {
+          final val = row[field]?.toString() ?? '';
+          if (containsDevanagari(val)) {
+            await cache.add(
+              'victim_${i}_$field',
+              val,
+              victimValueStyle,
+              maxWidth: 100,
+            );
+          }
         }
       }
     }
   }
 
-  // Signature section values
-  await addVal('val_panchnamaDate', doc['panchnamaDate']?.toString());
-  await addVal('val_pancha1Name', doc['pancha1Name']?.toString());
-  await addVal('val_pancha1Address', doc['pancha1Address']?.toString());
-  await addVal('val_pancha2Name', doc['pancha2Name']?.toString());
-  await addVal('val_pancha2Address', doc['pancha2Address']?.toString());
-  await addVal('val_panchnamaFormDate', doc['panchnamaFormDate']?.toString());
-  await addVal('val_panchnamaTime', doc['panchnamaTime']?.toString());
-  await addVal('val_pancha1Sig', doc['pancha1Sig']?.toString());
-  await addVal('val_pancha2Sig', doc['pancha2Sig']?.toString());
-  await addVal('val_ioName', doc['ioName']?.toString());
-  await addVal('val_ioRank', doc['ioRank']?.toString());
-  await addVal('val_ioBuckleNo', doc['ioBuckleNo']?.toString());
+  if (show2C) {
+    // Signature section values
+    await addVal('val_panchnamaDate', doc['panchnamaDate']?.toString());
+    await addVal('val_pancha1Name', doc['pancha1Name']?.toString());
+    await addVal('val_pancha1Address', doc['pancha1Address']?.toString());
+    await addVal('val_pancha2Name', doc['pancha2Name']?.toString());
+    await addVal('val_pancha2Address', doc['pancha2Address']?.toString());
+    await addVal('val_panchnamaFormDate', doc['panchnamaFormDate']?.toString());
+    await addVal('val_panchnamaTime', doc['panchnamaTime']?.toString());
+    await addVal('val_pancha1Sig', doc['pancha1Sig']?.toString());
+    await addVal('val_pancha2Sig', doc['pancha2Sig']?.toString());
+    await addVal('val_ioName', doc['ioName']?.toString());
+    await addVal('val_ioRank', doc['ioRank']?.toString());
+    await addVal('val_ioBuckleNo', doc['ioBuckleNo']?.toString());
+  }
 
   return cache;
 }

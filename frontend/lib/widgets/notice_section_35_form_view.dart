@@ -119,15 +119,25 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
   }
 
   Map<String, dynamic> collectData() {
+    final p1Recipient = _p1RecipientLine1Ctrl.text;
+    final p2Recipient = _p2RecipientLine1Ctrl.text;
+    final p1Parts = p1Recipient.split('\n');
+    final p2Parts = p2Recipient.split('\n');
     return {
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
       // Page 1
       'p1PoliceStation': _p1PsCtrl.text,
       'p1NoticeDate': _p1DateCtrl.text,
-      'p1RecipientLine1': _p1RecipientLine1Ctrl.text,
-      'p1RecipientLine2': _p1RecipientLine2Ctrl.text,
-      'p1RecipientLine3': _p1RecipientLine3Ctrl.text,
+      'p1Recipient': p1Recipient,
+      'recipient': p1Recipient,
+      'p1RecipientLine1': p1Recipient,
+      'p1RecipientLine2': _p1RecipientLine2Ctrl.text.isNotEmpty
+          ? _p1RecipientLine2Ctrl.text
+          : (p1Parts.length > 1 ? p1Parts[1] : ''),
+      'p1RecipientLine3': _p1RecipientLine3Ctrl.text.isNotEmpty
+          ? _p1RecipientLine3Ctrl.text
+          : (p1Parts.length > 2 ? p1Parts.sublist(2).join(' ') : ''),
       'p1AadhaarNo': _p1AadhaarCtrl.text,
       'p1Email': _p1EmailCtrl.text,
       'p1IncidentDate': _p1IncidentDateCtrl.text,
@@ -141,9 +151,14 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
       // Page 2
       'p2PoliceStation': _p2PsCtrl.text,
       'p2NoticeDate': _p2DateCtrl.text,
-      'p2RecipientLine1': _p2RecipientLine1Ctrl.text,
-      'p2RecipientLine2': _p2RecipientLine2Ctrl.text,
-      'p2RecipientLine3': _p2RecipientLine3Ctrl.text,
+      'p2Recipient': p2Recipient,
+      'p2RecipientLine1': p2Recipient,
+      'p2RecipientLine2': _p2RecipientLine2Ctrl.text.isNotEmpty
+          ? _p2RecipientLine2Ctrl.text
+          : (p2Parts.length > 1 ? p2Parts[1] : ''),
+      'p2RecipientLine3': _p2RecipientLine3Ctrl.text.isNotEmpty
+          ? _p2RecipientLine3Ctrl.text
+          : (p2Parts.length > 2 ? p2Parts.sublist(2).join(' ') : ''),
       'p2IncidentPs': _p2IncidentPsCtrl.text,
       'p2District': _p2DistCtrl.text,
       'p2CrimeNo': _p2CrimeNoCtrl.text,
@@ -165,9 +180,23 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     _p1DateCtrl.text = data['p1NoticeDate']?.toString() ??
         data['noticeDate']?.toString() ??
         '';
-    _p1RecipientLine1Ctrl.text = data['p1RecipientLine1']?.toString() ??
-        data['recipientLine1']?.toString() ??
-        '';
+    final rawP1Rec =
+        data['p1Recipient']?.toString() ?? data['recipient']?.toString() ?? '';
+    if (rawP1Rec.isNotEmpty) {
+      _p1RecipientLine1Ctrl.text = rawP1Rec;
+    } else {
+      final l1 = data['p1RecipientLine1']?.toString() ??
+          data['recipientLine1']?.toString() ??
+          '';
+      final l2 = data['p1RecipientLine2']?.toString() ??
+          data['recipientLine2']?.toString() ??
+          '';
+      final l3 = data['p1RecipientLine3']?.toString() ??
+          data['recipientLine3']?.toString() ??
+          '';
+      final parts = [l1, l2, l3].where((s) => s.trim().isNotEmpty).toList();
+      _p1RecipientLine1Ctrl.text = parts.isNotEmpty ? parts.join('\n') : '';
+    }
     _p1RecipientLine2Ctrl.text = data['p1RecipientLine2']?.toString() ??
         data['recipientLine2']?.toString() ??
         '';
@@ -208,9 +237,23 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     _p2DateCtrl.text = data['p2NoticeDate']?.toString() ??
         data['noticeDate']?.toString() ??
         '';
-    _p2RecipientLine1Ctrl.text = data['p2RecipientLine1']?.toString() ??
-        data['recipientLine1']?.toString() ??
-        '';
+    final rawP2Rec =
+        data['p2Recipient']?.toString() ?? data['recipient']?.toString() ?? '';
+    if (rawP2Rec.isNotEmpty) {
+      _p2RecipientLine1Ctrl.text = rawP2Rec;
+    } else {
+      final l1 = data['p2RecipientLine1']?.toString() ??
+          data['recipientLine1']?.toString() ??
+          '';
+      final l2 = data['p2RecipientLine2']?.toString() ??
+          data['recipientLine2']?.toString() ??
+          '';
+      final l3 = data['p2RecipientLine3']?.toString() ??
+          data['recipientLine3']?.toString() ??
+          '';
+      final parts = [l1, l2, l3].where((s) => s.trim().isNotEmpty).toList();
+      _p2RecipientLine1Ctrl.text = parts.isNotEmpty ? parts.join('\n') : '';
+    }
     _p2RecipientLine2Ctrl.text = data['p2RecipientLine2']?.toString() ??
         data['recipientLine2']?.toString() ??
         '';
@@ -235,6 +278,113 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     _p2AccusedAckSigCtrl.text = data['p2AccusedAckSig']?.toString() ?? '';
 
     if (mounted) setState(() {});
+  }
+
+  Widget _buildRecipientField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 260,
+    double maxWidth = 700,
+    String? hintText,
+  }) {
+    return _Notice35RecipientField(
+      controller: controller,
+      style: style,
+      hintText: hintText,
+      readOnly: widget.readOnly,
+    );
+  }
+
+  Widget _buildNotice35DateField(
+    BuildContext context, {
+    required TextEditingController controller,
+    double width = 140,
+    String hintText = 'Select Date',
+    bool readOnly = false,
+  }) {
+    return InkWell(
+      onTap: readOnly
+          ? null
+          : () async {
+              DateTime initialDate = DateTime.now();
+              if (controller.text.isNotEmpty) {
+                try {
+                  final parts = controller.text.split(RegExp(r'[/.-]'));
+                  if (parts.length >= 3) {
+                    int d = int.parse(parts[0]);
+                    int m = int.parse(parts[1]);
+                    int y = int.parse(parts[2]);
+                    if (y < 100) y += 2000;
+                    initialDate = DateTime(y, m, d);
+                  }
+                } catch (_) {}
+              }
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: initialDate,
+                firstDate: DateTime(1900),
+                lastDate: DateTime(2100),
+              );
+              if (picked != null) {
+                final d = picked.day.toString().padLeft(2, '0');
+                final m = picked.month.toString().padLeft(2, '0');
+                final y = picked.year.toString();
+                controller.text = '$d/$m/$y';
+              }
+            },
+      child: Container(
+        width: width,
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Color(0xFF555555),
+              width: 1.0,
+            ),
+          ),
+        ),
+        padding: const EdgeInsets.only(left: 4, right: 2, top: 2, bottom: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: controller,
+                builder: (context, value, _) {
+                  final text = value.text;
+                  if (text.isEmpty) {
+                    return Text(
+                      hintText,
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  }
+                  return Text(
+                    text,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF0D47A1),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.calendar_today,
+              size: 16,
+              color: Colors.blue,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _wrappingUnderlineInput({
@@ -463,7 +613,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    formDatePickerField(
+                    _buildNotice35DateField(
                       context,
                       controller: _p1DateCtrl,
                       width: 140,
@@ -511,26 +661,12 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
           ),
         ),
         const SizedBox(height: 4),
-        _wrappingUnderlineInput(
+        _buildRecipientField(
           controller: _p1RecipientLine1Ctrl,
           style: serif,
           minWidth: 260,
           maxWidth: 700,
           hintText: 'नाव / पत्ता...',
-        ),
-        const SizedBox(height: 6),
-        _wrappingUnderlineInput(
-          controller: _p1RecipientLine2Ctrl,
-          style: serif,
-          minWidth: 260,
-          maxWidth: 700,
-        ),
-        const SizedBox(height: 6),
-        _wrappingUnderlineInput(
-          controller: _p1RecipientLine3Ctrl,
-          style: serif,
-          minWidth: 260,
-          maxWidth: 700,
         ),
         const SizedBox(height: 12),
 
@@ -586,7 +722,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
               '        भारतीय नागरी संरक्षण संहिता सन २०२३ मधील कलम ३५ (३) अन्वये प्रदान केलेल्या अधिकाराचा वापर करून मी खाली स्वाक्षरी करणार निर्देशित करतो की, दिनांक',
               style: marathi.copyWith(fontSize: 13, height: 1.8),
             ),
-            formDatePickerField(
+            _buildNotice35DateField(
               context,
               controller: _p1IncidentDateCtrl,
               width: 140,
@@ -627,7 +763,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
               ' तपासा दरम्यान हे निष्पन्न झाले की, या गुन्हयाच्या तपासाच्या अनुषंगाने तथ्य आणि वस्तुस्थिती जाणून घेण्यासाठी तुमच्याकडे विचारपुस करण्यासाठी सबळ व वाजवी कारणे आहेत. त्यामुळे तुम्हास दिनांक ',
               style: marathi.copyWith(fontSize: 13, height: 1.8),
             ),
-            formDatePickerField(
+            _buildNotice35DateField(
               context,
               controller: _p1AppearanceDateCtrl,
               width: 140,
@@ -808,7 +944,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    formDatePickerField(
+                    _buildNotice35DateField(
                       context,
                       controller: _p2DateCtrl,
                       width: 140,
@@ -856,26 +992,12 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
           ),
         ),
         const SizedBox(height: 6),
-        _wrappingUnderlineInput(
+        _buildRecipientField(
           controller: _p2RecipientLine1Ctrl,
           style: serif,
           minWidth: 260,
           maxWidth: 700,
           hintText: 'नाव / पत्ता...',
-        ),
-        const SizedBox(height: 8),
-        _wrappingUnderlineInput(
-          controller: _p2RecipientLine2Ctrl,
-          style: serif,
-          minWidth: 260,
-          maxWidth: 700,
-        ),
-        const SizedBox(height: 8),
-        _wrappingUnderlineInput(
-          controller: _p2RecipientLine3Ctrl,
-          style: serif,
-          minWidth: 260,
-          maxWidth: 700,
         ),
         const SizedBox(height: 24),
 
@@ -945,7 +1067,7 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
               '        तरी वरील अपराधा मध्ये दोषारोपपत्र न्यायप्रविष्ठ करावयाचा असल्याने आपण दिनांक :. ',
               style: marathi.copyWith(fontSize: 13.5, height: 1.9),
             ),
-            formDatePickerField(
+            _buildNotice35DateField(
               context,
               controller: _p2CourtDateCtrl,
               width: 140,
@@ -1072,6 +1194,184 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
         text,
         style: style.copyWith(fontSize: 13, height: 1.5),
       ),
+    );
+  }
+}
+
+class _Notice35RecipientField extends StatefulWidget {
+  final TextEditingController controller;
+  final TextStyle style;
+  final String? hintText;
+  final bool readOnly;
+
+  const _Notice35RecipientField({
+    required this.controller,
+    required this.style,
+    this.hintText = 'नाव / पत्ता...',
+    this.readOnly = false,
+  });
+
+  @override
+  State<_Notice35RecipientField> createState() =>
+      _Notice35RecipientFieldState();
+}
+
+class _Notice35RecipientFieldState extends State<_Notice35RecipientField> {
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_handleFocusChange);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double lineHeight = 32.0;
+    const double baseFontSize = 13.5;
+    const double horizontalPadding = 4.0;
+
+    final effectiveTextStyle = widget.style.copyWith(
+      fontWeight: FontWeight.w600,
+      fontSize: baseFontSize,
+      color: const Color(0xFF0D47A1),
+      height: lineHeight / baseFontSize,
+    );
+
+    const effectiveStrutStyle = StrutStyle(
+      fontSize: baseFontSize,
+      height: lineHeight / baseFontSize,
+      forceStrutHeight: true,
+    );
+
+    final bool isFocused = _focusNode.hasFocus;
+    final Color lineColor =
+        isFocused ? const Color(0xFF1976D2) : const Color(0xFF555555);
+    final double lineThickness = isFocused ? 1.5 : 1.0;
+
+    return ListenableBuilder(
+      listenable: widget.controller,
+      builder: (context, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final double availableWidth =
+                constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                    ? constraints.maxWidth
+                    : 700.0;
+
+            final text = widget.controller.text;
+            int lineCount = 1;
+
+            if (text.isNotEmpty) {
+              final double textMaxWidth =
+                  (availableWidth - (horizontalPadding * 2) - 4.0)
+                      .clamp(50.0, availableWidth);
+
+              final textPainter = TextPainter(
+                text: TextSpan(
+                  text: text,
+                  style: effectiveTextStyle,
+                ),
+                textDirection: TextDirection.ltr,
+                strutStyle: effectiveStrutStyle,
+              )..layout(maxWidth: textMaxWidth);
+
+              final metrics = textPainter.computeLineMetrics();
+              lineCount = metrics.length;
+              if (lineCount < 1) lineCount = 1;
+
+              final newlineCount = '\n'.allMatches(text).length + 1;
+              if (newlineCount > lineCount) {
+                lineCount = newlineCount;
+              }
+            }
+
+            final double totalHeight = lineCount * lineHeight;
+
+            return RepaintBoundary(
+              child: SizedBox(
+                width: availableWidth,
+                height: totalHeight,
+                child: Stack(
+                  children: [
+                    // Text Input layer
+                    Positioned.fill(
+                      child: TextFormField(
+                        controller: widget.controller,
+                        focusNode: _focusNode,
+                        readOnly: widget.readOnly,
+                        minLines: lineCount,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        style: effectiveTextStyle,
+                        strutStyle: effectiveStrutStyle,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          isCollapsed: true,
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.only(
+                            left: horizontalPadding,
+                            right: horizontalPadding,
+                            top: 0,
+                            bottom: 2,
+                          ),
+                          fillColor: Colors.transparent,
+                          filled: false,
+                          hintText: widget.hintText,
+                          hintStyle: widget.style.copyWith(
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            height: lineHeight / 12.0,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Underlines layer: ALWAYS painted cleanly directly below each text line spanning full width
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Column(
+                          children: [
+                            for (int i = 0; i < lineCount; i++)
+                              SizedBox(
+                                height: lineHeight,
+                                child: Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: lineThickness,
+                                    color: lineColor,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

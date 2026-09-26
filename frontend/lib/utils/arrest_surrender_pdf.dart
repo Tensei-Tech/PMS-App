@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'marathi_text_renderer.dart';
 import 'form_io_terminology.dart';
+import 'pdf_font_cache.dart';
 import '../widgets/form_section_utils.dart';
 
 Future<void> previewArrestSurrenderPdf(
@@ -30,12 +31,9 @@ Future<void> previewArrestSurrenderPdf(
 Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
 
-  // Load fonts
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-
-  // Pre-render Marathi text blocks
-  final cache = await _preRenderAllMarathi(doc);
+  // Load fonts from cache
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
 
   const knownSectionIds = {'Form 3-A', 'Form 3-B', 'Form 3-C'};
   final activeSection = doc['formSection']?.toString();
@@ -45,6 +43,9 @@ Future<Uint8List> generateArrestSurrenderPdf(Map<String, dynamic> doc) async {
         sectionId: sectionId,
         knownSectionIds: knownSectionIds,
       );
+
+  // Pre-render Marathi text blocks for the active form only
+  final cache = await _preRenderAllMarathi(doc, showsSection: showsSection);
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -1528,8 +1529,15 @@ pw.Widget _buildPdfTable({
   );
 }
 
-Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
+Future<MarathiImageCache> _preRenderAllMarathi(
+  Map<String, dynamic> doc, {
+  bool Function(String section)? showsSection,
+}) async {
   final cache = MarathiImageCache();
+
+  final show3A = showsSection == null || showsSection('Form 3-A');
+  final show3B = showsSection == null || showsSection('Form 3-B');
+  final show3C = showsSection == null || showsSection('Form 3-C');
 
   final headerStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 13,
@@ -1548,8 +1556,6 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     color: Colors.black,
   );
 
-  await GoogleFonts.pendingFonts();
-
   Future<void> addLbl(
     String key,
     String text,
@@ -1566,338 +1572,352 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     }
   }
 
-  // Page 1
-  await addLbl('title_m1', 'अटकेचा पंचनामा/ न्यायालयाच्या', headerStyle);
-  await addLbl('title_m2', 'स्वाधीन होण्याचा नमुना', headerStyle);
-  await addLbl(
-    'title_m3',
-    '(प्रत्येक आरोपीसाठी स्वतंत्र नमुना वापरावा)',
-    marathiLabelStyle,
-  );
-
-  await addLbl('lbl_dist', 'जिल्हा :-', marathiLabelStyle);
-  await addLbl('lbl_ps', 'पो.स्टे.', marathiLabelStyle);
-  await addLbl('lbl_fir', 'पहिली खबर क्र/ कार्यवाही क्र.', marathiLabelStyle);
-  await addLbl('lbl_year', 'वर्ष', marathiLabelStyle);
-  await addLbl('lbl_date', 'दिनांक', marathiLabelStyle);
-  await addLbl(
-    'lbl_code',
-    'आरोपीचा सांकेतीक क्रमांक ( पहिल्या ९ व्यक्तींसाठी अ १ ते अ ९, दहाव्या व्यक्तीसाठी ब १ या प्रमाणे पुढे असे लिहावे )',
-    marathiLabelStyle,
-  );
-
-  await addLbl(
-    'lbl_arr_date',
-    'अटकेची / स्वाधीन होण्याची तारीख वेळ',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_arr_time', 'दिनांक', marathiLabelStyle);
-  await addLbl('lbl_arr_gd', 'वेळ ठाणे दैनंदिन क्रमांक', marathiLabelStyle);
-  await addLbl('lbl_arr_ps', 'अटकेची जागा पोलीस ठाणे', marathiLabelStyle);
-  await addLbl('lbl_arr_dist', 'जिल्हा', marathiLabelStyle);
-  await addLbl('lbl_arr_state', 'राज्य', marathiLabelStyle);
-
-  await addLbl(
-    'lbl_court',
-    'न्यायालयाचे नांव ( स्वाधीन झाल्यास ) :-',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_acts', 'अधिनियम व कलमे :-', marathiLabelStyle);
-
-  await addLbl(
-    'lbl_5_m1',
-    'अटक केली व न्यायालयात पाठविले/ अटक केली व जामीनावर सोडले किंवा वैयक्तीक जात मुचलक्यावर सोडले / अटक केली व अटकपूर्व जामीनावर सोडले/ अटक केले व पोलीस कोठडीत',
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_5_m2',
-    'पाठविले/ न्यायालयाचे स्वाधीन व जामीनावर / न्यायालयाचे स्वाधीन व न्यायालयीन कोठडीत पाठविले/ न्यायालयाचे स्वाधीन व पोलीस कोठडीत पाठविले',
-    marathiLabelStyle,
-  );
-
-  await addLbl('lbl_6vi_m1', 'मतदान ओळखपत्र क्रमांक:-', marathiLabelStyle);
-  await addLbl('lbl_6vi_m2', 'पारपत्र क्रमांक :-', marathiLabelStyle);
-  await addLbl('lbl_6vi_m3', 'दिल्याची तारीख :-', marathiLabelStyle);
-  await addLbl('lbl_6vi_m4', 'दिल्याचो जागा :-', marathiLabelStyle);
-  await addLbl('lbl_6vii_m1', '(धर्म) :-', marathiLabelStyle);
-  await addLbl('lbl_6viii_m1', '(जात जमात):-', marathiLabelStyle);
-  await addLbl(
-    'lbl_6ix_m1',
-    '(अनु.जा/ अनु जमात/ इ.मा.व) :-',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_6x_m1', '(व्यवसाय) :-', marathiLabelStyle);
-  await addLbl('lbl_6xi_m1', '(कायमचा पत्ता) :-', marathiLabelStyle);
-  await addLbl('lbl_state', 'राज्य', marathiLabelStyle);
-  await addLbl('lbl_dist2', 'जिल्हा', marathiLabelStyle);
-  await addLbl('lbl_ps2', 'पोलीस ठाणे', marathiLabelStyle);
-  await addLbl('lbl_6xii_m1', '(सध्याचा पत्ता) :-', marathiLabelStyle);
-
-  await addLbl(
-    'lbl_7_m1',
-    'जखम, जखमाची कारणे आणि आरोपीची शारीरीक अवस्था / (वैद्यकीय तपासणी केली असल्यास नमुद करणे)',
-    marathiLabelStyle,
-  );
-
-  // Page 2
-  await addLbl(
-    'lbl_8_m1',
-    'कायदेशीर अटकेची कारणे आणि त्याचे कायदेशीर अधिकार सांगीतल्यानंतर दि.:--------/--------/20……… रोजी ………/……….वाजता',
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_8_m2',
-    '____________________________________________________ (ठिकाण) येथे योग्य रित्या ताब्यात घेण्यात आले.',
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_8_m3',
-    'आरोपीच्या अंगझडतीमध्ये खालील वस्तु आढळल्या. त्या ताब्यात घेण्यात आल्या आणि त्या बद्दल त्याची पोच देण्यात आली.',
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_8_m4',
-    '(मानवी प्रतिष्ठेसाठी व शरीर झाकण्यासाठी आरोपीच्या अंगावर आवश्यक तेवढे कपडे ठेवण्यात आले होते.)',
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_8_m5',
-    'ओळख पटण्याच्या प्रयोजनासाठी आरोपीला स्वतःला झाकुन घेण्याची ताकीद देण्यात आली होती.',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_8_m6', 'यांना खबरदेण्यात आली नांव', marathiLabelStyle);
-  await addLbl('lbl_8_m7', '(नाते)', marathiLabelStyle);
-  await addLbl(
-    'lbl_8_m8',
-    'जर कोणतीही वस्तु आढळली नाही तर खालील जागेत नाही असे नमुद करावे.',
-    marathiLabelStyle,
-  );
-
-  await addLbl(
-    'lbl_9_m1',
-    'शारीरीक वैशिष्टे आणि आरोपीचा इतर तपशील :-',
-    marathiLabelStyle,
-  );
-
-  // Page 3
-  await addLbl(
-    'lbl_10_m1',
-    'बोटाचे ठसे घेतले आहेत किंवा नाही असल्यास त्यांचा नंबर/ ठसे घेतले नसल्यास त्याचे कारण.',
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_11a_m1',
-    'राहणीमान :- एकटा कुटूंबीयासोबत/ सहकारी यांच्या बरोबर पक्या घरात/ हॉटेलात/ वसतीगृहात/ कच्च्या घरात/ गव्ती छपराच्या झोपडीत/',
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_11a_m2',
-    'गलीच्छ वस्तीत राहतो/ बेघर किंवा आश्रय घेतलेला नाही.',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_11b_m1', '(शैक्षणीक अर्हता) :', marathiLabelStyle);
-  await addLbl('lbl_11c_m1', '(व्यवसाय) :', marathiLabelStyle);
-  await addLbl('lbl_11d_m1', ' उत्पन्न गट ', marathiLabelStyle);
-  await addLbl(
-    'lbl_12_m1',
-    'निरीक्षणावरून आणि माहिती असलेल्या पोलीस अभिलेखानुसार आरोपी :-',
-    marathiLabelStyle,
-  );
-
-  await addLbl('lbl_13_m1', 'पंचाची नांवे (1) :', marathiLabelStyle);
-  await addLbl('lbl_13_m2', 'पंचाच्या सहया (1) :', marathiLabelStyle);
-  await addLbl('lbl_13_m3', 'पंचाच्या सहया (2) :', marathiLabelStyle);
-
-  await addLbl('lbl_14_m1', 'आरोपीची सही व आरोपीचा व अंगठा', marathiLabelStyle);
-
-  // --- NEW KEYS FOR SECTION 6, 11, 12, 13, 14 ---
-  await addLbl('lbl_6_title_m1', '( आरोपीचा तपशील ) :-', marathiLabelStyle);
-  await addLbl('lbl_6i_m1', '(नांव) :-', marathiLabelStyle);
-  await addLbl(
-      'lbl_6ii_m1', '(पित्याचे/पतीचे/पालकाचे नांव ) :-', marathiLabelStyle);
-  await addLbl('lbl_6iii_m1', '(पहिले टोपण नांव ):-', marathiLabelStyle);
-  await addLbl('lbl_6iv_m1', '(दुसरे टोपण नांव ):-', marathiLabelStyle);
-  await addLbl('lbl_6v_m1', '(राष्ट्रीयत्व) :-', marathiLabelStyle);
-  await addLbl(
-      'lbl_11di_m1',
-      '(i) Lower Income (Below Rs. 25000 P.Y.) = कमी उत्पन्न ( द.सा.रू २५००० पेक्ष कमी )',
+  if (show3A) {
+    // Page 1
+    await addLbl('title_m1', 'अटकेचा पंचनामा/ न्यायालयाच्या', headerStyle);
+    await addLbl('title_m2', 'स्वाधीन होण्याचा नमुना', headerStyle);
+    await addLbl(
+      'title_m3',
+      '(प्रत्येक आरोपीसाठी स्वतंत्र नमुना वापरावा)',
       marathiLabelStyle,
-      maxWidth: 240);
-  await addLbl(
-      'lbl_11dii_m1',
-      '(ii) Lower Middle Income (From Rs. 25001 to 50000) = कमी मध्यम उत्पन्न ( २५००१ ते ५००००)',
-      marathiLabelStyle,
-      maxWidth: 240);
-  await addLbl(
-      'lbl_11diii_m1',
-      '(iii) Middle Income (From 50001 to 100000) = मध्यम उत्पन्न (२५,००१ ते १००,००० )',
-      marathiLabelStyle,
-      maxWidth: 240);
-  await addLbl(
-      'lbl_11div_m1',
-      '(iv) Upper Middle Income (/From 100000 to 200000)= उच्च मध्यम उत्पन्न ( १००,००१ ते  २००,०००)',
-      marathiLabelStyle,
-      maxWidth: 240);
-  await addLbl(
-      'lbl_11dv_m1',
-      '(v) Upper Middle Income (Rs. 200000 to 300000) = उच्च मध्यम उत्पन्न ( २००,००१ ते ३००,०००)',
-      marathiLabelStyle,
-      maxWidth: 240);
-  await addLbl(
-      'lbl_11dvi_m1',
-      '(vi) Upper Income (above 300000) =SSE = उच्च उत्पन्न ( ३००,०००)',
-      marathiLabelStyle,
-      maxWidth: 240);
-  await addLbl('lbl_12a_m1', '(धोकादायक आहे किंवा कसे?)', marathiLabelStyle);
-  await addLbl('lbl_12b_m1',
-      '( पुर्वी जामीनावर असतांना पळुन गेला किंवा काय ? )', marathiLabelStyle);
-  await addLbl(
-      'lbl_12c_m1', '( नेहमी सशस्त्र असतो किंवा नसतो ?)', marathiLabelStyle);
-  await addLbl(
-      'lbl_12d_m1', '( साथीदारासह काम करतो किंवा कसे ? )', marathiLabelStyle);
-  await addLbl('lbl_12e_m1', '(गुन्हेगारी पार्श्वभुमी आहे किंवा नाही ? )',
-      marathiLabelStyle);
-  await addLbl(
-      'lbl_12f_m1', '(वारंवार अपराध करतो किंवा काय ? )', marathiLabelStyle);
-  await addLbl('lbl_12g_m1',
-      '(जामीनावर असतांना पळूनजाण्याचा संभव किंवा नाही ? )', marathiLabelStyle);
-  await addLbl(
-      'lbl_12h_m1',
-      '(जामीनावर साडल्यास लगेच दुसरा गुन्हा करण्याचा किंवा बळींना/ साक्षेदारांना धाकदपटशा दाखविण्याचा संभव आहे किंवा नाही?)',
-      marathiLabelStyle);
-  await addLbl('lbl_12i_m1', '(दुसऱ्या कोणत्याही प्रकरणात पाहिजे किंवा काय ?)',
-      marathiLabelStyle);
-  await addLbl(
-      'lbl_12i_m2',
-      '( जर होय असेल तर त्या प्रकरणाचा संदर्भ व कलमे दयवीत ?)',
-      marathiLabelStyle);
-  await addLbl('lbl_yes_no', '(होय/नाही)', marathiLabelStyle);
-  await addLbl('lbl_io_sig', 'सही :-', marathiLabelStyle);
-  // ----------------------------------------------
+    );
 
-  await addLbl('lbl_15_m1', 'ठिकाण', marathiLabelStyle);
-  await addLbl('lbl_15_m2', 'तारीख', marathiLabelStyle);
-  await addLbl(
-    'lbl_15_m3',
-    FormIoTerminology.signatureHeader,
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_15_m4', FormIoTerminology.rank, marathiLabelStyle);
-  await addLbl('lbl_15_m5', 'क्रमांक', marathiLabelStyle);
+    await addLbl('lbl_dist', 'जिल्हा :-', marathiLabelStyle);
+    await addLbl('lbl_ps', 'पो.स्टे.', marathiLabelStyle);
+    await addLbl('lbl_fir', 'पहिली खबर क्र/ कार्यवाही क्र.', marathiLabelStyle);
+    await addLbl('lbl_year', 'वर्ष', marathiLabelStyle);
+    await addLbl('lbl_date', 'दिनांक', marathiLabelStyle);
+    await addLbl(
+      'lbl_code',
+      'आरोपीचा सांकेतीक क्रमांक ( पहिल्या ९ व्यक्तींसाठी अ १ ते अ ९, दहाव्या व्यक्तीसाठी ब १ या प्रमाणे पुढे असे लिहावे )',
+      marathiLabelStyle,
+    );
 
-  // Table Headers
-  final tableHeaders = {
-    1: ['अ.क्र.'],
-    2: ['लिंग'],
-    3: ['जन्म तारीख/', 'वर्ष'],
-    4: ['बांधा'],
-    5: ['उंची से.मी.'],
-    6: ['वर्ण'],
-    7: ['ओळखचिन्ह'],
-    8: ['व्यंग व', 'वैशिष्टे'],
-    9: ['दात'],
-    10: ['केस'],
-    11: ['डोळे'],
-    12: ['सवयी'],
-    13: ['पोषाखाच्या', 'सवयी'],
-    14: ['बोली/ भाषा'],
-    15: ['भाजल्याच्या', 'खुणा'],
-    16: ['कोळ'],
-    17: ['तिळ'],
-    18: ['वण'],
-    19: ['गोंदण'],
-    20: ['कपाळ'],
-    21: ['कान'],
-    22: ['नाक'],
-    23: ['मिशी'],
-    24: ['बोलण्याची पध्दत'],
-    25: ['चेहरा'],
-    26: ['ओठ'],
-  };
+    await addLbl(
+      'lbl_arr_date',
+      'अटकेची / स्वाधीन होण्याची तारीख वेळ',
+      marathiLabelStyle,
+    );
+    await addLbl('lbl_arr_time', 'दिनांक', marathiLabelStyle);
+    await addLbl('lbl_arr_gd', 'वेळ ठाणे दैनंदिन क्रमांक', marathiLabelStyle);
+    await addLbl('lbl_arr_ps', 'अटकेची जागा पोलीस ठाणे', marathiLabelStyle);
+    await addLbl('lbl_arr_dist', 'जिल्हा', marathiLabelStyle);
+    await addLbl('lbl_arr_state', 'राज्य', marathiLabelStyle);
 
-  final tblHeaderStyle = GoogleFonts.notoSansDevanagari(
-    fontSize: 8,
-    fontWeight: FontWeight.bold,
-    color: Colors.black,
-  );
+    await addLbl(
+      'lbl_court',
+      'न्यायालयाचे नांव ( स्वाधीन झाल्यास ) :-',
+      marathiLabelStyle,
+    );
+    await addLbl('lbl_acts', 'अधिनियम व कलमे :-', marathiLabelStyle);
 
-  for (final entry in tableHeaders.entries) {
-    for (int j = 0; j < entry.value.length; j++) {
-      if (containsDevanagari(entry.value[j])) {
-        // use j+1 because header lines loop starts at 1 if lines.length > 1
-        await cache.add(
-          'tbl_h_${entry.key}_${j + 1}',
-          entry.value[j],
-          tblHeaderStyle,
-        );
+    await addLbl(
+      'lbl_5_m1',
+      'अटक केली व न्यायालयात पाठविले/ अटक केली व जामीनावर सोडले किंवा वैयक्तीक जात मुचलक्यावर सोडले / अटक केली व अटकपूर्व जामीनावर सोडले/ अटक केले व पोलीस कोठडीत',
+      marathiLabelStyle,
+    );
+    await addLbl(
+      'lbl_5_m2',
+      'पाठविले/ न्यायालयाचे स्वाधीन व जामीनावर / न्यायालयाचे स्वाधीन व न्यायालयीन कोठडीत पाठविले/ न्यायालयाचे स्वाधीन व पोलीस कोठडीत पाठविले',
+      marathiLabelStyle,
+    );
+
+    await addLbl('lbl_6vi_m1', 'मतदान ओळखपत्र क्रमांक:-', marathiLabelStyle);
+    await addLbl('lbl_6vi_m2', 'पारपत्र क्रमांक :-', marathiLabelStyle);
+    await addLbl('lbl_6vi_m3', 'दिल्याची तारीख :-', marathiLabelStyle);
+    await addLbl('lbl_6vi_m4', 'दिल्याचो जागा :-', marathiLabelStyle);
+    await addLbl('lbl_6vii_m1', '(धर्म) :-', marathiLabelStyle);
+    await addLbl('lbl_6viii_m1', '(जात जमात):-', marathiLabelStyle);
+    await addLbl(
+      'lbl_6ix_m1',
+      '(अनु.जा/ अनु जमात/ इ.मा.व) :-',
+      marathiLabelStyle,
+    );
+    await addLbl('lbl_6x_m1', '(व्यवसाय) :-', marathiLabelStyle);
+    await addLbl('lbl_6xi_m1', '(कायमचा पत्ता) :-', marathiLabelStyle);
+    await addLbl('lbl_state', 'राज्य', marathiLabelStyle);
+    await addLbl('lbl_dist2', 'जिल्हा', marathiLabelStyle);
+    await addLbl('lbl_ps2', 'पोलीस ठाणे', marathiLabelStyle);
+    await addLbl('lbl_6xii_m1', '(सध्याचा पत्ता) :-', marathiLabelStyle);
+
+    await addLbl(
+      'lbl_7_m1',
+      'जखम, जखमाची कारणे आणि आरोपीची शारीरीक अवस्था / (वैद्यकीय तपासणी केली असल्यास नमुद करणे)',
+      marathiLabelStyle,
+    );
+
+    // Section 6 labels
+    await addLbl('lbl_6_title_m1', '( आरोपीचा तपशील ) :-', marathiLabelStyle);
+    await addLbl('lbl_6i_m1', '(नांव) :-', marathiLabelStyle);
+    await addLbl(
+        'lbl_6ii_m1', '(पित्याचे/पतीचे/पालकाचे नांव ) :-', marathiLabelStyle);
+    await addLbl('lbl_6iii_m1', '(पहिले टोपण नांव ):-', marathiLabelStyle);
+    await addLbl('lbl_6iv_m1', '(दुसरे टोपण नांव ):-', marathiLabelStyle);
+    await addLbl('lbl_6v_m1', '(राष्ट्रीयत्व) :-', marathiLabelStyle);
+  }
+
+  if (show3B) {
+    // Page 2
+    await addLbl(
+      'lbl_8_m1',
+      'कायदेशीर अटकेची कारणे आणि त्याचे कायदेशीर अधिकार सांगीतल्यानंतर दि.:--------/--------/20……… रोजी ………/……….वाजता',
+      marathiLabelStyle,
+    );
+    await addLbl(
+      'lbl_8_m2',
+      '____________________________________________________ (ठिकाण) येथे योग्य रित्या ताब्यात घेण्यात आले.',
+      marathiLabelStyle,
+    );
+    await addLbl(
+      'lbl_8_m3',
+      'आरोपीच्या अंगझडतीमध्ये खालील वस्तु आढळल्या. त्या ताब्यात घेण्यात आल्या आणि त्या बद्दल त्याची पोच देण्यात आली.',
+      marathiLabelStyle,
+    );
+    await addLbl(
+      'lbl_8_m4',
+      '(मानवी प्रतिष्ठेसाठी व शरीर झाकण्यासाठी आरोपीच्या अंगावर आवश्यक तेवढे कपडे ठेवण्यात आले होते.)',
+      marathiLabelStyle,
+    );
+    await addLbl(
+      'lbl_8_m5',
+      'ओळख पटण्याच्या प्रयोजनासाठी आरोपीला स्वतःला झाकुन घेण्याची ताकीद देण्यात आली होती.',
+      marathiLabelStyle,
+    );
+    await addLbl('lbl_8_m6', 'यांना खबरदेण्यात आली नांव', marathiLabelStyle);
+    await addLbl('lbl_8_m7', '(नाते)', marathiLabelStyle);
+    await addLbl(
+      'lbl_8_m8',
+      'जर कोणतीही वस्तु आढळली नाही तर खालील जागेत नाही असे नमुद करावे.',
+      marathiLabelStyle,
+    );
+
+    await addLbl(
+      'lbl_9_m1',
+      'शारीरीक वैशिष्टे आणि आरोपीचा इतर तपशील :-',
+      marathiLabelStyle,
+    );
+
+    // Table Headers for Physical features (Page 3)
+    final tableHeaders = {
+      1: ['अ.क्र.'],
+      2: ['लिंग'],
+      3: ['जन्म तारीख/', 'वर्ष'],
+      4: ['बांधा'],
+      5: ['उंची से.मी.'],
+      6: ['वर्ण'],
+      7: ['ओळखचिन्ह'],
+      8: ['व्यंग व', 'वैशिष्टे'],
+      9: ['दात'],
+      10: ['केस'],
+      11: ['डोळे'],
+      12: ['सवयी'],
+      13: ['पोषाखाच्या', 'सवयी'],
+      14: ['बोली/ भाषा'],
+      15: ['भाजल्याच्या', 'खुणा'],
+      16: ['कोळ'],
+      17: ['तिळ'],
+      18: ['वण'],
+      19: ['गोंदण'],
+      20: ['कपाळ'],
+      21: ['कान'],
+      22: ['नाक'],
+      23: ['मिशी'],
+      24: ['बोलण्याची पध्दत'],
+      25: ['चेहरा'],
+      26: ['ओठ'],
+    };
+
+    final tblHeaderStyle = GoogleFonts.notoSansDevanagari(
+      fontSize: 8,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    );
+
+    for (final entry in tableHeaders.entries) {
+      for (int j = 0; j < entry.value.length; j++) {
+        if (containsDevanagari(entry.value[j])) {
+          await cache.add(
+            'tbl_h_${entry.key}_${j + 1}',
+            entry.value[j],
+            tblHeaderStyle,
+          );
+        }
       }
     }
   }
 
+  if (show3C) {
+    // Page 4
+    await addLbl(
+      'lbl_10_m1',
+      'बोटाचे ठसे घेतले आहेत किंवा नाही असल्यास त्यांचा नंबर/ ठसे घेतले नसल्यास त्याचे कारण.',
+      marathiLabelStyle,
+    );
+    await addLbl(
+      'lbl_11a_m1',
+      'राहणीमान :- एकटा कुटूंबीयासोबत/ सहकारी यांच्या बरोबर पक्या घरात/ हॉटेलात/ वसतीगृहात/ कच्च्या घरात/ गव्ती छपराच्या झोपडीत/',
+      marathiLabelStyle,
+    );
+    await addLbl(
+      'lbl_11a_m2',
+      'गलीच्छ वस्तीत राहतो/ बेघर किंवा आश्रय घेतलेला नाही.',
+      marathiLabelStyle,
+    );
+    await addLbl('lbl_11b_m1', '(शैक्षणीक अर्हता) :', marathiLabelStyle);
+    await addLbl('lbl_11c_m1', '(व्यवसाय) :', marathiLabelStyle);
+    await addLbl('lbl_11d_m1', ' उत्पन्न गट ', marathiLabelStyle);
+    await addLbl(
+      'lbl_12_m1',
+      'निरीक्षणावरून आणि माहिती असलेल्या पोलीस अभिलेखानुसार आरोपी :-',
+      marathiLabelStyle,
+    );
+
+    await addLbl('lbl_13_m1', 'पंचाची नांवे (1) :', marathiLabelStyle);
+    await addLbl('lbl_13_m2', 'पंचाच्या सहया (1) :', marathiLabelStyle);
+    await addLbl('lbl_13_m3', 'पंचाच्या सहया (2) :', marathiLabelStyle);
+
+    await addLbl(
+        'lbl_14_m1', 'आरोपीची सही व आरोपीचा व अंगठा', marathiLabelStyle);
+
+    await addLbl(
+        'lbl_11di_m1',
+        '(i) Lower Income (Below Rs. 25000 P.Y.) = कमी उत्पन्न ( द.सा.रू २५००० पेक्ष कमी )',
+        marathiLabelStyle,
+        maxWidth: 240);
+    await addLbl(
+        'lbl_11dii_m1',
+        '(ii) Lower Middle Income (From Rs. 25001 to 50000) = कमी मध्यम उत्पन्न ( २५००१ ते ५००००)',
+        marathiLabelStyle,
+        maxWidth: 240);
+    await addLbl(
+        'lbl_11diii_m1',
+        '(iii) Middle Income (From 50001 to 100000) = मध्यम उत्पन्न (२५,००१ ते १००,००० )',
+        marathiLabelStyle,
+        maxWidth: 240);
+    await addLbl(
+        'lbl_11div_m1',
+        '(iv) Upper Middle Income (/From 100000 to 200000)= उच्च मध्यम उत्पन्न ( १००,००१ ते  २००,०००)',
+        marathiLabelStyle,
+        maxWidth: 240);
+    await addLbl(
+        'lbl_11dv_m1',
+        '(v) Upper Middle Income (Rs. 200000 to 300000) = उच्च मध्यम उत्पन्न ( २००,००१ ते ३००,०००)',
+        marathiLabelStyle,
+        maxWidth: 240);
+    await addLbl(
+        'lbl_11dvi_m1',
+        '(vi) Upper Income (above 300000) =SSE = उच्च उत्पन्न ( ३००,०००)',
+        marathiLabelStyle,
+        maxWidth: 240);
+    await addLbl('lbl_12a_m1', '(धोकादायक आहे किंवा कसे?)', marathiLabelStyle);
+    await addLbl('lbl_12b_m1',
+        '( पुर्वी जामीनावर असतांना पळुन गेला किंवा काय ? )', marathiLabelStyle);
+    await addLbl(
+        'lbl_12c_m1', '( नेहमी सशस्त्र असतो किंवा नसतो ?)', marathiLabelStyle);
+    await addLbl(
+        'lbl_12d_m1', '( साथीदारासह काम करतो किंवा कसे ? )', marathiLabelStyle);
+    await addLbl('lbl_12e_m1', '(गुन्हेगारी पार्श्वभुमी आहे किंवा नाही ? )',
+        marathiLabelStyle);
+    await addLbl(
+        'lbl_12f_m1', '(वारंवार अपराध करतो किंवा काय ? )', marathiLabelStyle);
+    await addLbl(
+        'lbl_12g_m1',
+        '(जामीनावर असतांना पळूनजाण्याचा संभव किंवा नाही ? )',
+        marathiLabelStyle);
+    await addLbl(
+        'lbl_12h_m1',
+        '(जामीनावर साडल्यास लगेच दुसरा गुन्हा करण्याचा किंवा बळींना/ साक्षेदारांना धाकदपटशा दाखविण्याचा संभव आहे किंवा नाही?)',
+        marathiLabelStyle);
+    await addLbl('lbl_12i_m1',
+        '(दुसऱ्या कोणत्याही प्रकरणात पाहिजे किंवा काय ?)', marathiLabelStyle);
+    await addLbl(
+        'lbl_12i_m2',
+        '( जर होय असेल तर त्या प्रकरणाचा संदर्भ व कलमे दयवीत ?)',
+        marathiLabelStyle);
+    await addLbl('lbl_yes_no', '(होय/नाही)', marathiLabelStyle);
+    await addLbl('lbl_io_sig', 'सही :-', marathiLabelStyle);
+
+    await addLbl('lbl_15_m1', 'ठिकाण', marathiLabelStyle);
+    await addLbl('lbl_15_m2', 'तारीख', marathiLabelStyle);
+    await addLbl(
+      'lbl_15_m3',
+      FormIoTerminology.signatureHeader,
+      marathiLabelStyle,
+    );
+    await addLbl('lbl_15_m4', FormIoTerminology.rank, marathiLabelStyle);
+    await addLbl('lbl_15_m5', 'क्रमांक', marathiLabelStyle);
+  }
+
   // Values — cache keys must match renderText valKey arguments in the PDF layout
-  const valueKeyMap = <String, String>{
-    'val_dist': 'dist',
-    'val_ps': 'ps',
-    'val_fir': 'firNo',
-    'val_year': 'year',
-    'val_date': 'date',
-    'val_code': 'accusedCode',
-    'val_arrDate': 'arrestDate',
-    'val_arrTime': 'arrestTime',
-    'val_arrGd': 'arrestGdNo',
-    'val_arrPlace': 'arrestPlace',
-    'val_arrDist': 'arrestDist',
-    'val_arrState': 'arrestState',
-    'val_court': 'courtName',
-    'val_acts': 'actsSections',
-    'val_accName': 'accusedName',
-    'val_accFather': 'accusedFather',
-    'val_accAlias1': 'accusedAlias1',
-    'val_accAlias2': 'accusedAlias2',
-    'val_accNat': 'accusedNationality',
-    'val_accVoter': 'accusedVoter',
-    'val_accPass': 'accusedPassport',
-    'val_accDateIss': 'accusedDateIssue',
-    'val_accPlaceIss': 'accusedPlaceIssue',
-    'val_accRelig': 'accusedReligion',
-    'val_accCaste': 'accusedCaste',
-    'val_accScSt': 'accusedScSt',
-    'val_accOcc': 'accusedOccupation',
-    'val_permAddr': 'permAddress',
-    'val_permState': 'permState',
-    'val_permDist': 'permDist',
-    'val_permPs': 'permPs',
-    'val_presAddr': 'presAddress',
-    'val_presState': 'presState',
-    'val_presDist': 'presDist',
-    'val_presPs': 'presPs',
-    'val_injuries': 'injuries',
-    'val_cusDate': 'custodyDate',
-    'val_cusHours': 'custodyHours',
-    'val_cusPlace': 'custodyPlace',
-    'val_art1': 'article1',
-    'val_art2': 'article2',
-    'val_art3': 'article3',
-    'val_art4': 'article4',
-    'val_art5': 'article5',
-    'val_art6': 'article6',
-    'val_intName': 'intimationName',
-    'val_intRel': 'intimationRel',
-    'val_edu': 'eduQual',
-    'val_occ2': 'occupation2',
-    'val_caseRef': 'caseRefSec',
-    'val_p1Name': 'panch1Name',
-    'val_p2Name': 'panch2Name',
-    'val_p1Sig': 'panch1Sig',
-    'val_p2Sig': 'panch2Sig',
-    'val_arrSig': 'arrestedPersonSig',
-    'val_ioSig': 'ioSig',
-    'val_fPlace': 'finalPlace',
-    'val_fDate': 'finalDate',
-    'val_fName': 'finalName',
-    'val_fRank': 'finalRank',
-    'val_fNo': 'finalNo',
-    'val_otherFeatures': 'otherFeatures',
+  final valueKeyMap = <String, String>{
+    if (show3A) ...{
+      'val_dist': 'dist',
+      'val_ps': 'ps',
+      'val_fir': 'firNo',
+      'val_year': 'year',
+      'val_date': 'date',
+      'val_code': 'accusedCode',
+      'val_arrDate': 'arrestDate',
+      'val_arrTime': 'arrestTime',
+      'val_arrGd': 'arrestGdNo',
+      'val_arrPlace': 'arrestPlace',
+      'val_arrDist': 'arrestDist',
+      'val_arrState': 'arrestState',
+      'val_court': 'courtName',
+      'val_acts': 'actsSections',
+      'val_accName': 'accusedName',
+      'val_accFather': 'accusedFather',
+      'val_accAlias1': 'accusedAlias1',
+      'val_accAlias2': 'accusedAlias2',
+      'val_accNat': 'accusedNationality',
+      'val_accVoter': 'accusedVoter',
+      'val_accPass': 'accusedPassport',
+      'val_accDateIss': 'accusedDateIssue',
+      'val_accPlaceIss': 'accusedPlaceIssue',
+      'val_accRelig': 'accusedReligion',
+      'val_accCaste': 'accusedCaste',
+      'val_accScSt': 'accusedScSt',
+      'val_accOcc': 'accusedOccupation',
+      'val_permAddr': 'permAddress',
+      'val_permState': 'permState',
+      'val_permDist': 'permDist',
+      'val_permPs': 'permPs',
+      'val_presAddr': 'presAddress',
+      'val_presState': 'presState',
+      'val_presDist': 'presDist',
+      'val_presPs': 'presPs',
+      'val_injuries': 'injuries',
+    },
+    if (show3B) ...{
+      'val_cusDate': 'custodyDate',
+      'val_cusHours': 'custodyHours',
+      'val_cusPlace': 'custodyPlace',
+      'val_art1': 'article1',
+      'val_art2': 'article2',
+      'val_art3': 'article3',
+      'val_art4': 'article4',
+      'val_art5': 'article5',
+      'val_art6': 'article6',
+      'val_intName': 'intimationName',
+      'val_intRel': 'intimationRel',
+    },
+    if (show3C) ...{
+      'val_edu': 'eduQual',
+      'val_occ2': 'occupation2',
+      'val_caseRef': 'caseRefSec',
+      'val_p1Name': 'panch1Name',
+      'val_p2Name': 'panch2Name',
+      'val_p1Sig': 'panch1Sig',
+      'val_p2Sig': 'panch2Sig',
+      'val_arrSig': 'arrestedPersonSig',
+      'val_ioSig': 'ioSig',
+      'val_fPlace': 'finalPlace',
+      'val_fDate': 'finalDate',
+      'val_fName': 'finalName',
+      'val_fRank': 'finalRank',
+      'val_fNo': 'finalNo',
+      'val_otherFeatures': 'otherFeatures',
+    },
   };
 
   const twoColKeys = {
@@ -1941,7 +1961,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   }
 
   // Table values
-  if (doc['physTable'] is Map) {
+  if (show3B && doc['physTable'] is Map) {
     final pt = doc['physTable'] as Map<String, dynamic>;
     for (int i = 1; i <= 26; i++) {
       await addVal('tbl_v_$i', pt[i.toString()], maxWidth: 70.0);

@@ -561,6 +561,88 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
     );
   }
 
+  Widget _buildPoint1DateField(BuildContext context, TextStyle serifStyle) {
+    return InkWell(
+      onTap: widget.readOnly
+          ? null
+          : () async {
+              DateTime initialDate = DateTime.now();
+              if (_headerDateCtrl.text.isNotEmpty) {
+                try {
+                  final parts = _headerDateCtrl.text.split(RegExp(r'[/.-]'));
+                  if (parts.length >= 3) {
+                    int d = int.parse(parts[0]);
+                    int m = int.parse(parts[1]);
+                    int y = int.parse(parts[2]);
+                    if (y < 100) y += 2000;
+                    initialDate = DateTime(y, m, d);
+                  }
+                } catch (_) {}
+              }
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: initialDate,
+                firstDate: DateTime(1900),
+                lastDate: DateTime(2100),
+              );
+              if (picked != null) {
+                final d = picked.day.toString().padLeft(2, '0');
+                final m = picked.month.toString().padLeft(2, '0');
+                final y = picked.year.toString();
+                setState(() {
+                  _headerDateCtrl.text = '$d/$m/$y';
+                });
+              }
+            },
+      child: IgnorePointer(
+        child: TextField(
+          controller: _headerDateCtrl,
+          readOnly: true,
+          textAlign: TextAlign.start,
+          scrollPhysics: const NeverScrollableScrollPhysics(),
+          scrollPadding: EdgeInsets.zero,
+          maxLines: 1,
+          style: serifStyle.copyWith(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: serifStyle.color ?? Colors.black87,
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            filled: false,
+            fillColor: Colors.transparent,
+            contentPadding: const EdgeInsets.only(bottom: 5, top: 6),
+            border: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54, width: 1),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black87, width: 1.5),
+            ),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54, width: 0.8),
+            ),
+            hintText: 'DD/MM/YYYY',
+            hintStyle: serifStyle.copyWith(
+              color: Colors.grey.shade400,
+              fontSize: 11,
+            ),
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 18,
+              minHeight: 16,
+              maxWidth: 22,
+              maxHeight: 18,
+            ),
+            suffixIcon: const Padding(
+              padding: EdgeInsets.only(left: 4),
+              child: Icon(Icons.calendar_today,
+                  size: 14, color: Color(0xFF1976D2)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final TextStyle serifStyle = FormTypography.serifStyle();
@@ -647,76 +729,171 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
               const SizedBox(height: 12),
 
               // 1. Dist / P.S / Year / FIR No / Date
+              // Row 1: District + Police Station + Year
               Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('1.Dist : ',
-                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                  SizedBox(
-                    width: 90,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _distCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text('P.S: ',
-                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  // 1. Dist
                   Expanded(
-                    flex: 2,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _psCtrl,
-                      serifStyle: serifStyle,
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('1.Dist : ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _distCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '   जिल्हा—',
+                          style: marathiLabelStyle.copyWith(fontSize: 9.5),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Text('Year : ',
-                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                  Text('20', style: serifStyle),
-                  SizedBox(
-                    width: 35,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _yearCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text('FIRNo : ',
-                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 16),
+
+                  // P.S:
                   Expanded(
-                    flex: 2,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _firNoCtrl,
-                      serifStyle: serifStyle,
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('P.S: ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _psCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'पोलीस ठाणे-',
+                          style: marathiLabelStyle.copyWith(fontSize: 9.5),
+                        ),
+                      ],
                     ),
                   ),
-                  Text('/', style: serifStyle),
-                  SizedBox(
-                    width: 50,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _firYearSuffixCtrl,
-                      serifStyle: serifStyle,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text('Date : ',
-                      style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
-                  Expanded(
-                    flex: 2,
-                    child: formDatePickerField(context,
-                        controller: _headerDateCtrl,
-                        readOnly: widget.readOnly,
-                        width: double.infinity),
+                  const SizedBox(width: 16),
+
+                  // Year : 20
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Year : ',
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                          Text('20', style: serifStyle),
+                          SizedBox(
+                            width: 35,
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _yearCtrl,
+                              serifStyle: serifStyle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'वर्ष:-२०',
+                        style: marathiLabelStyle.copyWith(fontSize: 9.5),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                'जिल्हा— ......... पोलीस ठाणे- ------- वर्ष:-२०.....पहिली खबर क्र......../२०.... तारीख...../...../२०.....',
-                style: marathiLabelStyle.copyWith(
-                    fontSize: 9.5, color: Colors.black87),
+              const SizedBox(height: 8),
+
+              // Row 2: FIR No. + Date
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // FIRNo :
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('FIRNo : ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _firNoCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                            Text('/', style: serifStyle),
+                            SizedBox(
+                              width: 45,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _firYearSuffixCtrl,
+                                serifStyle: serifStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'पहिली खबर क्र. /२०',
+                          style: marathiLabelStyle.copyWith(fontSize: 9.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+
+                  // Date :
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Date : ',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Expanded(
+                              child: _buildPoint1DateField(context, serifStyle),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'तारीख',
+                          style: marathiLabelStyle.copyWith(fontSize: 9.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
               // 2. Final Report / Charge Sheet No & 3. Date
               Row(

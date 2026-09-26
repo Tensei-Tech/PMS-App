@@ -19,7 +19,7 @@ import 'package:printing/printing.dart';
 class FormImagePdfHelper {
   static const double a4Width = 794.0;
   static const double a4Height = 1123.0;
-  static const double defaultPixelRatio = 1.75;
+  static const double defaultPixelRatio = 1.35;
 
   /// Captures a single Flutter widget to PNG bytes.
   static Future<Uint8List> captureWidget(
@@ -28,7 +28,7 @@ class FormImagePdfHelper {
     double width = a4Width,
     double height = a4Height,
     double pixelRatio = defaultPixelRatio,
-    Duration delay = const Duration(milliseconds: 120),
+    Duration delay = const Duration(milliseconds: 100),
   }) async {
     final key = GlobalKey();
     final comp = Completer<Uint8List>();
@@ -53,9 +53,16 @@ class FormImagePdfHelper {
     Overlay.of(context).insert(ent);
 
     try {
-      await GoogleFonts.pendingFonts();
+      await GoogleFonts.pendingFonts()
+          .timeout(const Duration(milliseconds: 300));
     } catch (_) {}
-    await WidgetsBinding.instance.endOfFrame;
+
+    WidgetsBinding.instance.scheduleFrame();
+    await Future.any([
+      WidgetsBinding.instance.endOfFrame,
+      Future.delayed(const Duration(milliseconds: 120)),
+    ]);
+
     if (delay > Duration.zero) {
       await Future.delayed(delay);
     }
@@ -96,7 +103,8 @@ class FormImagePdfHelper {
     }
 
     try {
-      await GoogleFonts.pendingFonts();
+      await GoogleFonts.pendingFonts()
+          .timeout(const Duration(milliseconds: 300));
     } catch (_) {}
 
     if (!context.mounted) {
@@ -138,9 +146,13 @@ class FormImagePdfHelper {
     Overlay.of(context).insert(ent);
 
     try {
-      await WidgetsBinding.instance.endOfFrame;
-      // Single settle delay for all pages combined (not multiplied per page!)
-      await Future.delayed(const Duration(milliseconds: 140));
+      WidgetsBinding.instance.scheduleFrame();
+      await Future.any([
+        WidgetsBinding.instance.endOfFrame,
+        Future.delayed(const Duration(milliseconds: 120)),
+      ]);
+      // Settle delay for all pages combined
+      await Future.delayed(const Duration(milliseconds: 100));
 
       for (int i = 0; i < pages.length; i++) {
         // Yield execution to the event loop so the UI/progress spinner paints smoothly
@@ -279,7 +291,7 @@ class FormImagePdfHelper {
               ? 'Generating page $curr of $total...'
               : 'Generating PDF...';
         },
-      );
+      ).timeout(const Duration(seconds: 12));
 
       if (dialogShown && context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();

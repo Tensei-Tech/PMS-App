@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewNilHouseSearchPdf(
   BuildContext context,
@@ -23,10 +23,10 @@ Future<void> previewNilHouseSearchPdf(
 
 Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
+  final devanagari = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final regular = pw.TextStyle(font: devanagari, fontSize: 10, lineSpacing: 3);
   final bold = pw.TextStyle(
@@ -337,6 +337,14 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
               ),
             ),
           ],
+        ),
+        pw.SizedBox(height: 24),
+        pw.Align(
+          alignment: pw.Alignment.bottomRight,
+          child: pw.Text(
+            'M.R.W',
+            style: regular.copyWith(fontSize: 8, color: PdfColors.grey700),
+          ),
         ),
       ],
     ),
@@ -753,7 +761,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         ),
         textAlign: TextAlign.justify,
       ),
-      const Spacer(),
+      const SizedBox(height: 36),
 
       // Signatures
       Row(
@@ -798,7 +806,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 10),
+      const SizedBox(height: 24),
 
       // Footer
       Align(

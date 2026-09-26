@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewBnssPanchNoticePdf(
   BuildContext context,
@@ -22,8 +22,8 @@ Future<void> previewBnssPanchNoticePdf(
 
 Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final devanagari = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final regular = pw.TextStyle(
     font: devanagari,
@@ -250,7 +250,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 style: regular,
               ),
             ),
-            pw.Spacer(),
+            pw.SizedBox(height: 36),
 
             // Signature block (Right)
             pw.Align(
@@ -266,7 +266,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 18),
+            pw.SizedBox(height: 24),
 
             // Receipt Acknowledgement (Left)
             pw.Column(
@@ -279,7 +279,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 pw.Text('२) $panch2Receipt', style: regular),
               ],
             ),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 24),
 
             // MRW Footer
             pw.Align(
@@ -463,12 +463,15 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                   pw.TextSpan(text: '$raidDate ', style: bold),
                   const pw.TextSpan(text: 'रोजी ग्राम'),
                   pw.TextSpan(text: '$village ', style: bold),
-                  const pw.TextSpan(text: 'येथीलनामे'),
+                  const pw.TextSpan(text: 'येथीलनामे '),
                   pw.TextSpan(text: '$suspectName ', style: bold),
-                  const pw.TextSpan(text: 'वय'),
+                  const pw.TextSpan(text: 'वय '),
                   pw.TextSpan(text: '$suspectAge ', style: bold),
-                  const pw.TextSpan(text: 'वर्ष'),
-                  const pw.TextSpan(text: '----------- रा.'),
+                  pw.TextSpan(
+                    text: suspectAge.contains('वर्ष')
+                        ? '----------- रा. '
+                        : 'वर्ष ----------- रा. ',
+                  ),
                   pw.TextSpan(text: '$suspectResidence ', style: bold),
                   const pw.TextSpan(text: 'ता '),
                   pw.TextSpan(text: '$suspectTah ', style: bold),
@@ -490,7 +493,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 style: regular,
               ),
             ),
-            pw.Spacer(),
+            pw.SizedBox(height: 36),
 
             // Signature block (Right)
             pw.Align(
@@ -506,7 +509,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 18),
+            pw.SizedBox(height: 24),
 
             // Receipt Acknowledgement (Left)
             pw.Column(
@@ -519,7 +522,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 pw.Text('२) $panch2Receipt', style: regular),
               ],
             ),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 24),
 
             // MRW Footer
             pw.Align(
@@ -793,7 +796,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
       Center(
         child: Text('करीता सुचनापत्र देण्यात येत आहे.', style: reg),
       ),
-      const Spacer(),
+      const SizedBox(height: 36),
       Align(
         alignment: Alignment.topRight,
         child: Column(
@@ -809,7 +812,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           ],
         ),
       ),
-      const SizedBox(height: 18),
+      const SizedBox(height: 24),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -830,7 +833,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 28),
       Align(
         alignment: Alignment.bottomRight,
         child: Text('M.R.W',
@@ -1060,7 +1063,11 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             TextSpan(text: '$suspectName ', style: valBld(rawSuspectName)),
             const TextSpan(text: 'वय '),
             TextSpan(text: '$suspectAge ', style: valBld(rawSuspectAge)),
-            const TextSpan(text: 'रा '),
+            TextSpan(
+              text: suspectAge.contains('वर्ष')
+                  ? '----------- रा. '
+                  : 'वर्ष ----------- रा. ',
+            ),
             TextSpan(
                 text: '$suspectResidence ', style: valBld(rawSuspectResidence)),
             const TextSpan(text: 'ता '),
@@ -1079,7 +1086,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
       Center(
         child: Text('करीता सुचनापत्र देण्यात येत आहे.', style: reg),
       ),
-      const Spacer(),
+      const SizedBox(height: 36),
       Align(
         alignment: Alignment.topRight,
         child: Column(
@@ -1095,7 +1102,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           ],
         ),
       ),
-      const SizedBox(height: 18),
+      const SizedBox(height: 24),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1116,7 +1123,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 28),
       Align(
         alignment: Alignment.bottomRight,
         child: Text('M.R.W',

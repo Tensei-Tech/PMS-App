@@ -15,9 +15,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Font Caching & Preloading
@@ -28,9 +28,8 @@ pw.Font? _cachedDevanagariBold;
 
 Future<void> preloadReasonOfArrestPdfFonts() async {
   try {
-    _cachedDevanagariRegular ??=
-        await PdfGoogleFonts.notoSansDevanagariRegular();
-    _cachedDevanagariBold ??= await PdfGoogleFonts.notoSansDevanagariBold();
+    _cachedDevanagariRegular ??= await PdfFontCache.devanagariRegular();
+    _cachedDevanagariBold ??= await PdfFontCache.devanagariBold();
   } catch (_) {}
 }
 
@@ -76,17 +75,14 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
   pw.Font devanagariBold;
 
   try {
-    _cachedDevanagariRegular ??=
-        await PdfGoogleFonts.notoSansDevanagariRegular()
-            .timeout(const Duration(seconds: 4));
+    _cachedDevanagariRegular ??= await PdfFontCache.devanagariRegular();
     devanagari = _cachedDevanagariRegular!;
   } catch (_) {
     devanagari = pw.Font.helvetica();
   }
 
   try {
-    _cachedDevanagariBold ??= await PdfGoogleFonts.notoSansDevanagariBold()
-        .timeout(const Duration(seconds: 4));
+    _cachedDevanagariBold ??= await PdfFontCache.devanagariBold();
     devanagariBold = _cachedDevanagariBold!;
   } catch (_) {
     devanagariBold = pw.Font.helveticaBold();

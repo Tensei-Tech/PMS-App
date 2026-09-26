@@ -53,6 +53,19 @@ InlineSpan _ensureSpanFontFallback(InlineSpan span) {
   return span;
 }
 
+/// Global in-memory cache of rendered text images across all forms and repeat runs.
+final Map<String, RenderedText> _globalTextRenderCache = {};
+
+String _textRenderCacheKey(
+  String text,
+  TextStyle style,
+  double maxWidth,
+  double pixelRatio,
+  TextAlign textAlign,
+) {
+  return '$text|$maxWidth|$pixelRatio|${textAlign.name}|${style.fontFamily}|${style.fontSize}|${style.fontWeight}|${style.color?.toARGB32()}';
+}
+
 /// Renders a text string to a high-resolution PNG image using Flutter's
 /// Skia/HarfBuzz engine. This ensures correct Devanagari rendering
 /// with proper matras, conjuncts, and half-letters that the `pdf`
@@ -68,11 +81,24 @@ Future<RenderedText> renderTextToImage(
     return RenderedText(bytes: Uint8List(0), width: 0, height: 0);
   }
 
+  final effectiveRatio = pixelRatio > 2.0 ? 2.0 : pixelRatio;
+  final effectiveStyle = _withFallback(style);
+  final cacheKey = _textRenderCacheKey(
+    text,
+    effectiveStyle,
+    maxWidth,
+    effectiveRatio,
+    textAlign,
+  );
+
+  final cached = _globalTextRenderCache[cacheKey];
+  if (cached != null) {
+    return cached;
+  }
+
   // Yield to the event loop so the UI (like loading spinners) can paint
   // during intensive pre-rendering of hundreds of text blocks.
   await Future.delayed(Duration.zero);
-
-  final effectiveStyle = _withFallback(style);
 
   final textPainter = TextPainter(
     text: TextSpan(text: text, style: effectiveStyle),
@@ -93,23 +119,25 @@ Future<RenderedText> renderTextToImage(
 
   final recorder = ui.PictureRecorder();
   final canvas = Canvas(recorder);
-  canvas.scale(pixelRatio);
+  canvas.scale(effectiveRatio);
   textPainter.paint(canvas, Offset.zero);
 
   final picture = recorder.endRecording();
   final image = await picture.toImage(
-    (w * pixelRatio).ceil(),
-    (h * pixelRatio).ceil(),
+    (w * effectiveRatio).ceil(),
+    (h * effectiveRatio).ceil(),
   );
 
   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
   image.dispose();
 
-  return RenderedText(
+  final result = RenderedText(
     bytes: byteData!.buffer.asUint8List(),
     width: w,
     height: h,
   );
+  _globalTextRenderCache[cacheKey] = result;
+  return result;
 }
 
 /// Renders an InlineSpan (e.g. TextSpan with rich children) to a high-resolution PNG image.
@@ -119,9 +147,22 @@ Future<RenderedText> renderSpanToImage(
   double pixelRatio = 2.0,
   TextAlign textAlign = TextAlign.left,
 }) async {
-  await Future.delayed(Duration.zero);
+  final spanText = span.toPlainText();
+  if (spanText.trim().isEmpty) {
+    return RenderedText(bytes: Uint8List(0), width: 0, height: 0);
+  }
 
+  final effectiveRatio = pixelRatio > 2.0 ? 2.0 : pixelRatio;
   final effectiveSpan = _ensureSpanFontFallback(span);
+  final cacheKey =
+      'span:$spanText|$maxWidth|$effectiveRatio|${textAlign.name}|${effectiveSpan.style?.fontFamily}|${effectiveSpan.style?.fontSize}|${effectiveSpan.style?.fontWeight}|${effectiveSpan.style?.color?.toARGB32()}';
+
+  final cached = _globalTextRenderCache[cacheKey];
+  if (cached != null) {
+    return cached;
+  }
+
+  await Future.delayed(Duration.zero);
 
   final textPainter = TextPainter(
     text: effectiveSpan,
@@ -141,23 +182,25 @@ Future<RenderedText> renderSpanToImage(
 
   final recorder = ui.PictureRecorder();
   final canvas = Canvas(recorder);
-  canvas.scale(pixelRatio);
+  canvas.scale(effectiveRatio);
   textPainter.paint(canvas, Offset.zero);
 
   final picture = recorder.endRecording();
   final image = await picture.toImage(
-    (w * pixelRatio).ceil(),
-    (h * pixelRatio).ceil(),
+    (w * effectiveRatio).ceil(),
+    (h * effectiveRatio).ceil(),
   );
 
   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
   image.dispose();
 
-  return RenderedText(
+  final result = RenderedText(
     bytes: byteData!.buffer.asUint8List(),
     width: w,
     height: h,
   );
+  _globalTextRenderCache[cacheKey] = result;
+  return result;
 }
 
 /// Cache for pre-rendered Marathi text images used in PDF generation.
@@ -166,6 +209,11 @@ class MarathiImageCache {
   final double pixelRatio;
 
   MarathiImageCache({this.pixelRatio = 2.0});
+
+  /// Clear the global memory cache if needed.
+  static void clearGlobalCache() {
+    _globalTextRenderCache.clear();
+  }
 
   /// Pre-render text and store with the given key.
   Future<void> add(

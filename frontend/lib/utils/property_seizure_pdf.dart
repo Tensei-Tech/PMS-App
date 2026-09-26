@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
 import 'form_io_terminology.dart';
 import '../widgets/form_section_utils.dart';
 
@@ -30,14 +31,6 @@ Future<void> previewPropertySeizurePdf(
 Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
 
-  // Load fonts
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagariRegular = await PdfGoogleFonts.notoSansDevanagariRegular();
-
-  // Pre-render Marathi text blocks to cache as images to resolve Indic shaping issues
-  final cache = await _preRenderAllMarathi(doc);
-
   const knownSectionIds = {'Seizure Memo Body', 'Seizure Memo Signatures'};
   final activeSection = doc['formSection']?.toString();
 
@@ -46,6 +39,14 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
         sectionId: sectionId,
         knownSectionIds: knownSectionIds,
       );
+
+  // Load fonts
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
+  final devanagariRegular = await PdfFontCache.devanagariRegular();
+
+  // Pre-render Marathi text blocks to cache as images to resolve Indic shaping issues
+  final cache = await _preRenderAllMarathi(doc, showsSection: showsSection);
 
   final pw.TextStyle englishStyle = pw.TextStyle(
     font: loraRegular,
@@ -993,8 +994,14 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
   return result;
 }
 
-Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
+Future<MarathiImageCache> _preRenderAllMarathi(
+  Map<String, dynamic> doc, {
+  bool Function(String sectionId)? showsSection,
+}) async {
   final cache = MarathiImageCache();
+  final showBody = showsSection == null || showsSection('Seizure Memo Body');
+  final showSig =
+      showsSection == null || showsSection('Seizure Memo Signatures');
 
   final headerStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 11,
@@ -1026,9 +1033,6 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     color: Colors.black,
   );
 
-  // Ensure fonts are ready
-  await GoogleFonts.pendingFonts();
-
   Future<void> addLbl(
     String key,
     String text,
@@ -1055,290 +1059,301 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     }
   }
 
-  // Pre-render static labels (all Marathi text as images for accurate shaping)
-  await addLbl('header_title', 'मालमत्ता शोध व जप्तीचा नमुना', headerStyle);
-  await addLbl(
-    'header_subtitle',
-    '(कलम १८५ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये झडती/हजर करणे/परत मिळविणे)',
-    marathiLabelStyle,
-    maxWidth: 480,
-  );
+  if (showBody) {
+    // Pre-render static labels (all Marathi text as images for accurate shaping)
+    await addLbl('header_title', 'मालमत्ता शोध व जप्तीचा नमुना', headerStyle);
+    await addLbl(
+      'header_subtitle',
+      '(कलम १८५ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये झडती/हजर करणे/परत मिळविणे)',
+      marathiLabelStyle,
+      maxWidth: 480,
+    );
 
-  await addLbl('lbl_s1_district', '१) *जिल्हा:', marathiLabelStyle);
-  await addLbl('lbl_ps', '*पोलीस ठाणे:', marathiLabelStyle);
-  await addLbl('lbl_year', 'वर्षे:', marathiLabelStyle);
-  await addLbl('lbl_fir', '*पहिली खबर क/कार्यवाही', marathiLabelStyle);
-  await addLbl('lbl_di', '*दि', marathiLabelStyle);
-  await addLbl('lbl_slash20', '/२०', marathiLabelStyle);
-  await addLbl('lbl_s2', '२) अधिनियम व कलमे : ', marathiLabelStyle);
-  await addLbl(
-    'lbl_s3',
-    '३) *जप्त केलेले/मिळालेल्या मालमत्तेचे स्वरूप : चोरीला गेलेली/बेवारशी/बेकायदेशीर ताबा/अंतर्भूत/मृत्यू पत्राशिवाय.',
-    boldLabelStyle,
-    maxWidth: 480,
-  );
-  await addLbl(
-    'lbl_s4_head',
-    '४) जप्त केलेली मालमत्ता : (अ) तारीख :',
-    marathiLabelStyle,
-  );
-  await addLbl('lbl_s4_time', '(ब) वेळ :', marathiLabelStyle);
-  await addLbl(
-    'lbl_s4_place',
-    '(क) जेथून जप्त केली/परत मिळवली ती जागा : ',
-    marathiLabelStyle,
-    maxWidth: 300,
-  );
-  await addLbl(
-    'lbl_s4_desc',
-    '(ड) जप्तीच्या/परत मिळवल्याची जागेचे वर्णन: ',
-    marathiLabelStyle,
-    maxWidth: 300,
-  );
-  await addLbl('lbl_s5', '५) कोणाकडून जप्त केली : ', marathiLabelStyle);
-  await addLbl(
-    'lbl_prof_receiver',
-    '*चोरीचा माल घेणारा धंदेवाईक : होय/नाही ',
-    marathiLabelStyle,
-    maxWidth: 300,
-  );
-  await addLbl('lbl_nav', 'नाव :', marathiLabelStyle);
-  await addLbl('lbl_father', 'पित्याचे/पतीचे नाव :', marathiLabelStyle);
-  await addLbl('lbl_gender', 'लिंग :', marathiLabelStyle);
-  await addLbl('lbl_age', 'वय :', marathiLabelStyle);
-  await addLbl('lbl_occupation', 'व्यवसाय :', marathiLabelStyle);
-  await addLbl('lbl_address', 'पत्ता :', marathiLabelStyle);
-  await addLbl('lbl_s6', '६) साक्षीदार', boldLabelStyle);
-  await addLbl('lbl_witness_i', '(i) नाव :', marathiLabelStyle);
-  await addLbl('lbl_witness_ii', '(ii) नाव :', marathiLabelStyle);
-  await addLbl(
-    'lbl_s7',
-    '७) नाशवंत मालमत्तेच्या विल्हेवाटीसाठी केलेली शिफारस/केलेली कार्यवाही : ',
-    marathiLabelStyle,
-    maxWidth: 480,
-  );
-  await addLbl(
-    'lbl_s8',
-    '८) मौल्यवान मालमत्ता ठेवण्यासाठी केलेली शिफारस/केलेली कार्यवाही : ',
-    marathiLabelStyle,
-    maxWidth: 480,
-  );
-  await addLbl('lbl_s9', '९) ओळख पटवावी लागली काय : ', marathiLabelStyle);
-  await addLbl('lbl_s9_hoy', ' होय/नाही', marathiLabelStyle);
-  await addLbl(
-    'lbl_s10',
-    '१०) जप्त केलेल्या/परत मिळालेल्या मालाचे वर्णन (योग्य नमुन्यात माहिती भरा व जोडा )',
-    boldLabelStyle,
-    maxWidth: 480,
-  );
-  await addLbl('lbl_s11', '११) जप्तीची परिस्थिती/कारणे : ', boldLabelStyle);
-  await addLbl(
-    'lbl_s12',
-    '१२) वर नमूद करण्यात आलेली मालमत्ता पूर्ववत साक्षीदारांच्या समक्ष कायद्यातील तरतुदी नुसार जप्त करण्यात आली. आणि जप्तीच्या ज्ञापनाची ज्याच्याकडून मालमत्ता जप्त करण्यात आली. त्या इसमास/जागेत राहणाऱ्यास देण्यात आली.',
-    marathiLabelStyle,
-    maxWidth: 480,
-  );
-  await addLbl(
-    'lbl_s13',
-    '१३) खालील मालमत्ता अविष्ठित आणि/किंवा मोहोरबंद करण्यात आली आणि त्यावर किंवा मालमत्तेवर पूर्ववत साक्षीदारांच्या सहया घेण्यात आल्या आहेत.',
-    marathiLabelStyle,
-    maxWidth: 480,
-  );
-  await addLbl('th_seal_sr', 'अ क्र\n(१)', tableHeaderStyle, maxWidth: 40);
-  await addLbl(
-    'th_seal_prop',
-    'मालमत्ता\n(२)',
-    tableHeaderStyle,
-    maxWidth: 120,
-  );
-  await addLbl(
-    'th_seal_sig',
-    'पुडक्यावर किंवा मालमत्तेवर सही घेण्यात आली.\n(३)',
-    tableHeaderStyle,
-    maxWidth: 200,
-  );
-  await addLbl(
-    'lbl_seal_footer',
-    'मोहोरेचा नमुना खाली देण्यात आली आहे.',
-    marathiLabelStyle,
-    maxWidth: 300,
-  );
-  await addLbl('th_sr', "Sr. No.\nअ. क.", tableHeaderStyle, maxWidth: 40);
-  await addLbl(
-    'th_desc',
-    "Property Description\nमालमत्तेचे वर्णन",
-    tableHeaderStyle,
-    maxWidth: 200,
-  );
-  await addLbl(
-    'th_val',
-    "Estimated Value (Rs)\nअंदाजे किंमत (रु.)",
-    tableHeaderStyle,
-    maxWidth: 100,
-  );
-
-  // Pancha & IO signature labels (bilingual images like crime detail form)
-  await addLbl(
-    'lbl_panchas_name',
-    "Name of panchas:\nपंचाची नांवे :",
-    boldLabelStyle,
-  );
-  await addLbl('lbl_p1_addr', "Full Address:\nपत्ता", boldLabelStyle);
-  await addLbl('lbl_p2_addr', "Full Address:\nपत्ता", boldLabelStyle);
-  await addLbl('lbl_date_form', "Date:\nदिनांक", boldLabelStyle);
-  await addLbl(
-    'lbl_panchas_sig',
-    "Signature of Panchas:\nपंचाच्या सह्या :",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_sig',
-    "Name and Signature of Investigation Officer",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_sig_mar',
-    FormIoTerminology.amaldarSignatureHeader,
-    marathiLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_name',
-    "Name:\n${FormIoTerminology.name} :",
-    boldLabelStyle,
-  );
-  await addLbl(
-    'lbl_io_rank',
-    "Rank:\n${FormIoTerminology.rank} :",
-    boldLabelStyle,
-  );
-  await addLbl('lbl_io_buckle', "B.No.if any:\nबक्कल नंबर :", boldLabelStyle);
-
-  // Pre-render dynamic values
-  await addVal('val_district', doc['district']?.toString() ?? '');
-  await addVal('val_ps', doc['ps']);
-  await addVal('val_year', doc['year']);
-  await addVal('val_firNo', doc['firNo']);
-  await addVal('val_firYearSuffix', doc['firYearSuffix']);
-  await addVal('val_dateDay', doc['dateDay']);
-  await addVal('val_dateMonth', doc['dateMonth']);
-  await addVal('val_dateYear', doc['dateYear']);
-  await addVal('val_actSection', doc['actSection']);
-  await addVal('val_natureOfProperty', doc['natureOfProperty']);
-  await addVal('val_seizureDateDay', doc['seizureDateDay']);
-  await addVal('val_seizureDateMonth', doc['seizureDateMonth']);
-  await addVal('val_seizureDateYear', doc['seizureDateYear']);
-  await addVal('val_seizureTime', doc['seizureTime']);
-  await addVal('val_seizurePlace', doc['seizurePlace']);
-  await addVal('val_seizurePlaceDesc', doc['seizurePlaceDesc']);
-  await addVal('val_seizedFrom', doc['seizedFrom']);
-  await addVal(
-    'val_isProfessionalReceiver',
-    (doc['isProfessionalReceiver'] ?? 'नाही').toString(),
-  );
-  await addVal('val_personName', doc['personName']);
-  await addVal('val_personFather', doc['personFather']);
-  await addVal('val_personSex', doc['personSex']);
-  await addVal('val_personAge', doc['personAge']);
-  await addVal('val_personOccupation', doc['personOccupation']);
-  await addVal('val_personAddress', doc['personAddress']);
-  await addVal('val_w1Name', doc['w1Name']);
-  await addVal('val_w1Father', doc['w1Father']);
-  await addVal('val_w1Sex', doc['w1Sex']);
-  await addVal('val_w1Age', doc['w1Age']);
-  await addVal('val_w1Occupation', doc['w1Occupation']);
-  await addVal('val_w1Address', doc['w1Address']);
-  await addVal('val_w2Name', doc['w2Name']);
-  await addVal('val_w2Father', doc['w2Father']);
-  await addVal('val_w2Sex', doc['w2Sex']);
-  await addVal('val_w2Age', doc['w2Age']);
-  await addVal('val_w2Occupation', doc['w2Occupation']);
-  await addVal('val_w2Address', doc['w2Address']);
-  await addVal('val_w2AddressLine2', doc['w2AddressLine2']);
-  await addVal('val_perishableDisposal', doc['perishableDisposal']);
-  await addVal('val_valuableKeeping', doc['valuableKeeping']);
-  await addVal(
-    'val_identificationRequired',
-    (doc['identificationRequired'] ?? 'नाही').toString(),
-  );
-  await addVal('val_circumstances', doc['circumstances']);
-  await addVal('val_circumstancesLine2', doc['circumstancesLine2']);
-  await addVal('val_circumstancesLine3', doc['circumstancesLine3']);
-  await addVal('val_pancha1Name', doc['pancha1Name']?.toString());
-  await addLinedBlock(
-    'val_pancha1Address',
-    _joinNonEmpty([
-      doc['pancha1Addr1'],
-      doc['pancha1Addr2'],
-      doc['pancha1Addr3'],
-    ]),
-    40,
-  );
-  await addVal('val_pancha2Name', doc['pancha2Name']?.toString());
-  await addLinedBlock(
-    'val_pancha2Address',
-    _joinNonEmpty([
-      doc['pancha2Addr1'],
-      doc['pancha2Addr2'],
-      doc['pancha2Addr3'],
-    ]),
-    40,
-  );
-  await addVal('val_pancha1Sig', doc['pancha1Sig']?.toString());
-  await addVal('val_pancha2Sig', doc['pancha2Sig']?.toString());
-  await addVal(
-    'val_panchaDate',
-    _formatSlashDate(
-      doc['panchaDateDay'],
-      doc['panchaDateMonth'],
-      doc['panchaDateYear'],
-    ),
-  );
-  await addVal('val_ioName', doc['ioName']?.toString());
-  await addVal('val_ioRank', doc['ioRank']?.toString());
-  await addVal('val_ioBuckleNo', doc['ioBuckleNo']?.toString());
-  await addVal('val_ioPosting', doc['ioPosting']?.toString());
-
-  // Table rows
-  final props = doc['properties'];
-  if (props is List) {
-    for (int i = 0; i < props.length; i++) {
-      final item = props[i];
-      final Map<String, dynamic> row =
-          item is Map ? Map<String, dynamic>.from(item) : {};
-      final desc = row['description']?.toString() ?? '';
-      final val = row['value']?.toString() ?? '';
-      if (containsDevanagari(desc)) {
-        await cache.add('prop_${i}_desc', desc, valueStyle, maxWidth: 300);
-      }
-      if (containsDevanagari(val)) {
-        await cache.add('prop_${i}_val', val, valueStyle, maxWidth: 100);
-      }
-    }
+    await addLbl('lbl_s1_district', '१) *जिल्हा:', marathiLabelStyle);
+    await addLbl('lbl_ps', '*पोलीस ठाणे:', marathiLabelStyle);
+    await addLbl('lbl_year', 'वर्षे:', marathiLabelStyle);
+    await addLbl('lbl_fir', '*पहिली खबर क/कार्यवाही', marathiLabelStyle);
+    await addLbl('lbl_di', '*दि', marathiLabelStyle);
+    await addLbl('lbl_slash20', '/२०', marathiLabelStyle);
+    await addLbl('lbl_s2', '२) अधिनियम व कलमे : ', marathiLabelStyle);
+    await addLbl(
+      'lbl_s3',
+      '३) *जप्त केलेले/मिळालेल्या मालमत्तेचे स्वरूप : चोरीला गेलेली/बेवारशी/बेकायदेशीर ताबा/अंतर्भूत/मृत्यू पत्राशिवाय.',
+      boldLabelStyle,
+      maxWidth: 480,
+    );
+    await addLbl(
+      'lbl_s4_head',
+      '४) जप्त केलेली मालमत्ता : (अ) तारीख :',
+      marathiLabelStyle,
+    );
+    await addLbl('lbl_s4_time', '(ब) वेळ :', marathiLabelStyle);
+    await addLbl(
+      'lbl_s4_place',
+      '(क) जेथून जप्त केली/परत मिळवली ती जागा : ',
+      marathiLabelStyle,
+      maxWidth: 300,
+    );
+    await addLbl(
+      'lbl_s4_desc',
+      '(ड) जप्तीच्या/परत मिळवल्याची जागेचे वर्णन: ',
+      marathiLabelStyle,
+      maxWidth: 300,
+    );
+    await addLbl('lbl_s5', '५) कोणाकडून जप्त केली : ', marathiLabelStyle);
+    await addLbl(
+      'lbl_prof_receiver',
+      '*चोरीचा माल घेणारा धंदेवाईक : होय/नाही ',
+      marathiLabelStyle,
+      maxWidth: 300,
+    );
+    await addLbl('lbl_nav', 'नाव :', marathiLabelStyle);
+    await addLbl('lbl_father', 'पित्याचे/पतीचे नाव :', marathiLabelStyle);
+    await addLbl('lbl_gender', 'लिंग :', marathiLabelStyle);
+    await addLbl('lbl_age', 'वय :', marathiLabelStyle);
+    await addLbl('lbl_occupation', 'व्यवसाय :', marathiLabelStyle);
+    await addLbl('lbl_address', 'पत्ता :', marathiLabelStyle);
+    await addLbl('lbl_s6', '६) साक्षीदार', boldLabelStyle);
+    await addLbl('lbl_witness_i', '(i) नाव :', marathiLabelStyle);
+    await addLbl('lbl_witness_ii', '(ii) नाव :', marathiLabelStyle);
+    await addLbl(
+      'lbl_s7',
+      '७) नाशवंत मालमत्तेच्या विल्हेवाटीसाठी केलेली शिफारस/केलेली कार्यवाही : ',
+      marathiLabelStyle,
+      maxWidth: 480,
+    );
+    await addLbl(
+      'lbl_s8',
+      '८) मौल्यवान मालमत्ता ठेवण्यासाठी केलेली शिफारस/केलेली कार्यवाही : ',
+      marathiLabelStyle,
+      maxWidth: 480,
+    );
+    await addLbl('lbl_s9', '९) ओळख पटवावी लागली काय : ', marathiLabelStyle);
+    await addLbl('lbl_s9_hoy', ' होय/नाही', marathiLabelStyle);
+    await addLbl(
+      'lbl_s10',
+      '१०) जप्त केलेल्या/परत मिळालेल्या मालाचे वर्णन (योग्य नमुन्यात माहिती भरा व जोडा )',
+      boldLabelStyle,
+      maxWidth: 480,
+    );
+    await addLbl('lbl_s11', '११) जप्तीची परिस्थिती/कारणे : ', boldLabelStyle);
+    await addLbl(
+      'lbl_s12',
+      '१२) वर नमूद करण्यात आलेली मालमत्ता पूर्ववत साक्षीदारांच्या समक्ष कायद्यातील तरतुदी नुसार जप्त करण्यात आली. आणि जप्तीच्या ज्ञापनाची ज्याच्याकडून मालमत्ता जप्त करण्यात आली. त्या इसमास/जागेत राहणाऱ्यास देण्यात आली.',
+      marathiLabelStyle,
+      maxWidth: 480,
+    );
+    await addLbl(
+      'lbl_s13',
+      '१३) खालील मालमत्ता अविष्ठित आणि/किंवा मोहोरबंद करण्यात आली आणि त्यावर किंवा मालमत्तेवर पूर्ववत साक्षीदारांच्या सहया घेण्यात आल्या आहेत.',
+      marathiLabelStyle,
+      maxWidth: 480,
+    );
+    await addLbl('th_seal_sr', 'अ क्र\n(१)', tableHeaderStyle, maxWidth: 40);
+    await addLbl(
+      'th_seal_prop',
+      'मालमत्ता\n(२)',
+      tableHeaderStyle,
+      maxWidth: 120,
+    );
+    await addLbl(
+      'th_seal_sig',
+      'पुडक्यावर किंवा मालमत्तेवर सही घेण्यात आली.\n(३)',
+      tableHeaderStyle,
+      maxWidth: 200,
+    );
+    await addLbl(
+      'lbl_seal_footer',
+      'मोहोरेचा नमुना खाली देण्यात आली आहे.',
+      marathiLabelStyle,
+      maxWidth: 300,
+    );
+    await addLbl('th_sr', "Sr. No.\nअ. क.", tableHeaderStyle, maxWidth: 40);
+    await addLbl(
+      'th_desc',
+      "Property Description\nमालमत्तेचे वर्णन",
+      tableHeaderStyle,
+      maxWidth: 200,
+    );
+    await addLbl(
+      'th_val',
+      "Estimated Value (Rs)\nअंदाजे किंमत (रु.)",
+      tableHeaderStyle,
+      maxWidth: 100,
+    );
   }
 
-  final sealProps = doc['sealProperties'];
-  if (sealProps is List) {
-    for (int i = 0; i < sealProps.length; i++) {
-      final item = sealProps[i];
-      final Map<String, dynamic> row =
-          item is Map ? Map<String, dynamic>.from(item) : {};
-      final property = row['property']?.toString() ?? '';
-      final signature = row['signature']?.toString() ?? '';
-      if (containsDevanagari(property)) {
-        await cache.add(
-          'seal_${i}_property',
-          property,
-          valueStyle,
-          maxWidth: 200,
-        );
+  if (showSig) {
+    // Pancha & IO signature labels (bilingual images like crime detail form)
+    await addLbl(
+      'lbl_panchas_name',
+      "Name of panchas:\nपंचाची नांवे :",
+      boldLabelStyle,
+    );
+    await addLbl('lbl_p1_addr', "Full Address:\nपत्ता", boldLabelStyle);
+    await addLbl('lbl_p2_addr', "Full Address:\nपत्ता", boldLabelStyle);
+    await addLbl('lbl_date_form', "Date:\nदिनांक", boldLabelStyle);
+    await addLbl(
+      'lbl_panchas_sig',
+      "Signature of Panchas:\nपंचाच्या सह्या :",
+      boldLabelStyle,
+    );
+    await addLbl(
+      'lbl_io_sig',
+      "Name and Signature of Investigation Officer",
+      boldLabelStyle,
+    );
+    await addLbl(
+      'lbl_io_sig_mar',
+      FormIoTerminology.amaldarSignatureHeader,
+      marathiLabelStyle,
+    );
+    await addLbl(
+      'lbl_io_name',
+      "Name:\n${FormIoTerminology.name} :",
+      boldLabelStyle,
+    );
+    await addLbl(
+      'lbl_io_rank',
+      "Rank:\n${FormIoTerminology.rank} :",
+      boldLabelStyle,
+    );
+    await addLbl('lbl_io_buckle', "B.No.if any:\nबक्कल नंबर :", boldLabelStyle);
+  }
+
+  if (showBody) {
+    // Pre-render dynamic values
+    await addVal('val_district', doc['district']?.toString() ?? '');
+    await addVal('val_ps', doc['ps']);
+    await addVal('val_year', doc['year']);
+    await addVal('val_firNo', doc['firNo']);
+    await addVal('val_firYearSuffix', doc['firYearSuffix']);
+    await addVal('val_dateDay', doc['dateDay']);
+    await addVal('val_dateMonth', doc['dateMonth']);
+    await addVal('val_dateYear', doc['dateYear']);
+    await addVal('val_actSection', doc['actSection']);
+    await addVal('val_natureOfProperty', doc['natureOfProperty']);
+    await addVal('val_seizureDateDay', doc['seizureDateDay']);
+    await addVal('val_seizureDateMonth', doc['seizureDateMonth']);
+    await addVal('val_seizureDateYear', doc['seizureDateYear']);
+    await addVal('val_seizureTime', doc['seizureTime']);
+    await addVal('val_seizurePlace', doc['seizurePlace']);
+    await addVal('val_seizurePlaceDesc', doc['seizurePlaceDesc']);
+    await addVal('val_seizedFrom', doc['seizedFrom']);
+    await addVal(
+      'val_isProfessionalReceiver',
+      (doc['isProfessionalReceiver'] ?? 'नाही').toString(),
+    );
+    await addVal('val_personName', doc['personName']);
+    await addVal('val_personFather', doc['personFather']);
+    await addVal('val_personSex', doc['personSex']);
+    await addVal('val_personAge', doc['personAge']);
+    await addVal('val_personOccupation', doc['personOccupation']);
+    await addVal('val_personAddress', doc['personAddress']);
+    await addVal('val_w1Name', doc['w1Name']);
+    await addVal('val_w1Father', doc['w1Father']);
+    await addVal('val_w1Sex', doc['w1Sex']);
+    await addVal('val_w1Age', doc['w1Age']);
+    await addVal('val_w1Occupation', doc['w1Occupation']);
+    await addVal('val_w1Address', doc['w1Address']);
+    await addVal('val_w2Name', doc['w2Name']);
+    await addVal('val_w2Father', doc['w2Father']);
+    await addVal('val_w2Sex', doc['w2Sex']);
+    await addVal('val_w2Age', doc['w2Age']);
+    await addVal('val_w2Occupation', doc['w2Occupation']);
+    await addVal('val_w2Address', doc['w2Address']);
+    await addVal('val_w2AddressLine2', doc['w2AddressLine2']);
+    await addVal('val_perishableDisposal', doc['perishableDisposal']);
+    await addVal('val_valuableKeeping', doc['valuableKeeping']);
+    await addVal(
+      'val_identificationRequired',
+      (doc['identificationRequired'] ?? 'नाही').toString(),
+    );
+    await addVal('val_circumstances', doc['circumstances']);
+    await addVal('val_circumstancesLine2', doc['circumstancesLine2']);
+    await addVal('val_circumstancesLine3', doc['circumstancesLine3']);
+  }
+
+  if (showSig) {
+    await addVal('val_pancha1Name', doc['pancha1Name']?.toString());
+    await addLinedBlock(
+      'val_pancha1Address',
+      _joinNonEmpty([
+        doc['pancha1Addr1'],
+        doc['pancha1Addr2'],
+        doc['pancha1Addr3'],
+      ]),
+      40,
+    );
+    await addVal('val_pancha2Name', doc['pancha2Name']?.toString());
+    await addLinedBlock(
+      'val_pancha2Address',
+      _joinNonEmpty([
+        doc['pancha2Addr1'],
+        doc['pancha2Addr2'],
+        doc['pancha2Addr3'],
+      ]),
+      40,
+    );
+    await addVal('val_pancha1Sig', doc['pancha1Sig']?.toString());
+    await addVal('val_pancha2Sig', doc['pancha2Sig']?.toString());
+    await addVal(
+      'val_panchaDate',
+      _formatSlashDate(
+        doc['panchaDateDay'],
+        doc['panchaDateMonth'],
+        doc['panchaDateYear'],
+      ),
+    );
+    await addVal('val_ioName', doc['ioName']?.toString());
+    await addVal('val_ioRank', doc['ioRank']?.toString());
+    await addVal('val_ioBuckleNo', doc['ioBuckleNo']?.toString());
+    await addVal('val_ioPosting', doc['ioPosting']?.toString());
+  }
+
+  if (showBody) {
+    // Table rows
+    final props = doc['properties'];
+    if (props is List) {
+      for (int i = 0; i < props.length; i++) {
+        final item = props[i];
+        final Map<String, dynamic> row =
+            item is Map ? Map<String, dynamic>.from(item) : {};
+        final desc = row['description']?.toString() ?? '';
+        final val = row['value']?.toString() ?? '';
+        if (containsDevanagari(desc)) {
+          await cache.add('prop_${i}_desc', desc, valueStyle, maxWidth: 300);
+        }
+        if (containsDevanagari(val)) {
+          await cache.add('prop_${i}_val', val, valueStyle, maxWidth: 100);
+        }
       }
-      if (containsDevanagari(signature)) {
-        await cache.add(
-          'seal_${i}_signature',
-          signature,
-          valueStyle,
-          maxWidth: 200,
-        );
+    }
+
+    final sealProps = doc['sealProperties'];
+    if (sealProps is List) {
+      for (int i = 0; i < sealProps.length; i++) {
+        final item = sealProps[i];
+        final Map<String, dynamic> row =
+            item is Map ? Map<String, dynamic>.from(item) : {};
+        final property = row['property']?.toString() ?? '';
+        final signature = row['signature']?.toString() ?? '';
+        if (containsDevanagari(property)) {
+          await cache.add(
+            'seal_${i}_property',
+            property,
+            valueStyle,
+            maxWidth: 200,
+          );
+        }
+        if (containsDevanagari(signature)) {
+          await cache.add(
+            'seal_${i}_signature',
+            signature,
+            valueStyle,
+            maxWidth: 200,
+          );
+        }
       }
     }
   }
