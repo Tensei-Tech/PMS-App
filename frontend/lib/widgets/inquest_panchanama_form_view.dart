@@ -4728,40 +4728,40 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 Row(
                   children: [
                     Text('दिनांक   : ', style: metaLabelStyle),
-                    IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
+                    BilingualSimpleUnderlineInput(minWidth: 34, 
                         controller: _marDateDayCtrl,
                         serifStyle: valueStyle,
                         hintText: 'DD',
-                      ),),),
+                      ),
                     Text(' / ', style: metaLabelStyle),
-                    IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
+                    BilingualSimpleUnderlineInput(minWidth: 34, 
                         controller: _marDateMonthCtrl,
                         serifStyle: valueStyle,
                         hintText: 'MM',
-                      ),),),
+                      ),
                     Text(' / २०', style: metaLabelStyle),
-                    IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 38), child: BilingualSimpleUnderlineInput(
+                    BilingualSimpleUnderlineInput(minWidth: 38, 
                         controller: _marDateYearCtrl,
                         serifStyle: valueStyle,
                         hintText: 'YY',
-                      ),),),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
                     Text('सुरू केल्याची वेळ: ', style: metaLabelStyle),
-                    IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
+                    BilingualSimpleUnderlineInput(minWidth: 34, 
                         controller: _marTimeHoursCtrl,
                         serifStyle: valueStyle,
                         hintText: 'HH',
-                      ),),),
+                      ),
                     Text(' / ', style: metaLabelStyle),
-                    IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 34), child: BilingualSimpleUnderlineInput(
+                    BilingualSimpleUnderlineInput(minWidth: 34, 
                         controller: _marTimeMinutesCtrl,
                         serifStyle: valueStyle,
                         hintText: 'MM',
-                      ),),),
+                      ),
                   ],
                 ),
               ],
@@ -5172,7 +5172,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 borderSide: BorderSide(color: Colors.black54, width: 1.0),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                borderSide: BorderSide(color: Colors.black87, width: 1.5),
               ),
             ),
           ),
@@ -5995,11 +5995,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 220), child: BilingualSimpleUnderlineInput(
+                  BilingualSimpleUnderlineInput(minWidth: 220, 
                       controller: _ptpReceiverSigCtrl,
                       serifStyle: serifStyle,
                       hintText: 'सही',
-                    ),),),
+                    ),
                 ],
               ),
             ),
@@ -6270,11 +6270,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 220), child: BilingualSimpleUnderlineInput(
+                  BilingualSimpleUnderlineInput(minWidth: 220, 
                       controller: _dpAmaldaarSigCtrl,
                       serifStyle: serifStyle,
                       hintText: 'सही',
-                    ),),),
+                    ),
                 ],
               ),
             ),
@@ -6349,5 +6349,6 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     );
   }
 }
+
 
 

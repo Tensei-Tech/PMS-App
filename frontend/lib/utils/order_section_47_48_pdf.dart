@@ -1042,9 +1042,15 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
     height: FormImagePdfHelper.a4Height,
     color: Colors.white,
     padding: const EdgeInsets.fromLTRB(42, 28, 42, 26),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.topCenter,
+      child: SizedBox(
+        width: FormImagePdfHelper.a4Width - 84,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
         Align(
           alignment: Alignment.topRight,
           child: Text(
@@ -1142,7 +1148,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
             ),
           ],
         ),
-        const Spacer(),
+        const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
@@ -1257,7 +1263,9 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         ),
       ],
     ),
-  );
+  ),
+),
+);
 }
 
 Widget _buildPg2Widget(Map<String, dynamic> doc) {
@@ -1436,9 +1444,15 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
     height: FormImagePdfHelper.a4Height,
     color: Colors.white,
     padding: const EdgeInsets.fromLTRB(42, 28, 42, 26),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.topCenter,
+      child: SizedBox(
+        width: FormImagePdfHelper.a4Width - 84,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
         Align(
           alignment: Alignment.topRight,
           child: Text(
@@ -1537,7 +1551,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             ),
           ],
         ),
-        const Spacer(),
+        const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerRight,
           child: Padding(
@@ -1652,5 +1666,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         ),
       ],
     ),
-  );
+  ),
+),
+);
 }

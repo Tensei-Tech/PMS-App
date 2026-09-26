@@ -11,6 +11,7 @@ import 'form_typography.dart';
 import 'form_view_scaffold.dart';
 import '../utils/form_io_terminology.dart';
 import 'form_section_utils.dart';
+import 'form_date_pickers.dart';
 
 class CrimeDetailFormView extends StatefulWidget {
   final bool readOnly;
@@ -53,6 +54,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
   final _dateYearCtrl = TextEditingController();
+  final _dateCombinedCtrl = TextEditingController();
 
   final _actSectionCtrl = TextEditingController();
 
@@ -170,6 +172,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
     _dateDayCtrl.dispose();
     _dateMonthCtrl.dispose();
     _dateYearCtrl.dispose();
+    _dateCombinedCtrl.dispose();
     _actSectionCtrl.dispose();
     _shownByNameCtrl.dispose();
     _shownByFatherHusbandCtrl.dispose();
@@ -301,6 +304,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
       _dateMonthCtrl.text = data['dateMonth']?.toString() ?? '';
       _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
+      _dateCombinedCtrl.text = "\${_dateDayCtrl.text}/\${_dateMonthCtrl.text}/\${_dateYearCtrl.text}".replaceAll(RegExp(r'^/|/$|//'), '');
       _actSectionCtrl.text = data['actSection']?.toString() ?? '';
       _shownByNameCtrl.text = data['shownByName']?.toString() ?? '';
       _shownByFatherHusbandCtrl.text =
@@ -533,11 +537,11 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                               padding: const EdgeInsets.only(left: 2, right: 2),
                               child: Text('/20', style: serifStyle),
                             ),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
+                            BilingualSimpleUnderlineInput(minWidth: 35, 
                                 controller: _firYearSuffixCtrl,
                                 serifStyle: serifStyle,
                                 hintText: 'YY',
-                              ),),),
+                              ),
                           ],
                         ),
                       ],
@@ -556,23 +560,13 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _dateDayCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'DD',
-                              ),),),
-                            Text('/', style: serifStyle),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _dateMonthCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'MM',
-                              ),),),
-                            Text('/20', style: serifStyle),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _dateYearCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'YY',
-                              ),),),
+                            formDatePickerField(context,
+                              controller: _dateCombinedCtrl,
+                              dayCtrl: _dateDayCtrl,
+                              monthCtrl: _dateMonthCtrl,
+                              yearCtrl: _dateYearCtrl,
+                              width: 140,
+                            ),
                           ],
                         ),
                       ],
@@ -1223,31 +1217,13 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           children: [
                             Text('घटनास्थळ पंचनाम्याची दिनांक : ',
                                 style: marathiLabelStyle),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaDateDayCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'DD',
-                              ),),),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Text('/', style: serifStyle),
+                            formDatePickerField(context,
+                              controller: _panchnamaDateCtrl,
+                              dayCtrl: _panchnamaDateDayCtrl,
+                              monthCtrl: _panchnamaDateMonthCtrl,
+                              yearCtrl: _panchnamaDateYearCtrl,
+                              width: 140,
                             ),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaDateMonthCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'MM',
-                              ),),),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Text('/20', style: serifStyle),
-                            ),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaDateYearCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'YY',
-                              ),),),
                           ],
                         ),
                         const SizedBox(height: 20),
@@ -1328,44 +1304,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           crossAxisAlignment: WrapCrossAlignment.end,
                           children: [
                             Text('वेळ : ', style: marathiLabelStyle),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaTimeFromHoursCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'HH',
-                              ),),),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Text('/', style: serifStyle),
-                            ),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaTimeFromMinutesCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'MM',
-                              ),),),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4),
-                              child: Text('ते :', style: marathiLabelStyle),
-                            ),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaTimeToHoursCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'HH',
-                              ),),),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Text('/', style: serifStyle),
-                            ),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaTimeToMinutesCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'MM',
-                              ),),),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 4),
-                              child: Text('पर्यंत', style: marathiLabelStyle),
+                            formTimePickerField(context,
+                              controller: _panchnamaTimeCtrl,
+                              width: 100,
                             ),
                           ],
                         ),
@@ -1480,7 +1421,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
         keyboardType: TextInputType.multiline,
         style: style.copyWith(
           fontSize: 11,
-          color: Colors.blue.shade900,
+          color: Colors.black87,
           fontWeight: FontWeight.bold,
         ),
         decoration: InputDecoration(
@@ -1552,5 +1493,6 @@ class VictimRow {
     meansCtrl.text = map['means']?.toString() ?? '';
   }
 }
+
 
 

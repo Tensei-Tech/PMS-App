@@ -1221,7 +1221,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isYes ? Colors.blue.shade900 : Colors.black87,
+                          color: isYes ? Colors.black87 : Colors.black87,
                           width: 1.3,
                         ),
                         color: Colors.transparent,
@@ -1229,9 +1229,9 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       padding: const EdgeInsets.all(2.5),
                       child: isYes
                           ? Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.blue.shade900,
+                                color: Colors.black87,
                               ),
                             )
                           : null,
@@ -1262,7 +1262,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isNo ? Colors.blue.shade900 : Colors.black87,
+                          color: isNo ? Colors.black87 : Colors.black87,
                           width: 1.3,
                         ),
                         color: Colors.transparent,
@@ -1270,9 +1270,9 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       padding: const EdgeInsets.all(2.5),
                       child: isNo
                           ? Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.blue.shade900,
+                                color: Colors.black87,
                               ),
                             )
                           : null,
@@ -1320,7 +1320,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isYes ? Colors.blue.shade900 : Colors.black87,
+                        color: isYes ? Colors.black87 : Colors.black87,
                         width: 1.2,
                       ),
                       color: Colors.transparent,
@@ -1328,9 +1328,9 @@ class Medical376FormViewState extends State<Medical376FormView> {
                     padding: const EdgeInsets.all(2.5),
                     child: isYes
                         ? Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.blue.shade900,
+                              color: Colors.black87,
                             ),
                           )
                         : null,
@@ -1361,7 +1361,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isNo ? Colors.blue.shade900 : Colors.black87,
+                        color: isNo ? Colors.black87 : Colors.black87,
                         width: 1.2,
                       ),
                       color: Colors.transparent,
@@ -1369,9 +1369,9 @@ class Medical376FormViewState extends State<Medical376FormView> {
                     padding: const EdgeInsets.all(2.5),
                     child: isNo
                         ? Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.blue.shade900,
+                              color: Colors.black87,
                             ),
                           )
                         : null,
@@ -1417,7 +1417,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSelected ? Colors.blue.shade900 : Colors.black87,
+                      color: isSelected ? Colors.black87 : Colors.black87,
                       width: 1.2,
                     ),
                     color: Colors.transparent,
@@ -1427,7 +1427,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       ? Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.blue.shade900,
+                            color: Colors.black87,
                           ),
                         )
                       : null,
@@ -1470,7 +1470,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                     border: Border.all(color: Colors.black87, width: 1.2),
                     borderRadius: BorderRadius.circular(2),
                     color:
-                        isChecked ? Colors.blue.shade900 : Colors.transparent,
+                        isChecked ? Colors.black87 : Colors.transparent,
                   ),
                   child: isChecked
                       ? const Icon(Icons.check, size: 14, color: Colors.white)
@@ -1533,7 +1533,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSelected ? Colors.blue.shade900 : Colors.black87,
+                      color: isSelected ? Colors.black87 : Colors.black87,
                       width: 1.3,
                     ),
                     color: Colors.transparent,
@@ -1543,7 +1543,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       ? Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.blue.shade900,
+                            color: Colors.black87,
                           ),
                         )
                       : null,
@@ -1597,7 +1597,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       shape: BoxShape.circle,
                       border: Border.all(
                         color:
-                            isSelected ? Colors.blue.shade900 : Colors.black87,
+                            isSelected ? Colors.black87 : Colors.black87,
                         width: 1.2,
                       ),
                       color: Colors.transparent,
@@ -1605,9 +1605,9 @@ class Medical376FormViewState extends State<Medical376FormView> {
                     padding: const EdgeInsets.all(2),
                     child: isSelected
                         ? Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.blue.shade900,
+                              color: Colors.black87,
                             ),
                           )
                         : null,
@@ -1709,7 +1709,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isSelected
-                        ? Colors.blue.shade900
+                        ? Colors.black87
                         : Colors.grey.shade400,
                     width: isSelected ? 1.6 : 1.0,
                   ),
@@ -1721,7 +1721,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                     fontSize: 11,
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? Colors.blue.shade900 : Colors.black87,
+                    color: isSelected ? Colors.black87 : Colors.black87,
                   ),
                 ),
               ),
@@ -1760,7 +1760,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                   style: serifStyle.copyWith(
                     fontSize: 9.5,
                     fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                    color: isSel ? Colors.blue.shade900 : Colors.black87,
+                    color: isSel ? Colors.black87 : Colors.black87,
                   ),
                 ),
                 const SizedBox(width: 3),
@@ -1770,7 +1770,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSel ? Colors.blue.shade900 : Colors.black87,
+                      color: isSel ? Colors.black87 : Colors.black87,
                       width: 1.2,
                     ),
                     color: Colors.transparent,
@@ -1780,7 +1780,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       ? Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.blue.shade900,
+                            color: Colors.black87,
                           ),
                         )
                       : null,
@@ -1835,7 +1835,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSelected ? Colors.blue.shade900 : Colors.black87,
+                      color: isSelected ? Colors.black87 : Colors.black87,
                       width: 1.3,
                     ),
                     color: Colors.transparent,
@@ -1845,7 +1845,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       ? Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.blue.shade900,
+                            color: Colors.black87,
                           ),
                         )
                       : null,
@@ -1925,7 +1925,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
         style: style.copyWith(
           fontSize: 11,
           fontWeight: FontWeight.bold,
-          color: Colors.blue.shade900,
+          color: Colors.black87,
         ),
         decoration: InputDecoration(
           isDense: true,
@@ -2356,20 +2356,20 @@ class Medical376FormViewState extends State<Medical376FormView> {
                   'Contents of the above have been explained to me in ',
                   style: style.copyWith(fontSize: 11),
                 ),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 140, 
                     controller: _fConsentLanguageCtrl,
                     serifStyle: style,
                     hintText: 'e.g. Marathi / Hindi',
-                  ),),),
+                  ),
                 Text(
                   ' language with the help of a special educator/interpreter/support person (circle as appropriate) ',
                   style: style.copyWith(fontSize: 11),
                 ),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 160), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 160, 
                     controller: _fConsentSupportRoleCtrl,
                     serifStyle: style,
                     hintText: 'Role / Person details',
-                  ),),),
+                  ),
               ],
             ),
             const SizedBox(height: 2),
@@ -2542,11 +2542,11 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       const SizedBox(width: 24),
                       Text('  Age of onset: ',
                           style: style.copyWith(fontSize: 11)),
-                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 110), child: BilingualSimpleUnderlineInput(
+                      BilingualSimpleUnderlineInput(minWidth: 110, 
                           controller: _fMenarcheAgeCtrl,
                           serifStyle: style,
                           hintText: 'e.g. 13 years',
-                        ),),),
+                        ),
                     ],
                   ),
                   const Divider(color: Colors.black26, height: 16),
@@ -2557,21 +2557,21 @@ class Medical376FormViewState extends State<Medical376FormView> {
                         'Menstrual history – Cycle length and duration: ',
                         style: style.copyWith(fontSize: 11),
                       ),
-                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 130), child: BilingualSimpleUnderlineInput(
+                      BilingualSimpleUnderlineInput(minWidth: 130, 
                           controller: _fMenstrualCycleCtrl,
                           serifStyle: style,
                           hintText: 'e.g. 28 days / 4-5 days',
-                        ),),),
+                        ),
                       const SizedBox(width: 16),
                       Text(
                         'Last menstrual period (LMP): ',
                         style: style.copyWith(fontSize: 11),
                       ),
-                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
+                      BilingualSimpleUnderlineInput(minWidth: 120, 
                           controller: _fLastMenstrualPeriodCtrl,
                           serifStyle: style,
                           hintText: 'DD/MM/YYYY',
-                        ),),),
+                        ),
                     ],
                   ),
                   const Divider(color: Colors.black26, height: 16),
@@ -2605,11 +2605,11 @@ class Medical376FormViewState extends State<Medical376FormView> {
                         'If yes, duration of pregnancy: ',
                         style: style.copyWith(fontSize: 11),
                       ),
-                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 90), child: BilingualSimpleUnderlineInput(
+                      BilingualSimpleUnderlineInput(minWidth: 90, 
                           controller: _fPregnancyDurationCtrl,
                           serifStyle: style,
                           hintText: '... weeks',
-                        ),),),
+                        ),
                     ],
                   ),
                   const Divider(color: Colors.black26, height: 16),
@@ -2622,11 +2622,11 @@ class Medical376FormViewState extends State<Medical376FormView> {
                       const SizedBox(width: 16),
                       Text('  If yes – method used: ',
                           style: style.copyWith(fontSize: 11)),
-                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 200), child: BilingualSimpleUnderlineInput(
+                      BilingualSimpleUnderlineInput(minWidth: 200, 
                           controller: _fContraceptionMethodCtrl,
                           serifStyle: style,
                           hintText: 'OCP / Copper-T / Barrier / etc.',
-                        ),),),
+                        ),
                     ],
                   ),
                   const Divider(color: Colors.black26, height: 16),
@@ -2637,21 +2637,21 @@ class Medical376FormViewState extends State<Medical376FormView> {
                         'Vaccination status – Tetanus: ',
                         style: style.copyWith(fontSize: 11),
                       ),
-                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 150), child: BilingualSimpleUnderlineInput(
+                      BilingualSimpleUnderlineInput(minWidth: 150, 
                           controller: _fVaccinationTetanusCtrl,
                           serifStyle: style,
                           hintText: 'Vaccinated / Not vaccinated',
-                        ),),),
+                        ),
                       const SizedBox(width: 16),
                       Text(
                         'Hepatitis B: ',
                         style: style.copyWith(fontSize: 11),
                       ),
-                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 150), child: BilingualSimpleUnderlineInput(
+                      BilingualSimpleUnderlineInput(minWidth: 150, 
                           controller: _fVaccinationHepBCtrl,
                           serifStyle: style,
                           hintText: 'Vaccinated / Not vaccinated',
-                        ),),),
+                        ),
                     ],
                   ),
                 ],
@@ -2841,21 +2841,21 @@ class Medical376FormViewState extends State<Medical376FormView> {
                               '(vi) Sex of assailant(s): ',
                               style: style.copyWith(fontSize: 11),
                             ),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 100), child: BilingualSimpleUnderlineInput(
+                            BilingualSimpleUnderlineInput(minWidth: 100, 
                                 controller: _fAssailantSexCtrl,
                                 serifStyle: style,
                                 hintText: 'Sex',
-                              ),),),
+                              ),
                             const SizedBox(width: 16),
                             Text(
                               'Approx. Age of assailant(s): ',
                               style: style.copyWith(fontSize: 11),
                             ),
-                            IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 100), child: BilingualSimpleUnderlineInput(
+                            BilingualSimpleUnderlineInput(minWidth: 100, 
                                 controller: _fAssailantAgeCtrl,
                                 serifStyle: style,
                                 hintText: 'Age',
-                              ),),),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -4690,43 +4690,43 @@ class Medical376FormViewState extends State<Medical376FormView> {
               children: [
                 Text('I have examined (name of survivor) ',
                     style: style.copyWith(fontSize: 11)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 170), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 170, 
                     controller: _fProvSurvivorNameCtrl,
                     serifStyle: style,
                     hintText: 'Name of survivor',
-                  ),),),
+                  ),
                 Text(' M/F/Other ', style: style.copyWith(fontSize: 11)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 60, 
                     controller: _fProvGenderCtrl,
                     serifStyle: style,
                     hintText: 'Gender',
-                  ),),),
+                  ),
                 Text(' aged ', style: style.copyWith(fontSize: 11)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 60), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 60, 
                     controller: _fProvAgeCtrl,
                     serifStyle: style,
                     hintText: 'Age',
-                  ),),),
+                  ),
                 Text(' reporting_ (type of sexual violence and circumstances) ',
                     style: style.copyWith(fontSize: 11)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 200), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 200, 
                     controller: _fProvCircumstancesCtrl,
                     serifStyle: style,
                     hintText: 'Type / circumstances',
-                  ),),),
+                  ),
                 Text(', ', style: style.copyWith(fontSize: 11)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 90), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 90, 
                     controller: _fProvTimeAfterIncidentCtrl,
                     serifStyle: style,
                     hintText: 'XYZ hrs/days',
-                  ),),),
+                  ),
                 Text(' after the incident, after having (bathed/douched etc) ',
                     style: style.copyWith(fontSize: 11)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 150), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 150, 
                     controller: _fProvBathedDouchedCtrl,
                     serifStyle: style,
                     hintText: 'Bathed/douched etc',
-                  ),),),
+                  ),
                 Text('. My findings are as follows:',
                     style: style.copyWith(fontSize: 11)),
               ],
@@ -4950,18 +4950,18 @@ class Medical376FormViewState extends State<Medical376FormView> {
               children: [
                 Text('This report contains ',
                     style: style.copyWith(fontSize: 11)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 120, 
                     controller: _fReportSheetsCountCtrl,
                     serifStyle: style,
                     hintText: 'No. of sheets',
-                  ),),),
+                  ),
                 Text(' number of sheets and ',
                     style: style.copyWith(fontSize: 11)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 120), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 120, 
                     controller: _fReportEnvelopesCountCtrl,
                     serifStyle: style,
                     hintText: 'No. of envelopes',
-                  ),),),
+                  ),
                 Text(' number of envelopes.',
                     style: style.copyWith(fontSize: 11)),
               ],
@@ -5052,20 +5052,20 @@ class Medical376FormViewState extends State<Medical376FormView> {
                   'taking into account the history, clinical examination findings and Laboratory reports of ',
                   style: style.copyWith(fontSize: 11),
                 ),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 170), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 170, 
                     controller: _fFinalOpinionPersonCtrl,
                     serifStyle: style,
                     hintText: 'Name of survivor',
-                  ),),),
+                  ),
                 Text(
                   ' bearing identification marks described above, ',
                   style: style.copyWith(fontSize: 11),
                 ),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 100), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 100, 
                     controller: _fFinalOpinionTimeCtrl,
                     serifStyle: style,
                     hintText: 'XYZ hours/days',
-                  ),),),
+                  ),
                 Text(
                   ' after the incident of sexual violence, I am of the opinion that:',
                   style: style.copyWith(fontSize: 11),
@@ -5403,11 +5403,11 @@ class Medical376FormViewState extends State<Medical376FormView> {
                   'After examining the person bearing above mentioned identification marks, ',
                   style: style.copyWith(fontSize: 11),
                 ),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 140), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 140, 
                     controller: _mOpinionTimeElapsedCtrl,
                     serifStyle: style,
                     hintText: 'e.g. 2 days / 6 hrs',
-                  ),),),
+                  ),
                 Text(
                   ' days/hours after the incident, I/We is/are of the opinion that:',
                   style: style.copyWith(fontSize: 11),
@@ -5431,18 +5431,18 @@ class Medical376FormViewState extends State<Medical376FormView> {
                 Text('Date: ',
                     style: style.copyWith(
                         fontSize: 11, fontWeight: FontWeight.bold)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 130), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 130, 
                     controller: _mOpinionDateCtrl,
                     serifStyle: style,
                     hintText: 'DD/MM/YYYY',
-                  ),),),
+                  ),
                 const Spacer(),
                 Text('(Report contains ', style: style.copyWith(fontSize: 11)),
-                IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 40), child: BilingualSimpleUnderlineInput(
+                BilingualSimpleUnderlineInput(minWidth: 40, 
                     controller: _mReportPagesCountCtrl,
                     serifStyle: style,
                     hintText: '4',
-                  ),),),
+                  ),
                 Text(' pages each signed by doctor)',
                     style: style.copyWith(fontSize: 11)),
               ],
@@ -5667,5 +5667,6 @@ class Medical376FormViewState extends State<Medical376FormView> {
     );
   }
 }
+
 
 

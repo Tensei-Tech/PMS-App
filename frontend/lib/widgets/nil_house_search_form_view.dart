@@ -847,11 +847,11 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                         style: headerLabelStyle,
                       ),
                       const SizedBox(height: 36),
-                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 220), child: BilingualSimpleUnderlineInput(
+                      BilingualSimpleUnderlineInput(minWidth: 220, 
                           controller: _ownerSigCtrl,
                           serifStyle: serif,
                           hintText: 'सही / अंगठा',
-                        ),),),
+                        ),
                       const SizedBox(height: 16),
                       Text(
                         'समक्ष',
@@ -920,5 +920,6 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
     );
   }
 }
+
 
 

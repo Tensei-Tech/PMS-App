@@ -336,7 +336,7 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
       style: GoogleFonts.poppins(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: Colors.blue.shade900,
+        color: Colors.black87,
       ),
       decoration: InputDecoration(
         isDense: true,
@@ -1185,7 +1185,7 @@ class InterrogationFormViewState extends State<InterrogationFormView> {
                         fontSize: 13.5,
                         fontWeight: FontWeight.w500,
                         height: 1.8,
-                        color: Colors.blue.shade900,
+                        color: Colors.black87,
                       ),
                       decoration: const InputDecoration(
                         isDense: true,

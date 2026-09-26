@@ -3850,8 +3850,9 @@ Widget _buildDeadBodyHandoverWidget(Map<String, dynamic> doc) {
       ),
       const SizedBox(height: 18),
       Text.rich(
+        textAlign: TextAlign.justify,
         TextSpan(
-          style: mrR.copyWith(height: 1.8),
+          style: mrR.copyWith(height: 2.2),
           children: [
             const TextSpan(text: '       मी '),
             FormImagePdfHelper.inlineFieldSpan(v('ptpReceiverName'),

@@ -10,7 +10,7 @@ import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../modules/form_vi/providers/form_vi_provider.dart';
 import '../modules/nc/providers/nc_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
-import '../modules/ad/providers/ad_provider.dart';
+import '../modules/accidental_death/providers/accidental_death_provider.dart';
 import '../modules/missing/providers/missing_provider.dart';
 import '../modules/kidnapping/providers/kidnapping_provider.dart';
 import '../modules/theft/providers/theft_provider.dart';

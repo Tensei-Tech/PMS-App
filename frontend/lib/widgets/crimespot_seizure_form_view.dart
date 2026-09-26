@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:khakhi_diary/widgets/form_date_pickers.dart';
+
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
@@ -22,6 +24,7 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
   final _dateYearCtrl = TextEditingController();
+  final _dateCombinedCtrl = TextEditingController();
   final _panch1NameCtrl = TextEditingController();
   final _panch2NameCtrl = TextEditingController();
   final _bodyCtrl = TextEditingController();
@@ -35,6 +38,7 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
     _dateDayCtrl.dispose();
     _dateMonthCtrl.dispose();
     _dateYearCtrl.dispose();
+    _dateCombinedCtrl.dispose();
     _panch1NameCtrl.dispose();
     _panch2NameCtrl.dispose();
     _bodyCtrl.dispose();
@@ -67,6 +71,9 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
       _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
       _dateMonthCtrl.text = data['dateMonth']?.toString() ?? '';
       _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
+      _dateCombinedCtrl.text =
+          "\${_dateDayCtrl.text}/\${_dateMonthCtrl.text}/\${_dateYearCtrl.text}"
+              .replaceAll(RegExp(r'^/|/$|//'), '');
       _panch1NameCtrl.text = data['panch1Name']?.toString() ?? '';
       _panch2NameCtrl.text = data['panch2Name']?.toString() ?? '';
       _bodyCtrl.text = data['body']?.toString() ?? '';
@@ -135,23 +142,14 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                             style: marathiLabelStyle.copyWith(fontSize: 12),
                           ),
                           const SizedBox(width: 4),
-                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                              controller: _dateDayCtrl,
-                              serifStyle: serifStyle,
-                            ),),),
-                          Text(' / ', style: serifStyle),
-                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                              controller: _dateMonthCtrl,
-                              serifStyle: serifStyle,
-                            ),),),
-                          Text(
-                            ' / २०',
-                            style: marathiLabelStyle.copyWith(fontSize: 12),
+                          formDatePickerField(
+                            context,
+                            controller: _dateCombinedCtrl,
+                            dayCtrl: _dateDayCtrl,
+                            monthCtrl: _dateMonthCtrl,
+                            yearCtrl: _dateYearCtrl,
+                            width: 140,
                           ),
-                          IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 35), child: BilingualSimpleUnderlineInput(
-                              controller: _dateYearCtrl,
-                              serifStyle: serifStyle,
-                            ),),),
                         ],
                       ),
                     ],
@@ -240,10 +238,11 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                         style: marathiLabelStyle.copyWith(fontSize: 12),
                       ),
                       const SizedBox(height: 8),
-                      IntrinsicWidth(child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 200), child: BilingualSimpleUnderlineInput(
-                          controller: _ioNameCtrl,
-                          serifStyle: serifStyle,
-                        ),),),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 200,
+                        controller: _ioNameCtrl,
+                        serifStyle: serifStyle,
+                      ),
                     ],
                   ),
                 ),
@@ -300,5 +299,3 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
     );
   }
 }
-
-
