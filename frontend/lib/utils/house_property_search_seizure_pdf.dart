@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 import '../widgets/form_section_utils.dart';
 import 'form_io_terminology.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewHousePropertySearchSeizurePdf(
   BuildContext context,
@@ -32,8 +33,8 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
   Map<String, dynamic> doc,
 ) async {
   final pdf = pw.Document();
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
   final cache = await _preRenderAllMarathi(doc);
 
   const knownSectionIds = {'Search Seizure Form', 'Search Seizure Panchanama'};
@@ -71,7 +72,7 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
 
   pw.Widget renderText(String key, String? val, pw.TextStyle engStyle) {
     final text = val?.trim() ?? '';
-    if (text.isEmpty) return pw.SizedBox();
+    if (text.isEmpty) return pw.SizedBox(height: 10);
     if (containsDevanagari(text) && cache.has(key)) {
       return cache.img(key);
     }
@@ -90,7 +91,7 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
     double? width,
   }) {
     final child = pw.Container(
-      width: expanded ? null : (width ?? 60),
+      constraints: pw.BoxConstraints(minWidth: width ?? 60),
       padding: const pw.EdgeInsets.only(left: 4, right: 4, bottom: 2),
       decoration: const pw.BoxDecoration(
         border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
@@ -205,8 +206,9 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                   ),
                 ],
               ),
+              pw.SizedBox(height: 6),
               pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 16),
+                padding: const pw.EdgeInsets.only(left: 12),
                 child: pw.Row(
                   children: [
                     underlineField(
@@ -217,8 +219,9 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                   ],
                 ),
               ),
+              pw.SizedBox(height: 6),
               pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 16),
+                padding: const pw.EdgeInsets.only(left: 12),
                 child: pw.Row(
                   children: [
                     underlineField(
@@ -306,438 +309,421 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
     );
   }
 
-  // Sections 1–10
-  if (showsSection('Search Seizure Form')) {
-    // PAGE 2 — Sections 1–10
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(28),
-        build: (_) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Center(
-              child: pw.Column(
-                children: [
-                  pw.Text(
-                    'HOUSE/PROPERTY SEARCH & SEIZURE FORM',
-                    style: englishBold.copyWith(fontSize: 15),
-                    textAlign: pw.TextAlign.center,
-                  ),
-                  pw.SizedBox(height: 4),
-                  mLbl('title_mr'),
-                  pw.SizedBox(height: 4),
-                  pw.Text(
-                    '(Search/ Production/ Recovery u/s. 185 B.N.S.S)',
-                    style: englishStyle.copyWith(fontSize: 9),
-                    textAlign: pw.TextAlign.center,
-                  ),
-                  pw.SizedBox(height: 2),
-                  mLbl('lbl_statute'),
-                ],
+  pdf.addPage(
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(28),
+      build: (_) => [
+        if (showsSection('Search Seizure Form')) ...[
+          pw.Center(
+            child: pw.Column(
+              children: [
+                pw.Text(
+                  'HOUSE/PROPERTY SEARCH & SEIZURE FORM',
+                  style: englishBold.copyWith(fontSize: 15),
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.SizedBox(height: 4),
+                mLbl('title_mr'),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  '(Search/ Production/ Recovery u/s. 185 B.N.S.S)',
+                  style: englishStyle.copyWith(fontSize: 9),
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.SizedBox(height: 2),
+                mLbl('lbl_statute'),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 10),
+          pw.Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            crossAxisAlignment: pw.WrapCrossAlignment.end,
+            children: [
+              inlineField(
+                '1.Dist : ',
+                'lbl_dist',
+                'val_dist',
+                doc['dist']?.toString() ?? '',
+                width: 55,
               ),
-            ),
-            pw.SizedBox(height: 10),
-            pw.Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              crossAxisAlignment: pw.WrapCrossAlignment.end,
-              children: [
-                inlineField(
-                  '1.Dist : ',
-                  'lbl_dist',
-                  'val_dist',
-                  doc['dist']?.toString() ?? '',
-                  width: 55,
-                ),
-                inlineField(
-                  'P.S: ',
-                  'lbl_ps',
-                  'val_ps',
-                  doc['ps']?.toString() ?? '',
-                  width: 55,
-                ),
-                inlineField(
-                  'Year : ',
-                  'lbl_year',
-                  'val_year',
-                  doc['year']?.toString() ?? '',
-                  width: 35,
-                ),
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      crossAxisAlignment: pw.CrossAxisAlignment.end,
-                      children: [
-                        pw.Text('FIR No : ', style: englishBold),
-                        underlineField(
-                          'val_firNo',
-                          doc['firNo']?.toString() ?? '',
-                          width: 40,
-                        ),
-                        pw.Text('/20', style: englishBold),
-                        underlineField(
-                          'val_firYearSuffix',
-                          doc['firYearSuffix']?.toString() ?? '',
-                          width: 22,
-                        ),
-                      ],
-                    ),
-                    mLbl('lbl_fir'),
-                  ],
-                ),
-                inlineField(
-                  'Date : ',
-                  'lbl_header_date',
-                  'val_headerDate',
-                  doc['headerDate']?.toString() ?? '',
-                  width: 55,
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 6),
-            wideField(
-              '2. Act and Section : ',
-              'lbl_act',
-              'val_actSections',
-              doc['actSections']?.toString() ?? '',
-            ),
-            multiline(
-              '3. Nature of property seized/Recover: Stolen/Unclaimed/Unlawful procession/Involved/Intestate.',
-              'lbl_nature',
-              'nature',
-              doc['natureProperty']?.toString(),
-              minLines: 2,
-            ),
-            pw.SizedBox(height: 4),
-            wideField(
-              '4. Name And Address of accused : ',
-              'lbl_accused',
-              'val_accusedNameAddress',
-              doc['accusedNameAddress']?.toString() ?? '',
-            ),
-            wideField(
-              '(a) Place from where seized/recovered :- ',
-              'lbl_place_seized',
-              'val_placeSeized',
-              doc['placeSeized']?.toString() ?? '',
-            ),
-            multiline(
-              '(b) Description of the place of seizure/recovery : ',
-              'lbl_place_desc',
-              'placeDesc',
-              doc['placeDescription']?.toString(),
-              minLines: 2,
-            ),
-            pw.SizedBox(height: 4),
-            pw.Text('5. Person form whom seized :-', style: englishBold),
-            mLbl('lbl_person_header'),
-            pw.SizedBox(height: 2),
-            wideField(
-              'Professional Receiver of Stolen Property: - Yes/No.',
-              'lbl_prof_receiver',
-              'val_profReceiver',
-              doc['profReceiver']?.toString() ?? '',
-            ),
-            pw.Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              crossAxisAlignment: pw.WrapCrossAlignment.end,
-              children: [
-                inlineField(
-                  'Name : - ',
-                  'lbl_person_name',
-                  'val_personName',
-                  doc['personName']?.toString() ?? '',
-                  width: 70,
-                ),
-                inlineField(
-                  'Father\'s/Husband\'s Name : ',
-                  'lbl_person_father',
-                  'val_personFather',
-                  doc['personFather']?.toString() ?? '',
-                  width: 70,
-                ),
-                inlineField(
-                  'Sex- ',
-                  'lbl_person_sex',
-                  'val_personSex',
-                  doc['personSex']?.toString() ?? '',
-                  width: 40,
-                ),
-              ],
-            ),
-            pw.Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              crossAxisAlignment: pw.WrapCrossAlignment.end,
-              children: [
-                inlineField(
-                  'Age : ',
-                  'lbl_person_age',
-                  'val_personAge',
-                  doc['personAge']?.toString() ?? '',
-                  width: 35,
-                ),
-                inlineField(
-                  'Occupation : ',
-                  'lbl_person_occ',
-                  'val_personOccupation',
-                  doc['personOccupation']?.toString() ?? '',
-                  width: 60,
-                ),
-                inlineField(
-                  'Address : ',
-                  'lbl_person_addr',
-                  'val_personAddress',
-                  doc['personAddress']?.toString() ?? '',
-                  width: 80,
-                ),
-              ],
-            ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(left: 8),
-              child: pw.Row(
-                children: [
-                  underlineField(
-                    'val_personAddressLine2',
-                    doc['personAddressLine2']?.toString() ?? '',
-                    expanded: true,
-                  ),
-                ],
+              inlineField(
+                'P.S: ',
+                'lbl_ps',
+                'val_ps',
+                doc['ps']?.toString() ?? '',
+                width: 55,
               ),
-            ),
-            multiline(
-              '6. Action taken/recommended for disposal of perishable property: -',
-              'lbl_perishable',
-              'perishable',
-              doc['perishableDisposal']?.toString(),
-              minLines: 2,
-            ),
-            multiline(
-              '7. Action taken/recommended for keeping of valuable property :-',
-              'lbl_valuable',
-              'valuable',
-              doc['valuableKeeping']?.toString(),
-              minLines: 2,
-            ),
-            wideField(
-              '8. Identification repuired :- Yes / No.',
-              'lbl_identification',
-              'val_identificationRequired',
-              doc['identificationRequired']?.toString() ?? '',
-            ),
-            wideField(
-              '9. Details of property seized/recovered (Use prescribed form (8) and attach): ',
-              'lbl_property_details',
-              'val_propertyDetails',
-              doc['propertyDetails']?.toString() ?? '',
-            ),
-            wideField(
-              '(1) (Attach separate sheet, if required) :- ',
-              'lbl_property_attach',
-              'val_propertyDetailsAttach',
-              doc['propertyDetailsAttach']?.toString() ?? '',
-            ),
-            multiline(
-              '10. Circumstances/Grounds for seizures :-',
-              'lbl_circumstances',
-              'circumstances',
-              doc['circumstances']?.toString(),
-              minLines: 2,
-            ),
-            pw.Spacer(),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // PAGE 3 — Sections 11–16
-  if (showsSection('Search Seizure Panchanama')) {
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(28),
-        build: (_) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text(
-              '11) The above mentioned properties were seized in accordance with the provisions of law in the presence of the below said witnesses** and a copy of the seizure memo was given to the person/occupant of the place from whom seized.',
-              style: englishStyle,
-            ),
-            mLbl('lbl_s11'),
-            pw.SizedBox(height: 6),
-            pw.Text(
-              '12) The following properties were packed and/of sealed and the signature of the below said witnesses obtained thereon or on the body of the property.',
-              style: englishStyle,
-            ),
-            mLbl('lbl_s12'),
-            pw.SizedBox(height: 4),
-            pw.Table(
-              border: pw.TableBorder.all(width: 0.5),
-              columnWidths: {
-                0: const pw.FixedColumnWidth(40),
-                1: const pw.FlexColumnWidth(),
-              },
-              children: [
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(4),
-                      child: pw.Column(
-                        children: [
-                          pw.Text('Sr.No.',
-                              style: englishBold,
-                              textAlign: pw.TextAlign.center),
-                          mLbl('lbl_sr_no'),
-                        ],
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(4),
-                      child: pw.Column(
-                        children: [
-                          pw.Text('Property',
-                              style: englishBold,
-                              textAlign: pw.TextAlign.center),
-                          mLbl('lbl_property_hdr'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6),
-                      child: pw.Text('1', style: englishBold),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(4),
-                      child: _linedPropertyCell(
-                          cache,
-                          doc['propertyPacked']?.toString() ?? '',
-                          valueStyle,
-                          englishStyle),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 6),
-            pw.Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              crossAxisAlignment: pw.WrapCrossAlignment.end,
-              children: [
-                inlineField(
-                  '13) Property seized : (a) Date : ',
-                  'lbl_seize_date',
-                  'val_seizeDate',
-                  doc['seizeDate']?.toString() ?? '',
-                  width: 55,
-                ),
-                inlineField(
-                  '(b) Time : ',
-                  'lbl_seize_time_from',
-                  'val_seizeTimeFrom',
-                  doc['seizeTimeFrom']?.toString() ?? '',
-                  width: 40,
-                ),
-                inlineField(
-                  'To : ',
-                  'lbl_seize_time_to',
-                  'val_seizeTimeTo',
-                  doc['seizeTimeTo']?.toString() ?? '',
-                  width: 40,
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 6),
-            pw.Text('14) witness — / Signature:', style: englishBold),
-            mLbl('lbl_witness_header'),
-            pw.SizedBox(height: 4),
-            witnessBlock(
-              '1',
-              'witness1Line1',
-              'witness1Line2',
-              'witness1Line3',
-              'witness1Sig',
-            ),
-            pw.SizedBox(height: 4),
-            witnessBlock(
-              '2',
-              'witness2Line1',
-              'witness2Line2',
-              'witness2Line3',
-              'witness2Sig',
-            ),
-            pw.SizedBox(height: 8),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Expanded(
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+              inlineField(
+                'Year : ',
+                'lbl_year',
+                'val_year',
+                doc['year']?.toString() ?? '',
+                width: 35,
+              ),
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
-                      inlineField(
-                        '15) Specimen of Seal :- Date : ',
-                        'lbl_seal_date',
-                        'val_sealSampleDate',
-                        doc['sealSampleDate']?.toString() ?? '',
-                        width: 55,
+                      pw.Text('FIR No : ', style: englishBold),
+                      underlineField(
+                        'val_firNo',
+                        doc['firNo']?.toString() ?? '',
+                        width: 40,
                       ),
-                      pw.SizedBox(height: 6),
-                      pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text(
-                            '16) Signature of person from whom seized : ',
-                            style: englishBold,
-                          ),
-                          mLbl('lbl_seized_sig'),
-                          pw.SizedBox(height: 4),
-                          pw.Row(
-                            children: [
-                              underlineField(
-                                'val_seizedPersonSig',
-                                doc['seizedPersonSig']?.toString() ?? '',
-                                expanded: true,
-                              ),
-                            ],
-                          ),
-                        ],
+                      pw.Text('/20', style: englishBold),
+                      underlineField(
+                        'val_firYearSuffix',
+                        doc['firYearSuffix']?.toString() ?? '',
+                        width: 22,
                       ),
                     ],
                   ),
+                  mLbl('lbl_fir'),
+                ],
+              ),
+              inlineField(
+                'Date : ',
+                'lbl_header_date',
+                'val_headerDate',
+                doc['headerDate']?.toString() ?? '',
+                width: 55,
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 6),
+          wideField(
+            '2. Act and Section : ',
+            'lbl_act',
+            'val_actSections',
+            doc['actSections']?.toString() ?? '',
+          ),
+          multiline(
+            '3. Nature of property seized/Recover: Stolen/Unclaimed/Unlawful procession/Involved/Intestate.',
+            'lbl_nature',
+            'nature',
+            doc['natureProperty']?.toString(),
+            minLines: 2,
+          ),
+          pw.SizedBox(height: 4),
+          wideField(
+            '4. Name And Address of accused : ',
+            'lbl_accused',
+            'val_accusedNameAddress',
+            doc['accusedNameAddress']?.toString() ?? '',
+          ),
+          wideField(
+            '(a) Place from where seized/recovered :- ',
+            'lbl_place_seized',
+            'val_placeSeized',
+            doc['placeSeized']?.toString() ?? '',
+          ),
+          multiline(
+            '(b) Description of the place of seizure/recovery : ',
+            'lbl_place_desc',
+            'placeDesc',
+            doc['placeDescription']?.toString(),
+            minLines: 2,
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text('5. Person form whom seized :-', style: englishBold),
+          mLbl('lbl_person_header'),
+          pw.SizedBox(height: 2),
+          wideField(
+            'Professional Receiver of Stolen Property: - Yes/No.',
+            'lbl_prof_receiver',
+            'val_profReceiver',
+            doc['profReceiver']?.toString() ?? '',
+          ),
+          pw.Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            crossAxisAlignment: pw.WrapCrossAlignment.end,
+            children: [
+              inlineField(
+                'Name : - ',
+                'lbl_person_name',
+                'val_personName',
+                doc['personName']?.toString() ?? '',
+                width: 70,
+              ),
+              inlineField(
+                'Father\'s/Husband\'s Name : ',
+                'lbl_person_father',
+                'val_personFather',
+                doc['personFather']?.toString() ?? '',
+                width: 70,
+              ),
+              inlineField(
+                'Sex- ',
+                'lbl_person_sex',
+                'val_personSex',
+                doc['personSex']?.toString() ?? '',
+                width: 40,
+              ),
+            ],
+          ),
+          pw.Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            crossAxisAlignment: pw.WrapCrossAlignment.end,
+            children: [
+              inlineField(
+                'Age : ',
+                'lbl_person_age',
+                'val_personAge',
+                doc['personAge']?.toString() ?? '',
+                width: 35,
+              ),
+              inlineField(
+                'Occupation : ',
+                'lbl_person_occ',
+                'val_personOccupation',
+                doc['personOccupation']?.toString() ?? '',
+                width: 60,
+              ),
+              inlineField(
+                'Address : ',
+                'lbl_person_addr',
+                'val_personAddress',
+                doc['personAddress']?.toString() ?? '',
+                width: 80,
+              ),
+            ],
+          ),
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(left: 8),
+            child: pw.Row(
+              children: [
+                underlineField(
+                  'val_personAddressLine2',
+                  doc['personAddressLine2']?.toString() ?? '',
+                  expanded: true,
                 ),
-                pw.SizedBox(width: 12),
-                pw.Expanded(child: ioBlock()),
               ],
             ),
-            pw.SizedBox(height: 6),
-            pw.Text(
-              '** In case the property is seized from such a place that no receipt is required to be given to anybody this portion of the sentence should be struck off.',
-              style: englishStyle.copyWith(fontStyle: pw.FontStyle.italic),
-            ),
-            mLbl('lbl_footnote'),
-            pw.Spacer(),
-            pw.Align(
-              alignment: pw.Alignment.bottomRight,
-              child: pw.Text('M.R.W', style: englishBold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
+          multiline(
+            '6. Action taken/recommended for disposal of perishable property: -',
+            'lbl_perishable',
+            'perishable',
+            doc['perishableDisposal']?.toString(),
+            minLines: 2,
+          ),
+          multiline(
+            '7. Action taken/recommended for keeping of valuable property :-',
+            'lbl_valuable',
+            'valuable',
+            doc['valuableKeeping']?.toString(),
+            minLines: 2,
+          ),
+          wideField(
+            '8. Identification repuired :- Yes / No.',
+            'lbl_identification',
+            'val_identificationRequired',
+            doc['identificationRequired']?.toString() ?? '',
+          ),
+          wideField(
+            '9. Details of property seized/recovered (Use prescribed form (8) and attach): ',
+            'lbl_property_details',
+            'val_propertyDetails',
+            doc['propertyDetails']?.toString() ?? '',
+          ),
+          wideField(
+            '(1) (Attach separate sheet, if required) :- ',
+            'lbl_property_attach',
+            'val_propertyDetailsAttach',
+            doc['propertyDetailsAttach']?.toString() ?? '',
+          ),
+          multiline(
+            '10. Circumstances/Grounds for seizures :-',
+            'lbl_circumstances',
+            'circumstances',
+            doc['circumstances']?.toString(),
+            minLines: 2,
+          ),
+          pw.SizedBox(height: 20),
+          pw.Align(
+            alignment: pw.Alignment.bottomRight,
+            child: pw.Text('M.R.W', style: englishBold),
+          ),
+        ],
+        if (showsSection('Search Seizure Form') &&
+            showsSection('Search Seizure Panchanama'))
+          pw.SizedBox(height: 30),
+        if (showsSection('Search Seizure Panchanama')) ...[
+          pw.Text(
+            '11) The above mentioned properties were seized in accordance with the provisions of law in the presence of the below said witnesses** and a copy of the seizure memo was given to the person/occupant of the place from whom seized.',
+            style: englishStyle,
+          ),
+          mLbl('lbl_s11'),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            '12) The following properties were packed and/of sealed and the signature of the below said witnesses obtained thereon or on the body of the property.',
+            style: englishStyle,
+          ),
+          mLbl('lbl_s12'),
+          pw.SizedBox(height: 4),
+          pw.Table(
+            border: pw.TableBorder.all(width: 0.5),
+            columnWidths: {
+              0: const pw.FixedColumnWidth(40),
+              1: const pw.FlexColumnWidth(),
+            },
+            children: [
+              pw.TableRow(
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(4),
+                    child: pw.Column(
+                      children: [
+                        pw.Text('Sr.No.',
+                            style: englishBold, textAlign: pw.TextAlign.center),
+                        mLbl('lbl_sr_no'),
+                      ],
+                    ),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(4),
+                    child: pw.Column(
+                      children: [
+                        pw.Text('Property',
+                            style: englishBold, textAlign: pw.TextAlign.center),
+                        mLbl('lbl_property_hdr'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              pw.TableRow(
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(6),
+                    child: pw.Text('1', style: englishBold),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(4),
+                    child: _linedPropertyCell(
+                        cache,
+                        doc['propertyPacked']?.toString() ?? '',
+                        valueStyle,
+                        englishStyle),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 6),
+          pw.Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            crossAxisAlignment: pw.WrapCrossAlignment.end,
+            children: [
+              inlineField(
+                '13) Property seized : (a) Date : ',
+                'lbl_seize_date',
+                'val_seizeDate',
+                doc['seizeDate']?.toString() ?? '',
+                width: 55,
+              ),
+              inlineField(
+                '(b) Time : ',
+                'lbl_seize_time_from',
+                'val_seizeTimeFrom',
+                doc['seizeTimeFrom']?.toString() ?? '',
+                width: 40,
+              ),
+              inlineField(
+                'To : ',
+                'lbl_seize_time_to',
+                'val_seizeTimeTo',
+                doc['seizeTimeTo']?.toString() ?? '',
+                width: 40,
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text('14) witness — / Signature:', style: englishBold),
+          mLbl('lbl_witness_header'),
+          pw.SizedBox(height: 4),
+          witnessBlock(
+            '1',
+            'witness1Line1',
+            'witness1Line2',
+            'witness1Line3',
+            'witness1Sig',
+          ),
+          pw.SizedBox(height: 4),
+          witnessBlock(
+            '2',
+            'witness2Line1',
+            'witness2Line2',
+            'witness2Line3',
+            'witness2Sig',
+          ),
+          pw.SizedBox(height: 8),
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    inlineField(
+                      '15) Specimen of Seal :- Date : ',
+                      'lbl_seal_date',
+                      'val_sealSampleDate',
+                      doc['sealSampleDate']?.toString() ?? '',
+                      width: 55,
+                    ),
+                    pw.SizedBox(height: 6),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          '16) Signature of person from whom seized : ',
+                          style: englishBold,
+                        ),
+                        mLbl('lbl_seized_sig'),
+                        pw.SizedBox(height: 4),
+                        pw.Row(
+                          children: [
+                            underlineField(
+                              'val_seizedPersonSig',
+                              doc['seizedPersonSig']?.toString() ?? '',
+                              expanded: true,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              pw.SizedBox(width: 12),
+              pw.Expanded(child: ioBlock()),
+            ],
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            '** In case the property is seized from such a place that no receipt is required to be given to anybody this portion of the sentence should be struck off.',
+            style: englishStyle.copyWith(fontStyle: pw.FontStyle.italic),
+          ),
+          mLbl('lbl_footnote'),
+          pw.SizedBox(height: 20),
+          pw.Align(
+            alignment: pw.Alignment.bottomRight,
+            child: pw.Text('M.R.W', style: englishBold),
+          ),
+        ],
+      ],
+    ),
+  );
 
   return pdf.save();
 }

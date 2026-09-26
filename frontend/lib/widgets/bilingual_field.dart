@@ -1,54 +1,124 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'responsive_field_row.dart';
 
 /// Canonical bilingual form field styling (Crime Detail Form reference).
 /// All forms must use these widgets — do not copy-paste field helpers locally.
 
-class BilingualSimpleUnderlineInput extends StatelessWidget {
+class BilingualSimpleUnderlineInput extends StatefulWidget {
   final TextEditingController? controller;
   final TextStyle serifStyle;
   final String? hintText;
+  final double minWidth;
 
   const BilingualSimpleUnderlineInput({
     super.key,
     this.controller,
     required this.serifStyle,
     this.hintText,
+    this.minWidth = 50,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      textAlign: TextAlign.start,
-      scrollPhysics: const NeverScrollableScrollPhysics(),
-      scrollPadding: EdgeInsets.zero,
-      maxLines: 1,
-      cursorColor: Colors.black87,
-      style: serifStyle.copyWith(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: serifStyle.color ?? Colors.black87,
+  State<BilingualSimpleUnderlineInput> createState() =>
+      _BilingualSimpleUnderlineInputState();
+}
+
+class _BilingualSimpleUnderlineInputState
+    extends State<BilingualSimpleUnderlineInput> {
+  double _width = 50;
+
+  @override
+  void initState() {
+    super.initState();
+    _width = widget.minWidth;
+    widget.controller?.addListener(_updateWidth);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateWidth());
+  }
+
+  @override
+  void didUpdateWidget(covariant BilingualSimpleUnderlineInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.removeListener(_updateWidth);
+      widget.controller?.addListener(_updateWidth);
+      _updateWidth();
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller?.removeListener(_updateWidth);
+    super.dispose();
+  }
+
+  void _updateWidth() {
+    if (widget.controller == null) return;
+    final text = widget.controller!.text;
+    if (text.isEmpty) {
+      if (_width != widget.minWidth) setState(() => _width = widget.minWidth);
+      return;
+    }
+
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: widget.serifStyle.copyWith(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
       ),
-      decoration: InputDecoration(
-        isDense: true,
-        filled: false,
-        fillColor: Colors.transparent,
-        contentPadding: const EdgeInsets.only(bottom: 5, top: 6),
-        border: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black54, width: 1),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout(minWidth: 0, maxWidth: double.infinity);
+
+    // Add extra padding to ensure the cursor is visible and no clipping occurs
+    final calculatedWidth = textPainter.size.width + 12;
+    final newWidth =
+        calculatedWidth > widget.minWidth ? calculatedWidth : widget.minWidth;
+
+    if ((_width - newWidth).abs() > 1.0) {
+      setState(() => _width = newWidth);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 100),
+      width: _width,
+      child: TextField(
+        controller: widget.controller,
+        textAlign: TextAlign.start,
+        scrollPhysics: const NeverScrollableScrollPhysics(),
+        scrollPadding: EdgeInsets.zero,
+        maxLines: 1,
+        cursorColor: Colors.black87,
+        style: widget.serifStyle.copyWith(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: widget.serifStyle.color ?? Colors.black87,
         ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black87, width: 1.5),
-        ),
-        enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black54, width: 0.8),
-        ),
-        hintText: hintText,
-        hintStyle: serifStyle.copyWith(
-          color: Colors.grey.shade400,
-          fontSize: 11,
+        decoration: InputDecoration(
+          isDense: true,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.only(bottom: 5, top: 6),
+          border: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 1),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black87, width: 1.5),
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          hintText: widget.hintText,
+          hintStyle: widget.serifStyle.copyWith(
+            color: Colors.grey.shade400,
+            fontSize: 11,
+          ),
         ),
       ),
     );

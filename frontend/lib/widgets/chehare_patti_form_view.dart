@@ -274,7 +274,7 @@ class CheharePattiFormViewState extends State<CheharePattiFormView> {
       style: serif.copyWith(
         fontSize: 12,
         fontWeight: FontWeight.bold,
-        color: Colors.blue.shade900,
+        color: Colors.black87,
       ),
       decoration: InputDecoration(
         isDense: true,

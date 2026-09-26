@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewInjuryCertificatePdf(
   BuildContext context,
@@ -22,10 +22,10 @@ Future<void> previewInjuryCertificatePdf(
 
 Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
+  final devanagari = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final regular = pw.TextStyle(font: loraRegular, fontSize: 9.5);
   final bold = pw.TextStyle(
@@ -42,17 +42,34 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
 
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
-  pw.Widget underlineValue(String text, {double minWidth = 60}) {
+  pw.Widget underlineField(
+    String text, {
+    double? width,
+    double minWidth = 40,
+    pw.TextAlign textAlign = pw.TextAlign.left,
+  }) {
+    final t = text.trim();
     return pw.Container(
+      width: width,
       constraints: pw.BoxConstraints(minWidth: minWidth),
       decoration: const pw.BoxDecoration(
-        border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+        border: pw.Border(
+          bottom: pw.BorderSide(width: 0.8, color: PdfColors.black),
+        ),
       ),
-      padding: const pw.EdgeInsets.only(bottom: 1),
+      padding: const pw.EdgeInsets.only(bottom: 2, left: 2, right: 2),
       child: pw.Text(
-        text.isEmpty ? ' ' : text,
-        style: regular,
+        t.isEmpty ? ' ' : t,
+        textAlign: textAlign,
+        style: bold,
       ),
+    );
+  }
+
+  pw.Widget staticText(String text) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 2),
+      child: pw.Text(text, style: regular),
     );
   }
 
@@ -119,7 +136,7 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
                     pw.Text('MLC No.:-', style: bold),
                     pw.SizedBox(width: 4),
                     pw.Expanded(
-                        child: underlineValue(v('mlcNo'), minWidth: 100)),
+                        child: underlineField(v('mlcNo'), minWidth: 100)),
                   ],
                 ),
                 pw.SizedBox(height: 4),
@@ -128,7 +145,7 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
                     pw.Text('Date. ', style: bold),
                     pw.SizedBox(width: 4),
                     pw.Expanded(
-                        child: underlineValue(v('mlcDate'), minWidth: 100)),
+                        child: underlineField(v('mlcDate'), minWidth: 100)),
                   ],
                 ),
               ],
@@ -138,89 +155,77 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
         pw.SizedBox(height: 16),
 
         // ── CERTIFICATE BODY PARAGRAPH ──
-        pw.RichText(
-          text: pw.TextSpan(
-            style: regular,
-            children: [
-              const pw.TextSpan(text: 'Certified that shri/smt  '),
-              pw.TextSpan(
-                text: v('patientName').isEmpty
-                    ? '....................................................................................'
-                    : v('patientName'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  age  '),
-              pw.TextSpan(
-                text: v('patientAge').isEmpty ? '..........' : v('patientAge'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  about years\n'),
-              const pw.TextSpan(
-                  text: 'bearing following identification mark R/O.  '),
-              pw.TextSpan(
-                text: v('idMarkAndAddress').isEmpty
-                    ? '.......................................................'
-                    : v('idMarkAndAddress'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  tah  '),
-              pw.TextSpan(
-                text: v('tah').isEmpty ? '...................' : v('tah'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  dist.  '),
-              pw.TextSpan(
-                text: v('dist').isEmpty
-                    ? '...........................'
-                    : v('dist'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '\nbrought to this hospital by PC/HC.  '),
-              pw.TextSpan(
-                text: v('broughtBy').isEmpty
-                    ? '..........................'
-                    : v('broughtBy'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  B.No.  '),
-              pw.TextSpan(
-                text: v('buckleNo').isEmpty ? '.......' : v('buckleNo'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  Police station.  '),
-              pw.TextSpan(
-                text: v('policeStation').isEmpty
-                    ? '.......................'
-                    : v('policeStation'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '\nat  '),
-              pw.TextSpan(
-                text: v('broughtTime').isEmpty ? '.......' : v('broughtTime'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  AM/PM on  '),
-              pw.TextSpan(
-                text: v('broughtDate').isEmpty
-                    ? '....../....../20......'
-                    : v('broughtDate'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  & examination by me on  '),
-              pw.TextSpan(
-                text: v('examDate').isEmpty
-                    ? '....../....... /20.....'
-                    : v('examDate'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  at  '),
-              pw.TextSpan(
-                text: v('examTime').isEmpty ? '....../.......' : v('examTime'),
-                style: bold,
-              ),
-              const pw.TextSpan(text: '  AM/PM'),
-            ],
-          ),
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                staticText('Certified that shri/smt  '),
+                pw.Expanded(
+                  child: underlineField(v('patientName'), minWidth: 100),
+                ),
+                staticText('  age  '),
+                underlineField(v('patientAge'),
+                    width: 50, minWidth: 35, textAlign: pw.TextAlign.center),
+                staticText('  about years'),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                staticText('bearing following identification mark R/O.  '),
+                pw.Expanded(
+                  child: underlineField(v('idMarkAndAddress'), minWidth: 100),
+                ),
+                staticText('  tah  '),
+                underlineField(v('tah'),
+                    width: 75, minWidth: 50, textAlign: pw.TextAlign.center),
+                staticText('  dist.  '),
+                underlineField(v('dist'),
+                    width: 90, minWidth: 60, textAlign: pw.TextAlign.center),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                staticText('brought to this hospital by PC/HC.  '),
+                pw.Expanded(
+                  flex: 3,
+                  child: underlineField(v('broughtBy'), minWidth: 80),
+                ),
+                staticText('  B.No.  '),
+                underlineField(v('buckleNo'),
+                    width: 60, minWidth: 40, textAlign: pw.TextAlign.center),
+                staticText('  Police station.  '),
+                pw.Expanded(
+                  flex: 3,
+                  child: underlineField(v('policeStation'), minWidth: 80),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                staticText('at  '),
+                underlineField(v('broughtTime'),
+                    width: 55, minWidth: 40, textAlign: pw.TextAlign.center),
+                staticText('  AM/PM on  '),
+                underlineField(v('broughtDate'),
+                    width: 95, minWidth: 70, textAlign: pw.TextAlign.center),
+                staticText('  & examination by me on  '),
+                underlineField(v('examDate'),
+                    width: 95, minWidth: 70, textAlign: pw.TextAlign.center),
+                staticText('  at  '),
+                underlineField(v('examTime'),
+                    width: 55, minWidth: 40, textAlign: pw.TextAlign.center),
+                staticText('  AM/PM'),
+              ],
+            ),
+          ],
         ),
         pw.SizedBox(height: 18),
 
@@ -288,18 +293,26 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
               child: pw.Row(
                 children: [
                   pw.Text('Date:- ', style: bold),
-                  underlineValue(v('footerDate'), minWidth: 80),
+                  pw.SizedBox(width: 4),
+                  pw.Expanded(
+                    child: underlineField(v('footerDate'), minWidth: 80),
+                  ),
                 ],
               ),
             ),
+            pw.SizedBox(width: 16),
             pw.Expanded(
               child: pw.Row(
                 children: [
                   pw.Text('Place:- ', style: bold),
-                  underlineValue(v('footerPlace'), minWidth: 80),
+                  pw.SizedBox(width: 4),
+                  pw.Expanded(
+                    child: underlineField(v('footerPlace'), minWidth: 80),
+                  ),
                 ],
               ),
             ),
+            pw.SizedBox(width: 16),
             pw.Expanded(
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -307,7 +320,10 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
                   pw.Text('Medical officer', style: bold),
                   pw.Text('Name and Sing', style: bold),
                   pw.SizedBox(height: 4),
-                  underlineValue(v('moName'), minWidth: 100),
+                  pw.SizedBox(
+                    width: double.infinity,
+                    child: underlineField(v('moName'), minWidth: 100),
+                  ),
                 ],
               ),
             ),
@@ -351,16 +367,37 @@ pw.Widget _buildPdfDataCell(String text, pw.TextStyle style) {
 Widget _buildPgWidget(Map<String, dynamic> doc) {
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
-  Widget underlineValue(String text, {double minWidth = 60}) {
+  Widget underlineField(
+    String text, {
+    double? width,
+    double minWidth = 40,
+    TextAlign textAlign = TextAlign.start,
+  }) {
+    final t = text.trim();
     return Container(
+      width: width,
       constraints: BoxConstraints(minWidth: minWidth),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(width: 0.8, color: Colors.black87)),
+        border: Border(
+          bottom: BorderSide(width: 0.85, color: Colors.black87),
+        ),
       ),
-      padding: const EdgeInsets.only(bottom: 1),
+      padding: const EdgeInsets.only(bottom: 2, left: 2, right: 2),
       child: Text(
-        text.isEmpty ? ' ' : text,
+        t.isEmpty ? ' ' : t,
+        textAlign: textAlign,
+        softWrap: true,
         style: FormImagePdfHelper.valStyle(10.5),
+      ),
+    );
+  }
+
+  Widget staticText(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Text(
+        text,
+        style: FormImagePdfHelper.mReg(10.5),
       ),
     );
   }
@@ -445,7 +482,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                 children: [
                   Text('MLC No.:-', style: FormImagePdfHelper.mBld(11)),
                   const SizedBox(width: 4),
-                  Expanded(child: underlineValue(v('mlcNo'), minWidth: 100)),
+                  Expanded(child: underlineField(v('mlcNo'), minWidth: 100)),
                 ],
               ),
               const SizedBox(height: 4),
@@ -453,7 +490,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                 children: [
                   Text('Date. ', style: FormImagePdfHelper.mBld(11)),
                   const SizedBox(width: 4),
-                  Expanded(child: underlineValue(v('mlcDate'), minWidth: 100)),
+                  Expanded(child: underlineField(v('mlcDate'), minWidth: 100)),
                 ],
               ),
             ],
@@ -463,88 +500,77 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       const SizedBox(height: 16),
 
       // Certificate Body Paragraph
-      Text.rich(
-        TextSpan(
-          style: FormImagePdfHelper.mReg(10.5, 1.45),
-          children: [
-            const TextSpan(text: 'Certified that shri/smt  '),
-            TextSpan(
-              text: v('patientName').isEmpty
-                  ? '....................................................................................'
-                  : v('patientName'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  age  '),
-            TextSpan(
-              text: v('patientAge').isEmpty ? '..........' : v('patientAge'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  about years\n'),
-            const TextSpan(
-                text: 'bearing following identification mark R/O.  '),
-            TextSpan(
-              text: v('idMarkAndAddress').isEmpty
-                  ? '.......................................................'
-                  : v('idMarkAndAddress'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  tah  '),
-            TextSpan(
-              text: v('tah').isEmpty ? '...................' : v('tah'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  dist.  '),
-            TextSpan(
-              text:
-                  v('dist').isEmpty ? '...........................' : v('dist'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '\nbrought to this hospital by PC/HC.  '),
-            TextSpan(
-              text: v('broughtBy').isEmpty
-                  ? '..........................'
-                  : v('broughtBy'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  B.No.  '),
-            TextSpan(
-              text: v('buckleNo').isEmpty ? '.......' : v('buckleNo'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  Police station.  '),
-            TextSpan(
-              text: v('policeStation').isEmpty
-                  ? '.......................'
-                  : v('policeStation'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '\nat  '),
-            TextSpan(
-              text: v('broughtTime').isEmpty ? '.......' : v('broughtTime'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  AM/PM on  '),
-            TextSpan(
-              text: v('broughtDate').isEmpty
-                  ? '....../....../20......'
-                  : v('broughtDate'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  & examination by me on  '),
-            TextSpan(
-              text: v('examDate').isEmpty
-                  ? '....../....... /20.....'
-                  : v('examDate'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  at  '),
-            TextSpan(
-              text: v('examTime').isEmpty ? '....../.......' : v('examTime'),
-              style: FormImagePdfHelper.mBld(10.5),
-            ),
-            const TextSpan(text: '  AM/PM'),
-          ],
-        ),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              staticText('Certified that shri/smt  '),
+              Expanded(
+                child: underlineField(v('patientName'), minWidth: 120),
+              ),
+              staticText('  age  '),
+              underlineField(v('patientAge'),
+                  width: 55, minWidth: 40, textAlign: TextAlign.center),
+              staticText('  about years'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              staticText('bearing following identification mark R/O.  '),
+              Expanded(
+                child: underlineField(v('idMarkAndAddress'), minWidth: 120),
+              ),
+              staticText('  tah  '),
+              underlineField(v('tah'),
+                  width: 80, minWidth: 60, textAlign: TextAlign.center),
+              staticText('  dist.  '),
+              underlineField(v('dist'),
+                  width: 100, minWidth: 70, textAlign: TextAlign.center),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              staticText('brought to this hospital by PC/HC.  '),
+              Expanded(
+                flex: 3,
+                child: underlineField(v('broughtBy'), minWidth: 100),
+              ),
+              staticText('  B.No.  '),
+              underlineField(v('buckleNo'),
+                  width: 65, minWidth: 45, textAlign: TextAlign.center),
+              staticText('  Police station.  '),
+              Expanded(
+                flex: 3,
+                child: underlineField(v('policeStation'), minWidth: 100),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              staticText('at  '),
+              underlineField(v('broughtTime'),
+                  width: 65, minWidth: 50, textAlign: TextAlign.center),
+              staticText('  AM/PM on  '),
+              underlineField(v('broughtDate'),
+                  width: 105, minWidth: 80, textAlign: TextAlign.center),
+              staticText('  & examination by me on  '),
+              underlineField(v('examDate'),
+                  width: 105, minWidth: 80, textAlign: TextAlign.center),
+              staticText('  at  '),
+              underlineField(v('examTime'),
+                  width: 65, minWidth: 50, textAlign: TextAlign.center),
+              staticText('  AM/PM'),
+            ],
+          ),
+        ],
       ),
       const SizedBox(height: 14),
 
@@ -607,18 +633,22 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             child: Row(
               children: [
                 Text('Date:- ', style: FormImagePdfHelper.mBld(11)),
-                underlineValue(v('footerDate'), minWidth: 80),
+                const SizedBox(width: 4),
+                Expanded(child: underlineField(v('footerDate'), minWidth: 80)),
               ],
             ),
           ),
+          const SizedBox(width: 16),
           Expanded(
             child: Row(
               children: [
                 Text('Place:- ', style: FormImagePdfHelper.mBld(11)),
-                underlineValue(v('footerPlace'), minWidth: 80),
+                const SizedBox(width: 4),
+                Expanded(child: underlineField(v('footerPlace'), minWidth: 80)),
               ],
             ),
           ),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,7 +656,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                 Text('Medical officer', style: FormImagePdfHelper.mBld(11)),
                 Text('Name and Sign', style: FormImagePdfHelper.mBld(11)),
                 const SizedBox(height: 4),
-                underlineValue(v('moName'), minWidth: 100),
+                SizedBox(
+                  width: double.infinity,
+                  child: underlineField(v('moName'), minWidth: 100),
+                ),
               ],
             ),
           ),

@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 const Color _kInkBlue = Color(0xFF0D47A1);
 final PdfColor _kPdfInkBlue = PdfColor.fromHex('#0D47A1');
@@ -334,8 +334,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
 
 Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
 
   final bodyStyle = pw.TextStyle(
     font: loraRegular,
@@ -364,8 +364,7 @@ Future<Uint8List> generateTransitRemandPdf(Map<String, dynamic> doc) async {
     pw.FontWeight fontWeight = pw.FontWeight.bold,
   }) {
     return pw.Container(
-      width: width,
-      constraints: pw.BoxConstraints(minWidth: minWidth),
+      constraints: pw.BoxConstraints(minWidth: width ?? minWidth),
       padding: const pw.EdgeInsets.only(bottom: 2, left: 3, right: 3),
       decoration: const pw.BoxDecoration(
         border: pw.Border(

@@ -1,10 +1,12 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewNoticeSection35Pdf(
   BuildContext context,
@@ -37,10 +39,70 @@ Future<void> previewNoticeSection35Pdf(
   );
 }
 
+List<String> _splitTextIntoLines(String text, {int approxCharsPerLine = 65}) {
+  final content = text.trim();
+  if (content.isEmpty) return [''];
+
+  final rawLines = content.split('\n');
+  final lines = <String>[];
+
+  for (final rawLine in rawLines) {
+    final words = rawLine.trim().split(RegExp(r'\s+'));
+    var currentLine = '';
+
+    for (final word in words) {
+      if (word.isEmpty) continue;
+      if (currentLine.isEmpty) {
+        currentLine = word;
+      } else if ((currentLine.length + 1 + word.length) <= approxCharsPerLine) {
+        currentLine += ' $word';
+      } else {
+        lines.add(currentLine);
+        currentLine = word;
+      }
+    }
+    if (currentLine.isNotEmpty) {
+      lines.add(currentLine);
+    }
+  }
+
+  return lines.isEmpty ? [''] : lines;
+}
+
+pw.Widget _pwDynamicRecipientLines({
+  required String text,
+  required pw.TextStyle style,
+  double fullWidth = 515,
+}) {
+  final lines = _splitTextIntoLines(text, approxCharsPerLine: 65);
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: lines.map((line) {
+      return pw.Container(
+        width: fullWidth,
+        decoration: const pw.BoxDecoration(
+          border: pw.Border(
+            bottom: pw.BorderSide(
+              color: PdfColors.black,
+              width: 0.8,
+            ),
+          ),
+        ),
+        padding: const pw.EdgeInsets.only(bottom: 2, top: 2),
+        margin: const pw.EdgeInsets.only(bottom: 5),
+        child: pw.Text(
+          line.isNotEmpty ? line : ' ',
+          style: style,
+        ),
+      );
+    }).toList(),
+  );
+}
+
 Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final devanagari = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final regular = pw.TextStyle(
     font: devanagari,
@@ -83,18 +145,13 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
   if (showP1) {
     final p1Ps = v('p1PoliceStation', v('policeStation'));
     final p1Date = v('p1NoticeDate', v('noticeDate', '......./ ......./२०...'));
-    final p1Recipient1 = v(
-        'p1RecipientLine1',
-        v('recipientLine1',
-            '____________________________________________________________________'));
-    final p1Recipient2 = v(
-        'p1RecipientLine2',
-        v('recipientLine2',
-            '____________________________________________________________________'));
-    final p1Recipient3 = v(
-        'p1RecipientLine3',
-        v('recipientLine3',
-            '____________________________________________________________________'));
+    final p1Recipient1 = v('p1RecipientLine1', v('recipientLine1'));
+    final p1Recipient2 = v('p1RecipientLine2', v('recipientLine2'));
+    final p1Recipient3 = v('p1RecipientLine3', v('recipientLine3'));
+    final rawP1Recipient = v('p1Recipient', v('recipient'));
+    final p1RecipientText = rawP1Recipient.isNotEmpty
+        ? rawP1Recipient
+        : joinRecipientParts([p1Recipient1, p1Recipient2, p1Recipient3]);
     final p1Aadhaar =
         v('p1AadhaarNo', v('aadhaarNo', '___________________________'));
     final p1Email = v('p1Email', v('email', '_______________________________'));
@@ -175,13 +232,9 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
 
               // ── RECIPIENT ──
               pw.Text('प्रति,', style: bold),
-              pw.SizedBox(height: 2),
-              pw.Text(p1Recipient1, style: regular),
-              pw.SizedBox(height: 2),
-              pw.Text(p1Recipient2, style: regular),
-              pw.SizedBox(height: 2),
-              pw.Text(p1Recipient3, style: regular),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 4),
+              _pwDynamicRecipientLines(text: p1RecipientText, style: regular),
+              pw.SizedBox(height: 10),
 
               pw.Row(
                 children: [
@@ -318,18 +371,13 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
   if (showP2) {
     final p2Ps = v('p2PoliceStation', v('policeStation'));
     final p2Date = v('p2NoticeDate', v('noticeDate', '......./ ......./२०...'));
-    final p2Recipient1 = v(
-        'p2RecipientLine1',
-        v('recipientLine1',
-            '____________________________________________________________________'));
-    final p2Recipient2 = v(
-        'p2RecipientLine2',
-        v('recipientLine2',
-            '____________________________________________________________________'));
-    final p2Recipient3 = v(
-        'p2RecipientLine3',
-        v('recipientLine3',
-            '____________________________________________________________________'));
+    final p2Recipient1 = v('p2RecipientLine1', v('recipientLine1'));
+    final p2Recipient2 = v('p2RecipientLine2', v('recipientLine2'));
+    final p2Recipient3 = v('p2RecipientLine3', v('recipientLine3'));
+    final rawP2Recipient = v('p2Recipient', v('recipient'));
+    final p2RecipientText = rawP2Recipient.isNotEmpty
+        ? rawP2Recipient
+        : joinRecipientParts([p2Recipient1, p2Recipient2, p2Recipient3]);
 
     final p2IncPs = v('p2IncidentPs', v('incidentPs'));
     final p2Dist = v('p2District', v('district'));
@@ -410,13 +458,9 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
 
               // ── RECIPIENT ──
               pw.Text('प्रति,', style: bold),
-              pw.SizedBox(height: 4),
-              pw.Text(p2Recipient1, style: regular),
-              pw.SizedBox(height: 4),
-              pw.Text(p2Recipient2, style: regular),
-              pw.SizedBox(height: 4),
-              pw.Text(p2Recipient3, style: regular),
-              pw.SizedBox(height: 24),
+              pw.SizedBox(height: 6),
+              _pwDynamicRecipientLines(text: p2RecipientText, style: regular),
+              pw.SizedBox(height: 16),
 
               // ── PARAGRAPH 1 ──
               pw.Paragraph(
@@ -497,6 +541,113 @@ Future<Uint8List> generateNoticeSection35Pdf(Map<String, dynamic> doc) async {
 // ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari Font Shaping) ──
 // ══════════════════════════════════════════════════════════════════════════════
 
+class _FullWidthUnderlinePainter extends CustomPainter {
+  final List<ui.LineMetrics> metrics;
+  final Color color;
+  final double thickness;
+
+  _FullWidthUnderlinePainter({
+    required this.metrics,
+    this.color = const Color(0xFF333333),
+    this.thickness = 0.8,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke;
+
+    if (metrics.isNotEmpty) {
+      for (final m in metrics) {
+        final lineBottom = m.baseline + m.descent;
+        final y = (lineBottom + 1.5).clamp(1.0, size.height - 0.5);
+        canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+      }
+    } else {
+      canvas.drawLine(
+        Offset(0, size.height - 0.5),
+        Offset(size.width, size.height - 0.5),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FullWidthUnderlinePainter oldDelegate) => true;
+}
+
+String joinRecipientParts(List<String> rawParts) {
+  final clean =
+      rawParts.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+  if (clean.isEmpty) return '';
+  final sb = StringBuffer();
+  for (int i = 0; i < clean.length; i++) {
+    if (i > 0) {
+      final prev = sb.toString().trimRight();
+      if (!prev.endsWith(',') && !prev.endsWith(';') && !prev.endsWith('-')) {
+        sb.write(', ');
+      } else {
+        sb.write(' ');
+      }
+    }
+    sb.write(clean[i]);
+  }
+  return sb.toString();
+}
+
+Widget _dynamicRecipientUnderlineField(String text, {double fontSize = 11.5}) {
+  final content = text.trim();
+  final baseStyle = FormImagePdfHelper.valStyle(fontSize);
+  final style = baseStyle.copyWith(
+    height: 1.85,
+    color: Colors.black,
+    fontWeight: FontWeight.w600,
+  );
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final width = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+          ? constraints.maxWidth
+          : 706.0;
+      final textMaxWidth = (width - 4.0).clamp(10.0, width);
+
+      final tp = TextPainter(
+        text: TextSpan(
+          text: content.isEmpty ? ' ' : content,
+          style: style,
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: textMaxWidth);
+
+      final metrics = tp.computeLineMetrics();
+
+      return SizedBox(
+        width: width,
+        child: CustomPaint(
+          painter: _FullWidthUnderlinePainter(
+            metrics: metrics,
+            color: const Color(0xFF333333),
+            thickness: 0.8,
+          ),
+          child: SizedBox(
+            width: width,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 2, right: 2, bottom: 2),
+              child: Text(
+                content.isEmpty ? ' ' : content,
+                softWrap: true,
+                style: style,
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 Widget _buildPg1Widget(Map<String, dynamic> doc) {
   String v(String key, [String fallback = '']) {
     final val = doc[key]?.toString().trim() ?? '';
@@ -508,6 +659,10 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
   final p1Recipient1 = v('p1RecipientLine1', v('recipientLine1'));
   final p1Recipient2 = v('p1RecipientLine2', v('recipientLine2'));
   final p1Recipient3 = v('p1RecipientLine3', v('recipientLine3'));
+  final rawP1Recipient = v('p1Recipient', v('recipient'));
+  final p1RecipientText = rawP1Recipient.isNotEmpty
+      ? rawP1Recipient
+      : joinRecipientParts([p1Recipient1, p1Recipient2, p1Recipient3]);
   final p1Aadhaar = v('p1AadhaarNo', v('aadhaarNo'));
   final p1Email = v('p1Email', v('email'));
 
@@ -592,13 +747,9 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
 
       // Recipient
       Text('प्रति,', style: FormImagePdfHelper.mBld(11)),
-      const SizedBox(height: 2),
-      Text(p1Recipient1, style: FormImagePdfHelper.valStyle(10.5)),
-      const SizedBox(height: 2),
-      Text(p1Recipient2, style: FormImagePdfHelper.valStyle(10.5)),
-      const SizedBox(height: 2),
-      Text(p1Recipient3, style: FormImagePdfHelper.valStyle(10.5)),
-      const SizedBox(height: 8),
+      const SizedBox(height: 4),
+      _dynamicRecipientUnderlineField(p1RecipientText),
+      const SizedBox(height: 10),
 
       Row(
         children: [
@@ -730,6 +881,10 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   final p2Recipient1 = v('p2RecipientLine1', v('recipientLine1'));
   final p2Recipient2 = v('p2RecipientLine2', v('recipientLine2'));
   final p2Recipient3 = v('p2RecipientLine3', v('recipientLine3'));
+  final rawP2Recipient = v('p2Recipient', v('recipient'));
+  final p2RecipientText = rawP2Recipient.isNotEmpty
+      ? rawP2Recipient
+      : joinRecipientParts([p2Recipient1, p2Recipient2, p2Recipient3]);
 
   final p2IncPs = v('p2IncidentPs', v('incidentPs'));
   final p2Dist = v('p2District', v('district'));
@@ -815,13 +970,9 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
 
       // Recipient
       Text('प्रति,', style: FormImagePdfHelper.mBld(11)),
-      const SizedBox(height: 4),
-      Text(p2Recipient1, style: FormImagePdfHelper.valStyle(10.5)),
-      const SizedBox(height: 4),
-      Text(p2Recipient2, style: FormImagePdfHelper.valStyle(10.5)),
-      const SizedBox(height: 4),
-      Text(p2Recipient3, style: FormImagePdfHelper.valStyle(10.5)),
-      const SizedBox(height: 24),
+      const SizedBox(height: 6),
+      _dynamicRecipientUnderlineField(p2RecipientText),
+      const SizedBox(height: 20),
 
       // Paragraph 1
       Text(

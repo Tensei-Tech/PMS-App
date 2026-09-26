@@ -82,7 +82,7 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
             child: TextFormField(
               controller: controller,
               readOnly: widget.readOnly,
-              maxLines: 1,
+              maxLines: null,
               keyboardType: keyboardType ?? TextInputType.text,
               style: style,
               decoration: InputDecoration(
@@ -97,7 +97,7 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                   borderSide: BorderSide(color: Colors.black87, width: 1.0),
                 ),
                 focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                  borderSide: BorderSide(color: Colors.black87, width: 1.5),
                 ),
               ),
             ),
@@ -171,7 +171,7 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                 child: TextFormField(
                   controller: controller,
                   readOnly: widget.readOnly,
-                  maxLines: 1,
+                  maxLines: null,
                   scrollPhysics: const ClampingScrollPhysics(),
                   style: style.copyWith(
                     fontSize: effectiveFontSize,

@@ -969,7 +969,7 @@ class _UnderlineInput extends StatelessWidget {
       style: GoogleFonts.lora(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: Colors.blue.shade900,
+        color: Colors.black87,
       ),
       decoration: InputDecoration(
         isDense: true,
@@ -986,7 +986,7 @@ class _UnderlineInput extends StatelessWidget {
           borderSide: BorderSide(color: Colors.black54, width: 1),
         ),
         focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue, width: 1.5),
+          borderSide: BorderSide(color: Colors.black87, width: 1.5),
         ),
       ),
     );

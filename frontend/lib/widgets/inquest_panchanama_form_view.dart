@@ -66,6 +66,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
   final _psCtrl = TextEditingController();
   final _yearCtrl = TextEditingController();
   final _firNoCtrl = TextEditingController();
+  final _firDateCtrl = TextEditingController();
   final _actSectionsCtrl = TextEditingController();
   final _deadBodyFoundPlaceCtrl = TextEditingController();
   final _foundPlaceCtrl = TextEditingController();
@@ -249,6 +250,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     if (d.isEmpty && m.isEmpty && y.isEmpty) {
       return _csDeathDateCtrl.text.trim();
     }
+    if (_csDeathDateCtrl.text.trim().isNotEmpty) {
+      return _csDeathDateCtrl.text.trim();
+    }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
   }
@@ -259,8 +263,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     if (h.isEmpty && m.isEmpty) {
       return _csDeathTimeCtrl.text.trim();
     }
+    if (_csDeathTimeCtrl.text.trim().isNotEmpty) {
+      return _csDeathTimeCtrl.text.trim();
+    }
     if (h.isNotEmpty && m.isNotEmpty) {
-      return '$h/$m';
+      return '$h:$m';
     }
     return h.isNotEmpty ? h : m;
   }
@@ -589,6 +596,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _psCtrl.text = doc['ps'] ?? '';
     _yearCtrl.text = doc['year'] ?? '';
     _firNoCtrl.text = doc['firNo'] ?? '';
+    _firDateCtrl.text = doc['firDate'] ?? doc['date'] ?? '';
     _actSectionsCtrl.text = doc['actSections'] ?? '';
     _deadBodyFoundPlaceCtrl.text = doc['deadBodyFoundPlace'] ?? '';
     _foundPlaceCtrl.text = doc['foundPlace'] ?? '';
@@ -1060,6 +1068,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
       'ps': _psCtrl.text.trim(),
       'year': _yearCtrl.text.trim(),
       'firNo': _firNoCtrl.text.trim(),
+      'firDate': _firDateCtrl.text.trim(),
       'actSections': _actSectionsCtrl.text.trim(),
       'deadBodyFoundPlace': _deadBodyFoundPlaceCtrl.text.trim(),
       'foundPlace': _foundPlaceCtrl.text.trim(),
@@ -1380,6 +1389,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     _psCtrl.dispose();
     _yearCtrl.dispose();
     _firNoCtrl.dispose();
+    _firDateCtrl.dispose();
     _actSectionsCtrl.dispose();
     _deadBodyFoundPlaceCtrl.dispose();
     _foundPlaceCtrl.dispose();
@@ -2430,25 +2440,38 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     required TextEditingController timeCtrl,
     required TextStyle style,
     required TextStyle marathiStyle,
+    TextEditingController? dayCtrl,
+    TextEditingController? monthCtrl,
+    TextEditingController? yearCtrl,
+    TextEditingController? hoursCtrl,
+    TextEditingController? minutesCtrl,
   }) {
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 2,
+      spacing: 4,
       runSpacing: 4,
       children: [
         Text(':- दिनांक ',
             style: marathiStyle.copyWith(
                 fontSize: 11.5, fontWeight: FontWeight.bold)),
-        _inlineBlank(
-            controller: dateCtrl,
-            style: style,
-            width: 85,
-            hintText: 'DD/MM/YY'),
+        _datePickerField(
+          controller: dateCtrl,
+          style: style,
+          width: 140,
+          dayCtrl: dayCtrl,
+          monthCtrl: monthCtrl,
+          yearCtrl: yearCtrl,
+        ),
         Text(' रोजी ',
             style: marathiStyle.copyWith(
                 fontSize: 11.5, fontWeight: FontWeight.bold)),
-        _inlineBlank(
-            controller: timeCtrl, style: style, width: 75, hintText: 'HH:MM'),
+        _timePickerField(
+          controller: timeCtrl,
+          style: style,
+          width: 95,
+          hoursCtrl: hoursCtrl,
+          minutesCtrl: minutesCtrl,
+        ),
         Text(' वाजता.',
             style: marathiStyle.copyWith(
                 fontSize: 11.5, fontWeight: FontWeight.bold)),
@@ -2558,6 +2581,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
             timeCtrl: _csDeathTimeCtrl,
             style: style,
             marathiStyle: marathiStyle,
+            dayCtrl: _csDeathDateDayCtrl,
+            monthCtrl: _csDeathDateMonthCtrl,
+            yearCtrl: _csDeathDateYearCtrl,
+            hoursCtrl: _csDeathTimeHoursCtrl,
+            minutesCtrl: _csDeathTimeMinutesCtrl,
           ),
           style: style,
           marathiStyle: marathiStyle,
@@ -3877,39 +3905,237 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
               ),
               const SizedBox(height: 32),
 
-              // 1) Dist, PS, Year, FIR No
-              BilingualFieldRow(
-                fields: [
-                  BilingualField(
-                    label: '1) Dist. :-',
-                    marathiLabel: 'जिल्हा',
-                    controller: _distCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'P.S. :-',
-                    marathiLabel: 'पो.स्टे.',
-                    controller: _psCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'Year :- 20',
-                    marathiLabel: 'वर्ष',
-                    controller: _yearCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                  BilingualField(
-                    label: 'FIR/AD/U.D.No :-',
-                    marathiLabel: 'पहिली खबर क्र / अकस्मात मृत्यू क्र.',
-                    controller: _firNoCtrl,
-                    serifStyle: serifStyle,
-                    marathiLabelStyle: marathiLabelStyle,
-                  ),
-                ],
-              ),
+              // 1) Dist, PS, Year, FIR No, Date
+              if (!isExhumation)
+                BilingualFieldRow(
+                  fields: [
+                    BilingualField(
+                      label: '1) Dist. :-',
+                      marathiLabel: 'जिल्हा',
+                      controller: _distCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'P.S. :-',
+                      marathiLabel: 'पो.स्टे.',
+                      controller: _psCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'Year :- 20',
+                      marathiLabel: 'वर्ष',
+                      controller: _yearCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                    BilingualField(
+                      label: 'FIR/AD/U.D.No :-',
+                      marathiLabel: 'पहिली खबर क्र / अकस्मात मृत्यू क्र.',
+                      controller: _firNoCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ],
+                )
+              else ...[
+                // Row 1: Dist.    P.S.    Year
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1) Dist.
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '1) Dist. :- ',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _distCtrl,
+                                    serifStyle: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'जिल्हा',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // P.S.
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'P.S. :- ',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _psCtrl,
+                                    serifStyle: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'पो.स्टे.',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Year
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Year :- 20',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _yearCtrl,
+                                    serifStyle: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'वर्ष',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Row 2: FIR/AD/U.D.No.    Date
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // FIR/AD/U.D.No
+                    Expanded(
+                      flex: 6,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'FIR/AD/U.D.No :- ',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: BilingualSimpleUnderlineInput(
+                                    controller: _firNoCtrl,
+                                    serifStyle: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'पहिली खबर क्र./ अकस्मात मृत्यू क्र.',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+
+                    // Date
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 28,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Date :- ',
+                                  style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _datePickerField(
+                                    controller: _firDateCtrl,
+                                    style: serifStyle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'दिनांक',
+                            style: marathiLabelStyle.copyWith(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
 
               // 2) Act and Section
@@ -4728,30 +4954,13 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 Row(
                   children: [
                     Text('दिनांक   : ', style: metaLabelStyle),
-                    SizedBox(
-                      width: 34,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marDateDayCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'DD',
-                      ),
-                    ),
-                    Text(' / ', style: metaLabelStyle),
-                    SizedBox(
-                      width: 34,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marDateMonthCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'MM',
-                      ),
-                    ),
-                    Text(' / २०', style: metaLabelStyle),
-                    SizedBox(
-                      width: 38,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marDateYearCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'YY',
+                    Expanded(
+                      child: _datePickerField(
+                        controller: _marDateCtrl,
+                        style: valueStyle,
+                        dayCtrl: _marDateDayCtrl,
+                        monthCtrl: _marDateMonthCtrl,
+                        yearCtrl: _marDateYearCtrl,
                       ),
                     ),
                   ],
@@ -4760,21 +4969,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 Row(
                   children: [
                     Text('सुरू केल्याची वेळ: ', style: metaLabelStyle),
-                    SizedBox(
-                      width: 34,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marTimeHoursCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'HH',
-                      ),
-                    ),
-                    Text(' / ', style: metaLabelStyle),
-                    SizedBox(
-                      width: 34,
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _marTimeMinutesCtrl,
-                        serifStyle: valueStyle,
-                        hintText: 'MM',
+                    Expanded(
+                      child: _timePickerField(
+                        controller: _marTimeCtrl,
+                        style: valueStyle,
+                        hoursCtrl: _marTimeHoursCtrl,
+                        minutesCtrl: _marTimeMinutesCtrl,
                       ),
                     ),
                   ],
@@ -5187,7 +5387,7 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                 borderSide: BorderSide(color: Colors.black54, width: 1.0),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue, width: 1.5),
+                borderSide: BorderSide(color: Colors.black87, width: 1.5),
               ),
             ),
           ),
@@ -6010,13 +6210,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  SizedBox(
-                    width: 220,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _ptpReceiverSigCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'सही',
-                    ),
+                  BilingualSimpleUnderlineInput(
+                    minWidth: 220,
+                    controller: _ptpReceiverSigCtrl,
+                    serifStyle: serifStyle,
+                    hintText: 'सही',
                   ),
                 ],
               ),
@@ -6288,13 +6486,11 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  SizedBox(
-                    width: 220,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _dpAmaldaarSigCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'सही',
-                    ),
+                  BilingualSimpleUnderlineInput(
+                    minWidth: 220,
+                    controller: _dpAmaldaarSigCtrl,
+                    serifStyle: serifStyle,
+                    hintText: 'सही',
                   ),
                 ],
               ),

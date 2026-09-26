@@ -186,7 +186,7 @@ class OfficerDetailsDialog extends StatelessWidget {
                                     style: GoogleFonts.poppins(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.blue.shade800,
+                                      color: Colors.black54,
                                     ),
                                   ),
                                 const SizedBox(height: 4),
@@ -422,7 +422,7 @@ class OfficerDetailsDialog extends StatelessWidget {
                       vertical: 1.5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -430,7 +430,7 @@ class OfficerDetailsDialog extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
-                        color: Colors.blue.shade800,
+                        color: Colors.black54,
                       ),
                     ),
                   )

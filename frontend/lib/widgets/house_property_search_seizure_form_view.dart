@@ -575,16 +575,16 @@ class HousePropertySearchSeizureFormViewState
                           fontSize: 12,
                           color: Colors.black87,
                         ),
-                        children: [
-                          const TextSpan(
+                        children: const [
+                          TextSpan(
                             text:
                                 '(कलम १८५ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये झडती/हजर ',
                           ),
                           TextSpan(
                             text: 'करणे/परत',
-                            style: TextStyle(color: Colors.blue.shade900),
+                            style: TextStyle(color: Colors.black87),
                           ),
-                          const TextSpan(text: ' मिळविणे)'),
+                          TextSpan(text: ' मिळविणे)'),
                         ],
                       ),
                     ),
@@ -613,12 +613,10 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 90,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _distCtrl,
-                              serifStyle: serifStyle,
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 90,
+                            controller: _distCtrl,
+                            serifStyle: serifStyle,
                           ),
                         ],
                       ),
@@ -639,12 +637,10 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 110,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _psCtrl,
-                              serifStyle: serifStyle,
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 110,
+                            controller: _psCtrl,
+                            serifStyle: serifStyle,
                           ),
                         ],
                       ),
@@ -665,13 +661,11 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 55,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _yearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YYYY',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 55,
+                            controller: _yearCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'YYYY',
                           ),
                         ],
                       ),
@@ -692,12 +686,10 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 55,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _firNoCtrl,
-                              serifStyle: serifStyle,
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 55,
+                            controller: _firNoCtrl,
+                            serifStyle: serifStyle,
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -705,13 +697,11 @@ class HousePropertySearchSeizureFormViewState
                                 style: serifStyle.copyWith(
                                     fontWeight: FontWeight.bold)),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _firYearSuffixCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 35,
+                            controller: _firYearSuffixCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'YY',
                           ),
                         ],
                       ),
@@ -732,25 +722,21 @@ class HousePropertySearchSeizureFormViewState
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(width: 6),
-                          SizedBox(
-                            width: 34,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _headerDateDayCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'DD',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 34,
+                            controller: _headerDateDayCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'DD',
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text('/', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 34,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _headerDateMonthCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 34,
+                            controller: _headerDateMonthCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'MM',
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -758,13 +744,11 @@ class HousePropertySearchSeizureFormViewState
                                 style: serifStyle.copyWith(
                                     fontWeight: FontWeight.bold)),
                           ),
-                          SizedBox(
-                            width: 34,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _headerDateYearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 34,
+                            controller: _headerDateYearCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'YY',
                           ),
                         ],
                       ),
@@ -944,13 +928,11 @@ class HousePropertySearchSeizureFormViewState
                                 fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(width: 8),
-                          SizedBox(
-                            width: 100,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _profReceiverCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'होय / नाही',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 100,
+                            controller: _profReceiverCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'होय / नाही',
                           ),
                         ],
                       ),
@@ -1154,13 +1136,11 @@ class HousePropertySearchSeizureFormViewState
                         style: serifStyle.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 12),
-                      SizedBox(
-                        width: 100,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _identificationRequiredCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'होय / नाही',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 100,
+                        controller: _identificationRequiredCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'होय / नाही',
                       ),
                     ],
                   ),
@@ -1407,37 +1387,31 @@ class HousePropertySearchSeizureFormViewState
                         ],
                       ),
                       const SizedBox(width: 6),
-                      SizedBox(
-                        width: 34,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _seizeDateDayCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'DD',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 34,
+                        controller: _seizeDateDayCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'DD',
                       ),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: Text('/', style: serifStyle)),
-                      SizedBox(
-                        width: 34,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _seizeDateMonthCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'MM',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 34,
+                        controller: _seizeDateMonthCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'MM',
                       ),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: Text('/20',
                               style: serifStyle.copyWith(
                                   fontWeight: FontWeight.bold))),
-                      SizedBox(
-                        width: 34,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _seizeDateYearCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'YY',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 34,
+                        controller: _seizeDateYearCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'YY',
                       ),
                     ],
                   ),
@@ -1457,24 +1431,20 @@ class HousePropertySearchSeizureFormViewState
                         ],
                       ),
                       const SizedBox(width: 4),
-                      SizedBox(
-                        width: 32,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _seizeTimeHoursCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'HH',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 32,
+                        controller: _seizeTimeHoursCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'HH',
                       ),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 1),
                           child: Text(':', style: serifStyle)),
-                      SizedBox(
-                        width: 32,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _seizeTimeMinutesCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'MM',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 32,
+                        controller: _seizeTimeMinutesCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'MM',
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -1489,24 +1459,20 @@ class HousePropertySearchSeizureFormViewState
                           ],
                         ),
                       ),
-                      SizedBox(
-                        width: 32,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _seizeTimeToHoursCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'HH',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 32,
+                        controller: _seizeTimeToHoursCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'HH',
                       ),
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 1),
                           child: Text(':', style: serifStyle)),
-                      SizedBox(
-                        width: 32,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _seizeTimeToMinutesCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'MM',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 32,
+                        controller: _seizeTimeToMinutesCtrl,
+                        serifStyle: serifStyle,
+                        hintText: 'MM',
                       ),
                     ],
                   ),
@@ -1693,25 +1659,21 @@ class HousePropertySearchSeizureFormViewState
                             Text('दिनांक :- ',
                                 style: marathiLabelStyle.copyWith(
                                     fontSize: 10, fontWeight: FontWeight.bold)),
-                            SizedBox(
-                              width: 32,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _sealSampleDateDayCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'DD',
-                              ),
+                            BilingualSimpleUnderlineInput(
+                              minWidth: 32,
+                              controller: _sealSampleDateDayCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'DD',
                             ),
                             Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 1),
                                 child: Text('/', style: serifStyle)),
-                            SizedBox(
-                              width: 32,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _sealSampleDateMonthCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'MM',
-                              ),
+                            BilingualSimpleUnderlineInput(
+                              minWidth: 32,
+                              controller: _sealSampleDateMonthCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'MM',
                             ),
                             Padding(
                                 padding:
@@ -1720,13 +1682,11 @@ class HousePropertySearchSeizureFormViewState
                                     style: marathiLabelStyle.copyWith(
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold))),
-                            SizedBox(
-                              width: 32,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _sealSampleDateYearCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'YY',
-                              ),
+                            BilingualSimpleUnderlineInput(
+                              minWidth: 32,
+                              controller: _sealSampleDateYearCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
                             ),
                           ],
                         ),

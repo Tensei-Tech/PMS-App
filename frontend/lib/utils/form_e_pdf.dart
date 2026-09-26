@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewFormEPdf(
   BuildContext context,
@@ -27,8 +28,8 @@ Future<void> previewFormEPdf(
 Future<Uint8List> generateFormEPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
 
-  final loraRegular = await PdfGoogleFonts.loraRegular();
-  final loraBold = await PdfGoogleFonts.loraBold();
+  final loraRegular = await PdfFontCache.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
 
   // Pre-render Marathi text blocks
   final cache = await _preRenderAllMarathi(doc);
