@@ -634,7 +634,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
             ),
             suffixIcon: const Padding(
               padding: EdgeInsets.only(left: 4),
-              child: Icon(Icons.calendar_today, size: 14, color: Color(0xFF1976D2)),
+              child: Icon(Icons.calendar_today,
+                  size: 14, color: Color(0xFF1976D2)),
             ),
           ),
         ),
@@ -742,7 +743,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text('1.Dist : ',
-                                style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _distCtrl,
@@ -771,7 +773,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text('P.S: ',
-                                style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _psCtrl,
@@ -798,7 +801,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text('Year : ',
-                              style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                              style: serifStyle.copyWith(
+                                  fontWeight: FontWeight.bold)),
                           Text('20', style: serifStyle),
                           SizedBox(
                             width: 35,
@@ -834,7 +838,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text('FIRNo : ',
-                                style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: BilingualSimpleUnderlineInput(
                                 controller: _firNoCtrl,
@@ -871,7 +876,8 @@ class FinalReportFormViewState extends State<FinalReportFormView> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text('Date : ',
-                                style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
                             Expanded(
                               child: _buildPoint1DateField(context, serifStyle),
                             ),

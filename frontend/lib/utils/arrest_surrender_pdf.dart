@@ -1776,7 +1776,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(
     await addLbl('lbl_13_m2', 'पंचाच्या सहया (1) :', marathiLabelStyle);
     await addLbl('lbl_13_m3', 'पंचाच्या सहया (2) :', marathiLabelStyle);
 
-    await addLbl('lbl_14_m1', 'आरोपीची सही व आरोपीचा व अंगठा', marathiLabelStyle);
+    await addLbl(
+        'lbl_14_m1', 'आरोपीची सही व आरोपीचा व अंगठा', marathiLabelStyle);
 
     await addLbl(
         'lbl_11di_m1',
@@ -1819,14 +1820,16 @@ Future<MarathiImageCache> _preRenderAllMarathi(
         marathiLabelStyle);
     await addLbl(
         'lbl_12f_m1', '(वारंवार अपराध करतो किंवा काय ? )', marathiLabelStyle);
-    await addLbl('lbl_12g_m1',
-        '(जामीनावर असतांना पळूनजाण्याचा संभव किंवा नाही ? )', marathiLabelStyle);
+    await addLbl(
+        'lbl_12g_m1',
+        '(जामीनावर असतांना पळूनजाण्याचा संभव किंवा नाही ? )',
+        marathiLabelStyle);
     await addLbl(
         'lbl_12h_m1',
         '(जामीनावर साडल्यास लगेच दुसरा गुन्हा करण्याचा किंवा बळींना/ साक्षेदारांना धाकदपटशा दाखविण्याचा संभव आहे किंवा नाही?)',
         marathiLabelStyle);
-    await addLbl('lbl_12i_m1', '(दुसऱ्या कोणत्याही प्रकरणात पाहिजे किंवा काय ?)',
-        marathiLabelStyle);
+    await addLbl('lbl_12i_m1',
+        '(दुसऱ्या कोणत्याही प्रकरणात पाहिजे किंवा काय ?)', marathiLabelStyle);
     await addLbl(
         'lbl_12i_m2',
         '( जर होय असेल तर त्या प्रकरणाचा संदर्भ व कलमे दयवीत ?)',

@@ -973,9 +973,12 @@ Future<MarathiImageCache> _preRenderAllMarathi(
 }) async {
   final cache = MarathiImageCache();
   final showPart1 = showsSection == null || showsSection('Final Report Part I');
-  final showPart2 = showsSection == null || showsSection('Final Report Part II');
-  final showPart3 = showsSection == null || showsSection('Final Report Part III');
-  final showPart4 = showsSection == null || showsSection('Final Report Part IV');
+  final showPart2 =
+      showsSection == null || showsSection('Final Report Part II');
+  final showPart3 =
+      showsSection == null || showsSection('Final Report Part III');
+  final showPart4 =
+      showsSection == null || showsSection('Final Report Part IV');
 
   final labelStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 9,
@@ -1174,7 +1177,6 @@ TextStyle _valStyle([double sz = 10.5]) => GoogleFonts.notoSansDevanagari(
       fontFamilyFallback: kMarathiFallbackFonts,
     );
 
-
 class _FullWidthUnderlinePainter extends CustomPainter {
   final int lineCount;
   final double lineHeight;
@@ -1234,7 +1236,8 @@ class _PdfUnderlineField extends StatelessWidget {
         height: _lineHeight,
         child: CustomPaint(
           size: Size(double.infinity, _lineHeight),
-          painter: _FullWidthUnderlinePainter(lineCount: 1, lineHeight: _lineHeight),
+          painter:
+              _FullWidthUnderlinePainter(lineCount: 1, lineHeight: _lineHeight),
         ),
       );
     }
@@ -1576,7 +1579,8 @@ Widget _buildFrPg1Widget(Map<String, dynamic> doc) {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text('1.Dist : ',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                        style:
+                            serifStyle.copyWith(fontWeight: FontWeight.bold)),
                     Expanded(
                       child: _PdfUnderlineField(
                         text: v('dist'),
@@ -1605,7 +1609,8 @@ Widget _buildFrPg1Widget(Map<String, dynamic> doc) {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text('P.S: ',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                        style:
+                            serifStyle.copyWith(fontWeight: FontWeight.bold)),
                     Expanded(
                       child: _PdfUnderlineField(
                         text: v('ps'),
@@ -1668,7 +1673,8 @@ Widget _buildFrPg1Widget(Map<String, dynamic> doc) {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text('FIRNo : ',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                        style:
+                            serifStyle.copyWith(fontWeight: FontWeight.bold)),
                     Expanded(
                       child: _PdfUnderlineField(
                         text: v('firNo'),
@@ -1705,9 +1711,11 @@ Widget _buildFrPg1Widget(Map<String, dynamic> doc) {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text('Date : ',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold)),
+                        style:
+                            serifStyle.copyWith(fontWeight: FontWeight.bold)),
                     Expanded(
-                      child: _pdfPoint1DateField(v('headerDate'), style: serifStyle),
+                      child: _pdfPoint1DateField(v('headerDate'),
+                          style: serifStyle),
                     ),
                   ],
                 ),

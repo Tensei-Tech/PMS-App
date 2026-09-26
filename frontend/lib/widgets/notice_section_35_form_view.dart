@@ -180,9 +180,8 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     _p1DateCtrl.text = data['p1NoticeDate']?.toString() ??
         data['noticeDate']?.toString() ??
         '';
-    final rawP1Rec = data['p1Recipient']?.toString() ??
-        data['recipient']?.toString() ??
-        '';
+    final rawP1Rec =
+        data['p1Recipient']?.toString() ?? data['recipient']?.toString() ?? '';
     if (rawP1Rec.isNotEmpty) {
       _p1RecipientLine1Ctrl.text = rawP1Rec;
     } else {
@@ -238,9 +237,8 @@ class NoticeSection35FormViewState extends State<NoticeSection35FormView> {
     _p2DateCtrl.text = data['p2NoticeDate']?.toString() ??
         data['noticeDate']?.toString() ??
         '';
-    final rawP2Rec = data['p2Recipient']?.toString() ??
-        data['recipient']?.toString() ??
-        '';
+    final rawP2Rec =
+        data['p2Recipient']?.toString() ?? data['recipient']?.toString() ?? '';
     if (rawP2Rec.isNotEmpty) {
       _p2RecipientLine1Ctrl.text = rawP2Rec;
     } else {
@@ -1377,5 +1375,3 @@ class _Notice35RecipientFieldState extends State<_Notice35RecipientField> {
     );
   }
 }
-
-

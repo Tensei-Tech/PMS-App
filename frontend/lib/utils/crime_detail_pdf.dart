@@ -1769,9 +1769,11 @@ Future<MarathiImageCache> _preRenderAllMarathi(
     await addLbl('lbl_act_sec', 'अधिनियम व कलमे', marathiLabelStyle);
 
     // Section 3
-    await addLbl('lbl_shown_by', 'घटनेचे ठिकाण दाखविणाऱ्याचे :', boldLabelStyle);
+    await addLbl(
+        'lbl_shown_by', 'घटनेचे ठिकाण दाखविणाऱ्याचे :', boldLabelStyle);
     await addLbl('lbl_name', 'नांव', marathiLabelStyle);
-    await addLbl('lbl_father_husband', 'पित्याचे/ पतीचे नांव', marathiLabelStyle);
+    await addLbl(
+        'lbl_father_husband', 'पित्याचे/ पतीचे नांव', marathiLabelStyle);
     await addLbl('lbl_address', 'पत्ता :', marathiLabelStyle);
 
     // Section 4
@@ -1797,7 +1799,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(
     await addLbl('lbl_sf2', 'विशेष वैशिष्ट्ये - २', marathiLabelStyle);
     await addLbl('lbl_sf3', 'विशेष वैशिष्ट्ये - ३', marathiLabelStyle);
     await addLbl('lbl_place_type', 'घटनेच्या जागेचा प्रकार', marathiLabelStyle);
-    await addLbl('lbl_prop_inv', 'अंतर्भूत मालमत्तेचे प्रकार', marathiLabelStyle);
+    await addLbl(
+        'lbl_prop_inv', 'अंतर्भूत मालमत्तेचे प्रकार', marathiLabelStyle);
   }
 
   if (show2B) {
