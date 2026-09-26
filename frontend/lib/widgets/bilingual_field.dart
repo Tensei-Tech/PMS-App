@@ -21,10 +21,12 @@ class BilingualSimpleUnderlineInput extends StatefulWidget {
   });
 
   @override
-  State<BilingualSimpleUnderlineInput> createState() => _BilingualSimpleUnderlineInputState();
+  State<BilingualSimpleUnderlineInput> createState() =>
+      _BilingualSimpleUnderlineInputState();
 }
 
-class _BilingualSimpleUnderlineInputState extends State<BilingualSimpleUnderlineInput> {
+class _BilingualSimpleUnderlineInputState
+    extends State<BilingualSimpleUnderlineInput> {
   double _width = 50;
 
   @override
@@ -73,7 +75,8 @@ class _BilingualSimpleUnderlineInputState extends State<BilingualSimpleUnderline
 
     // Add extra padding to ensure the cursor is visible and no clipping occurs
     final calculatedWidth = textPainter.size.width + 12;
-    final newWidth = calculatedWidth > widget.minWidth ? calculatedWidth : widget.minWidth;
+    final newWidth =
+        calculatedWidth > widget.minWidth ? calculatedWidth : widget.minWidth;
 
     if ((_width - newWidth).abs() > 1.0) {
       setState(() => _width = newWidth);

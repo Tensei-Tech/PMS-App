@@ -304,7 +304,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
       _dateMonthCtrl.text = data['dateMonth']?.toString() ?? '';
       _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
-      _dateCombinedCtrl.text = "\${_dateDayCtrl.text}/\${_dateMonthCtrl.text}/\${_dateYearCtrl.text}".replaceAll(RegExp(r'^/|/$|//'), '');
+      _dateCombinedCtrl.text =
+          "\${_dateDayCtrl.text}/\${_dateMonthCtrl.text}/\${_dateYearCtrl.text}"
+              .replaceAll(RegExp(r'^/|/$|//'), '');
       _actSectionCtrl.text = data['actSection']?.toString() ?? '';
       _shownByNameCtrl.text = data['shownByName']?.toString() ?? '';
       _shownByFatherHusbandCtrl.text =
@@ -537,11 +539,12 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                               padding: const EdgeInsets.only(left: 2, right: 2),
                               child: Text('/20', style: serifStyle),
                             ),
-                            BilingualSimpleUnderlineInput(minWidth: 35, 
-                                controller: _firYearSuffixCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'YY',
-                              ),
+                            BilingualSimpleUnderlineInput(
+                              minWidth: 35,
+                              controller: _firYearSuffixCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
+                            ),
                           ],
                         ),
                       ],
@@ -560,7 +563,8 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            formDatePickerField(context,
+                            formDatePickerField(
+                              context,
                               controller: _dateCombinedCtrl,
                               dayCtrl: _dateDayCtrl,
                               monthCtrl: _dateMonthCtrl,
@@ -1217,7 +1221,8 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           children: [
                             Text('घटनास्थळ पंचनाम्याची दिनांक : ',
                                 style: marathiLabelStyle),
-                            formDatePickerField(context,
+                            formDatePickerField(
+                              context,
                               controller: _panchnamaDateCtrl,
                               dayCtrl: _panchnamaDateDayCtrl,
                               monthCtrl: _panchnamaDateMonthCtrl,
@@ -1304,7 +1309,8 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           crossAxisAlignment: WrapCrossAlignment.end,
                           children: [
                             Text('वेळ : ', style: marathiLabelStyle),
-                            formTimePickerField(context,
+                            formTimePickerField(
+                              context,
                               controller: _panchnamaTimeCtrl,
                               width: 100,
                             ),
@@ -1493,6 +1499,3 @@ class VictimRow {
     meansCtrl.text = map['means']?.toString() ?? '';
   }
 }
-
-
-

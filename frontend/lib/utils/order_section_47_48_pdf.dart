@@ -1050,221 +1050,224 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-        Align(
-          alignment: Alignment.topRight,
-          child: Text(
-            pageRange.isNotEmpty
-                ? pageRange
-                : 'Page 1 — नोटीस बी.एन.एस.एस.कलम ४७(१)',
-            style: badgeStyle,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Center(child: Text('नोटीस', style: titleStyle)),
-        const SizedBox(height: 2),
-        Center(child: Text('बी.एन.एस.एस.कलम ४७(१)', style: subTitleStyle)),
-        const SizedBox(height: 10),
-        Text('प्रति,', style: boldLabelStyle),
-        const SizedBox(height: 4),
-        buildRuledLine('', p1To1),
-        buildRuledLine('', p1To2),
-        buildRuledLine('', p1To3),
-        const SizedBox(height: 8),
-        Text(
-          'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...',
-          style: boldLabelStyle,
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 4,
-          runSpacing: 7,
-          children: [
-            const SizedBox(width: 24),
-            Text('आपणास याद्वारे कळविण्यात येते की,', style: bodyStyle),
-            buildUnderlineField(policeStation,
-                width: 175, hint: 'पोलीस स्टेशन नाव'),
-            Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: bodyStyle),
-            buildUnderlineField(crNo,
-                width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
-            Text('/', style: bodyStyle),
-            buildUnderlineField(crYear,
-                width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
-            Text('भा.न्या.सं.कलम', style: bodyStyle),
-            buildUnderlineField(bnsSection, width: 190, hint: 'उदा. १०३, ३(५)'),
+            Align(
+              alignment: Alignment.topRight,
+              child: Text(
+                pageRange.isNotEmpty
+                    ? pageRange
+                    : 'Page 1 — नोटीस बी.एन.एस.एस.कलम ४७(१)',
+                style: badgeStyle,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Center(child: Text('नोटीस', style: titleStyle)),
+            const SizedBox(height: 2),
+            Center(child: Text('बी.एन.एस.एस.कलम ४७(१)', style: subTitleStyle)),
+            const SizedBox(height: 10),
+            Text('प्रति,', style: boldLabelStyle),
+            const SizedBox(height: 4),
+            buildRuledLine('', p1To1),
+            buildRuledLine('', p1To2),
+            buildRuledLine('', p1To3),
+            const SizedBox(height: 8),
             Text(
-                'या गुन्ह्याचे तपासात निष्पन्न झालेल्या पुराव्यावरून आपणास दिनांक',
-                style: bodyStyle),
-            buildUnderlineField(arrestDate,
-                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
-            Text('रोजी', style: bodyStyle),
-            buildUnderlineField(arrestTime,
-                width: 100, hint: 'वेळ', icon: Icons.access_time),
-            Text('वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे :-',
-                style: bodyStyle),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: boldLabelStyle),
-        const SizedBox(height: 4),
-        buildRuledLine('', p1Fact1),
-        buildRuledLine('', p1Fact2),
-        buildRuledLine('', p1Fact3),
-        const SizedBox(height: 8),
-        Text('ब) अटक करण्यासंबंधाने आधार :-', style: boldLabelStyle),
-        const SizedBox(height: 4),
-        buildRuledLine('१)', p1Ground1),
-        buildRuledLine('२)', p1Ground2),
-        buildRuledLine('३)', p1Ground3),
-        buildRuledLine('४)', p1Ground4),
-        buildRuledLine('५)', p1Ground5),
-        const SizedBox(height: 8),
-        Text('क) अटकेची कारणे :-', style: boldLabelStyle),
-        const SizedBox(height: 4),
-        buildRuledLine('१)', p1Reason1),
-        buildRuledLine('२)', p1Reason2),
-        buildRuledLine('३)', p1Reason3),
-        buildRuledLine('४)', p1Reason4),
-        buildRuledLine('५)', p1Reason5),
-        const SizedBox(height: 8),
-        Text(
-          'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने आपण योग्य तो जामीन दिल्यास आपणास जामीनावर मुक्त करण्यात येईल.',
-          style: bodyStyle,
-          textAlign: TextAlign.justify,
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 4,
-          runSpacing: 6,
-          children: [
-            Text('इ) आपणास दिनांक', style: bodyStyle),
-            buildUnderlineField(p1RemandDate,
-                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+              'विषय :- गुन्ह्याचे तपास कामी अटक करण्याचा आधार व कारणांबाबत...',
+              style: boldLabelStyle,
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 7,
+              children: [
+                const SizedBox(width: 24),
+                Text('आपणास याद्वारे कळविण्यात येते की,', style: bodyStyle),
+                buildUnderlineField(policeStation,
+                    width: 175, hint: 'पोलीस स्टेशन नाव'),
+                Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: bodyStyle),
+                buildUnderlineField(crNo,
+                    width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
+                Text('/', style: bodyStyle),
+                buildUnderlineField(crYear,
+                    width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
+                Text('भा.न्या.सं.कलम', style: bodyStyle),
+                buildUnderlineField(bnsSection,
+                    width: 190, hint: 'उदा. १०३, ३(५)'),
+                Text(
+                    'या गुन्ह्याचे तपासात निष्पन्न झालेल्या पुराव्यावरून आपणास दिनांक',
+                    style: bodyStyle),
+                buildUnderlineField(arrestDate,
+                    width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+                Text('रोजी', style: bodyStyle),
+                buildUnderlineField(arrestTime,
+                    width: 100, hint: 'वेळ', icon: Icons.access_time),
+                Text('वा. खालील आधारावर व कारणांसाठी अटक करण्यात येत आहे :-',
+                    style: bodyStyle),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: boldLabelStyle),
+            const SizedBox(height: 4),
+            buildRuledLine('', p1Fact1),
+            buildRuledLine('', p1Fact2),
+            buildRuledLine('', p1Fact3),
+            const SizedBox(height: 8),
+            Text('ब) अटक करण्यासंबंधाने आधार :-', style: boldLabelStyle),
+            const SizedBox(height: 4),
+            buildRuledLine('१)', p1Ground1),
+            buildRuledLine('२)', p1Ground2),
+            buildRuledLine('३)', p1Ground3),
+            buildRuledLine('४)', p1Ground4),
+            buildRuledLine('५)', p1Ground5),
+            const SizedBox(height: 8),
+            Text('क) अटकेची कारणे :-', style: boldLabelStyle),
+            const SizedBox(height: 4),
+            buildRuledLine('१)', p1Reason1),
+            buildRuledLine('२)', p1Reason2),
+            buildRuledLine('३)', p1Reason3),
+            buildRuledLine('४)', p1Reason4),
+            buildRuledLine('५)', p1Reason5),
+            const SizedBox(height: 8),
             Text(
-              'रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+              'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने आपण योग्य तो जामीन दिल्यास आपणास जामीनावर मुक्त करण्यात येईल.',
               style: bodyStyle,
+              textAlign: TextAlign.justify,
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 6,
+              children: [
+                Text('इ) आपणास दिनांक', style: bodyStyle),
+                buildUnderlineField(p1RemandDate,
+                    width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+                Text(
+                  'रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+                  style: bodyStyle,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 36),
+                child: Text('कळावे,', style: boldLabelStyle),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                SizedBox(
+                  width: 225,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 56,
+                        width: 220,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border:
+                              Border.all(color: Colors.black54, width: 0.85),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '(सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
+                          style: GoogleFonts.notoSansDevanagari(
+                            fontSize: 10,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 220,
+                        height: 20,
+                        alignment: Alignment.bottomCenter,
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                                color: Color(0xFF616161), width: 0.85),
+                          ),
+                        ),
+                        child: Text(
+                          p1AccusedSig.isNotEmpty
+                              ? p1AccusedSig
+                              : (p1To1.isNotEmpty ? p1To1 : ''),
+                          style: valStyle.copyWith(fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('आरोपीची स्वाक्षरी / अंगठा',
+                          style: boldLabelStyle.copyWith(fontSize: 12)),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 225,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 56,
+                        width: 220,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border:
+                              Border.all(color: Colors.black54, width: 0.85),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '(स्वाक्षरी व पोलीस स्टेशन शिक्का)',
+                          style: GoogleFonts.notoSansDevanagari(
+                            fontSize: 10,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 220,
+                        height: 20,
+                        alignment: Alignment.bottomCenter,
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                                color: Color(0xFF616161), width: 0.85),
+                          ),
+                        ),
+                        child: Text(
+                          p1IoSig.isNotEmpty
+                              ? p1IoSig
+                              : (ioName.isNotEmpty ? ioName : ''),
+                          style: valStyle.copyWith(fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('तपासणी अधिकारी / अंमलदार',
+                          style: boldLabelStyle.copyWith(fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 36),
-            child: Text('कळावे,', style: boldLabelStyle),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            SizedBox(
-              width: 225,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 56,
-                    width: 220,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black54, width: 0.85),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '(सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
-                      style: GoogleFonts.notoSansDevanagari(
-                        fontSize: 10,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 220,
-                    height: 20,
-                    alignment: Alignment.bottomCenter,
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom:
-                            BorderSide(color: Color(0xFF616161), width: 0.85),
-                      ),
-                    ),
-                    child: Text(
-                      p1AccusedSig.isNotEmpty
-                          ? p1AccusedSig
-                          : (p1To1.isNotEmpty ? p1To1 : ''),
-                      style: valStyle.copyWith(fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text('आरोपीची स्वाक्षरी / अंगठा',
-                      style: boldLabelStyle.copyWith(fontSize: 12)),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: 225,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 56,
-                    width: 220,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black54, width: 0.85),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '(स्वाक्षरी व पोलीस स्टेशन शिक्का)',
-                      style: GoogleFonts.notoSansDevanagari(
-                        fontSize: 10,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 220,
-                    height: 20,
-                    alignment: Alignment.bottomCenter,
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom:
-                            BorderSide(color: Color(0xFF616161), width: 0.85),
-                      ),
-                    ),
-                    child: Text(
-                      p1IoSig.isNotEmpty
-                          ? p1IoSig
-                          : (ioName.isNotEmpty ? ioName : ''),
-                      style: valStyle.copyWith(fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text('तपासणी अधिकारी / अंमलदार',
-                      style: boldLabelStyle.copyWith(fontSize: 12)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
+      ),
     ),
-  ),
-),
-);
+  );
 }
 
 Widget _buildPg2Widget(Map<String, dynamic> doc) {
@@ -1452,220 +1455,223 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-        Align(
-          alignment: Alignment.topRight,
-          child: Text(
-            pageRange.isNotEmpty
-                ? pageRange
-                : 'Page 2 — नोटीस बी.एन.एस.एस.कलम ४८',
-            style: badgeStyle,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Center(child: Text('नोटीस', style: titleStyle)),
-        const SizedBox(height: 2),
-        Center(child: Text('बी.एन.एस.एस.कलम ४८', style: subTitleStyle)),
-        const SizedBox(height: 10),
-        Text('प्रति,', style: boldLabelStyle),
-        const SizedBox(height: 4),
-        buildRuledLine('', p2To1),
-        buildRuledLine('', p2To2),
-        buildRuledLine('', p2To3),
-        const SizedBox(height: 8),
-        Text(
-          'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...',
-          style: boldLabelStyle,
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 4,
-          runSpacing: 7,
-          children: [
-            const SizedBox(width: 24),
-            Text('आपणास याद्वारे कळविण्यात येते की,', style: bodyStyle),
-            buildUnderlineField(policeStation,
-                width: 175, hint: 'पोलीस स्टेशन नाव'),
-            Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: bodyStyle),
-            buildUnderlineField(crNo,
-                width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
-            Text('/', style: bodyStyle),
-            buildUnderlineField(crYear,
-                width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
-            Text('भा.न्या.सं.कलम', style: bodyStyle),
-            buildUnderlineField(bnsSection, width: 190, hint: 'उदा. १०३, ३(५)'),
-            Text('या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे',
-                style: bodyStyle),
-            buildUnderlineField(p2AccusedName,
-                width: 230, hint: 'अटक व्यक्तीचे नाव'),
-            Text('यांना दिनांक', style: bodyStyle),
-            buildUnderlineField(arrestDate,
-                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
-            Text('रोजी', style: bodyStyle),
-            buildUnderlineField(arrestTime,
-                width: 100, hint: 'वेळ', icon: Icons.access_time),
-            Text('वा. अटक करण्यात आली आहे.', style: bodyStyle),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: boldLabelStyle),
-        const SizedBox(height: 4),
-        buildRuledLine('', p2Fact1),
-        buildRuledLine('', p2Fact2),
-        buildRuledLine('', p2Fact3),
-        const SizedBox(height: 8),
-        Text('ब) अटक करण्यासंबंधाने आधार :-', style: boldLabelStyle),
-        const SizedBox(height: 4),
-        buildRuledLine('१)', p2Ground1),
-        buildRuledLine('२)', p2Ground2),
-        buildRuledLine('३)', p2Ground3),
-        buildRuledLine('४)', p2Ground4),
-        buildRuledLine('५)', p2Ground5),
-        const SizedBox(height: 8),
-        Text('क) अटकेची कारणे :-', style: boldLabelStyle),
-        const SizedBox(height: 4),
-        buildRuledLine('१)', p2Reason1),
-        buildRuledLine('२)', p2Reason2),
-        buildRuledLine('३)', p2Reason3),
-        buildRuledLine('४)', p2Reason4),
-        buildRuledLine('५)', p2Reason5),
-        const SizedBox(height: 8),
-        Text(
-          'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने योग्य तो जामीन दिल्यास अटक व्यक्तीस जामीनावर मुक्त करण्यात येईल.',
-          style: bodyStyle,
-          textAlign: TextAlign.justify,
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 4,
-          runSpacing: 6,
-          children: [
-            Text('इ) अटक व्यक्तीला दिनांक', style: bodyStyle),
-            buildUnderlineField(p2RemandDate,
-                width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+            Align(
+              alignment: Alignment.topRight,
+              child: Text(
+                pageRange.isNotEmpty
+                    ? pageRange
+                    : 'Page 2 — नोटीस बी.एन.एस.एस.कलम ४८',
+                style: badgeStyle,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Center(child: Text('नोटीस', style: titleStyle)),
+            const SizedBox(height: 2),
+            Center(child: Text('बी.एन.एस.एस.कलम ४८', style: subTitleStyle)),
+            const SizedBox(height: 10),
+            Text('प्रति,', style: boldLabelStyle),
+            const SizedBox(height: 4),
+            buildRuledLine('', p2To1),
+            buildRuledLine('', p2To2),
+            buildRuledLine('', p2To3),
+            const SizedBox(height: 8),
             Text(
-              'रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+              'विषय :- गुन्ह्याचे तपास कामी अटक केले संबंधी अवगत केले बाबत...',
+              style: boldLabelStyle,
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 7,
+              children: [
+                const SizedBox(width: 24),
+                Text('आपणास याद्वारे कळविण्यात येते की,', style: bodyStyle),
+                buildUnderlineField(policeStation,
+                    width: 175, hint: 'पोलीस स्टेशन नाव'),
+                Text('पोलीस स्टेशन, गुन्हा रजि.नंबर', style: bodyStyle),
+                buildUnderlineField(crNo,
+                    width: 85, hint: 'गु.र.नं.', textAlign: TextAlign.center),
+                Text('/', style: bodyStyle),
+                buildUnderlineField(crYear,
+                    width: 50, hint: 'वर्ष', textAlign: TextAlign.center),
+                Text('भा.न्या.सं.कलम', style: bodyStyle),
+                buildUnderlineField(bnsSection,
+                    width: 190, hint: 'उदा. १०३, ३(५)'),
+                Text('या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे',
+                    style: bodyStyle),
+                buildUnderlineField(p2AccusedName,
+                    width: 230, hint: 'अटक व्यक्तीचे नाव'),
+                Text('यांना दिनांक', style: bodyStyle),
+                buildUnderlineField(arrestDate,
+                    width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+                Text('रोजी', style: bodyStyle),
+                buildUnderlineField(arrestTime,
+                    width: 100, hint: 'वेळ', icon: Icons.access_time),
+                Text('वा. अटक करण्यात आली आहे.', style: bodyStyle),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('अ) गुन्ह्याची थोडक्यात हकीगत :-', style: boldLabelStyle),
+            const SizedBox(height: 4),
+            buildRuledLine('', p2Fact1),
+            buildRuledLine('', p2Fact2),
+            buildRuledLine('', p2Fact3),
+            const SizedBox(height: 8),
+            Text('ब) अटक करण्यासंबंधाने आधार :-', style: boldLabelStyle),
+            const SizedBox(height: 4),
+            buildRuledLine('१)', p2Ground1),
+            buildRuledLine('२)', p2Ground2),
+            buildRuledLine('३)', p2Ground3),
+            buildRuledLine('४)', p2Ground4),
+            buildRuledLine('५)', p2Ground5),
+            const SizedBox(height: 8),
+            Text('क) अटकेची कारणे :-', style: boldLabelStyle),
+            const SizedBox(height: 4),
+            buildRuledLine('१)', p2Reason1),
+            buildRuledLine('२)', p2Reason2),
+            buildRuledLine('३)', p2Reason3),
+            buildRuledLine('४)', p2Reason4),
+            buildRuledLine('५)', p2Reason5),
+            const SizedBox(height: 8),
+            Text(
+              'ड) सदर गुन्हा हा जामीनपात्र/अजामीनपात्र आहे. गुन्हा जामीनपात्र असल्याने योग्य तो जामीन दिल्यास अटक व्यक्तीस जामीनावर मुक्त करण्यात येईल.',
               style: bodyStyle,
+              textAlign: TextAlign.justify,
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 6,
+              children: [
+                Text('इ) अटक व्यक्तीला दिनांक', style: bodyStyle),
+                buildUnderlineField(p2RemandDate,
+                    width: 130, hint: 'दिनांक', icon: Icons.calendar_today),
+                Text(
+                  'रोजी मा.प्रथम वर्ग न्यायदंडाधिकारी यांचे समक्ष रिमांडसाठी हजर करण्यात येणार आहे.',
+                  style: bodyStyle,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 36),
+                child: Text('कळावे,', style: boldLabelStyle),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                SizedBox(
+                  width: 225,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 56,
+                        width: 220,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border:
+                              Border.all(color: Colors.black54, width: 0.85),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '(सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
+                          style: GoogleFonts.notoSansDevanagari(
+                            fontSize: 10,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 220,
+                        height: 20,
+                        alignment: Alignment.bottomCenter,
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                                color: Color(0xFF616161), width: 0.85),
+                          ),
+                        ),
+                        child: Text(
+                          p2RelativeSig.isNotEmpty
+                              ? p2RelativeSig
+                              : (p2To1.isNotEmpty ? p2To1 : ''),
+                          style: valStyle.copyWith(fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('नातेवाईकाची स्वाक्षरी / अंगठा',
+                          style: boldLabelStyle.copyWith(fontSize: 12)),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 225,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 56,
+                        width: 220,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border:
+                              Border.all(color: Colors.black54, width: 0.85),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '(स्वाक्षरी व पोलीस स्टेशन शिक्का)',
+                          style: GoogleFonts.notoSansDevanagari(
+                            fontSize: 10,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 220,
+                        height: 20,
+                        alignment: Alignment.bottomCenter,
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                                color: Color(0xFF616161), width: 0.85),
+                          ),
+                        ),
+                        child: Text(
+                          p2IoSig.isNotEmpty
+                              ? p2IoSig
+                              : (ioName.isNotEmpty ? ioName : ''),
+                          style: valStyle.copyWith(fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('तपासणी अधिकारी / अंमलदार',
+                          style: boldLabelStyle.copyWith(fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 36),
-            child: Text('कळावे,', style: boldLabelStyle),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            SizedBox(
-              width: 225,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 56,
-                    width: 220,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black54, width: 0.85),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '(सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
-                      style: GoogleFonts.notoSansDevanagari(
-                        fontSize: 10,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 220,
-                    height: 20,
-                    alignment: Alignment.bottomCenter,
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom:
-                            BorderSide(color: Color(0xFF616161), width: 0.85),
-                      ),
-                    ),
-                    child: Text(
-                      p2RelativeSig.isNotEmpty
-                          ? p2RelativeSig
-                          : (p2To1.isNotEmpty ? p2To1 : ''),
-                      style: valStyle.copyWith(fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text('नातेवाईकाची स्वाक्षरी / अंगठा',
-                      style: boldLabelStyle.copyWith(fontSize: 12)),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: 225,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 56,
-                    width: 220,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black54, width: 0.85),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '(स्वाक्षरी व पोलीस स्टेशन शिक्का)',
-                      style: GoogleFonts.notoSansDevanagari(
-                        fontSize: 10,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 220,
-                    height: 20,
-                    alignment: Alignment.bottomCenter,
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom:
-                            BorderSide(color: Color(0xFF616161), width: 0.85),
-                      ),
-                    ),
-                    child: Text(
-                      p2IoSig.isNotEmpty
-                          ? p2IoSig
-                          : (ioName.isNotEmpty ? ioName : ''),
-                      style: valStyle.copyWith(fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text('तपासणी अधिकारी / अंमलदार',
-                      style: boldLabelStyle.copyWith(fontSize: 12)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
+      ),
     ),
-  ),
-),
-);
+  );
 }

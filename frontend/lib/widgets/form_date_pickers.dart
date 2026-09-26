@@ -101,7 +101,8 @@ Widget formTimePickerField(
           color: Colors.grey.shade400,
           fontSize: 12,
         ),
-        suffixIcon: const Icon(Icons.access_time, size: 16, color: Colors.black87),
+        suffixIcon:
+            const Icon(Icons.access_time, size: 16, color: Colors.black87),
         border: const UnderlineInputBorder(
           borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
         ),

@@ -6210,11 +6210,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  BilingualSimpleUnderlineInput(minWidth: 220, 
-                      controller: _ptpReceiverSigCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'सही',
-                    ),
+                  BilingualSimpleUnderlineInput(
+                    minWidth: 220,
+                    controller: _ptpReceiverSigCtrl,
+                    serifStyle: serifStyle,
+                    hintText: 'सही',
+                  ),
                 ],
               ),
             ),
@@ -6485,11 +6486,12 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  BilingualSimpleUnderlineInput(minWidth: 220, 
-                      controller: _dpAmaldaarSigCtrl,
-                      serifStyle: serifStyle,
-                      hintText: 'सही',
-                    ),
+                  BilingualSimpleUnderlineInput(
+                    minWidth: 220,
+                    controller: _dpAmaldaarSigCtrl,
+                    serifStyle: serifStyle,
+                    hintText: 'सही',
+                  ),
                 ],
               ),
             ),
@@ -6564,6 +6566,3 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     );
   }
 }
-
-
-
