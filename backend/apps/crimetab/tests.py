@@ -40,6 +40,11 @@ from apps.crimetab.services.counter_service import get_group_counters, get_categ
 class CommonFormE2ETests(TestCase):
     def setUp(self):
         from apps.core.tenancy import set_tenant_schema
+        from apps.public_master.models import StateRegistry
+        StateRegistry.objects.get_or_create(
+            state_code='MH',
+            defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}
+        )
         set_tenant_schema('maharashtra')
 
         self.client = Client(HTTP_X_STATE_CODE='MH')
@@ -134,8 +139,14 @@ class CommonFormE2ETests(TestCase):
             self.cat_hurt.save()
 
         self.cat_ad = CaseCategory.objects.filter(category_name='A.D.').first()
+        if not self.cat_ad:
+            self.cat_ad = CaseCategory.objects.create(category_name='A.D.', category_code='AD', template=None, group=self.group_1to5)
         self.cat_suicide = CaseCategory.objects.filter(category_name='Suicide').first()
+        if not self.cat_suicide:
+            self.cat_suicide = CaseCategory.objects.create(category_name='Suicide', category_code='SUI', template=None, group=self.group_1to5)
         self.cat_nc = CaseCategory.objects.filter(category_name='N.C.').first()
+        if not self.cat_nc:
+            self.cat_nc = CaseCategory.objects.create(category_name='N.C.', category_code='NC', template=None, group=self.group_1to5)
 
         # CategoryFieldTemplate mappings (Trigger A: multiple templates per tab)
         CategoryFieldTemplate.objects.get_or_create(category=self.cat_murder, template=self.baseline_tmpl)

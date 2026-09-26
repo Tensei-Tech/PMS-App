@@ -16,7 +16,6 @@ import '../utils/translation_helper.dart';
 import '../widgets/form_vi_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
-import 'common_form_screen.dart';
 import 'module_record_detail_screen.dart';
 
 /// Controls where a Form VI category tap navigates.

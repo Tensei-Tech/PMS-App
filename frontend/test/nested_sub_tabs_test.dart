@@ -14,7 +14,6 @@ import 'package:khakhi_diary/providers/theme_provider.dart';
 import 'package:khakhi_diary/providers/auth_provider.dart';
 import 'package:khakhi_diary/providers/settings_provider.dart';
 import 'package:khakhi_diary/providers/case_provider.dart';
-import 'package:khakhi_diary/providers/news_provider.dart';
 import 'package:khakhi_diary/providers/module_registry.dart';
 import 'package:khakhi_diary/screens/form_i_v_selection_screen.dart';
 import 'package:khakhi_diary/services/api_config.dart';

@@ -10,7 +10,6 @@ import '../modules/core/models/base_record.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
-import 'common_form_screen.dart';
 import 'module_record_detail_screen.dart';
 
 class ClassificationListScreen extends StatefulWidget {
