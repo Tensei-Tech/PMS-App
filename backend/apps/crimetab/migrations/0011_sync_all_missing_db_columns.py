@@ -2,6 +2,7 @@
 from django.db import migrations
 
 SQL_SYNC_COLUMNS = """
+SET search_path TO maharashtra, public;
 ALTER TABLE crime_registration_info ADD COLUMN IF NOT EXISTS cr_number VARCHAR(30);
 ALTER TABLE crime_registration_info ADD COLUMN IF NOT EXISTS is_unknown_accused BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE crime_registration_info ADD COLUMN IF NOT EXISTS registered_datetime TIMESTAMPTZ;
