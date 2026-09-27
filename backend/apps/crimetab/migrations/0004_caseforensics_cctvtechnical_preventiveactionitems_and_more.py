@@ -263,6 +263,7 @@ ALTER TABLE scrutiny_pipeline ADD COLUMN IF NOT EXISTS sdpo_acp_grant_date DATE;
 ALTER TABLE scrutiny_pipeline ADD COLUMN IF NOT EXISTS sdpo_acp_send_date DATE;
 
 DELETE FROM section_field_templates WHERE section_id NOT IN (SELECT section_id FROM act_sections);
+RESET search_path;
 """
 
 
