@@ -1,33 +1,28 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:khakhi_diary/services/api_config.dart';
+import 'package:khakhi_diary/services/api_service.dart';
 import 'package:khakhi_diary/services/case_service.dart';
 import 'package:khakhi_diary/widgets/cascading_location_selector.dart';
-
-class RealHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (cert, host, port) => true;
-  }
-}
+import 'utils/mock_api_client.dart';
 
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     GoogleFonts.config.allowRuntimeFetching = false;
-    HttpOverrides.global = RealHttpOverrides();
-    ApiConfig.setCustomBaseUrl('http://127.0.0.1:8001/api');
+    ApiService.clientForTesting = createMockApiClient();
     SharedPreferences.setMockInitialValues({});
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
       (call) async => null,
     );
+  });
+
+  tearDownAll(() {
+    ApiService.clientForTesting = null;
   });
 
   group('Priority 3: Location Cascading Dropdowns Verification', () {

@@ -44,6 +44,10 @@ class ApiService {
   final _secureStorage = SecureStorage.instance;
   static String? _cachedAuthToken;
 
+  /// Optional HTTP client for unit and widget testing
+  @visibleForTesting
+  static http.Client? clientForTesting;
+
   /// Explicitly set the active JWT token in-memory and in secure storage
   Future<void> setAuthToken(String token) async {
     _cachedAuthToken = token;
@@ -202,8 +206,10 @@ class ApiService {
       }
 
       final requestHeaders = await _buildHeaders(customHeaders: headers);
-      final response = await http
-          .get(uri, headers: requestHeaders)
+      final client = clientForTesting;
+      final response = await (client != null
+              ? client.get(uri, headers: requestHeaders)
+              : http.get(uri, headers: requestHeaders))
           .timeout(ApiConstants.receiveTimeout);
 
       final apiRes = _processResponse(response);
@@ -248,8 +254,10 @@ class ApiService {
       final rawBody = data ?? body;
       final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
 
-      final response = await http
-          .post(uri, headers: requestHeaders, body: encodedBody)
+      final client = clientForTesting;
+      final response = await (client != null
+              ? client.post(uri, headers: requestHeaders, body: encodedBody)
+              : http.post(uri, headers: requestHeaders, body: encodedBody))
           .timeout(ApiConstants.receiveTimeout);
 
       final apiRes = _processResponse(response);
@@ -289,8 +297,10 @@ class ApiService {
       final rawBody = data ?? body;
       final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
 
-      final response = await http
-          .put(uri, headers: requestHeaders, body: encodedBody)
+      final client = clientForTesting;
+      final response = await (client != null
+              ? client.put(uri, headers: requestHeaders, body: encodedBody)
+              : http.put(uri, headers: requestHeaders, body: encodedBody))
           .timeout(ApiConstants.receiveTimeout);
 
       return _processResponse(response);
@@ -317,8 +327,10 @@ class ApiService {
       final rawBody = data ?? body;
       final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
 
-      final response = await http
-          .patch(uri, headers: requestHeaders, body: encodedBody)
+      final client = clientForTesting;
+      final response = await (client != null
+              ? client.patch(uri, headers: requestHeaders, body: encodedBody)
+              : http.patch(uri, headers: requestHeaders, body: encodedBody))
           .timeout(ApiConstants.receiveTimeout);
 
       return _processResponse(response);
@@ -338,8 +350,10 @@ class ApiService {
       final uri = Uri.parse(url);
       final requestHeaders = await _buildHeaders(customHeaders: headers);
 
-      final response = await http
-          .delete(uri, headers: requestHeaders)
+      final client = clientForTesting;
+      final response = await (client != null
+              ? client.delete(uri, headers: requestHeaders)
+              : http.delete(uri, headers: requestHeaders))
           .timeout(ApiConstants.receiveTimeout);
 
       return _processResponse(response);
