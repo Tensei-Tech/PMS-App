@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.stations',
     'apps.cases',
+    'apps.crimetab',
 ]
 
 try:
@@ -119,6 +120,7 @@ if os.getenv('DATABASE_URL') and dj_database_url:
         conn_health_checks=True,
         ssl_require=is_ssl_required(os.getenv('DATABASE_URL', '')),
     )
+    DATABASES['default'].setdefault('OPTIONS', {})['options'] = '-c search_path=maharashtra,public'
 elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWORD') != 'YOUR_SUPABASE_DB_PASSWORD':
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
@@ -131,6 +133,7 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
             'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_local else 'require'),
+            'options': '-c search_path=maharashtra,public',
         },
     }
 else:

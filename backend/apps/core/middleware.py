@@ -42,13 +42,17 @@ class TenantMiddleware(MiddlewareMixin):
             state_code = state_code.upper()
             try:
                 state_record = StateRegistry.objects.filter(state_code=state_code, is_active=True).first()
-                if state_record:
+                if state_record and state_record.schema_name:
                     schema_name = state_record.schema_name
+                elif state_code == 'MH':
+                    schema_name = 'maharashtra'
+                elif state_code == 'KA':
+                    schema_name = 'karnataka'
                 else:
                     schema_name = state_code.lower()
             except Exception as e:
                 logger.warning(f"[TenantMiddleware] State lookup failed: {e}")
-                schema_name = state_code.lower()
+                schema_name = 'maharashtra' if state_code == 'MH' else state_code.lower()
         elif state_code and state_code.upper() == 'GLOBAL':
             schema_name = 'public'
 

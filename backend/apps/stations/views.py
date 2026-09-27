@@ -40,10 +40,17 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
         return res
 
     def get_queryset(self):
-        qs = PoliceStation.objects.all()
-        district = self.request.query_params.get('district')
+        qs = PoliceStation.objects.all().order_by('station_name')
+        district = self.request.query_params.get('district') or self.request.query_params.get('district_id')
         if district:
-            qs = qs.filter(district_name__iexact=district.strip())
+            param = district.strip()
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(district__district_id__iexact=param) |
+                Q(district__name__iexact=param) |
+                Q(district_name__iexact=param) |
+                Q(district_name__icontains=param)
+            )
         return qs
 
     @cache_response(ttl=14400, key_prefix="stations:districts")
@@ -54,13 +61,9 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
         if not dist_names:
             dist_names = list(PoliceStation.objects.values_list('district_name', flat=True).distinct())
 
-        if not dist_names:
-            dist_names = ['Pune', 'Mumbai', 'Thane', 'Nagpur', 'Nashik', 'Chhatrapati Sambhajinagar']
-
         clean_list = sorted(list(set([d.strip() for d in dist_names if d and d.strip()])))
         return Response(clean_list)
 
-    @cache_response(ttl=14400, key_prefix="stations:divisions")
     @action(detail=False, methods=['get'], url_path='divisions')
     def list_divisions(self, request):
         """Dynamic DB query for Divisions/Zones within a district."""
@@ -72,8 +75,9 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
         zones = list(qs.values_list('zone', flat=True).distinct())
         clean_zones = sorted(list(set([z.strip() for z in zones if z and z.strip()])))
 
-        if not clean_zones:
-            prefix = district if district else 'City'
-            clean_zones = [f"{prefix} Division 1", f"{prefix} Division 2", f"{prefix} Central Division"]
+        if not clean_zones and district:
+            from apps.crimetab.views import MAHARASHTRA_DISTRICT_TO_DIVISION
+            div = MAHARASHTRA_DISTRICT_TO_DIVISION.get(district)
+            clean_zones = [div] if div else []
 
         return Response(clean_zones)

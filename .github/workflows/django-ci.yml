@@ -61,9 +61,9 @@ jobs:
         run: |
           pip install flake8
           # Stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=migrations
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=migrations,venv,.venv
           # Exit-zero treats formatting/style warnings as non-fatal warnings
-          flake8 . --count --exit-zero --max-line-length=120 --statistics --exclude=migrations
+          flake8 . --count --exit-zero --max-line-length=120 --statistics --exclude=migrations,venv,.venv
 
       - name: Run tests
         run: python manage.py test --verbosity=2
