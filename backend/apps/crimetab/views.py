@@ -998,9 +998,34 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
 class CrimeCaseManageView(APIView):
     permission_classes = [AllowAny]
 
+    @staticmethod
+    def _optimize_queryset(qs):
+        return qs.select_related(
+            'registration_info',
+            'spot',
+            'responsibility',
+            'cctv_technical',
+            'forensics',
+            'preventive_bond',
+            'scrutiny_pipeline',
+            'final_verdict',
+        ).prefetch_related(
+            'charges__act',
+            'charges__section',
+            'charges__subsection',
+            'persons__arrest_status',
+            'persons__remand_custody',
+            'persons__discharge_status',
+            'procedural_checklists',
+            'seizures__seized_from_person',
+            'preventive_action_items',
+            'category_links__category',
+            'extra_field_values__field_def',
+        )
+
     def get(self, request, pk=None):
         if pk:
-            case = CaseRecord.objects.filter(pk=pk).first()
+            case = self._optimize_queryset(CaseRecord.objects.filter(pk=pk)).first()
             if not case:
                 return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
             serializer = FullCaseDetailSerializer(case)
@@ -1027,9 +1052,11 @@ class CrimeCaseManageView(APIView):
                     Q(accused__icontains=search)
                 )
 
-            serializer = FullCaseDetailSerializer(qs.order_by('-created_at')[:50], many=True)
+            total_count = qs.count()
+            optimized_qs = self._optimize_queryset(qs.order_by('-created_at')[:50])
+            serializer = FullCaseDetailSerializer(optimized_qs, many=True)
             return Response({
-                'count': qs.count(),
+                'count': total_count,
                 'results': serializer.data,
                 'cases': serializer.data
             })
