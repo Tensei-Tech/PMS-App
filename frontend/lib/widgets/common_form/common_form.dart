@@ -558,13 +558,9 @@ class CommonFormState extends State<CommonForm> {
   };
 
   // ── §13 Evidence & Seizure ─────────────────────────────────────────────────
-  String? _eshaksh;
   TextEditingController? _eshakshDt;
-  TextEditingController? _eshakshReason;
 
   TextEditingController get _eDt => _eshakshDt ??= TextEditingController();
-  TextEditingController get _eReason =>
-      _eshakshReason ??= TextEditingController();
 
   String? _fingerprintVal;
   final _fingerprintDate = TextEditingController();
@@ -574,16 +570,9 @@ class CommonFormState extends State<CommonForm> {
   final List<Map<String, dynamic>> _seizures = [];
 
   // ── §14 Preventive Action & Bonds ──────────────────────────────────────────
-  String? _prevBondsVal = 'no';
-  final _outward = TextEditingController();
-  final _bondDate = TextEditingController();
-  final _bondCancel = TextEditingController();
-  TextEditingController? _bondReason;
-  TextEditingController get _bReason => _bondReason ??= TextEditingController();
-  String? _prevAction = '107 Crpc / 126 BNSS';
-  TextEditingController? _prevActionDateCtrl;
-  TextEditingController get _prevActionDt =>
-      _prevActionDateCtrl ??= TextEditingController();
+  final List<Map<String, dynamic>> _preventiveRows = [];
+  int? _expandedPreventiveIndex;
+  List<String> allPreventiveNames = [];
 
   // ── §15 Discharge Accused ──────────────────────────────────────────────────
   Map<String, bool>? _dischargeMap;
@@ -751,6 +740,13 @@ class CommonFormState extends State<CommonForm> {
     _loadFormDefinition();
   }
 
+  // ── Accordion states ──
+  int? _expandedAccusedIndex = 0;
+  int? _expandedSuspectedIndex = 0;
+  int? _expandedArrestIndex = 0;
+  int? _expandedCustodyIndex = 0;
+  String? _expandedPanchanamaKey;
+
   @override
   void dispose() {
     _syncDebounce?.cancel();
@@ -812,7 +808,6 @@ class CommonFormState extends State<CommonForm> {
       _regName,
       _cctvDt,
       _eDt,
-      _eReason,
       _cdrSent,
       _vehicleEngineNumber,
       _vehicleChassisNumber,
@@ -820,11 +815,6 @@ class CommonFormState extends State<CommonForm> {
       _vehicleUniqueIdMark,
       _vehiclePurchaseDate,
       _cdrRecv,
-      _outward,
-      _prevActionDt,
-      _bondDate,
-      _bReason,
-      _bondCancel,
       _csNumber,
       _csDate,
       _ccStNumber,
@@ -917,20 +907,54 @@ class CommonFormState extends State<CommonForm> {
         .toSet()
         .toList();
 
-    if (!listEquals(names, allAccusedNames)) {
+    final pNames = List<String>.from(names);
+    for (int i = 0; i < _unidentified.length; i++) {
+      pNames.add('Unidentified #${i + 1}');
+    }
+
+    bool shouldRebuildPrev = false;
+    if (!listEquals(pNames, allPreventiveNames)) {
+      allPreventiveNames = List<String>.from(pNames);
+      shouldRebuildPrev = true;
+    }
+
+    if (!listEquals(names, allAccusedNames) || shouldRebuildPrev) {
       setState(() {
-        allAccusedNames = List<String>.from(names);
-        _rebuildArrests();
-        _rebuildCustody();
-        _rebuildDischarge();
-        _pruneVerdict();
-        for (final s in _seizures) {
-          final fw = s['fromWhom'] as String?;
-          if (fw != null && !allAccusedNames.contains(fw)) {
-            s['fromWhom'] =
-                allAccusedNames.isEmpty ? null : allAccusedNames.first;
+        if (!listEquals(names, allAccusedNames)) {
+          allAccusedNames = List<String>.from(names);
+          _rebuildArrests();
+          _rebuildCustody();
+          _rebuildDischarge();
+          _pruneVerdict();
+          for (final s in _seizures) {
+            final fw = s['fromWhom'] as String?;
+            if (fw != null && !allAccusedNames.contains(fw)) {
+              s['fromWhom'] =
+                  allAccusedNames.isEmpty ? null : allAccusedNames.first;
+            }
           }
         }
+        if (shouldRebuildPrev) {
+          _rebuildPreventive();
+        }
+      });
+    }
+  }
+
+  void _rebuildPreventive() {
+    for (final r in _preventiveRows) {
+      _disposeMap(r);
+    }
+    _preventiveRows.clear();
+    for (final n in allPreventiveNames) {
+      _preventiveRows.add({
+        'accusedName': n,
+        'action': '107 Crpc / 126 BNSS',
+        'actionDate': TextEditingController(),
+        'outwardNumber': TextEditingController(),
+        'bondDate': TextEditingController(),
+        'bondCancel': TextEditingController(),
+        'bondReason': TextEditingController(),
       });
     }
   }
@@ -968,6 +992,8 @@ class CommonFormState extends State<CommonForm> {
         'isPrBond': false,
         'isBail': false,
         'isJail': false,
+        'prDate': TextEditingController(),
+        'jailDate': TextEditingController(),
         'mcrJail': TextEditingController(),
         'suretyName': TextEditingController(),
         'suretyAge': TextEditingController(),
@@ -1100,6 +1126,7 @@ class CommonFormState extends State<CommonForm> {
     setState(() {
       _accused.add(_newPerson());
       _openSectionKeys.add('6');
+      _expandedAccusedIndex = _accused.length - 1;
     });
     _syncNames();
   }
@@ -1108,6 +1135,7 @@ class CommonFormState extends State<CommonForm> {
     setState(() {
       _suspected.add(_newPerson());
       _openSectionKeys.add('7');
+      _expandedSuspectedIndex = _suspected.length - 1;
     });
   }
 
@@ -1162,108 +1190,6 @@ class CommonFormState extends State<CommonForm> {
   void removeUnknown(int i) {
     _disposeUnidRow(_unknown.removeAt(i));
     setState(() {});
-  }
-
-  void _copyPersonData(Map<String, dynamic> src, Map<String, dynamic> dst) {
-    dst['name'] ??= TextEditingController()..addListener(_debouncedSync);
-    dst['age'] ??= TextEditingController();
-    dst['gender'] ??= 'Male';
-    dst['occ'] ??= TextEditingController();
-    dst['mobile'] ??= TextEditingController();
-    dst['aadhaar'] ??= TextEditingController();
-    dst['religion'] ??= TextEditingController();
-    dst['caste'] ??= TextEditingController();
-    dst['pan'] ??= TextEditingController();
-    dst['address'] ??= TextEditingController();
-
-    setState(() {
-      (dst['name'] as TextEditingController).text =
-          (src['name'] as TextEditingController?)?.text ?? '';
-      (dst['age'] as TextEditingController).text =
-          (src['age'] as TextEditingController?)?.text ?? '';
-      dst['gender'] = src['gender'] ?? 'Male';
-      (dst['occ'] as TextEditingController).text =
-          (src['occ'] as TextEditingController?)?.text ?? '';
-      (dst['mobile'] as TextEditingController).text =
-          (src['mobile'] as TextEditingController?)?.text ?? '';
-      (dst['aadhaar'] as TextEditingController).text =
-          (src['aadhaar'] as TextEditingController?)?.text ?? '';
-      (dst['religion'] as TextEditingController).text =
-          (src['religion'] as TextEditingController?)?.text ?? '';
-      (dst['caste'] as TextEditingController).text =
-          (src['caste'] as TextEditingController?)?.text ?? '';
-      (dst['pan'] as TextEditingController).text =
-          (src['pan'] as TextEditingController?)?.text ?? '';
-      (dst['address'] as TextEditingController).text =
-          (src['address'] as TextEditingController?)?.text ?? '';
-    });
-    _syncNames();
-  }
-
-  void _checkAndAutoFillPerson(
-    Map<String, dynamic> row,
-    List<Map<String, dynamic>> sourceList,
-  ) {
-    final name = (row['name'] as TextEditingController?)?.text.trim() ?? '';
-    if (name.isEmpty) return;
-
-    for (final src in sourceList) {
-      final srcName =
-          (src['name'] as TextEditingController?)?.text.trim() ?? '';
-      if (srcName.isNotEmpty && srcName.toLowerCase() == name.toLowerCase()) {
-        final ageCtrl = row['age'] as TextEditingController?;
-        final occCtrl = row['occ'] as TextEditingController?;
-        final mobCtrl = row['mobile'] as TextEditingController?;
-        final aadhCtrl = row['aadhaar'] as TextEditingController?;
-        final relCtrl = row['religion'] as TextEditingController?;
-        final casteCtrl = row['caste'] as TextEditingController?;
-        final panCtrl = row['pan'] as TextEditingController?;
-        final addrCtrl = row['address'] as TextEditingController?;
-
-        final srcAge = (src['age'] as TextEditingController?)?.text ?? '';
-        final srcOcc = (src['occ'] as TextEditingController?)?.text ?? '';
-        final srcMob = (src['mobile'] as TextEditingController?)?.text ?? '';
-        final srcAadh = (src['aadhaar'] as TextEditingController?)?.text ?? '';
-        final srcRel = (src['religion'] as TextEditingController?)?.text ?? '';
-        final srcCaste = (src['caste'] as TextEditingController?)?.text ?? '';
-        final srcPan = (src['pan'] as TextEditingController?)?.text ?? '';
-        final srcAddr = (src['address'] as TextEditingController?)?.text ?? '';
-
-        setState(() {
-          if (ageCtrl != null && ageCtrl.text.isEmpty && srcAge.isNotEmpty) {
-            ageCtrl.text = srcAge;
-          }
-          if ((row['gender'] == null || row['gender'] == 'Male') &&
-              src['gender'] != null) {
-            row['gender'] = src['gender'];
-          }
-          if (occCtrl != null && occCtrl.text.isEmpty && srcOcc.isNotEmpty) {
-            occCtrl.text = srcOcc;
-          }
-          if (mobCtrl != null && mobCtrl.text.isEmpty && srcMob.isNotEmpty) {
-            mobCtrl.text = srcMob;
-          }
-          if (aadhCtrl != null && aadhCtrl.text.isEmpty && srcAadh.isNotEmpty) {
-            aadhCtrl.text = srcAadh;
-          }
-          if (relCtrl != null && relCtrl.text.isEmpty && srcRel.isNotEmpty) {
-            relCtrl.text = srcRel;
-          }
-          if (casteCtrl != null &&
-              casteCtrl.text.isEmpty &&
-              srcCaste.isNotEmpty) {
-            casteCtrl.text = srcCaste;
-          }
-          if (panCtrl != null && panCtrl.text.isEmpty && srcPan.isNotEmpty) {
-            panCtrl.text = srcPan;
-          }
-          if (addrCtrl != null && addrCtrl.text.isEmpty && srcAddr.isNotEmpty) {
-            addrCtrl.text = srcAddr;
-          }
-        });
-        break;
-      }
-    }
   }
 
   // ─── seizure helpers ───────────────────────────────────────────────────────
@@ -1354,6 +1280,11 @@ class CommonFormState extends State<CommonForm> {
     }
     _seizures.clear();
 
+    for (final p in _preventiveRows) {
+      _disposeMap(p);
+    }
+    _preventiveRows.clear();
+
     for (final c in [
       _crNo,
       _regDate,
@@ -1406,14 +1337,8 @@ class CommonFormState extends State<CommonForm> {
       _regName,
       _cctvDt,
       _eDt,
-      _eReason,
       _cdrSent,
       _cdrRecv,
-      _outward,
-      _prevActionDt,
-      _bondDate,
-      _bReason,
-      _bondCancel,
       _csNumber,
       _csDate,
       _ccStNumber,
@@ -1461,10 +1386,8 @@ class CommonFormState extends State<CommonForm> {
     _regDesig = 'HC';
     _cctvVal = null;
     _cctvChecked = false;
-    _eshaksh = null;
+
     _nafisFingerprint = null;
-    _prevAction = '107 Crpc / 126 BNSS';
-    _prevBondsVal = 'no';
     _finalSummary.clear();
     _discharge.clear();
     for (final c in _dischargeDates.values) {
@@ -1667,9 +1590,7 @@ class CommonFormState extends State<CommonForm> {
       'cdrRecv': _cdrRecv.text,
       'proceduralChecks': Map<String, bool>.from(_procChecks),
       'proceduralDates': _procDates.map((k, v) => MapEntry(k, v.text)),
-      'eshakshValue': _eshaksh,
       'eshakshDt': _eDt.text,
-      'eshakshReason': _eReason.text,
       'investigationNotes': {
         'fingerprintVal': _fingerprintVal,
         'fingerprintDate': _fingerprintDate.text,
@@ -1702,6 +1623,8 @@ class CommonFormState extends State<CommonForm> {
               'isPrBond': c['isPrBond'] == true,
               'isBail': c['isBail'] == true,
               'isJail': c['isJail'] == true,
+              'prDate': (c['prDate'] as TextEditingController?)?.text ?? '',
+              'jailDate': (c['jailDate'] as TextEditingController?)?.text ?? '',
               'mcrJail': (c['mcrJail'] as TextEditingController?)?.text ?? '',
               'suretyName':
                   (c['suretyName'] as TextEditingController?)?.text ?? '',
@@ -1723,15 +1646,18 @@ class CommonFormState extends State<CommonForm> {
             },
           )
           .toList(),
-      'preventive': {
-        'preventiveBonds': _prevBondsVal,
-        'action': _prevAction,
-        'actionDate': _prevActionDt.text,
-        'outwardNumber': _outward.text,
-        'bondDate': _bondDate.text,
-        'bondReason': _bReason.text,
-        'bondCancellation': _bondCancel.text,
-      },
+      'preventiveRows': _preventiveRows
+          .map((r) => {
+                'accusedName': r['accusedName'],
+                'action': r['action'],
+                'actionDate': (r['actionDate'] as TextEditingController).text,
+                'outwardNumber':
+                    (r['outwardNumber'] as TextEditingController).text,
+                'bondDate': (r['bondDate'] as TextEditingController).text,
+                'bondCancel': (r['bondCancel'] as TextEditingController).text,
+                'bondReason': (r['bondReason'] as TextEditingController).text,
+              })
+          .toList(),
       'dischargeByAccused': Map<String, bool>.from(_discharge),
       'dischargeDetails': {
         for (final n in allAccusedNames)
@@ -2120,9 +2046,8 @@ class CommonFormState extends State<CommonForm> {
         if (_procDates.containsKey(k)) _procDates[k]!.text = _s(e.value);
       }
     }
-    _eshaksh = m['eshakshValue'] as String?;
+
     _eDt.text = _s(m['eshakshDt']);
-    _eReason.text = _s(m['eshakshReason']);
 
     final inv = m['investigationNotes'] as Map?;
     if (inv != null) {
@@ -2179,6 +2104,8 @@ class CommonFormState extends State<CommonForm> {
       row['isJail'] = c0['isJail'] == true ||
           c0['isJail'] == 'true' ||
           (c0['mcrJail'] != null && _s(c0['mcrJail']).isNotEmpty);
+      (row['prDate'] as TextEditingController).text = _s(c0['prDate']);
+      (row['jailDate'] as TextEditingController).text = _s(c0['jailDate']);
       (row['mcrJail'] as TextEditingController).text = _s(c0['mcrJail']);
       (row['suretyName'] as TextEditingController).text = _s(c0['suretyName']);
       (row['suretyAge'] as TextEditingController).text = _s(c0['suretyAge']);
@@ -2194,16 +2121,42 @@ class CommonFormState extends State<CommonForm> {
       (row['suretyRel'] as TextEditingController).text = _s(c0['suretyRel']);
     }
 
-    final pr = m['preventive'] as Map?;
-    if (pr != null) {
-      _prevBondsVal =
-          (pr['preventiveBonds'] ?? pr['prBond']) as String? ?? 'no';
-      _prevAction = pr['action'] as String? ?? '107 Crpc / 126 BNSS';
-      _prevActionDt.text = _s(pr['actionDate']);
-      _outward.text = _s(pr['outwardNumber']);
-      _bondDate.text = _s(pr['bondDate']);
-      _bReason.text = _s(pr['bondReason']);
-      _bondCancel.text = _s(pr['bondCancellation']);
+    final pRows = m['preventiveRows'] as List?;
+    if (pRows != null) {
+      for (final r0 in pRows) {
+        if (r0 is! Map) continue;
+        final name = _s(r0['accusedName']);
+        final row = _preventiveRows.firstWhere(
+          (r) => r['accusedName'] == name,
+          orElse: () => <String, dynamic>{},
+        );
+        if (row.isEmpty) continue;
+        row['action'] = r0['action'] as String? ?? '107 Crpc / 126 BNSS';
+        (row['actionDate'] as TextEditingController).text =
+            _s(r0['actionDate']);
+        (row['outwardNumber'] as TextEditingController).text =
+            _s(r0['outwardNumber']);
+        (row['bondDate'] as TextEditingController).text = _s(r0['bondDate']);
+        (row['bondCancel'] as TextEditingController).text =
+            _s(r0['bondCancel']);
+        (row['bondReason'] as TextEditingController).text =
+            _s(r0['bondReason']);
+      }
+    } else {
+      final pr = m['preventive'] as Map?;
+      if (pr != null && _preventiveRows.isNotEmpty) {
+        final row = _preventiveRows.first;
+        row['action'] = pr['action'] as String? ?? '107 Crpc / 126 BNSS';
+        (row['actionDate'] as TextEditingController).text =
+            _s(pr['actionDate']);
+        (row['outwardNumber'] as TextEditingController).text =
+            _s(pr['outwardNumber']);
+        (row['bondDate'] as TextEditingController).text = _s(pr['bondDate']);
+        (row['bondCancel'] as TextEditingController).text =
+            _s(pr['bondCancellation']);
+        (row['bondReason'] as TextEditingController).text =
+            _s(pr['bondReason']);
+      }
     }
 
     final dis = m['dischargeByAccused'] as Map?;
@@ -3083,7 +3036,13 @@ class CommonFormState extends State<CommonForm> {
                               addChargeRow,
                             ),
                           ),
-                          _card(3, 'Crime Spot', _s3()),
+                          _card(
+                            3,
+                            'Crime Spot',
+                            _s3(),
+                            isCollapsible: true,
+                            startOpen: false,
+                          ),
                           if (widget.middleSlot != null) widget.middleSlot!,
                           if (_extraFields.isNotEmpty)
                             _card(
@@ -3105,26 +3064,9 @@ class CommonFormState extends State<CommonForm> {
                             _s5(),
                             isCollapsible: true,
                             startOpen: false,
-                            headerAction: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (_suspected.isNotEmpty) ...[
-                                  _headerBtn('Same as Suspected', () {
-                                    if (_accused.isEmpty) {
-                                      addPersonAccused();
-                                    }
-                                    _copyPersonData(
-                                      _suspected.first,
-                                      _accused.last,
-                                    );
-                                  }, icon: Icons.copy_rounded),
-                                  const SizedBox(width: 6),
-                                ],
-                                _headerBtn(
-                                  'Add Accused',
-                                  addPersonAccused,
-                                ),
-                              ],
+                            headerAction: _headerBtn(
+                              'Add Accused',
+                              addPersonAccused,
                             ),
                           ),
                           _card(
@@ -3134,26 +3076,9 @@ class CommonFormState extends State<CommonForm> {
                             isCollapsible: true,
                             startOpen: false,
                             headerAction: !_isUnknown
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (_accused.isNotEmpty) ...[
-                                        _headerBtn('Same as Accused', () {
-                                          if (_suspected.isEmpty) {
-                                            addPersonSuspected();
-                                          }
-                                          _copyPersonData(
-                                            _accused.first,
-                                            _suspected.last,
-                                          );
-                                        }, icon: Icons.copy_rounded),
-                                        const SizedBox(width: 6),
-                                      ],
-                                      _headerBtn(
-                                        'Add Suspected',
-                                        addPersonSuspected,
-                                      ),
-                                    ],
+                                ? _headerBtn(
+                                    'Add Suspected',
+                                    addPersonSuspected,
                                   )
                                 : null,
                           ),
@@ -3175,7 +3100,7 @@ class CommonFormState extends State<CommonForm> {
                           ),
                           _card(
                             9,
-                            'Case Responsibility',
+                            'Officer',
                             _s8(),
                           ),
                           _card(
@@ -3212,10 +3137,6 @@ class CommonFormState extends State<CommonForm> {
                             16,
                             'Discharge Accused',
                             _s15(),
-                            headerAction: _headerBtn(
-                              'Add Name',
-                              addCustomDischarge,
-                            ),
                           ),
                           _card(
                             17,
@@ -3226,6 +3147,7 @@ class CommonFormState extends State<CommonForm> {
                             18,
                             'Court Filing & Final Summary',
                             _s17(),
+                            isCollapsible: true,
                           ),
                           const SizedBox(height: 80),
                         ],
@@ -3505,7 +3427,7 @@ class CommonFormState extends State<CommonForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _row([
-            _tf('Village', _spotVillage),
+            _tf('Village/Town', _spotVillage),
             _tf('Area', _spotArea),
           ]),
           _row([
@@ -3705,7 +3627,7 @@ class CommonFormState extends State<CommonForm> {
           ]),
           _row([
             _tf(
-              'Aadhaar Number',
+              'Aadhar Number',
               _compAadhaar,
               keyboardType: TextInputType.number,
               inputFormatters: [
@@ -3744,8 +3666,16 @@ class CommonFormState extends State<CommonForm> {
                     title: 'Accused #${e.key + 1}',
                     row: e.value,
                     onRemove: () => removePersonAccused(e.key),
-                    otherList: _suspected,
-                    otherLabel: 'Suspected',
+                    isExpanded: _expandedAccusedIndex == e.key,
+                    onToggle: () {
+                      setState(() {
+                        if (_expandedAccusedIndex == e.key) {
+                          _expandedAccusedIndex = null;
+                        } else {
+                          _expandedAccusedIndex = e.key;
+                        }
+                      });
+                    },
                   ),
                 ),
         ],
@@ -3766,8 +3696,16 @@ class CommonFormState extends State<CommonForm> {
                     title: 'Suspected #${e.key + 1}',
                     row: e.value,
                     onRemove: () => removePersonSuspected(e.key),
-                    otherList: _accused,
-                    otherLabel: 'Accused',
+                    isExpanded: _expandedSuspectedIndex == e.key,
+                    onToggle: () {
+                      setState(() {
+                        if (_expandedSuspectedIndex == e.key) {
+                          _expandedSuspectedIndex = null;
+                        } else {
+                          _expandedSuspectedIndex = e.key;
+                        }
+                      });
+                    },
                   ),
                 ),
         ],
@@ -3778,8 +3716,8 @@ class CommonFormState extends State<CommonForm> {
     required String title,
     required Map<String, dynamic> row,
     required VoidCallback onRemove,
-    List<Map<String, dynamic>>? otherList,
-    String? otherLabel,
+    bool isExpanded = true,
+    VoidCallback? onToggle,
   }) {
     row['name'] ??= TextEditingController()..addListener(_debouncedSync);
     row['age'] ??= TextEditingController();
@@ -3792,21 +3730,6 @@ class CommonFormState extends State<CommonForm> {
     row['caste'] ??= TextEditingController();
     row['address'] ??= TextEditingController();
 
-    final availableOthers = (otherList ?? [])
-        .where(
-          (src) =>
-              (src['name'] as TextEditingController?)?.text.trim().isNotEmpty ==
-                  true ||
-              (src['age'] as TextEditingController?)?.text.trim().isNotEmpty ==
-                  true ||
-              (src['mobile'] as TextEditingController?)
-                      ?.text
-                      .trim()
-                      .isNotEmpty ==
-                  true,
-        )
-        .toList();
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -3817,234 +3740,146 @@ class CommonFormState extends State<CommonForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(title, style: _tsSection.copyWith(fontSize: 11)),
-              ),
-              if (availableOthers.isNotEmpty && otherLabel != null) ...[
-                if (availableOthers.length == 1)
-                  InkWell(
-                    onTap: () => _copyPersonData(availableOthers.first, row),
-                    borderRadius: BorderRadius.circular(4),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: _kTeal.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: _kTeal.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.copy_rounded,
-                            size: 11,
-                            color: _kTeal,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            TranslationHelper.translate(
-                              context,
-                              'Same as $otherLabel',
-                            ),
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: _kTeal,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
+          InkWell(
+            onTap: onToggle,
+            borderRadius: BorderRadius.circular(6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    !isExpanded &&
+                            (row['name'] as TextEditingController?)
+                                    ?.text
+                                    .trim()
+                                    .isNotEmpty ==
+                                true
+                        ? '$title: ${(row['name'] as TextEditingController).text.trim()}'
+                        : title,
+                    style: _tsSection.copyWith(fontSize: 11),
+                  ),
+                ),
+                if (isExpanded)
+                  Icon(Icons.keyboard_arrow_up, size: 20, color: _kSec)
                 else
-                  PopupMenuButton<int>(
-                    tooltip: 'Copy details from $otherLabel',
-                    onSelected: (idx) =>
-                        _copyPersonData(availableOthers[idx], row),
-                    itemBuilder: (ctx) => availableOthers.asMap().entries.map((
-                      entry,
-                    ) {
-                      final n = (entry.value['name'] as TextEditingController?)
-                              ?.text
-                              .trim() ??
-                          '';
-                      final displayName =
-                          n.isNotEmpty ? n : '$otherLabel #${entry.key + 1}';
-                      return PopupMenuItem<int>(
-                        value: entry.key,
-                        child: Text(
-                          '${TranslationHelper.translate(ctx, 'Copy from')} $displayName',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      );
-                    }).toList(),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: _kTeal.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: _kTeal.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.copy_rounded,
-                            size: 11,
-                            color: _kTeal,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            TranslationHelper.translate(
-                              context,
-                              'Copy from $otherLabel',
-                            ),
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: _kTeal,
-                            ),
-                          ),
-                          const Icon(
-                            Icons.arrow_drop_down,
-                            size: 14,
-                            color: _kTeal,
-                          ),
-                        ],
-                      ),
-                    ),
+                  Icon(Icons.keyboard_arrow_down, size: 20, color: _kSec),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: onRemove,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    minimumSize: Size.zero,
+                    foregroundColor: _kRed,
                   ),
+                  child: const Text(
+                    '✕ Remove',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ),
               ],
-              TextButton(
-                onPressed: onRemove,
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  minimumSize: Size.zero,
-                  foregroundColor: _kRed,
-                ),
-                child: const Text(
-                  '✕ Remove',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 10),
-          if (row['isRepeatOffender'] == true)
-            Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: Colors.red),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.warning_amber_rounded,
-                      size: 14, color: Colors.red),
-                  SizedBox(width: 4),
-                  Text(
-                    'Repeat Offender',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+          if (isExpanded) ...[
+            const SizedBox(height: 10),
+            if (row['isRepeatOffender'] == true)
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.red),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.warning_amber_rounded,
+                        size: 14, color: Colors.red),
+                    SizedBox(width: 4),
+                    Text(
+                      'Repeat Offender',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+              ),
+            _row([
+              _tf(
+                'Name',
+                row['name'] as TextEditingController,
+                onChanged: (val) {
+                  _debouncedSync();
+                  final valUpper = val.trim().toUpperCase();
+                  setState(() {
+                    row['isRepeatOffender'] = (valUpper == 'JOHN DOE' ||
+                        valUpper == 'REPEAT OFFENDER' ||
+                        valUpper == 'TEST');
+                  });
+                },
+              ),
+              _tf(
+                'Age',
+                row['age'] as TextEditingController,
+                keyboardType: TextInputType.number,
+              ),
+            ]),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _chipSelector(
+                label: 'Gender',
+                items: _kGenders,
+                selected: row['gender'] as String?,
+                onSelect: (v) => setState(() => row['gender'] = v),
+              ),
+            ),
+            _row([
+              _tf('Occupation', row['occ'] as TextEditingController),
+              _tf(
+                'Mobile Number',
+                row['mobile'] as TextEditingController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
                 ],
+                validator: (v) =>
+                    AppValidators.indianMobile(v, required: false),
               ),
-            ),
-          _row([
-            _tf(
-              'Name',
-              row['name'] as TextEditingController,
-              onChanged: (val) {
-                _debouncedSync();
-                if (otherList != null && otherList.isNotEmpty) {
-                  _checkAndAutoFillPerson(row, otherList);
-                }
-                final valUpper = val.trim().toUpperCase();
-                setState(() {
-                  row['isRepeatOffender'] = (valUpper == 'JOHN DOE' ||
-                      valUpper == 'REPEAT OFFENDER' ||
-                      valUpper == 'TEST');
-                });
-              },
-            ),
-            _tf(
-              'Age',
-              row['age'] as TextEditingController,
-              keyboardType: TextInputType.number,
-            ),
-          ]),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _chipSelector(
-              label: 'Gender',
-              items: _kGenders,
-              selected: row['gender'] as String?,
-              onSelect: (v) => setState(() => row['gender'] = v),
-            ),
-          ),
-          _row([
-            _tf('Occupation', row['occ'] as TextEditingController),
-            _tf(
-              'Mobile Number',
-              row['mobile'] as TextEditingController,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(10),
-              ],
-              validator: (v) => AppValidators.indianMobile(v, required: false),
-            ),
-          ]),
-          _row([
-            _tf(
-              'Aadhaar Number',
-              row['aadhaar'] as TextEditingController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(12),
-              ],
-              validator: AppValidators.aadhaar,
-            ),
-            _tf(
-              'PAN Number',
-              row['pan'] as TextEditingController,
-              inputFormatters: [
-                UpperCaseTextFormatter(),
-                LengthLimitingTextInputFormatter(10),
-              ],
-              validator: AppValidators.pan,
-            ),
-          ]),
-          _row([
-            _tf('Religion', row['religion'] as TextEditingController),
-            _tf('Caste', row['caste'] as TextEditingController),
-          ]),
-          _row([
-            _tf('Address', row['address'] as TextEditingController,
-                maxLines: 2),
-          ]),
+            ]),
+            _row([
+              _tf(
+                'Aadhar Number',
+                row['aadhaar'] as TextEditingController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(12),
+                ],
+                validator: AppValidators.aadhaar,
+              ),
+              _tf(
+                'PAN Number',
+                row['pan'] as TextEditingController,
+                inputFormatters: [
+                  UpperCaseTextFormatter(),
+                  LengthLimitingTextInputFormatter(10),
+                ],
+                validator: AppValidators.pan,
+              ),
+            ]),
+            _row([
+              _tf('Religion', row['religion'] as TextEditingController),
+              _tf('Caste', row['caste'] as TextEditingController),
+            ]),
+            _row([
+              _tf('Address', row['address'] as TextEditingController,
+                  maxLines: 2),
+            ]),
+          ],
         ],
       ),
     );
@@ -4234,10 +4069,7 @@ class CommonFormState extends State<CommonForm> {
                 if (v != null) setState(() => _ioDesig = v);
               },
             ),
-            _tf('IO Name', _ioName),
-          ]),
-          _divider(),
-          _row([
+            _tf('Name', _ioName),
             DropdownButtonFormField<String>(
               initialValue: PoliceDesignations.formIoAndReg.contains(_regDesig)
                   ? _regDesig
@@ -4275,9 +4107,11 @@ class CommonFormState extends State<CommonForm> {
             'Add accused/suspected names above to see arrest fields.',
           )
         else
-          for (final r in _arrestRows)
+          for (int i = 0; i < _arrestRows.length; i++)
             Builder(
               builder: (context) {
+                final r = _arrestRows[i];
+                final isExpanded = _expandedArrestIndex == i;
                 r['arrestDt'] ??= TextEditingController();
                 r['sec47_48'] ??= false;
                 r['relName'] ??= TextEditingController();
@@ -4304,162 +4138,186 @@ class CommonFormState extends State<CommonForm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Accused name badge
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: _kTeal.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.person_rounded,
-                                size: 16, color: _kTeal),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Accused: $name',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _kTeal,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Arrest date/time
-                      _dateTimeField(
-                        'Arrest Date & Time (dd/mm/yyyy hh:mm)',
-                        r['arrestDt'] as TextEditingController,
-                      ),
-                      const SizedBox(height: 12),
-                      _divider(),
-                      const SizedBox(height: 4),
-
-                      // Information of arrest
-                      Text(
-                        TranslationHelper.translate(
-                            context, 'Information of arrest'),
-                        style: _tsSection.copyWith(fontSize: 11, color: _kSec),
-                      ),
-                      const SizedBox(height: 8),
-                      // sec. 47/48 BNSS checkbox
                       InkWell(
-                        onTap: () => setState(() => r['sec47_48'] = !isSec47),
+                        onTap: () {
+                          setState(() {
+                            if (_expandedArrestIndex == i) {
+                              _expandedArrestIndex = null;
+                            } else {
+                              _expandedArrestIndex = i;
+                            }
+                          });
+                        },
                         borderRadius: BorderRadius.circular(6),
                         child: Container(
+                          margin: EdgeInsets.only(bottom: isExpanded ? 12 : 0),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                              horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: isSec47
-                                ? _kTeal.withValues(alpha: 0.06)
-                                : _kInputBg,
+                            color: _kTeal.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: isSec47 ? _kTeal : _kBorder,
-                            ),
                           ),
                           child: Row(
+                            mainAxisSize: MainAxisSize.max,
                             children: [
-                              Checkbox(
-                                value: isSec47,
-                                activeColor: _kTeal,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                onChanged: (v) =>
-                                    setState(() => r['sec47_48'] = v ?? false),
-                              ),
-                              const SizedBox(width: 6),
+                              const Icon(Icons.person_rounded,
+                                  size: 16, color: _kTeal),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  TranslationHelper.translate(
-                                      context, 'sec. 47/48 BNSS'),
-                                  style: TextStyle(
+                                  'Accused: $name',
+                                  style: GoogleFonts.poppins(
                                     fontSize: 12,
-                                    fontWeight: isSec47
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
-                                    color: isSec47 ? _kTeal : _kDark,
+                                    fontWeight: FontWeight.w600,
+                                    color: _kTeal,
+                                    letterSpacing: 0.5,
                                   ),
                                 ),
+                              ),
+                              Icon(
+                                isExpanded
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
+                                size: 20,
+                                color: _kTeal,
                               ),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      _row([
-                        _tf(
-                          'Relative or friend name',
-                          r['relName'] as TextEditingController,
-                        ),
-                        _relationField(
-                          'Relation',
-                          r['relationship'] as TextEditingController,
-                        ),
-                      ]),
-                      const SizedBox(height: 10),
-                      _divider(),
-                      const SizedBox(height: 4),
-
-                      // Release on notice (✓) / Anticipatory bail (✓) / Death of Accused (✓) - Radio Group
-                      _radioOptionTile(
-                        label: 'Release on notice (✓)',
-                        isSelected: isRelNotice,
-                        activeColor: _kTeal,
-                        onTap: () => setState(() {
-                          final next = !isRelNotice;
-                          r['relOnNotice'] = next;
-                          if (next) {
-                            r['anticipatoryBail'] = false;
-                            r['isDeceased'] = false;
-                            (r['deathDt'] as TextEditingController).clear();
-                          }
-                        }),
-                      ),
-                      const SizedBox(height: 8),
-                      _radioOptionTile(
-                        label: 'Anticipatory bail (✓)',
-                        isSelected: isAnticipatory,
-                        activeColor: _kTeal,
-                        onTap: () => setState(() {
-                          final next = !isAnticipatory;
-                          r['anticipatoryBail'] = next;
-                          if (next) {
-                            r['relOnNotice'] = false;
-                            r['isDeceased'] = false;
-                            (r['deathDt'] as TextEditingController).clear();
-                          }
-                        }),
-                      ),
-                      const SizedBox(height: 8),
-                      _radioOptionTile(
-                        label: 'Death of Accused (✓)',
-                        isSelected: isDeceased,
-                        activeColor: _kRed,
-                        onTap: () => setState(() {
-                          final next = !isDeceased;
-                          r['isDeceased'] = next;
-                          if (next) {
-                            r['relOnNotice'] = false;
-                            r['anticipatoryBail'] = false;
-                          } else {
-                            (r['deathDt'] as TextEditingController).clear();
-                          }
-                        }),
-                      ),
-
-                      // When Death of Accused is checked -> show date/time
-                      if (isDeceased) ...[
-                        const SizedBox(height: 6),
+                      if (isExpanded) ...[
+                        // Arrest date/time
                         _dateTimeField(
-                          'Date & Time of Death — $name',
-                          r['deathDt'] as TextEditingController,
+                          'Arrest Date & Time (dd/mm/yyyy hh:mm)',
+                          r['arrestDt'] as TextEditingController,
                         ),
+                        const SizedBox(height: 12),
+                        _divider(),
+                        const SizedBox(height: 4),
+
+                        // Information of arrest
+                        Text(
+                          TranslationHelper.translate(
+                              context, 'Information of arrest'),
+                          style:
+                              _tsSection.copyWith(fontSize: 11, color: _kSec),
+                        ),
+                        const SizedBox(height: 8),
+                        // sec. 47/48 BNSS checkbox
+                        InkWell(
+                          onTap: () => setState(() => r['sec47_48'] = !isSec47),
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSec47
+                                  ? _kTeal.withValues(alpha: 0.06)
+                                  : _kInputBg,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: isSec47 ? _kTeal : _kBorder,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Checkbox(
+                                  value: isSec47,
+                                  activeColor: _kTeal,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  onChanged: (v) => setState(
+                                      () => r['sec47_48'] = v ?? false),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    TranslationHelper.translate(
+                                        context, 'sec. 47/48 BNSS'),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: isSec47
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                      color: isSec47 ? _kTeal : _kDark,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _row([
+                          _tf(
+                            'Relative or friend name',
+                            r['relName'] as TextEditingController,
+                          ),
+                          _relationField(
+                            'Relation',
+                            r['relationship'] as TextEditingController,
+                          ),
+                        ]),
+                        const SizedBox(height: 10),
+                        _divider(),
+                        const SizedBox(height: 4),
+
+                        // Release on notice (✓) / Anticipatory bail (✓) / Death of Accused (✓) - Radio Group
+                        _radioOptionTile(
+                          label: 'Release on notice (✓)',
+                          isSelected: isRelNotice,
+                          activeColor: _kTeal,
+                          onTap: () => setState(() {
+                            final next = !isRelNotice;
+                            r['relOnNotice'] = next;
+                            if (next) {
+                              r['anticipatoryBail'] = false;
+                              r['isDeceased'] = false;
+                              (r['deathDt'] as TextEditingController).clear();
+                            }
+                          }),
+                        ),
+                        const SizedBox(height: 8),
+                        _radioOptionTile(
+                          label: 'Anticipatory bail (✓)',
+                          isSelected: isAnticipatory,
+                          activeColor: _kTeal,
+                          onTap: () => setState(() {
+                            final next = !isAnticipatory;
+                            r['anticipatoryBail'] = next;
+                            if (next) {
+                              r['relOnNotice'] = false;
+                              r['isDeceased'] = false;
+                              (r['deathDt'] as TextEditingController).clear();
+                            }
+                          }),
+                        ),
+                        const SizedBox(height: 8),
+                        _radioOptionTile(
+                          label: 'Death of Accused (✓)',
+                          isSelected: isDeceased,
+                          activeColor: _kRed,
+                          onTap: () => setState(() {
+                            final next = !isDeceased;
+                            r['isDeceased'] = next;
+                            if (next) {
+                              r['relOnNotice'] = false;
+                              r['anticipatoryBail'] = false;
+                            } else {
+                              (r['deathDt'] as TextEditingController).clear();
+                            }
+                          }),
+                        ),
+
+                        // When Death of Accused is checked -> show date/time
+                        if (isDeceased) ...[
+                          const SizedBox(height: 6),
+                          _dateTimeField(
+                            'Date & Time of Death — $name',
+                            r['deathDt'] as TextEditingController,
+                          ),
+                        ],
                       ],
                     ],
                   ),
@@ -4500,8 +4358,10 @@ class CommonFormState extends State<CommonForm> {
                   row['suretyAddress'] as TextEditingController;
               final suretyRelCtrl = row['suretyRel'] as TextEditingController;
 
+              final isExpanded = _expandedCustodyIndex == idx;
+
               return Container(
-                margin: const EdgeInsets.only(bottom: 12),
+                margin: EdgeInsets.only(bottom: isExpanded ? 12 : 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: _kInputBg,
@@ -4511,114 +4371,206 @@ class CommonFormState extends State<CommonForm> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: _kDark,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _row([
-                      _tf(
-                        'PCR (00 Day)',
-                        pcrCtrl,
-                        keyboardType: TextInputType.number,
-                      ),
-                      _checkboxTile(
-                        'MCR (✓)',
-                        isMcr,
-                        (v) => setState(() => row['isMcr'] = v),
-                      ),
-                    ]),
-                    if (isMcr) ...[
-                      const SizedBox(height: 8),
-                      _row([
-                        _checkboxTile(
-                          'PR bond (✓)',
-                          isPrBond,
-                          (v) => setState(() => row['isPrBond'] = v),
-                        ),
-                        _checkboxTile(
-                          'Jail (✓)',
-                          isJail,
-                          (v) => setState(() => row['isJail'] = v),
-                        ),
-                      ]),
-                      const SizedBox(height: 8),
-                      _yesNo(
-                        'Bail(✓) Y/N',
-                        isBail ? 'yes' : 'no',
-                        (v) => setState(() => row['isBail'] = (v == 'yes')),
-                      ),
-                      if (isBail) ...[
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: _kTeal.withValues(alpha: 0.3),
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          if (_expandedCustodyIndex == idx) {
+                            _expandedCustodyIndex = null;
+                          } else {
+                            _expandedCustodyIndex = idx;
+                          }
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: _kDark,
+                              ),
                             ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _subHeader('SURETY NAME (—KYC -)'),
-                              _tf('Surety Name', suretyNameCtrl),
-                              const SizedBox(height: 8),
-                              _row([
-                                _tf(
-                                  'Surety Age',
-                                  suretyAgeCtrl,
-                                  keyboardType: TextInputType.number,
-                                ),
-                                _chipSelector(
-                                  label: 'Surety Gender',
-                                  items: _kGenders,
-                                  selected: suretyGender,
-                                  onSelect: (v) =>
-                                      setState(() => row['suretyGender'] = v),
-                                ),
-                              ]),
-                              const SizedBox(height: 8),
-                              _row([
-                                _tf('Surety Occupation', suretyOccCtrl),
-                                _tf(
-                                  'Surety Mobile No.',
-                                  suretyMobileCtrl,
-                                  keyboardType: TextInputType.phone,
-                                ),
-                              ]),
-                              const SizedBox(height: 8),
-                              _row([
-                                _tf(
-                                  'Surety Aadhaar No.',
-                                  suretyAadhaarCtrl,
-                                  keyboardType: TextInputType.number,
-                                ),
-                                _tf('Surety PAN No.', suretyPanCtrl),
-                              ]),
-                              const SizedBox(height: 8),
-                              _tf(
-                                'Surety Address',
-                                suretyAddressCtrl,
-                                maxLines: 2,
+                          Icon(
+                            isExpanded
+                                ? Icons.keyboard_arrow_up
+                                : Icons.keyboard_arrow_down,
+                            size: 20,
+                            color: _kDark,
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isExpanded) ...[
+                      const SizedBox(height: 12),
+                      _row([
+                        _tf(
+                          'PCR (00 Day)',
+                          pcrCtrl,
+                          keyboardType: TextInputType.number,
+                        ),
+                        _checkboxTile(
+                          'MCR',
+                          isMcr,
+                          (v) => setState(() => row['isMcr'] = v),
+                        ),
+                      ]),
+                      if (isMcr) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: _radioOptionTile(
+                                label: 'PR bond',
+                                isSelected: isPrBond,
+                                activeColor: _kTeal,
+                                onTap: () => setState(() {
+                                  final next = !isPrBond;
+                                  row['isPrBond'] = next;
+                                  if (next) {
+                                    row['isJail'] = false;
+                                    row['isBail'] = false;
+                                  } else {
+                                    ((row['prDate'] ??= TextEditingController())
+                                            as TextEditingController)
+                                        .clear();
+                                  }
+                                }),
                               ),
-                              const SizedBox(height: 8),
-                              _relationField(
-                                'Relation with Accused',
-                                suretyRelCtrl,
+                            ),
+                            if (isPrBond) ...[
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 1,
+                                child: _dateTimeField(
+                                  'Date (dd/mm/yyyy hh:mm)',
+                                  (row['prDate'] ??= TextEditingController())
+                                      as TextEditingController,
+                                ),
                               ),
                             ],
-                          ),
+                          ],
                         ),
-                      ],
-                      if (isJail) ...[
                         const SizedBox(height: 8),
-                        _tf('Jail Name / Details', jailCtrl),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: _radioOptionTile(
+                                label: 'Jail',
+                                isSelected: isJail,
+                                activeColor: _kTeal,
+                                onTap: () => setState(() {
+                                  final next = !isJail;
+                                  row['isJail'] = next;
+                                  if (next) {
+                                    row['isPrBond'] = false;
+                                    row['isBail'] = false;
+                                  } else {
+                                    ((row['jailDate'] ??=
+                                                TextEditingController())
+                                            as TextEditingController)
+                                        .clear();
+                                    jailCtrl.clear();
+                                  }
+                                }),
+                              ),
+                            ),
+                            if (isJail) ...[
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 1,
+                                child: _dateTimeField(
+                                  'Date (dd/mm/yyyy hh:mm)',
+                                  (row['jailDate'] ??= TextEditingController())
+                                      as TextEditingController,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        _radioOptionTile(
+                          label: 'Bail',
+                          isSelected: isBail,
+                          activeColor: _kTeal,
+                          onTap: () => setState(() {
+                            final next = !isBail;
+                            row['isBail'] = next;
+                            if (next) {
+                              row['isPrBond'] = false;
+                              row['isJail'] = false;
+                            }
+                          }),
+                        ),
+                        if (isBail) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _kTeal.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _subHeader('SURETY NAME'),
+                                _tf('Surety Name', suretyNameCtrl),
+                                const SizedBox(height: 8),
+                                _row([
+                                  _tf(
+                                    'Surety Age',
+                                    suretyAgeCtrl,
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                  _chipSelector(
+                                    label: 'Surety Gender',
+                                    items: _kGenders,
+                                    selected: suretyGender,
+                                    onSelect: (v) =>
+                                        setState(() => row['suretyGender'] = v),
+                                  ),
+                                ]),
+                                const SizedBox(height: 8),
+                                _row([
+                                  _tf('Surety Occupation', suretyOccCtrl),
+                                  _tf(
+                                    'Surety Mobile No.',
+                                    suretyMobileCtrl,
+                                    keyboardType: TextInputType.phone,
+                                  ),
+                                ]),
+                                const SizedBox(height: 8),
+                                _row([
+                                  _tf(
+                                    'Surety Aadhaar No.',
+                                    suretyAadhaarCtrl,
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                  _tf('Surety PAN No.', suretyPanCtrl),
+                                ]),
+                                const SizedBox(height: 8),
+                                _tf(
+                                  'Surety Address',
+                                  suretyAddressCtrl,
+                                  maxLines: 2,
+                                ),
+                                const SizedBox(height: 8),
+                                _relationField(
+                                  'Relation with Accused',
+                                  suretyRelCtrl,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ],
                   ],
@@ -4628,11 +4580,7 @@ class CommonFormState extends State<CommonForm> {
         ],
       );
 
-  int _countWords(String text) {
-    final trimmed = text.trim();
-    if (trimmed.isEmpty) return 0;
-    return trimmed.split(RegExp(r'\s+')).length;
-  }
+
 
   Widget _checkboxTile(
     String label,
@@ -4700,39 +4648,61 @@ class CommonFormState extends State<CommonForm> {
           _subHeader('ALL PANCHANAMA (SELECT TO ADD DATE & TIME)'),
           ..._activeProceduralKeys.entries.map((e) {
             final on = _procChecks[e.key] ?? false;
+            final isExpanded = _expandedPanchanamaKey == e.key;
+
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: on ? _kTeal.withValues(alpha: 0.04) : _kInputBg,
+                  color:
+                      isExpanded ? _kTeal.withValues(alpha: 0.04) : _kInputBg,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: on ? _kTeal : _kBorder,
-                    width: on ? 1.5 : 1,
+                    color: isExpanded ? _kTeal : _kBorder,
+                    width: isExpanded ? 1.5 : 1,
                   ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     InkWell(
-                      onTap: () => toggleProcedural(e.key, !on),
+                      onTap: () {
+                        setState(() {
+                          if (!on) {
+                            toggleProcedural(e.key, true);
+                            _expandedPanchanamaKey = e.key;
+                          } else {
+                            if (isExpanded) {
+                              toggleProcedural(e.key, false);
+                              _expandedPanchanamaKey = null;
+                            } else {
+                              _expandedPanchanamaKey = e.key;
+                            }
+                          }
+                        });
+                      },
                       borderRadius: BorderRadius.circular(6),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
                           children: [
                             Icon(
                               on
-                                  ? Icons.radio_button_checked
-                                  : Icons.radio_button_unchecked,
-                              size: 18,
+                                  ? Icons.check_box
+                                  : Icons.check_box_outline_blank,
+                              size: 20,
                               color: on ? _kTeal : _kSec,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                TranslationHelper.translate(context, e.value),
+                                on &&
+                                        !isExpanded &&
+                                        _procDates[e.key]!.text.isNotEmpty
+                                    ? '${TranslationHelper.translate(context, e.value)} — ${_procDates[e.key]!.text}'
+                                    : TranslationHelper.translate(
+                                        context, e.value),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight:
@@ -4741,11 +4711,18 @@ class CommonFormState extends State<CommonForm> {
                                 ),
                               ),
                             ),
+                            Icon(
+                              isExpanded
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              size: 20,
+                              color: _kDark,
+                            ),
                           ],
                         ),
                       ),
                     ),
-                    if (on) ...[
+                    if (isExpanded && on) ...[
                       const SizedBox(height: 8),
                       _dateTimeField(
                         'Date & Time — ${e.value}',
@@ -4764,75 +4741,44 @@ class CommonFormState extends State<CommonForm> {
   Widget _s13() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _yesNo(
-            'E Shaksh',
-            _eshaksh,
-            (v) => setState(() => _eshaksh = v),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      TranslationHelper.translate(context, 'E Shaksh'),
+                      style: _tsLabel,
+                    ),
+                    const SizedBox(height: 6),
+                    _dateTimeField('Date & Time', _eDt),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                flex: 3,
+                child: _yesNo(
+                  'Fingerprint taken',
+                  _fingerprintVal,
+                  (v) => setState(() => _fingerprintVal = v),
+                ),
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                flex: 3,
+                child: _yesNo(
+                  'Nafis Fingerprint',
+                  _nafisFingerprint,
+                  (v) => setState(() => _nafisFingerprint = v),
+                ),
+              ),
+            ],
           ),
-          if (_eshaksh == 'yes') ...[
-            const SizedBox(height: 10),
-            _dateTimeField('E-Shakshya Date & Time', _eDt),
-          ] else if (_eshaksh == 'no') ...[
-            const SizedBox(height: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _tf(
-                  'Reason for No E-Shakshya (minimum 30 words)',
-                  _eReason,
-                  maxLines: 3,
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: 4),
-                Builder(
-                  builder: (ctx) {
-                    final words = _countWords(_eReason.text);
-                    final isComplete = words >= 30;
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          isComplete
-                              ? TranslationHelper.translate(
-                                  ctx,
-                                  'Word requirement met',
-                                )
-                              : '$words / 30 words',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: isComplete ? _kGreen : _kAmber,
-                          ),
-                        ),
-                        if (!isComplete)
-                          Text(
-                            '${30 - words} more words needed',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: _kAmber,
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
           const SizedBox(height: 12),
-          _row([
-            _yesNo(
-              'Fingerprint taken',
-              _fingerprintVal,
-              (v) => setState(() => _fingerprintVal = v),
-            ),
-            _yesNo(
-              'Nafis Fingerprint',
-              _nafisFingerprint,
-              (v) => setState(() => _nafisFingerprint = v),
-            ),
-          ]),
-          _divider(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -4857,6 +4803,7 @@ class CommonFormState extends State<CommonForm> {
           ...List.generate(_seizures.length, (i) {
             final s = _seizures[i];
             final descCtrl = s['desc'] as TextEditingController;
+            final detailsCtrl = s['seizureDetails'] as TextEditingController;
             final otherNameCtrl = s['otherName'] as TextEditingController;
 
             return Container(
@@ -4874,7 +4821,7 @@ class CommonFormState extends State<CommonForm> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${TranslationHelper.translate(context, 'Item')} #${i + 1}',
+                        '${TranslationHelper.translate(context, 'Object')} #${i + 1}',
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -4891,20 +4838,24 @@ class CommonFormState extends State<CommonForm> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  _tf('Seizure description', descCtrl),
+                  const SizedBox(height: 6),
+                  _row([
+                    _tf('Object Name', descCtrl),
+                    _PersonSelectOrCustomField(
+                      label: 'From whom - name',
+                      options: allAccusedNames,
+                      ctrl: otherNameCtrl,
+                      decoration:
+                          _d('From whom - name').copyWith(fillColor: _kInputBg),
+                      style: _tsBody,
+                      otherLabel: 'Type new name',
+                      onChanged: (v) {
+                        s['fromWhom'] = v;
+                      },
+                    ),
+                  ]),
                   const SizedBox(height: 10),
-                  _PersonSelectOrCustomField(
-                    label: 'From whom - name',
-                    options: allAccusedNames,
-                    ctrl: otherNameCtrl,
-                    decoration:
-                        _d('From whom - name').copyWith(fillColor: _kInputBg),
-                    style: _tsBody,
-                    otherLabel: 'Type new name',
-                    onChanged: (v) {
-                      s['fromWhom'] = v;
-                    },
-                  ),
+                  _tf('Description', detailsCtrl, maxLines: 2),
                 ],
               ),
             );
@@ -4916,44 +4867,97 @@ class CommonFormState extends State<CommonForm> {
   Widget _s14() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: DropdownButtonFormField<String>(
-              initialValue: _activePreventiveItems.contains(_prevAction)
-                  ? _prevAction
-                  : null,
-              dropdownColor: Colors.white,
-              isExpanded: true,
-              decoration: _d('Preventive Action'),
-              style: _tsBody,
-              icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
-              items: _activePreventiveItems.map((item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    TranslationHelper.translate(context, item),
-                    style: _tsBody,
-                  ),
-                );
-              }).toList(),
-              onChanged: (v) => setState(() => _prevAction = v),
-            ),
-          ),
-          _row([
-            _dateField('Action Date', _prevActionDt),
-            _tf('Outward Number (Optional)', _outward),
-          ]),
-          _divider(),
-          _row([
-            _dateField('Bond date', _bondDate),
-            _dateField('Bond cancellation date', _bondCancel),
-          ]),
-          const SizedBox(height: 10),
-          _tf(
-            'Reason for PR Bond',
-            _bReason,
-            maxLines: 2,
-          ),
+          if (_preventiveRows.isEmpty)
+            _emptyBox(
+                'Add Accused, Suspected, or Unidentified persons above to set Preventive Actions.')
+          else
+            ...List.generate(_preventiveRows.length, (idx) {
+              final row = _preventiveRows[idx];
+              final name =
+                  row['accusedName'] as String? ?? 'Person #${idx + 1}';
+              final action = row['action'] as String? ?? '107 Crpc / 126 BNSS';
+              final actionDt = row['actionDate'] as TextEditingController;
+              final outwardCtrl = row['outwardNumber'] as TextEditingController;
+              final bondDt = row['bondDate'] as TextEditingController;
+              final bondCancel = row['bondCancel'] as TextEditingController;
+
+              final isExpanded = _expandedPreventiveIndex == idx;
+
+              return Container(
+                margin: EdgeInsets.only(bottom: isExpanded ? 12 : 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _kInputBg,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: _kBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _expandedPreventiveIndex = isExpanded ? null : idx;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: _kDark,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            isExpanded
+                                ? Icons.keyboard_arrow_up_rounded
+                                : Icons.keyboard_arrow_down_rounded,
+                            size: 20,
+                            color: _kSec,
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (isExpanded) ...[
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value:
+                            _kPreventiveItems.contains(action) ? action : null,
+                        dropdownColor: Colors.white,
+                        isExpanded: true,
+                        decoration: _d('Preventive Action'),
+                        style: _tsBody,
+                        icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
+                        items: _kPreventiveItems.map((item) {
+                          return DropdownMenuItem<String>(
+                            value: item,
+                            child: Text(
+                              TranslationHelper.translate(context, item),
+                              style: _tsBody,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (v) => setState(() => row['action'] = v),
+                      ),
+                      const SizedBox(height: 12),
+                      _row([
+                        _dateField('Action Date', actionDt),
+                        _tf('Outward Number (Optional)', outwardCtrl),
+                      ]),
+                      _row([
+                        _dateField('Bond date', bondDt),
+                        _dateField('Bond cancellation date', bondCancel),
+                      ]),
+                    ],
+                  ],
+                ),
+              );
+            }),
         ],
       );
 
@@ -5272,6 +5276,8 @@ class CommonFormState extends State<CommonForm> {
             _tf('NC Final Number', _ncFinalNo),
           ]),
           const SizedBox(height: 10),
+          _tf('CC / ST Number', _ccStNumber),
+          const SizedBox(height: 10),
           _tf('Abeted summary no.', _abatedSummaryNo),
           _divider(),
           _row([
@@ -5342,20 +5348,82 @@ class CommonFormState extends State<CommonForm> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  _row([
-                    _dateField(
-                      'Send Date',
-                      sendCtrl,
-                      enabled: sendEnabled,
-                      onChanged: onSendChanged,
-                    ),
-                    _dateField(
-                      'Grant date',
-                      grantCtrl,
-                      enabled: grantEnabled,
-                      onChanged: onGrantChanged,
-                    ),
-                  ]),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(
+                            children: [
+                              Text(
+                                  TranslationHelper.translate(
+                                      context, 'Send Date'),
+                                  style: const TextStyle(
+                                      fontSize: 10,
+                                      color: _kSec,
+                                      fontWeight: FontWeight.w600)),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: sendCtrl,
+                                  enabled: sendEnabled,
+                                  readOnly: true,
+                                  onTap: sendEnabled
+                                      ? () => _pickDateTimeFor(sendCtrl,
+                                          onChanged: onSendChanged)
+                                      : null,
+                                  style: _tsBody,
+                                  decoration: _d('').copyWith(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 8),
+                                    suffixIcon: Icon(Icons.calendar_today,
+                                        size: 14,
+                                        color: sendEnabled ? _kTeal : _kSec),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(
+                            children: [
+                              Text(
+                                  TranslationHelper.translate(
+                                      context, 'Grant date'),
+                                  style: const TextStyle(
+                                      fontSize: 10,
+                                      color: _kSec,
+                                      fontWeight: FontWeight.w600)),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: grantCtrl,
+                                  enabled: grantEnabled,
+                                  readOnly: true,
+                                  onTap: grantEnabled
+                                      ? () => _pickDateTimeFor(grantCtrl,
+                                          onChanged: onGrantChanged)
+                                      : null,
+                                  style: _tsBody,
+                                  decoration: _d('').copyWith(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 8),
+                                    suffixIcon: Icon(Icons.calendar_today,
+                                        size: 14,
+                                        color: grantEnabled ? _kTeal : _kSec),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -5402,6 +5470,7 @@ class _RelationFieldState extends State<_RelationField> {
     'Daughter',
     'Brother',
     'Sister',
+    'Friend',
     'Other'
   ];
   String? _selected;

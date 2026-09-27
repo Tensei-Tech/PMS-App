@@ -601,7 +601,6 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
               _f('PR Bond', isPrBond ? 'Yes (✓)' : 'No'),
               _f('Jail', isJail ? 'Yes (✓)' : 'No'),
               _f('Bail Granted', isBail ? 'Yes (✓)' : 'No'),
-              if (isJail) _f('Jail Name / Details', _v(custody['jailName'])),
             ]),
             if (isBail) ...[
               pw.SizedBox(height: 8),
@@ -800,26 +799,77 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   );
 
   // ── §15 Preventive Action & Bonds ─────────────────────────────────────────
-  final prev = m['preventive'] as Map? ?? {};
-  sections.add(
-    _card(
-      15,
-      'PREVENTIVE ACTION & BONDS',
-      _teal,
-      _grid2([
-        _f('Action Act / Section',
-            _v(prev['action'] ?? prev['actionType'], or: 'Not set')),
-        _f('Action Date (Mandatory)', _v(prev['actionDate'])),
-        _f('Outward Number (Optional)',
-            _v(prev['outwardNo'] ?? prev['outwardNumber'])),
-        _f('Bond Date', _v(prev['bondDate'])),
-        _f('Bond Cancellation Date',
-            _v(prev['bondCancellation'] ?? prev['bondCancelDate'])),
-        _f('Reason for PR Bond', _v(prev['bondReason'] ?? prev['prBondReason']),
-            full: true),
-      ]),
-    ),
-  );
+  final prevRows = (m['preventiveRows'] as List?) ?? [];
+  final legacyPrev = m['preventive'] as Map?;
+
+  if (prevRows.isNotEmpty) {
+    sections.add(
+      _card(
+        15,
+        'PREVENTIVE ACTION & BONDS',
+        _teal,
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: prevRows.map((r) {
+            final row = r as Map;
+            return pw.Container(
+              margin: const pw.EdgeInsets.only(bottom: 12),
+              padding: const pw.EdgeInsets.all(10),
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(color: _border),
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                color: _bg,
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    _v(row['accusedName']?.toString()),
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                      color: _dark,
+                    ),
+                  ),
+                  pw.SizedBox(height: 8),
+                  _grid2([
+                    _f('Action Act / Section',
+                        _v(row['action'], or: 'Not set')),
+                    _f('Action Date (Mandatory)', _v(row['actionDate'])),
+                    _f('Outward Number (Optional)', _v(row['outwardNumber'])),
+                    _f('Bond Date', _v(row['bondDate'])),
+                    _f('Bond Cancellation Date', _v(row['bondCancel'])),
+                  ]),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  } else if (legacyPrev != null && legacyPrev.isNotEmpty) {
+    sections.add(
+      _card(
+        15,
+        'PREVENTIVE ACTION & BONDS',
+        _teal,
+        _grid2([
+          _f(
+              'Action Act / Section',
+              _v(legacyPrev['action'] ?? legacyPrev['actionType'],
+                  or: 'Not set')),
+          _f('Action Date (Mandatory)', _v(legacyPrev['actionDate'])),
+          _f('Outward Number (Optional)',
+              _v(legacyPrev['outwardNo'] ?? legacyPrev['outwardNumber'])),
+          _f('Bond Date', _v(legacyPrev['bondDate'])),
+          _f(
+              'Bond Cancellation Date',
+              _v(legacyPrev['bondCancellation'] ??
+                  legacyPrev['bondCancelDate'])),
+        ]),
+      ),
+    );
+  }
 
   // ── §16 Discharge Accused ─────────────────────────────────────────────────
   final discharge = (m['dischargeByAccused'] as Map?) ?? {};
@@ -886,27 +936,6 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                 ),
               );
             }),
-            if (customDischarges.isNotEmpty) ...[
-              pw.SizedBox(height: 6),
-              pw.Text(
-                'ADDITIONAL DISCHARGED PERSONS',
-                style: pw.TextStyle(
-                  fontSize: 9,
-                  fontWeight: pw.FontWeight.bold,
-                  color: _teal,
-                ),
-              ),
-              ...customDischarges.map((cd) {
-                final cMap = cd as Map;
-                return _subCard(
-                  _grid2([
-                    _f('Person Name', _v(cMap['name'])),
-                    _f('Discharge Date', _v(cMap['date'])),
-                    _f('Discharge Reason', _v(cMap['reason']), full: true),
-                  ]),
-                );
-              }),
-            ],
           ],
         ],
       ),
@@ -974,11 +1003,11 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             _f('B Final Number', _v(court['bFinalNo'])),
             _f('C Final Number', _v(court['cFinalNo'])),
             _f('NC Final Number', _v(court['ncFinalNo'])),
+            _f('CC / ST Number', _v(court['ccStNumber'])),
             _f('Abated Summary No.', _v(court['abatedSummaryNo']), full: true),
             _f('Stay by High Court Date', _v(court['stayHighCourtDate'])),
             _f('Quashed by High Court Date',
                 _v(court['quashedHighCourtDate'] ?? court['quashDate'])),
-            _f('CC / ST Number', _v(court['ccStNumber'])),
             _f('Final Case Classification',
                 _v(court['finalClassification'], or: 'Pending')),
           ]),

@@ -1426,12 +1426,6 @@ class CommonFormDocumentView extends StatelessWidget {
                       value: isBail ? 'Yes (✓)' : 'No',
                       fullWidth: false,
                     ),
-                    if (isJail)
-                      (
-                        label: 'Jail Name / Details',
-                        value: _v(custody['jailName']),
-                        fullWidth: false,
-                      ),
                   ]),
                   if (isBail) ...[
                     const SizedBox(height: 12),
