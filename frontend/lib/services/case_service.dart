@@ -49,9 +49,7 @@ class CaseService {
         if (data is List) {
           list = data;
         } else if (data is Map<String, dynamic>) {
-          list = (data['results'] as List?) ??
-              (data['cases'] as List?) ??
-              [];
+          list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
         }
 
         final records = list
@@ -101,9 +99,7 @@ class CaseService {
         if (data is List) {
           list = data;
         } else if (data is Map<String, dynamic>) {
-          list = (data['results'] as List?) ??
-              (data['cases'] as List?) ??
-              [];
+          list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
         }
 
         return list
@@ -144,9 +140,7 @@ class CaseService {
         if (data is List) {
           list = data;
         } else if (data is Map<String, dynamic>) {
-          list = (data['results'] as List?) ??
-              (data['cases'] as List?) ??
-              [];
+          list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
         }
 
         return list
@@ -382,7 +376,9 @@ class CaseService {
       final url = '${ApiConfig.baseUrl}/divisions/';
       final response = await _api.get(
         url,
-        queryParameters: stateId != null && stateId.isNotEmpty ? {'state_id': stateId} : null,
+        queryParameters: stateId != null && stateId.isNotEmpty
+            ? {'state_id': stateId}
+            : null,
       );
       if (response.isSuccess && response.data is List) {
         return (response.data as List)
@@ -398,7 +394,8 @@ class CaseService {
   }
 
   /// Priority 3: Fetch districts, optionally filtered by division: GET /api/districts/?division_id=...
-  Future<List<Map<String, dynamic>>> fetchDistricts({dynamic divisionId}) async {
+  Future<List<Map<String, dynamic>>> fetchDistricts(
+      {dynamic divisionId}) async {
     try {
       final url = '${ApiConfig.baseUrl}/districts/';
       final response = await _api.get(
@@ -514,7 +511,10 @@ class CaseService {
         params['case_id'] = caseId;
       }
       if (secList != null && secList.isNotEmpty) {
-        final secJoined = secList.map((s) => s.toString().trim()).where((s) => s.isNotEmpty).join(',');
+        final secJoined = secList
+            .map((s) => s.toString().trim())
+            .where((s) => s.isNotEmpty)
+            .join(',');
         if (secJoined.isNotEmpty) {
           params['sections'] = secJoined;
         }
@@ -538,5 +538,3 @@ class CaseService {
     return null;
   }
 }
-
-

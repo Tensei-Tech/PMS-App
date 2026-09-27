@@ -31,8 +31,7 @@ class PersonSelectOrCustomField extends StatefulWidget {
       _PersonSelectOrCustomFieldState();
 }
 
-class _PersonSelectOrCustomFieldState
-    extends State<PersonSelectOrCustomField> {
+class _PersonSelectOrCustomFieldState extends State<PersonSelectOrCustomField> {
   String? _selected;
   final _customCtrl = TextEditingController();
 

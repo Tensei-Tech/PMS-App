@@ -65,7 +65,8 @@ class DynamicControlFactory extends StatelessWidget {
         PersonSelectOrCustomField(
           label: fieldDef.fieldLabel,
           options: accusedOptions ?? const [],
-          ctrl: controller ?? TextEditingController(text: value?.toString() ?? ''),
+          ctrl: controller ??
+              TextEditingController(text: value?.toString() ?? ''),
           isRequired: fieldDef.isRequired,
           decoration: _inputDecoration(hint: 'Select or Type New Name'),
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
@@ -125,10 +126,12 @@ class DynamicControlFactory extends StatelessWidget {
     );
   }
 
-  InputDecoration _inputDecoration({String? hint, Widget? prefixIcon, Widget? suffixIcon}) {
+  InputDecoration _inputDecoration(
+      {String? hint, Widget? prefixIcon, Widget? suffixIcon}) {
     return InputDecoration(
       hintText: hint ?? 'Enter ${fieldDef.fieldLabel}',
-      hintStyle: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+      hintStyle:
+          GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       filled: true,
@@ -228,7 +231,8 @@ class DynamicControlFactory extends StatelessWidget {
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
           decoration: _inputDecoration(
             hint: 'DD/MM/YYYY',
-            suffixIcon: const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.navyMid),
+            suffixIcon: const Icon(Icons.calendar_today_rounded,
+                size: 18, color: AppColors.navyMid),
           ),
           onTap: readOnly
               ? null
@@ -267,7 +271,8 @@ class DynamicControlFactory extends StatelessWidget {
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
           decoration: _inputDecoration(
             hint: 'DD/MM/YYYY HH:mm',
-            suffixIcon: const Icon(Icons.access_time_rounded, size: 18, color: AppColors.navyMid),
+            suffixIcon: const Icon(Icons.access_time_rounded,
+                size: 18, color: AppColors.navyMid),
           ),
           onTap: readOnly
               ? null
@@ -292,7 +297,8 @@ class DynamicControlFactory extends StatelessWidget {
                       pickedTime.hour,
                       pickedTime.minute,
                     );
-                    controller?.text = DateFormat('dd/MM/yyyy HH:mm').format(dt);
+                    controller?.text =
+                        DateFormat('dd/MM/yyyy HH:mm').format(dt);
                     onChanged?.call(controller?.text);
                   }
                 },
@@ -327,7 +333,8 @@ class DynamicControlFactory extends StatelessWidget {
               value: opt,
               child: Text(
                 opt,
-                style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.lightText),
               ),
             );
           }).toList(),
@@ -361,7 +368,9 @@ class DynamicControlFactory extends StatelessWidget {
       margin: const EdgeInsets.only(top: 4, bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isChecked ? AppColors.navyMid.withValues(alpha: 0.05) : Colors.white,
+        color: isChecked
+            ? AppColors.navyMid.withValues(alpha: 0.05)
+            : Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: isChecked ? AppColors.navyMid : AppColors.lightBorder,
@@ -460,7 +469,8 @@ class DynamicControlFactory extends StatelessWidget {
                   color: AppColors.navyMid.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.upload_file_rounded, color: AppColors.navyMid, size: 20),
+                child: const Icon(Icons.upload_file_rounded,
+                    color: AppColors.navyMid, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -468,7 +478,9 @@ class DynamicControlFactory extends StatelessWidget {
                   filePath.isNotEmpty ? filePath : 'No file attached',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: filePath.isNotEmpty ? AppColors.lightText : AppColors.lightSubText,
+                    color: filePath.isNotEmpty
+                        ? AppColors.lightText
+                        : AppColors.lightSubText,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -478,11 +490,13 @@ class DynamicControlFactory extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () {
                     // For web/mobile demo file reference
-                    controller?.text = 'attached_doc_${DateTime.now().millisecondsSinceEpoch}.pdf';
+                    controller?.text =
+                        'attached_doc_${DateTime.now().millisecondsSinceEpoch}.pdf';
                     onChanged?.call(controller?.text);
                   },
                   icon: const Icon(Icons.attach_file, size: 16),
-                  label: Text('Attach', style: GoogleFonts.poppins(fontSize: 12)),
+                  label:
+                      Text('Attach', style: GoogleFonts.poppins(fontSize: 12)),
                 ),
             ],
           ),

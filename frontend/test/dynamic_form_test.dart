@@ -52,54 +52,66 @@ void main() {
   });
 
   group('Priority 1: Dynamic Form Engine Tests', () {
-    test('3a & 3b Backend API Reshaping: Murder vs Plain vs Murder+Hurt', () async {
+    test('3a & 3b Backend API Reshaping: Murder vs Plain vs Murder+Hurt',
+        () async {
       final service = CaseService();
 
       // 1. Plain tab (Robbery / Category 4): exactly 105 baseline fields, 0 extra
-      final plainDef = await service.fetchFormDefinition('Robbery', forceRefresh: true);
+      final plainDef =
+          await service.fetchFormDefinition('Robbery', forceRefresh: true);
       expect(plainDef, isNotNull);
       final plainFields = (plainDef!['fields'] as List);
-      final plainExtras = plainFields.where((f) => f['field_source'] != 'common').toList();
+      final plainExtras =
+          plainFields.where((f) => f['field_source'] != 'common').toList();
       expect(plainFields.length, equals(105));
       expect(plainExtras.isEmpty, isTrue);
       expect(plainFields.map((f) => f['field_label']), contains('Object Name'));
 
       // Verify Unidentified Accused fields and order
-      final unidFields = plainFields.where((f) => f['section'] == 'Unidentified Accused').toList();
+      final unidFields = plainFields
+          .where((f) => f['section'] == 'Unidentified Accused')
+          .toList();
       expect(unidFields.length, equals(8));
-      expect(unidFields.map((f) => f['field_label']).toList(), equals([
-        'Approximate Age',
-        'Gender',
-        'Skin Colour',
-        'Possible Occupation',
-        'Identification Mark',
-        'Height',
-        'Address',
-        'Description',
-      ]));
+      expect(
+          unidFields.map((f) => f['field_label']).toList(),
+          equals([
+            'Approximate Age',
+            'Gender',
+            'Skin Colour',
+            'Possible Occupation',
+            'Identification Mark',
+            'Height',
+            'Address',
+            'Description',
+          ]));
 
       // Verify Arrest fields and order (Arrested Person Name first)
-      final arrestFields = plainFields.where((f) => f['section'] == 'Arrest').toList();
+      final arrestFields =
+          plainFields.where((f) => f['section'] == 'Arrest').toList();
       expect(arrestFields.length, equals(11));
       expect(arrestFields.first['field_label'], equals('Arrested Person Name'));
       expect(arrestFields.first['field_key'], equals('arrested_person_name'));
 
       // 2. Murder (Category 1): 111 fields total (105 baseline + 6 extra Murder fields)
-      final murderDef = await service.fetchFormDefinition('Murder', forceRefresh: true);
+      final murderDef =
+          await service.fetchFormDefinition('Murder', forceRefresh: true);
       expect(murderDef, isNotNull);
       final murderFields = (murderDef!['fields'] as List);
-      final murderExtras = murderFields.where((f) => f['field_source'] != 'common').toList();
+      final murderExtras =
+          murderFields.where((f) => f['field_source'] != 'common').toList();
       expect(murderFields.length, equals(111));
       expect(murderExtras.length, equals(6));
       final murderLabels = murderExtras.map((f) => f['field_label']).toList();
-      expect(murderLabels, containsAll([
-        'Deceased Name',
-        'Deceased Age',
-        'Deceased Gender',
-        'Inquest Panchanama Details',
-        'Post-Mortem Report Date',
-        'Cause of Death',
-      ]));
+      expect(
+          murderLabels,
+          containsAll([
+            'Deceased Name',
+            'Deceased Age',
+            'Deceased Gender',
+            'Inquest Panchanama Details',
+            'Post-Mortem Report Date',
+            'Cause of Death',
+          ]));
 
       // 3. Murder with Hurt charge (BNS 115): 115 fields (105 baseline + 6 Murder + 4 Hurt extra fields)
       final murderHurtDef = await service.fetchFormDefinition(
@@ -109,25 +121,30 @@ void main() {
       );
       expect(murderHurtDef, isNotNull);
       final mhFields = (murderHurtDef!['fields'] as List);
-      final mhExtras = mhFields.where((f) => f['field_source'] != 'common').toList();
+      final mhExtras =
+          mhFields.where((f) => f['field_source'] != 'common').toList();
       expect(mhFields.length, equals(115));
       expect(mhExtras.length, equals(10));
       final mhLabels = mhExtras.map((f) => f['field_label']).toList();
-      expect(mhLabels, containsAll([
-        'Deceased Name',
-        'Deceased Age',
-        'Deceased Gender',
-        'Inquest Panchanama Details',
-        'Post-Mortem Report Date',
-        'Cause of Death',
-        'Injured Person Name',
-        'Injury Type / Severity',
-        'Medical Certificate Date',
-        'Hospital Name',
-      ]));
+      expect(
+          mhLabels,
+          containsAll([
+            'Deceased Name',
+            'Deceased Age',
+            'Deceased Gender',
+            'Inquest Panchanama Details',
+            'Post-Mortem Report Date',
+            'Cause of Death',
+            'Injured Person Name',
+            'Injury Type / Severity',
+            'Medical Certificate Date',
+            'Hospital Name',
+          ]));
     });
 
-    testWidgets('3a & 3c On-Screen: Murder renders 6 extra fields, Hurt unlocks 4 more without data loss', (tester) async {
+    testWidgets(
+        '3a & 3c On-Screen: Murder renders 6 extra fields, Hurt unlocks 4 more without data loss',
+        (tester) async {
       tester.view.physicalSize = const Size(1280, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -166,14 +183,16 @@ void main() {
       await tester.pump();
 
       // Test 3a: Verify Murder card and extra fields appear on screen
-      expect(find.textContaining('Special Section / Template Details (6)'), findsOneWidget);
+      expect(find.textContaining('Special Section / Template Details (6)'),
+          findsOneWidget);
       expect(find.textContaining('Deceased Name'), findsOneWidget);
       expect(find.textContaining('Deceased Age'), findsOneWidget);
       expect(find.textContaining('Inquest Panchanama Details'), findsOneWidget);
       expect(find.textContaining('Cause of Death'), findsOneWidget);
 
       // Type data into 'Deceased Name' to test preservation
-      final deceasedNameField = find.widgetWithText(TextFormField, 'Deceased Name');
+      final deceasedNameField =
+          find.widgetWithText(TextFormField, 'Deceased Name');
       expect(deceasedNameField, findsOneWidget);
       await tester.enterText(deceasedNameField, 'Suresh Patil');
       await tester.pump();
@@ -186,7 +205,8 @@ void main() {
       await tester.pump();
 
       // Verify card title updated to 10 fields
-      expect(find.textContaining('Special Section / Template Details (10)'), findsOneWidget);
+      expect(find.textContaining('Special Section / Template Details (10)'),
+          findsOneWidget);
 
       // Verify newly unlocked Hurt fields appear on screen
       expect(find.textContaining('Injured Person Name'), findsOneWidget);

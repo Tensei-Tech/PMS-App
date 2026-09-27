@@ -43,56 +43,76 @@ void main() {
     );
   });
 
-  group('Priority 2: Group 1, Group 2, and Standalone Tabs API & On-Screen Verification', () {
-    test('API Level: Verify endpoints return correct categories count and names', () async {
+  group(
+      'Priority 2: Group 1, Group 2, and Standalone Tabs API & On-Screen Verification',
+      () {
+    test(
+        'API Level: Verify endpoints return correct categories count and names',
+        () async {
       final service = CaseService();
 
       // 1. Group 1: Part 1 to 5
       final g1Cats = await service.fetchGroupCategories(1);
       expect(g1Cats, isNotEmpty);
       final g1Names = g1Cats.map((c) => c['category_name']).toList();
-      expect(g1Names, containsAll(['Murder', 'Attempt to Murder', 'Dacoity', 'Robbery', 'Theft']));
+      expect(
+          g1Names,
+          containsAll(
+              ['Murder', 'Attempt to Murder', 'Dacoity', 'Robbery', 'Theft']));
       debugPrint('Live Group 1 categories: ${g1Cats.length}');
 
       // 2. Group 2: Part 6
       final g2Cats = await service.fetchGroupCategories(2);
       expect(g2Cats.length, equals(9));
       final g2Names = g2Cats.map((c) => c['category_name']).toList();
-      expect(g2Names, containsAll(['ST Drugs', 'Prohibition', 'Gambling', 'POCSO', 'NDPS', 'UAPA']));
+      expect(
+          g2Names,
+          containsAll([
+            'ST Drugs',
+            'Prohibition',
+            'Gambling',
+            'POCSO',
+            'NDPS',
+            'UAPA'
+          ]));
       debugPrint('Live Group 2 categories: ${g2Cats.length}');
 
       // 3. Standalone: ALL 26 categories (group_id IS NULL)
       final standaloneCats = await service.fetchStandaloneCategories();
       expect(standaloneCats.length, equals(26));
       final standNames = standaloneCats.map((c) => c['category_name']).toList();
-      expect(standNames, containsAll([
-        'Suicide',
-        'A.D.',
-        'N.C.',
-        'Theft',
-        'Kidnapping',
-        'Hurt',
-        'Sand Theft',
-        'Two/Four Wheeler Theft',
-        'Missing',
-        'Crime Against Women',
-        'Accident',
-        'Sec 156(3)/175(3)(BNSS)',
-        'Coin',
-        'ST Drugs',
-        'Prohibition',
-        'Gambling',
-        'POCSO',
-        'NDPS',
-        'Gowans',
-        'IT Act',
-        'M.V Act',
-        'UAPA',
-      ]));
-      debugPrint('Live Standalone categories: ${standaloneCats.length} (all 26 confirmed)');
+      expect(
+          standNames,
+          containsAll([
+            'Suicide',
+            'A.D.',
+            'N.C.',
+            'Theft',
+            'Kidnapping',
+            'Hurt',
+            'Sand Theft',
+            'Two/Four Wheeler Theft',
+            'Missing',
+            'Crime Against Women',
+            'Accident',
+            'Sec 156(3)/175(3)(BNSS)',
+            'Coin',
+            'ST Drugs',
+            'Prohibition',
+            'Gambling',
+            'POCSO',
+            'NDPS',
+            'Gowans',
+            'IT Act',
+            'M.V Act',
+            'UAPA',
+          ]));
+      debugPrint(
+          'Live Standalone categories: ${standaloneCats.length} (all 26 confirmed)');
     });
 
-    testWidgets('On-Screen: StandaloneSelectionScreen renders ALL 26 tabs', (tester) async {
+    testWidgets('On-Screen: StandaloneSelectionScreen renders ALL 26 tabs',
+        (tester) async {
       tester.view.physicalSize = const Size(1280, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -155,7 +175,8 @@ void main() {
         'UAPA',
       ];
       for (final catName in expected26) {
-        expect(find.text(catName), findsOneWidget, reason: 'Expected $catName to appear on screen');
+        expect(find.text(catName), findsOneWidget,
+            reason: 'Expected $catName to appear on screen');
       }
 
       // Test search filtering on screen: type "Suicide"
@@ -177,7 +198,9 @@ void main() {
       await tester.pump(const Duration(seconds: 35));
     });
 
-    testWidgets('On-Screen: FormIVSelectionScreen (Group 1) renders top-level categories dynamically', (tester) async {
+    testWidgets(
+        'On-Screen: FormIVSelectionScreen (Group 1) renders top-level categories dynamically',
+        (tester) async {
       tester.view.physicalSize = const Size(1280, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -220,7 +243,9 @@ void main() {
       await tester.pump(const Duration(seconds: 35));
     });
 
-    testWidgets('On-Screen: FormVISelectionScreen (Group 2) renders Part 6 categories dynamically', (tester) async {
+    testWidgets(
+        'On-Screen: FormVISelectionScreen (Group 2) renders Part 6 categories dynamically',
+        (tester) async {
       tester.view.physicalSize = const Size(1280, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {

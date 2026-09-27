@@ -6,7 +6,8 @@ class DynamicFieldDef {
   final String fieldLabel;
   final String fieldKey;
   final String fieldSource; // 'common' or 'custom'
-  final String fieldType; // 'text', 'textarea', 'number', 'date', 'datetime', 'dropdown', 'checkbox', 'chips', 'file'
+  final String
+      fieldType; // 'text', 'textarea', 'number', 'date', 'datetime', 'dropdown', 'checkbox', 'chips', 'file'
   final bool isRequired;
   final int displayOrder;
   final List<String> options;

@@ -75,7 +75,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   String get _targetCategoryParam {
-    if (widget.categoryId != null && widget.categoryId.toString().trim().isNotEmpty) {
+    if (widget.categoryId != null &&
+        widget.categoryId.toString().trim().isNotEmpty) {
       return widget.categoryId.toString();
     }
     if (widget.subCategory != null && widget.subCategory!.trim().isNotEmpty) {
@@ -132,7 +133,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   void _hydrateFromExistingRecord() {
     final r = widget.existingRecord!;
     final extra = r.extraFields;
-    final common = (extra['commonForm'] is Map) ? extra['commonForm'] as Map : {};
+    final common =
+        (extra['commonForm'] is Map) ? extra['commonForm'] as Map : {};
 
     // Standard root fields mapping
     _setField('cr_number', r.caseNumber);
@@ -183,7 +185,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     if (disList is List) {
       for (final item in disList) {
         if (item is Map) {
-          final n = (item['name'] ?? item['typed_name'])?.toString().trim() ?? '';
+          final n =
+              (item['name'] ?? item['typed_name'])?.toString().trim() ?? '';
           if (n.isNotEmpty && !_dischargedAccusedList.contains(n)) {
             _dischargedAccusedList.add(n);
             _dischargedAccusedMap[n] = true;
@@ -207,7 +210,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     _values[key] = val;
   }
 
-  void _onChargeSectionToggled(String actKey, String sectionNum, bool selected) {
+  void _onChargeSectionToggled(
+      String actKey, String sectionNum, bool selected) {
     if (widget.readOnly) return;
     setState(() {
       final set = _selectedCharges.putIfAbsent(actKey, () => <String>{});
@@ -247,7 +251,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final caseNo = _controllers['cr_number']?.text.trim() ??
         _controllers['crNo']?.text.trim() ??
         _controllers['case_number']?.text.trim() ??
-        (isEdit ? widget.existingRecord!.caseNumber : 'CR/${DateTime.now().millisecondsSinceEpoch}');
+        (isEdit
+            ? widget.existingRecord!.caseNumber
+            : 'CR/${DateTime.now().millisecondsSinceEpoch}');
 
     final title = _controllers['title']?.text.trim().isNotEmpty == true
         ? _controllers['title']!.text.trim()
@@ -270,7 +276,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final dynamicExtraVals = <String, dynamic>{};
     for (final f in _formDef?.fields ?? <DynamicFieldDef>[]) {
       if (f.fieldSource == 'custom') {
-        dynamicExtraVals[f.fieldKey] = _controllers[f.fieldKey]?.text ?? _values[f.fieldKey];
+        dynamicExtraVals[f.fieldKey] =
+            _controllers[f.fieldKey]?.text ?? _values[f.fieldKey];
       }
     }
 
@@ -287,7 +294,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     // Arrest structure
     final arrestedPerson = _controllers['arrested_person_name']?.text.trim() ??
-        _values['arrested_person_name']?.toString().trim() ?? '';
+        _values['arrested_person_name']?.toString().trim() ??
+        '';
     final arrestsList = <Map<String, dynamic>>[];
     if (arrestedPerson.isNotEmpty) {
       arrestsList.add({
@@ -297,17 +305,22 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         'arrest_datetime': _controllers['arrest_datetime']?.text.trim(),
         'sec_47_48_bnss': _values['sec_47_48_bnss'] == true ||
             _controllers['sec_47_48_bnss']?.text.toLowerCase() == 'true',
-        'relative_friend_name': _controllers['relative_friend_name']?.text.trim(),
-        'relative_friend_relation': _controllers['relative_friend_relation']?.text.trim(),
+        'relative_friend_name':
+            _controllers['relative_friend_name']?.text.trim(),
+        'relative_friend_relation':
+            _controllers['relative_friend_relation']?.text.trim(),
         'release_on_notice': _values['release_on_notice'] == true ||
             _controllers['release_on_notice']?.text.toLowerCase() == 'true',
-        'release_on_notice_datetime': _controllers['release_on_notice_datetime']?.text.trim(),
+        'release_on_notice_datetime':
+            _controllers['release_on_notice_datetime']?.text.trim(),
         'anticipatory_bail': _values['anticipatory_bail'] == true ||
             _controllers['anticipatory_bail']?.text.toLowerCase() == 'true',
-        'anticipatory_bail_datetime': _controllers['anticipatory_bail_datetime']?.text.trim(),
+        'anticipatory_bail_datetime':
+            _controllers['anticipatory_bail_datetime']?.text.trim(),
         'death_of_accused': _values['death_of_accused'] == true ||
             _controllers['death_of_accused']?.text.toLowerCase() == 'true',
-        'death_of_accused_datetime': _controllers['death_of_accused_datetime']?.text.trim(),
+        'death_of_accused_datetime':
+            _controllers['death_of_accused_datetime']?.text.trim(),
       });
     }
 
@@ -344,7 +357,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       'charges': chargesMap,
       'spotAddress': loc,
       'complainant': {'name': complainant},
-      'accused': [{'name': accused}],
+      'accused': [
+        {'name': accused}
+      ],
       'dischargeByAccused': dischargeByAccused,
       'discharges': dischargesList,
       'arrests': arrestsList,
@@ -366,7 +381,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     extraFields['lastEditedAt'] = DateTime.now().toIso8601String();
 
     final record = ModuleRecord(
-      id: isEdit ? widget.existingRecord!.id : '${DateTime.now().millisecondsSinceEpoch}',
+      id: isEdit
+          ? widget.existingRecord!.id
+          : '${DateTime.now().millisecondsSinceEpoch}',
       moduleKey: widget.moduleKey,
       title: title,
       caseNumber: caseNo,
@@ -374,14 +391,17 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       complainant: complainant,
       accused: accused,
       location: loc,
-      incidentDate: isEdit ? widget.existingRecord!.incidentDate : DateTime.now(),
+      incidentDate:
+          isEdit ? widget.existingRecord!.incidentDate : DateTime.now(),
       priority: isEdit ? widget.existingRecord!.priority : 'Medium',
       status: isEdit ? widget.existingRecord!.status : 'Pending',
-      assignedOfficer: isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
+      assignedOfficer:
+          isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
       subCategory: widget.subCategory ?? widget.moduleLabel,
       createdAt: isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: extraFields,
-      stationName: auth.stationName.isNotEmpty ? auth.stationName : 'Default Station',
+      stationName:
+          auth.stationName.isNotEmpty ? auth.stationName : 'Default Station',
       createdBy: auth.uid,
       assignedOfficerUid: auth.uid,
     );
@@ -394,7 +414,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isEdit ? 'Case updated successfully!' : 'Case registered in Database!',
+              isEdit
+                  ? 'Case updated successfully!'
+                  : 'Case registered in Database!',
               style: GoogleFonts.poppins(),
             ),
             backgroundColor: AppColors.successGreen,
@@ -426,7 +448,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.navyDark, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppColors.navyDark, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -444,7 +467,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             ),
             Text(
               'Database-Driven Smart Form Engine',
-              style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText),
+              style: GoogleFonts.poppins(
+                  fontSize: 11, color: AppColors.lightSubText),
             ),
           ],
         ),
@@ -458,7 +482,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.hub_rounded, size: 14, color: AppColors.navyMid),
+                const Icon(Icons.hub_rounded,
+                    size: 14, color: AppColors.navyMid),
                 const SizedBox(width: 4),
                 Text(
                   'DB SOURCE',
@@ -491,12 +516,14 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.dangerRed),
+              const Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppColors.dangerRed),
               const SizedBox(height: 12),
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(fontSize: 14, color: AppColors.lightText),
+                style: GoogleFonts.poppins(
+                    fontSize: 14, color: AppColors.lightText),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -514,10 +541,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     final fields = _formDef?.fields ?? [];
     if (fields.isEmpty) {
-      return const Center(child: Text('No fields configured in database for this category.'));
+      return const Center(
+          child: Text('No fields configured in database for this category.'));
     }
 
-    final customFields = fields.where((f) => f.fieldSource == 'custom').toList();
+    final customFields =
+        fields.where((f) => f.fieldSource == 'custom').toList();
 
     // Group common fields by their exact database-defined section
     final Map<String, List<DynamicFieldDef>> groupedBySection = {};
@@ -561,7 +590,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         if (customFields.isNotEmpty) {
           sectionCards.add(
             DynamicSectionCard(
-              title: 'Special Section / Template Details (${customFields.length})',
+              title:
+                  'Special Section / Template Details (${customFields.length})',
               icon: Icons.featured_play_list_rounded,
               fields: customFields,
               controllers: _controllers,
@@ -639,9 +669,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.lg)),
                 ),
-                icon: const Icon(Icons.check_circle_rounded, color: Colors.white),
+                icon:
+                    const Icon(Icons.check_circle_rounded, color: Colors.white),
                 label: Text(
                   isEdit ? 'Update Case Record' : 'Submit Case to Database',
                   style: GoogleFonts.poppins(
@@ -688,7 +720,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   color: AppColors.navyMid.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.gavel_rounded, size: 20, color: AppColors.navyMid),
+                child: const Icon(Icons.gavel_rounded,
+                    size: 20, color: AppColors.navyMid),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -704,18 +737,20 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             ],
           ),
           const Divider(height: 24, color: AppColors.lightBorder),
-
           if (actsMap.isEmpty)
             Text(
               'No Acts loaded from database.',
-              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+              style: GoogleFonts.poppins(
+                  fontSize: 12, color: AppColors.lightSubText),
             )
           else
             ...actsMap.entries.map((entry) {
               final actKey = entry.key;
               final actData = entry.value as Map<String, dynamic>;
               final actLabel = actData['label']?.toString() ?? actKey;
-              final sections = (actData['sections'] is List) ? actData['sections'] as List : [];
+              final sections = (actData['sections'] is List)
+                  ? actData['sections'] as List
+                  : [];
               final selectedSet = _selectedCharges[actKey] ?? <String>{};
 
               return Container(
@@ -742,23 +777,30 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       spacing: 8,
                       runSpacing: 6,
                       children: sections.map((sec) {
-                        final secVal = (sec is Map) ? sec['val']?.toString() ?? '' : sec.toString();
-                        final secLabel = (sec is Map) ? sec['label']?.toString() ?? secVal : secVal;
+                        final secVal = (sec is Map)
+                            ? sec['val']?.toString() ?? ''
+                            : sec.toString();
+                        final secLabel = (sec is Map)
+                            ? sec['label']?.toString() ?? secVal
+                            : secVal;
                         final isSelected = selectedSet.contains(secVal);
 
                         return FilterChip(
                           label: Text(secLabel),
                           labelStyle: GoogleFonts.poppins(
                             fontSize: 11,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? Colors.white : AppColors.lightText,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color:
+                                isSelected ? Colors.white : AppColors.lightText,
                           ),
                           selected: isSelected,
                           selectedColor: AppColors.navyMid,
                           backgroundColor: Colors.white,
                           onSelected: widget.readOnly
                               ? null
-                              : (sel) => _onChargeSectionToggled(actKey, secVal, sel),
+                              : (sel) =>
+                                  _onChargeSectionToggled(actKey, secVal, sel),
                         );
                       }).toList(),
                     ),
@@ -801,14 +843,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       addName(widget.existingRecord!.accused);
 
       final extra = widget.existingRecord!.extraFields;
-      final common = (extra['commonForm'] is Map) ? extra['commonForm'] as Map : {};
+      final common =
+          (extra['commonForm'] is Map) ? extra['commonForm'] as Map : {};
 
       for (final src in [common, extra]) {
         final accList = src['accused'];
         if (accList is List) {
           for (final item in accList) {
             if (item is Map) {
-              addName(item['name']?.toString() ?? item['accused_name']?.toString());
+              addName(
+                  item['name']?.toString() ?? item['accused_name']?.toString());
             } else if (item is String) {
               addName(item);
             }
@@ -818,7 +862,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         if (arrestList is List) {
           for (final item in arrestList) {
             if (item is Map) {
-              addName(item['name']?.toString() ?? item['person_name']?.toString() ?? item['accused']?.toString());
+              addName(item['name']?.toString() ??
+                  item['person_name']?.toString() ??
+                  item['accused']?.toString());
             } else if (item is String) {
               addName(item);
             }
@@ -867,10 +913,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         children: [
           // Section Header
           InkWell(
-            onTap: () => setState(() => _dischargeSectionExpanded = !_dischargeSectionExpanded),
+            onTap: () => setState(
+                () => _dischargeSectionExpanded = !_dischargeSectionExpanded),
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.lg),
-              bottom: Radius.circular(_dischargeSectionExpanded ? 0 : AppRadius.lg),
+              bottom:
+                  Radius.circular(_dischargeSectionExpanded ? 0 : AppRadius.lg),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -883,7 +931,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.person_remove_rounded, size: 20, color: AppColors.navyMid),
+                    child: const Icon(Icons.person_remove_rounded,
+                        size: 20, color: AppColors.navyMid),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -897,7 +946,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: _dischargedAccusedList.isNotEmpty
                           ? AppColors.dangerRed.withValues(alpha: 0.12)
@@ -911,13 +961,17 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: _dischargedAccusedList.isNotEmpty ? AppColors.dangerRed : AppColors.navyMid,
+                        color: _dischargedAccusedList.isNotEmpty
+                            ? AppColors.dangerRed
+                            : AppColors.navyMid,
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Icon(
-                    _dischargeSectionExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    _dischargeSectionExpanded
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
                     color: AppColors.lightSubText,
                     size: 20,
                   ),
@@ -941,36 +995,44 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                         child: DropdownButtonFormField<String>(
                           decoration: InputDecoration(
                             labelText: 'Select Accused to Discharge',
-                            labelStyle: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
-                            prefixIcon: const Icon(Icons.person_search_rounded, size: 20, color: AppColors.navyMid),
+                            labelStyle: GoogleFonts.poppins(
+                                fontSize: 12, color: AppColors.lightSubText),
+                            prefixIcon: const Icon(Icons.person_search_rounded,
+                                size: 20, color: AppColors.navyMid),
                             filled: true,
                             fillColor: const Color(0xFFF8FAFC),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 12),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(color: AppColors.lightBorder),
+                              borderSide: const BorderSide(
+                                  color: AppColors.lightBorder),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(color: AppColors.lightBorder),
+                              borderSide: const BorderSide(
+                                  color: AppColors.lightBorder),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: AppColors.navyMid, width: 1.5),
                             ),
                           ),
                           hint: Text(
                             availableAccused.isEmpty
                                 ? 'No accused entered yet in form'
                                 : 'Choose an accused to discharge...',
-                            style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightSubText),
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, color: AppColors.lightSubText),
                           ),
                           key: ValueKey(_selectedAccusedToDischarge),
                           initialValue: _selectedAccusedToDischarge,
                           isExpanded: true,
                           items: [
                             ...availableAccused
-                                .where((name) => !_dischargedAccusedList.contains(name))
+                                .where((name) =>
+                                    !_dischargedAccusedList.contains(name))
                                 .map((name) => DropdownMenuItem<String>(
                                       value: name,
                                       child: Text(
@@ -1001,7 +1063,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                     _showAddCustomAccusedDialog();
                                   } else if (selectedName != null) {
                                     setState(() {
-                                      _selectedAccusedToDischarge = selectedName;
+                                      _selectedAccusedToDischarge =
+                                          selectedName;
                                     });
                                   }
                                 },
@@ -1025,14 +1088,21 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.navyMid,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 18, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.md)),
                             elevation: 0,
                           ),
-                          icon: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+                          icon: const Icon(Icons.add_rounded,
+                              size: 18, color: Colors.white),
                           label: Text(
                             'Add',
-                            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                            style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white),
                           ),
                         ),
                     ],
@@ -1046,7 +1116,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       runSpacing: 8,
                       children: _dischargedAccusedList.map((accName) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFEF2F2),
                             borderRadius: BorderRadius.circular(AppRadius.md),
@@ -1055,7 +1126,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.person_remove_rounded, size: 16, color: AppColors.dangerRed),
+                              const Icon(Icons.person_remove_rounded,
+                                  size: 16, color: AppColors.dangerRed),
                               const SizedBox(width: 6),
                               Text(
                                 accName,
@@ -1074,7 +1146,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                       _dischargedAccusedMap[accName] = false;
                                     });
                                   },
-                                  child: const Icon(Icons.close_rounded, size: 16, color: AppColors.dangerRed),
+                                  child: const Icon(Icons.close_rounded,
+                                      size: 16, color: AppColors.dangerRed),
                                 ),
                               ],
                             ],
@@ -1097,10 +1170,14 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(
           'Add Accused to Discharge',
-          style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.navyDark),
+          style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.navyDark),
         ),
         content: TextField(
           controller: textCtrl,
@@ -1108,7 +1185,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           decoration: InputDecoration(
             labelText: 'Accused Name',
             hintText: 'Enter name...',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md)),
           ),
         ),
         actions: [
@@ -1146,19 +1224,27 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     if (s.contains('unidentified')) return Icons.help_outline_rounded;
     if (s.contains('unknown')) return Icons.question_mark_rounded;
     if (s.contains('accused')) return Icons.person_pin_rounded;
-    if (s.contains('officer') || s.contains('responsibility')) return Icons.badge_rounded;
+    if (s.contains('officer') || s.contains('responsibility'))
+      return Icons.badge_rounded;
     if (s.contains('arrest')) return Icons.front_hand_rounded;
-    if (s.contains('remand') || s.contains('custody')) return Icons.lock_clock_rounded;
+    if (s.contains('remand') || s.contains('custody'))
+      return Icons.lock_clock_rounded;
     if (s.contains('cctv') || s.contains('cdr')) return Icons.videocam_rounded;
-    if (s.contains('panchnama') || s.contains('checklist')) return Icons.checklist_rounded;
-    if (s.contains('evidence') || s.contains('forensic')) return Icons.biotech_rounded;
+    if (s.contains('panchnama') || s.contains('checklist'))
+      return Icons.checklist_rounded;
+    if (s.contains('evidence') || s.contains('forensic'))
+      return Icons.biotech_rounded;
     if (s.contains('seizure')) return Icons.inventory_2_rounded;
     if (s.contains('preventive action')) return Icons.shield_rounded;
     if (s.contains('bond')) return Icons.description_rounded;
     if (s.contains('discharge')) return Icons.person_remove_rounded;
     if (s.contains('scrutiny')) return Icons.rule_folder_rounded;
-    if (s.contains('court') || s.contains('summary') || s.contains('verdict') || s.contains('filing')) return Icons.task_alt_rounded;
-    if (s.contains('special') || s.contains('template')) return Icons.featured_play_list_rounded;
+    if (s.contains('court') ||
+        s.contains('summary') ||
+        s.contains('verdict') ||
+        s.contains('filing')) return Icons.task_alt_rounded;
+    if (s.contains('special') || s.contains('template'))
+      return Icons.featured_play_list_rounded;
     return Icons.folder_open_rounded;
   }
 }

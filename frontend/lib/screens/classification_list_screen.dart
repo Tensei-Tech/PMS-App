@@ -397,8 +397,8 @@ class _ClassificationListScreenState extends State<ClassificationListScreen> {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: statusColor
-                                              .withValues(alpha: 0.15),
+                                          color: statusColor.withValues(
+                                              alpha: 0.15),
                                           borderRadius: BorderRadius.circular(
                                               AppRadius.sm),
                                         ),

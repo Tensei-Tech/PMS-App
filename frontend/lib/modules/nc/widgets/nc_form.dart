@@ -126,8 +126,7 @@ class NcFormState extends State<NcForm> {
 
   Map<String, Map<String, dynamic>> get _activeActsData =>
       _actsData.isNotEmpty ? _actsData : ACT_DATA;
-  List<String> get _activeGenders =>
-      _genders.isNotEmpty ? _genders : _kGenders;
+  List<String> get _activeGenders => _genders.isNotEmpty ? _genders : _kGenders;
 
   Future<void> _loadFormDefinition() async {
     final catId = widget.categoryId ?? 41;
@@ -136,8 +135,8 @@ class NcFormState extends State<NcForm> {
       setState(() {
         if (def['acts_sections'] is Map) {
           final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
-          _actsData = acts.map(
-              (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+          _actsData = acts
+              .map((k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
         }
         if (def['genders'] is List) {
           _genders = (def['genders'] as List).map((e) => e.toString()).toList();
@@ -826,7 +825,8 @@ class NcFormState extends State<NcForm> {
     required ValueChanged<String> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      initialValue: _activeGenders.contains(selected) ? selected : _activeGenders.first,
+      initialValue:
+          _activeGenders.contains(selected) ? selected : _activeGenders.first,
       decoration: _d('Gender'),
       style: _tsBody,
       dropdownColor: Colors.white,
@@ -1182,7 +1182,8 @@ class NcFormState extends State<NcForm> {
             items: _activeActsData.keys
                 .map((k) => _activeActsData[k]!['label'] as String)
                 .toList(),
-            selected: hasAct ? (_activeActsData[actKey]!['label'] as String) : null,
+            selected:
+                hasAct ? (_activeActsData[actKey]!['label'] as String) : null,
             onSelect: (label) {
               final key = _activeActsData.entries
                   .firstWhere((e) => e.value['label'] == label)
@@ -1672,10 +1673,9 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
   @override
   Widget build(BuildContext context) {
     final acts = widget.actsData ?? ACT_DATA;
-    final sections =
-        (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
-            .map((r) => r as Map<String, dynamic>)
-            .toList();
+    final sections = (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
+        .map((r) => r as Map<String, dynamic>)
+        .toList();
 
     final filtered = _query.isEmpty
         ? sections

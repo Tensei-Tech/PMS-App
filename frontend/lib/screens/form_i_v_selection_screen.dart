@@ -122,10 +122,12 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       final cats = await CaseService().fetchGroupCategories(1);
       if (mounted) {
         if (cats.isNotEmpty) {
-          final topLevel = cats.where((c) => c['parent_category'] == null).toList();
+          final topLevel =
+              cats.where((c) => c['parent_category'] == null).toList();
           final targetList = topLevel.isNotEmpty ? topLevel : cats;
           final names = targetList
-              .map((c) => (c['category_name'] ?? c['name'] ?? '').toString().trim())
+              .map((c) =>
+                  (c['category_name'] ?? c['name'] ?? '').toString().trim())
               .where((n) => n.isNotEmpty)
               .toSet()
               .toList();
@@ -169,7 +171,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       final children = _categoryChildrenCache[cat];
       if (children != null) {
         for (final child in children) {
-          final name = (child['category_name'] ?? child['name'] ?? '').toString();
+          final name =
+              (child['category_name'] ?? child['name'] ?? '').toString();
           if (name.isNotEmpty && !result.contains(name)) {
             result.add(name);
             collect(name);
@@ -177,9 +180,15 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
         }
       }
     }
+
     collect(category);
     if (category.toLowerCase() == 'accident') {
-      result.addAll(['Normal Accident', 'Road Accident', 'Death Due to Rash Driving', 'Other Road Accident']);
+      result.addAll([
+        'Normal Accident',
+        'Road Accident',
+        'Death Due to Rash Driving',
+        'Other Road Accident'
+      ]);
     } else if (category.toLowerCase() == 'road accident') {
       result.addAll(['Death Due to Rash Driving', 'Other Road Accident']);
     }
@@ -947,7 +956,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     return filtered;
   }
 
-  void _openForm(String category, {ModuleRecord? existingRecord, dynamic categoryId}) async {
+  void _openForm(String category,
+      {ModuleRecord? existingRecord, dynamic categoryId}) async {
     final result = await Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
@@ -1376,7 +1386,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     final rootDepth = widget.initialCategory != null ? 1 : 0;
 
     return PopScope(
-      canPop: _selectedCategory == null && _categoryBreadcrumb.length <= rootDepth,
+      canPop:
+          _selectedCategory == null && _categoryBreadcrumb.length <= rootDepth,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _handleBackNavigation();
@@ -1411,7 +1422,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
             if (kDebugMode && _isUsingFallbackCategories)
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.amber.shade100,
                   borderRadius: BorderRadius.circular(6),
@@ -1419,12 +1431,16 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.warning_amber_rounded, size: 16, color: Colors.amber.shade900),
+                    Icon(Icons.warning_amber_rounded,
+                        size: 16, color: Colors.amber.shade900),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         'DEBUG NOTICE: Using offline fallback category list for Group 1.',
-                        style: TextStyle(fontSize: 11, color: Colors.amber.shade900, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.amber.shade900,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -1441,7 +1457,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                   ),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                    border:
+                        Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
                   ),
                   width: double.infinity,
                   child: Row(
@@ -1457,8 +1474,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(8),
-                            border:
-                                Border.all(color: const Color(0xFFCBD5E1)),
+                            border: Border.all(color: const Color(0xFFCBD5E1)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -1473,7 +1489,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                 TranslationHelper.translate(
                                   context,
                                   _categoryBreadcrumb.length > 1
-                                      ? _categoryBreadcrumb[_categoryBreadcrumb.length - 2]
+                                      ? _categoryBreadcrumb[
+                                          _categoryBreadcrumb.length - 2]
                                       : 'All Categories',
                                 ),
                                 style: GoogleFonts.poppins(
@@ -1497,7 +1514,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                   setState(() {
                                     if (widget.initialCategory != null) {
                                       _categoryBreadcrumb.clear();
-                                      _categoryBreadcrumb.add(widget.initialCategory!);
+                                      _categoryBreadcrumb
+                                          .add(widget.initialCategory!);
                                     } else {
                                       _categoryBreadcrumb.clear();
                                     }
@@ -1519,11 +1537,13 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                   ),
                                 ),
                               ),
-                              for (int i = (widget.initialCategory != null ? 1 : 0);
+                              for (int i =
+                                      (widget.initialCategory != null ? 1 : 0);
                                   i < _categoryBreadcrumb.length;
                                   i++) ...[
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 6),
                                   child: Text(
                                     '/',
                                     style: GoogleFonts.poppins(
@@ -1717,9 +1737,12 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                   ),
                                 ),
                               ),
-                              for (int i = 0; i < _categoryBreadcrumb.length; i++) ...[
+                              for (int i = 0;
+                                  i < _categoryBreadcrumb.length;
+                                  i++) ...[
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 6),
                                   child: Text(
                                     '/',
                                     style: GoogleFonts.poppins(
@@ -1752,7 +1775,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                 ),
                               ],
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 6),
                                 child: Text(
                                   '/',
                                   style: GoogleFonts.poppins(
@@ -2018,9 +2042,8 @@ class _CategoryGridView extends StatelessWidget {
     if (category == FormIVSelectionScreen.allFilterLabel) {
       return records.length;
     }
-    final descendants = getDescendantNames != null
-        ? getDescendantNames!(category)
-        : {category};
+    final descendants =
+        getDescendantNames != null ? getDescendantNames!(category) : {category};
     return records
         .where((r) =>
             descendants.any((d) =>

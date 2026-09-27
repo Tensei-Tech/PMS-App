@@ -73,8 +73,8 @@ class PocsoExtraFieldsState extends State<PocsoExtraFields> {
     if (def != null && mounted && def['acts_sections'] is Map) {
       setState(() {
         final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
-        _actsData = acts.map(
-            (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+        _actsData = acts
+            .map((k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
       });
     }
   }
@@ -469,9 +469,10 @@ class PocsoExtraFieldsState extends State<PocsoExtraFields> {
     final bnsItems = (activeActs['BNS']?['sections'] as List<dynamic>? ?? [])
         .map((s) => s as Map<String, dynamic>)
         .toList();
-    final pocsoItems = (activeActs['POCSO']?['sections'] as List<dynamic>? ?? [])
-        .map((s) => s as Map<String, dynamic>)
-        .toList();
+    final pocsoItems =
+        (activeActs['POCSO']?['sections'] as List<dynamic>? ?? [])
+            .map((s) => s as Map<String, dynamic>)
+            .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

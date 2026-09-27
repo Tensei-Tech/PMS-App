@@ -110,7 +110,9 @@ class PreventiveFormState extends State<PreventiveForm> {
   Map<String, Map<String, dynamic>> get _activeActsData =>
       _actsData.isNotEmpty ? _actsData : ACT_DATA;
   List<String> get _activePreventiveSectionActs =>
-      _preventiveActsList.isNotEmpty ? _preventiveActsList : _kPreventiveSectionActs;
+      _preventiveActsList.isNotEmpty
+          ? _preventiveActsList
+          : _kPreventiveSectionActs;
 
   Future<void> _loadFormDefinition() async {
     final catId = widget.categoryId ?? 'Preventive';
@@ -119,12 +121,13 @@ class PreventiveFormState extends State<PreventiveForm> {
       setState(() {
         if (def['acts_sections'] is Map) {
           final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
-          _actsData = acts.map(
-              (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+          _actsData = acts
+              .map((k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
         }
         if (def['preventive_items'] is List) {
-          final items =
-              (def['preventive_items'] as List).map((e) => e.toString()).toList();
+          final items = (def['preventive_items'] as List)
+              .map((e) => e.toString())
+              .toList();
           if (!items.contains('Other')) items.add('Other');
           _preventiveActsList = items;
         }
@@ -952,7 +955,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                                   child: _buildDropdownField(
                                     label:
                                         'Preventive Section Act (प्रतिबंधक कलम / कायदा) *',
-                                    value: _activePreventiveSectionActs.contains(_preventiveSectionAct)
+                                    value: _activePreventiveSectionActs
+                                            .contains(_preventiveSectionAct)
                                         ? _preventiveSectionAct
                                         : _activePreventiveSectionActs.first,
                                     items: _activePreventiveSectionActs,

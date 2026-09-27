@@ -332,7 +332,8 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
         AppRoutes.stationAccessGrants: (_) => const StationAccessGrantsScreen(),
         AppRoutes.loginSecurity: (_) => const LoginSecurityScreen(),
         AppRoutes.appSettings: (_) => const AppSettingsScreen(),
-        AppRoutes.standaloneCategories: (_) => const StandaloneSelectionScreen(),
+        AppRoutes.standaloneCategories: (_) =>
+            const StandaloneSelectionScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.registerPinSetup) {

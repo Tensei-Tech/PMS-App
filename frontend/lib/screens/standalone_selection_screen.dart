@@ -171,9 +171,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
 
   void _onNewCase() {
     final category = _selectedCategory ??
-        (_filteredCategories.isNotEmpty
-            ? _filteredCategories.first
-            : 'Theft');
+        (_filteredCategories.isNotEmpty ? _filteredCategories.first : 'Theft');
     Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
@@ -292,8 +290,8 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
                       : null,
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -304,8 +302,8 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                        color: AppColors.navyMid, width: 1.5),
+                    borderSide:
+                        const BorderSide(color: AppColors.navyMid, width: 1.5),
                   ),
                 ),
                 onChanged: (val) => setState(() => _searchQuery = val),
@@ -318,8 +316,8 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.navyDark.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
@@ -336,8 +334,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
                   const Spacer(),
                   if (_selectedCategory != null)
                     TextButton.icon(
-                      onPressed: () =>
-                          setState(() => _selectedCategory = null),
+                      onPressed: () => setState(() => _selectedCategory = null),
                       icon: const Icon(Icons.view_module_rounded, size: 16),
                       label: Text(
                         'View All Tabs',
@@ -368,8 +365,8 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
       return Center(
         child: Text(
           'No standalone categories found',
-          style: GoogleFonts.poppins(
-              fontSize: 14, color: AppColors.lightSubText),
+          style:
+              GoogleFonts.poppins(fontSize: 14, color: AppColors.lightSubText),
         ),
       );
     }
@@ -508,8 +505,8 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.navyMid,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 18, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -534,9 +531,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
           ),
           child: ListTile(
             title: Text(
-              rec.caseNumber.isNotEmpty
-                  ? rec.caseNumber
-                  : 'Case #${rec.id}',
+              rec.caseNumber.isNotEmpty ? rec.caseNumber : 'Case #${rec.id}',
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w700,
                 fontSize: 14,

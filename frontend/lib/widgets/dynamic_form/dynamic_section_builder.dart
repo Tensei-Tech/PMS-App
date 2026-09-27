@@ -86,7 +86,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(widget.icon, size: 20, color: AppColors.navyMid),
+                    child:
+                        Icon(widget.icon, size: 20, color: AppColors.navyMid),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -100,7 +101,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(12),
@@ -116,7 +118,9 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                   ),
                   const SizedBox(width: 8),
                   Icon(
-                    _expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    _expanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
                     color: AppColors.navyMid,
                   ),
                 ],
@@ -142,7 +146,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             fieldDef: f,
                             controller: widget.controllers[f.fieldKey],
                             value: widget.values[f.fieldKey],
-                            onChanged: (val) => widget.onValueChanged(f.fieldKey, val),
+                            onChanged: (val) =>
+                                widget.onValueChanged(f.fieldKey, val),
                             readOnly: widget.readOnly,
                             accusedOptions: widget.accusedOptions,
                           ),
@@ -155,7 +160,9 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                   final items = <Widget>[];
                   for (var i = 0; i < widget.fields.length; i += 2) {
                     final f1 = widget.fields[i];
-                    final f2 = (i + 1 < widget.fields.length) ? widget.fields[i + 1] : null;
+                    final f2 = (i + 1 < widget.fields.length)
+                        ? widget.fields[i + 1]
+                        : null;
 
                     // If f1 is textarea, give it full row width
                     if (f1.fieldType == 'textarea') {
@@ -166,7 +173,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             fieldDef: f1,
                             controller: widget.controllers[f1.fieldKey],
                             value: widget.values[f1.fieldKey],
-                            onChanged: (val) => widget.onValueChanged(f1.fieldKey, val),
+                            onChanged: (val) =>
+                                widget.onValueChanged(f1.fieldKey, val),
                             readOnly: widget.readOnly,
                             accusedOptions: widget.accusedOptions,
                           ),
@@ -187,7 +195,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                                 fieldDef: f1,
                                 controller: widget.controllers[f1.fieldKey],
                                 value: widget.values[f1.fieldKey],
-                                onChanged: (val) => widget.onValueChanged(f1.fieldKey, val),
+                                onChanged: (val) =>
+                                    widget.onValueChanged(f1.fieldKey, val),
                                 readOnly: widget.readOnly,
                                 accusedOptions: widget.accusedOptions,
                               ),
@@ -197,9 +206,11 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                               child: f2 != null
                                   ? DynamicControlFactory(
                                       fieldDef: f2,
-                                      controller: widget.controllers[f2.fieldKey],
+                                      controller:
+                                          widget.controllers[f2.fieldKey],
                                       value: widget.values[f2.fieldKey],
-                                      onChanged: (val) => widget.onValueChanged(f2.fieldKey, val),
+                                      onChanged: (val) => widget.onValueChanged(
+                                          f2.fieldKey, val),
                                       readOnly: widget.readOnly,
                                       accusedOptions: widget.accusedOptions,
                                     )

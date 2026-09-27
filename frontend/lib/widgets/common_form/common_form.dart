@@ -681,8 +681,8 @@ class CommonFormState extends State<CommonForm> {
         _isUsingFallback = false;
         if (def['acts_sections'] is Map) {
           final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
-          _actsData = acts.map(
-              (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+          _actsData = acts
+              .map((k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
         }
         if (def['procedural_items'] is Map) {
           _proceduralKeys = (def['procedural_items'] as Map)
@@ -693,17 +693,17 @@ class CommonFormState extends State<CommonForm> {
           }
         }
         if (def['preventive_items'] is List) {
-          _preventiveItems =
-              (def['preventive_items'] as List).map((e) => e.toString()).toList();
+          _preventiveItems = (def['preventive_items'] as List)
+              .map((e) => e.toString())
+              .toList();
         }
         if (def['fields'] is List) {
           final rawFields = (def['fields'] as List)
               .whereType<Map>()
               .map((m) => Map<String, dynamic>.from(m))
               .toList();
-          _extraFields = rawFields
-              .where((f) => f['field_source'] != 'common')
-              .toList();
+          _extraFields =
+              rawFields.where((f) => f['field_source'] != 'common').toList();
 
           for (final f in _extraFields) {
             final key = f['field_key']?.toString() ?? '';
@@ -1782,8 +1782,7 @@ class CommonFormState extends State<CommonForm> {
       'dynamic_extra_fields': {
         for (final entry in _dynamicControllers.entries)
           entry.key: entry.value.text,
-        for (final entry in _dynamicValues.entries)
-          entry.key: entry.value,
+        for (final entry in _dynamicValues.entries) entry.key: entry.value,
       },
     };
   }
@@ -3046,7 +3045,8 @@ class CommonFormState extends State<CommonForm> {
                                   horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
                                 color: Colors.amber.shade100,
-                                border: Border.all(color: Colors.amber.shade700),
+                                border:
+                                    Border.all(color: Colors.amber.shade700),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
@@ -3553,7 +3553,8 @@ class CommonFormState extends State<CommonForm> {
             Checkbox(
               value: isChecked,
               activeColor: _kTeal,
-              onChanged: (v) => setState(() => _dynamicValues[key] = v ?? false),
+              onChanged: (v) =>
+                  setState(() => _dynamicValues[key] = v ?? false),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -3570,7 +3571,8 @@ class CommonFormState extends State<CommonForm> {
     } else if (type == 'dropdown') {
       final currentVal = _dynamicValues[key]?.toString();
       final isGender = key.toLowerCase().contains('gender');
-      final options = isGender ? ['Male', 'Female', 'Other'] : ['Yes', 'No', 'Other'];
+      final options =
+          isGender ? ['Male', 'Female', 'Other'] : ['Yes', 'No', 'Other'];
       return Container(
         margin: const EdgeInsets.only(bottom: 8),
         child: DropdownButtonFormField<String>(
@@ -3579,7 +3581,8 @@ class CommonFormState extends State<CommonForm> {
           items: options
               .map((o) => DropdownMenuItem(
                     value: o,
-                    child: Text(TranslationHelper.translate(context, o), style: _tsBody),
+                    child: Text(TranslationHelper.translate(context, o),
+                        style: _tsBody),
                   ))
               .toList(),
           onChanged: (v) => setState(() => _dynamicValues[key] = v),
@@ -3604,7 +3607,9 @@ class CommonFormState extends State<CommonForm> {
     while (i < _extraFields.length) {
       final f1 = _extraFields[i];
       final type1 = f1['field_type']?.toString().toLowerCase() ?? 'text';
-      if (type1 == 'textarea' || type1 == 'checkbox' || i == _extraFields.length - 1) {
+      if (type1 == 'textarea' ||
+          type1 == 'checkbox' ||
+          i == _extraFields.length - 1) {
         children.add(_buildDynamicField(f1));
         i++;
       } else {
@@ -4914,8 +4919,9 @@ class CommonFormState extends State<CommonForm> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: DropdownButtonFormField<String>(
-              initialValue:
-                  _activePreventiveItems.contains(_prevAction) ? _prevAction : null,
+              initialValue: _activePreventiveItems.contains(_prevAction)
+                  ? _prevAction
+                  : null,
               dropdownColor: Colors.white,
               isExpanded: true,
               decoration: _d('Preventive Action'),
@@ -4966,7 +4972,8 @@ class CommonFormState extends State<CommonForm> {
       }
     }
     final availableAccused = arrested.isNotEmpty ? arrested : allAccusedNames;
-    final dischargedAccused = allAccusedNames.where((n) => _discharge[n] == true).toList();
+    final dischargedAccused =
+        allAccusedNames.where((n) => _discharge[n] == true).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -5006,7 +5013,8 @@ class CommonFormState extends State<CommonForm> {
                       Text(name, style: _tsBody),
                       if (isAlreadyDischarged)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: _kTeal.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(4),
@@ -5065,7 +5073,8 @@ class CommonFormState extends State<CommonForm> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.check_circle_rounded, size: 18, color: _kTeal),
+                            const Icon(Icons.check_circle_rounded,
+                                size: 18, color: _kTeal),
                             const SizedBox(width: 8),
                             Text(
                               name,
@@ -5077,13 +5086,15 @@ class CommonFormState extends State<CommonForm> {
                             ),
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: _kTeal.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                TranslationHelper.translate(context, 'Discharged'),
+                                TranslationHelper.translate(
+                                    context, 'Discharged'),
                                 style: const TextStyle(
                                   fontSize: 10,
                                   color: _kTeal,
@@ -5095,7 +5106,8 @@ class CommonFormState extends State<CommonForm> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.close, size: 18, color: _kRed),
-                          tooltip: TranslationHelper.translate(context, 'Remove Discharge'),
+                          tooltip: TranslationHelper.translate(
+                              context, 'Remove Discharge'),
                           onPressed: () {
                             setState(() {
                               _discharge[name] = false;
@@ -5114,69 +5126,69 @@ class CommonFormState extends State<CommonForm> {
               );
             }),
         ],
-          _divider(),
-          _subHeader('ADDITIONAL DISCHARGED PERSONS'),
-          if (_customDischargeList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text(
-                TranslationHelper.translate(
-                  context,
-                  'No custom persons added. Click "+ Add Name" on top to add more.',
-                ),
-                style: _tsMuted,
+        _divider(),
+        _subHeader('ADDITIONAL DISCHARGED PERSONS'),
+        if (_customDischargeList.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Text(
+              TranslationHelper.translate(
+                context,
+                'No custom persons added. Click "+ Add Name" on top to add more.',
               ),
+              style: _tsMuted,
             ),
-          ...List.generate(_customDischargeList.length, (idx) {
-            final item = _customDischargeList[idx];
-            final nameCtrl = item['name'] as TextEditingController;
-            final dateCtrl = item['date'] as TextEditingController;
-            final reasonCtrl = item['reason'] as TextEditingController;
+          ),
+        ...List.generate(_customDischargeList.length, (idx) {
+          final item = _customDischargeList[idx];
+          final nameCtrl = item['name'] as TextEditingController;
+          final dateCtrl = item['date'] as TextEditingController;
+          final reasonCtrl = item['reason'] as TextEditingController;
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: _kInputBg,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _kBorder),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${TranslationHelper.translate(context, 'Person')} #${idx + 1}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: _kDark,
-                        ),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: _kInputBg,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: _kBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${TranslationHelper.translate(context, 'Person')} #${idx + 1}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: _kDark,
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline,
-                            color: _kRed, size: 18),
-                        onPressed: () => removeCustomDischarge(idx),
-                        tooltip: TranslationHelper.translate(
-                            context, 'Remove Person'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  _tf('Person Name', nameCtrl),
-                  const SizedBox(height: 8),
-                  _row([
-                    _dateField('Discharge Date', dateCtrl),
-                    _tf('Discharge Reason', reasonCtrl),
-                  ]),
-                ],
-              ),
-            );
-          }),
-        ],
-      );
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline,
+                          color: _kRed, size: 18),
+                      onPressed: () => removeCustomDischarge(idx),
+                      tooltip:
+                          TranslationHelper.translate(context, 'Remove Person'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                _tf('Person Name', nameCtrl),
+                const SizedBox(height: 8),
+                _row([
+                  _dateField('Discharge Date', dateCtrl),
+                  _tf('Discharge Reason', reasonCtrl),
+                ]),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
   }
 
   // ── §16 (Card 17) Scrutiny ────────────────────────────────────────────────
@@ -5508,10 +5520,9 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
   @override
   Widget build(BuildContext context) {
     final acts = widget.actsData ?? ACT_DATA;
-    final sections =
-        (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
-            .map((r) => r as Map<String, dynamic>)
-            .toList();
+    final sections = (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
+        .map((r) => r as Map<String, dynamic>)
+        .toList();
 
     final filtered = _query.isEmpty
         ? sections

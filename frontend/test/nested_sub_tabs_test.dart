@@ -57,25 +57,34 @@ void main() {
   }
 
   group('Nested Sub-Tabs Navigation & Hierarchy Verification', () {
-    test('CategoryNavigationHelper correctly discovers children hierarchy for Accident and leaves', () async {
+    test(
+        'CategoryNavigationHelper correctly discovers children hierarchy for Accident and leaves',
+        () async {
       // 1. Accident -> Normal Accident & Road Accident
-      final accidentChildren = await CategoryNavigationHelper.getChildren('Accident');
+      final accidentChildren =
+          await CategoryNavigationHelper.getChildren('Accident');
       expect(accidentChildren, isNotEmpty);
-      final accidentNames = accidentChildren.map((c) => c['category_name']).toList();
+      final accidentNames =
+          accidentChildren.map((c) => c['category_name']).toList();
       expect(accidentNames, containsAll(['Normal Accident', 'Road Accident']));
 
       // 2. Road Accident -> Death Due to Rash Driving & Other Road Accident
-      final roadAccidentChildren = await CategoryNavigationHelper.getChildren('Road Accident');
+      final roadAccidentChildren =
+          await CategoryNavigationHelper.getChildren('Road Accident');
       expect(roadAccidentChildren, isNotEmpty);
-      final roadNames = roadAccidentChildren.map((c) => c['category_name']).toList();
-      expect(roadNames, containsAll(['Death Due to Rash Driving', 'Other Road Accident']));
+      final roadNames =
+          roadAccidentChildren.map((c) => c['category_name']).toList();
+      expect(roadNames,
+          containsAll(['Death Due to Rash Driving', 'Other Road Accident']));
 
       // 3. Theft -> leaf category with no children
       final theftChildren = await CategoryNavigationHelper.getChildren('Theft');
       expect(theftChildren, isEmpty);
     });
 
-    testWidgets('FormIVSelectionScreen with initialCategory="Accident" displays sub-tiles and supports drill-down', (tester) async {
+    testWidgets(
+        'FormIVSelectionScreen with initialCategory="Accident" displays sub-tiles and supports drill-down',
+        (tester) async {
       await tester.binding.setSurfaceSize(const Size(1200, 900));
 
       await tester.pumpWidget(

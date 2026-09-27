@@ -148,7 +148,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
       });
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[CreateSubAdminDialog] Error fetching divisions/stations: $e');
+        debugPrint(
+            '[CreateSubAdminDialog] Error fetching divisions/stations: $e');
       }
     }
   }

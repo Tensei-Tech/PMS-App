@@ -1,10 +1,5 @@
 // 1. Define the enum here
-enum AnimationType { 
-  fade, 
-  slide, 
-  scale, 
-  rotate 
-}
+enum AnimationType { fade, slide, scale, rotate }
 
 void main() {
   // 2. Now this will work and print "AnimationType.fade"

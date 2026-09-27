@@ -1741,8 +1741,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       status: targetStatus,
       assignedOfficer:
           _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
-      subCategory:
-          _isEdit ? widget.existingRecord!.subCategory : (widget.subCategory ?? widget.moduleLabel),
+      subCategory: _isEdit
+          ? widget.existingRecord!.subCategory
+          : (widget.subCategory ?? widget.moduleLabel),
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: extra,
       stationName: stationName,
@@ -1765,7 +1766,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           assignedOfficerUid:
               _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
         );
-        final success = await CaseService().saveCase(enriched, isCreate: !_isEdit);
+        final success =
+            await CaseService().saveCase(enriched, isCreate: !_isEdit);
         if (!success) {
           throw Exception('Backend failed to save case record.');
         }
