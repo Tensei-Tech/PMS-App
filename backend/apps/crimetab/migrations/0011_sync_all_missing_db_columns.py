@@ -38,7 +38,9 @@ ALTER TABLE discharge_status ADD COLUMN IF NOT EXISTS discharge_date DATE;
 ALTER TABLE discharge_status ADD COLUMN IF NOT EXISTS discharge_reason TEXT;
 
 ALTER TABLE field_template_fields ADD COLUMN IF NOT EXISTS section VARCHAR(100);
+RESET search_path;
 """
+
 
 
 class Migration(migrations.Migration):
