@@ -1224,16 +1224,20 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     if (s.contains('unidentified')) return Icons.help_outline_rounded;
     if (s.contains('unknown')) return Icons.question_mark_rounded;
     if (s.contains('accused')) return Icons.person_pin_rounded;
-    if (s.contains('officer') || s.contains('responsibility'))
+    if (s.contains('officer') || s.contains('responsibility')) {
       return Icons.badge_rounded;
+    }
     if (s.contains('arrest')) return Icons.front_hand_rounded;
-    if (s.contains('remand') || s.contains('custody'))
+    if (s.contains('remand') || s.contains('custody')) {
       return Icons.lock_clock_rounded;
+    }
     if (s.contains('cctv') || s.contains('cdr')) return Icons.videocam_rounded;
-    if (s.contains('panchnama') || s.contains('checklist'))
+    if (s.contains('panchnama') || s.contains('checklist')) {
       return Icons.checklist_rounded;
-    if (s.contains('evidence') || s.contains('forensic'))
+    }
+    if (s.contains('evidence') || s.contains('forensic')) {
       return Icons.biotech_rounded;
+    }
     if (s.contains('seizure')) return Icons.inventory_2_rounded;
     if (s.contains('preventive action')) return Icons.shield_rounded;
     if (s.contains('bond')) return Icons.description_rounded;
@@ -1242,9 +1246,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     if (s.contains('court') ||
         s.contains('summary') ||
         s.contains('verdict') ||
-        s.contains('filing')) return Icons.task_alt_rounded;
-    if (s.contains('special') || s.contains('template'))
+        s.contains('filing')) {
+      return Icons.task_alt_rounded;
+    }
+    if (s.contains('special') || s.contains('template')) {
       return Icons.featured_play_list_rounded;
+    }
     return Icons.folder_open_rounded;
   }
 }
