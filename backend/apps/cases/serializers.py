@@ -38,6 +38,49 @@ class CaseRecordSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Security violation: CreatedBy (officer UID) is required.")
         return value
 
+    def validate_assigned_officer_uid(self, value):
+        if value:
+            from apps.users.models import OfficerProfile
+            if not OfficerProfile.objects.filter(uid=value).exists():
+                raise serializers.ValidationError("Invalid IO: Officer with this UID does not exist.")
+        return value
+
+    def validate(self, attrs):
+        from apps.cases.constants import CC_ST_KEYS, REASON_KEYS
+        
+        # Reject client status overrides
+        if 'status' in attrs:
+            attrs.pop('status')
+            
+        extra_fields = attrs.get('extra_fields')
+        if extra_fields is None:
+            extra_fields = {}
+            if 'extra_fields' in attrs:
+                attrs['extra_fields'] = extra_fields
+            
+        if self.instance and isinstance(self.instance.extra_fields, dict):
+            # Merge with existing
+            merged = self.instance.extra_fields.copy()
+            
+            # Strip client-sent status_logs
+            if 'status_logs' in extra_fields:
+                extra_fields.pop('status_logs')
+                
+            merged.update(extra_fields)
+            
+            # Alias blanking
+            incoming_cc_keys = [k for k in CC_ST_KEYS if k in extra_fields]
+            if incoming_cc_keys:
+                for k in CC_ST_KEYS:
+                    if k not in incoming_cc_keys and k in merged:
+                        merged.pop(k)
+                        
+            attrs['extra_fields'] = merged
+        elif extra_fields and 'status_logs' in extra_fields:
+            extra_fields.pop('status_logs')
+
+        return attrs
+
 
 class CreateCaseSerializer(serializers.Serializer):
     """
