@@ -11,6 +11,7 @@ from apps.crimetab.views import (
     LocationDistrictsView,
     LocationStationsView,
     CasePdfView,
+    FormSchemaView,
 )
 
 from apps.cases.views import (
@@ -27,6 +28,7 @@ router.register(r'groups', CaseCategoryGroupViewSet, basename='case-groups')
 router.register(r'categories', CaseCategoryViewSet, basename='case-categories')
 
 urlpatterns = [
+    path('<str:slug>/form-schema/', FormSchemaView.as_view(), name='tab-form-schema'),
     # Case Management specific endpoints
     path('cases/crime-types/', CrimeTypeListView.as_view(), name='crime-type-list'),
     path('cases/crime-types/<str:crime_type>/cases/', CasesByCrimeTypeView.as_view(), name='cases-by-crime-type'),
