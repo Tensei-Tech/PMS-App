@@ -1125,7 +1125,7 @@ class CommonFormState extends State<CommonForm> {
   void addPersonAccused() {
     setState(() {
       _accused.add(_newPerson());
-      _openSectionKeys.add('6');
+      _openSectionKeys.add('5-Accused');
       _expandedAccusedIndex = _accused.length - 1;
     });
     _syncNames();
@@ -1134,7 +1134,7 @@ class CommonFormState extends State<CommonForm> {
   void addPersonSuspected() {
     setState(() {
       _suspected.add(_newPerson());
-      _openSectionKeys.add('7');
+      _openSectionKeys.add('6-Suspected Accused');
       _expandedSuspectedIndex = _suspected.length - 1;
     });
   }
@@ -1162,7 +1162,7 @@ class CommonFormState extends State<CommonForm> {
         'address': TextEditingController(),
         'desc': TextEditingController(),
       });
-      _openSectionKeys.add('8');
+      _openSectionKeys.add('7-Unidentified Accused');
     });
   }
 

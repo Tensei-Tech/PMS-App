@@ -19,6 +19,10 @@ class DynamicSectionCard extends StatefulWidget {
   final bool readOnly;
   final bool initiallyExpanded;
   final List<String>? accusedOptions;
+  final int? index;
+  final Widget? headerTrailing;
+  final bool isCollapsible;
+  final Widget? customBody; // Added back to prevent Hot Reload crash
 
   const DynamicSectionCard({
     super.key,
@@ -32,6 +36,10 @@ class DynamicSectionCard extends StatefulWidget {
     this.readOnly = false,
     this.initiallyExpanded = true,
     this.accusedOptions,
+    this.index,
+    this.headerTrailing,
+    this.isCollapsible = true,
+    this.customBody, // Added back to prevent Hot Reload crash
   });
 
   @override
@@ -49,7 +57,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.fields.isEmpty) return const SizedBox.shrink();
+    if (widget.fields.isEmpty && widget.customBody == null) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -70,7 +78,9 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
         children: [
           // Header Bar
           InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
+            onTap: widget.isCollapsible
+                ? () => setState(() => _expanded = !_expanded)
+                : null,
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.lg),
               bottom: Radius.circular(_expanded ? 0 : AppRadius.lg),
@@ -86,8 +96,15 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child:
-                        Icon(widget.icon, size: 20, color: AppColors.navyMid),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${widget.index ?? ""}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -100,29 +117,18 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       ),
                     ),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(12),
+                  if (widget.headerTrailing != null) ...[
+                    widget.headerTrailing!,
+                    const SizedBox(width: 8),
+                  ],
+                  if (widget.isCollapsible) ...[
+                    Icon(
+                      _expanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: AppColors.navyMid,
                     ),
-                    child: Text(
-                      '${widget.fields.length} fields',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    _expanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: AppColors.navyMid,
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -164,8 +170,11 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         ? widget.fields[i + 1]
                         : null;
 
-                    // If f1 is textarea, give it full row width
-                    if (f1.fieldType == 'textarea') {
+                    // If f1 is textarea, header, or checkbox, give it full row width
+                    if (f1.fieldType == 'textarea' ||
+                        f1.fieldType == 'header' ||
+                        f1.fieldType == 'checkbox' ||
+                        f1.fieldType == 'full_text') {
                       items.add(
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -230,6 +239,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
               ),
             ),
           ],
+          if (_expanded && widget.customBody != null) widget.customBody!,
         ],
       ),
     );
