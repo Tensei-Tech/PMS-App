@@ -6,7 +6,7 @@ class ApiConfig {
   /// Base URL override via --dart-define=API_BASE_URL=https://...
   static const String _envBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://127.0.0.1:8001/api', // default just in case, but no fallback logic
+    defaultValue: '',
   );
 
   static bool _hasPrewarmed = false;
@@ -53,6 +53,12 @@ class ApiConfig {
   /// Base API URL: strictly uses API_BASE_URL env var
   static String get baseUrl {
     String url = _envBaseUrl;
+    if (url.isEmpty) {
+      throw Exception(
+          'CRITICAL: API_BASE_URL environment variable is missing!\n'
+          'You must run the app with --dart-define=API_BASE_URL=http://...\n'
+          'For local dev: flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8001/api');
+    }
 
     // Enforce HTTPS scheme for non-localhost endpoints
     if (url.startsWith('http://') &&
