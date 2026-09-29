@@ -868,6 +868,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       title: TranslationHelper.translate(context, 'Pending Reports'),
       subtitle: TranslationHelper.translate(context, 'Summary of all pending cases'),
       showFilterRow: false,
+      showCategoryButtons: false,
       filterRow: const SizedBox.shrink(),
       categoryButtons: const SizedBox.shrink(),
       onSummaryTap: () {
