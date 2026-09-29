@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 
 /// Configuration class for Django REST API endpoints and base URL.
@@ -8,22 +6,8 @@ class ApiConfig {
   /// Base URL override via --dart-define=API_BASE_URL=https://...
   static const String _envBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: '',
+    defaultValue: 'http://127.0.0.1:8001/api', // default just in case, but no fallback logic
   );
-
-  /// Environment flag: --dart-define=IS_DEV=true (Switches to Local Dev Server).
-  /// Default is false (Render Cloud Backend).
-  static const bool isDev = bool.fromEnvironment('IS_DEV', defaultValue: false);
-
-  /// Default Render Cloud Backend URL (Hardcoded Default)
-  static const String renderBackendUrl =
-      'https://pms-app-backend.onrender.com/api';
-
-  /// Default local development port (8001 matches runserver 0.0.0.0:8001)
-  static int defaultPort = 8001;
-
-  /// Custom host override if specified at runtime
-  static String? _customBaseUrl;
 
   static bool _hasPrewarmed = false;
   static DateTime? _lastPrewarmedAt;
@@ -66,40 +50,9 @@ class ApiConfig {
     } catch (_) {}
   }
 
-  /// Override the default base URL dynamically at runtime
-  static void setCustomBaseUrl(String url) {
-    _customBaseUrl = url;
-  }
-
-  /// Get local development base URL based on active platform
-  static String get localDevUrl {
-    if (kIsWeb) {
-      return 'http://127.0.0.1:$defaultPort/api';
-    } else if (!kIsWeb && Platform.isAndroid) {
-      // 10.0.2.2 maps to host machine's localhost inside Android Emulator
-      return 'http://10.0.2.2:$defaultPort/api';
-    } else {
-      // iOS, Windows, macOS, Linux
-      return 'http://127.0.0.1:$defaultPort/api';
-    }
-  }
-
-  /// Base API URL:
-  /// - If API_BASE_URL env var is provided, use it
-  /// - If _customBaseUrl runtime override is set, use it
-  /// - If IS_DEV=true, use Local Dev Server
-  /// - Default -> Render Cloud Backend (https://pms-app-backend.onrender.com/api)
+  /// Base API URL: strictly uses API_BASE_URL env var
   static String get baseUrl {
-    String url;
-    if (_envBaseUrl.isNotEmpty) {
-      url = _envBaseUrl;
-    } else if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
-      url = _customBaseUrl!;
-    } else if (isDev) {
-      url = localDevUrl;
-    } else {
-      url = renderBackendUrl;
-    }
+    String url = _envBaseUrl;
 
     // Enforce HTTPS scheme for non-localhost endpoints
     if (url.startsWith('http://') &&
