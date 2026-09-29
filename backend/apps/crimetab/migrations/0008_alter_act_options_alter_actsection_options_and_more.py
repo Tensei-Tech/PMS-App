@@ -95,7 +95,6 @@ class Migration(migrations.Migration):
             database_operations=[
                 migrations.RunSQL(
                     sql="""
-                    SET search_path TO maharashtra, public;
                     ALTER TABLE procedural_checklist ALTER COLUMN item_name TYPE VARCHAR(40);
                     """,
                     reverse_sql="""
@@ -114,7 +113,6 @@ class Migration(migrations.Migration):
             database_operations=[
                 migrations.RunSQL(
                     sql="""
-                    SET search_path TO maharashtra, public;
                     ALTER TABLE remand_custody DROP CONSTRAINT IF EXISTS chk_pr_bond_requires_mcr;
                     ALTER TABLE remand_custody ADD CONSTRAINT chk_pr_bond_requires_mcr CHECK (pr_bond IS NULL OR pr_bond = FALSE OR mcr = TRUE);
                     """,
@@ -134,9 +132,14 @@ class Migration(migrations.Migration):
                 ),
             ]
         ),
-        migrations.AlterUniqueTogether(
-            name='sectionfieldtemplate',
-            unique_together=set(),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.AlterUniqueTogether(
+                    name='sectionfieldtemplate',
+                    unique_together=set(),
+                ),
+            ]
         ),
     ]
 

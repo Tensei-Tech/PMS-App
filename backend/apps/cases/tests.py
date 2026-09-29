@@ -12,30 +12,28 @@ class CaseManagementAPITests(TestCase):
         self.client = APIClient()
 
         # 1. Seed Roles & Permissions
-        self.master_role = Role.objects.create(id='master_admin', name='Master Admin', level='global')
-        self.officer_role = Role.objects.create(id='officer', name='Police Officer', level='station')
-        self.restricted_role = Role.objects.create(id='restricted_role', name='Restricted Role', level='station')
+        self.master_role, _ = Role.objects.get_or_create(id='master_admin', defaults={'name': 'Master Admin', 'level': 'global'})
+        self.officer_role, _ = Role.objects.get_or_create(id='officer', defaults={'name': 'Police Officer', 'level': 'station'})
+        self.restricted_role, _ = Role.objects.get_or_create(id='restricted_role', defaults={'name': 'Restricted Role', 'level': 'station'})
 
-        self.perm_case_view = Permission.objects.create(id='case:view', module='cases')
-        self.perm_case_create = Permission.objects.create(id='case:create', module='cases')
+        self.perm_case_view, _ = Permission.objects.get_or_create(id='case:view', defaults={'module': 'cases'})
+        self.perm_case_create, _ = Permission.objects.get_or_create(id='case:create', defaults={'module': 'cases'})
 
         # Grant case:view and case:create to officer
-        RolePermission.objects.create(role=self.officer_role, permission=self.perm_case_view, is_granted=True)
-        RolePermission.objects.create(role=self.officer_role, permission=self.perm_case_create, is_granted=True)
+        RolePermission.objects.get_or_create(role=self.officer_role, permission=self.perm_case_view, defaults={'is_granted': True})
+        RolePermission.objects.get_or_create(role=self.officer_role, permission=self.perm_case_create, defaults={'is_granted': True})
 
         # Grant only case:view to restricted_role (no case:create)
-        RolePermission.objects.create(role=self.restricted_role, permission=self.perm_case_view, is_granted=True)
+        RolePermission.objects.get_or_create(role=self.restricted_role, permission=self.perm_case_view, defaults={'is_granted': True})
 
         # 2. Seed State Registries
-        self.state_mh = StateRegistry.objects.create(
+        self.state_mh, _ = StateRegistry.objects.get_or_create(
             state_code='MH',
-            state_name='Maharashtra',
-            schema_name='maharashtra'
+            defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}
         )
-        self.state_ka = StateRegistry.objects.create(
+        self.state_ka, _ = StateRegistry.objects.get_or_create(
             state_code='KA',
-            state_name='Karnataka',
-            schema_name='karnataka'
+            defaults={'state_name': 'Karnataka', 'schema_name': 'karnataka', 'is_active': True}
         )
 
         # 3. Create tables / mock views if not present in test DB
@@ -103,6 +101,7 @@ class CaseManagementAPITests(TestCase):
         )
 
     def _register_and_login(self, email, password, role_id, state_code):
+        OfficerProfile.objects.filter(email=email).delete()
         self.client.post('/api/auth/register/', {
             'email': email,
             'password': password,
@@ -110,7 +109,8 @@ class CaseManagementAPITests(TestCase):
             'role_id': role_id,
             'state_code': state_code,
             'badge_number': f'BDG-{uuid.uuid4().hex[:6]}',
-            'station_name': 'Shivajinagar Police Station'
+            'station_name': 'Shivajinagar Police Station',
+            'account_status': 'active',
         }, format='json')
 
         login_resp = self.client.post('/api/auth/login/', {

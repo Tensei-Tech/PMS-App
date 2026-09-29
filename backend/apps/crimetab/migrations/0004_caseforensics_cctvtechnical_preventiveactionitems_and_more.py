@@ -4,9 +4,6 @@ import django.utils.timezone
 from django.db import migrations, models
 
 SQL_CREATE_TABLES = """
-CREATE SCHEMA IF NOT EXISTS maharashtra;
-SET search_path TO maharashtra, public;
-
 CREATE TABLE IF NOT EXISTS crime_registration_info (
     case_id             VARCHAR(128) PRIMARY KEY REFERENCES cases_caserecord(id) ON DELETE CASCADE,
     cr_number           VARCHAR(30),

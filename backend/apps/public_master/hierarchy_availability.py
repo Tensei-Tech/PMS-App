@@ -75,14 +75,19 @@ class HierarchyAvailabilityEngine:
 
                     # Query district_admins table if exists
                     try:
-                        cursor.execute(f"""
-                        SELECT DISTINCT d.name FROM "{clean_schema}".district_admins da
-                        JOIN "{clean_schema}".districts d ON da.district_id = d.district_id
-                        WHERE da.status = 'active';
-                        """)
-                        for r in cursor.fetchall():
-                            if r[0]:
-                                active_district_names.add(r[0].strip().lower())
+                        cursor.execute(
+                            "SELECT 1 FROM information_schema.tables WHERE table_schema = %s AND table_name = 'district_admins';",
+                            [clean_schema]
+                        )
+                        if cursor.fetchone():
+                            cursor.execute(f"""
+                            SELECT DISTINCT d.name FROM "{clean_schema}".district_admins da
+                            JOIN "{clean_schema}".districts d ON da.district_id = d.district_id
+                            WHERE da.status = 'active';
+                            """)
+                            for r in cursor.fetchall():
+                                if r[0]:
+                                    active_district_names.add(r[0].strip().lower())
                     except Exception as e:
                         logger.debug(f"[HierarchyAvailability] Failed querying district_admins table: {e}")
 
