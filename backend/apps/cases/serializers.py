@@ -59,21 +59,43 @@ class CaseRecordSerializer(serializers.ModelSerializer):
                 attrs['extra_fields'] = extra_fields
             
         if self.instance and isinstance(self.instance.extra_fields, dict):
-            # Merge with existing
+            # We must deeply merge dictionaries to avoid replacing entire nested objects
+            def deep_merge(d1, d2):
+                for k, v in d2.items():
+                    if k in d1 and isinstance(d1[k], dict) and isinstance(v, dict):
+                        deep_merge(d1[k], v)
+                    else:
+                        d1[k] = v
+            
             merged = self.instance.extra_fields.copy()
             
             # Strip client-sent status_logs
             if 'status_logs' in extra_fields:
                 extra_fields.pop('status_logs')
                 
-            merged.update(extra_fields)
+            deep_merge(merged, extra_fields)
             
-            # Alias blanking
-            incoming_cc_keys = [k for k in CC_ST_KEYS if k in extra_fields]
+            # Alias blanking recursively
+            def find_keys(d, targets, found=None):
+                if found is None: found = set()
+                if isinstance(d, dict):
+                    for k, v in d.items():
+                        if k in targets: found.add(k)
+                        find_keys(v, targets, found)
+                return found
+                
+            def blank_keys(d, targets):
+                if isinstance(d, dict):
+                    for k in list(d.keys()):
+                        if k in targets:
+                            d[k] = ''
+                        else:
+                            blank_keys(d[k], targets)
+                            
+            incoming_cc_keys = find_keys(extra_fields, CC_ST_KEYS)
             if incoming_cc_keys:
-                for k in CC_ST_KEYS:
-                    if k not in incoming_cc_keys and k in merged:
-                        merged.pop(k)
+                keys_to_blank = [k for k in CC_ST_KEYS if k not in incoming_cc_keys]
+                blank_keys(merged, keys_to_blank)
                         
             attrs['extra_fields'] = merged
         elif extra_fields and 'status_logs' in extra_fields:

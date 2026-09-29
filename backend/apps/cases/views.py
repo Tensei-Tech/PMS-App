@@ -144,6 +144,14 @@ class PendingCasesView(APIView):
             if io_uid:
                 queryset = queryset.filter(assigned_officer_uid=io_uid)
 
+            # Apply time range filter (start_date, end_date)
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
             rows = list(queryset.values(
                 'id', 'case_number', 'title', 'module_key', 'priority', 'station_name', 'assigned_officer', 'status'
             ))
@@ -174,6 +182,14 @@ class IOWisePendingView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            # Apply time range filter (start_date, end_date)
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
 
             counts = queryset.values('assigned_officer_uid', 'station_name').annotate(count=Count('id')).order_by('-count')
             

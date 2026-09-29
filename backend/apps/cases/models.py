@@ -186,14 +186,14 @@ class CaseRecord(models.Model):
             # Check if CC/ST is currently present in extra_fields
             has_cc = False
             if isinstance(self.extra_fields, dict):
-                has_cc = any(str(self.extra_fields.get(k, '')).strip() for k in CC_ST_KEYS)
+                has_cc = bool(_extract_first_non_empty(self.extra_fields, CC_ST_KEYS))
             
             # Check previous state if this is an update
             if self.pk:
                 try:
                     old_instance = CaseRecord.objects.get(pk=self.pk)
                     old_extra = old_instance.extra_fields if isinstance(old_instance.extra_fields, dict) else {}
-                    had_cc = any(str(old_extra.get(k, '')).strip() for k in CC_ST_KEYS)
+                    had_cc = bool(_extract_first_non_empty(old_extra, CC_ST_KEYS))
                     
                     if not had_cc and has_cc:
                         self.status = 'Disposal'
