@@ -130,8 +130,9 @@ class PendingCasesView(APIView):
 
     def get(self, request):
         try:
+            from apps.cases.constants import CASE_STATUS_PENDING
             # Replaced raw SQL with ORM since pending_cases_combined does not exist
-            queryset = CaseRecord.objects.filter(status='Pending')
+            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
             
             # Enforce station-level visibility
             user = request.user
@@ -152,20 +153,16 @@ class PendingCasesView(APIView):
             if end_date:
                 queryset = queryset.filter(created_at__date__lte=end_date)
 
-            rows = list(queryset.values(
-                'id', 'case_number', 'title', 'module_key', 'priority', 'station_name', 'assigned_officer', 'status'
-            ))
-            # Rename keys to match old raw SQL response
-            for r in rows:
-                r['source'] = 'cases'
-                r['case_id'] = r.pop('id')
-                r['case_type'] = r.pop('module_key')
-
+            from apps.cases.serializers import CaseRecordSerializer
+            
             paginator = PageNumberPagination()
-            page = paginator.paginate_queryset(rows, request)
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
-                return paginator.get_paginated_response(page)
-            return Response(rows)
+                serializer = CaseRecordSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+                
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            return Response(serializer.data)
         except Exception as e:
             logger.exception(f"[PendingCasesView] Database error: {e}")
             return Response({'error': 'Failed to retrieve pending cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -176,7 +173,8 @@ class IOWisePendingView(APIView):
     def get(self, request):
         try:
             from django.db.models import Count
-            queryset = CaseRecord.objects.filter(status='Pending').exclude(assigned_officer_uid__isnull=True).exclude(assigned_officer_uid='')
+            from apps.cases.constants import CASE_STATUS_PENDING
+            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING).exclude(assigned_officer_uid__isnull=True).exclude(assigned_officer_uid='')
             
             user = request.user
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
