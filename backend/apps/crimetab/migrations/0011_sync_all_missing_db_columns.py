@@ -2,7 +2,6 @@
 from django.db import migrations
 
 SQL_SYNC_COLUMNS = """
-SET search_path TO maharashtra, public;
 ALTER TABLE crime_registration_info ADD COLUMN IF NOT EXISTS cr_number VARCHAR(30);
 ALTER TABLE crime_registration_info ADD COLUMN IF NOT EXISTS is_unknown_accused BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE crime_registration_info ADD COLUMN IF NOT EXISTS registered_datetime TIMESTAMPTZ;
@@ -39,7 +38,28 @@ ALTER TABLE discharge_status ADD COLUMN IF NOT EXISTS discharge_date DATE;
 ALTER TABLE discharge_status ADD COLUMN IF NOT EXISTS discharge_reason TEXT;
 
 ALTER TABLE field_template_fields ADD COLUMN IF NOT EXISTS section VARCHAR(100);
-RESET search_path;
+
+-- Drop obsolete columns from 0001 that were removed in 0004
+ALTER TABLE cases_person DROP COLUMN IF EXISTS medical_exam_done;
+ALTER TABLE cases_person DROP COLUMN IF EXISTS is_died;
+ALTER TABLE cases_person DROP COLUMN IF EXISTS statement_details;
+ALTER TABLE cases_person DROP COLUMN IF EXISTS medical_exam_details;
+ALTER TABLE cases_person DROP COLUMN IF EXISTS inquest_details;
+ALTER TABLE cases_person DROP COLUMN IF EXISTS death_date_time;
+ALTER TABLE cases_person DROP COLUMN IF EXISTS death_place;
+ALTER TABLE cases_person DROP COLUMN IF EXISTS skin_color;
+ALTER TABLE cases_person DROP COLUMN IF EXISTS identification_markers;
+
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS notice_issued;
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS released_on_notice;
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS wanted_status;
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS notice_date;
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS relative_name;
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS relative_relation;
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS release_date;
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS release_type;
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS arrest_date_time;
+ALTER TABLE arrest_release_status DROP COLUMN IF EXISTS arresting_officer;
 """
 
 

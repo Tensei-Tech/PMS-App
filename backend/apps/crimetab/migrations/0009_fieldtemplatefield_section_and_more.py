@@ -10,14 +10,27 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='fieldtemplatefield',
-            name='section',
-            field=models.CharField(blank=True, max_length=100, null=True),
-        ),
-        migrations.AddField(
-            model_name='seizurerecords',
-            name='object_name',
-            field=models.CharField(blank=True, max_length=255, null=True),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                    ALTER TABLE field_template_fields ADD COLUMN IF NOT EXISTS section VARCHAR(100);
+                    ALTER TABLE seizure_records ADD COLUMN IF NOT EXISTS object_name VARCHAR(255);
+                    """,
+                    reverse_sql=""
+                )
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='fieldtemplatefield',
+                    name='section',
+                    field=models.CharField(blank=True, max_length=100, null=True),
+                ),
+                migrations.AddField(
+                    model_name='seizurerecords',
+                    name='object_name',
+                    field=models.CharField(blank=True, max_length=255, null=True),
+                ),
+            ]
         ),
     ]

@@ -58,7 +58,42 @@ def provision_state_schema(schema_name: str):
 
     with connection.cursor() as cursor:
         cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{clean_schema}";')
-        logger.info(f"[Tenancy] Provisioned PostgreSQL schema: {clean_schema}")
+        cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".users_officerprofile (
+            uid VARCHAR(128) PRIMARY KEY,
+            name VARCHAR(255),
+            password VARCHAR(128),
+            badge_number VARCHAR(64),
+            designation VARCHAR(128),
+            email VARCHAR(255) UNIQUE,
+            phone VARCHAR(32),
+            station_name VARCHAR(255),
+            station_id VARCHAR(64),
+            station_address TEXT,
+            station_landline VARCHAR(32),
+            govt_id VARCHAR(64),
+            photo_url VARCHAR(1024),
+            id_card_url VARCHAR(1024),
+            role_id VARCHAR(64) DEFAULT 'officer',
+            additional_stations JSONB DEFAULT '[]'::jsonb,
+            account_status VARCHAR(32) DEFAULT 'active',
+            division_name VARCHAR(128),
+            division_id VARCHAR(64),
+            district VARCHAR(128),
+            district_id VARCHAR(64),
+            zone VARCHAR(128),
+            age INT,
+            gender VARCHAR(20),
+            station_case_view_granted BOOLEAN DEFAULT FALSE,
+            is_biometric_enabled BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+        );
+        ALTER TABLE "{clean_schema}".users_officerprofile ADD COLUMN IF NOT EXISTS division_name VARCHAR(128);
+        ALTER TABLE "{clean_schema}".users_officerprofile ADD COLUMN IF NOT EXISTS division_id VARCHAR(64);
+        ALTER TABLE "{clean_schema}".users_officerprofile ADD COLUMN IF NOT EXISTS is_biometric_enabled BOOLEAN DEFAULT FALSE;
+        """)
+        logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema}")
 
 
 def get_active_tenant_schema(request=None) -> str:
