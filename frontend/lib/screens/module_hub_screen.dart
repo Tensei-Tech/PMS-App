@@ -8,6 +8,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
+import '../constants/case_status_constants.dart';
 
 import '../modules/absconded/providers/absconded_provider.dart';
 import '../modules/accident/providers/accident_provider.dart';
@@ -506,13 +507,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final List<ModuleRecord> filtered;
     // Filtering logic combined
     if (widget.moduleKey == 'absconded') {
-      if (_filter == 'Disposal' ||
-          _filter == 'Closed' ||
-          _filter == 'Resolved') {
+      if (_filter == CaseStatus.disposal) {
         filtered = allRecords.where((r) => isAbscondedDisposal(r)).toList();
-      } else if (_filter == 'Pending' ||
-          _filter == 'Open' ||
-          _filter == 'Active') {
+      } else if (_filter == CaseStatus.pending) {
         filtered = allRecords.where((r) => !isAbscondedDisposal(r)).toList();
       } else {
         filtered = allRecords;
@@ -592,13 +589,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         filtered = allRecords;
       }
     } else {
-      if (_filter == 'Disposal' ||
-          _filter == 'Closed' ||
-          _filter == 'Resolved') {
+      if (_filter == CaseStatus.disposal) {
         filtered = allRecords.where(isRecordDisposal).toList();
-      } else if (_filter == 'Pending' ||
-          _filter == 'Open' ||
-          _filter == 'Active') {
+      } else if (_filter == CaseStatus.pending) {
         filtered = allRecords.where(isRecordPending).toList();
       } else {
         filtered = _filter == 'All'
@@ -777,7 +770,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       }
       catMeta[key]!.count++;
       // Count solved: Resolved or Closed
-      if (r.status == 'Resolved' || r.status == 'Closed') {
+      if (r.status == CaseStatus.disposal) {
         catMeta[key]!.solvedCount++;
       }
     }
@@ -1873,8 +1866,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     bool isInYear(ModuleRecord r) => r.incidentDate.year == selectedYear;
 
     bool isDetected(ModuleRecord r) =>
-        r.status == 'Resolved' ||
-        r.status == 'Closed' ||
         r.moduleKey == 'detected';
 
     List<ModuleRecord> monthRecsWhere(bool Function(ModuleRecord) test) =>
@@ -2510,7 +2501,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         filterYearToMonth(selectedMonth, selectedYear - 1);
 
     int detected(List<ModuleRecord> recs) =>
-        recs.where((r) => r.status.toLowerCase() != 'open').length;
+        recs.where((r) => r.status != CaseStatus.pending).length;
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcmR = 0, totalcmD = 0;
@@ -2839,7 +2830,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     List<ModuleRecord> detRecs(List<ModuleRecord> r) =>
-        r.where((x) => x.status.toLowerCase() != 'open').toList();
+        r.where((x) => x.status != CaseStatus.pending).toList();
 
     Widget buildScreenDataRow(Map<String, dynamic> def) {
       final headKey = def['head'] as String;
@@ -3567,9 +3558,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         activeLabelColor: const Color(0xFF1976D2),
       ),
       (
-        label: 'Pending',
+        label: CaseStatus.pending,
         count: pendingCount,
-        filterKey: 'Pending',
+        filterKey: CaseStatus.pending,
         badgeBg: const Color(0xFFFFEBEE),
         badgeFg: const Color(0xFFD32F2F),
         activeBorder: const Color(0xFFD32F2F),
@@ -3577,9 +3568,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         activeLabelColor: const Color(0xFFD32F2F),
       ),
       (
-        label: 'Disposal',
+        label: CaseStatus.disposal,
         count: disposalCount,
-        filterKey: 'Disposal',
+        filterKey: CaseStatus.disposal,
         badgeBg: const Color(0xFFE8F5E9),
         badgeFg: const Color(0xFF2E7D32),
         activeBorder: const Color(0xFF2E7D32),
@@ -3602,11 +3593,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           children: [
             ...tabs.map((item) {
               String currentFilter = _filter;
-              if (currentFilter == 'Open' || currentFilter == 'Active') {
-                currentFilter = 'Pending';
+              if (currentFilter == CaseStatus.pending) {
+                currentFilter = CaseStatus.pending;
               }
-              if (currentFilter == 'Closed' || currentFilter == 'Resolved') {
-                currentFilter = 'Disposal';
+              if (currentFilter == CaseStatus.disposal) {
+                currentFilter = CaseStatus.disposal;
               }
               final isSelected = currentFilter == item.filterKey;
 
@@ -3936,10 +3927,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final String displayStatus;
     final Color sc;
     if (isDetectedCard) {
-      final isDisposal = record.status == 'Disposal' ||
-          record.status == 'Closed' ||
-          record.status == 'Resolved';
-      displayStatus = isDisposal ? 'Disposal' : 'Pending';
+      final isDisposal = record.status == CaseStatus.disposal;
+      displayStatus = isDisposal ? CaseStatus.disposal : CaseStatus.pending;
       sc = isDisposal ? AppColors.successGreen : AppColors.warningOrange;
     } else {
       displayStatus = record.status;
@@ -4536,9 +4525,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
     if (ioName.isEmpty) ioName = '—';
 
     // Status Color (Disposal = Green, Pending/Other = Red)
-    final isDisposal = record.status == 'Disposal' ||
-        record.status == 'Closed' ||
-        record.status == 'Resolved' ||
+    final isDisposal = record.status == CaseStatus.disposal ||
         record.status.toLowerCase().contains('completed');
     final Color statusColor =
         isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
