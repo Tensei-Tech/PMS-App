@@ -32,7 +32,7 @@ import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/missing/providers/missing_provider.dart';
 import '../modules/missing/screens/missing_form_screen.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
-import '../services/case_service.dart';
+
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/mpda/screens/mpda_form_screen.dart';
 import '../modules/muddemal/providers/muddemal_provider.dart';
@@ -60,7 +60,7 @@ import '../theme/app_theme.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pending_io_wise_logic.dart';
+
 import '../utils/translation_helper.dart';
 import '../widgets/forms_accordion_list.dart';
 import '../widgets/module_hub_report_card.dart';
@@ -75,8 +75,7 @@ import 'form_vi_selection_screen.dart';
 import 'hurt_cases_screen.dart';
 import 'module_form_screen.dart';
 import 'module_record_detail_screen.dart';
-import 'pending_demo_table_screen.dart';
-import 'pending_io_wise_screens.dart';
+
 import 'pending_summary_screen.dart';
 import 'report_case_list_screen.dart';
 
@@ -123,27 +122,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   bool _showMonthlyClassVITable = false;
   bool _showMonthlyPreventiveTable = false;
 
-  String? _pendingCategory;
-  String? _pendingTimeRange;
-  String? _pendingViewMode;
 
-  Future<List<String>>? _categoriesFuture;
-  List<String> _loadedCategories = kPendingDashboardCategoriesForIoWise.toList();
-
-  static const List<String> _pendingHubTimeRanges = [
-    'Select time range',
-    'More than 1 year',
-    '6 to 12 months',
-    '3 to 6 months',
-    'More than 3 months',
-    'Within 3 months',
-    '1 month',
-  ];
-
-  static const List<String> _pendingHubViewModes = [
-    'Case Wise',
-    'IO Wise',
-  ];
 
   @override
   void initState() {
@@ -154,24 +133,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
       _filter = 'All';
     }
-    if (widget.moduleKey == 'pending') {
-      _categoriesFuture = _fetchCategories();
-    }
-  }
-
-  Future<List<String>> _fetchCategories() async {
-    try {
-      final service = CaseService();
-      final groups = await service.fetchGroups();
-      if (groups.isNotEmpty) {
-        final fetched = groups.map((g) => g['group_name'] as String).toList();
-        _loadedCategories = fetched;
-        return fetched;
-      }
-    } catch (e) {
-      debugPrint('Error fetching categories: $e');
-    }
-    return _loadedCategories;
   }
 
   @override
@@ -898,32 +859,17 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  String _pendingHubSubtitle(BuildContext context) {
-    if (_pendingCategory == null) {
-      return TranslationHelper.translate(context, 'Select a category');
-    }
-    final transCategory =
-        TranslationHelper.translate(context, _pendingCategory!);
-    if (_pendingTimeRange == null) {
-      final transSelectTime =
-          TranslationHelper.translate(context, 'Select time range');
-      return '$transCategory — $transSelectTime';
-    }
-    final transTimeRange =
-        TranslationHelper.translate(context, _pendingTimeRange!);
-    return '$transCategory — $transTimeRange';
-  }
+
 
   Widget _buildPendingModuleReportOnly(BuildContext context) {
     final auth = context.read<AuthProvider>();
-    final timeRangeValue = _pendingTimeRange ?? 'Select time range';
-    final viewModeValue = _pendingViewMode ?? 'Case Wise';
 
     return ModuleHubReportCard(
       title: TranslationHelper.translate(context, 'Pending Reports'),
-      subtitle: _pendingHubSubtitle(context),
+      subtitle: TranslationHelper.translate(context, 'Summary of all pending cases'),
       showFilterRow: false,
       filterRow: const SizedBox.shrink(),
+      categoryButtons: const SizedBox.shrink(),
       onSummaryTap: () {
         Navigator.push(
           context,
@@ -932,150 +878,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
       },
-      categoryButtons: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: FutureBuilder<List<String>>(
-          future: _categoriesFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
-                height: 48,
-                child: Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              );
-            }
-            final categoriesList = snapshot.data ?? _loadedCategories;
-            final catVal = _pendingCategory ?? (categoriesList.isNotEmpty ? categoriesList.first : 'I to V');
-
-            return Row(
-              children: [
-                Expanded(
-                  child: ModuleHubFilterDropdown<String>(
-                    expanded: true,
-                    value: catVal,
-                    items: categoriesList
-                        .map(
-                          (c) => DropdownMenuItem(
-                            value: c,
-                            child: Text(
-                              TranslationHelper.translate(context, c),
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (val) {
-                      if (val == null) return;
-                      setState(() {
-                        _pendingCategory = val;
-                      });
-                      // If currently selected view mode is IO Wise, re-navigate to the category's IO Wise screen
-                      if (viewModeValue == 'IO Wise') {
-                        Navigator.push(
-                          context,
-                          AppTheme.fadeSlideRoute(
-                            page: PendingIoWiseByCategoryScreen(category: val),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ModuleHubFilterDropdown<String>(
-                    expanded: true,
-                    value: timeRangeValue,
-                    items: _pendingHubTimeRanges
-                        .map(
-                          (t) => DropdownMenuItem(
-                            value: t,
-                            child: Text(
-                              TranslationHelper.translate(context, t),
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (val) {
-                      if (val == null) return;
-                      if (val == 'Select time range') {
-                        setState(() {
-                          _pendingTimeRange = null;
-                        });
-                        return;
-                      }
-                      setState(() {
-                        _pendingTimeRange = val;
-                      });
-                      // Navigate to pending case list for this category and time range
-                      final cat = _pendingCategory ?? (categoriesList.isNotEmpty ? categoriesList.first : 'I to V');
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                          page: PendingDemoTableScreen(
-                            stationName: auth.stationName,
-                            category: cat,
-                            timeRange: val,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ModuleHubFilterDropdown<String>(
-                    expanded: true,
-                    value: viewModeValue,
-                    items: _pendingHubViewModes
-                        .map(
-                          (m) => DropdownMenuItem(
-                            value: m,
-                            child: Text(
-                              TranslationHelper.translate(context, m),
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (val) {
-                      if (val == null) return;
-                      if (val == 'IO Wise') {
-                        final cat = _pendingCategory ?? (categoriesList.isNotEmpty ? categoriesList.first : 'I to V');
-                        setState(() {
-                          _pendingViewMode =
-                              'Case Wise'; // Reset back on back button
-                        });
-                        Navigator.push(
-                          context,
-                          AppTheme.fadeSlideRoute(
-                            page: PendingIoWiseByCategoryScreen(category: cat),
-                          ),
-                        );
-                      } else {
-                        setState(() {
-                          _pendingViewMode = val;
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ],
-            );
-          }
-        ),
-      ),
       child: null,
     );
   }
