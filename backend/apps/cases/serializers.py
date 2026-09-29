@@ -84,18 +84,18 @@ class CaseRecordSerializer(serializers.ModelSerializer):
                         find_keys(v, targets, found)
                 return found
                 
-            def blank_keys(d, targets):
+            def delete_keys(d, targets):
                 if isinstance(d, dict):
                     for k in list(d.keys()):
                         if k in targets:
-                            d[k] = ''
+                            del d[k]
                         else:
-                            blank_keys(d[k], targets)
+                            delete_keys(d[k], targets)
                             
             incoming_cc_keys = find_keys(extra_fields, CC_ST_KEYS)
             if incoming_cc_keys:
-                keys_to_blank = [k for k in CC_ST_KEYS if k not in incoming_cc_keys]
-                blank_keys(merged, keys_to_blank)
+                keys_to_delete = [k for k in CC_ST_KEYS if k not in incoming_cc_keys]
+                delete_keys(merged, keys_to_delete)
                         
             attrs['extra_fields'] = merged
         elif extra_fields and 'status_logs' in extra_fields:
