@@ -10,14 +10,27 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='dischargestatus',
-            name='discharge_date',
-            field=models.DateField(blank=True, null=True),
-        ),
-        migrations.AddField(
-            model_name='dischargestatus',
-            name='discharge_reason',
-            field=models.TextField(blank=True, null=True),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                    ALTER TABLE discharge_status ADD COLUMN IF NOT EXISTS discharge_date DATE;
+                    ALTER TABLE discharge_status ADD COLUMN IF NOT EXISTS discharge_reason TEXT;
+                    """,
+                    reverse_sql=""
+                )
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='dischargestatus',
+                    name='discharge_date',
+                    field=models.DateField(blank=True, null=True),
+                ),
+                migrations.AddField(
+                    model_name='dischargestatus',
+                    name='discharge_reason',
+                    field=models.TextField(blank=True, null=True),
+                ),
+            ]
         ),
     ]

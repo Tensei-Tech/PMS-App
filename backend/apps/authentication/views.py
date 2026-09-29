@@ -601,23 +601,128 @@ class LoginView(views.APIView):
             }, status=status.HTTP_200_OK)
 
         # 2. Try authenticating as Officer / State Admin
-        state_registry = StateRegistry.objects.filter(state_code=state_code).first()
-        schema_name = state_registry.schema_name if state_registry else get_active_tenant_schema(request)
+        #
+        # TENANT ISOLATION POLICY:
+        # If the client explicitly declares a state_code (e.g. 'BR' for Bihar), we ONLY
+        # search in that tenant's schema. We NEVER silently re-route to another state's
+        # schema. Doing so would be a cross-tenant data leak (the Bihar-sees-Maharashtra
+        # bug). Cross-schema fallback (Steps 2B/2C) is suppressed when state is declared.
+        requested_tenant = (
+            request.data.get('state_code') or
+            request.data.get('tenant_id') or
+            request.data.get('tenant') or
+            request.headers.get('X-Tenant-Id') or
+            request.headers.get('X-State-Code') or
+            ''
+        ).strip()
 
-        set_tenant_schema(schema_name)
+        # Resolve tenant schema from state_code or schema name
+        state_registry = None
+        schema_name = None
+        tenant_explicitly_declared = bool(requested_tenant)
+        if requested_tenant:
+            state_registry = StateRegistry.objects.filter(
+                state_code__iexact=requested_tenant
+            ).first() or StateRegistry.objects.filter(
+                schema_name__iexact=requested_tenant
+            ).first()
+            if state_registry:
+                schema_name = state_registry.schema_name
+            else:
+                # Tenant declared but not found in registry — hard fail, no cross-search
+                logger.warning(f"[LoginView] Declared tenant '{requested_tenant}' not found in StateRegistry")
+                return Response({'error': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        officer = OfficerProfile.objects.filter(email=email).first()
+        officer = None
+        matched_state_code = state_registry.state_code if state_registry else None
+
+        # Step 2A: Search ONLY in the declared tenant schema (strict isolation)
+        if schema_name:
+            try:
+                set_tenant_schema(schema_name)
+                cand = OfficerProfile.objects.filter(email=email).first()
+                if cand and cand.password and cand.check_password(password):
+                    officer = cand
+            except Exception as e:
+                logger.warning(f"[LoginView] Targeted schema {schema_name} query failed: {e}")
+
+        # Step 2B: Search in public schema (only when NO explicit state_code was declared
+        # OR when the officer wasn't found in the declared schema — but ONLY to find the
+        # officer, NOT to assign their state_code; state_code must come from state_registry).
+        # When state is explicitly declared, also allow public lookup as a mirror check,
+        # but do NOT allow the public record to override matched_state_code.
         if not officer:
             try:
                 set_tenant_schema('public')
-                officer = OfficerProfile.objects.filter(email=email).first()
-            except Exception:
-                pass
-            finally:
+                cand = OfficerProfile.objects.filter(email=email).first()
+                if cand:
+                    if cand.password and cand.check_password(password):
+                        officer = cand
+                        # If tenant was declared, keep matched_state_code from state_registry.
+                        # If not declared, matched_state_code remains None (resolved in Step 2D).
+                    elif not cand.password and not tenant_explicitly_declared:
+                        # Accept password-less public officer only if no tenant was declared
+                        officer = cand
+            except Exception as e:
+                logger.warning(f"[LoginView] Public schema query failed: {e}")
+
+        # Step 2C: Cross-schema search — ONLY when no explicit state was declared.
+        # If the client said state_code=BR and we found nothing, return 401 immediately
+        # rather than searching other states and potentially leaking cross-tenant data.
+        if not officer or not officer.check_password(password):
+            if tenant_explicitly_declared:
+                # Explicit state declared but officer not found/authenticated in that state
+                logger.info(f"[LoginView] Tenant isolation: refusing cross-schema search for declared tenant '{requested_tenant}'")
+                return Response({'error': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+            # No state declared: legacy cross-schema fallback (only for accounts without state_code)
+            active_states = list(StateRegistry.objects.filter(is_active=True))
+            for st in active_states:
+                if schema_name and st.schema_name == schema_name:
+                    continue
                 try:
-                    set_tenant_schema(schema_name)
-                except Exception:
-                    pass
+                    set_tenant_schema(st.schema_name)
+                    cand = OfficerProfile.objects.filter(email=email).first()
+                    if cand and cand.password and cand.check_password(password):
+                        officer = cand
+                        schema_name = st.schema_name
+                        matched_state_code = st.state_code
+                        break
+                except Exception as ex:
+                    logger.warning(f"[LoginView] Multi-tenant fallback search in {st.schema_name} failed: {ex}")
+
+        # Step 2D: Resolve state for officer found only in public mirror (no-state-declared path).
+        # This code path is not reached when tenant_explicitly_declared=True (we returned above).
+        if officer and not matched_state_code:
+            badge = getattr(officer, 'badge_number', '') or ''
+            for st in StateRegistry.objects.filter(is_active=True):
+                if (f"-{st.state_code}" in badge.upper()
+                        or st.state_name.lower() in (officer.district or '').lower()
+                        or st.state_name.lower() in (officer.station_name or '').lower()):
+                    matched_state_code = st.state_code
+                    schema_name = st.schema_name
+                    break
+
+            if not matched_state_code:
+                for st in StateRegistry.objects.filter(is_active=True):
+                    try:
+                        set_tenant_schema(st.schema_name)
+                        if OfficerProfile.objects.filter(uid=officer.uid).exists():
+                            matched_state_code = st.state_code
+                            schema_name = st.schema_name
+                            break
+                    except Exception:
+                        pass
+
+        if not matched_state_code:
+            # No state resolved and no explicit declaration — this is a genuine public-only
+            # account with no registered state. Default schema to public and log a warning
+            # so this can be investigated. We do NOT silently use 'maharashtra' here.
+            logger.warning(f"[LoginView] Could not resolve tenant for officer {email} — no state_code in registry")
+            # Assign to public schema only (not maharashtra)
+            matched_state_code = 'PUBLIC'
+            schema_name = 'public'
+
+        set_tenant_schema(schema_name)
 
         if officer and officer.check_password(password):
             if officer.account_status != 'active':
@@ -629,7 +734,7 @@ class LoginView(views.APIView):
                 uid=officer.uid,
                 email=officer.email,
                 role_id=officer.role_id,
-                state_code=state_code,
+                state_code=matched_state_code,
                 user_type='officer',
                 extra_claims={'district_id': officer.district_id, 'station_id': officer.station_id}
             )
@@ -643,7 +748,7 @@ class LoginView(views.APIView):
                     'badge_number': officer.badge_number,
                     'designation': officer.designation,
                     'role_id': officer.role_id,
-                    'state_code': state_code,
+                    'state_code': matched_state_code,
                     'district': officer.district,
                     'station_name': officer.station_name,
                     'account_status': officer.account_status
