@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
-import '../services/firestore_service.dart';
+import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
@@ -208,8 +208,7 @@ class _LivePendingTableLoader extends StatefulWidget {
 }
 
 class _LivePendingTableLoaderState extends State<_LivePendingTableLoader> {
-  final _firestore = FirestoreService();
-  StreamSubscription<List<ModuleRecord>>? _sub;
+  final _backend = BackendCaseService();
   String _boundStation = '';
   List<ModuleRecord> _modules = const [];
   bool _initialLoad = true;
@@ -217,7 +216,6 @@ class _LivePendingTableLoaderState extends State<_LivePendingTableLoader> {
 
   @override
   void dispose() {
-    _sub?.cancel();
     super.dispose();
   }
 
@@ -226,42 +224,52 @@ class _LivePendingTableLoaderState extends State<_LivePendingTableLoader> {
     return active.isNotEmpty ? active : widget.fallbackStation;
   }
 
-  void _bindStation(String station) {
-    if (station == _boundStation && _sub != null) return;
+  void _bindStation(String station) async {
+    if (station == _boundStation && !_initialLoad) return;
     _boundStation = station;
-    _sub?.cancel();
     _error = null;
 
     if (station.isEmpty) {
-      setState(() {
-        _modules = const [];
-        _initialLoad = false;
-      });
+      if (mounted) {
+        setState(() {
+          _modules = const [];
+          _initialLoad = false;
+        });
+      }
       return;
     }
 
-    if (_modules.isEmpty) {
+    if (mounted) {
       setState(() => _initialLoad = true);
     }
 
-    _sub = _firestore.getPendingCasesStream(station).listen(
-      (data) {
-        if (!mounted) return;
+    try {
+      final dataList = await _backend.fetchPendingCases();
+      
+      if (!mounted) return;
+
+      if (dataList != null) {
+        final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
         final auth = Provider.of<AuthProvider>(context, listen: false);
+        
         setState(() {
-          _modules = CaseVisibility.filterForAuth(data, auth);
+          _modules = CaseVisibility.filterForAuth(records, auth);
           _initialLoad = false;
           _error = null;
         });
-      },
-      onError: (e) {
-        if (!mounted) return;
+      } else {
         setState(() {
-          _error = e;
+          _error = "Failed to load";
           _initialLoad = false;
         });
-      },
-    );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e;
+        _initialLoad = false;
+      });
+    }
   }
 
   @override
