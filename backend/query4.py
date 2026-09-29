@@ -10,10 +10,10 @@ from apps.cases.constants import CC_ST_KEYS
 from apps.cases.models import _extract_first_non_empty
 
 cursor = connection.cursor()
-cursor.execute("SET search_path TO maharashtra, public;")
 
 cursor.execute("SELECT id, status, extra_fields FROM cases_caserecord WHERE status IN ('Open', 'Under Investigation');")
 cases = cursor.fetchall()
+print(f"Total cases found: {len(cases)}")
 
 pending_count = 0
 disposal_count = 0
@@ -28,7 +28,7 @@ for c_id, status, extra_fields_raw in cases:
         try:
             extra = json.loads(extra_fields_raw)
         except:
-            extra = {}
+            pass
             
     has_cc = bool(_extract_first_non_empty(extra, CC_ST_KEYS))
     if not has_cc:
@@ -48,11 +48,3 @@ for c_id, status, extra_fields_raw in cases:
 print('\n--- 2. PENDING VS DISPOSAL PROJECTION ---')
 print(f"Would become Pending: {pending_count}")
 print(f"Would become Disposal: {disposal_count}")
-
-print('\n--- 5. ONE PENDING CASE EXTRA_FIELDS ---')
-cursor.execute("SELECT extra_fields FROM cases_caserecord WHERE status = 'Pending' LIMIT 1;")
-pending_case = cursor.fetchone()
-if pending_case:
-    print(json.dumps(pending_case[0] if isinstance(pending_case[0], dict) else json.loads(pending_case[0]), indent=2))
-else:
-    print("No Pending cases found.")

@@ -130,8 +130,9 @@ class PendingCasesView(APIView):
 
     def get(self, request):
         try:
+            from apps.cases.constants import CASE_STATUS_PENDING
             # Replaced raw SQL with ORM since pending_cases_combined does not exist
-            queryset = CaseRecord.objects.filter(status='Pending')
+            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
             
             # Enforce station-level visibility
             user = request.user
@@ -176,7 +177,8 @@ class IOWisePendingView(APIView):
     def get(self, request):
         try:
             from django.db.models import Count
-            queryset = CaseRecord.objects.filter(status='Pending').exclude(assigned_officer_uid__isnull=True).exclude(assigned_officer_uid='')
+            from apps.cases.constants import CASE_STATUS_PENDING
+            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING).exclude(assigned_officer_uid__isnull=True).exclude(assigned_officer_uid='')
             
             user = request.user
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
