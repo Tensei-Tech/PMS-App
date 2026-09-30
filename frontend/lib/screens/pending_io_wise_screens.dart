@@ -20,10 +20,12 @@ class PendingIoWiseByCategoryScreen extends StatefulWidget {
   });
 
   @override
-  State<PendingIoWiseByCategoryScreen> createState() => _PendingIoWiseByCategoryScreenState();
+  State<PendingIoWiseByCategoryScreen> createState() =>
+      _PendingIoWiseByCategoryScreenState();
 }
 
-class _PendingIoWiseByCategoryScreenState extends State<PendingIoWiseByCategoryScreen> {
+class _PendingIoWiseByCategoryScreenState
+    extends State<PendingIoWiseByCategoryScreen> {
   final _backend = BackendCaseService();
   bool _isLoading = true;
   String? _error;
@@ -42,8 +44,12 @@ class _PendingIoWiseByCategoryScreenState extends State<PendingIoWiseByCategoryS
 
       if (dataList != null) {
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
-        final filtered = records.where((r) => r.moduleKey != 'nc' && pendingIoWiseEligibleInCategory(r, widget.category)).toList();
-        
+        final filtered = records
+            .where((r) =>
+                r.moduleKey != 'nc' &&
+                pendingIoWiseEligibleInCategory(r, widget.category))
+            .toList();
+
         setState(() {
           _filtered = filtered;
           _isLoading = false;
@@ -66,17 +72,22 @@ class _PendingIoWiseByCategoryScreenState extends State<PendingIoWiseByCategoryS
 
   @override
   Widget build(BuildContext context) {
-    final title = '${TranslationHelper.translate(context, 'IO Wise Pending')} - ${TranslationHelper.translate(context, widget.category)}';
+    final title =
+        '${TranslationHelper.translate(context, 'IO Wise Pending')} - ${TranslationHelper.translate(context, widget.category)}';
 
     Widget buildBody() {
       if (_isLoading) {
-        return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+        return const Center(
+            child: CircularProgressIndicator(color: AppColors.navyMid));
       }
       if (_error != null) {
         return Center(
           child: Text(
             _error!,
-            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightSubText),
+            style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.lightSubText),
           ),
         );
       }
@@ -92,7 +103,8 @@ class _PendingIoWiseByCategoryScreenState extends State<PendingIoWiseByCategoryS
       if (names.isEmpty) {
         return Center(
           child: Text(
-            TranslationHelper.translate(context, 'No IO Wise pending cases in this category'),
+            TranslationHelper.translate(
+                context, 'No IO Wise pending cases in this category'),
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 13,
@@ -134,7 +146,8 @@ class _PendingIoWiseByCategoryScreenState extends State<PendingIoWiseByCategoryS
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.lightBorder),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
                   child: Row(
                     children: [
                       Expanded(
@@ -184,7 +197,8 @@ class _PendingIoWiseByCategoryScreenState extends State<PendingIoWiseByCategoryS
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, color: AppColors.navyMid, size: 20),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.navyMid, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -250,7 +264,8 @@ class PendingIoWiseDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, color: AppColors.navyMid, size: 20),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.navyMid, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -283,9 +298,11 @@ class PendingIoWiseDetailScreen extends StatelessWidget {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, 24),
+                      padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg, 0, AppSpacing.lg, 24),
                       itemCount: mine.length,
-                      itemBuilder: (_, i) => ReadOnlyModuleRecordHubCard(record: mine[i]),
+                      itemBuilder: (_, i) =>
+                          ReadOnlyModuleRecordHubCard(record: mine[i]),
                     ),
             ),
           ],

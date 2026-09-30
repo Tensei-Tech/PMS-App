@@ -34,7 +34,9 @@ class PendingSummaryScreen extends StatelessWidget {
       live != null && live.isNotEmpty;
 
   static String _bucketForRow(Map<String, String> row) {
-    return row['head']?.trim().isNotEmpty == true ? row['head']!.trim() : 'Other';
+    return row['head']?.trim().isNotEmpty == true
+        ? row['head']!.trim()
+        : 'Other';
   }
 
   List<Map<String, String>> _rowsForBucket(
@@ -196,7 +198,8 @@ class PendingSummaryScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                 children: [
-                  for (final label in _getUniqueCategories(dataset)) sectionBlock(label),
+                  for (final label in _getUniqueCategories(dataset))
+                    sectionBlock(label),
                   if (showDemoNote)
                     Padding(
                       padding: const EdgeInsets.only(top: 12),
@@ -296,13 +299,13 @@ class _LivePendingSummaryLoaderState extends State<_LivePendingSummaryLoader> {
 
     try {
       final dataList = await _backend.fetchPendingCases();
-      
+
       if (!mounted) return;
 
       if (dataList != null) {
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
         final auth = Provider.of<AuthProvider>(context, listen: false);
-        
+
         setState(() {
           _modules = CaseVisibility.filterForAuth(records, auth);
           _initialLoad = false;

@@ -19,14 +19,15 @@ class PendingHubScreen extends StatefulWidget {
   State<PendingHubScreen> createState() => _PendingHubScreenState();
 }
 
-class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerProviderStateMixin {
+class _PendingHubScreenState extends State<PendingHubScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final BackendCaseService _backend = BackendCaseService();
-  
+
   List<Map<String, dynamic>>? _timeWiseData;
   List<Map<String, dynamic>>? _ioWiseData;
   Map<String, List<Map<String, String>>>? _caseWiseData;
-  
+
   bool _isLoadingTime = false;
   bool _isLoadingIO = false;
   bool _isLoadingCase = false;
@@ -41,19 +42,23 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
     _tabController.addListener(_handleTabChange);
     _loadCaseWise(); // Load initially for the first tab
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
-  
+
   void _handleTabChange() {
     if (_tabController.index == 0 && _caseWiseData == null && !_isLoadingCase) {
       _loadCaseWise();
-    } else if (_tabController.index == 1 && _timeWiseData == null && !_isLoadingTime) {
+    } else if (_tabController.index == 1 &&
+        _timeWiseData == null &&
+        !_isLoadingTime) {
       _loadTimeWise();
-    } else if (_tabController.index == 2 && _ioWiseData == null && !_isLoadingIO) {
+    } else if (_tabController.index == 2 &&
+        _ioWiseData == null &&
+        !_isLoadingIO) {
       _loadIOWise();
     }
   }
@@ -65,15 +70,18 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
     });
 
     final dataList = await _backend.fetchPendingCases();
-    
+
     if (mounted) {
       if (dataList != null) {
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
-        final mappedRows = pendingModuleRecordsToTableRows(records, DateTime.now());
-        
+        final mappedRows =
+            pendingModuleRecordsToTableRows(records, DateTime.now());
+
         final grouped = <String, List<Map<String, String>>>{};
         for (final r in mappedRows) {
-          final head = r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : 'Other';
+          final head = r['head']?.trim().isNotEmpty == true
+              ? r['head']!.trim()
+              : 'Other';
           grouped.putIfAbsent(head, () => []).add(r);
         }
 
@@ -89,15 +97,15 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
       }
     }
   }
-  
+
   Future<void> _loadTimeWise() async {
     setState(() {
       _isLoadingTime = true;
       _errorTime = null;
     });
-    
+
     final data = await _backend.fetchPendingTimeWise();
-    
+
     if (mounted) {
       setState(() {
         _isLoadingTime = false;
@@ -109,15 +117,15 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
       });
     }
   }
-  
+
   Future<void> _loadIOWise() async {
     setState(() {
       _isLoadingIO = true;
       _errorIO = null;
     });
-    
+
     final data = await _backend.fetchPendingIOWise();
-    
+
     if (mounted) {
       setState(() {
         _isLoadingIO = false;
@@ -132,17 +140,20 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
 
   Widget _buildCaseWiseTab() {
     if (_isLoadingCase) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_errorCase != null) {
-      return Center(child: Text(_errorCase!, style: GoogleFonts.poppins(color: Colors.red)));
+      return Center(
+          child:
+              Text(_errorCase!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_caseWiseData == null || _caseWiseData!.isEmpty) {
       return const Center(child: Text("No data found"));
     }
-    
+
     final keys = _caseWiseData!.keys.toList()..sort();
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: keys.length,
@@ -189,15 +200,18 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
 
   Widget _buildTimeWiseTab() {
     if (_isLoadingTime) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_errorTime != null) {
-      return Center(child: Text(_errorTime!, style: GoogleFonts.poppins(color: Colors.red)));
+      return Center(
+          child:
+              Text(_errorTime!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_timeWiseData == null || _timeWiseData!.isEmpty) {
       return const Center(child: Text("No data found"));
     }
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _timeWiseData!.length,
@@ -210,7 +224,7 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
               // Calculate start and end dates based on the period
               final now = DateTime.now();
               DateTime? start, end;
-              
+
               final p = item['period'] ?? '';
               if (p == 'Under 1 month') {
                 start = now.subtract(const Duration(days: 30));
@@ -266,15 +280,18 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
 
   Widget _buildIOWiseTab() {
     if (_isLoadingIO) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_errorIO != null) {
-      return Center(child: Text(_errorIO!, style: GoogleFonts.poppins(color: Colors.red)));
+      return Center(
+          child:
+              Text(_errorIO!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_ioWiseData == null || _ioWiseData!.isEmpty) {
       return const Center(child: Text("No data found"));
     }
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _ioWiseData!.length,
@@ -343,7 +360,8 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
           labelColor: AppColors.navyMid,
           unselectedLabelColor: AppColors.lightSubText,
           indicatorColor: AppColors.navyMid,
-          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
+          labelStyle:
+              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
           tabs: const [
             Tab(text: 'Case Wise'),
             Tab(text: 'Time Wise'),
@@ -357,10 +375,10 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
         children: [
           // Tab 1: Case Wise
           _buildCaseWiseTab(),
-          
+
           // Tab 2: Time Wise
           _buildTimeWiseTab(),
-          
+
           // Tab 3: IO Wise
           _buildIOWiseTab(),
         ],

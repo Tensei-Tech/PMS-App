@@ -8,7 +8,6 @@ import 'ad_record_detail_screen.dart';
 import 'module_record_detail_screen.dart';
 import '../utils/module_pdf_helper.dart';
 
-
 class ReportCaseListScreen extends StatelessWidget {
   final String title;
   final List<ModuleRecord> records;

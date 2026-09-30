@@ -123,8 +123,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   bool _showMonthlyClassVITable = false;
   bool _showMonthlyPreventiveTable = false;
 
-
-
   @override
   void initState() {
     super.initState();
@@ -852,13 +850,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-
-
   Widget _buildPendingModuleReportOnly(BuildContext context) {
     final auth = context.read<AuthProvider>();
 
     return ModuleHubReportCard(
-      title: TranslationHelper.translate(context, '${widget.moduleLabel} Reports'),
+      title:
+          TranslationHelper.translate(context, '${widget.moduleLabel} Reports'),
       subtitle: TranslationHelper.translate(
           context, 'Summary of all ${widget.moduleLabel.toLowerCase()} cases'),
       showFilterRow: false,
@@ -1866,8 +1863,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         r.incidentDate.month == selectedMonth;
     bool isInYear(ModuleRecord r) => r.incidentDate.year == selectedYear;
 
-    bool isDetected(ModuleRecord r) =>
-        r.moduleKey == 'detected';
+    bool isDetected(ModuleRecord r) => r.moduleKey == 'detected';
 
     List<ModuleRecord> monthRecsWhere(bool Function(ModuleRecord) test) =>
         allRecords.where((r) => isInMonth(r) && test(r)).toList();

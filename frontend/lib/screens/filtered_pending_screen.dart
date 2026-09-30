@@ -48,7 +48,8 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
 
       if (dataList != null) {
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
-        final mappedRows = pendingModuleRecordsToTableRows(records, DateTime.now());
+        final mappedRows =
+            pendingModuleRecordsToTableRows(records, DateTime.now());
         setState(() {
           _tableRows = mappedRows;
           _isLoading = false;
@@ -88,7 +89,8 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, color: AppColors.navyMid, size: 20),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.navyMid, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -107,9 +109,13 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
             ),
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.navyMid))
+                  ? const Center(
+                      child:
+                          CircularProgressIndicator(color: AppColors.navyMid))
                   : _error != null
-                      ? Center(child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)))
+                      ? Center(
+                          child: Text(_error!,
+                              style: GoogleFonts.poppins(color: Colors.red)))
                       : _tableRows.isEmpty
                           ? const Center(child: Text("No cases found"))
                           : SingleChildScrollView(

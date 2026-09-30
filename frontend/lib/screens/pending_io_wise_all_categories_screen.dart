@@ -15,10 +15,12 @@ class PendingIoWiseAllCategoriesScreen extends StatefulWidget {
   const PendingIoWiseAllCategoriesScreen({super.key});
 
   @override
-  State<PendingIoWiseAllCategoriesScreen> createState() => _PendingIoWiseAllCategoriesScreenState();
+  State<PendingIoWiseAllCategoriesScreen> createState() =>
+      _PendingIoWiseAllCategoriesScreenState();
 }
 
-class _PendingIoWiseAllCategoriesScreenState extends State<PendingIoWiseAllCategoriesScreen> {
+class _PendingIoWiseAllCategoriesScreenState
+    extends State<PendingIoWiseAllCategoriesScreen> {
   final _backend = BackendCaseService();
   bool _isLoading = true;
   String? _error;
@@ -37,8 +39,12 @@ class _PendingIoWiseAllCategoriesScreenState extends State<PendingIoWiseAllCateg
 
       if (dataList != null) {
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
-        final filtered = records.where((r) => r.moduleKey != 'nc' && pendingIoWiseEligibleAnyDashboardCategory(r)).toList();
-        
+        final filtered = records
+            .where((r) =>
+                r.moduleKey != 'nc' &&
+                pendingIoWiseEligibleAnyDashboardCategory(r))
+            .toList();
+
         setState(() {
           _filtered = filtered;
           _isLoading = false;
@@ -61,17 +67,22 @@ class _PendingIoWiseAllCategoriesScreenState extends State<PendingIoWiseAllCateg
 
   @override
   Widget build(BuildContext context) {
-    final title = '${TranslationHelper.translate(context, 'IO Wise Pending')} — ${TranslationHelper.translate(context, 'All Categories')}';
+    final title =
+        '${TranslationHelper.translate(context, 'IO Wise Pending')} — ${TranslationHelper.translate(context, 'All Categories')}';
 
     Widget buildBody() {
       if (_isLoading) {
-        return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+        return const Center(
+            child: CircularProgressIndicator(color: AppColors.navyMid));
       }
       if (_error != null) {
         return Center(
           child: Text(
             _error!,
-            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightSubText),
+            style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.lightSubText),
           ),
         );
       }
@@ -128,7 +139,8 @@ class _PendingIoWiseAllCategoriesScreenState extends State<PendingIoWiseAllCateg
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.lightBorder),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
                   child: Row(
                     children: [
                       Expanded(
@@ -178,7 +190,8 @@ class _PendingIoWiseAllCategoriesScreenState extends State<PendingIoWiseAllCateg
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, color: AppColors.navyMid, size: 20),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.navyMid, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -242,7 +255,8 @@ class PendingIoWiseAllCategoriesDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, color: AppColors.navyMid, size: 20),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.navyMid, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -275,9 +289,11 @@ class PendingIoWiseAllCategoriesDetailScreen extends StatelessWidget {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, 24),
+                      padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg, 0, AppSpacing.lg, 24),
                       itemCount: mine.length,
-                      itemBuilder: (_, i) => ReadOnlyModuleRecordHubCard(record: mine[i]),
+                      itemBuilder: (_, i) =>
+                          ReadOnlyModuleRecordHubCard(record: mine[i]),
                     ),
             ),
           ],

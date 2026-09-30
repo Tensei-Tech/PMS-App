@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-
 import '../modules/core/models/base_record.dart';
 import '../screens/ad_record_detail_screen.dart';
 import '../screens/module_record_detail_screen.dart';
@@ -113,8 +112,7 @@ class ReadOnlyModuleRecordHubCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: sc.withValues(alpha: 0.3)),
                   ),
-                  child: Text(
-                      record.status,
+                  child: Text(record.status,
                       style: GoogleFonts.poppins(
                           fontSize: 9, fontWeight: FontWeight.w700, color: sc)),
                 ),

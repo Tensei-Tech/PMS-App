@@ -2,6 +2,7 @@
 // Routing + storage key for the shared crime registration form (CommonForm).
 
 import '../constants/case_status_constants.dart';
+
 /// Firestore / [ModuleRecord.extraFields] key for the full common form payload.
 const String kCommonFormExtraFieldsKey = 'commonForm';
 
