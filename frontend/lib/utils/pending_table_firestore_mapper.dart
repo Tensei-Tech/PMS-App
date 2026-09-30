@@ -89,12 +89,10 @@ Map<String, String> pendingModuleRecordToTableRow(
     'sr': '$sr',
     'cr': r.caseNumber.trim(),
     'sections': _sectionsLine(r),
-    'date': _regDateFmt.format(r.incidentDate),
     'io': io.isEmpty ? '—' : io,
-    'reason': _reasonLine(r),
-    'period': pendingTablePeriodLabel(r.incidentDate, reference),
+    'station': r.stationName.trim().isEmpty ? '—' : r.stationName.trim(),
     'head': _headLine(r),
-    'spot': _spotLine(r),
+    'period': pendingTablePeriodLabel(r.incidentDate, reference),
   };
 }
 

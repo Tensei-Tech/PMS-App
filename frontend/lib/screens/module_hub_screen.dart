@@ -619,14 +619,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   // Monthly module is report-only (no records section).
                   SliverToBoxAdapter(
                       child: _buildMonthlyReport(context, allRecords)),
-                ] else if (widget.moduleKey == 'pending') ...[
-                  SliverToBoxAdapter(
-                      child: _buildPendingModuleReportOnly(context)),
                 ] else if (widget.moduleLabel == 'Forms' &&
                     widget.moduleKey == 'form_1_5') ...[
                   SliverToBoxAdapter(
                       child: _buildFormsModuleReportOnly(context)),
                 ] else ...[
+                  if (widget.moduleKey == 'pending')
+                    SliverToBoxAdapter(
+                        child: _buildPendingModuleReportOnly(context)),
                   if (widget.moduleKey == 'disposal')
                     SliverToBoxAdapter(child: _buildModuleTabs()),
                   if (_isReportMode && widget.moduleKey == 'disposal')
@@ -858,8 +858,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final auth = context.read<AuthProvider>();
 
     return ModuleHubReportCard(
-      title: TranslationHelper.translate(context, 'Pending Reports'),
-      subtitle: TranslationHelper.translate(context, 'Summary of all pending cases'),
+      title: TranslationHelper.translate(context, '${widget.moduleLabel} Reports'),
+      subtitle: TranslationHelper.translate(
+          context, 'Summary of all ${widget.moduleLabel.toLowerCase()} cases'),
       showFilterRow: false,
       showCategoryButtons: false,
       filterRow: const SizedBox.shrink(),

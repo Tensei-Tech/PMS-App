@@ -30,14 +30,10 @@ class PendingCasesDemoDataTable extends StatelessWidget {
 
         final columnWidths = <int, TableColumnWidth>{
           0: const IntrinsicColumnWidth(),
-          1: const FlexColumnWidth(1.3),
-          2: const FlexColumnWidth(1.2),
-          3: const FlexColumnWidth(1.3),
-          4: const FlexColumnWidth(1.7),
-          if (isAd) 5: const FlexColumnWidth(1.3),
-          (isAd ? 6 : 5): const FlexColumnWidth(2.6),
-          (isAd ? 7 : 6): const FlexColumnWidth(1.4),
-          (isAd ? 8 : 7): const FlexColumnWidth(1.2),
+          1: const FlexColumnWidth(1.5),
+          2: const FlexColumnWidth(1.5),
+          3: const FlexColumnWidth(1.5),
+          4: const FlexColumnWidth(2.0),
         };
 
         Widget headerCell(String s) => Container(
@@ -77,13 +73,9 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         final headers = <Widget>[
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
-          headerCell('Sections'),
-          headerCell('Registered Date'),
-          headerCell('Investigation Officer'),
-          if (isAd) headerCell('Crime Spot'),
-          headerCell('Reason for Pending'),
-          headerCell('Time Period'),
-          headerCell('Head'),
+          headerCell('SEC & ACT'),
+          headerCell('IO Name'),
+          headerCell('Police station name'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -94,12 +86,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
               dataCell('${serialOffset + idx + 1}'),
               dataCell(r['cr']!),
               dataCell(r['sections']!),
-              dataCell(r['date']!),
               dataCell(r['io']!, align: Alignment.centerLeft),
-              if (isAd) dataCell(r['spot'] ?? ''),
-              dataCell(r['reason']!, align: Alignment.centerLeft),
-              dataCell(r['period']!),
-              dataCell(r['head']!),
+              dataCell(r['station']!, align: Alignment.centerLeft),
             ],
           );
         }

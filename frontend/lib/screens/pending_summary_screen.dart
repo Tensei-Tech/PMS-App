@@ -30,33 +30,11 @@ class PendingSummaryScreen extends StatelessWidget {
   /// Station scope for pending Firestore read (ignored when [liveRows] is used).
   final String stationName;
 
-  /// PDF / UI section order and footer labels (exact casing).
-  static const List<String> _sectionOrder = [
-    'More than a Year',
-    'More than 6 months',
-    'More than 3 months',
-    'Under 3 months',
-  ];
-
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
 
   static String _bucketForRow(Map<String, String> row) {
-    final p = row['period'] ?? '';
-    switch (p) {
-      case 'More than 1 year':
-        return 'More than a Year';
-      case '6 to 12 months':
-        return 'More than 6 months';
-      case '3 to 6 months':
-      case 'More than 3 months':
-        return 'More than 3 months';
-      case 'Within 3 months':
-      case '1 month':
-        return 'Under 3 months';
-      default:
-        return 'Under 3 months';
-    }
+    return row['head']?.trim().isNotEmpty == true ? row['head']!.trim() : 'Other';
   }
 
   List<Map<String, String>> _rowsForBucket(
@@ -66,12 +44,22 @@ class PendingSummaryScreen extends StatelessWidget {
     return data.where((r) => _bucketForRow(r) == bucketLabel).toList();
   }
 
+  List<String> _getUniqueCategories(List<Map<String, String>> data) {
+    final Set<String> categories = {};
+    for (final r in data) {
+      categories.add(_bucketForRow(r));
+    }
+    final list = categories.toList()..sort();
+    return list;
+  }
+
   Future<void> _exportPdf(
     BuildContext context,
     List<Map<String, String>> dataset,
   ) async {
     final flat = <Map<String, String>>[];
-    for (final section in _sectionOrder) {
+    final categories = _getUniqueCategories(dataset);
+    for (final section in categories) {
       flat.addAll(_rowsForBucket(dataset, section));
     }
     if (flat.isEmpty) return;
@@ -208,7 +196,7 @@ class PendingSummaryScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                 children: [
-                  for (final label in _sectionOrder) sectionBlock(label),
+                  for (final label in _getUniqueCategories(dataset)) sectionBlock(label),
                   if (showDemoNote)
                     Padding(
                       padding: const EdgeInsets.only(top: 12),

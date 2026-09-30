@@ -141,9 +141,9 @@ class PendingCasesView(APIView):
                 queryset = queryset.filter(station_name__in=stations)
 
             # Apply ?io filter
-            io_uid = request.query_params.get('io')
-            if io_uid:
-                queryset = queryset.filter(assigned_officer_uid=io_uid)
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
 
             # Apply time range filter (start_date, end_date)
             start_date = request.query_params.get('start_date')
@@ -174,7 +174,8 @@ class IOWisePendingView(APIView):
         try:
             from django.db.models import Count
             from apps.cases.constants import CASE_STATUS_PENDING
-            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING).exclude(assigned_officer_uid__isnull=True).exclude(assigned_officer_uid='')
+            # Don't exclude null uids so we can see cases where only assigned_officer name is set
+            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
             
             user = request.user
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -189,20 +190,16 @@ class IOWisePendingView(APIView):
             if end_date:
                 queryset = queryset.filter(created_at__date__lte=end_date)
 
-            counts = queryset.values('assigned_officer_uid', 'station_name').annotate(count=Count('id')).order_by('-count')
+            # Group by the string name if uid is missing
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
             
-            from apps.users.models import OfficerProfile
-            officer_uids = [c['assigned_officer_uid'] for c in counts]
-            officers = {o.uid: o for o in OfficerProfile.objects.filter(uid__in=officer_uids)}
-
             results = []
             for c in counts:
-                uid = c['assigned_officer_uid']
-                officer = officers.get(uid)
+                name = c['assigned_officer']
                 results.append({
-                    'io_uid': uid,
-                    'io_name': officer.name if officer else 'Unknown Officer',
-                    'io_rank': officer.designation if officer else 'Unknown',
+                    'io_uid': name, # Use name as fallback uid for routing
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
                     'station_name': c['station_name'],
                     'pending_count': c['count']
                 })
@@ -211,6 +208,49 @@ class IOWisePendingView(APIView):
         except Exception as e:
             logger.exception(f"[IOWisePendingView] Database error: {e}")
             return Response({'error': 'Failed to retrieve IO-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWisePendingView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.constants import CASE_STATUS_PENDING
+            
+            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(incident_date__gte=month_1).count()
+            months_1_to_3 = queryset.filter(incident_date__gte=months_3, incident_date__lt=month_1).count()
+            months_3_to_6 = queryset.filter(incident_date__gte=months_6, incident_date__lt=months_3).count()
+            months_6_to_12 = queryset.filter(incident_date__gte=year_1, incident_date__lt=months_6).count()
+            more_than_1_year = queryset.filter(incident_date__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[TimeWisePendingView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve Time-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DisposalCasesView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
