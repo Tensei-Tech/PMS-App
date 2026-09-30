@@ -170,7 +170,7 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.navyMid.withOpacity(0.1),
+                color: AppColors.navyMid.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -247,7 +247,7 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.navyMid.withOpacity(0.1),
+                color: AppColors.navyMid.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -305,7 +305,7 @@ class _PendingHubScreenState extends State<PendingHubScreen> with SingleTickerPr
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.navyMid.withOpacity(0.1),
+                color: AppColors.navyMid.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
