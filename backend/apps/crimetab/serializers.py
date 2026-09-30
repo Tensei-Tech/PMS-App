@@ -171,18 +171,31 @@ class RemandCustodySerializer(serializers.ModelSerializer):
         # Enforce check constraint logic at serializer validation level as well
         mcr = data.get('mcr')
         pr_bond = data.get('pr_bond')
+        pr_bond_date = data.get('pr_bond_date')
         bail = data.get('bail')
         surety_name = data.get('surety_name')
         jail = data.get('jail')
+        jail_date = data.get('jail_date')
 
         if pr_bond and not mcr:
             raise serializers.ValidationError({
                 'pr_bond': 'PR Bond can only be set when MCR is Yes.'
             })
-
-        if (surety_name or jail) and not bail:
+        if pr_bond_date and not pr_bond:
             raise serializers.ValidationError({
-                'bail': 'Surety Name and Jail can only be set when Bail is Yes.'
+                'pr_bond_date': 'PR Bond Date can only be set when PR Bond is Yes.'
+            })
+        if surety_name and not bail:
+            raise serializers.ValidationError({
+                'surety_name': 'Surety Name can only be set when Bail is Yes.'
+            })
+        if jail and not mcr:
+            raise serializers.ValidationError({
+                'jail': 'Jail can only be set when MCR is Yes.'
+            })
+        if jail_date and not jail:
+            raise serializers.ValidationError({
+                'jail_date': 'Jail Date can only be set when Jail is Yes.'
             })
 
         return data
@@ -231,6 +244,8 @@ class SeizureRecordsSerializer(serializers.ModelSerializer):
 
 
 class PreventiveActionItemsSerializer(serializers.ModelSerializer):
+    person_name = serializers.CharField(source='person.name', read_only=True)
+
     class Meta:
         model = PreventiveActionItems
         fields = '__all__'

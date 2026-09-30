@@ -306,9 +306,11 @@ class RemandCustody(models.Model):
     pcr_days = models.IntegerField(null=True, blank=True)
     mcr = models.BooleanField(null=True, blank=True)
     pr_bond = models.BooleanField(null=True, blank=True)
+    pr_bond_date = models.DateField(null=True, blank=True)
     bail = models.BooleanField(null=True, blank=True)
     surety_name = models.CharField(max_length=150, null=True, blank=True)
     jail = models.BooleanField(null=True, blank=True)
+    jail_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -317,14 +319,18 @@ class RemandCustody(models.Model):
         verbose_name_plural = 'Remand Custodies'
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(pr_bond__isnull=True) | models.Q(pr_bond=False) | models.Q(mcr=True),
+                condition=(
+                    (models.Q(pr_bond__isnull=True) | models.Q(pr_bond=False) | models.Q(mcr=True)) &
+                    (models.Q(pr_bond_date__isnull=True) | models.Q(pr_bond=True))
+                ),
                 name='chk_pr_bond_requires_mcr'
             ),
             models.CheckConstraint(
                 condition=(
-                    (models.Q(surety_name__isnull=True) | models.Q(surety_name='')) &
-                    (models.Q(jail__isnull=True) | models.Q(jail=False))
-                ) | models.Q(bail=True),
+                    (models.Q(surety_name__isnull=True) | models.Q(surety_name='') | models.Q(bail=True)) &
+                    (models.Q(jail__isnull=True) | models.Q(jail=False) | models.Q(mcr=True)) &
+                    (models.Q(jail_date__isnull=True) | models.Q(jail=True))
+                ),
                 name='chk_surety_jail_requires_bail'
             ),
         ]
@@ -474,6 +480,15 @@ class PreventiveActionItems(models.Model):
         related_name='preventive_action_items',
         db_column='case_id'
     )
+    person = models.ForeignKey(
+        CasesPerson,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='person_id',
+        related_name='preventive_actions'
+    )
+    name = models.CharField(max_length=150, null=True, blank=True)
     action_type = models.CharField(max_length=30, choices=ACTION_TYPE_CHOICES, default='107 CrPC/126 BNSS')
     action_date = models.DateField(default=timezone.now)
     outward_number = models.CharField(max_length=50, null=True, blank=True)
@@ -483,7 +498,7 @@ class PreventiveActionItems(models.Model):
         db_table = 'preventive_action_items'
         verbose_name = 'Preventive Action Item'
         verbose_name_plural = 'Preventive Action Items'
-        unique_together = ('case', 'action_type')
+        unique_together = ('case', 'person', 'action_type')
 
     def __str__(self):
         return f"{self.action_type} on {self.action_date} (Case {self.case_id})"
@@ -582,6 +597,7 @@ class FinalVerdict(models.Model):
     c_final_number = models.CharField(max_length=50, null=True, blank=True)
     nc_final_number = models.CharField(max_length=50, null=True, blank=True)
     abeted_summary_no = models.CharField(max_length=50, null=True, blank=True)
+    cc_st_number = models.CharField(max_length=50, null=True, blank=True)
     stay_by_high_court_date = models.DateField(null=True, blank=True)
     quashed_by_high_court_date = models.DateField(null=True, blank=True)
 

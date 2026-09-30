@@ -134,4 +134,10 @@ class ApiConfig {
   static String get auditLogs => '$baseUrl/core/audit-logs/';
   static String get sosAlerts => '$baseUrl/core/sos-alerts/';
   static String get announcements => '$baseUrl/master/announcements/';
+
+  // Reference Data Endpoints for Acts & Charges
+  static String get acts => '$baseUrl/acts/';
+  static String get actSections => '$baseUrl/act-sections/';
+  static String get actSubsections => '$baseUrl/act-subsections/';
 }
+

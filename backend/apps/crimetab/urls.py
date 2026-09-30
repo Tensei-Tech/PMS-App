@@ -10,6 +10,9 @@ from apps.crimetab.views import (
     LocationDivisionsView,
     LocationDistrictsView,
     LocationStationsView,
+    ActsView,
+    ActSectionsView,
+    ActSubsectionsView,
     CasePdfView,
 )
 
@@ -43,6 +46,11 @@ urlpatterns = [
     path('cases/<str:pk>/', CrimeCaseManageView.as_view(), name='case-detail-manage'),
     path('cases/', CrimeCaseManageView.as_view(), name='case-create-list'),
 
+    # Reference Data Cascades for Acts & Charges
+    path('acts/', ActsView.as_view(), name='acts-list'),
+    path('act-sections/', ActSectionsView.as_view(), name='act-sections-list'),
+    path('act-subsections/', ActSubsectionsView.as_view(), name='act-subsections-list'),
+
     # Location Cascades for Transfer & Form Pickers
     path('divisions/', LocationDivisionsView.as_view(), name='location-divisions'),
     path('districts/', LocationDistrictsView.as_view(), name='location-districts'),
@@ -51,3 +59,4 @@ urlpatterns = [
     # Routers for groups, categories
     path('', include(router.urls)),
 ]
+

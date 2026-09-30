@@ -353,8 +353,8 @@ Map<String, dynamic> _buildFormDefinition(String category, String sections) {
       'field_key': 'is_unknown_accused',
       'field_source': 'common',
       'field_type': 'checkbox',
-      'section': 'Registration Info',
-      'display_order': 30
+      'section': 'Unknown Accused',
+      'display_order': 445
     },
 
     // Crime Spot

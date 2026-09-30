@@ -19,6 +19,7 @@ class DynamicSectionCard extends StatefulWidget {
   final bool readOnly;
   final bool initiallyExpanded;
   final List<String>? accusedOptions;
+  final Widget? headerAction;
 
   const DynamicSectionCard({
     super.key,
@@ -32,6 +33,7 @@ class DynamicSectionCard extends StatefulWidget {
     this.readOnly = false,
     this.initiallyExpanded = true,
     this.accusedOptions,
+    this.headerAction,
   });
 
   @override
@@ -47,9 +49,39 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
     _expanded = widget.initiallyExpanded;
   }
 
+  // Data-driven field dependency graph: child_field_key -> parent_field_key
+  static const Map<String, String> _fieldParentDependency = {
+    // Remand & Custody section dependencies
+    'pr_bond': 'mcr',
+    'bail': 'mcr',
+    'jail': 'mcr',
+    'pr_bond_date': 'pr_bond',
+    'surety_name': 'bail',
+    'jail_date': 'jail',
+  };
+
+  bool _isFieldVisible(DynamicFieldDef f) {
+    var currentKey = f.fieldKey;
+    while (_fieldParentDependency.containsKey(currentKey)) {
+      final parentKey = _fieldParentDependency[currentKey]!;
+      final parentVal =
+          widget.values[parentKey] ?? widget.controllers[parentKey]?.text;
+      final isParentTrue = parentVal == true ||
+          parentVal == 'true' ||
+          parentVal == '1' ||
+          (parentVal is String &&
+              parentVal.trim().isNotEmpty &&
+              parentVal.toLowerCase() != 'false');
+      if (!isParentTrue) return false;
+      currentKey = parentKey;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (widget.fields.isEmpty) return const SizedBox.shrink();
+    final visibleFields = widget.fields.where(_isFieldVisible).toList();
+    if (visibleFields.isEmpty) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -100,6 +132,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       ),
                     ),
                   ),
+                  if (widget.headerAction != null) ...[
+                    widget.headerAction!,
+                    const SizedBox(width: 8),
+                  ],
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -108,7 +144,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '${widget.fields.length} fields',
+                      '${visibleFields.length} fields',
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -139,7 +175,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                   if (!isWide) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: widget.fields.map((f) {
+                      children: visibleFields.map((f) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: DynamicControlFactory(
@@ -158,10 +194,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
 
                   // 2-Column Responsive Grid on wider screens
                   final items = <Widget>[];
-                  for (var i = 0; i < widget.fields.length; i += 2) {
-                    final f1 = widget.fields[i];
-                    final f2 = (i + 1 < widget.fields.length)
-                        ? widget.fields[i + 1]
+                  for (var i = 0; i < visibleFields.length; i += 2) {
+                    final f1 = visibleFields[i];
+                    final f2 = (i + 1 < visibleFields.length)
+                        ? visibleFields[i + 1]
                         : null;
 
                     // If f1 is textarea, give it full row width

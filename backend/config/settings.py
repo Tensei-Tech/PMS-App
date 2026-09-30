@@ -129,7 +129,7 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
-        'CONN_MAX_AGE': 600,
+        'CONN_MAX_AGE': 0 if os.getenv('DB_PORT') == '6543' else 600,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
             'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_local else 'require'),

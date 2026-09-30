@@ -599,9 +599,13 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             pw.SizedBox(height: 6),
             _grid2([
               _f('PR Bond', isPrBond ? 'Yes (✓)' : 'No'),
+              if (isPrBond)
+                _f('PR Bond Date', _v(custody['prBondDate'] ?? custody['pr_bond_date'])),
               _f('Jail', isJail ? 'Yes (✓)' : 'No'),
+              if (isJail)
+                _f('Jail Date', _v(custody['jailDate'] ?? custody['jail_date'])),
               _f('Bail Granted', isBail ? 'Yes (✓)' : 'No'),
-              if (isJail) _f('Jail Name / Details', _v(custody['jailName'])),
+              if (isJail) _f('Jail Name / Details', _v(custody['mcrJail'] ?? custody['jailName'])),
             ]),
             if (isBail) ...[
               pw.SizedBox(height: 8),
@@ -801,23 +805,52 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── §15 Preventive Action & Bonds ─────────────────────────────────────────
   final prev = m['preventive'] as Map? ?? {};
+  final prevItems = (prev['items'] as List?) ?? (m['preventive_actions'] as List?) ?? [];
   sections.add(
     _card(
       15,
       'PREVENTIVE ACTION & BONDS',
       _teal,
-      _grid2([
-        _f('Action Act / Section',
-            _v(prev['action'] ?? prev['actionType'], or: 'Not set')),
-        _f('Action Date (Mandatory)', _v(prev['actionDate'])),
-        _f('Outward Number (Optional)',
-            _v(prev['outwardNo'] ?? prev['outwardNumber'])),
-        _f('Bond Date', _v(prev['bondDate'])),
-        _f('Bond Cancellation Date',
-            _v(prev['bondCancellation'] ?? prev['bondCancelDate'])),
-        _f('Reason for PR Bond', _v(prev['bondReason'] ?? prev['prBondReason']),
-            full: true),
-      ]),
+      pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          if (prevItems.isNotEmpty) ...[
+            ...prevItems.map((it) {
+              if (it is! Map) return pw.SizedBox();
+              final pName = _v(it['person_name'] ?? it['name'] ?? it['accusedName'] ?? it['person']);
+              final pAction = _v(it['action'] ?? it['action_type']);
+              final pDate = _v(it['action_date'] ?? it['actionDate']);
+              final pOut = _v(it['outward_number'] ?? it['outwardNumber']);
+              return pw.Container(
+                margin: const pw.EdgeInsets.only(bottom: 4),
+                child: _grid2([
+                  _f('Accused / Person', pName),
+                  _f('Provision', pAction),
+                  _f('Action Date', pDate),
+                  _f('Outward Number', pOut),
+                ]),
+              );
+            }),
+            pw.Divider(height: 8),
+          ] else ...[
+            _grid2([
+              _f('Action Act / Section',
+                  _v(prev['action'] ?? prev['actionType'], or: 'Not set')),
+              _f('Action Date (Mandatory)', _v(prev['actionDate'])),
+              _f('Outward Number (Optional)',
+                  _v(prev['outwardNo'] ?? prev['outwardNumber'])),
+            ]),
+            pw.Divider(height: 8),
+          ],
+          _grid2([
+            _f('Bond Date', _v(prev['bondDate'])),
+            _f('Bond Cancellation Date',
+                _v(prev['bondCancellation'] ?? prev['bondCancelDate'])),
+            _f('Reason for PR Bond', _v(prev['bondReason'] ?? prev['prBondReason']),
+                full: true),
+          ]),
+        ],
+      ),
     ),
   );
 

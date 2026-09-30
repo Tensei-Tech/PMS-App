@@ -126,6 +126,72 @@ def is_ad_case_disposed(case) -> bool:
     return bool(num and dt)
 
 
+COURT_FILING_DISPOSAL_KEYS = [
+    'a_final_number', 'aFinalNumber', 'a_final_no', 'aFinalNo',
+    'b_final_number', 'bFinalNumber', 'b_final_no', 'bFinalNo',
+    'c_final_number', 'cFinalNumber', 'c_final_no', 'cFinalNo',
+    'nc_final_number', 'ncFinalNumber', 'nc_final_no', 'ncFinalNo',
+    'abeted_summary_no', 'abetedSummaryNo', 'abeted_summary_number', 'abated_summary_no', 'abatedSummaryNo',
+    'cc_st_number', 'ccStNumber', 'cc_st_no', 'ccStNo',
+    'stay_by_high_court_date', 'stayByHighCourtDate', 'stay_by_high_court', 'stayHighCourtDate',
+    'quashed_by_high_court_date', 'quashedByHighCourtDate', 'quashed_by_high_court', 'quashedHighCourtDate',
+]
+
+
+def is_case_disposed_by_court_filing(case) -> bool:
+    """
+    Checks if ANY of the 8 Court Filing & Final Summary fields is filled (non-empty):
+    1. A Final Number
+    2. B Final Number
+    3. C Final Number
+    4. NC Final Number
+    5. Abeted Summary No.
+    6. CC/ST Number
+    7. Stay by High Court Date
+    8. Quashed by High Court Date
+    If any of these fields is filled, status automatically becomes 'Disposal'.
+    """
+    if not case:
+        return False
+
+    def _check_dict(d: dict) -> bool:
+        if not isinstance(d, dict):
+            return False
+        for k in COURT_FILING_DISPOSAL_KEYS:
+            v = d.get(k)
+            if v is not None and str(v).strip():
+                return True
+        for sub_k in ['final_verdict', 'finalVerdict', 'court', 'court_filing', 'courtFiling', 'commonForm', 'common_form']:
+            sub = d.get(sub_k)
+            if isinstance(sub, dict) and _check_dict(sub):
+                return True
+        return False
+
+    if isinstance(case, dict):
+        extra = case.get('extra_fields') or case.get('extraFields') or {}
+        return _check_dict(case) or _check_dict(extra)
+
+    extra = getattr(case, 'extra_fields', {}) or {}
+    if _check_dict(extra):
+        return True
+
+    # Check related final_verdict if present
+    try:
+        fv = getattr(case, 'final_verdict', None)
+        if fv:
+            for attr in [
+                'a_final_number', 'b_final_number', 'c_final_number', 'nc_final_number',
+                'abeted_summary_no', 'cc_st_number', 'stay_by_high_court_date', 'quashed_by_high_court_date'
+            ]:
+                val = getattr(fv, attr, None)
+                if val is not None and str(val).strip():
+                    return True
+    except Exception:
+        pass
+
+    return False
+
+
 class CaseRecord(models.Model):
     """
     Case Record model matching Flutter ModuleRecord for PostgreSQL storage.
@@ -172,7 +238,7 @@ class CaseRecord(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        if is_ad_case_disposed(self) and self.status not in ['Disposal', 'Closed', 'Resolved']:
+        if (is_ad_case_disposed(self) or is_case_disposed_by_court_filing(self)) and self.status not in ['Disposal', 'Closed', 'Resolved']:
             self.status = 'Disposal'
         super().save(*args, **kwargs)
 

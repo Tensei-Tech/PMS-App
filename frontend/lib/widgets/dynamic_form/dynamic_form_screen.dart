@@ -12,6 +12,8 @@ import '../../services/case_service.dart';
 import '../../theme/app_theme.dart';
 import 'dynamic_field_model.dart';
 import 'dynamic_section_builder.dart';
+import '../repeating_cascading_charges_selector.dart';
+
 
 class DynamicFormScreen extends StatefulWidget {
   final dynamic categoryId;
@@ -200,6 +202,49 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         }
       }
     }
+
+    // Hydrate suspected accused
+    final suspData = common['suspectedAccused'] ?? extra['suspectedAccused'];
+    if (suspData is List && suspData.isNotEmpty) {
+      final first = suspData.first;
+      if (first is Map) {
+        _setField('suspected_accused_name',
+            first['name'] ?? first['suspected_accused_name']);
+        _setField('suspected_accused_age',
+            first['age'] ?? first['suspected_accused_age']);
+        _setField('suspected_accused_gender',
+            first['gender'] ?? first['suspected_accused_gender']);
+        _setField(
+            'suspected_accused_occupation',
+            first['occupation'] ??
+                first['occ'] ??
+                first['suspected_accused_occupation']);
+        _setField('suspected_accused_mobile',
+            first['mobile'] ?? first['suspected_accused_mobile']);
+        _setField('suspected_accused_aadhaar',
+            first['aadhaar'] ?? first['suspected_accused_aadhaar']);
+        _setField('suspected_accused_pan',
+            first['pan'] ?? first['suspected_accused_pan']);
+        _setField('suspected_accused_religion',
+            first['religion'] ?? first['suspected_accused_religion']);
+        _setField('suspected_accused_caste',
+            first['caste'] ?? first['suspected_accused_caste']);
+        _setField('suspected_accused_address',
+            first['address'] ?? first['suspected_accused_address']);
+      }
+    }
+
+    // Hydrate unknown accused
+    final isUnk = common['is_unknown_accused'] ??
+        common['isUnknownAccused'] ??
+        common['isUnknownUntraced'] ??
+        extra['is_unknown_accused'] ??
+        extra['isUnknownAccused'] ??
+        extra['isUnknownUntraced'];
+    if (isUnk != null) {
+      final b = isUnk == true || isUnk.toString().toLowerCase() == 'true';
+      _setField('is_unknown_accused', b);
+    }
   }
 
   void _setField(String key, dynamic val) {
@@ -210,28 +255,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     _values[key] = val;
   }
 
-  void _onChargeSectionToggled(
-      String actKey, String sectionNum, bool selected) {
-    if (widget.readOnly) return;
-    setState(() {
-      final set = _selectedCharges.putIfAbsent(actKey, () => <String>{});
-      if (selected) {
-        set.add(sectionNum);
-      } else {
-        set.remove(sectionNum);
-      }
-    });
-
-    // Trigger B: Debounced call to unlock extra section fields from database
-    _triggerBDebounce?.cancel();
-    _triggerBDebounce = Timer(const Duration(milliseconds: 300), () {
-      final allSections = <String>[];
-      for (final sSet in _selectedCharges.values) {
-        allSections.addAll(sSet);
-      }
-      _loadFormDefinition(chargedSections: allSections);
-    });
-  }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
@@ -351,6 +374,32 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       }
     }
 
+    final suspectedName = _controllers['suspected_accused_name']?.text.trim() ??
+        _controllers['suspected_name']?.text.trim() ??
+        '';
+    final suspectedList = <Map<String, dynamic>>[];
+    if (suspectedName.isNotEmpty) {
+      suspectedList.add({
+        'name': suspectedName,
+        'age': _controllers['suspected_accused_age']?.text.trim(),
+        'gender': _values['suspected_accused_gender'] ??
+            _controllers['suspected_accused_gender']?.text.trim(),
+        'occupation': _controllers['suspected_accused_occupation']?.text.trim(),
+        'mobile': _controllers['suspected_accused_mobile']?.text.trim(),
+        'aadhaar': _controllers['suspected_accused_aadhaar']?.text.trim(),
+        'pan': _controllers['suspected_accused_pan']?.text.trim(),
+        'religion': _controllers['suspected_accused_religion']?.text.trim(),
+        'caste': _controllers['suspected_accused_caste']?.text.trim(),
+        'address': _controllers['suspected_accused_address']?.text.trim(),
+      });
+    }
+
+    final isUnknown = _values['is_unknown_accused'] == true ||
+        _controllers['is_unknown_accused']?.text.toLowerCase() == 'true';
+    allFormFields['is_unknown_accused'] = isUnknown;
+    allFormFields['isUnknownAccused'] = isUnknown;
+    allFormFields['isUnknownUntraced'] = isUnknown;
+
     // Build commonForm document map for full backward compatibility
     final commonFormDoc = <String, dynamic>{
       'crNo': caseNo,
@@ -360,6 +409,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       'accused': [
         {'name': accused}
       ],
+      'suspectedAccused': suspectedList,
+      'isUnknownAccused': isUnknown,
+      'is_unknown_accused': isUnknown,
+      'isUnknownUntraced': isUnknown,
       'dischargeByAccused': dischargeByAccused,
       'discharges': dischargesList,
       'arrests': arrestsList,
@@ -372,6 +425,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
     extraFields.addAll(allFormFields);
     extraFields['commonForm'] = commonFormDoc;
+    extraFields['suspectedAccused'] = suspectedList;
+    extraFields['is_unknown_accused'] = isUnknown;
+    extraFields['isUnknownAccused'] = isUnknown;
+    extraFields['isUnknownUntraced'] = isUnknown;
     extraFields['extra_field_values'] = dynamicExtraVals;
     extraFields['dischargeByAccused'] = dischargeByAccused;
     extraFields['discharges'] = dischargesList;
@@ -466,7 +523,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               ),
             ),
             Text(
-              'Database-Driven Smart Form Engine',
+              widget.moduleLabel,
               style: GoogleFonts.poppins(
                   fontSize: 11, color: AppColors.lightSubText),
             ),
@@ -486,7 +543,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                     size: 14, color: AppColors.navyMid),
                 const SizedBox(width: 4),
                 Text(
-                  'DB SOURCE',
+                  widget.moduleKey.toUpperCase(),
                   style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
@@ -500,6 +557,33 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       ),
       body: _buildBody(),
     );
+  }
+
+
+  void _onDynamicFieldValueChanged(String k, dynamic v) {
+    setState(() {
+      _values[k] = v;
+      if (k == 'mcr' && v != true) {
+        _values['pr_bond'] = false;
+        _values['bail'] = false;
+        _values['jail'] = false;
+        _values['pr_bond_date'] = null;
+        _controllers['pr_bond_date']?.clear();
+        _values['surety_name'] = null;
+        _controllers['surety_name']?.clear();
+        _values['jail_date'] = null;
+        _controllers['jail_date']?.clear();
+      } else if (k == 'pr_bond' && v != true) {
+        _values['pr_bond_date'] = null;
+        _controllers['pr_bond_date']?.clear();
+      } else if (k == 'bail' && v != true) {
+        _values['surety_name'] = null;
+        _controllers['surety_name']?.clear();
+      } else if (k == 'jail' && v != true) {
+        _values['jail_date'] = null;
+        _controllers['jail_date']?.clear();
+      }
+    });
   }
 
   Widget _buildBody() {
@@ -552,7 +636,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final Map<String, List<DynamicFieldDef>> groupedBySection = {};
     for (final f in fields) {
       if (f.fieldSource == 'custom') continue;
-      final sec = f.section ?? 'Crime Registration Info';
+      var sec = f.section ?? 'Crime Registration Info';
+      if (f.fieldKey == 'is_unknown_accused') {
+        sec = 'Unknown Accused';
+      }
       groupedBySection.putIfAbsent(sec, () => []).add(f);
     }
 
@@ -596,7 +683,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fields: customFields,
               controllers: _controllers,
               values: _values,
-              onValueChanged: (k, v) => setState(() => _values[k] = v),
+              onValueChanged: _onDynamicFieldValueChanged,
               readOnly: widget.readOnly,
               accusedOptions: accusedOptions,
             ),
@@ -604,6 +691,303 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         }
       } else if (secKey == 'Discharge Accused') {
         sectionCards.add(_buildDischargeAccusedSection());
+      } else if (secKey == 'Suspected Accused') {
+        final secFields = (groupedBySection['Suspected Accused'] != null &&
+                groupedBySection['Suspected Accused']!.isNotEmpty)
+            ? groupedBySection['Suspected Accused']!
+            : const [
+                DynamicFieldDef(
+                  fieldDefId: 9290,
+                  fieldLabel: 'Name',
+                  fieldKey: 'suspected_accused_name',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 290,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 9300,
+                  fieldLabel: 'Age',
+                  fieldKey: 'suspected_accused_age',
+                  fieldSource: 'common',
+                  fieldType: 'number',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 300,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 9310,
+                  fieldLabel: 'Gender',
+                  fieldKey: 'suspected_accused_gender',
+                  fieldSource: 'common',
+                  fieldType: 'gender_toggle',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 310,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 9320,
+                  fieldLabel: 'Occupation',
+                  fieldKey: 'suspected_accused_occupation',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 320,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 9330,
+                  fieldLabel: 'Mobile Number',
+                  fieldKey: 'suspected_accused_mobile',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 330,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 9340,
+                  fieldLabel: 'Aadhar Number',
+                  fieldKey: 'suspected_accused_aadhaar',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 340,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 9350,
+                  fieldLabel: 'PAN Number',
+                  fieldKey: 'suspected_accused_pan',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 350,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 9360,
+                  fieldLabel: 'Religion',
+                  fieldKey: 'suspected_accused_religion',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 360,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 9370,
+                  fieldLabel: 'Caste',
+                  fieldKey: 'suspected_accused_caste',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 370,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 9380,
+                  fieldLabel: 'Address',
+                  fieldKey: 'suspected_accused_address',
+                  fieldSource: 'common',
+                  fieldType: 'textarea',
+                  isRequired: false,
+                  section: 'Suspected Accused',
+                  displayOrder: 380,
+                ),
+              ];
+        for (final f in secFields) {
+          _controllers.putIfAbsent(f.fieldKey, () => TextEditingController());
+        }
+        sectionCards.add(
+          DynamicSectionCard(
+            title: 'Suspected Accused',
+            icon: Icons.person_search_rounded,
+            fields: secFields,
+            controllers: _controllers,
+            values: _values,
+            onValueChanged: _onDynamicFieldValueChanged,
+            readOnly: widget.readOnly,
+            accusedOptions: accusedOptions,
+            headerAction: widget.readOnly
+                ? null
+                : InkWell(
+                    onTap: () {
+                      setState(() {
+                        _controllers['suspected_accused_name']?.text =
+                            _controllers['accused_name']?.text ?? '';
+                        _controllers['suspected_accused_age']?.text =
+                            _controllers['accused_age']?.text ?? '';
+                        _values['suspected_accused_gender'] =
+                            _values['accused_gender'] ??
+                                _controllers['accused_gender']?.text;
+                        _controllers['suspected_accused_gender']?.text =
+                            _controllers['accused_gender']?.text ?? '';
+                        _controllers['suspected_accused_occupation']?.text =
+                            _controllers['accused_occupation']?.text ?? '';
+                        _controllers['suspected_accused_mobile']?.text =
+                            _controllers['accused_mobile']?.text ?? '';
+                        _controllers['suspected_accused_aadhaar']?.text =
+                            _controllers['accused_aadhaar']?.text ?? '';
+                        _controllers['suspected_accused_pan']?.text =
+                            _controllers['accused_pan']?.text ?? '';
+                        _controllers['suspected_accused_religion']?.text =
+                            _controllers['accused_religion']?.text ?? '';
+                        _controllers['suspected_accused_caste']?.text =
+                            _controllers['accused_caste']?.text ?? '';
+                        _controllers['suspected_accused_address']?.text =
+                            _controllers['accused_address']?.text ?? '';
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyMid.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.navyMid.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.copy_rounded,
+                            size: 11,
+                            color: AppColors.navyMid,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Same as Accused',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyMid,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+          ),
+        );
+      } else if (secKey == 'Unidentified Accused') {
+        final secFields = (groupedBySection['Unidentified Accused'] != null &&
+                groupedBySection['Unidentified Accused']!.isNotEmpty)
+            ? groupedBySection['Unidentified Accused']!
+            : const [
+                DynamicFieldDef(
+                  fieldDefId: 770,
+                  fieldLabel: 'Approximate Age',
+                  fieldKey: 'approximate_age',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Unidentified Accused',
+                  displayOrder: 390,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 771,
+                  fieldLabel: 'Skin Colour',
+                  fieldKey: 'skin_colour',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Unidentified Accused',
+                  displayOrder: 400,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 772,
+                  fieldLabel: 'Possible Occupation',
+                  fieldKey: 'possible_occupation',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Unidentified Accused',
+                  displayOrder: 410,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 773,
+                  fieldLabel: 'Identification Mark',
+                  fieldKey: 'identification_mark',
+                  fieldSource: 'common',
+                  fieldType: 'textarea',
+                  isRequired: false,
+                  section: 'Unidentified Accused',
+                  displayOrder: 420,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 774,
+                  fieldLabel: 'Height',
+                  fieldKey: 'height',
+                  fieldSource: 'common',
+                  fieldType: 'text',
+                  isRequired: false,
+                  section: 'Unidentified Accused',
+                  displayOrder: 430,
+                ),
+                DynamicFieldDef(
+                  fieldDefId: 775,
+                  fieldLabel: 'Physical Description',
+                  fieldKey: 'description',
+                  fieldSource: 'common',
+                  fieldType: 'textarea',
+                  isRequired: false,
+                  section: 'Unidentified Accused',
+                  displayOrder: 440,
+                ),
+              ];
+        for (final f in secFields) {
+          _controllers.putIfAbsent(f.fieldKey, () => TextEditingController());
+        }
+        sectionCards.add(
+          DynamicSectionCard(
+            title: 'Unidentified Accused',
+            icon: Icons.fingerprint_rounded,
+            fields: secFields,
+            controllers: _controllers,
+            values: _values,
+            onValueChanged: _onDynamicFieldValueChanged,
+            readOnly: widget.readOnly,
+            accusedOptions: accusedOptions,
+          ),
+        );
+      } else if (secKey == 'Unknown Accused') {
+        final secFields = (groupedBySection['Unknown Accused'] != null &&
+                groupedBySection['Unknown Accused']!.isNotEmpty)
+            ? groupedBySection['Unknown Accused']!
+            : const [
+                DynamicFieldDef(
+                  fieldDefId: 744,
+                  fieldLabel: 'Unknown Accused Involved (✓) / अज्ञात आरोपी',
+                  fieldKey: 'is_unknown_accused',
+                  fieldSource: 'common',
+                  fieldType: 'checkbox',
+                  isRequired: false,
+                  section: 'Unknown Accused',
+                  displayOrder: 445,
+                ),
+              ];
+        for (final f in secFields) {
+          _controllers.putIfAbsent(f.fieldKey, () => TextEditingController());
+        }
+        sectionCards.add(
+          DynamicSectionCard(
+            title: 'Unknown Accused',
+            icon: Icons.help_outline_rounded,
+            fields: secFields,
+            controllers: _controllers,
+            values: _values,
+            onValueChanged: _onDynamicFieldValueChanged,
+            readOnly: widget.readOnly,
+            accusedOptions: accusedOptions,
+          ),
+        );
       } else {
         final secFields = groupedBySection[secKey];
         if (secFields != null && secFields.isNotEmpty) {
@@ -614,7 +998,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fields: secFields,
               controllers: _controllers,
               values: _values,
-              onValueChanged: (k, v) => setState(() => _values[k] = v),
+              onValueChanged: _onDynamicFieldValueChanged,
               readOnly: widget.readOnly,
               accusedOptions: accusedOptions,
             ),
@@ -633,7 +1017,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             fields: entry.value,
             controllers: _controllers,
             values: _values,
-            onValueChanged: (k, v) => setState(() => _values[k] = v),
+            onValueChanged: _onDynamicFieldValueChanged,
             readOnly: widget.readOnly,
             accusedOptions: accusedOptions,
           ),
@@ -675,7 +1059,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 icon:
                     const Icon(Icons.check_circle_rounded, color: Colors.white),
                 label: Text(
-                  isEdit ? 'Update Case Record' : 'Submit Case to Database',
+                  isEdit ? 'Update Case Record' : 'Submit',
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -691,7 +1075,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   Widget _buildLegalChargesSection() {
-    final actsMap = _formDef?.actsSections ?? {};
+    List<dynamic>? initialCharges;
+    if (widget.existingRecord != null) {
+      final extra = widget.existingRecord!.extraFields;
+      initialCharges = (extra['charges'] is List)
+          ? extra['charges'] as List
+          : ((extra['acts_sections'] is List)
+              ? extra['acts_sections'] as List
+              : ((extra['commonForm'] is Map)
+                  ? (extra['commonForm'] as Map)['charges'] as List?
+                  : null));
+    }
+
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -737,81 +1132,27 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             ],
           ),
           const Divider(height: 24, color: AppColors.lightBorder),
-          if (actsMap.isEmpty)
-            Text(
-              'No Acts loaded from database.',
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText),
-            )
-          else
-            ...actsMap.entries.map((entry) {
-              final actKey = entry.key;
-              final actData = entry.value as Map<String, dynamic>;
-              final actLabel = actData['label']?.toString() ?? actKey;
-              final sections = (actData['sections'] is List)
-                  ? actData['sections'] as List
-                  : [];
-              final selectedSet = _selectedCharges[actKey] ?? <String>{};
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.lightBorder),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      actLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: sections.map((sec) {
-                        final secVal = (sec is Map)
-                            ? sec['val']?.toString() ?? ''
-                            : sec.toString();
-                        final secLabel = (sec is Map)
-                            ? sec['label']?.toString() ?? secVal
-                            : secVal;
-                        final isSelected = selectedSet.contains(secVal);
-
-                        return FilterChip(
-                          label: Text(secLabel),
-                          labelStyle: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight:
-                                isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color:
-                                isSelected ? Colors.white : AppColors.lightText,
-                          ),
-                          selected: isSelected,
-                          selectedColor: AppColors.navyMid,
-                          backgroundColor: Colors.white,
-                          onSelected: widget.readOnly
-                              ? null
-                              : (sel) =>
-                                  _onChargeSectionToggled(actKey, secVal, sel),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              );
-            }),
+          RepeatingCascadingChargesSelector(
+            initialCharges: initialCharges,
+            readOnly: widget.readOnly,
+            onChargesChanged: (chargesList) {
+              _values['charges'] = chargesList;
+              _values['acts_sections'] = chargesList;
+            },
+            onSectionIdsChanged: (sectionIds) {
+              _triggerBDebounce?.cancel();
+              _triggerBDebounce = Timer(const Duration(milliseconds: 300), () {
+                final allSections =
+                    sectionIds.map((s) => s.toString()).toList();
+                _loadFormDefinition(chargedSections: allSections);
+              });
+            },
+          ),
         ],
       ),
     );
   }
+
 
   List<String> _getAvailableAccusedNames() {
     final names = <String>{};
@@ -833,8 +1174,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     // From current form controllers
     for (final entry in _controllers.entries) {
       final k = entry.key.toLowerCase();
-      if (k.contains('accused') && !k.contains('discharge')) {
+      if ((k.contains('accused') || k.contains('suspect')) && !k.contains('discharge')) {
         addName(entry.value.text);
+      }
+    }
+
+    // From current form values
+    for (final entry in _values.entries) {
+      final k = entry.key.toLowerCase();
+      if ((k.contains('accused') || k.contains('suspect')) && !k.contains('discharge')) {
+        if (entry.value is String) {
+          addName(entry.value as String);
+        }
       }
     }
 
@@ -870,13 +1221,24 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             }
           }
         }
-        final suspList = src['suspectedAccused'];
+        final suspList = src['suspectedAccused'] ?? src['suspected_accused'] ?? src['suspects'];
         if (suspList is List) {
           for (final item in suspList) {
             if (item is Map) {
-              addName(item['name']?.toString());
+              addName(item['name']?.toString() ?? item['suspected_accused_name']?.toString() ?? item['suspect_name']?.toString());
             } else if (item is String) {
               addName(item);
+            }
+          }
+        }
+        final personsList = src['persons'];
+        if (personsList is List) {
+          for (final item in personsList) {
+            if (item is Map) {
+              final r = (item['role'] ?? '').toString().toLowerCase();
+              if (r == 'accused' || r == 'suspected_accused' || r == 'suspect') {
+                addName(item['name']?.toString());
+              }
             }
           }
         }

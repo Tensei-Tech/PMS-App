@@ -27,7 +27,9 @@ import '../../utils/common_form_pdf.dart';
 import '../../utils/crime_detail_pdf.dart';
 import '../../utils/translation_helper.dart';
 import '../../utils/validators.dart';
+import '../repeating_cascading_charges_selector.dart';
 import 'pocso_voice_banner.dart';
+
 import '../person_select_or_custom_field.dart';
 
 // ── Palette ──
@@ -584,6 +586,7 @@ class CommonFormState extends State<CommonForm> {
   TextEditingController? _prevActionDateCtrl;
   TextEditingController get _prevActionDt =>
       _prevActionDateCtrl ??= TextEditingController();
+  final List<Map<String, dynamic>> _preventiveActions = [];
 
   // ── §15 Discharge Accused ──────────────────────────────────────────────────
   Map<String, bool>? _dischargeMap;
@@ -729,13 +732,6 @@ class CommonFormState extends State<CommonForm> {
         });
       }
     }
-  }
-
-  void _syncDynamicFieldsForCharges() {
-    final allSecs = _chargeData.values
-        .expand((r) => (r['sections'] as Set<String>? ?? <String>{}))
-        .toList();
-    _loadFormDefinition(chargedSections: allSecs);
   }
 
   @visibleForTesting
@@ -931,6 +927,13 @@ class CommonFormState extends State<CommonForm> {
                 allAccusedNames.isEmpty ? null : allAccusedNames.first;
           }
         }
+        for (final pa in _preventiveActions) {
+          final pn = pa['personName'] as String?;
+          if (pn != null && !allAccusedNames.contains(pn)) {
+            pa['personName'] =
+                allAccusedNames.isEmpty ? null : allAccusedNames.first;
+          }
+        }
       });
     }
   }
@@ -966,8 +969,10 @@ class CommonFormState extends State<CommonForm> {
         'pcrDays': TextEditingController(),
         'isMcr': false,
         'isPrBond': false,
+        'prBondDate': TextEditingController(),
         'isBail': false,
         'isJail': false,
+        'jailDate': TextEditingController(),
         'mcrJail': TextEditingController(),
         'suretyName': TextEditingController(),
         'suretyAge': TextEditingController(),
@@ -1033,31 +1038,6 @@ class CommonFormState extends State<CommonForm> {
     _chargeSeq++;
     _chargeData['charge-$_chargeSeq'] = {'act': '', 'sections': <String>{}};
     setState(() {});
-  }
-
-  void _removeCharge(String id) {
-    _chargeData.remove(id);
-    setState(() {});
-    _syncDynamicFieldsForCharges();
-  }
-
-  void _onActChange(String id, String act) {
-    _chargeData[id]!['act'] = act;
-    _chargeData[id]!['sections'] = <String>{};
-    setState(() {});
-    _syncDynamicFieldsForCharges();
-  }
-
-  void _addSection(String id, String val) {
-    (_chargeData[id]!['sections'] as Set<String>).add(val);
-    setState(() {});
-    _syncDynamicFieldsForCharges();
-  }
-
-  void _removeSection(String id, String val) {
-    (_chargeData[id]!['sections'] as Set<String>).remove(val);
-    setState(() {});
-    _syncDynamicFieldsForCharges();
   }
 
   String _secLabel(String actKey, String val) {
@@ -1289,6 +1269,25 @@ class CommonFormState extends State<CommonForm> {
     setState(() {});
   }
 
+  void addPreventiveAction() {
+    setState(
+      () => _preventiveActions.add({
+        'personName': allAccusedNames.isEmpty ? null : allAccusedNames.first,
+        'personCtrl': TextEditingController(),
+        'action': _activePreventiveItems.isNotEmpty
+            ? _activePreventiveItems.first
+            : '107 Crpc / 126 BNSS',
+        'actionDate': TextEditingController(),
+        'outwardNumber': TextEditingController(),
+      }),
+    );
+  }
+
+  void removePreventiveAction(int i) {
+    _disposeMap(_preventiveActions.removeAt(i));
+    setState(() {});
+  }
+
   // ─── verdict helpers ───────────────────────────────────────────────────────
   void removeFromVerdictAcquitted(String n) =>
       setState(() => _acquitted.remove(n));
@@ -1353,6 +1352,10 @@ class CommonFormState extends State<CommonForm> {
       _disposeMap(s);
     }
     _seizures.clear();
+    for (final pa in _preventiveActions) {
+      _disposeMap(pa);
+    }
+    _preventiveActions.clear();
 
     for (final c in [
       _crNo,
@@ -1450,6 +1453,10 @@ class CommonFormState extends State<CommonForm> {
       _disposeMap(item);
     }
     _customDischargeList.clear();
+    for (final item in _preventiveActions) {
+      _disposeMap(item);
+    }
+    _preventiveActions.clear();
 
     _firPath = null;
     _compGender = 'Male';
@@ -1699,39 +1706,105 @@ class CommonFormState extends State<CommonForm> {
               'accusedName': c['accusedName'],
               'pcrDays': (c['pcrDays'] as TextEditingController?)?.text ?? '',
               'isMcr': c['isMcr'] == true,
-              'isPrBond': c['isPrBond'] == true,
-              'isBail': c['isBail'] == true,
-              'isJail': c['isJail'] == true,
-              'mcrJail': (c['mcrJail'] as TextEditingController?)?.text ?? '',
-              'suretyName':
-                  (c['suretyName'] as TextEditingController?)?.text ?? '',
-              'suretyAge':
-                  (c['suretyAge'] as TextEditingController?)?.text ?? '',
+              'isPrBond': c['isMcr'] == true && c['isPrBond'] == true,
+              'prBondDate': (c['isMcr'] == true && c['isPrBond'] == true)
+                  ? ((c['prBondDate'] as TextEditingController?)?.text ?? '')
+                  : '',
+              'isBail': c['isMcr'] == true && c['isBail'] == true,
+              'isJail': c['isMcr'] == true && c['isJail'] == true,
+              'jailDate': (c['isMcr'] == true && c['isJail'] == true)
+                  ? ((c['jailDate'] as TextEditingController?)?.text ?? '')
+                  : '',
+              'mcrJail': (c['isMcr'] == true && c['isJail'] == true)
+                  ? ((c['mcrJail'] as TextEditingController?)?.text ?? '')
+                  : '',
+              'suretyName': (c['isMcr'] == true && c['isBail'] == true)
+                  ? ((c['suretyName'] as TextEditingController?)?.text ?? '')
+                  : '',
+              'suretyAge': (c['isMcr'] == true && c['isBail'] == true)
+                  ? ((c['suretyAge'] as TextEditingController?)?.text ?? '')
+                  : '',
               'suretyGender': c['suretyGender'] ?? 'Male',
-              'suretyOcc':
-                  (c['suretyOcc'] as TextEditingController?)?.text ?? '',
-              'suretyMobile':
-                  (c['suretyMobile'] as TextEditingController?)?.text ?? '',
-              'suretyAadhaar':
-                  (c['suretyAadhaar'] as TextEditingController?)?.text ?? '',
-              'suretyPan':
-                  (c['suretyPan'] as TextEditingController?)?.text ?? '',
-              'suretyAddress':
-                  (c['suretyAddress'] as TextEditingController?)?.text ?? '',
-              'suretyRel':
-                  (c['suretyRel'] as TextEditingController?)?.text ?? '',
+              'suretyOcc': (c['isMcr'] == true && c['isBail'] == true)
+                  ? ((c['suretyOcc'] as TextEditingController?)?.text ?? '')
+                  : '',
+              'suretyMobile': (c['isMcr'] == true && c['isBail'] == true)
+                  ? ((c['suretyMobile'] as TextEditingController?)?.text ?? '')
+                  : '',
+              'suretyAadhaar': (c['isMcr'] == true && c['isBail'] == true)
+                  ? ((c['suretyAadhaar'] as TextEditingController?)?.text ?? '')
+                  : '',
+              'suretyPan': (c['isMcr'] == true && c['isBail'] == true)
+                  ? ((c['suretyPan'] as TextEditingController?)?.text ?? '')
+                  : '',
+              'suretyAddress': (c['isMcr'] == true && c['isBail'] == true)
+                  ? ((c['suretyAddress'] as TextEditingController?)?.text ?? '')
+                  : '',
+              'suretyRel': (c['isMcr'] == true && c['isBail'] == true)
+                  ? ((c['suretyRel'] as TextEditingController?)?.text ?? '')
+                  : '',
             },
           )
           .toList(),
       'preventive': {
         'preventiveBonds': _prevBondsVal,
-        'action': _prevAction,
-        'actionDate': _prevActionDt.text,
-        'outwardNumber': _outward.text,
+        'action': _preventiveActions.isNotEmpty
+            ? (_preventiveActions.first['action'] as String? ?? _prevAction)
+            : _prevAction,
+        'actionDate': _preventiveActions.isNotEmpty
+            ? ((_preventiveActions.first['actionDate']
+                    as TextEditingController?)
+                ?.text ?? '')
+            : _prevActionDt.text,
+        'outwardNumber': _preventiveActions.isNotEmpty
+            ? ((_preventiveActions.first['outwardNumber']
+                    as TextEditingController?)
+                ?.text ?? '')
+            : _outward.text,
         'bondDate': _bondDate.text,
         'bondReason': _bReason.text,
         'bondCancellation': _bondCancel.text,
+        'items': _preventiveActions.map((pa) {
+          final typed =
+              (pa['personCtrl'] as TextEditingController?)?.text.trim();
+          final chosen = pa['personName'] as String?;
+          final name = (typed != null && typed.isNotEmpty) ? typed : chosen;
+          return {
+            'person_name': name,
+            'name': name,
+            'action': pa['action'],
+            'action_type': pa['action'],
+            'action_date':
+                (pa['actionDate'] as TextEditingController?)?.text ?? '',
+            'actionDate':
+                (pa['actionDate'] as TextEditingController?)?.text ?? '',
+            'outward_number':
+                (pa['outwardNumber'] as TextEditingController?)?.text ?? '',
+            'outwardNumber':
+                (pa['outwardNumber'] as TextEditingController?)?.text ?? '',
+          };
+        }).toList(),
       },
+      'preventive_actions': _preventiveActions.map((pa) {
+        final typed =
+            (pa['personCtrl'] as TextEditingController?)?.text.trim();
+        final chosen = pa['personName'] as String?;
+        final name = (typed != null && typed.isNotEmpty) ? typed : chosen;
+        return {
+          'person_name': name,
+          'name': name,
+          'action': pa['action'],
+          'action_type': pa['action'],
+          'action_date':
+              (pa['actionDate'] as TextEditingController?)?.text ?? '',
+          'actionDate':
+              (pa['actionDate'] as TextEditingController?)?.text ?? '',
+          'outward_number':
+              (pa['outwardNumber'] as TextEditingController?)?.text ?? '',
+          'outwardNumber':
+              (pa['outwardNumber'] as TextEditingController?)?.text ?? '',
+        };
+      }).toList(),
       'dischargeByAccused': Map<String, bool>.from(_discharge),
       'dischargeDetails': {
         for (final n in allAccusedNames)
@@ -2171,14 +2244,23 @@ class CommonFormState extends State<CommonForm> {
           (c0['mcrJail'] != null && _s(c0['mcrJail']).isNotEmpty);
       row['isPrBond'] = c0['isPrBond'] == true ||
           c0['isPrBond'] == 'true' ||
-          (c0['prBondDate'] != null && _s(c0['prBondDate']).isNotEmpty);
+          (c0['prBondDate'] != null && _s(c0['prBondDate']).isNotEmpty) ||
+          (c0['pr_bond_date'] != null && _s(c0['pr_bond_date']).isNotEmpty);
+      row['prBondDate'] ??= TextEditingController();
+      (row['prBondDate'] as TextEditingController).text =
+          _s(c0['prBondDate'] ?? c0['pr_bond_date']);
       row['isBail'] = c0['isBail'] == true ||
           c0['isBail'] == 'true' ||
           (c0['bailType'] != null && c0['bailType'] != 'None') ||
           (c0['suretyName'] != null && _s(c0['suretyName']).isNotEmpty);
       row['isJail'] = c0['isJail'] == true ||
           c0['isJail'] == 'true' ||
-          (c0['mcrJail'] != null && _s(c0['mcrJail']).isNotEmpty);
+          (c0['mcrJail'] != null && _s(c0['mcrJail']).isNotEmpty) ||
+          (c0['jailDate'] != null && _s(c0['jailDate']).isNotEmpty) ||
+          (c0['jail_date'] != null && _s(c0['jail_date']).isNotEmpty);
+      row['jailDate'] ??= TextEditingController();
+      (row['jailDate'] as TextEditingController).text =
+          _s(c0['jailDate'] ?? c0['jail_date']);
       (row['mcrJail'] as TextEditingController).text = _s(c0['mcrJail']);
       (row['suretyName'] as TextEditingController).text = _s(c0['suretyName']);
       (row['suretyAge'] as TextEditingController).text = _s(c0['suretyAge']);
@@ -2195,6 +2277,51 @@ class CommonFormState extends State<CommonForm> {
     }
 
     final pr = m['preventive'] as Map?;
+    for (final pa in _preventiveActions) {
+      _disposeMap(pa);
+    }
+    _preventiveActions.clear();
+    final prevList = m['preventive_actions'] as List? ??
+        m['preventive_action_items'] as List? ??
+        m['preventiveActions'] as List? ??
+        (pr != null ? pr['items'] as List? : null);
+    if (prevList != null && prevList.isNotEmpty) {
+      for (final item in prevList) {
+        if (item is Map) {
+          final name = _s(item['person_name'] ??
+              item['name'] ??
+              item['accusedName'] ??
+              item['typed_name']);
+          final action = _s(item['action'] ?? item['action_type']);
+          final dt = _s(item['action_date'] ?? item['actionDate']);
+          final out = _s(item['outward_number'] ?? item['outwardNumber']);
+          _preventiveActions.add({
+            'personName': allAccusedNames.contains(name)
+                ? name
+                : (allAccusedNames.isNotEmpty ? allAccusedNames.first : null),
+            'personCtrl': TextEditingController(text: name),
+            'action': _activePreventiveItems.contains(action)
+                ? action
+                : (_activePreventiveItems.isNotEmpty
+                    ? _activePreventiveItems.first
+                    : '107 Crpc / 126 BNSS'),
+            'actionDate': TextEditingController(text: dt),
+            'outwardNumber': TextEditingController(text: out),
+          });
+        }
+      }
+    } else if (pr != null &&
+        pr['actionDate'] != null &&
+        _s(pr['actionDate']).isNotEmpty) {
+      _preventiveActions.add({
+        'personName': allAccusedNames.isNotEmpty ? allAccusedNames.first : null,
+        'personCtrl': TextEditingController(),
+        'action': pr['action'] as String? ?? '107 Crpc / 126 BNSS',
+        'actionDate': TextEditingController(text: _s(pr['actionDate'])),
+        'outwardNumber': TextEditingController(text: _s(pr['outwardNumber'])),
+      });
+    }
+
     if (pr != null) {
       _prevBondsVal =
           (pr['preventiveBonds'] ?? pr['prBond']) as String? ?? 'no';
@@ -3345,162 +3472,17 @@ class CommonFormState extends State<CommonForm> {
   Widget _s2() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_chargeData.isEmpty)
-            _emptyBox('No charges. Tap + Add to begin.')
-          else ...[
-            ..._chargeData.entries.toList().asMap().entries.map((e) {
-              final id = e.value.key;
-              final data = e.value.value;
-              final num = e.key + 1;
-              return _chargeCard(id, num, data);
-            }),
-            _divider(),
-            _subHeader('CHARGE SUMMARY'),
-            ..._chargeData.entries.toList().asMap().entries.map((e) {
-              final num = e.key + 1;
-              final data = e.value.value;
-              final act = data['act']?.toString() ?? '';
-              final secs = (data['sections'] as Set<String>?) ?? {};
-              final actLabel = act.isNotEmpty
-                  ? (_activeActsData[act]?['label'] as String? ?? act)
-                  : '—';
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(top: 2, right: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _kDark,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '#$num',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            actLabel,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: _kDark,
-                            ),
-                          ),
-                          if (secs.isNotEmpty)
-                            Text(
-                              secs.join(', '),
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: _kSec,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
+          RepeatingCascadingChargesSelector(
+            readOnly: false,
+            onChargesChanged: (chargesList) {
+              // Charges updated dynamically
+            },
+          ),
         ],
       );
 
-  Widget _chargeCard(String id, int num, Map<String, dynamic> data) {
-    final actKey = data['act']?.toString() ?? '';
-    final hasAct = actKey.isNotEmpty && _activeActsData.containsKey(actKey);
-    final secs = (data['sections'] as Set<String>?) ?? {};
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: _kCardBg,
-        border: Border.all(color: _kBorder),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text('Charge #$num',
-                    style: _tsSection.copyWith(fontSize: 11)),
-              ),
-              GestureDetector(
-                onTap: () => _removeCharge(id),
-                child: const Icon(Icons.close, size: 16, color: _kRed),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            initialValue: hasAct ? actKey : null,
-            dropdownColor: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            menuMaxHeight: 320,
-            isExpanded: true,
-            decoration: _d('Act / Law'),
-            style: _tsBody,
-            icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
-            hint: Text(
-              TranslationHelper.translate(context, 'Select Act / Law'),
-              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-            ),
-            items: _activeActsData.entries.map((e) {
-              return DropdownMenuItem<String>(
-                value: e.key,
-                child: Text(
-                  e.value['label'] as String,
-                  style:
-                      const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
-                ),
-              );
-            }).toList(),
-            onChanged: (v) {
-              if (v != null) {
-                _onActChange(id, v);
-              }
-            },
-          ),
-          if (hasAct) ...[
-            const SizedBox(height: 4),
-            Text(
-              _activeActsData[actKey]?['hint'] as String? ?? '',
-              style: const TextStyle(
-                  fontSize: 10, color: _kAmber, fontStyle: FontStyle.italic),
-            ),
-            const SizedBox(height: 8),
-            const Text('Section(s) — tap to add', style: _tsLabel),
-            const SizedBox(height: 4),
-            _SectionSearchPicker(
-              actKey: actKey,
-              selected: secs,
-              actsData: _activeActsData,
-              onAdd: (v) => _addSection(id, v),
-              onRemove: (v) => _removeSection(id, v),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   // ── §3 Crime Spot ─────────────────────────────────────────────────────────
+
   Widget _s3() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4529,7 +4511,20 @@ class CommonFormState extends State<CommonForm> {
                       _checkboxTile(
                         'MCR (✓)',
                         isMcr,
-                        (v) => setState(() => row['isMcr'] = v),
+                        (v) => setState(() {
+                          row['isMcr'] = v;
+                          if (!v) {
+                            row['isPrBond'] = false;
+                            row['isJail'] = false;
+                            row['isBail'] = false;
+                            (row['prBondDate'] as TextEditingController?)
+                                ?.clear();
+                            (row['jailDate'] as TextEditingController?)
+                                ?.clear();
+                            suretyNameCtrl.clear();
+                            jailCtrl.clear();
+                          }
+                        }),
                       ),
                     ]),
                     if (isMcr) ...[
@@ -4538,19 +4533,55 @@ class CommonFormState extends State<CommonForm> {
                         _checkboxTile(
                           'PR bond (✓)',
                           isPrBond,
-                          (v) => setState(() => row['isPrBond'] = v),
+                          (v) => setState(() {
+                            row['isPrBond'] = v;
+                            if (!v) {
+                              (row['prBondDate'] as TextEditingController?)
+                                  ?.clear();
+                            }
+                          }),
                         ),
                         _checkboxTile(
                           'Jail (✓)',
                           isJail,
-                          (v) => setState(() => row['isJail'] = v),
+                          (v) => setState(() {
+                            row['isJail'] = v;
+                            if (!v) {
+                              (row['jailDate'] as TextEditingController?)
+                                  ?.clear();
+                              jailCtrl.clear();
+                            }
+                          }),
                         ),
                       ]),
+                      if (isPrBond) ...[
+                        const SizedBox(height: 8),
+                        _dateField(
+                          'PR Bond Date',
+                          row['prBondDate'] ??= TextEditingController(),
+                        ),
+                      ],
+                      if (isJail) ...[
+                        const SizedBox(height: 8),
+                        _row([
+                          _dateField(
+                            'Jail Date',
+                            row['jailDate'] ??= TextEditingController(),
+                          ),
+                          _tf('Jail Name / Details', jailCtrl),
+                        ]),
+                      ],
                       const SizedBox(height: 8),
                       _yesNo(
                         'Bail(✓) Y/N',
                         isBail ? 'yes' : 'no',
-                        (v) => setState(() => row['isBail'] = (v == 'yes')),
+                        (v) => setState(() {
+                          final b = (v == 'yes');
+                          row['isBail'] = b;
+                          if (!b) {
+                            suretyNameCtrl.clear();
+                          }
+                        }),
                       ),
                       if (isBail) ...[
                         const SizedBox(height: 10),
@@ -4615,10 +4646,6 @@ class CommonFormState extends State<CommonForm> {
                             ],
                           ),
                         ),
-                      ],
-                      if (isJail) ...[
-                        const SizedBox(height: 8),
-                        _tf('Jail Name / Details', jailCtrl),
                       ],
                     ],
                   ],
@@ -4916,33 +4943,113 @@ class CommonFormState extends State<CommonForm> {
   Widget _s14() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: DropdownButtonFormField<String>(
-              initialValue: _activePreventiveItems.contains(_prevAction)
-                  ? _prevAction
-                  : null,
-              dropdownColor: Colors.white,
-              isExpanded: true,
-              decoration: _d('Preventive Action'),
-              style: _tsBody,
-              icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
-              items: _activePreventiveItems.map((item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    TranslationHelper.translate(context, item),
-                    style: _tsBody,
-                  ),
-                );
-              }).toList(),
-              onChanged: (v) => setState(() => _prevAction = v),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _subHeader('PREVENTIVE ACTION PROVISIONS'),
+              _headerBtn(
+                'Add Preventive Action',
+                addPreventiveAction,
+              ),
+            ],
           ),
-          _row([
-            _dateField('Action Date', _prevActionDt),
-            _tf('Outward Number (Optional)', _outward),
-          ]),
+          if (_preventiveActions.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                TranslationHelper.translate(
+                  context,
+                  'No preventive action items added yet. Click "Add Preventive Action" to record action against an accused.',
+                ),
+                style: _tsMuted,
+              ),
+            ),
+          ...List.generate(_preventiveActions.length, (i) {
+            final pa = _preventiveActions[i];
+            pa['personCtrl'] ??= TextEditingController();
+            pa['actionDate'] ??= TextEditingController();
+            pa['outwardNumber'] ??= TextEditingController();
+            final personCtrl = pa['personCtrl'] as TextEditingController;
+            final dateCtrl = pa['actionDate'] as TextEditingController;
+            final outwardCtrl = pa['outwardNumber'] as TextEditingController;
+            final currentAction = pa['action'] as String?;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _kInputBg,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: _kBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${TranslationHelper.translate(context, 'Action')} #${i + 1}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: _kDark,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline,
+                            color: _kRed, size: 18),
+                        onPressed: () => removePreventiveAction(i),
+                        tooltip: TranslationHelper.translate(
+                            context, 'Remove Action'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  _PersonSelectOrCustomField(
+                    label: 'Accused / Suspected Accused Name',
+                    options: allAccusedNames,
+                    ctrl: personCtrl,
+                    decoration: _d('Accused / Suspected Accused Name')
+                        .copyWith(fillColor: _kInputBg),
+                    style: _tsBody,
+                    otherLabel: 'Type new name',
+                    onChanged: (v) {
+                      pa['personName'] = v;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    initialValue: _activePreventiveItems.contains(currentAction)
+                        ? currentAction
+                        : (_activePreventiveItems.isNotEmpty
+                            ? _activePreventiveItems.first
+                            : null),
+                    dropdownColor: Colors.white,
+                    isExpanded: true,
+                    decoration: _d('Preventive Action'),
+                    style: _tsBody,
+                    icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
+                    items: _activePreventiveItems.map((item) {
+                      return DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(
+                          TranslationHelper.translate(context, item),
+                          style: _tsBody,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (v) => setState(() => pa['action'] = v),
+                  ),
+                  const SizedBox(height: 10),
+                  _row([
+                    _dateField('Action Date', dateCtrl),
+                    _tf('Outward Number (Optional)', outwardCtrl),
+                  ]),
+                ],
+              ),
+            );
+          }),
           _divider(),
           _row([
             _dateField('Bond date', _bondDate),
@@ -5494,13 +5601,11 @@ class _SectionSearchPicker extends StatefulWidget {
     required this.selected,
     required this.onAdd,
     required this.onRemove,
-    this.actsData,
   });
   final String actKey;
   final Set<String> selected;
   final ValueChanged<String> onAdd;
   final ValueChanged<String> onRemove;
-  final Map<String, Map<String, dynamic>>? actsData;
 
   @override
   State<_SectionSearchPicker> createState() => _SectionSearchPickerState();
@@ -5519,7 +5624,7 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final acts = widget.actsData ?? ACT_DATA;
+    const acts = ACT_DATA;
     final sections = (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
         .map((r) => r as Map<String, dynamic>)
         .toList();
