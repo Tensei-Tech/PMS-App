@@ -30,7 +30,7 @@ class IOWiseTests(TestCase):
         url = reverse('pending-io-wise')
         
         # Mock the permission class to allow access
-        with patch('apps.cases.views.IOWisePendingView.permission_classes', []):
+        with patch('apps.cases.views.IOWisePendingView.permission_classes', new=[]):
             response = self.client.get(url)
         
         self.assertEqual(response.status_code, 200)
