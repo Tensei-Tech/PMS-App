@@ -46,35 +46,10 @@ String _sectionsLine(ModuleRecord r) {
   return r.firestoreCategoryDisplayName.trim();
 }
 
-String _reasonLine(ModuleRecord r) {
-  final d = r.description.trim();
-  if (d.isNotEmpty) return d;
-  return r.title.trim();
-}
-
 String _headLine(ModuleRecord r) {
   final sub = r.subCategory?.trim();
   if (sub != null && sub.isNotEmpty) return sub;
   return r.firestoreCategoryDisplayName.trim();
-}
-
-String _spotLine(ModuleRecord r) {
-  final spot = [
-    () {
-      final raw = r.extraFields[kCommonFormExtraFieldsKey];
-      if (raw is Map<String, dynamic>) {
-        final parts = <String>[
-          raw['spotVillage']?.toString().trim() ?? '',
-          raw['spotArea']?.toString().trim() ?? '',
-          raw['spotAddress']?.toString().trim() ?? '',
-        ].where((s) => s.isNotEmpty).toList();
-        if (parts.isNotEmpty) return parts.join(', ');
-      }
-      return '';
-    }(),
-    r.location.trim(),
-  ].firstWhere((s) => s.isNotEmpty, orElse: () => '');
-  return spot;
 }
 
 /// One row map: keys `sr`, `cr`, `sections`, `date`, `io`, `reason`, `period`, `head`
