@@ -1,13 +1,9 @@
 // Converts [ModuleRecord] from `pending_cases` into table rows for
 // [PendingCasesDemoDataTable] / Pending Summary / Pending demo table screens.
 
-import 'package:intl/intl.dart';
-
 import '../modules/core/models/base_record.dart';
 import 'common_form_module.dart';
 import 'pending_io_wise_logic.dart';
-
-final _regDateFmt = DateFormat('dd/MM/yyyy');
 
 /// UI time-period labels aligned with Pending Cases time-range filters.
 /// Uses [anchor] vs [reference] (usually `DateTime.now()`).

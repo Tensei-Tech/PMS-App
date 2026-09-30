@@ -371,7 +371,7 @@ class _LivePendingSummaryLoaderState extends State<_LivePendingSummaryLoader> {
     final now = DateTime.now();
     final dataset =
         exclusive ? pendingTableRowsAll(modules, now) : <Map<String, String>>[];
-    final showDemoNote = false;
+    const showDemoNote = false;
 
     return widget.buildContent(
       context,
