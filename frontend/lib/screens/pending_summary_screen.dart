@@ -129,10 +129,7 @@ class PendingSummaryScreen extends StatelessWidget {
             else
               PendingCasesDemoDataTable(
                 isAd: false,
-                realDataRows: firedFromFirestoreExclusive ? rows : null,
-                fallbackRows: firedFromFirestoreExclusive ? null : rows,
-                includeDemoDisclaimerBelowTable: false,
-                exclusiveLiveFirestoreData: firedFromFirestoreExclusive,
+                realDataRows: rows,
               ),
           ],
         ),
@@ -385,8 +382,8 @@ class _LivePendingSummaryLoaderState extends State<_LivePendingSummaryLoader> {
     final exclusive = modules.isNotEmpty;
     final now = DateTime.now();
     final dataset =
-        exclusive ? pendingTableRowsAll(modules, now) : kPendingDemoTableRows;
-    final showDemoNote = !exclusive && dataset.isNotEmpty;
+        exclusive ? pendingTableRowsAll(modules, now) : <Map<String, String>>[];
+    final showDemoNote = false;
 
     return widget.buildContent(
       context,
