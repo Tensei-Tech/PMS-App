@@ -61,3 +61,15 @@ class TenantMiddleware(MiddlewareMixin):
 
         # Enforce PostgreSQL search_path for the request
         set_tenant_schema(schema_name)
+
+    def process_response(self, request, response):
+        """
+        Safely resets search_path back to connection default ('maharashtra, public')
+        immediately after every request completes, preventing tenant search_path leakage.
+        """
+        try:
+            set_tenant_schema('maharashtra')
+        except Exception as e:
+            logger.warning(f"[TenantMiddleware] Failed to reset search_path on response: {e}")
+        return response
+
