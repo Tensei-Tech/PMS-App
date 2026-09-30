@@ -68,7 +68,7 @@ class _PendingIoWiseByCategoryScreenState extends State<PendingIoWiseByCategoryS
   Widget build(BuildContext context) {
     final title = '${TranslationHelper.translate(context, 'IO Wise Pending')} - ${TranslationHelper.translate(context, widget.category)}';
 
-    Widget _buildBody() {
+    Widget buildBody() {
       if (_isLoading) {
         return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
       }
@@ -204,7 +204,7 @@ class _PendingIoWiseByCategoryScreenState extends State<PendingIoWiseByCategoryS
                 ],
               ),
             ),
-            Expanded(child: _buildBody()),
+            Expanded(child: buildBody()),
           ],
         ),
       ),
