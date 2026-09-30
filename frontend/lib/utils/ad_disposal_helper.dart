@@ -202,7 +202,13 @@ bool isRecordDisposal(dynamic record) {
       s = (record.status ?? '').toString().trim().toLowerCase();
     } catch (_) {}
   }
-  if (s == CaseStatus.disposal.toLowerCase()) {
+  final disposalStatuses = {
+    CaseStatus.disposal.toLowerCase(),
+    CaseStatus.closed.toLowerCase(),
+    CaseStatus.disposed.toLowerCase(),
+    CaseStatus.resolved.toLowerCase(),
+  };
+  if (disposalStatuses.contains(s)) {
     return true;
   }
   if (isAbscondedDisposal(record)) {
