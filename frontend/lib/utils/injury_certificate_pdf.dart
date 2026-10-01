@@ -318,7 +318,7 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text('Medical officer', style: bold),
-                  pw.Text('Name and Sing', style: bold),
+                  pw.Text('Name and Sign', style: bold),
                   pw.SizedBox(height: 4),
                   pw.SizedBox(
                     width: double.infinity,
@@ -328,6 +328,14 @@ Future<Uint8List> generateInjuryCertificatePdf(Map<String, dynamic> doc) async {
               ),
             ),
           ],
+        ),
+        pw.Spacer(),
+        pw.Align(
+          alignment: pw.Alignment.bottomRight,
+          child: pw.Text(
+            'M.R.W',
+            style: regular.copyWith(fontSize: 8.5, color: PdfColors.grey700),
+          ),
         ),
       ],
     ),
@@ -364,6 +372,95 @@ pw.Widget _buildPdfDataCell(String text, pw.TextStyle style) {
 // ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
 // ══════════════════════════════════════════════════════════════════════════════
 
+class _InjuryLinePainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+
+  const _InjuryLinePainter({
+    required this.lines,
+    required this.lineHeight,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black87
+      ..strokeWidth = 0.85
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = (i * lineHeight) - 1.5;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _InjuryLinePainter oldDelegate) =>
+      oldDelegate.lines != lines || oldDelegate.lineHeight != lineHeight;
+}
+
+class _DynamicInjuryUnderlineField extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final int minLines;
+  final double lineHeight;
+  final double? width;
+  final double minWidth;
+  final TextAlign textAlign;
+
+  const _DynamicInjuryUnderlineField({
+    required this.text,
+    required this.style,
+    this.minLines = 1,
+    this.lineHeight = 22.0,
+    this.width,
+    this.minWidth = 40.0,
+    this.textAlign = TextAlign.start,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = text.trim();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW = width ??
+            (constraints.maxWidth.isFinite ? constraints.maxWidth : 500.0);
+        final effectiveW = maxW < minWidth ? minWidth : maxW;
+        int lines = minLines;
+        if (trimmed.isNotEmpty) {
+          final tp = TextPainter(
+            text: TextSpan(text: trimmed, style: style),
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: effectiveW > 0 ? effectiveW : 500.0);
+          final metrics = tp.computeLineMetrics();
+          lines = metrics.isEmpty ? 1 : metrics.length;
+          if (lines < minLines) lines = minLines;
+        }
+
+        final h = lines * lineHeight;
+        return CustomPaint(
+          size: Size(effectiveW, h),
+          painter: _InjuryLinePainter(lines: lines, lineHeight: lineHeight),
+          child: Container(
+            width: effectiveW,
+            height: h,
+            padding: const EdgeInsets.only(left: 2, right: 2),
+            child: trimmed.isEmpty
+                ? const SizedBox()
+                : Text(
+                    trimmed,
+                    textAlign: textAlign,
+                    style: style.copyWith(
+                      height: lineHeight / (style.fontSize ?? 10.5),
+                    ),
+                  ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 Widget _buildPgWidget(Map<String, dynamic> doc) {
   String v(String key) => doc[key]?.toString().trim() ?? '';
 
@@ -373,22 +470,14 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     double minWidth = 40,
     TextAlign textAlign = TextAlign.start,
   }) {
-    final t = text.trim();
-    return Container(
+    return _DynamicInjuryUnderlineField(
+      text: text,
+      style: FormImagePdfHelper.valStyle(10.5),
       width: width,
-      constraints: BoxConstraints(minWidth: minWidth),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(width: 0.85, color: Colors.black87),
-        ),
-      ),
-      padding: const EdgeInsets.only(bottom: 2, left: 2, right: 2),
-      child: Text(
-        t.isEmpty ? ' ' : t,
-        textAlign: textAlign,
-        softWrap: true,
-        style: FormImagePdfHelper.valStyle(10.5),
-      ),
+      minWidth: minWidth,
+      textAlign: textAlign,
+      lineHeight: 22.0,
+      minLines: 1,
     );
   }
 
@@ -435,60 +524,60 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
 
   Widget headerCell(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
       alignment: Alignment.center,
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: FormImagePdfHelper.mBld(8.5),
+        style: FormImagePdfHelper.mBld(9.5),
       ),
     );
   }
 
   Widget dataCell(String text) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 24),
-      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+      constraints: const BoxConstraints(minHeight: 36),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
       alignment: Alignment.centerLeft,
       child: Text(
         text,
-        style: FormImagePdfHelper.valStyle(8.5),
+        style: FormImagePdfHelper.valStyle(9.5),
       ),
     );
   }
 
   return FormImagePdfHelper.buildA4Page(
-    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
+    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 34),
     children: [
       Center(
         child: Text(
           'INJURY CERTIFICATE',
-          style: FormImagePdfHelper.mBld(16).copyWith(
+          style: FormImagePdfHelper.mBld(17).copyWith(
             decoration: TextDecoration.underline,
           ),
         ),
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 16),
 
       // Top Right MLC / Date
       Align(
         alignment: Alignment.topRight,
         child: SizedBox(
-          width: 240,
+          width: 250,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Text('MLC No.:-', style: FormImagePdfHelper.mBld(11)),
+                  Text('MLC No.:- ', style: FormImagePdfHelper.mBld(11.5)),
                   const SizedBox(width: 4),
                   Expanded(child: underlineField(v('mlcNo'), minWidth: 100)),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Row(
                 children: [
-                  Text('Date. ', style: FormImagePdfHelper.mBld(11)),
+                  Text('Date. ', style: FormImagePdfHelper.mBld(11.5)),
                   const SizedBox(width: 4),
                   Expanded(child: underlineField(v('mlcDate'), minWidth: 100)),
                 ],
@@ -497,61 +586,121 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ),
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 18),
 
       // Certificate Body Paragraph
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              staticText('Certified that shri/smt  '),
-              Expanded(
-                child: underlineField(v('patientName'), minWidth: 120),
-              ),
-              staticText('  age  '),
-              underlineField(v('patientAge'),
-                  width: 55, minWidth: 40, textAlign: TextAlign.center),
-              staticText('  about years'),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              staticText('bearing following identification mark R/O.  '),
-              Expanded(
-                child: underlineField(v('idMarkAndAddress'), minWidth: 120),
-              ),
-              staticText('  tah  '),
-              underlineField(v('tah'),
-                  width: 80, minWidth: 60, textAlign: TextAlign.center),
-              staticText('  dist.  '),
-              underlineField(v('dist'),
-                  width: 100, minWidth: 70, textAlign: TextAlign.center),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              staticText('brought to this hospital by PC/HC.  '),
-              Expanded(
-                flex: 3,
-                child: underlineField(v('broughtBy'), minWidth: 100),
-              ),
-              staticText('  B.No.  '),
-              underlineField(v('buckleNo'),
-                  width: 65, minWidth: 45, textAlign: TextAlign.center),
-              staticText('  Police station.  '),
-              Expanded(
-                flex: 3,
-                child: underlineField(v('policeStation'), minWidth: 100),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+          if (v('patientName').length > 25) ...[
+            staticText('Certified that shri/smt :'),
+            const SizedBox(height: 2),
+            underlineField(v('patientName')),
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                staticText('age  '),
+                underlineField(v('patientAge'),
+                    width: 55, minWidth: 40, textAlign: TextAlign.center),
+                staticText('  about years'),
+              ],
+            ),
+          ] else ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                staticText('Certified that shri/smt  '),
+                Expanded(
+                  child: underlineField(v('patientName'), minWidth: 120),
+                ),
+                staticText('  age  '),
+                underlineField(v('patientAge'),
+                    width: 55, minWidth: 40, textAlign: TextAlign.center),
+                staticText('  about years'),
+              ],
+            ),
+          ],
+          const SizedBox(height: 10),
+          if (v('idMarkAndAddress').length > 20) ...[
+            staticText('bearing following identification mark R/O. :'),
+            const SizedBox(height: 2),
+            underlineField(v('idMarkAndAddress')),
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                staticText('tah  '),
+                underlineField(v('tah'),
+                    width: 100, minWidth: 60, textAlign: TextAlign.center),
+                const SizedBox(width: 12),
+                staticText('dist.  '),
+                underlineField(v('dist'),
+                    width: 120, minWidth: 70, textAlign: TextAlign.center),
+              ],
+            ),
+          ] else ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                staticText('bearing following identification mark R/O.  '),
+                Expanded(
+                  child: underlineField(v('idMarkAndAddress'), minWidth: 120),
+                ),
+                staticText('  tah  '),
+                underlineField(v('tah'),
+                    width: 80, minWidth: 60, textAlign: TextAlign.center),
+                staticText('  dist.  '),
+                underlineField(v('dist'),
+                    width: 100, minWidth: 70, textAlign: TextAlign.center),
+              ],
+            ),
+          ],
+          const SizedBox(height: 10),
+          if (v('broughtBy').length > 20 || v('policeStation').length > 15) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                staticText('brought to this hospital by PC/HC.  '),
+                Expanded(
+                  child: underlineField(v('broughtBy'), minWidth: 100),
+                ),
+                staticText('  B.No.  '),
+                underlineField(v('buckleNo'),
+                    width: 65, minWidth: 45, textAlign: TextAlign.center),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                staticText('Police station.  '),
+                Expanded(
+                  child: underlineField(v('policeStation'), minWidth: 120),
+                ),
+              ],
+            ),
+          ] else ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                staticText('brought to this hospital by PC/HC.  '),
+                Expanded(
+                  flex: 3,
+                  child: underlineField(v('broughtBy'), minWidth: 100),
+                ),
+                staticText('  B.No.  '),
+                underlineField(v('buckleNo'),
+                    width: 65, minWidth: 45, textAlign: TextAlign.center),
+                staticText('  Police station.  '),
+                Expanded(
+                  flex: 3,
+                  child: underlineField(v('policeStation'), minWidth: 100),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 10),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -572,13 +721,13 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 18),
 
       // 9-Column Table
       Table(
         border: TableBorder.all(color: Colors.black, width: 0.8),
         columnWidths: const {
-          0: FixedColumnWidth(28),
+          0: FixedColumnWidth(30),
           1: FlexColumnWidth(2),
           2: FlexColumnWidth(2.2),
           3: FlexColumnWidth(1.5),
@@ -608,8 +757,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               children: [
                 Container(
                   alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text('${i + 1}', style: FormImagePdfHelper.mBld(8.5)),
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text('${i + 1}', style: FormImagePdfHelper.mBld(9.5)),
                 ),
                 dataCell(injuryList[i]['typeOfInjury'] ?? ''),
                 dataCell(injuryList[i]['siteOnBody'] ?? ''),
@@ -623,7 +772,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ),
         ],
       ),
-      const SizedBox(height: 30),
+      const SizedBox(height: 36),
 
       // Footer Section
       Row(
@@ -632,7 +781,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           Expanded(
             child: Row(
               children: [
-                Text('Date:- ', style: FormImagePdfHelper.mBld(11)),
+                Text('Date:- ', style: FormImagePdfHelper.mBld(11.5)),
                 const SizedBox(width: 4),
                 Expanded(child: underlineField(v('footerDate'), minWidth: 80)),
               ],
@@ -642,7 +791,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           Expanded(
             child: Row(
               children: [
-                Text('Place:- ', style: FormImagePdfHelper.mBld(11)),
+                Text('Place:- ', style: FormImagePdfHelper.mBld(11.5)),
                 const SizedBox(width: 4),
                 Expanded(child: underlineField(v('footerPlace'), minWidth: 80)),
               ],
@@ -653,9 +802,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Medical officer', style: FormImagePdfHelper.mBld(11)),
-                Text('Name and Sign', style: FormImagePdfHelper.mBld(11)),
-                const SizedBox(height: 4),
+                Text('Medical officer', style: FormImagePdfHelper.mBld(11.5)),
+                Text('Name and Sign', style: FormImagePdfHelper.mBld(11.5)),
+                const SizedBox(height: 6),
                 SizedBox(
                   width: double.infinity,
                   child: underlineField(v('moName'), minWidth: 100),
@@ -672,7 +821,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         alignment: Alignment.bottomRight,
         child: Text(
           'M.R.W',
-          style: FormImagePdfHelper.mReg(8).copyWith(color: Colors.black54),
+          style: FormImagePdfHelper.mReg(9).copyWith(color: Colors.black54),
         ),
       ),
     ],

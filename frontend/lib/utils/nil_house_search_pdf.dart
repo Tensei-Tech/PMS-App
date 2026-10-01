@@ -28,15 +28,15 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
   final devanagari = await PdfFontCache.devanagariRegular();
   final devanagariBold = await PdfFontCache.devanagariBold();
 
-  final regular = pw.TextStyle(font: devanagari, fontSize: 10, lineSpacing: 3);
+  final regular = pw.TextStyle(font: devanagari, fontSize: 10.5, lineSpacing: 4.5);
   final bold = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: pw.FontWeight.bold,
   );
   final titleStyle = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: pw.FontWeight.bold,
     decoration: pw.TextDecoration.underline,
   );
@@ -338,12 +338,12 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
             ),
           ],
         ),
-        pw.SizedBox(height: 24),
+        pw.Spacer(),
         pw.Align(
           alignment: pw.Alignment.bottomRight,
           child: pw.Text(
             'M.R.W',
-            style: regular.copyWith(fontSize: 8, color: PdfColors.grey700),
+            style: regular.copyWith(fontSize: 8.5, color: PdfColors.grey700),
           ),
         ),
       ],
@@ -527,7 +527,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       Align(
         alignment: Alignment.topRight,
         child: SizedBox(
-          width: 320,
+          width: 340,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -538,42 +538,42 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ),
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 16),
 
       // Title
       Center(
         child: Text(
           'निल घरझडती पंचनामा',
-          style: FormImagePdfHelper.mBld(16).copyWith(
+          style: FormImagePdfHelper.mBld(17).copyWith(
             decoration: TextDecoration.underline,
           ),
         ),
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 20),
 
       // Panch Names
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('पंच नांव :-  ', style: FormImagePdfHelper.mBld(11)),
+          Text('पंच नांव :-  ', style: FormImagePdfHelper.mBld(11.5)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 underlineField('१)', v('panch1')),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 underlineField('२)', v('panch2')),
               ],
             ),
           ),
         ],
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 20),
 
       // Paragraph 1
       Text.rich(
         TextSpan(
-          style: FormImagePdfHelper.mReg(11, 1.5),
+          style: FormImagePdfHelper.mBld(11.5, 1.85),
           children: [
             const TextSpan(text: 'आम्ही  '),
             TextSpan(
@@ -581,7 +581,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '__________________________________________________'
                   : v('officerName'),
               style: v('officerName').isEmpty
-                  ? FormImagePdfHelper.mBld(11)
+                  ? FormImagePdfHelper.mBld(11.5)
                   : valBld,
             ),
             const TextSpan(text: '  पोलीस स्टेशन  '),
@@ -590,7 +590,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '__________________'
                   : v('officerPs'),
               style:
-                  v('officerPs').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
+                  v('officerPs').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(text: '  यांनी दिनांक  '),
             TextSpan(
@@ -598,38 +598,38 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '...../ ....../ २०....'
                   : v('summonDate'),
               style: v('summonDate').isEmpty
-                  ? FormImagePdfHelper.mBld(11)
+                  ? FormImagePdfHelper.mBld(11.5)
                   : valBld,
             ),
             const TextSpan(text: '  रोजी वरील नमुद पंचांना मौजा  '),
             TextSpan(
               text:
                   v('mauza').isEmpty ? '________________________' : v('mauza'),
-              style: v('mauza').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
+              style: v('mauza').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(text: '  येथे बोलवून कळविले की, पो.स्टे.  '),
             TextSpan(
               text: v('firPs').isEmpty ? '__________________' : v('firPs'),
-              style: v('firPs').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
+              style: v('firPs').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(text: '  येथे अप.क्र.  '),
             TextSpan(
               text: v('crimeNo').isEmpty ? '.........' : v('crimeNo'),
               style:
-                  v('crimeNo').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
+                  v('crimeNo').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(text: ' / २०'),
             TextSpan(
               text: v('crimeYear').isEmpty ? '....' : v('crimeYear'),
               style:
-                  v('crimeYear').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
+                  v('crimeYear').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(text: '  कलम  '),
             TextSpan(
               text: v('actSec').isEmpty
                   ? '........................................'
                   : v('actSec'),
-              style: v('actSec').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
+              style: v('actSec').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(
               text:
@@ -640,7 +640,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '__________________________________________________'
                   : v('accusedName'),
               style: v('accusedName').isEmpty
-                  ? FormImagePdfHelper.mBld(11)
+                  ? FormImagePdfHelper.mBld(11.5)
                   : valBld,
             ),
             const TextSpan(text: '  ता.-  '),
@@ -649,14 +649,14 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '__________________'
                   : v('accusedTah'),
               style: v('accusedTah').isEmpty
-                  ? FormImagePdfHelper.mBld(11)
+                  ? FormImagePdfHelper.mBld(11.5)
                   : valBld,
             ),
             const TextSpan(text: '  जि '),
             TextSpan(
               text: v('accusedDist'),
               style: v('accusedDist').isEmpty
-                  ? FormImagePdfHelper.mBld(11)
+                  ? FormImagePdfHelper.mBld(11.5)
                   : valBld,
             ),
             const TextSpan(
@@ -667,12 +667,12 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         ),
         textAlign: TextAlign.justify,
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 20),
 
       // Paragraph 2
       Text.rich(
         TextSpan(
-          style: FormImagePdfHelper.mReg(11, 1.5),
+          style: FormImagePdfHelper.mBld(11.5, 1.85),
           children: [
             const TextSpan(text: 'आम्ही स्वतः सोबत पंच व स्टाफसह  '),
             TextSpan(
@@ -680,7 +680,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '__________________________________________________'
                   : v('searchPlace'),
               style: v('searchPlace').isEmpty
-                  ? FormImagePdfHelper.mBld(11)
+                  ? FormImagePdfHelper.mBld(11.5)
                   : valBld,
             ),
             const TextSpan(
@@ -690,7 +690,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '__________________________________________________'
                   : v('personFound'),
               style: v('personFound').isEmpty
-                  ? FormImagePdfHelper.mBld(11)
+                  ? FormImagePdfHelper.mBld(11.5)
                   : valBld,
             ),
             const TextSpan(
@@ -702,7 +702,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '__________________________________________________'
                   : v('searchPremises'),
               style: v('searchPremises').isEmpty
-                  ? FormImagePdfHelper.mBld(11)
+                  ? FormImagePdfHelper.mBld(11.5)
                   : valBld,
             ),
             const TextSpan(
@@ -714,7 +714,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '__________________________________________________'
                   : v('seizureProperty'),
               style: v('seizureProperty').isEmpty
-                  ? FormImagePdfHelper.mBld(11)
+                  ? FormImagePdfHelper.mBld(11.5)
                   : valBld,
             ),
             const TextSpan(
@@ -725,12 +725,12 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         ),
         textAlign: TextAlign.justify,
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 20),
 
       // Closing Paragraph
       Text.rich(
         TextSpan(
-          style: FormImagePdfHelper.mReg(11, 1.5),
+          style: FormImagePdfHelper.mBld(11.5, 1.85),
           children: [
             const TextSpan(text: 'निल घरझडती पंचनामा आज दिनांक  '),
             TextSpan(
@@ -738,20 +738,20 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ? '......./ ...../ २०....'
                   : v('panchDate'),
               style:
-                  v('panchDate').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
+                  v('panchDate').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(text: '  चे  '),
             TextSpan(
               text:
                   v('startTime').isEmpty ? '....../ ........' : v('startTime'),
               style:
-                  v('startTime').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
+                  v('startTime').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(text: '  वा सुरू करून  '),
             TextSpan(
               text: v('endTime').isEmpty ? '...../ .....' : v('endTime'),
               style:
-                  v('endTime').isEmpty ? FormImagePdfHelper.mBld(11) : valBld,
+                  v('endTime').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(
               text:
@@ -761,7 +761,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         ),
         textAlign: TextAlign.justify,
       ),
-      const SizedBox(height: 36),
+      const SizedBox(height: 38),
 
       // Signatures
       Row(
@@ -772,8 +772,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('ज्याचे घराचे झडती घेतली त्याची सही/अंगठा',
-                    style: FormImagePdfHelper.mBld(11)),
-                const SizedBox(height: 18),
+                    style: FormImagePdfHelper.mBld(11.5)),
+                const SizedBox(height: 24),
                 Container(
                   width: 220,
                   decoration: const BoxDecoration(
@@ -783,11 +783,11 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   padding: const EdgeInsets.only(bottom: 2),
                   child: Text(
                     v('ownerSig').isEmpty ? ' ' : v('ownerSig'),
-                    style: FormImagePdfHelper.valStyle(11),
+                    style: FormImagePdfHelper.valStyle(11.5),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Text('समक्ष', style: FormImagePdfHelper.mBld(11)),
+                const SizedBox(height: 12),
+                Text('समक्ष', style: FormImagePdfHelper.mBld(11.5)),
               ],
             ),
           ),
@@ -796,24 +796,24 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('पंच सही', style: FormImagePdfHelper.mBld(11)),
-                const SizedBox(height: 14),
+                Text('पंच सही', style: FormImagePdfHelper.mBld(11.5)),
+                const SizedBox(height: 16),
                 underlineField('१)', v('panch1Sig'), minWidth: 150),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 underlineField('२)', v('panch2Sig'), minWidth: 150),
               ],
             ),
           ),
         ],
       ),
-      const SizedBox(height: 24),
+      const Spacer(),
 
       // Footer
       Align(
         alignment: Alignment.bottomRight,
         child: Text(
           'M.R.W',
-          style: FormImagePdfHelper.mReg(8).copyWith(color: Colors.black54),
+          style: FormImagePdfHelper.mReg(9).copyWith(color: Colors.black54),
         ),
       ),
     ],

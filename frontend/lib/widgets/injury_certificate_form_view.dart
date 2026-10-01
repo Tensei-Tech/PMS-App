@@ -246,13 +246,11 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    BilingualField(
+                    _buildDynamicField(
                       label: 'MLC No.:-',
-                      marathiLabel: '',
                       hintText: '................................',
                       controller: _mlcNoCtrl,
                       serifStyle: serif,
-                      marathiLabelStyle: serif,
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -276,22 +274,18 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
             // ── PARAGRAPH SECTION ──
             BilingualFieldRow(
               fields: [
-                BilingualField(
+                _buildDynamicField(
                   label: 'Certified that shri/smt',
-                  marathiLabel: '',
                   hintText:
                       '................................................................',
                   controller: _patientNameCtrl,
                   serifStyle: serif,
-                  marathiLabelStyle: serif,
                 ),
-                BilingualField(
+                _buildDynamicField(
                   label: 'age',
-                  marathiLabel: '',
                   hintText: '..........',
                   controller: _patientAgeCtrl,
                   serifStyle: serif,
-                  marathiLabelStyle: serif,
                 ),
               ],
             ),
@@ -301,32 +295,26 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
             ),
             const SizedBox(height: 8),
 
-            BilingualField(
+            _buildDynamicField(
               label: 'bearing following identification mark R/O.',
-              marathiLabel: '',
               hintText:
                   '................................................................................',
               controller: _idMarkAndAddressCtrl,
               serifStyle: serif,
-              marathiLabelStyle: serif,
             ),
             BilingualFieldRow(
               fields: [
-                BilingualField(
+                _buildDynamicField(
                   label: 'tah',
-                  marathiLabel: '',
                   hintText: '...................',
                   controller: _tahCtrl,
                   serifStyle: serif,
-                  marathiLabelStyle: serif,
                 ),
-                BilingualField(
+                _buildDynamicField(
                   label: 'dist.',
-                  marathiLabel: '',
                   hintText: '...........................',
                   controller: _distCtrl,
                   serifStyle: serif,
-                  marathiLabelStyle: serif,
                 ),
               ],
             ),
@@ -334,29 +322,23 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
 
             BilingualFieldRow(
               fields: [
-                BilingualField(
+                _buildDynamicField(
                   label: 'brought to this hospital by PC/HC.',
-                  marathiLabel: '',
                   hintText: '..........................',
                   controller: _broughtByCtrl,
                   serifStyle: serif,
-                  marathiLabelStyle: serif,
                 ),
-                BilingualField(
+                _buildDynamicField(
                   label: 'B.No.',
-                  marathiLabel: '',
                   hintText: '.......',
                   controller: _buckleNoCtrl,
                   serifStyle: serif,
-                  marathiLabelStyle: serif,
                 ),
-                BilingualField(
+                _buildDynamicField(
                   label: 'Police station.',
-                  marathiLabel: '',
                   hintText: '.......................',
                   controller: _policeStationCtrl,
                   serifStyle: serif,
-                  marathiLabelStyle: serif,
                 ),
               ],
             ),
@@ -516,13 +498,11 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
                 ),
                 const SizedBox(width: 20),
                 Expanded(
-                  child: BilingualField(
+                  child: _buildDynamicField(
                     label: 'Place:-',
-                    marathiLabel: '',
                     hintText: '..........................',
                     controller: _footerPlaceCtrl,
                     serifStyle: serif,
-                    marathiLabelStyle: serif,
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -545,12 +525,10 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      BilingualField(
+                      _buildDynamicField(
                         label: '',
-                        marathiLabel: '',
                         controller: _moNameCtrl,
                         serifStyle: serif,
-                        marathiLabelStyle: serif,
                       ),
                     ],
                   ),
@@ -598,4 +576,232 @@ class InjuryCertificateFormViewState extends State<InjuryCertificateFormView> {
       ),
     );
   }
+
+  Widget _buildDynamicField({
+    required String label,
+    required TextEditingController controller,
+    required TextStyle serifStyle,
+    String? hintText,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (label.isNotEmpty) Text(label, style: serifStyle),
+        const SizedBox(height: 4),
+        _InjuryDynamicUnderlineField(
+          controller: controller,
+          style: serifStyle,
+          hintText: hintText,
+          readOnly: widget.readOnly,
+        ),
+      ],
+    );
+  }
 }
+
+class _InjuryDynamicUnderlinePainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+  final Color color;
+  final double thickness;
+
+  const _InjuryDynamicUnderlinePainter({
+    required this.lines,
+    required this.lineHeight,
+    required this.color,
+    this.thickness = 1.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = ((i * lineHeight) - 1.0).clamp(1.0, size.height - 0.5);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _InjuryDynamicUnderlinePainter oldDelegate) {
+    return oldDelegate.lines != lines ||
+        oldDelegate.lineHeight != lineHeight ||
+        oldDelegate.color != color ||
+        oldDelegate.thickness != thickness;
+  }
+}
+
+class _InjuryDynamicUnderlineField extends StatefulWidget {
+  final TextEditingController controller;
+  final TextStyle style;
+  final String? hintText;
+  final bool readOnly;
+
+  const _InjuryDynamicUnderlineField({
+    required this.controller,
+    required this.style,
+    this.hintText,
+    this.readOnly = false,
+  });
+
+  @override
+  State<_InjuryDynamicUnderlineField> createState() =>
+      _InjuryDynamicUnderlineFieldState();
+}
+
+class _InjuryDynamicUnderlineFieldState
+    extends State<_InjuryDynamicUnderlineField> {
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double lineHeight = 26.0;
+    const double baseFontSize = 13.0;
+    const double horizontalPadding = 2.0;
+    const double minWidth = 40.0;
+
+    final effectiveTextStyle = widget.style.copyWith(
+      fontWeight: FontWeight.w600,
+      fontSize: baseFontSize,
+      color: const Color(0xFF0D47A1),
+      height: lineHeight / baseFontSize,
+    );
+
+    const effectiveStrutStyle = StrutStyle(
+      fontSize: baseFontSize,
+      height: lineHeight / baseFontSize,
+      forceStrutHeight: true,
+    );
+
+    final bool isFocused = _focusNode.hasFocus;
+    final Color lineColor =
+        isFocused ? const Color(0xFF1976D2) : const Color(0xFF555555);
+    final double lineThickness = isFocused ? 1.5 : 1.0;
+
+    return ListenableBuilder(
+      listenable: widget.controller,
+      builder: (context, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final hasFiniteWidth =
+                constraints.maxWidth.isFinite && constraints.maxWidth > 0;
+            final double availableWidth =
+                hasFiniteWidth ? constraints.maxWidth : 500.0;
+            final double computedWidth =
+                availableWidth < minWidth ? minWidth : availableWidth;
+            final text = widget.controller.text;
+
+            int lineCount = 1;
+            if (text.isNotEmpty) {
+              final double textMaxWidth =
+                  (computedWidth - (horizontalPadding * 2) - 2.0)
+                      .clamp(20.0, computedWidth);
+
+              final multilinePainter = TextPainter(
+                text: TextSpan(
+                  text: text,
+                  style: effectiveTextStyle,
+                ),
+                textDirection: TextDirection.ltr,
+                strutStyle: effectiveStrutStyle,
+              )..layout(maxWidth: textMaxWidth);
+
+              final metrics = multilinePainter.computeLineMetrics();
+              lineCount = metrics.length;
+              if (lineCount < 1) lineCount = 1;
+
+              final newlineCount = '\n'.allMatches(text).length + 1;
+              if (newlineCount > lineCount) {
+                lineCount = newlineCount;
+              }
+            }
+
+            final double totalHeight = lineCount * lineHeight;
+
+            return RepaintBoundary(
+              child: SizedBox(
+                width: computedWidth,
+                height: totalHeight,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          size: Size(computedWidth, totalHeight),
+                          painter: _InjuryDynamicUnderlinePainter(
+                            lines: lineCount,
+                            lineHeight: lineHeight,
+                            color: lineColor,
+                            thickness: lineThickness,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: TextFormField(
+                        controller: widget.controller,
+                        focusNode: _focusNode,
+                        readOnly: widget.readOnly,
+                        minLines: lineCount,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        style: effectiveTextStyle,
+                        strutStyle: effectiveStrutStyle,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          isCollapsed: true,
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.only(
+                            left: horizontalPadding,
+                            right: horizontalPadding,
+                            top: 0,
+                            bottom: 2,
+                          ),
+                          fillColor: Colors.transparent,
+                          filled: false,
+                          hintText: widget.hintText,
+                          hintStyle: widget.style.copyWith(
+                            color: Colors.grey.shade400,
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                            height: lineHeight / 11.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
