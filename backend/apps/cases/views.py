@@ -130,9 +130,8 @@ class PendingCasesView(APIView):
 
     def get(self, request):
         try:
-            from apps.cases.constants import CASE_STATUS_PENDING
-            # Replaced raw SQL with ORM since pending_cases_combined does not exist
-            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('pending')
             
             # Enforce station-level visibility
             user = request.user
@@ -173,9 +172,8 @@ class IOWisePendingView(APIView):
     def get(self, request):
         try:
             from django.db.models import Count
-            from apps.cases.constants import CASE_STATUS_PENDING
-            # Don't exclude null uids so we can see cases where only assigned_officer name is set
-            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('pending')
             
             user = request.user
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -217,9 +215,8 @@ class TimeWisePendingView(APIView):
             from django.db.models import Q
             from django.utils import timezone
             from datetime import timedelta
-            from apps.cases.constants import CASE_STATUS_PENDING
-            
-            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('pending')
             
             user = request.user
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -252,45 +249,143 @@ class TimeWisePendingView(APIView):
             logger.exception(f"[TimeWisePendingView] Database error: {e}")
             return Response({'error': 'Failed to retrieve Time-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class DisposalCasesView(APIView):
+class DisposalCaseWiseView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT source, case_id, case_number, title, case_type, priority, station_name, assigned_officer, status
-                    FROM disposal_cases_combined
-                """)
-                columns = [col[0] for col in cursor.description]
-                rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('disposal')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
 
-            # Include any AD cases from CaseRecord table that qualify as disposal
-            existing_ids = {r.get('case_id') for r in rows if r.get('case_id')}
-            ad_cases = CaseRecord.objects.filter(module_key='ad')
-            for c in ad_cases:
-                if c.id not in existing_ids and is_ad_case_disposed(c):
-                    rows.append({
-                        'source': 'cases',
-                        'case_id': c.id,
-                        'case_number': c.case_number,
-                        'title': c.title,
-                        'case_type': c.module_key,
-                        'priority': c.priority,
-                        'station_name': c.station_name,
-                        'assigned_officer': c.assigned_officer,
-                        'status': 'Disposal',
-                    })
-                    existing_ids.add(c.id)
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
 
-            paginator = PageNumberPagination()
-            page = paginator.paginate_queryset(rows, request)
-            if page is not None:
-                return paginator.get_paginated_response(page)
-            return Response(rows)
+            from django.db.models.fields.json import KeyTextTransform
+            start_date = request.query_params.get('start_date') or request.query_params.get('from_date')
+            end_date = request.query_params.get('end_date') or request.query_params.get('to_date')
+            if start_date:
+                queryset = queryset.filter(extra_fields__disposal_date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(extra_fields__disposal_date__lte=end_date)
+                
+            district = request.query_params.get('district')
+            if district:
+                pass # Usually handled via station mapping
+
+            station = request.query_params.get('station')
+            if station:
+                queryset = queryset.filter(station_name=station)
+                
+            crime_type = request.query_params.get('crime_type')
+            if crime_type:
+                queryset = queryset.filter(module_key=crime_type)
+                
+            search = request.query_params.get('search')
+            if search:
+                queryset = queryset.filter(case_number__icontains=search)
+
+            from apps.cases.serializers import DisposalCaseRecordSerializer
+            from django.core.paginator import Paginator
+            from django.db.models import F
+            from django.db.models.fields.json import KeyTextTransform
+            
+            # Order by disposal_date (descending)
+            queryset = queryset.annotate(parsed_disposal_date=KeyTextTransform('disposal_date', 'extra_fields')).order_by('-parsed_disposal_date', '-created_at')
+            page_number = int(request.query_params.get('page', 1))
+            page_size = min(int(request.query_params.get('page_size', 20)), 100)
+            
+            paginator = Paginator(queryset, page_size)
+            page_obj = paginator.get_page(page_number)
+            
+            serializer = DisposalCaseRecordSerializer(page_obj, many=True, context={'page': page_number, 'page_size': page_size})
+            
+            results = serializer.data
+            for idx, row in enumerate(results):
+                row[0] = (page_number - 1) * page_size + idx + 1
+            
+            return Response({
+                "tab": "disposal",
+                "view": "case-wise",
+                "columns": ["S.R. No", "C.R. No", "Section & Act", "I.O. Name", "Police Station", "Disposal Type", "Disposal No.", "Disposal Date"],
+                "count": paginator.count,
+                "results": results
+            })
         except Exception as e:
-            logger.exception(f"[DisposalCasesView] Database error: {e}")
+            logger.exception(f"[DisposalCaseWiseView] Database error: {e}")
             return Response({'error': 'Failed to retrieve disposal cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWiseDisposalView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models.functions import TruncMonth, Cast
+            from django.db.models import Count, DateField
+            from django.db.models.fields.json import KeyTextTransform
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('disposal')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            monthly_counts = queryset.annotate(
+                d_date=Cast(KeyTextTransform('disposal_date', 'extra_fields'), DateField())
+            ).annotate(month=TruncMonth('d_date')).values('month').annotate(count=Count('id')).order_by('-month')
+            
+            results = [
+                [item['month'].strftime('%B %Y') if item['month'] else "Unknown", item['count']] 
+                for item in monthly_counts
+            ]
+            
+            return Response({
+                "tab": "disposal",
+                "view": "time-wise",
+                "columns": ["Month/Year", "Total Disposed Cases"],
+                "count": len(results),
+                "results": results
+            })
+        except Exception as e:
+            logger.exception(f"[TimeWiseDisposalView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve Time-wise disposal.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DesignationWiseDisposalView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('disposal')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name,
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'disposal_count': c['count']
+                })
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[DesignationWiseDisposalView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve IO-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CasesByCrimeTypeView(APIView):

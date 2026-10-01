@@ -104,6 +104,53 @@ class CaseRecordSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class DisposalCaseRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseRecord
+        fields = ['id']
+
+    def to_representation(self, instance):
+        from apps.cases.constants import DISPOSAL_KEYS, DISPOSAL_LABELS
+        extra = instance.extra_fields or {}
+        
+        page = self.context.get('page', 1)
+        page_size = self.context.get('page_size', 20)
+        
+        sr_no = 0
+
+        # Find all filled disposal keys
+        types = []
+        nums = []
+        for key in DISPOSAL_KEYS:
+            val = extra.get(key)
+            if val is not None and str(val).strip():
+                types.append(DISPOSAL_LABELS.get(key, key))
+                nums.append(str(val).strip())
+                
+        disposal_type = ", ".join(types) if types else "N/A"
+        disposal_no = ", ".join(nums) if nums else "N/A"
+        
+        # Section & Act
+        act = extra.get('act', extra.get('Act', ''))
+        section = extra.get('section', extra.get('Section', ''))
+        section_act = f"{section} {act}".strip()
+        if not section_act:
+            section_act = "N/A"
+            
+        # Disposal Date (must be set once, no fallback to updated_at)
+        disposal_date = extra.get('disposal_date', 'N/A')
+
+        return [
+            sr_no,
+            instance.case_number or "N/A",
+            section_act,
+            instance.assigned_officer or "Unassigned",
+            instance.station_name or "N/A",
+            disposal_type,
+            disposal_no,
+            disposal_date
+        ]
+
 class CreateCaseSerializer(serializers.Serializer):
     """
     Strict serializer for raw SQL case creation endpoint.
@@ -137,3 +184,65 @@ class CreateCaseSerializer(serializers.Serializer):
             raise serializers.ValidationError("module cannot be blank.")
         return value.strip()
 
+from rest_framework import serializers
+from apps.cases.models import CaseRecord, _extract_first_non_empty
+from apps.cases.constants import CC_ST_KEYS
+
+def extract_section_act(extra_fields):
+    if not isinstance(extra_fields, dict):
+        return '��  '
+    
+    sections = extra_fields.get('sections', {})
+    if isinstance(sections, dict) and sections.get('otherSections'):
+        return str(sections['otherSections']).strip()
+        
+    for key in ['otherSections', 'section', 'act']:
+        if key in extra_fields and str(extra_fields[key]).strip():
+            return str(extra_fields[key]).strip()
+            
+    # Try searching in nested objects
+    for val in extra_fields.values():
+        if isinstance(val, dict):
+            if val.get('otherSections'):
+                return str(val['otherSections']).strip()
+            if val.get('section'):
+                return str(val['section']).strip()
+            if val.get('act'):
+                return str(val['act']).strip()
+    return '��  '
+
+class DisposalCaseRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseRecord
+        fields = ['id']
+
+    def to_representation(self, instance):
+        extra = instance.extra_fields or {}
+        
+        # 1. S.R. No (passed via context from view)
+        sr_no = self.context.get('start_index', 0) + 1
+        # Update context so next row gets correct index
+        self.context['start_index'] = sr_no
+        
+        # 2. CC/ST Number
+        cc_st_no = _extract_first_non_empty(extra, CC_ST_KEYS) or "N/A"
+        
+        # 3. Section & Act
+        section_act = extract_section_act(extra)
+        
+        # 4. Verdict / Outcome
+        verdict = extra.get('final_verdict', extra.get('outcome', 'N/A'))
+        
+        # 5. Disposal Date (from disposal_date field)
+        disposal_date = instance.disposal_date.strftime('%Y-%m-%d') if instance.disposal_date else "N/A"
+
+        return [
+            str(sr_no),
+            instance.case_number or "N/A",
+            section_act,
+            instance.assigned_officer or "Unassigned",
+            instance.station_name or "N/A",
+            cc_st_no,
+            disposal_date,
+            verdict
+        ]

@@ -1,4 +1,22 @@
 CC_ST_KEYS = ['ccStNumber', 'cc_number', 'ccNumber', 'cc_no', 'st_number', 'stNumber', 'disposedCcStNumber']
+DISPOSAL_KEYS = [
+    'ccStNumber',
+    'charge_sheet_no',
+    'a_final_number',
+    'b_final_number',
+    'c_final_number',
+    'nc_final_number',
+    'abeted_summary_no'
+]
+DISPOSAL_LABELS = {
+    'ccStNumber': 'CC/ST',
+    'charge_sheet_no': 'Charge Sheet',
+    'a_final_number': 'A Final',
+    'b_final_number': 'B Final',
+    'c_final_number': 'C Final',
+    'nc_final_number': 'NC Final',
+    'abeted_summary_no': 'Abeted Summary'
+}
 REASON_KEYS = ['reason_for_pending', 'pendingReason', 'pending_reason']
 
 CASE_STATUS_PENDING = 'Pending'
