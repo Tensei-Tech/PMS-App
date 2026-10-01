@@ -16,15 +16,16 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final out = Map<String, dynamic>.from(source);
 
   // --- Registration / FIR ---
-  // Only use fallback if the Crime Detail Form's own 'firNo' is absent/empty.
-  final existingFirNo = source['firNo']?.toString().trim() ?? '';
-  if (existingFirNo.isEmpty) {
-    final firNo = source['crNo'] ??
-        source['caseNumber'] ??
-        source['adNo'] ??
-        source['ncNo'] ??
-        '';
-    out['firNo'] = firNo.toString();
+  final crNo = source['crNo']?.toString().trim() ?? '';
+  if (crNo.isNotEmpty) {
+    out['firNo'] = crNo;
+  } else {
+    final existingFirNo = source['firNo']?.toString().trim() ?? '';
+    if (existingFirNo.isEmpty) {
+      final firNo =
+          source['caseNumber'] ?? source['adNo'] ?? source['ncNo'] ?? '';
+      out['firNo'] = firNo.toString();
+    }
   }
 
   // Only use fallback for 'date' if the Crime Detail Form's date parts are all absent.
