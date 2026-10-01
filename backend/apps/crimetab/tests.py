@@ -707,25 +707,21 @@ class CommonFormE2ETests(TestCase):
         kailash_seizures = SeizureRecords.objects.filter(seized_from_person_id=new_person.person_id)
         self.assertEqual(kailash_seizures.count(), 1)
         self.assertEqual(kailash_seizures.first().description, 'Cash INR 50000')
- 
- c l a s s   C o u n t e r S e r v i c e T e s t s ( T e s t C a s e ) :  
-         d e f   s e t U p ( s e l f ) :  
-                 f r o m   a p p s . c o r e . t e n a n c y   i m p o r t   s e t _ t e n a n t _ s c h e m a  
-                 f r o m   a p p s . p u b l i c _ m a s t e r . m o d e l s   i m p o r t   S t a t e R e g i s t r y  
-                 S t a t e R e g i s t r y . o b j e c t s . g e t _ o r _ c r e a t e (  
-                         s t a t e _ c o d e = ' M H ' ,  
-                         d e f a u l t s = { ' s t a t e _ n a m e ' :   ' M a h a r a s h t r a ' ,   ' s c h e m a _ n a m e ' :   ' m a h a r a s h t r a ' ,   ' i s _ a c t i v e ' :   T r u e }  
-                 )  
-                 s e t _ t e n a n t _ s c h e m a ( ' m a h a r a s h t r a ' )  
-                  
-                 s e l f . g r o u p   =   C a s e C a t e g o r y G r o u p . o b j e c t s . c r e a t e ( n a m e = ' T e s t   G r o u p ' ,   s o r t _ o r d e r = 1 )  
-                 s e l f . c a t 1   =   C a s e C a t e g o r y . o b j e c t s . c r e a t e ( n a m e = ' C a t   1 ' ,   g r o u p = s e l f . g r o u p )  
-  
-         d e f   t e s t _ g e t _ c a t e g o r y _ c o u n t e r s _ n o _ n a m e _ e r r o r ( s e l f ) :  
-                 #   T h i s   t e s t   e n s u r e s   w e   d o   n o t   r e g r e s s   i n t o   F 8 2 1   u n d e f i n e d   n a m e   ' K e y T e x t T r a n s f o r m '  
-                 #   o r   ' d e s c e n d a n t _ i d s '   w h e n   c a l l i n g   g e t _ c a t e g o r y _ c o u n t e r s .  
-                 t r y :  
-                         g e t _ c a t e g o r y _ c o u n t e r s ( s e l f . c a t 1 . c a t e g o r y _ i d )  
-                 e x c e p t   N a m e E r r o r   a s   e :  
-                         s e l f . f a i l ( f " g e t _ c a t e g o r y _ c o u n t e r s   r a i s e d   N a m e E r r o r   u n e x p e c t e d l y :   { e } " )  
- 
+
+class CounterServiceTests(TestCase):
+    def setUp(self):
+        from apps.core.tenancy import set_tenant_schema
+        from apps.public_master.models import StateRegistry
+        StateRegistry.objects.get_or_create(
+            state_code='MH',
+            defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}
+        )
+        set_tenant_schema('maharashtra')
+        self.group = CaseCategoryGroup.objects.create(name='Test Group', sort_order=1)
+        self.cat1 = CaseCategory.objects.create(name='Cat 1', group=self.group)
+
+    def test_get_category_counters_no_name_error(self):
+        try:
+            get_category_counters(self.cat1.category_id)
+        except NameError as e:
+            self.fail(f"NameError unexpectedly: {e}")
