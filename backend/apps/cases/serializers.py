@@ -104,52 +104,48 @@ class CaseRecordSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class DisposalCaseRecordSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CaseRecord
-        fields = ['id']
-
+class DisposalCaseRecordSerializer(CaseRecordSerializer):
     def to_representation(self, instance):
+        data = super().to_representation(instance)
         from apps.cases.constants import DISPOSAL_KEYS, DISPOSAL_LABELS
+        from apps.cases.constants import CC_ST_KEYS
+        from apps.crimetab.models.groupings import CaseCategory
+        
         extra = instance.extra_fields or {}
         
-        page = self.context.get('page', 1)
-        page_size = self.context.get('page_size', 20)
-        
-        sr_no = 0
-
-        # Find all filled disposal keys
         types = []
         nums = []
+        cc_st = []
+        
         for key in DISPOSAL_KEYS:
             val = extra.get(key)
             if val is not None and str(val).strip():
                 types.append(DISPOSAL_LABELS.get(key, key))
                 nums.append(str(val).strip())
                 
-        disposal_type = ", ".join(types) if types else "N/A"
-        disposal_no = ", ".join(nums) if nums else "N/A"
+        for key in CC_ST_KEYS:
+            val = extra.get(key)
+            if val is not None and str(val).strip():
+                cc_st.append(str(val).strip())
+                
+        data['disposal_type'] = ", ".join(types) if types else "N/A"
+        data['disposal_no'] = ", ".join(nums) if nums else "N/A"
+        data['disposal_date'] = extra.get('disposal_date', 'N/A')
         
-        # Section & Act
-        act = extra.get('act', extra.get('Act', ''))
-        section = extra.get('section', extra.get('Section', ''))
-        section_act = f"{section} {act}".strip()
-        if not section_act:
-            section_act = "N/A"
-            
-        # Disposal Date (must be set once, no fallback to updated_at)
-        disposal_date = extra.get('disposal_date', 'N/A')
-
-        return [
-            sr_no,
-            instance.case_number or "N/A",
-            section_act,
-            instance.assigned_officer or "Unassigned",
-            instance.station_name or "N/A",
-            disposal_type,
-            disposal_no,
-            disposal_date
-        ]
+        # Dedupe cc_st_no and return "" if empty
+        unique_cc_st = []
+        for x in cc_st:
+            if x not in unique_cc_st:
+                unique_cc_st.append(x)
+        data['cc_st_no'] = ", ".join(unique_cc_st) if unique_cc_st else ""
+        data['status'] = 'Disposal'
+        
+        # Get crime_type_name from CaseCategory via context map
+        cat_map = self.context.get('cat_map', {})
+        mk = (instance.module_key or "").strip().lower()
+        data['crime_type_name'] = cat_map.get(mk, instance.module_key)
+        
+        return data
 
 class CreateCaseSerializer(serializers.Serializer):
     """
@@ -210,39 +206,3 @@ def extract_section_act(extra_fields):
             if val.get('act'):
                 return str(val['act']).strip()
     return '��  '
-
-class DisposalCaseRecordSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CaseRecord
-        fields = ['id']
-
-    def to_representation(self, instance):
-        extra = instance.extra_fields or {}
-        
-        # 1. S.R. No (passed via context from view)
-        sr_no = self.context.get('start_index', 0) + 1
-        # Update context so next row gets correct index
-        self.context['start_index'] = sr_no
-        
-        # 2. CC/ST Number
-        cc_st_no = _extract_first_non_empty(extra, CC_ST_KEYS) or "N/A"
-        
-        # 3. Section & Act
-        section_act = extract_section_act(extra)
-        
-        # 4. Verdict / Outcome
-        verdict = extra.get('final_verdict', extra.get('outcome', 'N/A'))
-        
-        # 5. Disposal Date (from disposal_date field)
-        disposal_date = instance.disposal_date.strftime('%Y-%m-%d') if instance.disposal_date else "N/A"
-
-        return [
-            str(sr_no),
-            instance.case_number or "N/A",
-            section_act,
-            instance.assigned_officer or "Unassigned",
-            instance.station_name or "N/A",
-            cc_st_no,
-            disposal_date,
-            verdict
-        ]

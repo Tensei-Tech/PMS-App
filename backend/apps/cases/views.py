@@ -262,13 +262,16 @@ class DisposalCaseWiseView(APIView):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
 
-            io_name = request.query_params.get('io')
-            if io_name:
-                queryset = queryset.filter(assigned_officer=io_name)
+            io_uid = request.query_params.get('io_uid')
+            if io_uid:
+                queryset = queryset.filter(assigned_officer_uid=io_uid)
 
             from django.db.models.fields.json import KeyTextTransform
             start_date = request.query_params.get('start_date') or request.query_params.get('from_date')
             end_date = request.query_params.get('end_date') or request.query_params.get('to_date')
+            
+            if start_date or end_date:
+                queryset = queryset.filter(extra_fields__disposal_date__regex=r'^\d{4}-\d{2}-\d{2}')
             if start_date:
                 queryset = queryset.filter(extra_fields__disposal_date__gte=start_date)
             if end_date:
@@ -276,7 +279,13 @@ class DisposalCaseWiseView(APIView):
                 
             district = request.query_params.get('district')
             if district:
-                pass # Usually handled via station mapping
+                from apps.public_master.models import District, PoliceStation
+                try:
+                    d = District.objects.get(name__iexact=district)
+                    stations_in_district = PoliceStation.objects.filter(district=d).values_list('name', flat=True)
+                    queryset = queryset.filter(station_name__in=stations_in_district)
+                except District.DoesNotExist:
+                    queryset = queryset.none()
 
             station = request.query_params.get('station')
             if station:
@@ -291,31 +300,40 @@ class DisposalCaseWiseView(APIView):
                 queryset = queryset.filter(case_number__icontains=search)
 
             from apps.cases.serializers import DisposalCaseRecordSerializer
-            from django.core.paginator import Paginator
-            from django.db.models import F
             from django.db.models.fields.json import KeyTextTransform
             
             # Order by disposal_date (descending)
             queryset = queryset.annotate(parsed_disposal_date=KeyTextTransform('disposal_date', 'extra_fields')).order_by('-parsed_disposal_date', '-created_at')
-            page_number = int(request.query_params.get('page', 1))
-            page_size = min(int(request.query_params.get('page_size', 20)), 100)
             
-            paginator = Paginator(queryset, page_size)
-            page_obj = paginator.get_page(page_number)
-            
-            serializer = DisposalCaseRecordSerializer(page_obj, many=True, context={'page': page_number, 'page_size': page_size})
-            
+            from apps.crimetab.models.groupings import CaseCategory
+            cats = CaseCategory.objects.all()
+            cat_map = {}
+            for c in cats:
+                if c.category_code:
+                    cat_map[c.category_code.lower()] = c.category_name
+                if c.category_name:
+                    cat_map[c.category_name.lower()] = c.category_name
+
+            from rest_framework.pagination import PageNumberPagination
+            paginator = PageNumberPagination()
+            paginator.page_size = 20
+            paginator.page_size_query_param = 'page_size'
+            print("Queryset count in view:", queryset.count())
+            page = paginator.paginate_queryset(queryset, request)
+            if page is not None:
+                serializer = DisposalCaseRecordSerializer(page, many=True, context={'cat_map': cat_map})
+                results = serializer.data
+                page_number = paginator.page.number
+                page_size = paginator.page.paginator.per_page
+                for idx, row in enumerate(results):
+                    row['sr_no'] = (page_number - 1) * page_size + idx + 1
+                return paginator.get_paginated_response(results)
+                
+            serializer = DisposalCaseRecordSerializer(queryset, many=True, context={'cat_map': cat_map})
             results = serializer.data
             for idx, row in enumerate(results):
-                row[0] = (page_number - 1) * page_size + idx + 1
-            
-            return Response({
-                "tab": "disposal",
-                "view": "case-wise",
-                "columns": ["S.R. No", "C.R. No", "Section & Act", "I.O. Name", "Police Station", "Disposal Type", "Disposal No.", "Disposal Date"],
-                "count": paginator.count,
-                "results": results
-            })
+                row['sr_no'] = idx + 1
+            return Response(results)
         except Exception as e:
             logger.exception(f"[DisposalCaseWiseView] Database error: {e}")
             return Response({'error': 'Failed to retrieve disposal cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -325,8 +343,6 @@ class TimeWiseDisposalView(APIView):
 
     def get(self, request):
         try:
-            from django.db.models.functions import TruncMonth, Cast
-            from django.db.models import Count, DateField
             from django.db.models.fields.json import KeyTextTransform
             from apps.cases.utils import get_cases_by_status
             queryset = get_cases_by_status('disposal')
@@ -336,22 +352,57 @@ class TimeWiseDisposalView(APIView):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
 
-            monthly_counts = queryset.annotate(
-                d_date=Cast(KeyTextTransform('disposal_date', 'extra_fields'), DateField())
-            ).annotate(month=TruncMonth('d_date')).values('month').annotate(count=Count('id')).order_by('-month')
+            district = request.query_params.get('district')
+            if district:
+                from apps.crimetab.models import PoliceStation
+                stations = PoliceStation.objects.filter(district__district_name__iexact=district).values_list('station_name', flat=True)
+                queryset = queryset.filter(station_name__in=stations)
+
+            # Group in Python to be 100% safe from DB Cast DataError
+            cases = queryset.annotate(d_date=KeyTextTransform('disposal_date', 'extra_fields')).values_list('d_date', flat=True)
             
-            results = [
-                [item['month'].strftime('%B %Y') if item['month'] else "Unknown", item['count']] 
-                for item in monthly_counts
-            ]
+            import re
+            from collections import defaultdict
+            from datetime import datetime
             
-            return Response({
-                "tab": "disposal",
-                "view": "time-wise",
-                "columns": ["Month/Year", "Total Disposed Cases"],
-                "count": len(results),
-                "results": results
-            })
+            counts_map = defaultdict(int)
+            for d in cases:
+                parsed_month = "Unknown"
+                if d and isinstance(d, str):
+                    d = d.strip()
+                    if re.match(r'^\d{4}-\d{2}-\d{2}', d):
+                        try:
+                            dt = datetime.strptime(d[:10], "%Y-%m-%d")
+                            parsed_month = dt.strftime('%B %Y')
+                        except ValueError:
+                            pass
+                counts_map[parsed_month] += 1
+                
+            results = [[k, v] for k, v in counts_map.items()]
+            # Sort: parseable dates descending, Unknown at bottom
+            results.sort(key=lambda x: datetime.strptime(x[0], '%B %Y') if x[0] != 'Unknown' else datetime.min, reverse=True)
+            
+            output = []
+            import calendar
+            for period, count in results:
+                start_date = ""
+                end_date = ""
+                if period != 'Unknown':
+                    try:
+                        dt = datetime.strptime(period, '%B %Y')
+                        last_day = calendar.monthrange(dt.year, dt.month)[1]
+                        start_date = f"{dt.year}-{dt.month:02d}-01"
+                        end_date = f"{dt.year}-{dt.month:02d}-{last_day:02d}"
+                    except Exception:
+                        pass
+                output.append({
+                    'period': period,
+                    'count': count,
+                    'start_date': start_date,
+                    'end_date': end_date
+                })
+            
+            return Response(output)
         except Exception as e:
             logger.exception(f"[TimeWiseDisposalView] Database error: {e}")
             return Response({'error': 'Failed to retrieve Time-wise disposal.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -370,15 +421,26 @@ class DesignationWiseDisposalView(APIView):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
 
-            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            district = request.query_params.get('district')
+            if district:
+                from apps.crimetab.models import PoliceStation
+                stations = PoliceStation.objects.filter(district__district_name__iexact=district).values_list('station_name', flat=True)
+                queryset = queryset.filter(station_name__in=stations)
+
+            counts = queryset.values('assigned_officer_uid', 'assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            from apps.users.models import OfficerProfile
+            uid_to_rank = {p.uid: p.designation for p in OfficerProfile.objects.filter(uid__in=[c['assigned_officer_uid'] for c in counts if c['assigned_officer_uid']])}
             
             results = []
             for c in counts:
-                name = c['assigned_officer']
+                uid = c.get('assigned_officer_uid') or ''
+                name = c.get('assigned_officer') or 'Unassigned'
+                rank = uid_to_rank.get(uid, '') if uid else ''
                 results.append({
-                    'io_uid': name,
-                    'io_name': name if name else 'Unassigned',
-                    'io_rank': '',
+                    'io_uid': uid,
+                    'io_name': name,
+                    'io_rank': rank,
                     'station_name': c['station_name'],
                     'disposal_count': c['count']
                 })
