@@ -84,10 +84,9 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
     if ((out['victimName']?.toString().trim() ?? '').isEmpty) {
       out['victimName'] = victim['name']?.toString() ?? '';
     }
-    out['victimAge'] =
-        (out['victimAge']?.toString().trim() ?? '').isNotEmpty
-            ? out['victimAge']
-            : victim['age']?.toString() ?? '';
+    out['victimAge'] = (out['victimAge']?.toString().trim() ?? '').isNotEmpty
+        ? out['victimAge']
+        : victim['age']?.toString() ?? '';
     out['victimGender'] =
         (out['victimGender']?.toString().trim() ?? '').isNotEmpty
             ? out['victimGender']
@@ -147,7 +146,6 @@ Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
 
   return out;
 }
-
 
 Future<void> previewCrimeDetailPdf(
   BuildContext context,
@@ -373,8 +371,8 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                                 ),
                               ),
                               alignment: pw.Alignment.bottomLeft,
-                              padding: const pw.EdgeInsets.only(
-                                  left: 2, bottom: 1),
+                              padding:
+                                  const pw.EdgeInsets.only(left: 2, bottom: 1),
                               child: pw.Text(
                                 doc['firNo']?.toString() ?? '',
                                 style: valueStyle,
@@ -1528,8 +1526,7 @@ pw.Widget _buildPdfDynamicField({
   // A4 usable width ~515pt, two cols ~250pt each, ~10pt/char ≈ 35 chars
   const int charsPerLine = 35;
   final text = fallbackValue.trim();
-  final lines =
-      text.isEmpty ? [''] : _splitTextIntoLines(text, charsPerLine);
+  final lines = text.isEmpty ? [''] : _splitTextIntoLines(text, charsPerLine);
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1543,8 +1540,7 @@ pw.Widget _buildPdfDynamicField({
             child: pw.Container(
               decoration: const pw.BoxDecoration(
                 border: pw.Border(
-                  bottom:
-                      pw.BorderSide(color: PdfColors.black, width: 0.8),
+                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
                 ),
               ),
               alignment: pw.Alignment.bottomLeft,
@@ -1564,8 +1560,7 @@ pw.Widget _buildPdfDynamicField({
           width: double.infinity,
           decoration: const pw.BoxDecoration(
             border: pw.Border(
-              bottom:
-                  pw.BorderSide(color: PdfColors.black, width: 0.8),
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
             ),
           ),
           alignment: pw.Alignment.bottomLeft,
@@ -1602,8 +1597,7 @@ pw.Widget _buildPdfInlineField({
 }) {
   final text = fallbackValue.trim();
   const int charsPerLine = 35;
-  final lines =
-      text.isEmpty ? [''] : _splitTextIntoLines(text, charsPerLine);
+  final lines = text.isEmpty ? [''] : _splitTextIntoLines(text, charsPerLine);
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1617,8 +1611,7 @@ pw.Widget _buildPdfInlineField({
             child: pw.Container(
               decoration: const pw.BoxDecoration(
                 border: pw.Border(
-                  bottom:
-                      pw.BorderSide(color: PdfColors.black, width: 0.8),
+                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
                 ),
               ),
               alignment: pw.Alignment.bottomLeft,
@@ -1638,8 +1631,7 @@ pw.Widget _buildPdfInlineField({
           width: double.infinity,
           decoration: const pw.BoxDecoration(
             border: pw.Border(
-              bottom:
-                  pw.BorderSide(color: PdfColors.black, width: 0.8),
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
             ),
           ),
           alignment: pw.Alignment.bottomLeft,
@@ -1674,8 +1666,7 @@ pw.Widget _buildPdfWideField({
   final text = fallbackValue.trim();
   // Wide field spans full column ~515pt ≈ 70 chars at 10pt
   const int charsPerLine = 70;
-  final lines =
-      text.isEmpty ? [''] : _splitTextIntoLines(text, charsPerLine);
+  final lines = text.isEmpty ? [''] : _splitTextIntoLines(text, charsPerLine);
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1689,8 +1680,7 @@ pw.Widget _buildPdfWideField({
             child: pw.Container(
               decoration: const pw.BoxDecoration(
                 border: pw.Border(
-                  bottom:
-                      pw.BorderSide(color: PdfColors.black, width: 0.8),
+                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
                 ),
               ),
               alignment: pw.Alignment.bottomLeft,
@@ -1710,8 +1700,7 @@ pw.Widget _buildPdfWideField({
           width: double.infinity,
           decoration: const pw.BoxDecoration(
             border: pw.Border(
-              bottom:
-                  pw.BorderSide(color: PdfColors.black, width: 0.8),
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
             ),
           ),
           alignment: pw.Alignment.bottomLeft,

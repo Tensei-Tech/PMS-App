@@ -4519,7 +4519,6 @@ Widget _buildCivilSurgeonPg2Widget(Map<String, dynamic> doc) {
   );
 }
 
-
 Widget _buildDeadBodyHandoverWidget(Map<String, dynamic> doc) {
   String v(String k) => doc[k]?.toString().trim() ?? '';
   final mrB = FormImagePdfHelper.mBld(10, 1.45);

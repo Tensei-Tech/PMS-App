@@ -53,7 +53,8 @@ void main() {
     'sentOfficerBNo': '1234',
     'sentOfficerPs': 'Haveli',
     'opinionPanchas': 'Death appears suspicious due to injuries',
-    'opinionPanchas2': 'The body was exhumed in presence of Executive Magistrate and Medical Officer.',
+    'opinionPanchas2':
+        'The body was exhumed in presence of Executive Magistrate and Medical Officer.',
     'moreInfo': 'Viscera to be preserved',
     'panchanamaDate': '2026-09-30',
     'panchanamaTime': '10:30 AM',
@@ -71,15 +72,20 @@ void main() {
   };
 
   group('Exhumation Panchanama PDF Tests', () {
-    test('generateInquestPanchanamaPdf generates valid PDF bytes for Exhumation', () async {
+    test(
+        'generateInquestPanchanamaPdf generates valid PDF bytes for Exhumation',
+        () async {
       final pdfBytes = await generateInquestPanchanamaPdf(sampleDoc);
       expect(pdfBytes, isNotNull);
       expect(pdfBytes.isNotEmpty, isTrue);
     });
 
-    testWidgets('buildExhumationPages creates non-overflowing pages', (WidgetTester tester) async {
+    testWidgets('buildExhumationPages creates non-overflowing pages',
+        (WidgetTester tester) async {
       final pages = buildExhumationPagesForTesting(sampleDoc);
-      expect(pages.length, equals(3), reason: 'Exhumation panchanama should be cleanly paginated across 3 pages');
+      expect(pages.length, equals(3),
+          reason:
+              'Exhumation panchanama should be cleanly paginated across 3 pages');
 
       for (int i = 0; i < pages.length; i++) {
         tester.view.physicalSize = const Size(794, 1123);
@@ -95,7 +101,8 @@ void main() {
         );
 
         // Verify no Flutter render overflow errors occurred
-        expect(tester.takeException(), isNull, reason: 'Page ${i + 1} must not have render/bottom overflow');
+        expect(tester.takeException(), isNull,
+            reason: 'Page ${i + 1} must not have render/bottom overflow');
       }
     });
   });

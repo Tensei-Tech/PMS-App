@@ -721,7 +721,8 @@ class _NoticeAccusedDynamicUnderlinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _NoticeAccusedDynamicUnderlinePainter oldDelegate) {
+  bool shouldRepaint(
+      covariant _NoticeAccusedDynamicUnderlinePainter oldDelegate) {
     return oldDelegate.lines != lines ||
         oldDelegate.lineHeight != lineHeight ||
         oldDelegate.color != color ||
@@ -835,9 +836,8 @@ class _NoticeAccusedDynamicUnderlineFieldState
                   measuredWidth < effectiveMin ? effectiveMin : measuredWidth;
               lineCount = 1;
             } else {
-              computedWidth = availableWidth < effectiveMax
-                  ? availableWidth
-                  : effectiveMax;
+              computedWidth =
+                  availableWidth < effectiveMax ? availableWidth : effectiveMax;
               if (computedWidth < effectiveMin) computedWidth = effectiveMin;
 
               final double textMaxWidth =
@@ -931,4 +931,3 @@ class _NoticeAccusedDynamicUnderlineFieldState
     );
   }
 }
-

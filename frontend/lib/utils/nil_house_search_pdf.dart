@@ -28,7 +28,8 @@ Future<Uint8List> generateNilHouseSearchPdf(Map<String, dynamic> doc) async {
   final devanagari = await PdfFontCache.devanagariRegular();
   final devanagariBold = await PdfFontCache.devanagariBold();
 
-  final regular = pw.TextStyle(font: devanagari, fontSize: 10.5, lineSpacing: 4.5);
+  final regular =
+      pw.TextStyle(font: devanagari, fontSize: 10.5, lineSpacing: 4.5);
   final bold = pw.TextStyle(
     font: devanagariBold,
     fontSize: 10.5,
@@ -589,8 +590,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text: v('officerPs').isEmpty
                   ? '__________________'
                   : v('officerPs'),
-              style:
-                  v('officerPs').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
+              style: v('officerPs').isEmpty
+                  ? FormImagePdfHelper.mBld(11.5)
+                  : valBld,
             ),
             const TextSpan(text: '  यांनी दिनांक  '),
             TextSpan(
@@ -605,12 +607,14 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             TextSpan(
               text:
                   v('mauza').isEmpty ? '________________________' : v('mauza'),
-              style: v('mauza').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
+              style:
+                  v('mauza').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(text: '  येथे बोलवून कळविले की, पो.स्टे.  '),
             TextSpan(
               text: v('firPs').isEmpty ? '__________________' : v('firPs'),
-              style: v('firPs').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
+              style:
+                  v('firPs').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(text: '  येथे अप.क्र.  '),
             TextSpan(
@@ -621,15 +625,17 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             const TextSpan(text: ' / २०'),
             TextSpan(
               text: v('crimeYear').isEmpty ? '....' : v('crimeYear'),
-              style:
-                  v('crimeYear').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
+              style: v('crimeYear').isEmpty
+                  ? FormImagePdfHelper.mBld(11.5)
+                  : valBld,
             ),
             const TextSpan(text: '  कलम  '),
             TextSpan(
               text: v('actSec').isEmpty
                   ? '........................................'
                   : v('actSec'),
-              style: v('actSec').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
+              style:
+                  v('actSec').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
             ),
             const TextSpan(
               text:
@@ -737,15 +743,17 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               text: v('panchDate').isEmpty
                   ? '......./ ...../ २०....'
                   : v('panchDate'),
-              style:
-                  v('panchDate').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
+              style: v('panchDate').isEmpty
+                  ? FormImagePdfHelper.mBld(11.5)
+                  : valBld,
             ),
             const TextSpan(text: '  चे  '),
             TextSpan(
               text:
                   v('startTime').isEmpty ? '....../ ........' : v('startTime'),
-              style:
-                  v('startTime').isEmpty ? FormImagePdfHelper.mBld(11.5) : valBld,
+              style: v('startTime').isEmpty
+                  ? FormImagePdfHelper.mBld(11.5)
+                  : valBld,
             ),
             const TextSpan(text: '  वा सुरू करून  '),
             TextSpan(

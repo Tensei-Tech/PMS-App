@@ -223,8 +223,10 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
                     '३०.', 'अटक करणारे अंमलदार', 'arrestingOfficer'),
                 buildSimpleTextRow(
                     '३१.', 'जमीनावर सोडला असल्यास जामीनदाराचे नांव', 'surety'),
-                buildSimpleTextRow('३२.',
-                    'गुन्हेगारास अगोदर शिक्षा झाली काय व किती', 'pastConviction'),
+                buildSimpleTextRow(
+                    '३२.',
+                    'गुन्हेगारास अगोदर शिक्षा झाली काय व किती',
+                    'pastConviction'),
                 buildSimpleTextRow('३३.', 'केंसचा निकाल', 'caseResult'),
               ],
             ),
@@ -242,7 +244,8 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
                       width: 130,
                       decoration: const pw.BoxDecoration(
                         border: pw.Border(
-                          bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
                         ),
                       ),
                       child: pw.Text(v('accusedSig'),
@@ -258,7 +261,8 @@ Future<Uint8List> generateCheharePattiPdf(Map<String, dynamic> doc) async {
                       width: 130,
                       decoration: const pw.BoxDecoration(
                         border: pw.Border(
-                          bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
                         ),
                       ),
                       child: pw.Text(v('ioSig'),
@@ -499,7 +503,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               Container(
                 width: 140,
                 decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.black87, width: 0.8)),
+                  border: Border(
+                      bottom: BorderSide(color: Colors.black87, width: 0.8)),
                 ),
                 child: Text(
                   v('accusedSig'),
@@ -516,7 +521,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               Container(
                 width: 140,
                 decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.black87, width: 0.8)),
+                  border: Border(
+                      bottom: BorderSide(color: Colors.black87, width: 0.8)),
                 ),
                 child: Text(
                   v('ioSig'),

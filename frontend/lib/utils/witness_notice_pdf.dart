@@ -185,7 +185,9 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 8),
 
             // Address Line 2
-            if ((doc['panchAddressLine2']?.toString() ?? '').trim().isNotEmpty) ...[
+            if ((doc['panchAddressLine2']?.toString() ?? '')
+                .trim()
+                .isNotEmpty) ...[
               pw.Container(
                 decoration: const pw.BoxDecoration(
                   border: pw.Border(
@@ -200,7 +202,9 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
             ],
 
             // Address Line 3
-            if ((doc['panchAddressLine3']?.toString() ?? '').trim().isNotEmpty) ...[
+            if ((doc['panchAddressLine3']?.toString() ?? '')
+                .trim()
+                .isNotEmpty) ...[
               pw.Container(
                 decoration: const pw.BoxDecoration(
                   border: pw.Border(

@@ -804,4 +804,3 @@ class _InjuryDynamicUnderlineFieldState
     );
   }
 }
-

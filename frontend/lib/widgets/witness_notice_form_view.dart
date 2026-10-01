@@ -624,9 +624,8 @@ class _WitnessDynamicUnderlineFieldState
                   measuredWidth < effectiveMin ? effectiveMin : measuredWidth;
               lineCount = 1;
             } else {
-              computedWidth = availableWidth < effectiveMax
-                  ? availableWidth
-                  : effectiveMax;
+              computedWidth =
+                  availableWidth < effectiveMax ? availableWidth : effectiveMax;
               if (computedWidth < effectiveMin) computedWidth = effectiveMin;
 
               final double textMaxWidth =
@@ -720,4 +719,3 @@ class _WitnessDynamicUnderlineFieldState
     );
   }
 }
-

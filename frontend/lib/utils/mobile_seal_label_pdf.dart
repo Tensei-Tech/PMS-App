@@ -627,7 +627,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   subRow('IMEI 1', v('imei1')),
                   subRow('IMEI 2', v('imei2')),
                   subRow('मोबाईल सिरियल क्र.',
-                       v('mobileSerialNo', v('mobileModel'))),
+                      v('mobileSerialNo', v('mobileModel'))),
                   subRow('पासवर्ड/ पॅटर्न/ पिन (असल्यास नमूद करणे)',
                       v('passwordPatternPin')),
                   subRow('मोबाईल स्थिती (चालु / बंद)', v('mobileCondition')),

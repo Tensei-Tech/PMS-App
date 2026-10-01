@@ -508,7 +508,8 @@ class _MedicalExamDynamicUnderlinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _MedicalExamDynamicUnderlinePainter oldDelegate) {
+  bool shouldRepaint(
+      covariant _MedicalExamDynamicUnderlinePainter oldDelegate) {
     return oldDelegate.lines != lines ||
         oldDelegate.lineHeight != lineHeight ||
         oldDelegate.color != color ||
@@ -622,9 +623,8 @@ class _MedicalExamDynamicUnderlineFieldState
                   measuredWidth < effectiveMin ? effectiveMin : measuredWidth;
               lineCount = 1;
             } else {
-              computedWidth = availableWidth < effectiveMax
-                  ? availableWidth
-                  : effectiveMax;
+              computedWidth =
+                  availableWidth < effectiveMax ? availableWidth : effectiveMax;
               if (computedWidth < effectiveMin) computedWidth = effectiveMin;
 
               final double textMaxWidth =
@@ -718,4 +718,3 @@ class _MedicalExamDynamicUnderlineFieldState
     );
   }
 }
-
