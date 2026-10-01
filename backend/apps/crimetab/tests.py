@@ -721,7 +721,25 @@ class CounterServiceTests(TestCase):
         self.cat1 = CaseCategory.objects.create(name='Cat 1', group=self.group)
 
     def test_get_category_counters_no_name_error(self):
-        try:
-            get_category_counters(self.cat1.category_id)
-        except NameError as e:
-            self.fail(f"NameError unexpectedly: {e}")
+        # Create a CaseRecord to ensure queries actually evaluate (triggering SQL compilation)
+        c = CaseRecord.objects.create(
+            module_key='test',
+            title='Test',
+            case_number='CR_1',
+            station_name='Central',
+            extra_fields={'ccStNumber': '123'}
+        )
+        # Link it to cat1
+        CaseCategoryLink.objects.create(case=c, category=self.cat1)
+
+        counters = get_category_counters(self.cat1.category_id)
+        
+        self.assertEqual(counters['category_id'], self.cat1.category_id)
+        self.assertEqual(counters['total'], 1)
+        self.assertEqual(counters['disposal'], 1)
+        self.assertEqual(counters['pending'], 0)
+
+    def tearDown(self):
+        from apps.core.tenancy import set_tenant_schema
+        set_tenant_schema('public')
+
