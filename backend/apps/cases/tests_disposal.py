@@ -194,6 +194,25 @@ class ADCaseDisposalTests(APITestCase):
         c2.refresh_from_db()
         self.assertTrue(bool(c2.extra_fields.get('disposal_date')))
         
+    def test_ad_sql_vs_python(self):
+        from apps.cases.utils import get_cases_by_status
+        # Compare Python is_ad_case_disposed vs SQL rule for random combinations
+        cases = [
+            CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'}),
+            CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A'}),
+            CaseRecord.objects.create(module_key='missing', sub_category='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'}),
+            CaseRecord.objects.create(module_key='theft', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D', 'ccStNumber': '1'}),
+        ]
+        
+        from apps.cases.models import is_ad_case_disposed
+        sql_disposed_ids = set(get_cases_by_status('disposal').values_list('id', flat=True))
+        
+        for c in cases:
+            c.refresh_from_db() # Get updated status
+            python_result = is_ad_case_disposed(c) or any(bool(str(c.extra_fields.get(k, '')).strip()) for k in ['ccStNumber'])
+            sql_result = c.id in sql_disposed_ids
+            self.assertEqual(python_result, sql_result)
+        
     def test_inverse(self):
         from apps.cases.utils import get_cases_by_status
         # Ensure pending + disposal = total, and no intersection
@@ -206,3 +225,40 @@ class ADCaseDisposalTests(APITestCase):
         
         self.assertEqual(disp_ids.intersection(pend_ids), set())
         self.assertEqual(disp_ids.union(pend_ids), all_ids)
+
+    def test_pagination_stability(self):
+        from rest_framework.test import APIClient
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.create(username='testpagi', password='123')
+        user.station_name = 'Central'
+        user.save()
+        client = APIClient()
+        client.force_authenticate(user=user)
+        
+        CaseRecord.objects.all().delete()
+        
+        # Create 25 cases with identical data
+        from datetime import datetime, timezone
+        identical_time = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        
+        for i in range(25):
+            c = CaseRecord.objects.create(
+                module_key='theft',
+                case_number=f'CR_{i}',
+                station_name='Central',
+                extra_fields={'ccStNumber': f'CC-{i}', 'disposal_date': '2023-01-01'}
+            )
+            # Force same created_at
+            CaseRecord.objects.filter(id=c.id).update(created_at=identical_time)
+            
+        res1 = client.get('/api/cases/disposal/case-wise/?page=1&page_size=20')
+        res2 = client.get('/api/cases/disposal/case-wise/?page=2&page_size=20')
+        
+        ids1 = [item['id'] for item in res1.data['results']]
+        ids2 = [item['id'] for item in res2.data['results']]
+        
+        self.assertEqual(len(ids1), 20)
+        self.assertEqual(len(ids2), 5)
+        # Ensure no overlap
+        self.assertEqual(set(ids1).intersection(set(ids2)), set())

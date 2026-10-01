@@ -229,11 +229,11 @@ class TimeWisePendingView(APIView):
             months_6 = now - timedelta(days=180)
             year_1 = now - timedelta(days=365)
 
-            under_1_month = queryset.filter(incident_date__gte=month_1).count()
-            months_1_to_3 = queryset.filter(incident_date__gte=months_3, incident_date__lt=month_1).count()
-            months_3_to_6 = queryset.filter(incident_date__gte=months_6, incident_date__lt=months_3).count()
-            months_6_to_12 = queryset.filter(incident_date__gte=year_1, incident_date__lt=months_6).count()
-            more_than_1_year = queryset.filter(incident_date__lt=year_1).count()
+            under_1_month = queryset.filter(created_at__gte=month_1).count()
+            months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+            months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+            months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+            more_than_1_year = queryset.filter(created_at__lt=year_1).count()
             
             results = [
                 {'period': 'Under 1 month', 'count': under_1_month},
@@ -302,8 +302,8 @@ class DisposalCaseWiseView(APIView):
             from apps.cases.serializers import DisposalCaseRecordSerializer
             from django.db.models.fields.json import KeyTextTransform
             
-            # Order by disposal_date (descending)
-            queryset = queryset.annotate(parsed_disposal_date=KeyTextTransform('disposal_date', 'extra_fields')).order_by('-parsed_disposal_date', '-created_at')
+            # Order by module_key (grouping), then disposal_date (descending), then created_at, then id
+            queryset = queryset.annotate(parsed_disposal_date=KeyTextTransform('disposal_date', 'extra_fields')).order_by('module_key', '-parsed_disposal_date', '-created_at', 'id')
             
             from apps.crimetab.models.groupings import CaseCategory
             cats = CaseCategory.objects.all()
@@ -358,51 +358,54 @@ class TimeWiseDisposalView(APIView):
                 stations = PoliceStation.objects.filter(district__district_name__iexact=district).values_list('station_name', flat=True)
                 queryset = queryset.filter(station_name__in=stations)
 
-            # Group in Python to be 100% safe from DB Cast DataError
+            from django.db.models.fields.json import KeyTextTransform
+            from django.utils import timezone
+            from datetime import timedelta, datetime
+            
+            now_dt = timezone.now().date()
+            month_1 = now_dt - timedelta(days=30)
+            months_3 = now_dt - timedelta(days=90)
+            months_6 = now_dt - timedelta(days=180)
+            year_1 = now_dt - timedelta(days=365)
+
+            under_1_month = 0
+            months_1_to_3 = 0
+            months_3_to_6 = 0
+            months_6_to_12 = 0
+            more_than_1_year = 0
+
             cases = queryset.annotate(d_date=KeyTextTransform('disposal_date', 'extra_fields')).values_list('d_date', flat=True)
             
             import re
-            from collections import defaultdict
-            from datetime import datetime
-            
-            counts_map = defaultdict(int)
             for d in cases:
-                parsed_month = "Unknown"
                 if d and isinstance(d, str):
                     d = d.strip()
                     if re.match(r'^\d{4}-\d{2}-\d{2}', d):
                         try:
-                            dt = datetime.strptime(d[:10], "%Y-%m-%d")
-                            parsed_month = dt.strftime('%B %Y')
+                            dt = datetime.strptime(d[:10], "%Y-%m-%d").date()
+                            if dt >= month_1:
+                                under_1_month += 1
+                            elif dt >= months_3:
+                                months_1_to_3 += 1
+                            elif dt >= months_6:
+                                months_3_to_6 += 1
+                            elif dt >= year_1:
+                                months_6_to_12 += 1
+                            else:
+                                more_than_1_year += 1
                         except ValueError:
                             pass
-                counts_map[parsed_month] += 1
-                
-            results = [[k, v] for k, v in counts_map.items()]
-            # Sort: parseable dates descending, Unknown at bottom
-            results.sort(key=lambda x: datetime.strptime(x[0], '%B %Y') if x[0] != 'Unknown' else datetime.min, reverse=True)
+                            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month, 'start_date': month_1.strftime('%Y-%m-%d'), 'end_date': now_dt.strftime('%Y-%m-%d')},
+                {'period': '1 to 3 months', 'count': months_1_to_3, 'start_date': months_3.strftime('%Y-%m-%d'), 'end_date': month_1.strftime('%Y-%m-%d')},
+                {'period': '3 to 6 months', 'count': months_3_to_6, 'start_date': months_6.strftime('%Y-%m-%d'), 'end_date': months_3.strftime('%Y-%m-%d')},
+                {'period': '6 to 12 months', 'count': months_6_to_12, 'start_date': year_1.strftime('%Y-%m-%d'), 'end_date': months_6.strftime('%Y-%m-%d')},
+                {'period': 'More than 1 year', 'count': more_than_1_year, 'start_date': '', 'end_date': year_1.strftime('%Y-%m-%d')},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3, 'start_date': months_3.strftime('%Y-%m-%d'), 'end_date': now_dt.strftime('%Y-%m-%d')}
+            ]
             
-            output = []
-            import calendar
-            for period, count in results:
-                start_date = ""
-                end_date = ""
-                if period != 'Unknown':
-                    try:
-                        dt = datetime.strptime(period, '%B %Y')
-                        last_day = calendar.monthrange(dt.year, dt.month)[1]
-                        start_date = f"{dt.year}-{dt.month:02d}-01"
-                        end_date = f"{dt.year}-{dt.month:02d}-{last_day:02d}"
-                    except Exception:
-                        pass
-                output.append({
-                    'period': period,
-                    'count': count,
-                    'start_date': start_date,
-                    'end_date': end_date
-                })
-            
-            return Response(output)
+            return Response(results)
         except Exception as e:
             logger.exception(f"[TimeWiseDisposalView] Database error: {e}")
             return Response({'error': 'Failed to retrieve Time-wise disposal.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -448,6 +451,44 @@ class DesignationWiseDisposalView(APIView):
         except Exception as e:
             logger.exception(f"[DesignationWiseDisposalView] Database error: {e}")
             return Response({'error': 'Failed to retrieve IO-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DisposalCrimeTypeWiseView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('disposal')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            counts = queryset.values('module_key').annotate(count=Count('id')).order_by('-count')
+            
+            from apps.crimetab.models.groupings import CaseCategory
+            cats = CaseCategory.objects.all()
+            cat_map = {}
+            for c in cats:
+                name = c.category_name if c.category_name else c.category_code
+                cat_map[c.category_code.lower()] = name
+                cat_map[name.lower()] = name
+
+            results = []
+            for c in counts:
+                mk = (c.get('module_key') or '').lower()
+                display_name = cat_map.get(mk, mk) if mk else 'Other'
+                results.append({
+                    'crime_type': mk,
+                    'crime_type_name': display_name,
+                    'count': c['count']
+                })
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[DisposalCrimeTypeWiseView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve Crime-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CasesByCrimeTypeView(APIView):

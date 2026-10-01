@@ -287,6 +287,28 @@ class BackendCaseService {
     return null;
   }
 
+  /// Fetch Crime-Type-wise grouped disposal counts
+  Future<List<Map<String, dynamic>>?> fetchDisposalCrimeTypeWise() async {
+    try {
+      final url = '${ApiConfig.cases}disposal/crime-type-wise/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchDisposalCrimeTypeWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchDisposalCrimeTypeWise exception: $e');
+      }
+    }
+    return null;
+  }
+
   /// Fetch a single case record by ID
   Future<Map<String, dynamic>?> fetchCaseById(String id) async {
     try {

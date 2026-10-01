@@ -12,6 +12,7 @@ from apps.cases.views import (
     DisposalCaseWiseView,
     TimeWiseDisposalView,
     DesignationWiseDisposalView,
+    DisposalCrimeTypeWiseView,
 )
 
 router = DefaultRouter()
@@ -29,6 +30,7 @@ urlpatterns = [
     path('disposal/case-wise/', DisposalCaseWiseView.as_view(), name='disposal-case-wise'),
     path('disposal/time-wise/', TimeWiseDisposalView.as_view(), name='disposal-time-wise'),
     path('disposal/designation-wise/', DesignationWiseDisposalView.as_view(), name='disposal-designation-wise'),
+    path('disposal/crime-type-wise/', DisposalCrimeTypeWiseView.as_view(), name='disposal-crime-type-wise'),
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),
 ]

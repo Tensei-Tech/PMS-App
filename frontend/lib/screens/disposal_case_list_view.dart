@@ -7,12 +7,14 @@ class DisposalCaseListView extends StatefulWidget {
   final String? ioUid;
   final String? startDate;
   final String? endDate;
+  final String? crimeType;
 
   const DisposalCaseListView({
     super.key,
     this.ioUid,
     this.startDate,
     this.endDate,
+    this.crimeType,
   });
 
   @override
@@ -69,6 +71,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
         ioUid: widget.ioUid,
         startDate: widget.startDate,
         endDate: widget.endDate,
+        crimeType: widget.crimeType,
         page: _currentPage,
         pageSize: _pageSize,
       );
@@ -112,6 +115,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
         ioUid: widget.ioUid,
         startDate: widget.startDate,
         endDate: widget.endDate,
+        crimeType: widget.crimeType,
         page: _currentPage,
         pageSize: _pageSize,
       );
@@ -227,36 +231,82 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
       return const Center(child: Text("No disposal cases found"));
     }
 
+    // Group records by crime type
+    final List<Map<String, dynamic>> groups = [];
+    String? currentGroup;
+    List<Map<String, dynamic>> currentItems = [];
+    
+    for (var record in _records) {
+      final crime = record['crime_type_name']?.toString() ?? 'Other';
+      if (crime != currentGroup) {
+        if (currentGroup != null) {
+          groups.add({'group': currentGroup, 'items': currentItems});
+        }
+        currentGroup = crime;
+        currentItems = [record];
+      } else {
+        currentItems.add(record);
+      }
+    }
+    if (currentGroup != null) {
+      groups.add({'group': currentGroup, 'items': currentItems});
+    }
+
     return RefreshIndicator(
       onRefresh: _loadFirstPage,
       color: AppColors.navyMid,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 1000),
-          child: Column(
-            children: [
-              _buildHeaderRow(),
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: EdgeInsets.zero,
-                  itemCount: _records.length + (_hasMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == _records.length) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                            child: CircularProgressIndicator(color: AppColors.navyMid)),
-                      );
-                    }
-                    return _buildDataRow(_records[index], index);
-                  },
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        itemCount: groups.length + (_hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == groups.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                  child: CircularProgressIndicator(color: AppColors.navyMid)),
+            );
+          }
+
+          final groupName = groups[index]['group'] as String;
+          final items = groups[index]['items'] as List<Map<String, dynamic>>;
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    groupName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SizedBox(
+                        width: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000,
+                        child: Column(
+                          children: [
+                            _buildHeaderRow(),
+                            ...items.asMap().entries.map((e) => _buildDataRow(e.value, e.key)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
