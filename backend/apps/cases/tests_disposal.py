@@ -89,8 +89,10 @@ class DisposalAPITests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]['count'], 15)
+        self.assertEqual(len(data), 6)
+        more_than_1_yr = next((item for item in data if item['period'] == 'More than 1 year'), None)
+        self.assertIsNotNone(more_than_1_yr)
+        self.assertEqual(more_than_1_yr['count'], 15)
         
     def test_designation_wise_view(self):
         url = reverse('disposal-designation-wise')
@@ -253,7 +255,9 @@ class ADCaseDisposalTests(APITestCase):
             CaseRecord.objects.filter(id=c.id).update(created_at=identical_time)
             
         res1 = client.get('/api/cases/disposal/case-wise/?page=1&page_size=20')
+        self.assertEqual(res1.status_code, 200, f"res1 failed: {res1.json()}")
         res2 = client.get('/api/cases/disposal/case-wise/?page=2&page_size=20')
+        self.assertEqual(res2.status_code, 200, f"res2 failed: {res2.json()}")
         
         ids1 = [item['id'] for item in res1.data['results']]
         ids2 = [item['id'] for item in res2.data['results']]

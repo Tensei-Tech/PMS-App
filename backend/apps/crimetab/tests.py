@@ -717,8 +717,8 @@ class CounterServiceTests(TestCase):
             defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}
         )
         set_tenant_schema('maharashtra')
-        self.group = CaseCategoryGroup.objects.create(name='Test Group', sort_order=1)
-        self.cat1 = CaseCategory.objects.create(name='Cat 1', group=self.group)
+        self.group = CaseCategoryGroup.objects.create(group_name='Test Group', group_code='TG', display_order=1)
+        self.cat1 = CaseCategory.objects.create(category_name='Cat 1', group=self.group)
 
     def test_get_category_counters_no_name_error(self):
         # Create a CaseRecord to ensure queries actually evaluate (triggering SQL compilation)

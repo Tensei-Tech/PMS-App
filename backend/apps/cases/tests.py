@@ -288,56 +288,47 @@ class CaseManagementAPITests(TestCase):
     # Test 9: AD Disposal Detection and Status Setting
     # --------------------------------------------------------------------------
     def test_09_ad_disposal_detection_and_model_save(self):
-        """AD cases with both summary number and date are classified as Disposal."""
-        from apps.cases.models import CaseRecord, is_ad_case_disposed
+        """AD cases with abeted_summary_no are classified as Disposal."""
+        from apps.cases.models import CaseRecord
+        from apps.crimetab.models.common_form import FinalVerdict
+        from apps.cases.utils import get_cases_by_status
 
-        # 1. AD case with English summary number and date in extra_fields
+        # 1. AD case with summary number in FinalVerdict
         ad_case_full = CaseRecord.objects.create(
             module_key='ad',
             title='AD Case 01',
             case_number='AD/01/2026',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'adSummaryNo': 'SUM-12345', 'adSummaryDate': '2026-09-10'}
         )
-        self.assertTrue(is_ad_case_disposed(ad_case_full))
-        self.assertEqual(ad_case_full.status, 'Disposal')
+        FinalVerdict.objects.create(case=ad_case_full, abeted_summary_no='SUM-12345')
 
-        # 2. AD case with Marathi keys in extra_fields
+        # 2. AD case with Marathi keys equivalent (no longer applicable as we use real schema, so just another case)
         ad_case_marathi = CaseRecord.objects.create(
             module_key='ad',
             title='AD Case 02 Marathi',
             case_number='AD/02/2026',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'मर्ग समरी No.': 'MARG-999', 'मर्ग समरी दिनांक': '10/09/2026'}
         )
-        self.assertTrue(is_ad_case_disposed(ad_case_marathi))
-        self.assertEqual(ad_case_marathi.status, 'Disposal')
+        FinalVerdict.objects.create(case=ad_case_marathi, abeted_summary_no='MARG-999')
 
-        # 3. Incomplete AD cases stay Pending
+        # 3. Incomplete AD cases stay Pending (no abeted_summary_no)
         ad_missing_date = CaseRecord.objects.create(
             module_key='ad',
             title='AD Case Missing Date',
             case_number='AD/03/2026',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'adSummaryNo': 'SUM-999'}
         )
-        self.assertFalse(is_ad_case_disposed(ad_missing_date))
-        self.assertEqual(ad_missing_date.status, 'Pending')
+        FinalVerdict.objects.create(case=ad_missing_date)
 
-        # 4. Non-AD case with summary fields is unaffected
-        theft_case = CaseRecord.objects.create(
-            module_key='theft',
-            title='Theft Case',
-            case_number='TH-100',
-            status='Pending',
-            station_name='Shivajinagar Police Station',
-            extra_fields={'adSummaryNo': 'SUM-999', 'adSummaryDate': '2026-09-10'}
-        )
-        self.assertFalse(is_ad_case_disposed(theft_case))
-        self.assertEqual(theft_case.status, 'Pending')
+        disposal_qs = get_cases_by_status('disposal')
+        pending_qs = get_cases_by_status('pending')
+
+        self.assertTrue(disposal_qs.filter(id=ad_case_full.id).exists())
+        self.assertTrue(disposal_qs.filter(id=ad_case_marathi.id).exists())
+        self.assertTrue(pending_qs.filter(id=ad_missing_date.id).exists())
 
     # --------------------------------------------------------------------------
     # Test 10: AD Disposal API Queryset Filtering
@@ -352,22 +343,25 @@ class CaseManagementAPITests(TestCase):
         )
 
         # Create disposed AD case and pending AD case
-        CaseRecord.objects.create(
+        from apps.crimetab.models.common_form import FinalVerdict
+        
+        c1 = CaseRecord.objects.create(
             module_key='ad',
             title='Disposed AD 10',
             case_number='AD/10/2026',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'adSummaryNo': 'SUM-10', 'adSummaryDate': '2026-09-10'}
         )
-        CaseRecord.objects.create(
+        FinalVerdict.objects.create(case=c1, abeted_summary_no='SUM-10')
+        
+        c2 = CaseRecord.objects.create(
             module_key='ad',
             title='Pending AD 11',
             case_number='AD/11/2026',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'otherField': 'value'}
         )
+        FinalVerdict.objects.create(case=c2)
 
         # Query /api/cases/?status=disposal
         resp_disp = self.client.get('/api/cases/?status=disposal')

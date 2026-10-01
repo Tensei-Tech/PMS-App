@@ -7,71 +7,31 @@ from apps.cases.constants import DISPOSAL_KEYS
 
 def get_cases_by_status(tab: str):
     """
-    Partitions all CaseRecords strictly by the presence of any DISPOSAL_KEYS.
+    Partitions all CaseRecords strictly by the presence of FinalVerdict values.
+    Rule: A case is Disposal if ANY of these is entered:
+    cc_st_number, charge_sheet_no, a_final_number, b_final_number,
+    c_final_number, nc_final_number, abeted_summary_no.
+    Otherwise it is Pending.
     """
     queryset = CaseRecord.objects.all()
-    
-    concat_args = []
-    for key in DISPOSAL_KEYS:
-        concat_args.append(Coalesce(KeyTextTransform(key, 'extra_fields'), Value(''), output_field=models.CharField()))
-        concat_args.append(Value(' '))
-        
-    queryset = queryset.annotate(
-        all_cc_st=Concat(*concat_args, output_field=models.CharField())
-    )
-    
+
+    # The FinalVerdict fields that make a case 'Disposal'
+    disposal_fields = [
+        'final_verdict__cc_st_number',
+        'final_verdict__charge_sheet_no',
+        'final_verdict__a_final_number',
+        'final_verdict__b_final_number',
+        'final_verdict__c_final_number',
+        'final_verdict__nc_final_number',
+        'final_verdict__abeted_summary_no',
+    ]
+
+    disposal_q = Q()
+    for field in disposal_fields:
+        disposal_q |= ~Q(**{f"{field}__isnull": True}) & ~Q(**{f"{field}__exact": ''})
+
     if tab == 'disposal':
-        from apps.cases.models import AD_SUMMARY_NO_KEYS, AD_SUMMARY_DATE_KEYS
-        # AD cases that have BOTH AD Summary No and Date
-        ad_no_args = []
-        for key in AD_SUMMARY_NO_KEYS:
-            ad_no_args.append(Coalesce(KeyTextTransform(key, 'extra_fields'), Value(''), output_field=models.CharField()))
-            ad_no_args.append(Value(' '))
-            
-        ad_date_args = []
-        for key in AD_SUMMARY_DATE_KEYS:
-            ad_date_args.append(Coalesce(KeyTextTransform(key, 'extra_fields'), Value(''), output_field=models.CharField()))
-            ad_date_args.append(Value(' '))
-
-        queryset = queryset.annotate(
-            ad_no=Concat(*ad_no_args, output_field=models.CharField()),
-            ad_dt=Concat(*ad_date_args, output_field=models.CharField())
-        )
-        
-        ad_condition = (
-            (Q(module_key__iexact='ad') | Q(sub_category__iexact='ad') | Q(sub_category__iexact='accidental death'))
-            & Q(ad_no__regex=r'\S')
-            & Q(ad_dt__regex=r'\S')
-        )
-        
-        return queryset.filter(
-            Q(all_cc_st__regex=r'\S') | ad_condition
-        )
+        return queryset.filter(disposal_q)
     elif tab == 'pending':
-        from apps.cases.models import AD_SUMMARY_NO_KEYS, AD_SUMMARY_DATE_KEYS
-        ad_no_args = []
-        for key in AD_SUMMARY_NO_KEYS:
-            ad_no_args.append(Coalesce(KeyTextTransform(key, 'extra_fields'), Value(''), output_field=models.CharField()))
-            ad_no_args.append(Value(' '))
-            
-        ad_date_args = []
-        for key in AD_SUMMARY_DATE_KEYS:
-            ad_date_args.append(Coalesce(KeyTextTransform(key, 'extra_fields'), Value(''), output_field=models.CharField()))
-            ad_date_args.append(Value(' '))
-
-        queryset = queryset.annotate(
-            ad_no=Concat(*ad_no_args, output_field=models.CharField()),
-            ad_dt=Concat(*ad_date_args, output_field=models.CharField())
-        )
-        
-        ad_condition = (
-            (Q(module_key__iexact='ad') | Q(sub_category__iexact='ad') | Q(sub_category__iexact='accidental death'))
-            & Q(ad_no__regex=r'\S')
-            & Q(ad_dt__regex=r'\S')
-        )
-        
-        return queryset.exclude(
-            Q(all_cc_st__regex=r'\S') | ad_condition
-        )
-        
+        return queryset.exclude(disposal_q)
     return queryset
