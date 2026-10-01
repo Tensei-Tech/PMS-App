@@ -72,6 +72,9 @@ def get_category_counters(category_id: int, station_name: Optional[str] = None) 
     from django.db.models.functions import Coalesce, Concat
     from django.db import models
     from django.db.models import Value
+    from django.db.models.fields.json import KeyTextTransform
+
+    descendant_ids = get_descendant_category_ids(category_id)
     
     concat_args = []
     for key in DISPOSAL_KEYS:
