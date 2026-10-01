@@ -28,7 +28,7 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
 
   final pw.TextStyle valueStyle = pw.TextStyle(
     font: loraBold,
-    fontSize: 8.5,
+    fontSize: 10.0,
     color: PdfColors.black,
   );
 
@@ -57,7 +57,7 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
       {pw.Alignment alignment = pw.Alignment.centerLeft}) {
     return pw.Container(
       alignment: alignment,
-      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 4.5),
       child: renderText(valKey, value, valueStyle),
     );
   }
@@ -66,7 +66,7 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
     return pw.TableRow(
       children: [
         pw.Padding(
-          padding: const pw.EdgeInsets.all(4),
+          padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 4.5),
           child: mLbl(labelKey),
         ),
         tableCell(valKey, val(valKey, value)),
@@ -78,7 +78,7 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
     return pw.TableRow(
       children: [
         pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2.5),
+          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3.5),
           child: mLbl(labelKey),
         ),
         tableCell(valKey, val(valKey, value)),
@@ -335,6 +335,17 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
+            pw.Spacer(),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text(
+                'M.R.W',
+                style: const pw.TextStyle(
+                  fontSize: 8,
+                  color: PdfColors.grey700,
+                ),
+              ),
+            ),
           ],
         );
       },
@@ -440,10 +451,10 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   for (final entry in pairs.entries) {
     final isBold = boldKeys.contains(entry.key);
     final double fs = entry.key == 'hdr_title'
-        ? 13.0
+        ? 15.0
         : (entry.key == 'hdr_subtitle'
-            ? 11.0
-            : (entry.key == 'hdr_notice' ? 8.0 : 8.5));
+            ? 12.5
+            : (entry.key == 'hdr_notice' ? 9.0 : 10.0));
     const color = Colors.black;
 
     await cache.add(
@@ -471,12 +482,13 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     return val.isEmpty ? fallback : val;
   }
 
-  final reg = FormImagePdfHelper.mReg(8.5, 1.3);
-  final bld = FormImagePdfHelper.mBld(8.5, 1.3);
-  final valStyle = FormImagePdfHelper.valStyle(8.5);
+  final reg = FormImagePdfHelper.mBld(10.0, 1.35);
+  final bld = FormImagePdfHelper.mBld(10.0, 1.35);
+  final valStyle = FormImagePdfHelper.valStyle(10.0);
 
   Widget cell(Widget child,
-      {EdgeInsets padding = const EdgeInsets.all(4),
+      {EdgeInsets padding =
+          const EdgeInsets.symmetric(horizontal: 5, vertical: 4.5),
       Alignment alignment = Alignment.centerLeft}) {
     return Container(
       alignment: alignment,
@@ -499,9 +511,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     return TableRow(
       children: [
         cell(Text(label, style: bld),
-            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3.5)),
         cell(Text(value.isEmpty ? ' ' : value, style: valStyle, softWrap: true),
-            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2)),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3.5)),
       ],
     );
   }
@@ -544,19 +556,19 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     children: [
       Center(
         child:
-            Text('मोबाईल सिल लेबल नमुना', style: FormImagePdfHelper.mBld(13)),
+            Text('मोबाईल सिल लेबल नमुना', style: FormImagePdfHelper.mBld(15)),
       ),
-      const SizedBox(height: 2),
+      const SizedBox(height: 3),
       Center(
         child: Text('Exhibit च्या पाकीट वरील लेबल चा नमुना',
-            style: FormImagePdfHelper.mBld(11)),
-      ),
-      const SizedBox(height: 6),
-      Text(
-        'सुचना :— जप्ती नंतर हॅश व्हॅल्यु किंवा निरीक्षण पंचनामा झाला असेल तर मुद्देमालाच्या लेबल व पहिल्या जप्तीची तारीख त्यानंतर झालेली पंचनामा नंतर सिलबंद केल्याचा तारखा नमुद कराव्यात',
-        style: reg.copyWith(fontSize: 8),
+            style: FormImagePdfHelper.mBld(12.5)),
       ),
       const SizedBox(height: 8),
+      Text(
+        'सुचना :— जप्ती नंतर हॅश व्हॅल्यु किंवा निरीक्षण पंचनामा झाला असेल तर मुद्देमालाच्या लेबल व पहिल्या जप्तीची तारीख त्यानंतर झालेली पंचनामा नंतर सिलबंद केल्याचा तारखा नमुद कराव्यात',
+        style: reg.copyWith(fontSize: 9),
+      ),
+      const SizedBox(height: 10),
       Table(
         border: TableBorder.all(color: Colors.black, width: 0.6),
         columnWidths: const {
@@ -647,7 +659,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   children: [
                     Text('ज्यांचेकडुन जप्त केले त्यांची सही',
                         style: bld, textAlign: TextAlign.center),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
                     Text(seizedPersonSign, style: valStyle),
                   ],
                 ),
@@ -686,7 +698,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   children: [
                     Text('तपासी अधिकारी यांचे नाव सही शिक्का',
                         style: bld, textAlign: TextAlign.center),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
                     Text(ioSignStamp, style: valStyle),
                   ],
                 ),
@@ -697,7 +709,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                 Column(
                   children: [
                     Text('सिल नमुना', style: bld, textAlign: TextAlign.center),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
                     Text(sealSample, style: valStyle),
                   ],
                 ),
@@ -707,6 +719,15 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ],
           ),
         ],
+      ),
+      const Spacer(),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: FormImagePdfHelper.mReg(8.0)
+              .copyWith(color: Colors.grey.shade700),
+        ),
       ),
     ],
   );

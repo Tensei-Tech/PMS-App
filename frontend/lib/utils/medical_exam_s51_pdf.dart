@@ -27,22 +27,22 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
 
   final regular = pw.TextStyle(
     font: devanagari,
-    fontSize: 11,
-    lineSpacing: 4,
+    fontSize: 11.5,
+    lineSpacing: 5,
   );
   final bold = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: pw.FontWeight.bold,
   );
   final headerTitle = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: pw.FontWeight.bold,
   );
   final headerSub = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: pw.FontWeight.bold,
   );
 
@@ -314,22 +314,22 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       Center(
         child: Column(
           children: [
-            Text('वैद्यकीय तपासणी', style: FormImagePdfHelper.mBld(16)),
-            const SizedBox(height: 3),
+            Text('वैद्यकीय तपासणी', style: FormImagePdfHelper.mBld(18)),
+            const SizedBox(height: 4),
             Text(
               '(भारतीय नागरीक सुरक्षा संहिता २०२३ कलम ५१)',
-              style: FormImagePdfHelper.mBld(12),
+              style: FormImagePdfHelper.mBld(13),
             ),
           ],
         ),
       ),
-      const SizedBox(height: 24),
+      const SizedBox(height: 30),
 
       // Top Right
       Align(
         alignment: Alignment.topRight,
         child: SizedBox(
-          width: 280,
+          width: 300,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -339,7 +339,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   Padding(
                     padding: const EdgeInsets.only(top: 1.0),
                     child: Text('पोलीस दुरक्षेत्र ',
-                        style: FormImagePdfHelper.mReg(11.5)),
+                        style: FormImagePdfHelper.mBld(12)),
                   ),
                   Expanded(
                     child: Container(
@@ -352,20 +352,20 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                       child: Text(
                         outpost.isEmpty ? ' ' : outpost,
                         softWrap: true,
-                        style: FormImagePdfHelper.mBld(11.5),
+                        style: FormImagePdfHelper.valStyle(12),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 6),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 1.0),
                     child: Text('पोलीस स्टेशन : ',
-                        style: FormImagePdfHelper.mReg(11.5)),
+                        style: FormImagePdfHelper.mBld(12)),
                   ),
                   Expanded(
                     child: Container(
@@ -378,7 +378,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                       child: Text(
                         ps.isEmpty ? ' ' : ps,
                         softWrap: true,
-                        style: FormImagePdfHelper.mBld(11.5).copyWith(
+                        style: FormImagePdfHelper.valStyle(12).copyWith(
                           decoration: TextDecoration.underline,
                           decorationColor: Colors.black87,
                           decorationThickness: 0.8,
@@ -388,11 +388,11 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ),
                 ],
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 6),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('दिनांक : ', style: FormImagePdfHelper.mReg(11.5)),
+                  Text('दिनांक : ', style: FormImagePdfHelper.mBld(12)),
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -403,7 +403,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                       padding: const EdgeInsets.only(bottom: 1),
                       child: Text(
                         dateStr,
-                        style: FormImagePdfHelper.mBld(11.5),
+                        style: FormImagePdfHelper.valStyle(12),
                       ),
                     ),
                   ),
@@ -413,7 +413,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 28),
 
       // Recipient
       Row(
@@ -421,10 +421,11 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         children: [
           SizedBox(
             width: 60,
-            child: Text('प्रति,', style: FormImagePdfHelper.mBld(12)),
+            child: Text('प्रति,', style: FormImagePdfHelper.mBld(13)),
           ),
         ],
       ),
+      const SizedBox(height: 4),
       Padding(
         padding: const EdgeInsets.only(left: 60),
         child: Column(
@@ -432,25 +433,25 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           children: [
             Text(
               toOfficer,
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.mBld(12.5).copyWith(
                 decoration: rawToOfficer.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 5),
             Text(
               toHospital,
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.mBld(12.5).copyWith(
                 decoration: rawToHospital.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 5),
             Text(
               toTahDist,
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.mBld(12.5).copyWith(
                 decoration: rawToTahDist.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
@@ -459,7 +460,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ],
         ),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 26),
 
       // Sender
       Row(
@@ -468,8 +469,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           Padding(
             padding: const EdgeInsets.only(top: 1.0),
             child: SizedBox(
-              width: 65,
-              child: Text('पासुन :-', style: FormImagePdfHelper.mReg(11.5)),
+              width: 70,
+              child: Text('पासुन :-', style: FormImagePdfHelper.mBld(12)),
             ),
           ),
           Expanded(
@@ -483,7 +484,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               child: Text(
                 fromLocation.isEmpty ? ' ' : fromLocation,
                 softWrap: true,
-                style: FormImagePdfHelper.mReg(11.5).copyWith(
+                style: FormImagePdfHelper.valStyle(12).copyWith(
                   decoration: TextDecoration.underline,
                   decorationColor: Colors.black87,
                   decorationThickness: 0.8,
@@ -493,20 +494,20 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 20),
 
       // Subject
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 65,
-            child: Text('विषय :-', style: FormImagePdfHelper.mBld(12)),
+            width: 70,
+            child: Text('विषय :-', style: FormImagePdfHelper.mBld(12.5)),
           ),
           Expanded(
             child: Text(
               subject,
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.mBld(12.5).copyWith(
                 decoration: rawSubject.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
@@ -515,28 +516,28 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 26),
 
       // Decorative ००००
       Center(
         child: Text(
           '००००',
-          style: FormImagePdfHelper.mBld(13).copyWith(letterSpacing: 4),
+          style: FormImagePdfHelper.mBld(14).copyWith(letterSpacing: 4),
         ),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 26),
 
       // Body Paragraph
       Text.rich(
         TextSpan(
-          style: FormImagePdfHelper.mReg(12, 1.8),
+          style: FormImagePdfHelper.mBld(12.5, 2.1),
           children: [
             const TextSpan(
               text: '        उपरोक्त विषयान्वये सादर आहे की, जखमी नामे ',
             ),
             TextSpan(
               text: '$victimName, ',
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
                 decoration: rawVictimName.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
@@ -545,7 +546,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             const TextSpan(text: 'वय '),
             TextSpan(
               text: '$victimAge ',
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
                 decoration: rawVictimAge.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
@@ -554,7 +555,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             const TextSpan(text: 'वर्ष रा '),
             TextSpan(
               text: '$victimResidence ',
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
                 decoration: rawVictimResidence.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
@@ -563,7 +564,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             const TextSpan(text: 'ता '),
             TextSpan(
               text: '$victimTah ',
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
                 decoration: rawVictimTah.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
@@ -572,7 +573,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             const TextSpan(text: 'जिल्हा '),
             TextSpan(
               text: '$victimDist ',
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
                 decoration: rawVictimDist.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
@@ -583,7 +584,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             ),
             TextSpan(
               text: '$assaultDetails ',
-              style: FormImagePdfHelper.mBld(12).copyWith(
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
                 decoration: rawAssaultDetails.isNotEmpty
                     ? TextDecoration.underline
                     : TextDecoration.none,
@@ -604,7 +605,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
         alignment: Alignment.bottomRight,
         child: Text(
           'M.R.W',
-          style: FormImagePdfHelper.mReg(8).copyWith(color: Colors.black54),
+          style: FormImagePdfHelper.mReg(9).copyWith(color: Colors.black54),
         ),
       ),
     ],
