@@ -36,6 +36,23 @@ class StatusLogicTests(TestCase):
         self.assertFalse(disposal_qs.filter(id=case.id).exists())
         self.assertTrue(pending_qs.filter(id=case.id).exists())
 
+    def test_whitespace_final_verdict_stays_pending(self):
+        case = CaseRecord.objects.create(module_key='murder', status='Pending')
+        # All whitespace should be ignored by the regex r'\S'
+        FinalVerdict.objects.create(
+            case=case,
+            charge_sheet_no="   ",
+            cc_st_number=" \t\n ",
+            a_final_number=" "
+        )
+        
+        from apps.cases.utils import get_cases_by_status
+        disposal_qs = get_cases_by_status('disposal')
+        pending_qs = get_cases_by_status('pending')
+        
+        self.assertFalse(disposal_qs.filter(id=case.id).exists())
+        self.assertTrue(pending_qs.filter(id=case.id).exists())
+
     def test_detected_case_no_cc_keeps_status(self):
         case = CaseRecord.objects.create(module_key='murder', status='Detected', extra_fields={'pendingReason': 'Ongoing'})
         

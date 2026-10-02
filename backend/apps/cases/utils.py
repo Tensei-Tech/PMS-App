@@ -28,7 +28,7 @@ def get_cases_by_status(tab: str):
 
     disposal_q = Q()
     for field in disposal_fields:
-        disposal_q |= ~Q(**{f"{field}__isnull": True}) & ~Q(**{f"{field}__exact": ''})
+        disposal_q |= Q(**{f"{field}__regex": r'\S'})
 
     if tab == 'disposal':
         return queryset.filter(disposal_q)

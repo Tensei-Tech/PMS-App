@@ -44,7 +44,7 @@ def get_group_counters(group_id: int, station_name: Optional[str] = None) -> Dic
 
     disposal_q = Q()
     for field in disposal_fields:
-        disposal_q |= ~Q(**{f"{field}__isnull": True}) & ~Q(**{f"{field}__exact": ''})
+        disposal_q |= Q(**{f"{field}__regex": r'\S'})
 
     queryset = CaseRecord.objects.filter(
         category_links__category_id__in=list(all_cat_ids)
@@ -85,7 +85,7 @@ def get_category_counters(category_id: int, station_name: Optional[str] = None) 
 
     disposal_q = Q()
     for field in disposal_fields:
-        disposal_q |= ~Q(**{f"{field}__isnull": True}) & ~Q(**{f"{field}__exact": ''})
+        disposal_q |= Q(**{f"{field}__regex": r'\S'})
 
     queryset = CaseRecord.objects.filter(
         category_links__category_id__in=descendant_ids
