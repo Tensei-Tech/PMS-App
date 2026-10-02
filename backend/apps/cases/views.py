@@ -274,6 +274,7 @@ class DisposalCaseWiseView(APIView):
             
         district = request.query_params.get('district')
         if district:
+            try:
                 d = District.objects.get(name__iexact=district)
                 stations_in_district = PoliceStation.objects.filter(district=d).values_list('name', flat=True)
                 queryset = queryset.filter(station_name__in=stations_in_district)
@@ -359,6 +360,7 @@ class TimeWiseDisposalView(APIView):
             if d and isinstance(d, str):
                 d = d.strip()
                 if re.match(r'^\d{4}-\d{2}-\d{2}', d):
+                    try:
                         dt = datetime.strptime(d[:10], "%Y-%m-%d").date()
                         if dt >= month_1:
                             under_1_month += 1
