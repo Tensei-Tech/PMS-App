@@ -250,7 +250,7 @@ class CaseRecord(models.Model):
         db_table = 'cases_caserecord'
         verbose_name = 'Case Record'
         verbose_name_plural = 'Case Records'
-        ordering = ['-created_at']
+        ordering = ['-created_at', '-id']
 
     def save(self, *args, **kwargs):
         # 1. Reject client status overrides (handled before save if we want, but enforced here)
