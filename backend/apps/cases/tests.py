@@ -134,6 +134,8 @@ class CaseManagementAPITests(TestCase):
             ('/api/cases/create/', 'post'),
         ]
 
+        from apps.core.tenancy import set_tenant_schema
+        set_tenant_schema('maharashtra')
         self.client.credentials()
         from rest_framework.test import APIClient
 
