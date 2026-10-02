@@ -3389,26 +3389,7 @@ class FormIVEmptyCasesState extends StatelessWidget {
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                     ),
                   ),
-                if (onNewCase != null)
-                  FilledButton.icon(
-                    onPressed: onNewCase,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    icon: const Icon(Icons.add_rounded),
-                    label: Text(
-                      TranslationHelper.translate(context, 'Add Case'),
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                    ),
-                  ),
+
               ],
             ),
           ],

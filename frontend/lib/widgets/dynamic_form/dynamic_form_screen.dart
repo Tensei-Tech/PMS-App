@@ -729,11 +729,20 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               customBody: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: secFields.map((field) {
-                    return _buildPanchnamaCheckbox(field);
-                  }).toList(),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final itemWidth = (constraints.maxWidth - 12) / 2;
+                    return Wrap(
+                      spacing: 12,
+                      runSpacing: 0,
+                      children: secFields.map((field) {
+                        return SizedBox(
+                          width: itemWidth,
+                          child: _buildPanchnamaCheckbox(field),
+                        );
+                      }).toList(),
+                    );
+                  }
                 ),
               ),
             ),
@@ -900,16 +909,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               displayOrder: 6),
           DynamicFieldDef(
               fieldDefId: -1,
-              fieldKey: 'cc_st_number',
-              fieldLabel: 'CC / ST Number',
+              fieldKey: 'abeted_summary_no',
+              fieldLabel: 'Abeted summary no.',
               fieldSource: 'common',
               fieldType: 'full_text',
               isRequired: false,
               displayOrder: 7),
           DynamicFieldDef(
               fieldDefId: -1,
-              fieldKey: 'abeted_summary_no',
-              fieldLabel: 'Abeted summary no.',
+              fieldKey: 'cc_st_number',
+              fieldLabel: 'CC / ST Number',
               fieldSource: 'common',
               fieldType: 'full_text',
               isRequired: false,
@@ -1610,10 +1619,58 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final dateKey = '${field.fieldKey}_datetime';
     _controllers.putIfAbsent(dateKey,
         () => TextEditingController(text: _values[dateKey]?.toString() ?? ''));
+        
+    final dateText = _controllers[dateKey]?.text ?? '';
+
+    void handleCheck(bool? newVal) {
+      final b = newVal ?? false;
+      setState(() {
+        _values[field.fieldKey] = b;
+        _controllers[field.fieldKey]?.text = b.toString();
+        if (!b) {
+          _values[dateKey] = '';
+          _controllers[dateKey]?.text = '';
+        }
+      });
+    }
+
+    Future<void> pickDate() async {
+      if (widget.readOnly) return;
+      if (!isChecked) {
+        handleCheck(true);
+      }
+      final pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(1970),
+        lastDate: DateTime(2050),
+      );
+      if (pickedDate != null) {
+        if (!mounted) return;
+        final pickedTime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.now(),
+        );
+        if (pickedTime != null) {
+          final dt = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+          final val = DateFormat('dd/MM/yyyy HH:mm').format(dt);
+          setState(() {
+            _controllers[dateKey]?.text = val;
+            _values[dateKey] = val;
+          });
+        }
+      }
+    }
 
     return Container(
       margin: const EdgeInsets.only(top: 4, bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: isChecked ? const Color(0xFFF0F9FF) : Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -1623,113 +1680,63 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Checkbox(
-            value: isChecked,
-            activeColor: const Color(0xFF0288D1),
-            onChanged: widget.readOnly
-                ? null
-                : (newVal) {
-                    final b = newVal ?? false;
-                    setState(() {
-                      _values[field.fieldKey] = b;
-                      _controllers[field.fieldKey]?.text = b.toString();
-                    });
-                  },
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: isChecked,
+              activeColor: const Color(0xFF0288D1),
+              onChanged: widget.readOnly ? null : handleCheck,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
           ),
           const SizedBox(width: 8),
-          if (isChecked)
-            Text(
-              field.fieldLabel,
-              style: GoogleFonts.poppins(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF0288D1),
-              ),
-            )
-          else
-            Expanded(
-              child: Text(
-                field.fieldLabel,
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1E293B),
+          Expanded(
+            child: InkWell(
+              onTap: widget.readOnly ? null : pickDate,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      field.fieldLabel,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: isChecked ? const Color(0xFF0288D1) : const Color(0xFF1E293B),
+                        height: 1.2,
+                      ),
+                    ),
+                    if (isChecked && dateText.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        dateText,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF0288D1),
+                        ),
+                      ),
+                    ],
+                    if (isChecked && dateText.isEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Tap to add date & time',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5,
+                          fontStyle: FontStyle.italic,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
-          if (isChecked) ...[
-            const SizedBox(width: 16),
-            Expanded(
-              child: SizedBox(
-                height: 38,
-                child: TextFormField(
-                  controller: _controllers[dateKey],
-                  readOnly: true,
-                  style: GoogleFonts.poppins(
-                      fontSize: 13, color: const Color(0xFF1E293B)),
-                  decoration: InputDecoration(
-                    hintText: 'Date & Time',
-                    hintStyle: GoogleFonts.poppins(
-                        fontSize: 12, color: const Color(0xFF94A3B8)),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                    suffixIcon: const Icon(Icons.access_time_rounded,
-                        size: 16, color: Color(0xFF0288D1)),
-                    filled: true,
-                    fillColor: widget.readOnly
-                        ? const Color(0xFFF8FAFC)
-                        : Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF0288D1), width: 1.2),
-                    ),
-                  ),
-                  onTap: widget.readOnly
-                      ? null
-                      : () async {
-                          final pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(1970),
-                            lastDate: DateTime(2050),
-                          );
-                          if (pickedDate != null) {
-                            if (!mounted) return;
-                            final pickedTime = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.now(),
-                            );
-                            if (pickedTime != null) {
-                              final dt = DateTime(
-                                pickedDate.year,
-                                pickedDate.month,
-                                pickedDate.day,
-                                pickedTime.hour,
-                                pickedTime.minute,
-                              );
-                              final val =
-                                  DateFormat('dd/MM/yyyy HH:mm').format(dt);
-                              setState(() {
-                                _controllers[dateKey]?.text = val;
-                                _values[dateKey] = val;
-                              });
-                            }
-                          }
-                        },
-                ),
-              ),
-            ),
-          ],
+          ),
         ],
       ),
     );
@@ -4123,6 +4130,7 @@ class _AccusedBlock extends StatefulWidget {
 
 class _AccusedBlockState extends State<_AccusedBlock> {
   List<Map<String, dynamic>> _accusedList = [];
+  int? _expandedAccusedIndex = 0;
 
   @override
   void initState() {
@@ -4369,76 +4377,101 @@ class _AccusedBlockState extends State<_AccusedBlock> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Accused #${idx + 1}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.navyDark,
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        if (_expandedAccusedIndex == idx) {
+                          _expandedAccusedIndex = null;
+                        } else {
+                          _expandedAccusedIndex = idx;
+                        }
+                      });
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Accused #${idx + 1}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.navyDark,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              _expandedAccusedIndex == idx
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
+                              size: 20,
+                              color: AppColors.lightSubText,
+                            ),
+                          ],
                         ),
-                      ),
-                      if (!widget.readOnly)
-                        TextButton.icon(
-                          onPressed: () => _removeAccused(idx),
-                          icon: const Icon(Icons.close, size: 14),
-                          label: Text('Remove',
-                              style: GoogleFonts.poppins(fontSize: 12)),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.dangerRed,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            minimumSize: Size.zero,
+                        if (!widget.readOnly)
+                          TextButton.icon(
+                            onPressed: () => _removeAccused(idx),
+                            icon: const Icon(Icons.close, size: 14),
+                            label: Text('Remove',
+                                style: GoogleFonts.poppins(fontSize: 12)),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.dangerRed,
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              minimumSize: Size.zero,
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(child: _buildTextField(idx, 'name', 'Name')),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildTextField(idx, 'age', 'Age')),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _buildGenderToggle(idx),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                          child:
-                              _buildTextField(idx, 'occupation', 'Occupation')),
-                      const SizedBox(width: 16),
-                      Expanded(
-                          child: _buildTextField(
-                              idx, 'mobile_number', 'Mobile Number')),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: _buildTextField(
-                              idx, 'aadhar_number', 'Aadhar Number')),
-                      const SizedBox(width: 16),
-                      Expanded(
-                          child:
-                              _buildTextField(idx, 'pan_number', 'PAN Number')),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: _buildTextField(idx, 'religion', 'Religion')),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildTextField(idx, 'caste', 'Caste')),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTextField(idx, 'address', 'Address', isFullWidth: true),
+                  if (_expandedAccusedIndex == idx) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField(idx, 'name', 'Name')),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildTextField(idx, 'age', 'Age')),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildGenderToggle(idx),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                            child:
+                                _buildTextField(idx, 'occupation', 'Occupation')),
+                        const SizedBox(width: 16),
+                        Expanded(
+                            child: _buildTextField(
+                                idx, 'mobile_number', 'Mobile Number')),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                            child: _buildTextField(
+                                idx, 'aadhar_number', 'Aadhar Number')),
+                        const SizedBox(width: 16),
+                        Expanded(
+                            child:
+                                _buildTextField(idx, 'pan_number', 'PAN Number')),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                            child: _buildTextField(idx, 'religion', 'Religion')),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildTextField(idx, 'caste', 'Caste')),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(idx, 'address', 'Address', isFullWidth: true),
+                  ],
                 ],
               ),
             );

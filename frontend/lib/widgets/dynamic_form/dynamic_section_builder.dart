@@ -34,7 +34,7 @@ class DynamicSectionCard extends StatefulWidget {
     required this.values,
     required this.onValueChanged,
     this.readOnly = false,
-    this.initiallyExpanded = true,
+    this.initiallyExpanded = false,
     this.accusedOptions,
     this.index,
     this.headerTrailing,

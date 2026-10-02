@@ -625,12 +625,12 @@ class CommonFormState extends State<CommonForm> {
   List<String> allAccusedNames = [];
 
   // ── Collapsible Card Sections (Shutter UI) ─────────────────────────────────
-  Set<String>? _openSectionKeysSet;
-  Set<String> get _openSectionKeys => _openSectionKeysSet ??= <String>{};
+  Set<String>? _expandedSectionsSet;
+  Set<String> get _expandedSections => _expandedSectionsSet ??= <String>{};
 
-  Set<String>? _initializedSectionKeysSet;
-  Set<String> get _initializedSectionKeys =>
-      _initializedSectionKeysSet ??= <String>{};
+  Set<String>? _initializedSectionsSet;
+  Set<String> get _initializedSections =>
+      _initializedSectionsSet ??= <String>{};
 
   // ── Dynamic Field Engine Data (Backend API) ──────────────────────────────
   Map<String, Map<String, dynamic>> _actsData = {};
@@ -1125,7 +1125,7 @@ class CommonFormState extends State<CommonForm> {
   void addPersonAccused() {
     setState(() {
       _accused.add(_newPerson());
-      _openSectionKeys.add('5-Accused');
+      _expandedSections.add('5-Accused-closed');
       _expandedAccusedIndex = _accused.length - 1;
     });
     _syncNames();
@@ -1134,7 +1134,7 @@ class CommonFormState extends State<CommonForm> {
   void addPersonSuspected() {
     setState(() {
       _suspected.add(_newPerson());
-      _openSectionKeys.add('6-Suspected Accused');
+      _expandedSections.add('6-Suspected Accused-closed');
       _expandedSuspectedIndex = _suspected.length - 1;
     });
   }
@@ -1162,7 +1162,7 @@ class CommonFormState extends State<CommonForm> {
         'address': TextEditingController(),
         'desc': TextEditingController(),
       });
-      _openSectionKeys.add('7-Unidentified Accused');
+      _expandedSections.add('7-Unidentified Accused-closed');
     });
   }
 
@@ -2295,21 +2295,24 @@ class CommonFormState extends State<CommonForm> {
     String title,
     Widget body, {
     bool startOpen = false,
-    bool isCollapsible = false,
+    bool isCollapsible = true,
     Widget? headerAction,
   }) {
+    // Force all sections to start closed as requested by the user
+    startOpen = false;
+
     List<Widget>? trailing;
     if (idx is int) {
       trailing = widget.trailingSlotsBySection?[idx];
     }
-    final keyStr = '$idx-$title';
-    if (!_initializedSectionKeys.contains(keyStr)) {
-      _initializedSectionKeys.add(keyStr);
+    final keyStr = '$idx-$title-closed';
+    if (!_initializedSections.contains(keyStr)) {
+      _initializedSections.add(keyStr);
       if (startOpen) {
-        _openSectionKeys.add(keyStr);
+        _expandedSections.add(keyStr);
       }
     }
-    final isOpen = !isCollapsible || _openSectionKeys.contains(keyStr);
+    final isOpen = !isCollapsible || _expandedSections.contains(keyStr);
 
     final leadingBadge = Container(
       width: 22,
@@ -2346,10 +2349,10 @@ class CommonFormState extends State<CommonForm> {
             onTap: isCollapsible
                 ? () {
                     setState(() {
-                      if (_openSectionKeys.contains(keyStr)) {
-                        _openSectionKeys.remove(keyStr);
+                      if (_expandedSections.contains(keyStr)) {
+                        _expandedSections.remove(keyStr);
                       } else {
-                        _openSectionKeys.add(keyStr);
+                        _expandedSections.add(keyStr);
                       }
                     });
                   }
@@ -4646,92 +4649,115 @@ class CommonFormState extends State<CommonForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _subHeader('ALL PANCHANAMA (SELECT TO ADD DATE & TIME)'),
-          ..._activeProceduralKeys.entries.map((e) {
-            final on = _procChecks[e.key] ?? false;
-            final isExpanded = _expandedPanchanamaKey == e.key;
+          LayoutBuilder(builder: (context, constraints) {
+            final itemWidth = (constraints.maxWidth - 8) / 2;
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _activeProceduralKeys.entries.map((e) {
+                final on = _procChecks[e.key] ?? false;
+                final dateText = _procDates[e.key]?.text ?? '';
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color:
-                      isExpanded ? _kTeal.withValues(alpha: 0.04) : _kInputBg,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isExpanded ? _kTeal : _kBorder,
-                    width: isExpanded ? 1.5 : 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          if (!on) {
-                            toggleProcedural(e.key, true);
-                            _expandedPanchanamaKey = e.key;
-                          } else {
-                            if (isExpanded) {
-                              toggleProcedural(e.key, false);
-                              _expandedPanchanamaKey = null;
-                            } else {
-                              _expandedPanchanamaKey = e.key;
-                            }
-                          }
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(6),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          children: [
-                            Icon(
-                              on
-                                  ? Icons.check_box
-                                  : Icons.check_box_outline_blank,
-                              size: 20,
-                              color: on ? _kTeal : _kSec,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                on &&
-                                        !isExpanded &&
-                                        _procDates[e.key]!.text.isNotEmpty
-                                    ? '${TranslationHelper.translate(context, e.value)} — ${_procDates[e.key]!.text}'
-                                    : TranslationHelper.translate(
-                                        context, e.value),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight:
-                                      on ? FontWeight.w700 : FontWeight.w500,
-                                  color: on ? _kDark : _kSec,
-                                ),
-                              ),
-                            ),
-                            Icon(
-                              isExpanded
-                                  ? Icons.keyboard_arrow_up
-                                  : Icons.keyboard_arrow_down,
-                              size: 20,
-                              color: _kDark,
-                            ),
-                          ],
-                        ),
+                return SizedBox(
+                  width: itemWidth,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: on ? _kTeal.withValues(alpha: 0.04) : _kInputBg,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: on ? _kTeal : _kBorder,
+                        width: on ? 1.5 : 1,
                       ),
                     ),
-                    if (isExpanded && on) ...[
-                      const SizedBox(height: 8),
-                      _dateTimeField(
-                        'Date & Time — ${e.value}',
-                        _procDates[e.key]!,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Checkbox(
+                            value: on,
+                            onChanged: (v) {
+                              setState(() => toggleProcedural(e.key, v ?? false));
+                            },
+                            activeColor: _kTeal,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              if (!on) {
+                                setState(() => toggleProcedural(e.key, true));
+                              }
+                              final ctrl = _procDates[e.key]!;
+                              final d = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(1900),
+                                lastDate: DateTime(2100),
+                              );
+                              if (d != null && mounted) {
+                                final t = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
+                                );
+                                if (t != null && mounted) {
+                                  setState(() {
+                                    ctrl.text =
+                                        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} '
+                                        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+                                  });
+                                }
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    TranslationHelper.translate(context, e.value),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                                      color: on ? _kDark : _kSec,
+                                    ),
+                                  ),
+                                  if (on && dateText.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      dateText,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: _kTeal,
+                                      ),
+                                    ),
+                                  ],
+                                  if (on && dateText.isEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Tap to add date',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontStyle: FontStyle.italic,
+                                        color: _kAmber,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
             );
           }),
         ],
@@ -5276,9 +5302,9 @@ class CommonFormState extends State<CommonForm> {
             _tf('NC Final Number', _ncFinalNo),
           ]),
           const SizedBox(height: 10),
-          _tf('CC / ST Number', _ccStNumber),
-          const SizedBox(height: 10),
           _tf('Abeted summary no.', _abatedSummaryNo),
+          const SizedBox(height: 10),
+          _tf('CC / ST Number', _ccStNumber),
           _divider(),
           _row([
             _dateField('Stay by High Court Date', _stayHighCourtDate),
