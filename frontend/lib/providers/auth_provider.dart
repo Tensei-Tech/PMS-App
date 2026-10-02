@@ -618,27 +618,7 @@ class AuthProvider extends ChangeNotifier {
             )
             .timeout(const Duration(seconds: 25));
       } catch (err) {
-        if (ApiConfig.isDev) {
-          final altPort = ApiConfig.defaultPort == 8001 ? 8000 : 8001;
-          final altUrl = 'http://127.0.0.1:$altPort/api/auth/login/';
-          try {
-            response = await http
-                .post(
-                  Uri.parse(altUrl),
-                  headers: {'Content-Type': 'application/json'},
-                  body: json.encode({
-                    'email': sanitizedEmail,
-                    'password': sanitizedPin,
-                  }),
-                )
-                .timeout(const Duration(seconds: 25));
-            ApiConfig.defaultPort = altPort;
-          } catch (_) {
-            rethrow;
-          }
-        } else {
-          rethrow;
-        }
+        rethrow;
       }
 
       if (response.statusCode == 200) {

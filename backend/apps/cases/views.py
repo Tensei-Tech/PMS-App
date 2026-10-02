@@ -130,28 +130,127 @@ class PendingCasesView(APIView):
 
     def get(self, request):
         try:
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT source, case_id, case_number, title, case_type, priority, station_name, assigned_officer, status
-                    FROM pending_cases_combined
-                """)
-                columns = [col[0] for col in cursor.description]
-                rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            from apps.cases.constants import CASE_STATUS_PENDING
+            # Replaced raw SQL with ORM since pending_cases_combined does not exist
+            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
+            
+            # Enforce station-level visibility
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
 
-            # Exclude any AD cases from cases_caserecord that qualify as disposal
-            disposed_ad_ids = {c.id for c in CaseRecord.objects.filter(module_key='ad') if is_ad_case_disposed(c)}
-            if disposed_ad_ids:
-                rows = [r for r in rows if r.get('case_id') not in disposed_ad_ids]
+            # Apply ?io filter
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
 
+            # Apply time range filter (start_date, end_date)
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            from apps.cases.serializers import CaseRecordSerializer
+            
             paginator = PageNumberPagination()
-            page = paginator.paginate_queryset(rows, request)
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
-                return paginator.get_paginated_response(page)
-            return Response(rows)
+                serializer = CaseRecordSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+                
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            return Response(serializer.data)
         except Exception as e:
             logger.exception(f"[PendingCasesView] Database error: {e}")
             return Response({'error': 'Failed to retrieve pending cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class IOWisePendingView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.constants import CASE_STATUS_PENDING
+            # Don't exclude null uids so we can see cases where only assigned_officer name is set
+            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            # Apply time range filter (start_date, end_date)
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            # Group by the string name if uid is missing
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name, # Use name as fallback uid for routing
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'pending_count': c['count']
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[IOWisePendingView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve IO-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWisePendingView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.constants import CASE_STATUS_PENDING
+            
+            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(incident_date__gte=month_1).count()
+            months_1_to_3 = queryset.filter(incident_date__gte=months_3, incident_date__lt=month_1).count()
+            months_3_to_6 = queryset.filter(incident_date__gte=months_6, incident_date__lt=months_3).count()
+            months_6_to_12 = queryset.filter(incident_date__gte=year_1, incident_date__lt=months_6).count()
+            more_than_1_year = queryset.filter(incident_date__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[TimeWisePendingView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve Time-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DisposalCasesView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]

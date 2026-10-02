@@ -150,9 +150,21 @@ def is_case_disposed_by_court_filing(case) -> bool:
     7. Stay by High Court Date
     8. Quashed by High Court Date
     If any of these fields is filled, status automatically becomes 'Disposal'.
+    Note: AD cases are handled separately by is_ad_case_disposed.
     """
     if not case:
         return False
+
+    if isinstance(case, dict):
+        mod = str(case.get('module_key') or case.get('moduleKey') or case.get('module') or '').strip().lower()
+        sub = str(case.get('sub_category') or case.get('subCategory') or '').strip().lower()
+        if mod == 'ad' or sub in ['ad', 'accidental death']:
+            return False
+    else:
+        mod = str(getattr(case, 'module_key', '')).strip().lower()
+        sub = str(getattr(case, 'sub_category', '')).strip().lower()
+        if mod == 'ad' or sub in ['ad', 'accidental death']:
+            return False
 
     def _check_dict(d: dict) -> bool:
         if not isinstance(d, dict):
@@ -241,8 +253,49 @@ class CaseRecord(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        if (is_ad_case_disposed(self) or is_case_disposed_by_court_filing(self)) and self.status not in ['Disposal', 'Closed', 'Resolved']:
-            self.status = 'Disposal'
+        from apps.cases.constants import CC_ST_KEYS, CASE_STATUS_DISPOSAL, CASE_STATUS_PENDING
+        from django.utils import timezone
+
+        # 1. Auto-disposal for AD summary and Court Filing / Final Summary
+        if (is_ad_case_disposed(self) or is_case_disposed_by_court_filing(self)) and self.status != CASE_STATUS_DISPOSAL:
+            self.status = CASE_STATUS_DISPOSAL
+            
+        # CC/ST Logic (Skip AD cases)
+        elif self.module_key != 'ad':
+            # Check if CC/ST is currently present in extra_fields
+            has_cc = False
+            if isinstance(self.extra_fields, dict):
+                has_cc = bool(_extract_first_non_empty(self.extra_fields, CC_ST_KEYS))
+            
+            # Check previous state if this is an update
+            if self.pk:
+                try:
+                    old_instance = CaseRecord.objects.get(pk=self.pk)
+                    old_extra = old_instance.extra_fields if isinstance(old_instance.extra_fields, dict) else {}
+                    had_cc = bool(_extract_first_non_empty(old_extra, CC_ST_KEYS))
+                    
+                    if not had_cc and has_cc:
+                        self.status = 'Disposal'
+                    elif had_cc and not has_cc:
+                        self.status = 'Pending'
+                        # Log it
+                        if not isinstance(self.extra_fields, dict):
+                            self.extra_fields = {}
+                        if 'status_logs' not in self.extra_fields:
+                            self.extra_fields['status_logs'] = []
+                        
+                        uid = getattr(self, '_current_user_uid', 'unknown')
+                        self.extra_fields['status_logs'].append({
+                            'action': 'cc_st_removed',
+                            'timestamp': timezone.now().isoformat(),
+                            'user_uid': uid
+                        })
+                except CaseRecord.DoesNotExist:
+                    pass
+            else:
+                if has_cc:
+                    self.status = 'Disposal'
+
         super().save(*args, **kwargs)
 
     def __str__(self):

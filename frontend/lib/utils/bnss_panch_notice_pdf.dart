@@ -279,7 +279,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 pw.Text('२) $panch2Receipt', style: regular),
               ],
             ),
-            pw.SizedBox(height: 24),
+            pw.Spacer(),
 
             // MRW Footer
             pw.Align(
@@ -288,7 +288,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 'M.R.W',
                 style: pw.TextStyle(
                   font: devanagari,
-                  fontSize: 8,
+                  fontSize: 8.5,
                   color: PdfColors.grey700,
                 ),
               ),
@@ -522,7 +522,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 pw.Text('२) $panch2Receipt', style: regular),
               ],
             ),
-            pw.SizedBox(height: 24),
+            pw.Spacer(),
 
             // MRW Footer
             pw.Align(
@@ -531,7 +531,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 'M.R.W',
                 style: pw.TextStyle(
                   font: devanagari,
-                  fontSize: 8,
+                  fontSize: 8.5,
                   color: PdfColors.grey700,
                 ),
               ),
@@ -598,10 +598,10 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
       ? rawPanch2Receipt
       : '-----------------------';
 
-  final reg = FormImagePdfHelper.mReg(11, 1.6);
-  final bld = FormImagePdfHelper.mBld(11, 1.6);
-  final headerTitle = FormImagePdfHelper.mBld(16, 1.3);
-  final headerSub = FormImagePdfHelper.mBld(11, 1.3);
+  final reg = FormImagePdfHelper.mBld(11.5, 1.85);
+  final bld = FormImagePdfHelper.mBld(11.5, 1.85);
+  final headerTitle = FormImagePdfHelper.mBld(17, 1.3);
+  final headerSub = FormImagePdfHelper.mBld(12, 1.3);
 
   TextStyle valBld(String raw) => bld.copyWith(
         decoration:
@@ -615,7 +615,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
       Align(
         alignment: Alignment.topRight,
         child: SizedBox(
-          width: 280,
+          width: 300,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -643,7 +643,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                   ),
                 ],
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 5),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -668,12 +668,12 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           ),
         ),
       ),
-      const SizedBox(height: 18),
+      const SizedBox(height: 22),
       Center(
         child: Column(
           children: [
             Text('—:: पंच सुचनापत्र ::—', style: headerTitle),
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
             Text(
               '(कलम १७९ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
               style: headerSub.copyWith(decoration: TextDecoration.underline),
@@ -681,7 +681,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           ],
         ),
       ),
-      const SizedBox(height: 22),
+      const SizedBox(height: 26),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -718,7 +718,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                       style: bld.copyWith(decoration: TextDecoration.underline),
                     ),
                   ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -748,17 +748,17 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 22),
       Center(
         child: Text(
           '००००',
           style: bld.copyWith(fontSize: 13, letterSpacing: 4),
         ),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 22),
       Text.rich(
         TextSpan(
-          style: reg.copyWith(height: 1.7),
+          style: reg.copyWith(height: 1.95),
           children: [
             const TextSpan(
               text: '      आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन ',
@@ -792,17 +792,17 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         ),
         textAlign: TextAlign.justify,
       ),
-      const SizedBox(height: 22),
+      const SizedBox(height: 26),
       Center(
         child: Text('करीता सुचनापत्र देण्यात येत आहे.', style: reg),
       ),
-      const SizedBox(height: 36),
+      const SizedBox(height: 40),
       Align(
         alignment: Alignment.topRight,
         child: Column(
           children: [
             Text('तपासी अधिकारी नांव व सही', style: bld),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               ioNameSig.isNotEmpty ? ioNameSig : '____________________',
               style: ioNameSig.isNotEmpty
@@ -812,19 +812,19 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           ],
         ),
       ),
-      const SizedBox(height: 24),
+      const SizedBox(height: 28),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('सुचनापत्र मिळाले आहे.', style: bld),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             '१) $panch1Receipt',
             style: rawPanch1Receipt.isNotEmpty
                 ? bld.copyWith(decoration: TextDecoration.underline)
                 : reg,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             '२) $panch2Receipt',
             style: rawPanch2Receipt.isNotEmpty
@@ -833,11 +833,11 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 28),
+      const Spacer(),
       Align(
         alignment: Alignment.bottomRight,
         child: Text('M.R.W',
-            style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700)),
+            style: reg.copyWith(fontSize: 8.5, color: Colors.grey.shade700)),
       ),
     ],
   );
@@ -888,10 +888,10 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
       ? rawPanch2Receipt
       : '-----------------------';
 
-  final reg = FormImagePdfHelper.mReg(11, 1.6);
-  final bld = FormImagePdfHelper.mBld(11, 1.6);
-  final headerTitle = FormImagePdfHelper.mBld(16, 1.3);
-  final headerSub = FormImagePdfHelper.mBld(11, 1.3);
+  final reg = FormImagePdfHelper.mBld(11.5, 1.85);
+  final bld = FormImagePdfHelper.mBld(11.5, 1.85);
+  final headerTitle = FormImagePdfHelper.mBld(17, 1.3);
+  final headerSub = FormImagePdfHelper.mBld(12, 1.3);
 
   TextStyle valBld(String raw) => bld.copyWith(
         decoration:
@@ -905,7 +905,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
       Align(
         alignment: Alignment.topRight,
         child: SizedBox(
-          width: 280,
+          width: 300,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -933,7 +933,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                   ),
                 ],
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 5),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -958,12 +958,12 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           ),
         ),
       ),
-      const SizedBox(height: 18),
+      const SizedBox(height: 22),
       Center(
         child: Column(
           children: [
             Text('—:: पंच सुचनापत्र ::—', style: headerTitle),
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
             Text(
               '(कलम १७९ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
               style: headerSub.copyWith(decoration: TextDecoration.underline),
@@ -971,7 +971,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           ],
         ),
       ),
-      const SizedBox(height: 22),
+      const SizedBox(height: 26),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1008,7 +1008,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                       style: bld.copyWith(decoration: TextDecoration.underline),
                     ),
                   ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1038,17 +1038,17 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 22),
       Center(
         child: Text(
           '००००',
           style: bld.copyWith(fontSize: 13, letterSpacing: 4),
         ),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 22),
       Text.rich(
         TextSpan(
-          style: reg.copyWith(height: 1.7),
+          style: reg.copyWith(height: 1.95),
           children: [
             const TextSpan(
               text: '      आपणास या सुचनापत्र देण्यात येते की, आज दिनांक ',
@@ -1082,17 +1082,17 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
         ),
         textAlign: TextAlign.justify,
       ),
-      const SizedBox(height: 22),
+      const SizedBox(height: 26),
       Center(
         child: Text('करीता सुचनापत्र देण्यात येत आहे.', style: reg),
       ),
-      const SizedBox(height: 36),
+      const SizedBox(height: 40),
       Align(
         alignment: Alignment.topRight,
         child: Column(
           children: [
             Text('तपासी अधिकारी नांव व सही', style: bld),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               ioNameSig.isNotEmpty ? ioNameSig : '____________________',
               style: ioNameSig.isNotEmpty
@@ -1102,19 +1102,19 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           ],
         ),
       ),
-      const SizedBox(height: 24),
+      const SizedBox(height: 28),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('सुचनापत्र मिळाले आहे.', style: bld),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             '१) $panch1Receipt',
             style: rawPanch1Receipt.isNotEmpty
                 ? bld.copyWith(decoration: TextDecoration.underline)
                 : reg,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             '२) $panch2Receipt',
             style: rawPanch2Receipt.isNotEmpty
@@ -1123,11 +1123,11 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 28),
+      const Spacer(),
       Align(
         alignment: Alignment.bottomRight,
         child: Text('M.R.W',
-            style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700)),
+            style: reg.copyWith(fontSize: 8.5, color: Colors.grey.shade700)),
       ),
     ],
   );

@@ -1,0 +1,87 @@
+from django.test import TestCase
+from unittest.mock import patch
+from apps.cases.models import CaseRecord
+from apps.cases.serializers import CaseRecordSerializer
+from apps.users.models import OfficerProfile
+
+class StatusLogicTests(TestCase):
+    def setUp(self):
+        self.user = OfficerProfile.objects.create(
+            uid='test-io-123', name='Test IO', station_name='Test Station', email='testio@example.com'
+        )
+
+    def test_cc_entered_becomes_disposal(self):
+        case = CaseRecord.objects.create(module_key='murder', status='Pending', extra_fields={'pendingReason': 'Waiting'})
+        
+        # Simulate serializer update
+        serializer = CaseRecordSerializer(instance=case, data={'extra_fields': {'ccStNumber': '12345'}}, partial=True)
+        self.assertTrue(serializer.is_valid())
+        serializer.save(_current_user_uid=self.user.uid)
+        
+        case.refresh_from_db()
+        self.assertEqual(case.status, 'Disposal')
+
+    def test_cc_removed_becomes_pending_with_log(self):
+        case = CaseRecord.objects.create(module_key='murder', status='Disposal', extra_fields={'cc_number': '12345'})
+        
+        serializer = CaseRecordSerializer(instance=case, data={'extra_fields': {'ccStNumber': '', 'pendingReason': 'Re-opened'}}, partial=True)
+        self.assertTrue(serializer.is_valid())
+        serializer.save(_current_user_uid=self.user.uid)
+        
+        case.refresh_from_db()
+        self.assertEqual(case.status, 'Pending')
+        self.assertNotIn('cc_number', case.extra_fields)
+        self.assertIn('status_logs', case.extra_fields)
+        self.assertEqual(case.extra_fields['status_logs'][0]['action'], 'cc_st_removed')
+
+    def test_detected_case_no_cc_keeps_status(self):
+        case = CaseRecord.objects.create(module_key='murder', status='Detected', extra_fields={'pendingReason': 'Ongoing'})
+        
+        serializer = CaseRecordSerializer(instance=case, data={'title': 'Updated Title'}, partial=True)
+        self.assertTrue(serializer.is_valid())
+        serializer.save(_current_user_uid=self.user.uid)
+        
+        case.refresh_from_db()
+        self.assertEqual(case.status, 'Detected')
+
+    def test_patch_without_extra_fields_succeeds(self):
+        case = CaseRecord.objects.create(module_key='murder', status='Pending', extra_fields={'pendingReason': 'Initial'})
+        
+        serializer = CaseRecordSerializer(instance=case, data={'description': 'New description'}, partial=True)
+        self.assertTrue(serializer.is_valid())
+        serializer.save(_current_user_uid=self.user.uid)
+        
+        case.refresh_from_db()
+        self.assertEqual(case.description, 'New description')
+
+    def test_client_sent_status_logs_ignored(self):
+        case = CaseRecord.objects.create(module_key='murder', status='Pending', extra_fields={'pendingReason': 'Init'})
+        
+        serializer = CaseRecordSerializer(instance=case, data={'extra_fields': {'status_logs': [{'action': 'fake'}], 'pendingReason': 'Update'}}, partial=True)
+        self.assertTrue(serializer.is_valid())
+        serializer.save(_current_user_uid=self.user.uid)
+        
+        case.refresh_from_db()
+        self.assertNotIn('status_logs', case.extra_fields)
+
+    def test_extra_fields_none_does_not_crash(self):
+        case = CaseRecord.objects.create(module_key='murder', status='Pending', extra_fields={})
+        
+        serializer = CaseRecordSerializer(instance=case, data={'extra_fields': None}, partial=True)
+        # Validation might fail if None is not allowed by serializer, but logic shouldn't crash.
+        # Assuming the serializer handles None by ignoring it or raising ValidationError.
+        if serializer.is_valid():
+            serializer.save(_current_user_uid=self.user.uid)
+        
+        case.refresh_from_db()
+        self.assertIsNotNone(case.extra_fields)
+
+    def test_ad_cases_unaffected_by_cc_logic(self):
+        case = CaseRecord.objects.create(module_key='ad', status='Pending')
+        
+        serializer = CaseRecordSerializer(instance=case, data={'extra_fields': {'ccStNumber': '123'}}, partial=True)
+        self.assertTrue(serializer.is_valid())
+        serializer.save(_current_user_uid=self.user.uid)
+        
+        case.refresh_from_db()
+        self.assertEqual(case.status, 'Pending')

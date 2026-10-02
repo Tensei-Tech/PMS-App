@@ -6,7 +6,7 @@ from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from apps.cases.models import CaseRecord
 from apps.public_master.models import MasterDivision
@@ -50,6 +50,69 @@ from apps.crimetab.services.counter_service import get_group_counters, get_categ
 from apps.crimetab.services.person_service import get_or_create_person_for_case
 
 logger = logging.getLogger(__name__)
+
+class FormSchemaView(APIView):
+    permission_classes = [IsAuthenticated] # Changed from AllowAny
+
+    def get(self, request, slug):
+        try:
+            # 1. Fetch the category by slug (category_code)
+            category = CaseCategory.objects.filter(category_code__iexact=slug).first()
+            if not category:
+                # Fallback to category_name if slug doesn't match
+                category = CaseCategory.objects.filter(category_name__iexact=slug).first()
+                
+            if not category:
+                return Response({'error': 'Tab not found'}, status=404)
+
+            # 2. Collect all templates for this category
+            templates = []
+            if category.template:
+                templates.append(category.template)
+            
+            # Also get templates from CategoryFieldTemplate
+            extra_templates = [mapping.template for mapping in category.category_template_mappings.all()]
+            templates.extend(extra_templates)
+
+            if not templates:
+                return Response({
+                    'category_name': category.category_name,
+                    'category_slug': category.category_code,
+                    'schema': {'shared_fields': [], 'tab_fields': []}
+                })
+
+            # 3. Query all fields from these templates
+            fields = FieldTemplateField.objects.filter(template__in=templates).order_by('display_order', 'field_def_id')
+
+            shared_fields = []
+            tab_fields = []
+
+            for f in fields:
+                field_dict = {
+                    'field_key': f.field_key,
+                    'field_label': f.field_label,
+                    'field_type': f.field_type,
+                    'is_required': f.is_required
+                }
+                if f.field_source == 'common':
+                    shared_fields.append(field_dict)
+                else:
+                    tab_fields.append(field_dict)
+
+            # Note: We expect the shared_fields to contain 'ccStNumber', 'pendingReason', etc.,
+            # because they are mapped as 'common' fields in the FieldTemplateField table.
+
+            return Response({
+                'category_name': category.category_name,
+                'category_slug': category.category_code,
+                'schema': {
+                    'shared_fields': shared_fields,
+                    'tab_fields': tab_fields
+                }
+            })
+        except Exception as e:
+            logger.exception(f"Error fetching schema for {slug}: {e}")
+            return Response({'error': 'Internal server error'}, status=500)
 
 
 # ==========================================
