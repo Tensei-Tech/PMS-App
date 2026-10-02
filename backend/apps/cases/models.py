@@ -206,10 +206,17 @@ class CaseRecord(models.Model):
                     
         # Update the status based on disposal key presence
         from apps.cases.constants import CASE_STATUS_DISPOSAL, CASE_STATUS_PENDING
-        if has_disposal_key:
-            self.status = CASE_STATUS_DISPOSAL
-        elif self.status == CASE_STATUS_DISPOSAL:
-            self.status = CASE_STATUS_PENDING
+        is_ad = getattr(self, 'module_key', '') == 'ad'
+        if is_ad:
+            if is_ad_case_disposed(self):
+                self.status = CASE_STATUS_DISPOSAL
+            elif self.status == CASE_STATUS_DISPOSAL:
+                self.status = CASE_STATUS_PENDING
+        else:
+            if has_disposal_key:
+                self.status = CASE_STATUS_DISPOSAL
+            elif self.status == CASE_STATUS_DISPOSAL:
+                self.status = CASE_STATUS_PENDING
 
         super().save(*args, **kwargs)
 

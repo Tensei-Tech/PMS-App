@@ -404,6 +404,7 @@ class TimeWiseDisposalView(APIView):
                 {'period': 'More than 1 year', 'count': more_than_1_year, 'start_date': '', 'end_date': year_1.strftime('%Y-%m-%d')},
                 {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3, 'start_date': months_3.strftime('%Y-%m-%d'), 'end_date': now_dt.strftime('%Y-%m-%d')}
             ]
+            results = [r for r in results if r['count'] > 0]
             
             return Response(results)
         except Exception as e:

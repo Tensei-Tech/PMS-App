@@ -577,6 +577,7 @@ class FinalVerdict(models.Model):
         related_name='final_verdict'
     )
     charge_sheet_no = models.CharField(max_length=50, null=True, blank=True)
+    cc_st_number = models.CharField(max_length=50, null=True, blank=True)
     a_final_number = models.CharField(max_length=50, null=True, blank=True)
     b_final_number = models.CharField(max_length=50, null=True, blank=True)
     c_final_number = models.CharField(max_length=50, null=True, blank=True)

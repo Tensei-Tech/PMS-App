@@ -83,6 +83,14 @@ class CaseRecordSerializer(serializers.ModelSerializer):
                         if k in targets: found.add(k)
                         find_keys(v, targets, found)
                 return found
+
+            def find_non_empty_keys(d, targets, found=None):
+                if found is None: found = set()
+                if isinstance(d, dict):
+                    for k, v in d.items():
+                        if k in targets and str(v).strip(): found.add(k)
+                        find_non_empty_keys(v, targets, found)
+                return found
                 
             def delete_keys(d, targets):
                 if isinstance(d, dict):
@@ -93,10 +101,24 @@ class CaseRecordSerializer(serializers.ModelSerializer):
                             delete_keys(d[k], targets)
                             
             incoming_cc_keys = find_keys(extra_fields, CC_ST_KEYS)
-            if incoming_cc_keys:
+            non_empty_cc_keys = find_non_empty_keys(extra_fields, CC_ST_KEYS)
+            
+            if incoming_cc_keys and not non_empty_cc_keys:
+                # Client explicitly sent empty CC keys, meaning they removed it
+                existing_cc_keys = find_non_empty_keys(self.instance.extra_fields, CC_ST_KEYS)
+                if existing_cc_keys:
+                    delete_keys(merged, CC_ST_KEYS)
+                    from django.utils import timezone
+                    if 'status_logs' not in merged:
+                        merged['status_logs'] = []
+                    merged['status_logs'].append({
+                        'action': 'cc_st_removed',
+                        'timestamp': timezone.now().isoformat()
+                    })
+            elif incoming_cc_keys:
                 keys_to_delete = [k for k in CC_ST_KEYS if k not in incoming_cc_keys]
                 delete_keys(merged, keys_to_delete)
-                        
+                    
             attrs['extra_fields'] = merged
         elif extra_fields and 'status_logs' in extra_fields:
             extra_fields.pop('status_logs')

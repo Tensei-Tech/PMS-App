@@ -55,6 +55,9 @@ class DisposalAPITests(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         from apps.cases.views import DisposalCaseWiseView, TimeWiseDisposalView, DesignationWiseDisposalView
+        self.original_perms_case = DisposalCaseWiseView.permission_classes
+        self.original_perms_time = TimeWiseDisposalView.permission_classes
+        self.original_perms_desig = DesignationWiseDisposalView.permission_classes
         DisposalCaseWiseView.permission_classes = []
         TimeWiseDisposalView.permission_classes = []
         DesignationWiseDisposalView.permission_classes = []
@@ -74,6 +77,12 @@ class DisposalAPITests(APITestCase):
             extra_fields={'ccStNumber': 'CC999', 'disposal_date': '2023-10-01'},
             assigned_officer='Other IO'
         )
+
+    def tearDown(self):
+        from apps.cases.views import DisposalCaseWiseView, TimeWiseDisposalView, DesignationWiseDisposalView
+        DisposalCaseWiseView.permission_classes = self.original_perms_case
+        TimeWiseDisposalView.permission_classes = self.original_perms_time
+        DesignationWiseDisposalView.permission_classes = self.original_perms_desig
 
     def test_scoping_and_pagination_cap(self):
         url = reverse('disposal-case-wise')

@@ -1133,6 +1133,15 @@ class CrimeCaseManageView(APIView):
 
         try:
             with transaction.atomic():
+                extra_fields_val = data.get('extra_fields', {})
+                fv_data = data.get('final_verdict') or data.get('court')
+                if isinstance(fv_data, dict):
+                    if not isinstance(extra_fields_val, dict):
+                        extra_fields_val = {}
+                    for k, v in fv_data.items():
+                        if v:
+                            extra_fields_val[k] = v
+
                 # 1. Create CaseRecord
                 case = CaseRecord.objects.create(
                     id=case_id,
@@ -1151,7 +1160,7 @@ class CrimeCaseManageView(APIView):
                     sub_category=data.get('sub_category'),
                     created_by=data.get('created_by', ''),
                     station_name=station_name,
-                    extra_fields=data.get('extra_fields', {}),
+                    extra_fields=extra_fields_val,
                 )
 
                 # 2. Save all child relational tables
@@ -1204,6 +1213,15 @@ class CrimeCaseManageView(APIView):
                     case.station_name = data['station_name']
                 if 'extra_fields' in data:
                     case.extra_fields = data['extra_fields']
+                
+                # Merge final_verdict keys into extra_fields for disposal detection
+                fv_data = data.get('final_verdict') or data.get('court')
+                if isinstance(fv_data, dict):
+                    if not isinstance(case.extra_fields, dict):
+                        case.extra_fields = {}
+                    for k, v in fv_data.items():
+                        if v:
+                            case.extra_fields[k] = v
 
                 case.save()
 
