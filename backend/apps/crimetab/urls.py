@@ -23,10 +23,6 @@ from apps.cases.views import (
     SectionsByCrimeTypeView,
     CreateCaseView,
     PendingCasesView,
-    DisposalCaseWiseView,
-    TimeWiseDisposalView,
-    DesignationWiseDisposalView,
-    DisposalCrimeTypeWiseView,
 )
 
 router = DefaultRouter()
@@ -41,11 +37,6 @@ urlpatterns = [
     path('cases/crime-types/<str:crime_type>/sections/', SectionsByCrimeTypeView.as_view(), name='sections-by-crime-type'),
     path('cases/create/', CreateCaseView.as_view(), name='case-create'),
     path('cases/pending/', PendingCasesView.as_view(), name='pending-cases'),
-    path('cases/disposal/', DisposalCaseWiseView.as_view(), name='disposal-cases'),
-    path('cases/disposal/case-wise/', DisposalCaseWiseView.as_view(), name='disposal-case-wise-crimetab'),
-    path('cases/disposal/time-wise/', TimeWiseDisposalView.as_view(), name='disposal-time-wise-crimetab'),
-    path('cases/disposal/designation-wise/', DesignationWiseDisposalView.as_view(), name='disposal-designation-wise-crimetab'),
-    path('cases/disposal/crime-type-wise/', DisposalCrimeTypeWiseView.as_view(), name='disposal-crime-type-wise-crimetab'),
 
     # Explicit Action Endpoints for Cases
     path('cases/transferred-in/', TransferredInInboxView.as_view(), name='cases-transferred-in'),
