@@ -134,8 +134,8 @@ class CaseManagementAPITests(TestCase):
             ('/api/cases/create/', 'post'),
         ]
 
+        self.client.credentials()
         from rest_framework.test import APIClient
-        unauth_client = APIClient()
 
         for url, method in endpoints:
             unauth_client = APIClient()
