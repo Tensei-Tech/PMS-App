@@ -207,7 +207,7 @@ def auto_invalidate_designation_cache(sender, instance, **kwargs):
 
 class MasterDivision(models.Model):
     """
-    Global Master Divisions / Revenue Ranges in `public.master_divisions`.
+    State Administrative Divisions / Revenue Ranges in tenant schema (e.g. `maharashtra.master_divisions`).
     e.g., Amravati, Chhatrapati Sambhajinagar, Konkan, Nagpur, Nashik, Pune.
     """
     id = models.BigAutoField(primary_key=True)
