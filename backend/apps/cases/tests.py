@@ -238,7 +238,7 @@ class CaseManagementAPITests(TestCase):
         self.assertIsInstance(pending_resp.data['results'], list)
 
         # Disposal Cases
-        disposal_resp = self.client.get('/api/cases/disposal/')
+        disposal_resp = self.client.get('/api/cases/disposal/case-wise/')
         self.assertEqual(disposal_resp.status_code, status.HTTP_200_OK)
         self.assertIn('count', disposal_resp.data)
         self.assertIn('results', disposal_resp.data)
