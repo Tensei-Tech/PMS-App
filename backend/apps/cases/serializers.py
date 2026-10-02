@@ -28,6 +28,22 @@ class CaseRecordSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at']
 
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            data = data.copy()
+            known_fields = set(self.fields.keys())
+            extra_fields = data.get('extra_fields')
+            if not isinstance(extra_fields, dict):
+                extra_fields = {}
+            
+            unknown_keys = [k for k in list(data.keys()) if k not in known_fields]
+            for k in unknown_keys:
+                extra_fields[k] = data.pop(k)
+            
+            data['extra_fields'] = extra_fields
+
+        return super().to_internal_value(data)
+
     def validate_station_name(self, value):
         if not value or not value.strip():
             raise serializers.ValidationError("Security violation: Station name is required.")
