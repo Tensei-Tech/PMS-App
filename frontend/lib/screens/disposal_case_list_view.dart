@@ -81,7 +81,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
       if (dataMap != null && dataMap.containsKey('results')) {
         final results = List<Map<String, dynamic>>.from(dataMap['results']);
         final count = dataMap['count'] ?? results.length;
-        
+
         setState(() {
           _records = results;
           _totalCount = count as int;
@@ -124,7 +124,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
 
       if (dataMap != null && dataMap.containsKey('results')) {
         final results = List<Map<String, dynamic>>.from(dataMap['results']);
-        
+
         setState(() {
           _records.addAll(results);
           _hasMore = dataMap['next'] != null || _records.length < _totalCount;
@@ -177,15 +177,16 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
 
   Widget _buildDataRow(Map<String, dynamic> record, int index) {
     final bgColor = index % 2 == 0 ? Colors.white : AppColors.lightBg;
-    
+
     // Extract Section and Act from extra_fields or directly
     final extra = record['extra_fields'] ?? {};
     final act = extra['act'] ?? record['act'] ?? '';
     final section = extra['section'] ?? record['section'] ?? '';
-    final sectionAct = (section.toString().isNotEmpty || act.toString().isNotEmpty)
-        ? '$section $act'.trim()
-        : '—';
-        
+    final sectionAct =
+        (section.toString().isNotEmpty || act.toString().isNotEmpty)
+            ? '$section $act'.trim()
+            : '—';
+
     final ccStNo = record['cc_st_no']?.toString() ?? '';
 
     return Container(
@@ -197,7 +198,8 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
           _buildDataCell((record['case_number'] ?? '').toString(), flex: 2),
           _buildDataCell(sectionAct, flex: 3),
           _buildDataCell(ccStNo.isNotEmpty ? ccStNo : '—', flex: 2),
-          _buildDataCell((record['assigned_officer'] ?? '').toString(), flex: 2),
+          _buildDataCell((record['assigned_officer'] ?? '').toString(),
+              flex: 2),
           _buildDataCell((record['station_name'] ?? '').toString(), flex: 2),
           _buildDataCell((record['crime_type_name'] ?? '').toString(), flex: 2),
         ],
@@ -210,8 +212,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
       flex: flex,
       child: Text(
         text,
-        style: GoogleFonts.poppins(
-            color: AppColors.navyDark, fontSize: 12),
+        style: GoogleFonts.poppins(color: AppColors.navyDark, fontSize: 12),
         textAlign: TextAlign.center,
       ),
     );
@@ -235,7 +236,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
     final List<Map<String, dynamic>> groups = [];
     String? currentGroup;
     List<Map<String, dynamic>> currentItems = [];
-    
+
     for (var record in _records) {
       final crime = record['crime_type_name']?.toString() ?? 'Other';
       if (crime != currentGroup) {
@@ -277,7 +278,8 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
                     groupName,
                     style: GoogleFonts.poppins(
@@ -287,22 +289,25 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
                     ),
                   ),
                 ),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SizedBox(
-                        width: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000,
-                        child: Column(
-                          children: [
-                            _buildHeaderRow(),
-                            ...items.asMap().entries.map((e) => _buildDataRow(e.value, e.key)),
-                          ],
-                        ),
+                LayoutBuilder(builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: constraints.maxWidth > 1000
+                          ? constraints.maxWidth
+                          : 1000,
+                      child: Column(
+                        children: [
+                          _buildHeaderRow(),
+                          ...items
+                              .asMap()
+                              .entries
+                              .map((e) => _buildDataRow(e.value, e.key)),
+                        ],
                       ),
-                    );
-                  }
-                ),
+                    ),
+                  );
+                }),
               ],
             ),
           );

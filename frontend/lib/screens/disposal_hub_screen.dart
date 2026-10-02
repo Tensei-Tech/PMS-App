@@ -161,7 +161,8 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                 style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
               ),
               trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.navyMid.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -226,7 +227,8 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                 style: GoogleFonts.poppins(fontSize: 12),
               ),
               trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.navyMid.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -253,8 +255,8 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
     }
     if (_errorCrime != null) {
       return Center(
-          child:
-              Text(_errorCrime!, style: GoogleFonts.poppins(color: Colors.red)));
+          child: Text(_errorCrime!,
+              style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_crimeWiseData == null || _crimeWiseData!.isEmpty) {
       return const Center(child: Text("No data found"));
@@ -291,7 +293,8 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                 style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
               ),
               trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.navyMid.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
