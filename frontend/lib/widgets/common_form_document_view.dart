@@ -1419,7 +1419,8 @@ class CommonFormDocumentView extends StatelessWidget {
                     if (isPrBond)
                       (
                         label: 'PR Bond Date',
-                        value: _v(custody['prBondDate'] ?? custody['pr_bond_date']),
+                        value: _v(
+                            custody['prBondDate'] ?? custody['pr_bond_date']),
                         fullWidth: false,
                       ),
                     (
@@ -1679,10 +1680,15 @@ class CommonFormDocumentView extends StatelessWidget {
         [
           if (((prev['items'] as List?)?.isNotEmpty ?? false) ||
               ((m['preventive_actions'] as List?)?.isNotEmpty ?? false)) ...[
-            ...((prev['items'] as List?) ?? (m['preventive_actions'] as List?) ?? [])
+            ...((prev['items'] as List?) ??
+                    (m['preventive_actions'] as List?) ??
+                    [])
                 .map((it) {
               if (it is! Map) return const SizedBox.shrink();
-              final pName = _v(it['person_name'] ?? it['name'] ?? it['accusedName'] ?? it['person']);
+              final pName = _v(it['person_name'] ??
+                  it['name'] ??
+                  it['accusedName'] ??
+                  it['person']);
               final pAction = _v(it['action'] ?? it['action_type']);
               final pDate = _v(it['action_date'] ?? it['actionDate']);
               final pOut = _v(it['outward_number'] ?? it['outwardNumber']);
@@ -1698,7 +1704,11 @@ class CommonFormDocumentView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ..._pairedSimpleFields(context, [
-                      (label: 'Accused / Person', value: pName, fullWidth: false),
+                      (
+                        label: 'Accused / Person',
+                        value: pName,
+                        fullWidth: false
+                      ),
                       (label: 'Provision', value: pAction, fullWidth: false),
                       (label: 'Action Date 📅', value: pDate, fullWidth: false),
                       (label: 'Outward Number', value: pOut, fullWidth: false),

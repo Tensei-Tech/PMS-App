@@ -101,8 +101,9 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
           }
         }
       } else {
-        final combined = "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}"
-            .replaceAll(RegExp(r'^/|/$|//'), '');
+        final combined =
+            "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}"
+                .replaceAll(RegExp(r'^/|/$|//'), '');
         if (combined.isNotEmpty) {
           _dateCombinedCtrl.text = combined;
         } else {
@@ -110,7 +111,8 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
           _dateDayCtrl.text = now.day.toString().padLeft(2, '0');
           _dateMonthCtrl.text = now.month.toString().padLeft(2, '0');
           _dateYearCtrl.text = now.year.toString();
-          _dateCombinedCtrl.text = "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}";
+          _dateCombinedCtrl.text =
+              "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}";
         }
       }
       _panch1NameCtrl.text = data['panch1Name']?.toString() ?? '';

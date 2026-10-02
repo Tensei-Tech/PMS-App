@@ -243,8 +243,10 @@ class DynamicControlFactory extends StatelessWidget {
               : () async {
                   final now = DateTime.now();
                   DateTime initial = now;
-                  if (controller != null && controller!.text.trim().isNotEmpty) {
-                    final parts = controller!.text.trim().split(RegExp(r'[-/]'));
+                  if (controller != null &&
+                      controller!.text.trim().isNotEmpty) {
+                    final parts =
+                        controller!.text.trim().split(RegExp(r'[-/]'));
                     if (parts.length >= 3) {
                       final d = int.tryParse(parts[0]) ?? now.day;
                       final m = int.tryParse(parts[1]) ?? now.month;
@@ -473,9 +475,8 @@ class DynamicControlFactory extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: isChecked
-                          ? AppColors.navyDark
-                          : AppColors.lightText,
+                      color:
+                          isChecked ? AppColors.navyDark : AppColors.lightText,
                     ),
                   ),
                 ),
@@ -549,8 +550,7 @@ class DynamicControlFactory extends StatelessWidget {
                 pickedTime?.hour ?? initial.hour,
                 pickedTime?.minute ?? initial.minute,
               );
-              final formatted =
-                  DateFormat('dd/MM/yyyy HH:mm').format(finalDt);
+              final formatted = DateFormat('dd/MM/yyyy HH:mm').format(finalDt);
               if (dateController != null) {
                 dateController!.text = formatted;
               }

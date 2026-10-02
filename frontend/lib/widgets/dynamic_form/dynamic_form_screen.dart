@@ -16,7 +16,6 @@ import 'dynamic_field_model.dart';
 import 'dynamic_section_builder.dart';
 import '../repeating_cascading_charges_selector.dart';
 
-
 class DynamicFormScreen extends StatefulWidget {
   final dynamic categoryId;
   final String moduleLabel;
@@ -86,7 +85,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   final TextEditingController _preventiveDateCtrl = TextEditingController();
   final TextEditingController _preventiveOutwardCtrl = TextEditingController();
   final TextEditingController _preventiveBondDateCtrl = TextEditingController();
-  final TextEditingController _preventiveBondCancelDateCtrl = TextEditingController();
+  final TextEditingController _preventiveBondCancelDateCtrl =
+      TextEditingController();
   final List<Map<String, dynamic>> _preventiveActionsList = [];
   final List<Map<String, dynamic>> _unknownAccusedList = [];
 
@@ -247,7 +247,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     if (accData is List) {
       for (final item in accData) {
         if (item is Map) {
-          final n = (item['name'] ?? item['accused_name'])?.toString().trim() ?? '';
+          final n =
+              (item['name'] ?? item['accused_name'])?.toString().trim() ?? '';
           if (n.isNotEmpty) {
             _accusedList.add({
               'name': n,
@@ -255,7 +256,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               'gender': item['gender']?.toString().isNotEmpty == true
                   ? item['gender'].toString()
                   : 'Male',
-              'occupation': (item['occupation'] ?? item['occ'])?.toString() ?? '',
+              'occupation':
+                  (item['occupation'] ?? item['occ'])?.toString() ?? '',
               'mobile': item['mobile']?.toString() ?? '',
               'aadhaar': item['aadhaar']?.toString() ?? '',
               'pan': item['pan']?.toString() ?? '',
@@ -366,9 +368,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         final n = e.key.toString().trim();
         if (e.value is Map) {
           final dt = e.value['date'] ?? e.value['discharge_date'];
-          final rsn = e.value['reason'] ?? e.value['discharge_reason'];
           if (dt != null && dt.toString().isNotEmpty) {
-            _dischargeDateControllers.putIfAbsent(n, () => TextEditingController()).text = dt.toString();
+            _dischargeDateControllers
+                .putIfAbsent(n, () => TextEditingController())
+                .text = dt.toString();
           }
         }
       }
@@ -385,9 +388,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               _dischargedAccusedMap[n] = true;
             }
             final dt = item['discharge_date'] ?? item['date'];
-            final rsn = item['discharge_reason'] ?? item['reason'];
             if (dt != null && dt.toString().isNotEmpty) {
-              _dischargeDateControllers.putIfAbsent(n, () => TextEditingController()).text = dt.toString();
+              _dischargeDateControllers
+                  .putIfAbsent(n, () => TextEditingController())
+                  .text = dt.toString();
             }
           }
         } else if (item is String && item.trim().isNotEmpty) {
@@ -412,9 +416,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 _dischargedAccusedMap[n] = true;
               }
               final dt = ds['discharge_date'];
-              final rsn = ds['discharge_reason'];
               if (dt != null && dt.toString().isNotEmpty) {
-                _dischargeDateControllers.putIfAbsent(n, () => TextEditingController()).text = dt.toString();
+                _dischargeDateControllers
+                    .putIfAbsent(n, () => TextEditingController())
+                    .text = dt.toString();
               }
             }
           }
@@ -433,46 +438,39 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     if (suspData is List && suspData.isNotEmpty) {
       for (final it in suspData) {
         if (it is Map) {
-          final n = (it['name'] ??
-                  it['suspected_accused_name'] ??
-                  it['suspect_name'])
-              ?.toString()
-              .trim() ??
-              '';
+          final n =
+              (it['name'] ?? it['suspected_accused_name'] ?? it['suspect_name'])
+                      ?.toString()
+                      .trim() ??
+                  '';
           if (n.isNotEmpty) {
             _suspectedAccusedList.add({
               'name': n,
-              'age': (it['age'] ?? it['suspected_accused_age'] ?? '').toString(),
-              'gender': (it['gender'] ??
-                      it['suspected_accused_gender'] ??
-                      'Male')
-                  .toString(),
+              'age':
+                  (it['age'] ?? it['suspected_accused_age'] ?? '').toString(),
+              'gender':
+                  (it['gender'] ?? it['suspected_accused_gender'] ?? 'Male')
+                      .toString(),
               'occupation': (it['occupation'] ??
                       it['occ'] ??
                       it['suspected_accused_occupation'] ??
                       '')
                   .toString(),
-              'mobile': (it['mobile'] ??
-                      it['suspected_accused_mobile'] ??
-                      '')
+              'mobile': (it['mobile'] ?? it['suspected_accused_mobile'] ?? '')
                   .toString(),
-              'aadhaar': (it['aadhaar'] ??
-                      it['suspected_accused_aadhaar'] ??
-                      '')
+              'aadhaar':
+                  (it['aadhaar'] ?? it['suspected_accused_aadhaar'] ?? '')
+                      .toString(),
+              'pan':
+                  (it['pan'] ?? it['suspected_accused_pan'] ?? '').toString(),
+              'religion':
+                  (it['religion'] ?? it['suspected_accused_religion'] ?? '')
+                      .toString(),
+              'caste': (it['caste'] ?? it['suspected_accused_caste'] ?? '')
                   .toString(),
-              'pan': (it['pan'] ?? it['suspected_accused_pan'] ?? '').toString(),
-              'religion': (it['religion'] ??
-                      it['suspected_accused_religion'] ??
-                      '')
-                  .toString(),
-              'caste': (it['caste'] ??
-                      it['suspected_accused_caste'] ??
-                      '')
-                  .toString(),
-              'address': (it['address'] ??
-                      it['suspected_accused_address'] ??
-                      '')
-                  .toString(),
+              'address':
+                  (it['address'] ?? it['suspected_accused_address'] ?? '')
+                      .toString(),
               'role': 'suspected_accused',
             });
           }
@@ -575,28 +573,24 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       for (final it in unidentData) {
         if (it is Map) {
           _unidentifiedAccusedList.add({
-            'approximate_age': (it['approximate_age'] ??
-                    it['approx_age'] ??
-                    it['age'] ??
-                    '')
-                .toString(),
+            'approximate_age':
+                (it['approximate_age'] ?? it['approx_age'] ?? it['age'] ?? '')
+                    .toString(),
             'gender': (it['gender'] ?? 'Male').toString(),
-            'skin_colour': (it['skin_colour'] ?? it['skinColor'] ?? '')
-                .toString(),
-            'possible_occupation': (it['possible_occupation'] ??
-                    it['occupation'] ??
-                    '')
-                .toString(),
+            'skin_colour':
+                (it['skin_colour'] ?? it['skinColor'] ?? '').toString(),
+            'possible_occupation':
+                (it['possible_occupation'] ?? it['occupation'] ?? '')
+                    .toString(),
             'identification_mark': (it['identification_mark'] ??
                     it['identificationMarks'] ??
                     it['marks'] ??
                     '')
                 .toString(),
             'height': (it['height'] ?? '').toString(),
-            'description': (it['description'] ??
-                    it['physical_description'] ??
-                    '')
-                .toString(),
+            'description':
+                (it['description'] ?? it['physical_description'] ?? '')
+                    .toString(),
             'address': (it['address'] ?? it['area'] ?? '').toString(),
             'role': 'unidentified_accused',
           });
@@ -613,10 +607,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   (p['approximate_age'] ?? p['age'] ?? '').toString(),
               'gender': (p['gender'] ?? 'Male').toString(),
               'skin_colour': (p['skin_colour'] ?? '').toString(),
-              'possible_occupation': (p['possible_occupation'] ??
-                      p['occupation'] ??
-                      '')
-                  .toString(),
+              'possible_occupation':
+                  (p['possible_occupation'] ?? p['occupation'] ?? '')
+                      .toString(),
               'identification_mark':
                   (p['identification_mark'] ?? '').toString(),
               'height': (p['height'] ?? '').toString(),
@@ -629,20 +622,20 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       }
     }
     if (_unidentifiedAccusedList.isEmpty) {
-      final approxAge = (common['approximate_age'] ??
-              extra['approximate_age'] ??
-              '')
+      final approxAge =
+          (common['approximate_age'] ?? extra['approximate_age'] ?? '')
+              .toString()
+              .trim();
+      final skinCol = (common['skin_colour'] ?? extra['skin_colour'] ?? '')
           .toString()
           .trim();
-      final skinCol =
-          (common['skin_colour'] ?? extra['skin_colour'] ?? '').toString().trim();
-      final identMark = (common['identification_mark'] ??
-              extra['identification_mark'] ??
-              '')
+      final identMark =
+          (common['identification_mark'] ?? extra['identification_mark'] ?? '')
+              .toString()
+              .trim();
+      final desc = (common['description'] ?? extra['description'] ?? '')
           .toString()
           .trim();
-      final desc =
-          (common['description'] ?? extra['description'] ?? '').toString().trim();
       if (approxAge.isNotEmpty ||
           skinCol.isNotEmpty ||
           identMark.isNotEmpty ||
@@ -684,22 +677,21 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         for (final it in src) {
           if (it is Map) {
             final pName = (it['arrested_person_name'] ??
-                    it['person_name'] ??
-                    it['name'] ??
-                    it['accusedName'] ??
-                    it['accused'])
-                ?.toString()
-                .trim() ??
+                        it['person_name'] ??
+                        it['name'] ??
+                        it['accusedName'] ??
+                        it['accused'])
+                    ?.toString()
+                    .trim() ??
                 '';
             final dt =
                 (it['arrest_datetime'] ?? it['arrest_date'] ?? '').toString();
             final isSec = it['sec_47_48_bnss'] == true ||
                 it['sec_47_48_bnss'] == 'true' ||
                 it['sec4748Bnss'] == true;
-            final relName = (it['relative_friend_name'] ??
-                    it['relativeFriendName'] ??
-                    '')
-                .toString();
+            final relName =
+                (it['relative_friend_name'] ?? it['relativeFriendName'] ?? '')
+                    .toString();
             final relRel = (it['relative_friend_relation'] ??
                     it['relativeFriendRelation'] ??
                     '')
@@ -707,10 +699,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             final isNotice = it['release_on_notice'] == true ||
                 it['release_on_notice'] == 'true' ||
                 it['releaseOnNotice'] == true;
-            final noticeDt = (it['release_on_notice_datetime'] ??
-                    it['noticeDateTime'] ??
-                    '')
-                .toString();
+            final noticeDt =
+                (it['release_on_notice_datetime'] ?? it['noticeDateTime'] ?? '')
+                    .toString();
             final isAntBail = it['anticipatory_bail'] == true ||
                 it['anticipatory_bail'] == 'true' ||
                 it['anticipatoryBail'] == true;
@@ -789,11 +780,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               '')
           .toString()
           .trim();
-      final arrDt = (common['arrest_datetime'] ??
-              extra['arrest_datetime'] ??
-              '')
-          .toString()
-          .trim();
+      final arrDt =
+          (common['arrest_datetime'] ?? extra['arrest_datetime'] ?? '')
+              .toString()
+              .trim();
       if (arrName.isNotEmpty || arrDt.isNotEmpty) {
         _arrestRecordsList.add({
           'arrested_person_name': arrName.isNotEmpty
@@ -812,32 +802,28 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   extra['relative_friend_name'] ??
                   '')
               .toString(),
-          'relative_friend_relation':
-              (common['relative_friend_relation'] ??
-                      extra['relative_friend_relation'] ??
-                      '')
-                  .toString(),
+          'relative_friend_relation': (common['relative_friend_relation'] ??
+                  extra['relative_friend_relation'] ??
+                  '')
+              .toString(),
           'release_on_notice': common['release_on_notice'] == true ||
               extra['release_on_notice'] == true,
-          'release_on_notice_datetime':
-              (common['release_on_notice_datetime'] ??
-                      extra['release_on_notice_datetime'] ??
-                      '')
-                  .toString(),
+          'release_on_notice_datetime': (common['release_on_notice_datetime'] ??
+                  extra['release_on_notice_datetime'] ??
+                  '')
+              .toString(),
           'anticipatory_bail': common['anticipatory_bail'] == true ||
               extra['anticipatory_bail'] == true,
-          'anticipatory_bail_datetime':
-              (common['anticipatory_bail_datetime'] ??
-                      extra['anticipatory_bail_datetime'] ??
-                      '')
-                  .toString(),
+          'anticipatory_bail_datetime': (common['anticipatory_bail_datetime'] ??
+                  extra['anticipatory_bail_datetime'] ??
+                  '')
+              .toString(),
           'death_of_accused': common['death_of_accused'] == true ||
               extra['death_of_accused'] == true,
-          'death_of_accused_datetime':
-              (common['death_of_accused_datetime'] ??
-                      extra['death_of_accused_datetime'] ??
-                      '')
-                  .toString(),
+          'death_of_accused_datetime': (common['death_of_accused_datetime'] ??
+                  extra['death_of_accused_datetime'] ??
+                  '')
+              .toString(),
         });
       }
     }
@@ -858,14 +844,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         if (it is Map) {
           _unknownAccusedList.add(Map<String, dynamic>.from(it));
         } else if (it is String && it.trim().isNotEmpty) {
-          _unknownAccusedList.add({'name': it.trim(), 'role': 'unknown_accused'});
+          _unknownAccusedList
+              .add({'name': it.trim(), 'role': 'unknown_accused'});
         }
       }
     }
     final rawPersons = common['persons'] ?? extra['persons'];
     if (rawPersons is List) {
       for (final p in rawPersons) {
-        if (p is Map && (p['role'] == 'unknown_accused' || p['role'] == 'unknown')) {
+        if (p is Map &&
+            (p['role'] == 'unknown_accused' || p['role'] == 'unknown')) {
           final pName = p['name']?.toString() ?? 'Unknown Accused';
           if (!_unknownAccusedList.any((it) => it['name'] == pName)) {
             _unknownAccusedList.add({
@@ -1089,20 +1077,40 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 it['isBail'] == 'true';
             final suretyNm = it['surety_name'] ?? it['suretyName'] ?? '';
             final suretyAge = it['surety_age'] ?? it['suretyAge'] ?? '';
-            final suretyGender = (it['surety_gender'] ?? it['suretyGender'] ?? 'Male').toString();
-            final suretyOcc = it['surety_occupation'] ?? it['suretyOccupation'] ?? '';
-            final suretyMob = it['surety_mobile'] ?? it['surety_mobile_no'] ?? it['suretyMobile'] ?? '';
-            final suretyAadhaar = it['surety_aadhaar'] ?? it['surety_aadhaar_no'] ?? it['suretyAadhaar'] ?? '';
-            final suretyPan = it['surety_pan'] ?? it['surety_pan_no'] ?? it['suretyPan'] ?? '';
-            final suretyAddr = it['surety_address'] ?? it['suretyAddress'] ?? '';
-            final suretyRel = (it['surety_relation'] ?? it['relation_with_accused'] ?? it['suretyRelation'] ?? 'Father').toString();
+            final suretyGender =
+                (it['surety_gender'] ?? it['suretyGender'] ?? 'Male')
+                    .toString();
+            final suretyOcc =
+                it['surety_occupation'] ?? it['suretyOccupation'] ?? '';
+            final suretyMob = it['surety_mobile'] ??
+                it['surety_mobile_no'] ??
+                it['suretyMobile'] ??
+                '';
+            final suretyAadhaar = it['surety_aadhaar'] ??
+                it['surety_aadhaar_no'] ??
+                it['suretyAadhaar'] ??
+                '';
+            final suretyPan = it['surety_pan'] ??
+                it['surety_pan_no'] ??
+                it['suretyPan'] ??
+                '';
+            final suretyAddr =
+                it['surety_address'] ?? it['suretyAddress'] ?? '';
+            final suretyRel = (it['surety_relation'] ??
+                    it['relation_with_accused'] ??
+                    it['suretyRelation'] ??
+                    'Father')
+                .toString();
             final isJail = it['jail'] == true ||
                 it['isJail'] == true ||
                 it['jail'] == 'true' ||
                 it['isJail'] == 'true';
             final jailDt = it['jail_date'] ?? it['jailDate'] ?? '';
 
-            if (cName.toString().isNotEmpty || pcr.toString().isNotEmpty || isMcr || isBail) {
+            if (cName.toString().isNotEmpty ||
+                pcr.toString().isNotEmpty ||
+                isMcr ||
+                isBail) {
               _custodyRecordsList.add({
                 'name': cName.toString(),
                 'person_name': cName.toString(),
@@ -1145,17 +1153,42 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               'pcr_days': (rc['pcr_days'] ?? rc['pcrDays'] ?? '').toString(),
               'mcr': rc['mcr'] == true || rc['isMcr'] == true,
               'pr_bond': rc['pr_bond'] == true || rc['isPrBond'] == true,
-              'pr_bond_date': (rc['pr_bond_date'] ?? rc['prBondDate'] ?? '').toString(),
+              'pr_bond_date':
+                  (rc['pr_bond_date'] ?? rc['prBondDate'] ?? '').toString(),
               'bail': rc['bail'] == true || rc['isBail'] == true,
-              'surety_name': (rc['surety_name'] ?? rc['suretyName'] ?? '').toString(),
-              'surety_age': (rc['surety_age'] ?? rc['suretyAge'] ?? '').toString(),
-              'surety_gender': (rc['surety_gender'] ?? rc['suretyGender'] ?? 'Male').toString(),
-              'surety_occupation': (rc['surety_occupation'] ?? rc['suretyOccupation'] ?? '').toString(),
-              'surety_mobile': (rc['surety_mobile'] ?? rc['surety_mobile_no'] ?? rc['suretyMobile'] ?? '').toString(),
-              'surety_aadhaar': (rc['surety_aadhaar'] ?? rc['surety_aadhaar_no'] ?? rc['suretyAadhaar'] ?? '').toString(),
-              'surety_pan': (rc['surety_pan'] ?? rc['surety_pan_no'] ?? rc['suretyPan'] ?? '').toString(),
-              'surety_address': (rc['surety_address'] ?? rc['suretyAddress'] ?? '').toString(),
-              'surety_relation': (rc['surety_relation'] ?? rc['relation_with_accused'] ?? rc['suretyRelation'] ?? 'Father').toString(),
+              'surety_name':
+                  (rc['surety_name'] ?? rc['suretyName'] ?? '').toString(),
+              'surety_age':
+                  (rc['surety_age'] ?? rc['suretyAge'] ?? '').toString(),
+              'surety_gender':
+                  (rc['surety_gender'] ?? rc['suretyGender'] ?? 'Male')
+                      .toString(),
+              'surety_occupation':
+                  (rc['surety_occupation'] ?? rc['suretyOccupation'] ?? '')
+                      .toString(),
+              'surety_mobile': (rc['surety_mobile'] ??
+                      rc['surety_mobile_no'] ??
+                      rc['suretyMobile'] ??
+                      '')
+                  .toString(),
+              'surety_aadhaar': (rc['surety_aadhaar'] ??
+                      rc['surety_aadhaar_no'] ??
+                      rc['suretyAadhaar'] ??
+                      '')
+                  .toString(),
+              'surety_pan': (rc['surety_pan'] ??
+                      rc['surety_pan_no'] ??
+                      rc['suretyPan'] ??
+                      '')
+                  .toString(),
+              'surety_address':
+                  (rc['surety_address'] ?? rc['suretyAddress'] ?? '')
+                      .toString(),
+              'surety_relation': (rc['surety_relation'] ??
+                      rc['relation_with_accused'] ??
+                      rc['suretyRelation'] ??
+                      'Father')
+                  .toString(),
               'jail': rc['jail'] == true || rc['isJail'] == true,
               'jail_date': (rc['jail_date'] ?? rc['jailDate'] ?? '').toString(),
             });
@@ -1167,20 +1200,35 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     // Fallback if legacy flat fields exist
     if (_custodyRecordsList.isEmpty) {
       final pcr = common['pcr_days'] ?? extra['pcr_days'];
-      final isMcr = common['mcr'] == true || extra['mcr'] == true || common['mcr'] == 'true';
-      final isPrBond = common['pr_bond'] == true || extra['pr_bond'] == true || common['pr_bond'] == 'true';
+      final isMcr = common['mcr'] == true ||
+          extra['mcr'] == true ||
+          common['mcr'] == 'true';
+      final isPrBond = common['pr_bond'] == true ||
+          extra['pr_bond'] == true ||
+          common['pr_bond'] == 'true';
       final prBondDt = common['pr_bond_date'] ?? extra['pr_bond_date'] ?? '';
-      final isBail = common['bail'] == true || extra['bail'] == true || common['bail'] == 'true';
+      final isBail = common['bail'] == true ||
+          extra['bail'] == true ||
+          common['bail'] == 'true';
       final suretyNm = common['surety_name'] ?? extra['surety_name'] ?? '';
       final suretyAge = common['surety_age'] ?? extra['surety_age'] ?? '';
-      final suretyGender = (common['surety_gender'] ?? extra['surety_gender'] ?? 'Male').toString();
-      final suretyOcc = common['surety_occupation'] ?? extra['surety_occupation'] ?? '';
+      final suretyGender =
+          (common['surety_gender'] ?? extra['surety_gender'] ?? 'Male')
+              .toString();
+      final suretyOcc =
+          common['surety_occupation'] ?? extra['surety_occupation'] ?? '';
       final suretyMob = common['surety_mobile'] ?? extra['surety_mobile'] ?? '';
-      final suretyAadhaar = common['surety_aadhaar'] ?? extra['surety_aadhaar'] ?? '';
+      final suretyAadhaar =
+          common['surety_aadhaar'] ?? extra['surety_aadhaar'] ?? '';
       final suretyPan = common['surety_pan'] ?? extra['surety_pan'] ?? '';
-      final suretyAddr = common['surety_address'] ?? extra['surety_address'] ?? '';
-      final suretyRel = (common['surety_relation'] ?? extra['surety_relation'] ?? 'Father').toString();
-      final isJail = common['jail'] == true || extra['jail'] == true || common['jail'] == 'true';
+      final suretyAddr =
+          common['surety_address'] ?? extra['surety_address'] ?? '';
+      final suretyRel =
+          (common['surety_relation'] ?? extra['surety_relation'] ?? 'Father')
+              .toString();
+      final isJail = common['jail'] == true ||
+          extra['jail'] == true ||
+          common['jail'] == 'true';
       final jailDt = common['jail_date'] ?? extra['jail_date'] ?? '';
 
       if (pcr != null || isMcr || isBail) {
@@ -1216,7 +1264,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
     _values[key] = val;
   }
-
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
@@ -1309,9 +1356,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         finalArrestsList.add(Map<String, dynamic>.from(a));
       }
     } else {
-      final arrestedPerson = _controllers['arrested_person_name']?.text.trim() ??
-          _values['arrested_person_name']?.toString().trim() ??
-          '';
+      final arrestedPerson =
+          _controllers['arrested_person_name']?.text.trim() ??
+              _values['arrested_person_name']?.toString().trim() ??
+              '';
       if (arrestedPerson.isNotEmpty) {
         finalArrestsList.add({
           'arrested_person_name': arrestedPerson,
@@ -1449,8 +1497,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     } else {
       final approxAge = _controllers['approximate_age']?.text.trim() ?? '';
       final skinCol = _controllers['skin_colour']?.text.trim() ?? '';
-      final identMark =
-          _controllers['identification_mark']?.text.trim() ?? '';
+      final identMark = _controllers['identification_mark']?.text.trim() ?? '';
       final desc = _controllers['description']?.text.trim() ?? '';
       if (approxAge.isNotEmpty ||
           skinCol.isNotEmpty ||
@@ -1859,7 +1906,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
   }
 
-
   static const Map<String, String> _panchanamaKeyToName = {
     'spot_panchanama': 'Spot Panchanama',
     'seizure_panchanama': 'Seizure Panchanama',
@@ -1883,12 +1929,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             final nowStr =
                 DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
             _values[dateKey] = nowStr;
-            _controllers.putIfAbsent(dateKey, () => TextEditingController()).text =
-                nowStr;
+            _controllers
+                .putIfAbsent(dateKey, () => TextEditingController())
+                .text = nowStr;
           }
         }
       }
-      if (k == 'preventive_action_type' && v != null && v.toString().trim().isNotEmpty) {
+      if (k == 'preventive_action_type' &&
+          v != null &&
+          v.toString().trim().isNotEmpty) {
         final curDate = _controllers['preventive_action_date']?.text.trim() ??
             _values['preventive_action_date']?.toString().trim() ??
             '';
@@ -1896,7 +1945,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           final nowStr = DateFormat('dd/MM/yyyy').format(DateTime.now());
           _values['preventive_action_date'] = nowStr;
           _controllers
-              .putIfAbsent('preventive_action_date', () => TextEditingController())
+              .putIfAbsent(
+                  'preventive_action_date', () => TextEditingController())
               .text = nowStr;
         }
       }
@@ -2064,7 +2114,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     for (final entry in groupedBySection.entries) {
       if (!orderedSectionKeys.contains(entry.key) && entry.value.isNotEmpty) {
         final lower = entry.key.toLowerCase();
-        if (lower.contains('remand') || lower.contains('custody') || lower == 'bond') {
+        if (lower.contains('remand') ||
+            lower.contains('custody') ||
+            lower == 'bond') {
           continue;
         }
         sectionCards.add(
@@ -2144,7 +2196,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   : null));
     }
 
-
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -2209,7 +2260,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       ),
     );
   }
-
 
   List<String> _getAvailableAccusedNames() {
     final names = <String>{};
@@ -2692,7 +2742,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                       setState(() {
                                         _dischargedAccusedList.remove(accName);
                                         _dischargedAccusedMap[accName] = false;
-                                        _dischargeDateControllers.remove(accName);
+                                        _dischargeDateControllers
+                                            .remove(accName);
                                       });
                                     },
                                     tooltip: 'Remove',
@@ -2708,8 +2759,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                               readOnly: true,
                               onTap: widget.readOnly
                                   ? null
-                                  : () => _pickDateForController(
-                                      context, dateCtrl),
+                                  : () =>
+                                      _pickDateForController(context, dateCtrl),
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
@@ -2760,7 +2811,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ],
               ),
@@ -2810,8 +2861,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   _dischargeDateControllers.putIfAbsent(
                       val,
                       () => TextEditingController(
-                          text: DateFormat('dd/MM/yyyy')
-                              .format(DateTime.now())));
+                          text:
+                              DateFormat('dd/MM/yyyy').format(DateTime.now())));
                   _selectedAccusedToDischarge = null;
                 });
               }
@@ -2965,7 +3016,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             flex: 6,
                             child: DropdownButtonFormField<String>(
-                              value: selectedGender,
+                              initialValue: selectedGender,
                               decoration: InputDecoration(
                                 labelText: 'Gender',
                                 prefixIcon: const Icon(Icons.wc_rounded,
@@ -3064,8 +3115,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             child: TextFormField(
                               controller: panCtrl,
-                              textCapitalization:
-                                  TextCapitalization.characters,
+                              textCapitalization: TextCapitalization.characters,
                               style: GoogleFonts.poppins(
                                   fontSize: 13, color: AppColors.navyDark),
                               decoration: InputDecoration(
@@ -3181,8 +3231,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                     Navigator.pop(ctx);
                   }
                 },
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.navyMid),
                 child: Text(isEditing ? 'Save Changes' : 'Add Accused'),
               ),
             ],
@@ -3216,8 +3266,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 () => _accusedSectionExpanded = !_accusedSectionExpanded),
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.lg),
-              bottom: Radius.circular(
-                  _accusedSectionExpanded ? 0 : AppRadius.lg),
+              bottom:
+                  Radius.circular(_accusedSectionExpanded ? 0 : AppRadius.lg),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -3296,8 +3346,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                     ..._accusedList.asMap().entries.map((entry) {
                       final idx = entry.key;
                       final item = entry.value;
-                      final name = item['name']?.toString() ??
-                          'Accused #${idx + 1}';
+                      final name =
+                          item['name']?.toString() ?? 'Accused #${idx + 1}';
                       final age = item['age']?.toString() ?? '';
                       final gender = item['gender']?.toString() ?? '';
                       final mobile = item['mobile']?.toString() ?? '';
@@ -3351,9 +3401,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                   IconButton(
                                     icon: const Icon(Icons.edit_rounded,
                                         size: 18, color: AppColors.navyMid),
-                                    onPressed: () =>
-                                        _showAddEditAccusedDialog(
-                                            editIndex: idx),
+                                    onPressed: () => _showAddEditAccusedDialog(
+                                        editIndex: idx),
                                     tooltip: 'Edit Accused',
                                     splashRadius: 16,
                                   ),
@@ -3408,8 +3457,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 12),
                         shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.md)),
+                            borderRadius: BorderRadius.circular(AppRadius.md)),
                         side: const BorderSide(color: AppColors.navyMid),
                       ),
                       icon: const Icon(Icons.add_rounded, size: 18),
@@ -3564,17 +3612,14 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                             firstAcc['gender']?.toString().isNotEmpty == true
                                 ? firstAcc['gender'].toString()
                                 : 'Male';
-                        occCtrl.text =
-                            firstAcc['occupation']?.toString() ?? '';
-                        mobileCtrl.text =
-                            firstAcc['mobile']?.toString() ?? '';
+                        occCtrl.text = firstAcc['occupation']?.toString() ?? '';
+                        mobileCtrl.text = firstAcc['mobile']?.toString() ?? '';
                         aadhaarCtrl.text =
                             firstAcc['aadhaar']?.toString() ?? '';
                         panCtrl.text = firstAcc['pan']?.toString() ?? '';
                         religionCtrl.text =
                             firstAcc['religion']?.toString() ?? '';
-                        casteCtrl.text =
-                            firstAcc['caste']?.toString() ?? '';
+                        casteCtrl.text = firstAcc['caste']?.toString() ?? '';
                         addressCtrl.text =
                             firstAcc['address']?.toString() ?? '';
                       });
@@ -3651,7 +3696,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             flex: 6,
                             child: DropdownButtonFormField<String>(
-                              value: selectedGender,
+                              initialValue: selectedGender,
                               decoration: InputDecoration(
                                 labelText: 'Gender',
                                 prefixIcon: const Icon(Icons.wc_rounded,
@@ -3750,8 +3795,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             child: TextFormField(
                               controller: panCtrl,
-                              textCapitalization:
-                                  TextCapitalization.characters,
+                              textCapitalization: TextCapitalization.characters,
                               style: GoogleFonts.poppins(
                                   fontSize: 13, color: AppColors.navyDark),
                               decoration: InputDecoration(
@@ -3899,9 +3943,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         children: [
           // Header Bar
           InkWell(
-            onTap: () => setState(() =>
-                _suspectedAccusedSectionExpanded =
-                    !_suspectedAccusedSectionExpanded),
+            onTap: () => setState(() => _suspectedAccusedSectionExpanded =
+                !_suspectedAccusedSectionExpanded),
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.lg),
               bottom: Radius.circular(
@@ -4096,8 +4139,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 12),
                         shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.md)),
+                            borderRadius: BorderRadius.circular(AppRadius.md)),
                         side: const BorderSide(color: AppColors.navyMid),
                       ),
                       icon: const Icon(Icons.add_rounded, size: 18),
@@ -4154,8 +4196,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     var selectedGender = initial['gender']?.toString().isNotEmpty == true
         ? initial['gender'].toString()
         : 'Male';
-    final skinCtrl = TextEditingController(
-        text: initial['skin_colour']?.toString() ?? '');
+    final skinCtrl =
+        TextEditingController(text: initial['skin_colour']?.toString() ?? '');
     final heightCtrl =
         TextEditingController(text: initial['height']?.toString() ?? '');
     final occCtrl = TextEditingController(
@@ -4237,7 +4279,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             flex: 5,
                             child: DropdownButtonFormField<String>(
-                              value: selectedGender,
+                              initialValue: selectedGender,
                               decoration: InputDecoration(
                                 labelText: 'Gender',
                                 prefixIcon: const Icon(Icons.wc_rounded,
@@ -4443,9 +4485,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         children: [
           // Header Bar
           InkWell(
-            onTap: () => setState(() =>
-                _unidentifiedAccusedSectionExpanded =
-                    !_unidentifiedAccusedSectionExpanded),
+            onTap: () => setState(() => _unidentifiedAccusedSectionExpanded =
+                !_unidentifiedAccusedSectionExpanded),
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.lg),
               bottom: Radius.circular(
@@ -4532,8 +4573,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       final gender = item['gender']?.toString() ?? '';
                       final skin = item['skin_colour']?.toString() ?? '';
                       final height = item['height']?.toString() ?? '';
-                      final occ =
-                          item['possible_occupation']?.toString() ?? '';
+                      final occ = item['possible_occupation']?.toString() ?? '';
                       final mark =
                           item['identification_mark']?.toString() ?? '';
                       final desc = item['description']?.toString() ?? '';
@@ -4636,8 +4676,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                   _buildMiniTag(
                                       occ, Icons.work_outline_rounded),
                                 if (mark.isNotEmpty)
-                                  _buildMiniTag('Mark: $mark',
-                                      Icons.visibility_outlined),
+                                  _buildMiniTag(
+                                      'Mark: $mark', Icons.visibility_outlined),
                                 if (desc.isNotEmpty)
                                   _buildMiniTag('Desc: $desc',
                                       Icons.description_outlined),
@@ -4653,15 +4693,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   if (!widget.readOnly) ...[
                     const SizedBox(height: 8),
                     OutlinedButton.icon(
-                      onPressed: () =>
-                          _showAddEditUnidentifiedAccusedDialog(),
+                      onPressed: () => _showAddEditUnidentifiedAccusedDialog(),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.navyMid,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 12),
                         shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.md)),
+                            borderRadius: BorderRadius.circular(AppRadius.md)),
                         side: const BorderSide(color: AppColors.navyMid),
                       ),
                       icon: const Icon(Icons.add_rounded, size: 18),
@@ -4688,9 +4726,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     if (_arrestRecordsList.isNotEmpty) {
       final first = _arrestRecordsList.first;
       final pName = (first['arrested_person_name'] ??
-              first['person_name'] ??
-              first['name'])
-          ?.toString() ??
+                  first['person_name'] ??
+                  first['name'])
+              ?.toString() ??
           '';
       _controllers['arrested_person_name']?.text = pName;
       _values['arrested_person_name'] = pName;
@@ -4852,7 +4890,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       // Arrested Person Name Selector
                       if (!isCustomName) ...[
                         DropdownButtonFormField<String>(
-                          value: (selectedName != null &&
+                          initialValue: (selectedName != null &&
                                   availableNames.contains(selectedName))
                               ? selectedName
                               : null,
@@ -5024,9 +5062,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                             size: 16,
                                             color: AppColors.navyMid),
                                         border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(
-                                                    AppRadius.md)),
+                                            borderRadius: BorderRadius.circular(
+                                                AppRadius.md)),
                                         filled: true,
                                         fillColor: Colors.white,
                                       ),
@@ -5047,9 +5084,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                             size: 16,
                                             color: AppColors.navyMid),
                                         border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(
-                                                    AppRadius.md)),
+                                            borderRadius: BorderRadius.circular(
+                                                AppRadius.md)),
                                         filled: true,
                                         fillColor: Colors.white,
                                       ),
@@ -5093,9 +5129,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                   isReleaseOnNotice = val ?? false;
                                   if (isReleaseOnNotice &&
                                       noticeDateCtrl.text.isEmpty) {
-                                    noticeDateCtrl.text = DateFormat(
-                                            'dd/MM/yyyy HH:mm')
-                                        .format(DateTime.now());
+                                    noticeDateCtrl.text =
+                                        DateFormat('dd/MM/yyyy HH:mm')
+                                            .format(DateTime.now());
                                   }
                                 });
                               },
@@ -5118,8 +5154,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                         Icons.calendar_month_rounded,
                                         size: 16,
                                         color: AppColors.navyMid),
-                                    onPressed: () => _pickDateTime(
-                                        context, noticeDateCtrl),
+                                    onPressed: () =>
+                                        _pickDateTime(context, noticeDateCtrl),
                                   ),
                                   border: OutlineInputBorder(
                                       borderRadius:
@@ -5164,9 +5200,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                   isAnticipatoryBail = val ?? false;
                                   if (isAnticipatoryBail &&
                                       antBailDateCtrl.text.isEmpty) {
-                                    antBailDateCtrl.text = DateFormat(
-                                            'dd/MM/yyyy HH:mm')
-                                        .format(DateTime.now());
+                                    antBailDateCtrl.text =
+                                        DateFormat('dd/MM/yyyy HH:mm')
+                                            .format(DateTime.now());
                                   }
                                 });
                               },
@@ -5189,8 +5225,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                         Icons.calendar_month_rounded,
                                         size: 16,
                                         color: AppColors.navyMid),
-                                    onPressed: () => _pickDateTime(
-                                        context, antBailDateCtrl),
+                                    onPressed: () =>
+                                        _pickDateTime(context, antBailDateCtrl),
                                   ),
                                   border: OutlineInputBorder(
                                       borderRadius:
@@ -5234,9 +5270,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                 setDlgState(() {
                                   isDeath = val ?? false;
                                   if (isDeath && deathDateCtrl.text.isEmpty) {
-                                    deathDateCtrl.text = DateFormat(
-                                            'dd/MM/yyyy HH:mm')
-                                        .format(DateTime.now());
+                                    deathDateCtrl.text =
+                                        DateFormat('dd/MM/yyyy HH:mm')
+                                            .format(DateTime.now());
                                   }
                                 });
                               },
@@ -5259,8 +5295,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                         Icons.calendar_month_rounded,
                                         size: 16,
                                         color: AppColors.dangerRed),
-                                    onPressed: () => _pickDateTime(
-                                        context, deathDateCtrl),
+                                    onPressed: () =>
+                                        _pickDateTime(context, deathDateCtrl),
                                   ),
                                   border: OutlineInputBorder(
                                       borderRadius:
@@ -5359,8 +5395,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 () => _arrestSectionExpanded = !_arrestSectionExpanded),
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.lg),
-              bottom: Radius.circular(
-                  _arrestSectionExpanded ? 0 : AppRadius.lg),
+              bottom:
+                  Radius.circular(_arrestSectionExpanded ? 0 : AppRadius.lg),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -5440,9 +5476,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       final idx = entry.key;
                       final item = entry.value;
                       final name = (item['arrested_person_name'] ??
-                              item['person_name'] ??
-                              item['name'])
-                          ?.toString() ??
+                                  item['person_name'] ??
+                                  item['name'])
+                              ?.toString() ??
                           'Person #${idx + 1}';
                       final arrestDt =
                           item['arrest_datetime']?.toString() ?? '';
@@ -5508,9 +5544,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                   IconButton(
                                     icon: const Icon(Icons.edit_rounded,
                                         size: 18, color: AppColors.navyMid),
-                                    onPressed: () =>
-                                        _showAddEditArrestDialog(
-                                            editIndex: idx),
+                                    onPressed: () => _showAddEditArrestDialog(
+                                        editIndex: idx),
                                     tooltip: 'Edit Arrest Record',
                                     splashRadius: 16,
                                   ),
@@ -5586,8 +5621,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 12),
                         shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.md)),
+                            borderRadius: BorderRadius.circular(AppRadius.md)),
                         side: const BorderSide(color: AppColors.navyMid),
                       ),
                       icon: const Icon(Icons.add_rounded, size: 18),
@@ -5826,8 +5860,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 () => _preventiveSectionExpanded = !_preventiveSectionExpanded),
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.lg),
-              bottom:
-                  Radius.circular(_preventiveSectionExpanded ? 0 : AppRadius.lg),
+              bottom: Radius.circular(
+                  _preventiveSectionExpanded ? 0 : AppRadius.lg),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -5993,7 +6027,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                 width: 28,
                                 height: 28,
                                 decoration: BoxDecoration(
-                                  color: AppColors.navyMid.withValues(alpha: 0.1),
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.shield_rounded,
@@ -6004,7 +6039,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                 child: RichText(
                                   text: TextSpan(
                                     style: GoogleFonts.poppins(
-                                        fontSize: 13, color: AppColors.navyDark),
+                                        fontSize: 13,
+                                        color: AppColors.navyDark),
                                     children: [
                                       const TextSpan(
                                           text: 'Preventive Action for: '),
@@ -6043,13 +6079,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
-                                          child:
-                                              _buildPreventiveTypeDropdown(),
+                                          child: _buildPreventiveTypeDropdown(),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
-                                          child:
-                                              _buildPreventiveDateField(context),
+                                          child: _buildPreventiveDateField(
+                                              context),
                                         ),
                                       ],
                                     ),
@@ -6059,13 +6094,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
-                                          child:
-                                              _buildPreventiveOutwardField(),
+                                          child: _buildPreventiveOutwardField(),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
-                                          child:
-                                              _buildPreventiveBondDateField(context),
+                                          child: _buildPreventiveBondDateField(
+                                              context),
                                         ),
                                       ],
                                     ),
@@ -6076,7 +6110,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                       children: [
                                         Expanded(
                                           child:
-                                              _buildPreventiveBondCancelDateField(context),
+                                              _buildPreventiveBondCancelDateField(
+                                                  context),
                                         ),
                                         const SizedBox(width: 12),
                                         ElevatedButton.icon(
@@ -6118,7 +6153,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                     const SizedBox(height: 12),
                                     _buildPreventiveBondDateField(context),
                                     const SizedBox(height: 12),
-                                    _buildPreventiveBondCancelDateField(context),
+                                    _buildPreventiveBondCancelDateField(
+                                        context),
                                     const SizedBox(height: 12),
                                     SizedBox(
                                       width: double.infinity,
@@ -6195,8 +6231,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                               width: 34,
                               height: 34,
                               decoration: BoxDecoration(
-                                color:
-                                    AppColors.navyMid.withValues(alpha: 0.1),
+                                color: AppColors.navyMid.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.person_rounded,
@@ -6319,64 +6354,63 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   Widget _buildPreventiveTypeDropdown() {
-      final choices = (_formDef != null && _formDef!.preventiveItems.isNotEmpty)
-          ? _formDef!.preventiveItems
-          : DynamicControlFactory.preventiveActionChoices;
+    final choices = (_formDef != null && _formDef!.preventiveItems.isNotEmpty)
+        ? _formDef!.preventiveItems
+        : DynamicControlFactory.preventiveActionChoices;
 
-      final currentVal = choices.contains(_selectedPreventiveType)
-          ? _selectedPreventiveType
-          : choices.firstOrNull;
+    final currentVal = choices.contains(_selectedPreventiveType)
+        ? _selectedPreventiveType
+        : choices.firstOrNull;
 
-      return DropdownButtonFormField<String>(
-        key: ValueKey(currentVal),
-        initialValue: currentVal,
-        decoration: InputDecoration(
-          labelText: 'Preventive Action Type',
-          labelStyle:
-              GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: const BorderSide(color: AppColors.lightBorder),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: const BorderSide(color: AppColors.lightBorder),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide:
-                const BorderSide(color: AppColors.navyMid, width: 1.5),
-          ),
+    return DropdownButtonFormField<String>(
+      key: ValueKey(currentVal),
+      initialValue: currentVal,
+      decoration: InputDecoration(
+        labelText: 'Preventive Action Type',
+        labelStyle:
+            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
         ),
-        items: choices
-            .map((type) => DropdownMenuItem<String>(
-                  value: type,
-                  child: Text(
-                    type,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.navyDark,
-                    ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+        ),
+      ),
+      items: choices
+          .map((type) => DropdownMenuItem<String>(
+                value: type,
+                child: Text(
+                  type,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.navyDark,
                   ),
-                ))
-            .toList(),
-        onChanged: (val) {
-          if (val != null) {
-            setState(() {
-              _selectedPreventiveType = val;
-              if (_preventiveDateCtrl.text.isEmpty) {
-                _preventiveDateCtrl.text =
-                    DateFormat('dd/MM/yyyy').format(DateTime.now());
-              }
-            });
-          }
-        },
-      );
+                ),
+              ))
+          .toList(),
+      onChanged: (val) {
+        if (val != null) {
+          setState(() {
+            _selectedPreventiveType = val;
+            if (_preventiveDateCtrl.text.isEmpty) {
+              _preventiveDateCtrl.text =
+                  DateFormat('dd/MM/yyyy').format(DateTime.now());
+            }
+          });
+        }
+      },
+    );
   }
 
   Widget _buildPreventiveDateField(BuildContext context) {
@@ -6413,8 +6447,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide:
-              const BorderSide(color: AppColors.navyMid, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
         ),
       ),
     );
@@ -6476,7 +6509,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         suffixIcon: IconButton(
           icon: const Icon(Icons.calendar_month_rounded,
               size: 20, color: AppColors.navyMid),
-          onPressed: () => _pickDateForController(context, _preventiveBondDateCtrl),
+          onPressed: () =>
+              _pickDateForController(context, _preventiveBondDateCtrl),
           tooltip: 'Select date',
         ),
         border: OutlineInputBorder(
@@ -6489,8 +6523,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide:
-              const BorderSide(color: AppColors.navyMid, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
         ),
       ),
     );
@@ -6500,7 +6533,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     return TextFormField(
       controller: _preventiveBondCancelDateCtrl,
       readOnly: true,
-      onTap: () => _pickDateForController(context, _preventiveBondCancelDateCtrl),
+      onTap: () =>
+          _pickDateForController(context, _preventiveBondCancelDateCtrl),
       style: GoogleFonts.poppins(
         fontSize: 13,
         fontWeight: FontWeight.w500,
@@ -6517,7 +6551,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         suffixIcon: IconButton(
           icon: const Icon(Icons.calendar_month_rounded,
               size: 20, color: AppColors.navyMid),
-          onPressed: () => _pickDateForController(context, _preventiveBondCancelDateCtrl),
+          onPressed: () =>
+              _pickDateForController(context, _preventiveBondCancelDateCtrl),
           tooltip: 'Select date',
         ),
         border: OutlineInputBorder(
@@ -6530,14 +6565,14 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide:
-              const BorderSide(color: AppColors.navyMid, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
         ),
       ),
     );
   }
 
-  Future<void> _pickDateForController(BuildContext context, TextEditingController ctrl) async {
+  Future<void> _pickDateForController(
+      BuildContext context, TextEditingController ctrl) async {
     DateTime initial = DateTime.now();
     final cur = ctrl.text.trim();
     if (cur.isNotEmpty) {
@@ -6656,17 +6691,19 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       // Sync first action into controllers for backward compatibility
       if (_preventiveActionsList.isNotEmpty) {
         final first = _preventiveActionsList.first;
-        _controllers.putIfAbsent(
-            'preventive_action_type', () => TextEditingController()).text =
-            first['action_type'] ?? '';
+        _controllers
+            .putIfAbsent(
+                'preventive_action_type', () => TextEditingController())
+            .text = first['action_type'] ?? '';
         _values['preventive_action_type'] = first['action_type'];
-        _controllers.putIfAbsent(
-            'preventive_action_date', () => TextEditingController()).text =
-            first['action_date'] ?? '';
+        _controllers
+            .putIfAbsent(
+                'preventive_action_date', () => TextEditingController())
+            .text = first['action_date'] ?? '';
         _values['preventive_action_date'] = first['action_date'];
-        _controllers.putIfAbsent(
-            'preventive_outward_no', () => TextEditingController()).text =
-            first['outward_number'] ?? '';
+        _controllers
+            .putIfAbsent('preventive_outward_no', () => TextEditingController())
+            .text = first['outward_number'] ?? '';
         _values['preventive_outward_no'] = first['outward_number'];
       }
 
@@ -7048,8 +7085,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                 horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               border: Border.all(
                                 color: _isMcr
                                     ? AppColors.navyMid.withValues(alpha: 0.4)
@@ -7223,8 +7259,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20, vertical: 14),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppRadius.md)),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.md)),
                                   elevation: 0,
                                 ),
                                 icon: const Icon(Icons.check_circle_rounded,
@@ -7253,8 +7289,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 14),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppRadius.md)),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.md)),
                                   side: const BorderSide(
                                       color: AppColors.lightBorder),
                                 ),
@@ -7333,20 +7369,25 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
                       itemBuilder: (ctx, idx) {
                         final it = _custodyRecordsList[idx];
-                        final name = it['name'] ?? it['person_name'] ?? 'Accused';
+                        final name =
+                            it['name'] ?? it['person_name'] ?? 'Accused';
                         final pcr = it['pcr_days']?.toString() ?? '';
                         final isMcr = it['mcr'] == true;
                         final isPrBond = it['pr_bond'] == true;
                         final prBondDt = it['pr_bond_date']?.toString() ?? '';
                         final isBail = it['bail'] == true;
                         final suretyNm = it['surety_name']?.toString() ?? '';
-                        final suretyRel = it['surety_relation']?.toString() ?? '';
+                        final suretyRel =
+                            it['surety_relation']?.toString() ?? '';
                         final suretyAge = it['surety_age']?.toString() ?? '';
-                        final suretyGender = it['surety_gender']?.toString() ?? '';
+                        final suretyGender =
+                            it['surety_gender']?.toString() ?? '';
                         final suretyMob = it['surety_mobile']?.toString() ?? '';
-                        final suretyAadhaar = it['surety_aadhaar']?.toString() ?? '';
+                        final suretyAadhaar =
+                            it['surety_aadhaar']?.toString() ?? '';
                         final suretyPan = it['surety_pan']?.toString() ?? '';
-                        final suretyAddr = it['surety_address']?.toString() ?? '';
+                        final suretyAddr =
+                            it['surety_address']?.toString() ?? '';
                         final isJail = it['jail'] == true;
                         final jailDt = it['jail_date']?.toString() ?? '';
 
@@ -7366,7 +7407,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                     width: 32,
                                     height: 32,
                                     decoration: BoxDecoration(
-                                      color: AppColors.navyMid.withValues(alpha: 0.1),
+                                      color: AppColors.navyMid
+                                          .withValues(alpha: 0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(Icons.person_rounded,
@@ -7392,11 +7434,14 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                       onPressed: () => _editCustodyRecord(idx),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.delete_outline_rounded,
-                                          size: 18, color: AppColors.dangerRed),
+                                      icon: const Icon(
+                                          Icons.delete_outline_rounded,
+                                          size: 18,
+                                          color: AppColors.dangerRed),
                                       tooltip: 'Remove',
                                       splashRadius: 18,
-                                      onPressed: () => _removeCustodyRecord(idx),
+                                      onPressed: () =>
+                                          _removeCustodyRecord(idx),
                                     ),
                                   ],
                                 ],
@@ -7539,7 +7584,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               setState(() {
                 _isBail = !_isBail;
                 if (_isBail) {
-                  _isMcr = true; // Auto-activate MCR to satisfy legal constraint
+                  _isMcr =
+                      true; // Auto-activate MCR to satisfy legal constraint
                 }
               });
             },
@@ -7580,7 +7626,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: _isBail ? AppColors.navyDark : const Color(0xFF64748B),
+                      color: _isBail
+                          ? AppColors.navyDark
+                          : const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -7661,8 +7709,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                         color: isSelected
                                             ? const Color(0xFFE0F2FE)
                                             : Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(20),
+                                        borderRadius: BorderRadius.circular(20),
                                         border: Border.all(
                                           color: isSelected
                                               ? const Color(0xFF0EA5E9)
@@ -7802,10 +7849,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
                     // Row 6: Relation with Accused
                     DropdownButtonFormField<String>(
-                      initialValue: _suretyRelationChoices
-                              .contains(_suretyRelation)
-                          ? _suretyRelation
-                          : null,
+                      initialValue:
+                          _suretyRelationChoices.contains(_suretyRelation)
+                              ? _suretyRelation
+                              : null,
                       decoration: _suretyInputDeco('Relation with Accused'),
                       hint: Text(
                         'Relation with Accused',
@@ -7901,8 +7948,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide:
-              const BorderSide(color: AppColors.navyMid, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
         ),
       ),
     );
@@ -7945,9 +7991,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   void _populateCustodyFormForAccused(String name) {
     final existing = _custodyRecordsList.firstWhere(
       (it) =>
-          (it['name'] ?? it['person_name'] ?? '')
-              .toString()
-              .toLowerCase() ==
+          (it['name'] ?? it['person_name'] ?? '').toString().toLowerCase() ==
           name.toLowerCase(),
       orElse: () => <String, dynamic>{},
     );
@@ -8083,9 +8127,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     setState(() {
       final existingIndex = _custodyRecordsList.indexWhere(
         (it) =>
-            (it['name'] ?? it['person_name'] ?? '')
-                .toString()
-                .toLowerCase() ==
+            (it['name'] ?? it['person_name'] ?? '').toString().toLowerCase() ==
             accusedName.toLowerCase(),
       );
 
@@ -8197,8 +8239,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             TextField(
               controller: textCtrl,
               autofocus: true,
-              style: GoogleFonts.poppins(
-                  fontSize: 14, color: AppColors.navyDark),
+              style:
+                  GoogleFonts.poppins(fontSize: 14, color: AppColors.navyDark),
               decoration: InputDecoration(
                 hintText: 'e.g. Rahul Sharma',
                 prefixIcon: const Icon(Icons.person_outline_rounded,
@@ -8226,8 +8268,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               }
               Navigator.pop(ctx);
             },
-            style:
-                ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid),
             child: const Text('Select'),
           ),
         ],

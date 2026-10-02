@@ -20,7 +20,9 @@ Widget formDatePickerField(
     final d = dayCtrl.text.padLeft(2, '0');
     final m = monthCtrl.text.padLeft(2, '0');
     controller.text = yFull.isNotEmpty ? '$d/$m/$yFull' : '$d/$m';
-  } else if (controller.text.isNotEmpty && dayCtrl != null && dayCtrl.text.isEmpty) {
+  } else if (controller.text.isNotEmpty &&
+      dayCtrl != null &&
+      dayCtrl.text.isEmpty) {
     final parts = controller.text.split(RegExp(r'[/.-]'));
     if (parts.length >= 3) {
       dayCtrl.text = parts[0].trim();

@@ -1759,13 +1759,15 @@ class CommonFormState extends State<CommonForm> {
             : _prevAction,
         'actionDate': _preventiveActions.isNotEmpty
             ? ((_preventiveActions.first['actionDate']
-                    as TextEditingController?)
-                ?.text ?? '')
+                        as TextEditingController?)
+                    ?.text ??
+                '')
             : _prevActionDt.text,
         'outwardNumber': _preventiveActions.isNotEmpty
             ? ((_preventiveActions.first['outwardNumber']
-                    as TextEditingController?)
-                ?.text ?? '')
+                        as TextEditingController?)
+                    ?.text ??
+                '')
             : _outward.text,
         'bondDate': _bondDate.text,
         'bondReason': _bReason.text,
@@ -1792,8 +1794,7 @@ class CommonFormState extends State<CommonForm> {
         }).toList(),
       },
       'preventive_actions': _preventiveActions.map((pa) {
-        final typed =
-            (pa['personCtrl'] as TextEditingController?)?.text.trim();
+        final typed = (pa['personCtrl'] as TextEditingController?)?.text.trim();
         final chosen = pa['personName'] as String?;
         final name = (typed != null && typed.isNotEmpty) ? typed : chosen;
         return {
@@ -2265,7 +2266,8 @@ class CommonFormState extends State<CommonForm> {
     }
     // Ensure checked panchanama items always have a valid date displayed
     for (final k in _procChecks.keys) {
-      if (_procChecks[k] == true && (_procDates[k]?.text.trim().isEmpty ?? true)) {
+      if (_procChecks[k] == true &&
+          (_procDates[k]?.text.trim().isEmpty ?? true)) {
         _procDates[k]?.text = _regDate.text.isNotEmpty
             ? '${_regDate.text} 12:00'
             : _formatDateTimeDdMmYyyyHhMm(DateTime.now());
@@ -3019,7 +3021,8 @@ class CommonFormState extends State<CommonForm> {
     DateTime initialDateDay() {
       if (parsedExisting != null) {
         final dt = parsedExisting;
-        if (!dt.isBefore(DateTime(1900)) && !dt.isAfter(DateTime(2100))) return dt;
+        if (!dt.isBefore(DateTime(1900)) && !dt.isAfter(DateTime(2100)))
+          return dt;
       }
       return now;
     }

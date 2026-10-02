@@ -99,4 +99,3 @@ class ApiConfig {
   static String get actSections => '$baseUrl/act-sections/';
   static String get actSubsections => '$baseUrl/act-subsections/';
 }
-

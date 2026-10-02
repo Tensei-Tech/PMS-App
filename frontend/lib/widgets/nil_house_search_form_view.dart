@@ -259,7 +259,8 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
       _dateDayCtrl.text = now.day.toString().padLeft(2, '0');
       _dateMonthCtrl.text = now.month.toString().padLeft(2, '0');
       _dateYearCtrl.text = now.year.toString();
-      _dateCtrl.text = "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}";
+      _dateCtrl.text =
+          "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}";
     }
 
     _panch1Ctrl.text = data['panch1']?.toString() ?? '';
@@ -279,12 +280,14 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _summonDateYearCtrl.text = yr;
       }
-    } else if (_summonDateDayCtrl.text.isEmpty && _summonDateCtrl.text.isEmpty) {
+    } else if (_summonDateDayCtrl.text.isEmpty &&
+        _summonDateCtrl.text.isEmpty) {
       final now = DateTime.now();
       _summonDateDayCtrl.text = now.day.toString().padLeft(2, '0');
       _summonDateMonthCtrl.text = now.month.toString().padLeft(2, '0');
       _summonDateYearCtrl.text = now.year.toString();
-      _summonDateCtrl.text = "${_summonDateDayCtrl.text}/${_summonDateMonthCtrl.text}/${_summonDateYearCtrl.text}";
+      _summonDateCtrl.text =
+          "${_summonDateDayCtrl.text}/${_summonDateMonthCtrl.text}/${_summonDateYearCtrl.text}";
     }
 
     _mauzaCtrl.text = data['mauza']?.toString() ?? '';
@@ -318,7 +321,8 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
       _panchDateDayCtrl.text = now.day.toString().padLeft(2, '0');
       _panchDateMonthCtrl.text = now.month.toString().padLeft(2, '0');
       _panchDateYearCtrl.text = now.year.toString();
-      _panchDateCtrl.text = "${_panchDateDayCtrl.text}/${_panchDateMonthCtrl.text}/${_panchDateYearCtrl.text}";
+      _panchDateCtrl.text =
+          "${_panchDateDayCtrl.text}/${_panchDateMonthCtrl.text}/${_panchDateYearCtrl.text}";
     }
 
     _startTimeCtrl.text = data['startTime']?.toString() ?? '';

@@ -136,7 +136,8 @@ class _RepeatingCascadingChargesSelectorState
     final key = sectionId.toString();
     if (_subsectionsCache.containsKey(key)) return;
 
-    final subList = await _caseService.fetchActSubsections(sectionId: sectionId);
+    final subList =
+        await _caseService.fetchActSubsections(sectionId: sectionId);
     if (!mounted) return;
     setState(() {
       _subsectionsCache[key] = subList;
@@ -227,10 +228,14 @@ class _RepeatingCascadingChargesSelectorState
 
   Widget _buildSingleChargeCard(int index, ChargeItemData charge) {
     final actIdKey = charge.actId?.toString();
-    final availableSections = actIdKey != null ? (_sectionsCache[actIdKey] ?? []) : <Map<String, dynamic>>[];
+    final availableSections = actIdKey != null
+        ? (_sectionsCache[actIdKey] ?? [])
+        : <Map<String, dynamic>>[];
 
     final sectionIdKey = charge.sectionId?.toString();
-    final availableSubsections = sectionIdKey != null ? (_subsectionsCache[sectionIdKey] ?? []) : <Map<String, dynamic>>[];
+    final availableSubsections = sectionIdKey != null
+        ? (_subsectionsCache[sectionIdKey] ?? [])
+        : <Map<String, dynamic>>[];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -327,8 +332,7 @@ class _RepeatingCascadingChargesSelectorState
               return DropdownMenuItem<dynamic>(
                 value: s['id'],
                 child: Text(
-                  s['display_name']?.toString() ??
-                      'Sec ${s['section_number']}',
+                  s['display_name']?.toString() ?? 'Sec ${s['section_number']}',
                   overflow: TextOverflow.ellipsis,
                 ),
               );
@@ -342,7 +346,8 @@ class _RepeatingCascadingChargesSelectorState
                         (s) => s['id'] == val,
                         orElse: () => {},
                       );
-                      charge.sectionNumber = match['section_number']?.toString();
+                      charge.sectionNumber =
+                          match['section_number']?.toString();
                       charge.sectionTitle = match['section_title']?.toString();
                       charge.subsectionId = null;
                       charge.subsectionCode = null;
@@ -363,7 +368,8 @@ class _RepeatingCascadingChargesSelectorState
                 : (availableSubsections.isEmpty
                     ? 'No Subsections for this section'
                     : 'Select Subsection'),
-            value: availableSubsections.any((sub) => sub['id'] == charge.subsectionId)
+            value: availableSubsections
+                    .any((sub) => sub['id'] == charge.subsectionId)
                 ? charge.subsectionId
                 : null,
             items: availableSubsections.map((sub) {
@@ -418,7 +424,6 @@ class _RepeatingCascadingChargesSelectorState
         DropdownButtonFormField<T>(
           initialValue: value,
           isExpanded: true,
-
           decoration: InputDecoration(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

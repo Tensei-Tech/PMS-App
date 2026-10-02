@@ -600,12 +600,16 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             _grid2([
               _f('PR Bond', isPrBond ? 'Yes (✓)' : 'No'),
               if (isPrBond)
-                _f('PR Bond Date', _v(custody['prBondDate'] ?? custody['pr_bond_date'])),
+                _f('PR Bond Date',
+                    _v(custody['prBondDate'] ?? custody['pr_bond_date'])),
               _f('Jail', isJail ? 'Yes (✓)' : 'No'),
               if (isJail)
-                _f('Jail Date', _v(custody['jailDate'] ?? custody['jail_date'])),
+                _f('Jail Date',
+                    _v(custody['jailDate'] ?? custody['jail_date'])),
               _f('Bail Granted', isBail ? 'Yes (✓)' : 'No'),
-              if (isJail) _f('Jail Name / Details', _v(custody['mcrJail'] ?? custody['jailName'])),
+              if (isJail)
+                _f('Jail Name / Details',
+                    _v(custody['mcrJail'] ?? custody['jailName'])),
             ]),
             if (isBail) ...[
               pw.SizedBox(height: 8),
@@ -805,7 +809,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── §15 Preventive Action & Bonds ─────────────────────────────────────────
   final prev = m['preventive'] as Map? ?? {};
-  final prevItems = (prev['items'] as List?) ?? (m['preventive_actions'] as List?) ?? [];
+  final prevItems =
+      (prev['items'] as List?) ?? (m['preventive_actions'] as List?) ?? [];
   sections.add(
     _card(
       15,
@@ -817,7 +822,10 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
           if (prevItems.isNotEmpty) ...[
             ...prevItems.map((it) {
               if (it is! Map) return pw.SizedBox();
-              final pName = _v(it['person_name'] ?? it['name'] ?? it['accusedName'] ?? it['person']);
+              final pName = _v(it['person_name'] ??
+                  it['name'] ??
+                  it['accusedName'] ??
+                  it['person']);
               final pAction = _v(it['action'] ?? it['action_type']);
               final pDate = _v(it['action_date'] ?? it['actionDate']);
               final pOut = _v(it['outward_number'] ?? it['outwardNumber']);
@@ -846,7 +854,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             _f('Bond Date', _v(prev['bondDate'])),
             _f('Bond Cancellation Date',
                 _v(prev['bondCancellation'] ?? prev['bondCancelDate'])),
-            _f('Reason for PR Bond', _v(prev['bondReason'] ?? prev['prBondReason']),
+            _f('Reason for PR Bond',
+                _v(prev['bondReason'] ?? prev['prBondReason']),
                 full: true),
           ]),
         ],
