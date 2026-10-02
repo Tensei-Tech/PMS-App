@@ -727,8 +727,10 @@ class CounterServiceTests(TestCase):
             title='Test',
             case_number='CR_1',
             station_name='Central',
-            extra_fields={'ccStNumber': '123'}
+            extra_fields={}
         )
+        FinalVerdict.objects.create(case=c, cc_st_number='123')
+        
         # Link it to cat1
         CaseCategoryLink.objects.create(case=c, category=self.cat1)
 
