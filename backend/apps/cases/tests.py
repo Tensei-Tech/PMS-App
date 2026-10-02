@@ -141,9 +141,9 @@ class CaseManagementAPITests(TestCase):
             unauth_client = APIClient()
             with self.subTest(url=url, method=method):
                 if method == 'get':
-                    response = unauth_client.get(url)
+                    response = unauth_client.get(url, HTTP_X_STATE_CODE='MH')
                 else:
-                    response = unauth_client.post(url, {}, format='json')
+                    response = unauth_client.post(url, {}, format='json', HTTP_X_STATE_CODE='MH')
                 self.assertEqual(
                     response.status_code,
                     status.HTTP_401_UNAUTHORIZED,
